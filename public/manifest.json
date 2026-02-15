@@ -1,0 +1,23 @@
+{
+  "name": "엑스딕(X-DIC) - 한영/영한 복합어 전문 사전",
+  "short_name": "엑스딕",
+  "description": "복합어와 전문용어, 띄어쓰기 걱정 없이 한 번에! 3단계 정밀 검색과 음성 인식을 지원하는 차세대 전문 사전.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0EA5E9",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
