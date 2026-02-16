@@ -1,5 +1,5 @@
 // app/page.tsx
-// 🖥️ PC 웹사이트 메인 페이지 (auth-helpers + PC 3단계 검색 로직)
+// ✅ 통합 기준: 서버 검색 로직은 여기 1곳에서만 유지 (PC 3단계 “만능”)
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -21,9 +21,14 @@ const rotateResults = (items: any[], keyword: string) => {
     const bText = (b.line_text || '').toLowerCase();
 
     const isExactA =
-      aText === lowerKeyword || aText.startsWith(lowerKeyword + ' ') || aText.startsWith(lowerKeyword + ':');
+      aText === lowerKeyword ||
+      aText.startsWith(lowerKeyword + ' ') ||
+      aText.startsWith(lowerKeyword + ':');
     const isExactB =
-      bText === lowerKeyword || bText.startsWith(lowerKeyword + ' ') || bText.startsWith(lowerKeyword + ':');
+      bText === lowerKeyword ||
+      bText.startsWith(lowerKeyword + ' ') ||
+      bText.startsWith(lowerKeyword + ':');
+
     if (isExactA && !isExactB) return -1;
     if (!isExactA && isExactB) return 1;
 
@@ -57,7 +62,7 @@ const rotateResults = (items: any[], keyword: string) => {
   return rotated;
 };
 
-export default async function Page({ searchParams }: { searchParams: { q?: string } }) {
+export default async function Page({ searchParams }: { searchParams: { q?: string; app?: string } }) {
   const query = searchParams.q || '';
   const supabase = createServerComponentClient({ cookies });
 
@@ -65,14 +70,12 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
   let highlightKeys: string[] = [query.trim()];
 
   const cleanQuery = query.trim();
-
-  // ✅ 공백 제외 2글자 미만 차단(PC 기준)
   const noSpaceLen = cleanQuery.replace(/\s+/g, '').length;
 
   if (cleanQuery && noSpaceLen >= 2) {
     try {
       // ---------------------------------------------------------
-      // [STEP 0] 하이라이트 확장 (Category 0번 참조)
+      // [STEP 0] 하이라이트 확장 (Category 0번)
       // ---------------------------------------------------------
       const { data: cat0Data } = await supabase
         .from('dictionary_lines')
@@ -109,7 +112,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
         if (d2 && d2.length > 0) results = d2;
       }
 
-      // STEP 3 (합치기)
+      // STEP 3
       if (results.length === 0 && step3) {
         const { data: d3 } = await supabase.rpc('search_dictionary_v8', { keyword: step3 });
         if (d3 && d3.length > 0) results = d3;
@@ -135,5 +138,8 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
     }
   }
 
-  return <SearchPage query={query} results={results} highlightList={highlightKeys} />;
+  // ✅ app=1이면 광고/배너 숨김 (SearchPage에서 URL로도 감지함)
+  const isApp = searchParams.app === '1';
+
+  return <SearchPage query={query} results={results} highlightList={highlightKeys} isApp={isApp} />;
 }

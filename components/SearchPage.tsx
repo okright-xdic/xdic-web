@@ -54,7 +54,7 @@ export default function SearchPage({ query, results, highlightList = [] }: Searc
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  const displayQuery = (query || '').trim(); // 화면 표시용
+  const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
   useEffect(() => {
@@ -169,10 +169,7 @@ export default function SearchPage({ query, results, highlightList = [] }: Searc
             <SearchInput initialQuery={displayQuery} />
           </div>
 
-          {/* ✅ 검색 화면에서도 최근 검색어가 보이게 유지(즉시 갱신 체감) */}
-          <div className="mt-4">
-            <RecentKeywords />
-          </div>
+          {/* ✅ (요청 반영) 검색창 하단 “최근 검색어” 중복 표시 제거 */}
         </header>
       </div>
 
@@ -192,15 +189,16 @@ export default function SearchPage({ query, results, highlightList = [] }: Searc
                     </span>
                   </div>
 
-                  <ul className="space-y-1">
+                  {/* ✅ (요청 반영) 줄 간격/패딩 축소 */}
+                  <ul className="space-y-0.5">
                     {currentItems.map((item, idx) => (
                       <React.Fragment key={String(item.id)}>
-                        <li className="group bg-white rounded-lg py-2 px-3 border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all duration-200">
-                          <div className="flex items-center justify-between gap-4">
+                        <li className="group bg-white rounded-lg py-1.5 px-3 border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all duration-200">
+                          <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-3 flex-1">
                               <button
                                 onClick={() => handleSpeak(item.line_text)}
-                                className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                className="flex-shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
                                 title="발음 듣기"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -208,7 +206,9 @@ export default function SearchPage({ query, results, highlightList = [] }: Searc
                                 </svg>
                               </button>
 
-                              <div className="text-base md:text-lg leading-snug break-keep">{highlightMatch(item.line_text)}</div>
+                              <div className="text-base md:text-lg leading-snug break-keep">
+                                {highlightMatch(item.line_text)}
+                              </div>
                             </div>
 
                             <span
