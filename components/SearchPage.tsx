@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import RecentKeywords from '@/components/RecentKeywords';
 import PopularKeywords from '@/components/PopularKeywords';
 import TrendGraph from '@/components/TrendGraph';
+import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
 
 interface SearchResult {
   id: string | number;
@@ -36,19 +37,6 @@ const CATEGORY_NAMES: Record<number, string> = {
   11: '과학기술기타용어',
   12: '기타',
 };
-
-const AdPlaceholder = ({ label }: { label: string }) => (
-  <div className="w-full my-8 px-2">
-    <div className="flex flex-col items-center">
-      <span className="text-[10px] text-slate-400 tracking-[0.2em] mb-2 uppercase font-bold text-center w-full">
-        광고(ADVERTISEMENT)
-      </span>
-      <div className="w-full min-h-[160px] bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center shadow-sm text-slate-300 italic text-sm">
-        {label}
-      </div>
-    </div>
-  </div>
-);
 
 export default function SearchPage({ query, results, highlightList = [] }: SearchPageProps) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -168,8 +156,6 @@ export default function SearchPage({ query, results, highlightList = [] }: Searc
           <div className="w-full">
             <SearchInput initialQuery={displayQuery} />
           </div>
-
-          {/* ✅ (요청 반영) 검색창 하단 “최근 검색어” 중복 표시 제거 */}
         </header>
       </div>
 
@@ -189,16 +175,15 @@ export default function SearchPage({ query, results, highlightList = [] }: Searc
                     </span>
                   </div>
 
-                  {/* ✅ (요청 반영) 줄 간격/패딩 축소 */}
-                  <ul className="space-y-0.5">
+                  <ul className="space-y-1">
                     {currentItems.map((item, idx) => (
                       <React.Fragment key={String(item.id)}>
-                        <li className="group bg-white rounded-lg py-1.5 px-3 border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all duration-200">
-                          <div className="flex items-center justify-between gap-3">
+                        <li className="group bg-white rounded-lg py-2 px-3 border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all duration-200">
+                          <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3 flex-1">
                               <button
                                 onClick={() => handleSpeak(item.line_text)}
-                                className="flex-shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
                                 title="발음 듣기"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -220,7 +205,14 @@ export default function SearchPage({ query, results, highlightList = [] }: Searc
                           </div>
                         </li>
 
-                        {idx === 6 && <AdPlaceholder label="Google AdSense - Feed Ad" />}
+                        {/* ✅ PC_검색결과_중간 (7번째 아래) */}
+                        {idx === 6 && (
+                          <AdSensePlaceholder
+                            adSlot="8675599033"
+                            debugLabel="PC_검색결과_중간"
+                            minHeight={200}
+                          />
+                        )}
                       </React.Fragment>
                     ))}
                   </ul>
@@ -277,9 +269,13 @@ export default function SearchPage({ query, results, highlightList = [] }: Searc
                     </div>
                   )}
 
-                  <div className="mt-8">
-                    <AdPlaceholder label="Google AdSense - Bottom Ad" />
-                  </div>
+                  {/* ✅ PC_검색결과_하단 */}
+                  <AdSensePlaceholder
+                    adSlot="2218001895"
+                    debugLabel="PC_검색결과_하단"
+                    minHeight={250}
+                  />
+
                   <div className="py-8 text-center border-t border-slate-100 mt-8">
                     <p className="text-sm text-slate-400">{results.length}개의 결과를 모두 확인했습니다.</p>
                   </div>

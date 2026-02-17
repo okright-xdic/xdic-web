@@ -8,7 +8,7 @@ import Footer from '@/components/Footer';
 import PopularKeywords from '@/components/PopularKeywords';
 import RecentKeywords from '@/components/RecentKeywords';
 import TrendGraph from '@/components/TrendGraph';
-import AdSensePlaceholder from '@/components/AdSensePlaceholder';
+import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
 
 export default function TrendPage() {
   return (
@@ -59,8 +59,11 @@ export default function TrendPage() {
 
           {/* 광고 영역 */}
           <div className="my-6">
-            <AdSensePlaceholder />
-          </div>
+  <AdSensePlaceholder
+    adSlot="9488087447"
+    debugLabel="PC_주간트랜드_더보기_중간"
+  />
+</div>
 
           {/* 하단 서브 메뉴들 (Snap11 구조와 동일하게 배치) */}
           <section className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-12">

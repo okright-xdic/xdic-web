@@ -7,7 +7,7 @@ import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import PopularKeywords from '@/components/PopularKeywords'; // 진짜 인기 검색어 컴포넌트
 import TrendGraph from '@/components/TrendGraph';
-import AdSensePlaceholder from '@/components/AdSensePlaceholder';
+import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
 import RecentKeywords from '@/components/RecentKeywords'; // 우측 사이드바용
 
 export default function PopularPage() {
@@ -85,8 +85,11 @@ export default function PopularPage() {
             </aside>
           </div>
 
-          {/* 하단 광고 영역 */}
-          <AdSensePlaceholder />
+{/* PC_인기검색어_더보기_하단 */}
+<AdSensePlaceholder
+  adSlot="5466350874"
+  debugLabel="PC_인기검색어_더보기_하단"
+/>
 
         </div>
       </main>

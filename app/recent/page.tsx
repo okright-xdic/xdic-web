@@ -8,7 +8,7 @@ import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import PopularKeywords from '@/components/PopularKeywords'; // 인기 검색어 복구
 import TrendGraph from '@/components/TrendGraph';       // 트렌드 복구
-import AdSensePlaceholder from '@/components/AdSensePlaceholder'; // 광고 복구
+import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder'; // 광고 복구
 
 // 🎨 17가지 파스텔톤 캔디 컬러 팔레트
 const COLOR_PALETTES = [
@@ -176,8 +176,11 @@ export default function RecentPage() {
           {/* [섹션 2] 나머지 친구들 복구 (광고 + 인기 + 트렌드 + 배너) */}
           {/* ======================================================== */}
           
-          {/* 광고 배너 */}
-          <AdSensePlaceholder />
+{/* PC_최신검색어_더보기_중간 */}
+<AdSensePlaceholder
+  adSlot="2840187537"
+  debugLabel="PC_최신검색어_더보기_중간"
+/>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
