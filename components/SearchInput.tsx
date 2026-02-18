@@ -34,7 +34,7 @@ export default function SearchInput({
 
   // ✅ always ON(빨간 테두리 유지)
   const [micOn, setMicOn] = useState(false);
-  // ✅ 실제로 지금 “듣는 중”인지(마이크 펄스/문구)
+  // ✅ 실제로 지금 “듣는 중”인지(마이크 펄스/상태)
   const [isListening, setIsListening] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -221,7 +221,6 @@ export default function SearchInput({
 
   const hardStopRecognition = () => {
     if (recognitionRef.current) {
-      // ✅ 여기서 “?.로 대입” 금지! (컴파일 에러 원인)
       try {
         recognitionRef.current.onstart = null;
         recognitionRef.current.onresult = null;
@@ -298,7 +297,7 @@ export default function SearchInput({
     recognitionRef.current = recognition;
 
     recognition.lang = 'ko-KR';
-    recognition.continuous = false;     // 한 문장 단위로 받고 끝나면 재시작
+    recognition.continuous = false; // 한 문장 단위로 받고 끝나면 재시작
     recognition.interimResults = false; // 모바일 요동 방지(중간결과 X)
     recognition.maxAlternatives = 1;
 
@@ -320,7 +319,7 @@ export default function SearchInput({
         return;
       }
 
-      // ✅ “듣는 중 요동” 방지: 최종 결과만 setQuery
+      // ✅ 최종 결과만 반영
       setQuery(transcript);
       goSearch(transcript);
 
@@ -333,7 +332,6 @@ export default function SearchInput({
       setIsListening(false);
 
       const err = String(e?.error || '');
-      // 권한/오디오 장치 문제면 ON 끄고 종료
       if (err === 'not-allowed' || err === 'service-not-allowed' || err === 'audio-capture') {
         micOnRef.current = false;
         setMicOn(false);
@@ -344,14 +342,12 @@ export default function SearchInput({
         return;
       }
 
-      // transient error는 재시작(backoff)
       scheduleRestart();
     };
 
     recognition.onend = () => {
       if (!isMountedRef.current) return;
       setIsListening(false);
-
       if (micOnRef.current) scheduleRestart();
     };
 
@@ -385,10 +381,8 @@ export default function SearchInput({
       if (!micOnRef.current) return;
 
       if (document.visibilityState === 'visible') {
-        // 보이는 상태로 돌아오면 다시 듣기
         scheduleRestart();
       } else {
-        // 숨겨지면 하드스탑(브라우저가 음성 객체를 얼려버리는 경우 방지)
         stopListeningLoop(true);
       }
     };
@@ -444,7 +438,7 @@ export default function SearchInput({
             autoComplete="off"
           />
 
-          {/* 버튼 영역: 모바일과 동일한 감각(아이콘 중심, 텍스트는 md 이상만) */}
+          {/* 버튼 영역: 모바일 감각(아이콘 중심, 텍스트는 md 이상만) */}
           <div className="flex items-center gap-1.5 md:gap-2 pr-2">
             {query && !isPending && (
               <button
@@ -502,9 +496,13 @@ export default function SearchInput({
           </div>
         </div>
 
-        {/* Always ON이면 문구 유지 */}
-        <div className={`mt-2 h-5 text-xs md:text-sm text-center ${micOn ? 'text-red-500' : 'text-transparent'}`}>
-          {micOn ? (isListening ? '듣고 있습니다... (말씀하세요)' : '마이크 ON 상태로 대기 중입니다') : ' '}
+        {/* ✅ 요청하신 Tip 문구로 교체 + 부분 강조(폰트 +2, 컬러) */}
+        <div className="mt-2 text-center text-xs md:text-sm text-slate-500 leading-relaxed">
+          (Tip){' '}
+          <span className="text-sm md:text-base text-orange-500 font-bold">영어로 음성 검색시</span>
+          <span> 혀를 굴려서 </span>
+          <span className="text-sm md:text-base text-blue-600 font-bold">원어민처럼 발음하면</span>
+          <span> , 영어로 검색이 됩니다. Ha Ha.</span>
         </div>
       </form>
     </div>
