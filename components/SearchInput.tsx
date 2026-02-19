@@ -434,17 +434,18 @@ export default function SearchInput({
               placeholder ||
               (micOn ? '🎙️ 마이크 ON: 말씀하세요 (계속 대기)' : '① 마이크 클릭 후 음성 검색 ② 한글/영단어 입력 후 엔터 또는 검색 클릭!')
             }
-            className="flex-grow h-full px-4 md:px-6 text-sm md:text-base text-slate-700 placeholder:text-slate-400 outline-none bg-transparent"
+            // ✅ 핵심: min-w-0 추가 (모바일에서 버튼 밀려나가 잘리는 현상 방지)
+            className="flex-1 min-w-0 h-full px-4 md:px-6 text-sm md:text-base text-slate-700 placeholder:text-slate-400 outline-none bg-transparent"
             autoComplete="off"
           />
 
-          {/* 버튼 영역: 모바일 감각(아이콘 중심, 텍스트는 md 이상만) */}
-          <div className="flex items-center gap-1.5 md:gap-2 pr-2">
+          {/* ✅ 모바일에서 버튼들이 오른쪽에서 잘리지 않게: pr 증가 + gap 소폭 감소 + 검색버튼 px 축소 */}
+          <div className="flex items-center gap-1 md:gap-2 pr-3 md:pr-2 shrink-0">
             {query && !isPending && (
               <button
                 type="button"
                 onClick={handleClear}
-                className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center
+                className="shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center
                   text-slate-300 hover:text-slate-600 hover:bg-slate-100 transition-all"
                 title="지우기"
                 aria-label="지우기"
@@ -459,7 +460,7 @@ export default function SearchInput({
               type="button"
               onClick={handleMicToggle}
               disabled={isPending}
-              className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all
+              className={`shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all
                 ${
                   micOn
                     ? isListening
@@ -482,8 +483,8 @@ export default function SearchInput({
             <button
               type="submit"
               disabled={isPending}
-              className="h-9 md:h-10 px-4 md:px-6 rounded-full bg-slate-900 text-white font-bold
-                hover:bg-slate-800 transition-all flex items-center gap-1.5"
+              className="shrink-0 h-9 md:h-10 px-3 md:px-6 min-w-[44px] rounded-full bg-slate-900 text-white font-bold
+                hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5"
               title="검색"
               aria-label="검색"
             >
@@ -496,13 +497,15 @@ export default function SearchInput({
           </div>
         </div>
 
-        {/* ✅ 요청하신 Tip 문구로 교체 + 부분 강조(폰트 +2, 컬러) */}
+        {/* ✅ Tip 문구 수정 및 강조 적용 */}
         <div className="mt-2 text-center text-xs md:text-sm text-slate-500 leading-relaxed">
-          (Tip){' '}
+          <span className="font-bold">(Tip)</span>{' '}
           <span className="text-sm md:text-base text-orange-500 font-bold">영어로 음성 검색시</span>
           <span> 혀를 굴려서 </span>
           <span className="text-sm md:text-base text-blue-600 font-bold">원어민처럼 발음하면</span>
-          <span> , 영어로 검색이 됩니다. Ha Ha.</span>
+          <span>
+            , 영어로 검색이 됩니다. <span className="font-bold">Ha Ha.</span>
+          </span>
         </div>
       </form>
     </div>
