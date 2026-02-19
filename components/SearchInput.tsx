@@ -418,6 +418,20 @@ export default function SearchInput({
   return (
     <div className={`relative w-full ${className}`}>
       <form onSubmit={handleSearch} className="w-full">
+        {/* ✅ 검색창 바로 위 3문단(요청 반영) */}
+        <div className="w-full mb-2">
+          <div className="text-center text-[12px] md:text-sm text-slate-600 leading-snug">
+            <p className="animate-[pulse_2.8s_ease-in-out_infinite]">
+              두 단어 이상{' '}
+              <span className="text-blue-600 font-bold text-[13px] md:text-[15px]">전문용어 검색</span>
+              에 효과적(
+              <span className="text-slate-900 font-extrabold text-[13px] md:text-[15px]">간단한 회화</span> Okay)!!!
+            </p>
+            <p className="mt-1">① 마이크 클릭 후 음성 검색 (해제시 마이크 클릭)</p>
+            <p>② 단어 입력 후 Enter/&apos;검색&apos; 버튼 클릭! (대소문자 구분 없음)</p>
+          </div>
+        </div>
+
         <div
           className={`relative flex items-center w-full h-12 md:h-14 rounded-full border-2 bg-white overflow-hidden shadow-sm transition-colors
             ${micOn ? 'border-red-500 ring-2 ring-red-100' : 'border-blue-500 focus-within:ring-2 focus-within:ring-blue-100'}`}
@@ -432,20 +446,20 @@ export default function SearchInput({
             readOnly={isPending}
             placeholder={
               placeholder ||
-              (micOn ? '🎙️ 마이크 ON: 말씀하세요 (계속 대기)' : '① 마이크 클릭 후 음성 검색 ② 한글/영단어 입력 후 엔터 또는 검색 클릭!')
+              (micOn ? '🎙️ 마이크 ON: 말씀하세요 (계속 대기)' : '① 마이크 클릭 후 음성 검색 ② 단어 입력 후 Enter/검색 클릭!')
             }
-            // ✅ 핵심: min-w-0 추가 (모바일에서 버튼 밀려나가 잘리는 현상 방지)
-            className="flex-1 min-w-0 h-full px-4 md:px-6 text-sm md:text-base text-slate-700 placeholder:text-slate-400 outline-none bg-transparent"
+            // ✅ 모바일 잘림 방지 핵심: min-w-0 + 모바일 padding 소폭 축소
+            className="flex-grow min-w-0 h-full px-3 md:px-6 text-sm md:text-base text-slate-700 placeholder:text-slate-400 outline-none bg-transparent"
             autoComplete="off"
           />
 
-          {/* ✅ 모바일에서 버튼들이 오른쪽에서 잘리지 않게: pr 증가 + gap 소폭 감소 + 검색버튼 px 축소 */}
-          <div className="flex items-center gap-1 md:gap-2 pr-3 md:pr-2 shrink-0">
+          {/* 버튼 영역: ✅ 모바일에서 오른쪽 잘림 방지 -> pr 증가로 버튼을 “살짝 왼쪽”으로 */}
+          <div className="flex items-center gap-1 md:gap-2 pr-3 md:pr-2">
             {query && !isPending && (
               <button
                 type="button"
                 onClick={handleClear}
-                className="shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center
+                className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center
                   text-slate-300 hover:text-slate-600 hover:bg-slate-100 transition-all"
                 title="지우기"
                 aria-label="지우기"
@@ -460,7 +474,7 @@ export default function SearchInput({
               type="button"
               onClick={handleMicToggle}
               disabled={isPending}
-              className={`shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all
+              className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all
                 ${
                   micOn
                     ? isListening
@@ -480,15 +494,16 @@ export default function SearchInput({
               </svg>
             </button>
 
+            {/* ✅ 검색 버튼: 모바일에서 “너무 큼” 해결 -> 높이/패딩/아이콘 크기 축소 */}
             <button
               type="submit"
               disabled={isPending}
-              className="shrink-0 h-9 md:h-10 px-3 md:px-6 min-w-[44px] rounded-full bg-slate-900 text-white font-bold
-                hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5"
+              className="h-8 md:h-10 px-3 md:px-6 rounded-full bg-slate-900 text-white font-bold
+                hover:bg-slate-800 transition-all flex items-center gap-1.5"
               title="검색"
               aria-label="검색"
             >
-              <svg viewBox="0 0 24 24" className="w-4.5 h-4.5 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg viewBox="0 0 24 24" className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M11 19a8 8 0 100-16 8 8 0 000 16z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
               </svg>
@@ -497,15 +512,13 @@ export default function SearchInput({
           </div>
         </div>
 
-        {/* ✅ Tip 문구 수정 및 강조 적용 */}
-        <div className="mt-2 text-center text-xs md:text-sm text-slate-500 leading-relaxed">
+        {/* ✅ Tip: PC는 한 줄, 모바일은 자동 줄바꿈(가독성) */}
+        <div className="mt-2 mx-auto max-w-4xl px-2 md:px-0 text-center text-[11px] md:text-sm text-slate-500 leading-relaxed break-keep md:whitespace-nowrap">
           <span className="font-bold">(Tip)</span>{' '}
-          <span className="text-sm md:text-base text-orange-500 font-bold">영어로 음성 검색시</span>
+          <span className="text-[12px] md:text-base text-orange-500 font-bold">영어로 음성 검색시</span>
           <span> 혀를 굴려서 </span>
-          <span className="text-sm md:text-base text-blue-600 font-bold">원어민처럼 발음하면</span>
-          <span>
-            , 영어로 검색이 됩니다. <span className="font-bold">Ha Ha.</span>
-          </span>
+          <span className="text-[12px] md:text-base text-blue-600 font-bold">원어민처럼 발음하면</span>
+          <span>, 영어로 검색이 됩니다. <span className="font-bold">Ha Ha.</span></span>
         </div>
       </form>
     </div>
