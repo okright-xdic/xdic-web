@@ -40,5 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.vercel
+# local env files
 .env*.local
+
+# ★ 무거운 CSV 파일 무시하기 ★
+csv_files/

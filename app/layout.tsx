@@ -32,6 +32,21 @@ export default function RootLayout({
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8555893885172220"
           crossOrigin="anonymous"
         />
+
+        {/* ▼▼▼ 구글 애널리틱스 (방문자 통계) 시작 ▼▼▼ */}
+        <Script
+          strategy="afterInteractive"
+          src={`https://www.googletagmanager.com/gtag/js?id=G-MJXKQ30RJJ`}
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-MJXKQ30RJJ');
+          `}
+        </Script>
+        {/* ▲▲▲ 구글 애널리틱스 (방문자 통계) 끝 ▲▲▲ */}
       </head>
 
       <body className="bg-white text-slate-900 font-sans antialiased">{children}</body>
