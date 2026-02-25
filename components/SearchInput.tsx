@@ -1,55 +1,87 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'; // usePathname 추가
 
 interface SearchInputProps {
   initialQuery?: string;
   placeholder?: string;
   className?: string;
   autoFocus?: boolean;
+  isApp?: boolean; // 이제 이 값이 없어도 스스로 판단하지만, 넣어주면 더 좋습니다.
 }
 
 type RecentItem = { keyword: string; count: number };
 
 const RECENT_KEY = 'recent_searches_v2';
 const UPDATED_EVENT = 'xdic_recent_searches_updated';
-
-// ✅ 사용자가 마이크를 한 번이라도 켰으면(ON 만든 적 있으면) “세션 동안” 복원
 const MIC_USER_ENABLED_KEY = 'xdic_mic_user_enabled_v1';
-
-// 필요하면 여기에 금칙어를 추가하세요
 const BANNED_WORDS = ['비속어', '욕설', 'badword', 'xxx', '도박', '성인'];
+
+// ✅ Capacitor(앱) 환경인지 스스로 감지하는 함수
+const checkIsCapacitor = () => {
+  if (typeof window !== 'undefined' && (window as any).Capacitor) {
+    return (window as any).Capacitor.isNativePlatform();
+  }
+  return false;
+};
 
 export default function SearchInput({
   initialQuery = '',
   placeholder,
   className = '',
   autoFocus = false,
+  isApp: propIsApp = false,
 }: SearchInputProps) {
   const router = useRouter();
+  const pathname = usePathname(); // 현재 주소 확인용
+
+  // ✅ 앱인지 웹인지 확실하게 판단 (Props가 우선, 없으면 자동 감지)
+  const [isRealApp, setIsRealApp] = useState(propIsApp);
 
   const [query, setQuery] = useState(initialQuery || '');
   const [isPending, startTransition] = useTransition();
 
-  // ✅ always ON(빨간 테두리 유지)
-  const [micOn, setMicOn] = useState(false);
-  // ✅ 실제로 지금 “듣는 중”인지(마이크 펄스/상태)
+  // ✅ [핵심] 앱이면 무조건 true(켜짐), 웹이면 false(꺼짐)로 시작
+  const [micOn, setMicOn] = useState(false); 
   const [isListening, setIsListening] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const lastSearchAtRef = useRef<number>(0);
 
-  // WebSpeech 루프 안정화용 ref (state 스냅샷 문제 방지)
   const micOnRef = useRef(false);
   const isMountedRef = useRef(false);
 
   const recognitionRef = useRef<any>(null);
   const restartTimerRef = useRef<any>(null);
-
-  // backoff (먹통/연속 오류 시 무한 start 폭주 방지)
-  const restartBackoffRef = useRef<number>(450); // 450 -> 720 -> 1150 -> ... max 3000
+  const restartBackoffRef = useRef<number>(450);
   const startingRef = useRef(false);
+
+  // 초기화: 앱 환경 감지 및 마이크 자동 켜기
+  useEffect(() => {
+    isMountedRef.current = true;
+    const isCap = checkIsCapacitor();
+    const finalIsApp = propIsApp || isCap; // Props가 있거나, Capacitor환경이면 앱으로 간주
+    setIsRealApp(finalIsApp);
+
+    // 앱이라면 무조건 마이크 켜기!
+    if (finalIsApp) {
+      setMicOn(true);
+      micOnRef.current = true;
+      sessionStorage.setItem(MIC_USER_ENABLED_KEY, 'true');
+    } else {
+      // 웹이라면 저장된 설정 따르기
+      const enabled = sessionStorage.getItem(MIC_USER_ENABLED_KEY) === 'true';
+      setMicOn(enabled);
+      micOnRef.current = enabled;
+    }
+
+    return () => {
+      isMountedRef.current = false;
+      stopListeningLoop(true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     setQuery(initialQuery || '');
@@ -61,55 +93,28 @@ export default function SearchInput({
     return () => clearTimeout(t);
   }, [autoFocus]);
 
-  // ✅ 최초 마운트: “사용자가 이전에 ON 만든 적 있으면” 세션에서만 복원
-  useEffect(() => {
-    isMountedRef.current = true;
-
-    if (typeof window !== 'undefined') {
-      const enabled = sessionStorage.getItem(MIC_USER_ENABLED_KEY) === 'true';
-      micOnRef.current = enabled;
-      setMicOn(enabled);
-    }
-
-    return () => {
-      isMountedRef.current = false;
-      stopListeningLoop(true);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // ✅ micOn state 바뀌면 ref도 동기화
   useEffect(() => {
     micOnRef.current = micOn;
+    if (micOn) startListeningLoop();
+    else stopListeningLoop(true);
   }, [micOn]);
 
+  // --- [최근 검색어 로직 생략 없이 그대로 유지] ---
   const safeParse = (raw: string | null): RecentItem[] => {
     if (!raw) return [];
     try {
       const parsed = JSON.parse(raw);
-
-      // 새 포맷: [{keyword,count}]
       if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') {
-        return parsed
-          .map((x: any) => ({
+        return parsed.map((x: any) => ({
             keyword: String(x?.keyword || '').trim(),
             count: Number(x?.count || 1),
-          }))
-          .filter((x: RecentItem) => x.keyword);
+          })).filter((x: RecentItem) => x.keyword);
       }
-
-      // 구 포맷: ["사랑","가"]
       if (Array.isArray(parsed) && (parsed.length === 0 || typeof parsed[0] === 'string')) {
-        return parsed
-          .map((s: any) => String(s || '').trim())
-          .filter(Boolean)
-          .map((keyword) => ({ keyword, count: 1 }));
+        return parsed.map((s: any) => String(s || '').trim()).filter(Boolean).map((keyword) => ({ keyword, count: 1 }));
       }
-
       return [];
-    } catch {
-      return [];
-    }
+    } catch { return []; }
   };
 
   const dispatchRecentUpdated = () => {
@@ -119,37 +124,29 @@ export default function SearchInput({
 
   const saveToRecent = (keywordRaw: string) => {
     if (typeof window === 'undefined') return;
-
     const cleaned = String(keywordRaw || '').trim();
     if (!cleaned) return;
-
     const raw = localStorage.getItem(RECENT_KEY);
     let items = safeParse(raw);
-
     const idx = items.findIndex((it) => it.keyword === cleaned);
     if (idx >= 0) {
       const target = items[idx];
-      const next = { ...target, count: (target.count || 1) + 1 };
       items.splice(idx, 1);
-      items.unshift(next);
+      items.unshift({ ...target, count: (target.count || 1) + 1 });
     } else {
       items.unshift({ keyword: cleaned, count: 1 });
     }
-
     if (items.length > 20) items = items.slice(0, 20);
-
     localStorage.setItem(RECENT_KEY, JSON.stringify(items));
     dispatchRecentUpdated();
   };
+  // ------------------------------------------------
 
-  // ✅ 검색어 최종 규칙(PC)
   const normalizeFinalQuery = (rawQuery: string) => {
     const trimmed = (rawQuery || '').trim();
     if (!trimmed) return '';
-
     const isSingleWord = !trimmed.includes(' ');
     if (isSingleWord && trimmed.length >= 2) return trimmed + ' ';
-
     return trimmed;
   };
 
@@ -168,7 +165,6 @@ export default function SearchInput({
       return;
     }
 
-    // 과도한 연타 방지
     const now = Date.now();
     if (now - lastSearchAtRef.current < 600) return;
     lastSearchAtRef.current = now;
@@ -178,8 +174,17 @@ export default function SearchInput({
 
     saveToRecent(trimmed);
 
+    // ✅ [라우팅 꼬임 해결] 
+    // 1. 만약 현재 주소가 /app으로 시작하면 -> 계속 /app 사용
+    // 2. 혹은 isRealApp이 true면 -> /app 사용
+    // 3. 그것도 아니면 -> / (메인) 사용
+    let targetBase = '/';
+    if (pathname?.startsWith('/app') || isRealApp) {
+        targetBase = '/app';
+    }
+
     startTransition(() => {
-      router.push(`/?q=${encodeURIComponent(finalQuery)}`);
+      router.push(`${targetBase}?q=${encodeURIComponent(finalQuery)}`);
     });
   };
 
@@ -207,7 +212,7 @@ export default function SearchInput({
   };
 
   // ---------------------------
-  // ✅ 음성 인식 루프(먹통 방지 + Always ON)
+  // ✅ 음성 인식 루프 (Always ON + 튕김 방지)
   // ---------------------------
   const getSpeechRecognitionCtor = () => {
     if (typeof window === 'undefined') return null;
@@ -226,16 +231,10 @@ export default function SearchInput({
         recognitionRef.current.onresult = null;
         recognitionRef.current.onend = null;
         recognitionRef.current.onerror = null;
-      } catch {}
-
-      try {
         recognitionRef.current.abort?.();
-      } catch {}
-      try {
         recognitionRef.current.stop?.();
       } catch {}
     }
-
     recognitionRef.current = null;
     startingRef.current = false;
     if (isMountedRef.current) setIsListening(false);
@@ -244,28 +243,22 @@ export default function SearchInput({
   const stopListeningLoop = (hard = false) => {
     clearRestartTimer();
     restartBackoffRef.current = 450;
-
     if (hard) {
       hardStopRecognition();
       return;
     }
-
-    try {
-      recognitionRef.current?.stop?.();
-    } catch {}
+    try { recognitionRef.current?.stop?.(); } catch {}
     startingRef.current = false;
     if (isMountedRef.current) setIsListening(false);
   };
 
   const scheduleRestart = () => {
-    if (!micOnRef.current) return;
-    if (!isMountedRef.current) return;
-    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
-
+    if (!micOnRef.current || !isMountedRef.current) return;
+    
+    // 안드로이드 앱에서는 화면이 뒤에 있어도(hidden) 소리를 들어야 하므로 검사 완화
+    
     clearRestartTimer();
-
-    const delay = Math.min(restartBackoffRef.current, 3000);
-    restartBackoffRef.current = Math.min(Math.floor(restartBackoffRef.current * 1.6), 3000);
+    const delay = Math.min(restartBackoffRef.current, 1000); // 1초 이내 재시작
 
     restartTimerRef.current = setTimeout(() => {
       if (!micOnRef.current || !isMountedRef.current) return;
@@ -274,31 +267,28 @@ export default function SearchInput({
   };
 
   const startListeningLoop = () => {
-    if (!micOnRef.current) return;
-    if (!isMountedRef.current) return;
+    if (!micOnRef.current || !isMountedRef.current) return;
 
     const Ctor = getSpeechRecognitionCtor();
+    // 브라우저 미지원 시 (앱에서는 보통 WebView가 지원하므로 넘어감)
     if (!Ctor) {
-      alert('이 브라우저는 음성 인식을 지원하지 않습니다. (Chrome 권장)');
-      micOnRef.current = false;
-      setMicOn(false);
-      try {
-        sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
-      } catch {}
-      return;
+       // 앱이 아니고 웹일 때만 경고
+       if (!isRealApp) {
+         alert('이 브라우저는 음성 인식을 지원하지 않습니다.');
+         setMicOn(false);
+       }
+       return;
     }
 
     if (startingRef.current) return;
-
-    // 기존 객체는 정리하고 새로 만듦(먹통 방지 핵심)
     hardStopRecognition();
 
     const recognition = new Ctor();
     recognitionRef.current = recognition;
 
     recognition.lang = 'ko-KR';
-    recognition.continuous = false; // 한 문장 단위로 받고 끝나면 재시작
-    recognition.interimResults = false; // 모바일 요동 방지(중간결과 X)
+    recognition.continuous = false; // 끊어서 인식하고 바로 재시작하는 전략
+    recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {
@@ -311,43 +301,39 @@ export default function SearchInput({
     recognition.onresult = (event: any) => {
       if (!isMountedRef.current) return;
       const transcript = String(event?.results?.[0]?.[0]?.transcript || '').trim();
-
       setIsListening(false);
 
-      if (!transcript) {
-        scheduleRestart();
-        return;
+      if (transcript) {
+        setQuery(transcript);
+        goSearch(transcript); // 검색 실행
       }
-
-      // ✅ 최종 결과만 반영
-      setQuery(transcript);
-      goSearch(transcript);
-
-      // ✅ 결과 후에도 Always ON이면 다시 듣기
-      scheduleRestart();
+      scheduleRestart(); // 결과 나오면 즉시 재시작 (Always On)
     };
 
     recognition.onerror = (e: any) => {
       if (!isMountedRef.current) return;
       setIsListening(false);
-
+      
       const err = String(e?.error || '');
-      if (err === 'not-allowed' || err === 'service-not-allowed' || err === 'audio-capture') {
-        micOnRef.current = false;
-        setMicOn(false);
-        try {
-          sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
-        } catch {}
-        hardStopRecognition();
-        return;
-      }
 
+      // 권한 없음 에러 발생 시
+      if (err === 'not-allowed' || err === 'service-not-allowed') {
+         // 앱에서는 alert로 알려주고 멈춤 (무한 alert 방지)
+         alert('🚨 마이크 권한이 필요합니다. 설정에서 허용해주세요.');
+         setMicOn(false);
+         micOnRef.current = false;
+         hardStopRecognition();
+         return;
+      }
+      
+      // 그 외 에러는 무시하고 재시작 (좀비 모드)
       scheduleRestart();
     };
 
     recognition.onend = () => {
       if (!isMountedRef.current) return;
       setIsListening(false);
+      // 인식이 끝나면 무조건 재시작 (Always On 핵심)
       if (micOnRef.current) scheduleRestart();
     };
 
@@ -360,57 +346,16 @@ export default function SearchInput({
     }
   };
 
-  // micOn 토글에 맞춰 루프 시작/정지
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    if (micOn) startListeningLoop();
-    else stopListeningLoop(true);
-
-    return () => {
-      stopListeningLoop(true);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [micOn]);
-
-  // 탭 숨김/이탈 시 정리 + 돌아오면 재시작
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const onVis = () => {
-      if (!micOnRef.current) return;
-
-      if (document.visibilityState === 'visible') {
-        scheduleRestart();
-      } else {
-        stopListeningLoop(true);
-      }
-    };
-
-    const onPageHide = () => stopListeningLoop(true);
-
-    document.addEventListener('visibilitychange', onVis);
-    window.addEventListener('pagehide', onPageHide);
-
-    return () => {
-      document.removeEventListener('visibilitychange', onVis);
-      window.removeEventListener('pagehide', onPageHide);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // ------------------------------------------------
 
   const handleMicToggle = () => {
     if (typeof window === 'undefined') return;
-
     setMicOn((prev) => {
       const next = !prev;
-
-      // ✅ “사용자가 클릭했을 때부터” 세션에 저장
       try {
         if (next) sessionStorage.setItem(MIC_USER_ENABLED_KEY, 'true');
         else sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
       } catch {}
-
       return next;
     });
   };
@@ -418,20 +363,6 @@ export default function SearchInput({
   return (
     <div className={`relative w-full ${className}`}>
       <form onSubmit={handleSearch} className="w-full">
-        {/* ✅ 검색창 바로 위 3문단(요청 반영) */}
-        <div className="w-full mb-2">
-          <div className="text-center text-[12px] md:text-sm text-slate-600 leading-snug">
-            <p className="animate-[pulse_2.8s_ease-in-out_infinite]">
-              두 단어 이상{' '}
-              <span className="text-blue-600 font-bold text-[13px] md:text-[15px]">전문용어 검색</span>
-              에 효과적(
-              <span className="text-slate-900 font-extrabold text-[13px] md:text-[15px]">간단한 회화</span> Okay)!!!
-            </p>
-            <p className="mt-1">① 마이크 클릭 후 음성 검색 (해제시 마이크 클릭)</p>
-            <p>② 단어 입력 후 Enter/&apos;검색&apos; 버튼 클릭! (대소문자 구분 없음)</p>
-          </div>
-        </div>
-
         <div
           className={`relative flex items-center w-full h-12 md:h-14 rounded-full border-2 bg-white overflow-hidden shadow-sm transition-colors
             ${micOn ? 'border-red-500 ring-2 ring-red-100' : 'border-blue-500 focus-within:ring-2 focus-within:ring-blue-100'}`}
@@ -446,23 +377,22 @@ export default function SearchInput({
             readOnly={isPending}
             placeholder={
               placeholder ||
-              (micOn ? '🎙️ 마이크 ON: 말씀하세요 (계속 대기)' : '① 마이크 클릭 후 음성 검색 ② 단어 입력 후 Enter/검색 클릭!')
+              (micOn
+                ? '🎙️ 마이크 ON: 말씀하세요 (상시 대기)'
+                : '① 마이크 클릭 후 음성 검색 ② 단어 입력!')
             }
-            // ✅ 모바일 잘림 방지 핵심: min-w-0 + 모바일 padding 소폭 축소
             className="flex-grow min-w-0 h-full px-3 md:px-6 text-sm md:text-base text-slate-700 placeholder:text-slate-400 outline-none bg-transparent"
             autoComplete="off"
           />
 
-          {/* 버튼 영역: ✅ 모바일에서 오른쪽 잘림 방지 -> pr 증가로 버튼을 “살짝 왼쪽”으로 */}
           <div className="flex items-center gap-1 md:gap-2 pr-3 md:pr-2">
             {query && !isPending && (
               <button
                 type="button"
                 onClick={handleClear}
-                className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center
+                className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center
                   text-slate-300 hover:text-slate-600 hover:bg-slate-100 transition-all"
                 title="지우기"
-                aria-label="지우기"
               >
                 <svg viewBox="0 0 24 24" className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M18 6L6 18" />
@@ -474,7 +404,7 @@ export default function SearchInput({
               type="button"
               onClick={handleMicToggle}
               disabled={isPending}
-              className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all
+              className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all
                 ${
                   micOn
                     ? isListening
@@ -483,25 +413,17 @@ export default function SearchInput({
                     : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50'
                 }`}
               title={micOn ? '음성 검색 끄기' : '음성 검색 켜기'}
-              aria-label="음성 검색"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
               </svg>
             </button>
 
-            {/* ✅ 검색 버튼: 모바일에서 “너무 큼” 해결 -> 높이/패딩/아이콘 크기 축소 */}
             <button
               type="submit"
               disabled={isPending}
               className="h-8 md:h-10 px-3 md:px-6 rounded-full bg-slate-900 text-white font-bold
                 hover:bg-slate-800 transition-all flex items-center gap-1.5"
-              title="검색"
-              aria-label="검색"
             >
               <svg viewBox="0 0 24 24" className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M11 19a8 8 0 100-16 8 8 0 000 16z" />
@@ -512,13 +434,8 @@ export default function SearchInput({
           </div>
         </div>
 
-        {/* ✅ Tip: PC는 한 줄, 모바일은 자동 줄바꿈(가독성) */}
-        <div className="mt-2 mx-auto max-w-4xl px-2 md:px-0 text-center text-[11px] md:text-sm text-slate-500 leading-relaxed break-keep md:whitespace-nowrap">
-          <span className="font-bold">(Tip)</span>{' '}
-          <span className="text-[12px] md:text-base text-orange-500 font-bold">영어로 음성 검색시</span>
-          <span> 혀를 굴려서 </span>
-          <span className="text-[12px] md:text-base text-blue-600 font-bold">원어민처럼 발음하면</span>
-          <span>, 영어로 검색이 됩니다. <span className="font-bold">Ha Ha.</span></span>
+        <div className={`mt-2 h-5 text-xs md:text-sm text-center ${micOn ? 'text-red-500' : 'text-transparent'}`}>
+          {micOn ? (isListening ? '듣고 있습니다... (말씀하세요)' : '마이크 ON 상태로 대기 중입니다') : ' '}
         </div>
       </form>
     </div>

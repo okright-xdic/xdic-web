@@ -21,6 +21,7 @@ interface SearchPageProps {
   query: string;
   results: SearchResult[];
   highlightList?: string[];
+  isApp?: boolean;
 }
 
 const CATEGORY_NAMES: Record<number, string> = {
@@ -38,12 +39,14 @@ const CATEGORY_NAMES: Record<number, string> = {
   12: '기타',
 };
 
-export default function SearchPage({ query, results, highlightList = [] }: SearchPageProps) {
+export default function SearchPage({ query, results, highlightList = [], isApp = false }: SearchPageProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
+
+  const homeHref = isApp ? '/app' : '/';
 
   useEffect(() => {
     setCurrentPage(1);
@@ -81,9 +84,8 @@ export default function SearchPage({ query, results, highlightList = [] }: Searc
   };
 
   const highlightMatch = (text: string) => {
-    if (!highlightList || highlightList.length === 0) {
-      return <span style={{ color: '#1e293b' }}>{text}</span>;
-    }
+    if (!highlightList || highlightList.length === 0) return <span style={{ color: '#1e293b' }}>{text}</span>;
+
     const sortedKeys = [...highlightList].filter(Boolean).sort((a, b) => b.length - a.length);
     const escapedKeys = sortedKeys.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
     const regex = new RegExp(`(${escapedKeys.join('|')})`, 'gi');
@@ -126,7 +128,7 @@ export default function SearchPage({ query, results, highlightList = [] }: Searc
         <header className="w-full pt-8 pb-2 md:pt-16 md:pb-6">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-8 md:mb-8">
             <div className="flex-shrink-0">
-              <Link href="/" className="cursor-pointer">
+              <Link href={homeHref} className="cursor-pointer">
                 <Image
                   src="/images/LOGO_01_ChatGPT_S.jpg"
                   alt="X-DIC Logo"
@@ -139,9 +141,9 @@ export default function SearchPage({ query, results, highlightList = [] }: Searc
             </div>
 
             <div className="flex flex-col gap-1 justify-center text-center md:text-left">
-              <Link href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
+              <Link href={homeHref} className="cursor-pointer hover:opacity-80 transition-opacity">
                 <h1 className="text-xl md:text-[24px] font-extrabold text-slate-800 leading-tight md:leading-none">
-                  한영/영한사전 – 복합어 전문 엑스딕(X-DIC)!
+                  한영/영한사전 – 복합어 전문 엑스딕!
                 </h1>
               </Link>
               <p className="text-sm md:text-[16px] text-slate-500 font-medium leading-tight mt-1">
@@ -154,7 +156,7 @@ export default function SearchPage({ query, results, highlightList = [] }: Searc
           </div>
 
           <div className="w-full">
-            <SearchInput initialQuery={displayQuery} />
+            <SearchInput initialQuery={displayQuery} isApp={isApp} />
           </div>
         </header>
       </div>
@@ -191,9 +193,7 @@ export default function SearchPage({ query, results, highlightList = [] }: Searc
                                 </svg>
                               </button>
 
-                              <div className="text-base md:text-lg leading-snug break-keep">
-                                {highlightMatch(item.line_text)}
-                              </div>
+                              <div className="text-base md:text-lg leading-snug break-keep">{highlightMatch(item.line_text)}</div>
                             </div>
 
                             <span
@@ -205,32 +205,20 @@ export default function SearchPage({ query, results, highlightList = [] }: Searc
                           </div>
                         </li>
 
-                        {/* ✅ PC_검색결과_중간 (7번째 아래) */}
-                        {idx === 6 && (
-                          <AdSensePlaceholder
-                            adSlot="8675599033"
-                            debugLabel="PC_검색결과_중간"
-                            minHeight={200}
-                          />
-                        )}
+                        {idx === 6 && <AdSensePlaceholder adSlot="8675599033" debugLabel="PC_검색결과_중간" minHeight={200} />}
                       </React.Fragment>
                     ))}
                   </ul>
 
                   {results.length > itemsPerPage && (
                     <div className="flex justify-center items-center gap-3 mt-12 mb-12 select-none font-sans">
-                      <button
-                        onClick={() => handlePageChange(1)}
-                        disabled={currentPage === 1}
-                        className="text-xs font-bold text-slate-400 hover:text-orange-600 hover:bg-orange-50 px-2 py-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
+                      {/* ... pagination 동일 ... */}
+                      <button onClick={() => handlePageChange(1)} disabled={currentPage === 1}
+                        className="text-xs font-bold text-slate-400 hover:text-orange-600 hover:bg-orange-50 px-2 py-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
                         &lt;&lt;
                       </button>
-                      <button
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
+                      <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}
+                        className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
                         이전
                       </button>
 
@@ -252,29 +240,18 @@ export default function SearchPage({ query, results, highlightList = [] }: Searc
                         ))}
                       </div>
 
-                      <button
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
+                      <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}
+                        className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
                         다음
                       </button>
-                      <button
-                        onClick={() => handlePageChange(totalPages)}
-                        disabled={currentPage === totalPages}
-                        className="text-xs font-bold text-slate-400 hover:text-orange-600 hover:bg-orange-50 px-2 py-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
+                      <button onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages}
+                        className="text-xs font-bold text-slate-400 hover:text-orange-600 hover:bg-orange-50 px-2 py-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
                         &gt;&gt;
                       </button>
                     </div>
                   )}
 
-                  {/* ✅ PC_검색결과_하단 */}
-                  <AdSensePlaceholder
-                    adSlot="2218001895"
-                    debugLabel="PC_검색결과_하단"
-                    minHeight={250}
-                  />
+                  <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_검색결과_하단" minHeight={250} />
 
                   <div className="py-8 text-center border-t border-slate-100 mt-8">
                     <p className="text-sm text-slate-400">{results.length}개의 결과를 모두 확인했습니다.</p>
@@ -282,6 +259,7 @@ export default function SearchPage({ query, results, highlightList = [] }: Searc
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+                  {/* ... no result 동일 ... */}
                   <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-3xl mb-4">🤔</div>
                   <h3 className="text-lg font-bold text-slate-800 mb-2">
                     '<span style={{ color: '#ef4444' }}>{displayQuery}</span>'에 대한 결과가 없습니다.
