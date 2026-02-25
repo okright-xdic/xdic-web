@@ -18,7 +18,7 @@ type RecentItem = { keyword: string; count: number };
 const RECENT_KEY = 'xdic_recent_searches_v2';
 const UPDATED_EVENT = 'xdic_recent_searches_updated';
 
-// ✅ 사용자가 마이크를 클릭해서 켠 적이 있는지를 저장 (세션 유지용)
+// ✅ 사용자가 마이크를 켠 상태 유지용
 const MIC_USER_ENABLED_KEY = 'xdic_mic_user_enabled_v1';
 const BANNED_WORDS = ['비속어', '욕설', 'badword', 'xxx', '도박', '성인'];
 
@@ -36,16 +36,17 @@ export default function SearchInput({
   const [query, setQuery] = useState(initialQuery || '');
   const [isPending, startTransition] = useTransition();
 
-  // ✅ [변경됨] 처음에는 무조건 꺼진 상태(false)로 시작
   const [micOn, setMicOn] = useState(false);
   const [isListening, setIsListening] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const lastSearchAtRef = useRef<number>(0);
 
-  // ✅ [변경됨] Ref 초기값도 false로 시작
   const micOnRef = useRef(false);
   const isMountedRef = useRef(false);
+
+  // ✅ [핵심 추가] 실시간으로 인식된 문장을 임시 저장하는 공간
+  const latestTranscriptRef = useRef('');
 
   // --- Web용 ---
   const recognitionRef = useRef<any>(null);
@@ -68,7 +69,6 @@ export default function SearchInput({
     return () => clearTimeout(t);
   }, [autoFocus]);
 
-  // ✅ [핵심 로직 변경] 앱/웹 구분 없이 오직 "과거에 버튼을 누른 적이 있는지"만 확인
   useEffect(() => {
     isMountedRef.current = true;
 
@@ -232,7 +232,7 @@ export default function SearchInput({
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) {
       if (!isNativeApp) {
-        alert('이 브라우저는 음성 인식을 지원하지 않습니다. (Chrome 권장)');
+        alert('이 브라우저는 음성 인식을 지원하지 않습니다.');
         setMicOn(false);
       }
       return;
@@ -290,7 +290,7 @@ export default function SearchInput({
   };
 
   // =========================================================
-  // (B) Native 앱 루프 (무한 좀비 로직은 그대로 유지!)
+  // (B) Native 앱 루프 (실시간 인식 + 자동 검색 완벽 적용)
   // =========================================================
   const clearNativeTimer = () => {
     if (nativeRestartTimerRef.current) clearTimeout(nativeRestartTimerRef.current);
@@ -332,6 +332,7 @@ export default function SearchInput({
     if (!isNativeApp || !micOnRef.current || !isMountedRef.current || nativeStartingRef.current) return;
 
     nativeStartingRef.current = true;
+    latestTranscriptRef.current = ''; // 시작할 때 임시 저장소 비우기
 
     try {
       let perm = await SpeechRecognition.checkPermissions();
@@ -340,7 +341,7 @@ export default function SearchInput({
       }
 
       if (perm.speechRecognition !== 'granted') {
-        alert('🚨 스마트폰 [설정 > 애플리케이션 > X-DIC > 권한] 에서 마이크를 허용해주세요!');
+        alert('🚨 스마트폰 설정에서 마이크를 허용해주세요!');
         setMicOn(false); 
         nativeStartingRef.current = false;
         return;
@@ -348,39 +349,48 @@ export default function SearchInput({
 
       await removeNativeListeners();
 
-      const endHandle = await SpeechRecognition.addListener('endOfSegmentedSession', () => {
-        if (!micOnRef.current) return;
-        scheduleNativeRestart(200); 
-      });
-
-      const listeningHandle = await SpeechRecognition.addListener('listeningState', (e: any) => {
-        if (!isMountedRef.current) return;
-        setIsListening(!!e?.listening);
-        if (!e?.listening && micOnRef.current) {
-          scheduleNativeRestart(300);
+      // ✅ 1. 말하는 도중에 실시간으로 글씨를 보여줌 (안드로이드는 주로 이걸 씁니다!)
+      const partialHandle = await SpeechRecognition.addListener('partialResults', (e: any) => {
+        const transcript = String(e?.matches?.[0] || '').trim();
+        if (transcript) {
+          latestTranscriptRef.current = transcript; // 임시 저장
+          setQuery(transcript); // 검색창에 실시간으로 타자 치듯 보여주기
         }
       });
 
-      const partialHandle = await SpeechRecognition.addListener('partialResults', (e: any) => {});
+      // ✅ 2. 말을 멈추면(마이크가 꺼지면) 저장해둔 글씨로 곧바로 검색 실행!
+      const listeningHandle = await SpeechRecognition.addListener('listeningState', (e: any) => {
+        if (!isMountedRef.current) return;
+        const isNowListening = !!e?.listening;
+        setIsListening(isNowListening);
+        
+        // 안드로이드가 '듣기'를 멈추는 순간
+        if (!isNowListening) {
+          const finalText = latestTranscriptRef.current.trim();
+          
+          if (finalText) {
+            goSearch(finalText); // 검색 쾅!
+            latestTranscriptRef.current = ''; // 검색했으니 비워주기
+          }
 
-      const segmentHandle = await SpeechRecognition.addListener('segmentResults', (e: any) => {
-        const transcript = String(e?.matches?.[0] || '').trim();
-        if (!transcript) return;
-        setQuery(transcript);
-        goSearch(transcript);
+          // 검색 후에도 Always On을 위해 곧바로 다시 켜기
+          if (micOnRef.current) {
+            scheduleNativeRestart(300);
+          }
+        }
       });
 
-      nativeListenerHandlesRef.current = [endHandle, listeningHandle, partialHandle, segmentHandle];
+      nativeListenerHandlesRef.current = [partialHandle, listeningHandle];
 
       await SpeechRecognition.start({
         language: 'ko-KR',
         maxResults: 1,
-        partialResults: true,
+        partialResults: true, // 실시간 데이터 받기 필수 옵션
         popup: false,
       });
 
       nativeStartingRef.current = false;
-      scheduleNativeRestart(800); 
+      scheduleNativeRestart(1000); 
 
     } catch (e: any) {
       nativeStartingRef.current = false;
@@ -446,7 +456,6 @@ export default function SearchInput({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isNativeApp]);
 
-  // ✅ 마이크 토글 로직 (클릭 시 켜짐/꺼짐 상태 저장)
   const handleMicToggle = () => {
     if (typeof window === 'undefined') return;
     setMicOn((prev) => {
