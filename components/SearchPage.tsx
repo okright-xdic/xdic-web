@@ -9,6 +9,7 @@ import RecentKeywords from '@/components/RecentKeywords';
 import PopularKeywords from '@/components/PopularKeywords';
 import TrendGraph from '@/components/TrendGraph';
 import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
+import { Capacitor } from '@capacitor/core';
 
 interface SearchResult {
   id: string | number;
@@ -65,6 +66,9 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
   const handleSpeak = (text: string) => {
+    const isNative = typeof window !== 'undefined' ? Capacitor.isNativePlatform() : false;
+
+    // Web Speech TTS
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
@@ -78,9 +82,16 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
       utterance.pitch = 0.85;
       utterance.rate = 0.9;
       window.speechSynthesis.speak(utterance);
-    } else {
-      alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
+      return;
     }
+
+    // App WebView에서는 speechSynthesis가 없는 경우가 많음
+    if (isNative) {
+      alert('앱에서는 기기 환경(WebView) 때문에 "발음 듣기" 기능이 제한될 수 있습니다. (텍스트 검색/음성검색은 별개로 동작합니다)');
+      return;
+    }
+
+    alert('이 브라우저는 음성 듣기(TTS)를 지원하지 않습니다.');
   };
 
   const highlightMatch = (text: string) => {
@@ -212,7 +223,6 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
 
                   {results.length > itemsPerPage && (
                     <div className="flex justify-center items-center gap-3 mt-12 mb-12 select-none font-sans">
-                      {/* ... pagination 동일 ... */}
                       <button onClick={() => handlePageChange(1)} disabled={currentPage === 1}
                         className="text-xs font-bold text-slate-400 hover:text-orange-600 hover:bg-orange-50 px-2 py-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
                         &lt;&lt;
@@ -259,7 +269,6 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-                  {/* ... no result 동일 ... */}
                   <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-3xl mb-4">🤔</div>
                   <h3 className="text-lg font-bold text-slate-800 mb-2">
                     '<span style={{ color: '#ef4444' }}>{displayQuery}</span>'에 대한 결과가 없습니다.

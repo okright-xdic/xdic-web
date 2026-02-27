@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core';
 
 interface SearchInputProps {
   initialQuery?: string;
@@ -17,17 +17,10 @@ type RecentItem = { keyword: string; count: number };
 const RECENT_KEY = 'xdic_recent_searches_v2';
 const UPDATED_EVENT = 'xdic_recent_searches_updated';
 
-// ✅ 사용자가 “한번이라도” 마이크를 켠 적 있으면 이후 유지
+// ✅ “사용자가 마이크를 눌러 ON을 만든 적이 있는가”만 저장
 const MIC_USER_ENABLED_KEY = 'xdic_mic_user_enabled_v1';
 
 const BANNED_WORDS = ['비속어', '욕설', 'badword', 'xxx', '도박', '성인'];
-
-/**
- * ✅ Capacitor Native SpeechRecognition
- * - @capgo/capacitor-speech-recognition 계열은 보통 플러그인 이름이 SpeechRecognition 입니다.
- * - 타입이 환경마다 다르니 any로 안전하게 처리합니다.
- */
-const NativeSpeech: any = registerPlugin('SpeechRecognition');
 
 export default function SearchInput({
   initialQuery = '',
@@ -52,9 +45,9 @@ export default function SearchInput({
   const isMountedRef = useRef(false);
   const micOnRef = useRef(false);
 
-  // -----------------------
-  // Recent searches
-  // -----------------------
+  // ---------------------------
+  // 최근검색 저장
+  // ---------------------------
   const safeParse = (raw: string | null): RecentItem[] => {
     if (!raw) return [];
     try {
@@ -111,9 +104,9 @@ export default function SearchInput({
     dispatchRecentUpdated();
   };
 
-  // -----------------------
-  // Search helpers
-  // -----------------------
+  // ---------------------------
+  // 검색 공통
+  // ---------------------------
   const normalizeFinalQuery = (rawQuery: string) => {
     const trimmed = (rawQuery || '').trim();
     if (!trimmed) return '';
@@ -148,7 +141,7 @@ export default function SearchInput({
 
     saveToRecent(trimmed);
 
-    const basePath = isApp ? '/app' : '/';
+    const basePath = isApp || isNativeApp ? '/app' : '/';
     startTransition(() => {
       router.push(`${basePath}?q=${encodeURIComponent(finalQuery)}`);
     });
@@ -177,9 +170,9 @@ export default function SearchInput({
     setQuery(pasted.replace(/\s+/g, ' ').trim());
   };
 
-  // -----------------------
-  // ✅ mic state persistence: “사용자가 한번 켠 뒤부터” 유지
-  // -----------------------
+  // ---------------------------
+  // 초기화 (마이크 ON 상태 복원)
+  // ---------------------------
   useEffect(() => {
     setQuery(initialQuery || '');
   }, [initialQuery]);
@@ -193,6 +186,7 @@ export default function SearchInput({
   useEffect(() => {
     isMountedRef.current = true;
 
+    // “사용자가 한번이라도 켰으면” 계속 켜진 상태로 복원
     if (typeof window !== 'undefined') {
       const enabled = sessionStorage.getItem(MIC_USER_ENABLED_KEY) === 'true';
       micOnRef.current = enabled;
@@ -201,8 +195,7 @@ export default function SearchInput({
 
     return () => {
       isMountedRef.current = false;
-      stopWebLoop(true);
-      stopNativeLoop(true);
+      stopAll(true);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -212,11 +205,11 @@ export default function SearchInput({
   }, [micOn]);
 
   // =========================================================
-  // ✅ (A) Web Speech API (PC/모바일 브라우저용)
+  // (A) WEB Speech (브라우저용)
   // =========================================================
-  const webRecRef = useRef<any>(null);
+  const webRecognitionRef = useRef<any>(null);
   const webRestartTimerRef = useRef<any>(null);
-  const webBackoffRef = useRef<number>(700);
+  const webRestartBackoffRef = useRef<number>(800);
   const webStartingRef = useRef(false);
 
   const getSpeechRecognitionCtor = () => {
@@ -230,38 +223,24 @@ export default function SearchInput({
   };
 
   const hardStopWeb = () => {
-    if (webRecRef.current) {
-      try {
-        webRecRef.current.onstart = null;
-        webRecRef.current.onresult = null;
-        webRecRef.current.onend = null;
-        webRecRef.current.onerror = null;
-      } catch {}
-      try {
-        webRecRef.current.abort?.();
-      } catch {}
-      try {
-        webRecRef.current.stop?.();
-      } catch {}
-    }
-    webRecRef.current = null;
-    webStartingRef.current = false;
-    if (isMountedRef.current) setIsListening(false);
-  };
-
-  const stopWebLoop = (hard = false) => {
     clearWebTimer();
-    webBackoffRef.current = 700;
-
-    if (hard) {
-      hardStopWeb();
-      return;
+    if (webRecognitionRef.current) {
+      try {
+        webRecognitionRef.current.onstart = null;
+        webRecognitionRef.current.onresult = null;
+        webRecognitionRef.current.onend = null;
+        webRecognitionRef.current.onerror = null;
+      } catch {}
+      try {
+        webRecognitionRef.current.abort?.();
+      } catch {}
+      try {
+        webRecognitionRef.current.stop?.();
+      } catch {}
     }
-
-    try {
-      webRecRef.current?.stop?.();
-    } catch {}
+    webRecognitionRef.current = null;
     webStartingRef.current = false;
+    webRestartBackoffRef.current = 800;
     if (isMountedRef.current) setIsListening(false);
   };
 
@@ -271,8 +250,8 @@ export default function SearchInput({
 
     clearWebTimer();
 
-    const delay = Math.min(webBackoffRef.current, 2500);
-    webBackoffRef.current = Math.min(Math.floor(webBackoffRef.current * 1.5), 2500);
+    const delay = Math.min(webRestartBackoffRef.current, 3000);
+    webRestartBackoffRef.current = Math.min(Math.floor(webRestartBackoffRef.current * 1.5), 3000);
 
     webRestartTimerRef.current = setTimeout(() => {
       if (!micOnRef.current || !isMountedRef.current) return;
@@ -286,7 +265,6 @@ export default function SearchInput({
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) {
       alert('이 브라우저는 음성 인식을 지원하지 않습니다. (Chrome 권장)');
-      micOnRef.current = false;
       setMicOn(false);
       try {
         sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
@@ -298,25 +276,24 @@ export default function SearchInput({
 
     hardStopWeb();
 
-    const rec = new Ctor();
-    webRecRef.current = rec;
+    const recognition = new Ctor();
+    webRecognitionRef.current = recognition;
 
-    rec.lang = 'ko-KR';
-    rec.continuous = false; // 짧게 듣고 다시 시작(안정적)
-    rec.interimResults = false;
-    rec.maxAlternatives = 1;
+    recognition.lang = 'ko-KR';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
 
-    rec.onstart = () => {
+    recognition.onstart = () => {
       webStartingRef.current = false;
-      webBackoffRef.current = 700;
+      webRestartBackoffRef.current = 800;
       if (!isMountedRef.current) return;
       setIsListening(true);
     };
 
-    rec.onresult = (event: any) => {
+    recognition.onresult = (event: any) => {
       if (!isMountedRef.current) return;
       const transcript = String(event?.results?.[0]?.[0]?.transcript || '').trim();
-
       setIsListening(false);
 
       if (transcript) {
@@ -327,14 +304,14 @@ export default function SearchInput({
       scheduleWebRestart();
     };
 
-    rec.onerror = (e: any) => {
+    recognition.onerror = (e: any) => {
       if (!isMountedRef.current) return;
       setIsListening(false);
 
       const err = String(e?.error || '');
-      // 권한 관련만 OFF, 그 외는 루프 유지
+
       if (err === 'not-allowed' || err === 'service-not-allowed' || err === 'audio-capture') {
-        micOnRef.current = false;
+        alert('🚨 마이크 권한이 차단되었습니다. 브라우저/기기 설정에서 마이크를 허용해주세요.');
         setMicOn(false);
         try {
           sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
@@ -346,7 +323,7 @@ export default function SearchInput({
       scheduleWebRestart();
     };
 
-    rec.onend = () => {
+    recognition.onend = () => {
       if (!isMountedRef.current) return;
       setIsListening(false);
       if (micOnRef.current) scheduleWebRestart();
@@ -354,7 +331,7 @@ export default function SearchInput({
 
     try {
       webStartingRef.current = true;
-      rec.start();
+      recognition.start();
     } catch {
       webStartingRef.current = false;
       scheduleWebRestart();
@@ -362,21 +339,19 @@ export default function SearchInput({
   };
 
   // =========================================================
-  // ✅ (B) Native Speech (Capacitor 앱용)
+  // (B) NATIVE Speech (Capacitor 앱용: @capgo/capacitor-speech-recognition)
   // =========================================================
-  const nativeRestartTimerRef = useRef<any>(null);
-  const nativeWatchdogTimerRef = useRef<any>(null);
+  const nativeTimerRef = useRef<any>(null);
   const nativeStartingRef = useRef(false);
   const nativeListenerHandlesRef = useRef<any[]>([]);
+  const lastNativeTranscriptAtRef = useRef<number>(0);
 
-  const clearNativeTimers = () => {
-    if (nativeRestartTimerRef.current) clearTimeout(nativeRestartTimerRef.current);
-    if (nativeWatchdogTimerRef.current) clearTimeout(nativeWatchdogTimerRef.current);
-    nativeRestartTimerRef.current = null;
-    nativeWatchdogTimerRef.current = null;
+  const clearNativeTimer = () => {
+    if (nativeTimerRef.current) clearTimeout(nativeTimerRef.current);
+    nativeTimerRef.current = null;
   };
 
-  const removeNativeListeners = async () => {
+  const removeNativeListeners = async (SpeechRecognition: any) => {
     const handles = nativeListenerHandlesRef.current;
     nativeListenerHandlesRef.current = [];
     for (const h of handles) {
@@ -385,56 +360,55 @@ export default function SearchInput({
       } catch {}
     }
     try {
-      await NativeSpeech?.removeAllListeners?.();
+      await SpeechRecognition.removeAllListeners();
     } catch {}
   };
 
-  const stopNativeLoop = async (hard = false) => {
-    clearNativeTimers();
-    nativeStartingRef.current = false;
-    if (isMountedRef.current) setIsListening(false);
-
-    if (!isNativeApp) return;
-    if (!hard) return;
-
-    try {
-      await NativeSpeech?.stop?.();
-    } catch {}
-    await removeNativeListeners();
-  };
-
-  const scheduleNativeRestart = (delay = 500) => {
+  const scheduleNativeRestart = (delay = 350) => {
     if (!micOnRef.current || !isMountedRef.current) return;
-    clearNativeTimers();
-
-    nativeRestartTimerRef.current = setTimeout(() => {
+    clearNativeTimer();
+    nativeTimerRef.current = setTimeout(() => {
       if (!micOnRef.current || !isMountedRef.current) return;
       startNativeLoop();
     }, delay);
   };
 
-  const startNativeLoop = async () => {
+  const hardStopNative = async () => {
+    clearNativeTimer();
+    nativeStartingRef.current = false;
+
+    if (!isMountedRef.current) return;
+    setIsListening(false);
+
     if (!isNativeApp) return;
-    if (!micOnRef.current || !isMountedRef.current) return;
+
+    try {
+      const mod = await import('@capgo/capacitor-speech-recognition');
+      const SpeechRecognition = mod.SpeechRecognition;
+
+      try {
+        await SpeechRecognition.stop();
+      } catch {}
+      await removeNativeListeners(SpeechRecognition);
+    } catch {
+      // ignore
+    }
+  };
+
+  const startNativeLoop = async () => {
+    if (!isNativeApp || !micOnRef.current || !isMountedRef.current) return;
     if (nativeStartingRef.current) return;
 
     nativeStartingRef.current = true;
 
     try {
-      // 1) 권한 확인/요청
-      let perm = await NativeSpeech?.checkPermissions?.();
-      if (perm?.speechRecognition !== 'granted' && perm?.microphone !== 'granted') {
-        perm = await NativeSpeech?.requestPermissions?.();
-      }
+      const mod = await import('@capgo/capacitor-speech-recognition');
+      const SpeechRecognition = mod.SpeechRecognition;
 
-      const granted =
-        perm?.speechRecognition === 'granted' ||
-        perm?.microphone === 'granted' ||
-        perm?.permission === 'granted';
-
-      if (!granted) {
-        alert('마이크 권한이 필요합니다. 스마트폰 [설정 > 앱 > X-DIC > 권한]에서 마이크를 허용해주세요.');
-        micOnRef.current = false;
+      // 1) 사용 가능 여부
+      const { available } = await SpeechRecognition.available();
+      if (!available) {
+        alert('이 기기에서는 음성 인식을 사용할 수 없습니다.');
         setMicOn(false);
         try {
           sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
@@ -443,66 +417,88 @@ export default function SearchInput({
         return;
       }
 
-      // 2) 이벤트 리스너(버전별 이름이 다를 수 있어 다중 커버)
-      await removeNativeListeners();
+      // 2) 권한
+      let perm = await SpeechRecognition.checkPermissions();
+      if (perm.speechRecognition !== 'granted') {
+        perm = await SpeechRecognition.requestPermissions();
+      }
+      if (perm.speechRecognition !== 'granted') {
+        alert('🚨 마이크 권한이 필요합니다. [설정 > 앱 > X-DIC > 권한]에서 마이크를 허용해주세요.');
+        setMicOn(false);
+        try {
+          sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
+        } catch {}
+        nativeStartingRef.current = false;
+        return;
+      }
 
-      const onResults = async (payload: any) => {
-        const t =
-          String(payload?.matches?.[0] || payload?.value?.[0] || payload?.result || payload?.text || '').trim();
-        if (!t) return;
-        setQuery(t);
-        goSearch(t);
-      };
+      // 3) 리스너 재설정
+      await removeNativeListeners(SpeechRecognition);
 
-      const h1 = await NativeSpeech?.addListener?.('results', onResults);
-      const h2 = await NativeSpeech?.addListener?.('segmentResults', onResults);
-      const h3 = await NativeSpeech?.addListener?.('partialResults', () => {});
-      const h4 = await NativeSpeech?.addListener?.('listeningState', (e: any) => {
+      const listeningHandle = await SpeechRecognition.addListener('listeningState', (e: any) => {
         if (!isMountedRef.current) return;
-        const listening = !!(e?.listening ?? e?.value ?? e?.isListening);
-        setIsListening(listening);
+        const started = e?.status === 'started';
+        setIsListening(started);
 
-        // 안드로이드가 몰래 꺼버리면 즉시 부활
-        if (!listening && micOnRef.current) {
-          scheduleNativeRestart(350);
-        }
-      });
-      const h5 = await NativeSpeech?.addListener?.('end', () => {
-        if (micOnRef.current) scheduleNativeRestart(250);
-      });
-      const h6 = await NativeSpeech?.addListener?.('endOfSegmentedSession', () => {
-        if (micOnRef.current) scheduleNativeRestart(250);
+        // 안드가 몰래 껐으면 재가동
+        if (!started && micOnRef.current) scheduleNativeRestart(250);
       });
 
-      nativeListenerHandlesRef.current = [h1, h2, h3, h4, h5, h6].filter(Boolean);
+      const segmentHandle = await SpeechRecognition.addListener('segmentResults', (e: any) => {
+        const transcript = String(e?.matches?.[0] || '').trim();
+        if (!transcript) return;
 
-      // 3) 시작
-      if (isMountedRef.current) setIsListening(true);
+        lastNativeTranscriptAtRef.current = Date.now();
+        if (!isMountedRef.current) return;
 
-      await NativeSpeech?.start?.({
+        setQuery(transcript);
+        goSearch(transcript);
+      });
+
+      const partialHandle = await SpeechRecognition.addListener('partialResults', (e: any) => {
+        // 부분 결과는 검색 실행 X (입력창만 업데이트)
+        const partial = String(e?.matches?.[0] || '').trim();
+        if (!partial) return;
+        lastNativeTranscriptAtRef.current = Date.now();
+        if (!isMountedRef.current) return;
+        setQuery(partial);
+      });
+
+      const endHandle = await SpeechRecognition.addListener('endOfSegmentedSession', () => {
+        if (!micOnRef.current) return;
+        scheduleNativeRestart(200);
+      });
+
+      nativeListenerHandlesRef.current = [listeningHandle, segmentHandle, partialHandle, endHandle];
+
+      // 4) 시작
+      await SpeechRecognition.start({
         language: 'ko-KR',
         maxResults: 1,
         partialResults: true,
-        popup: false,
+        popup: false, // 앱 내부에서 팝업 없이
+        // Android only: silence timeout(너무 짧으면 끊기고, 너무 길면 종료가 늦음)
+        allowForSilence: 1200,
       });
 
       nativeStartingRef.current = false;
 
-      // 4) Watchdog: “조용히 죽는” 케이스 대비
-      nativeWatchdogTimerRef.current = setTimeout(() => {
+      // 5) “꿀링만 돌고 텍스트가 안 오는” 좀비 상태 감시: 6초간 아무 텍스트도 없으면 재시작
+      clearNativeTimer();
+      nativeTimerRef.current = setInterval(() => {
         if (!micOnRef.current || !isMountedRef.current) return;
-        scheduleNativeRestart(300);
-      }, 2500);
+        const last = lastNativeTranscriptAtRef.current || 0;
+        if (Date.now() - last > 6000) {
+          // 아무것도 안 들어오면 재시작
+          scheduleNativeRestart(250);
+        }
+      }, 2000);
     } catch (e: any) {
       nativeStartingRef.current = false;
-      if (!isMountedRef.current) return;
 
       const msg = String(e?.message || e || '').toLowerCase();
-
-      // 권한/거부류만 OFF
       if (msg.includes('denied') || msg.includes('permission')) {
-        alert('마이크 권한이 필요합니다. 설정에서 허용해주세요.');
-        micOnRef.current = false;
+        alert('🚨 마이크 권한 오류: ' + msg);
         setMicOn(false);
         try {
           sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
@@ -510,61 +506,58 @@ export default function SearchInput({
         return;
       }
 
-      // 그 외는 씹고 부활
-      scheduleNativeRestart(600);
-    } finally {
-      if (isMountedRef.current && micOnRef.current) {
-        // 너무 오래 “듣는 중”만 고정되는 UI 방지
-        setTimeout(() => {
-          if (isMountedRef.current && micOnRef.current) setIsListening((v) => v);
-        }, 100);
-      }
+      // 그 외 에러는 “빨간 상태 유지” + 재시작
+      scheduleNativeRestart(500);
     }
   };
 
-  // =========================================================
-  // ✅ micOn에 따라 앱/웹 분기 실행
-  // =========================================================
+  // ---------------------------
+  // 통합 Start/Stop
+  // ---------------------------
+  const stopAll = (hard = false) => {
+    hardStopWeb();
+    if (hard) hardStopNative();
+  };
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     if (!micOn) {
-      stopWebLoop(true);
-      stopNativeLoop(true);
+      stopAll(true);
       return;
     }
 
-    // micOn이면 “사용자가 켰다” 저장
+    // micOn이 켜지는 순간 “사용자가 켰음” 저장
     try {
       sessionStorage.setItem(MIC_USER_ENABLED_KEY, 'true');
     } catch {}
 
     if (isNativeApp) {
-      stopWebLoop(true);
+      hardStopWeb();
       startNativeLoop();
     } else {
-      stopNativeLoop(true);
+      hardStopNative();
       startWebLoop();
     }
 
     return () => {
-      stopWebLoop(true);
-      stopNativeLoop(true);
+      stopAll(true);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [micOn, isNativeApp]);
 
-  // 웹에서만 visibility 처리 (네이티브는 자체 watchdog로 처리)
+  // WEB에서 탭 숨김/복귀 처리(앱은 네이티브 루프로 처리)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (isNativeApp) return;
+    if (typeof window === 'undefined' || isNativeApp) return;
 
     const onVis = () => {
       if (!micOnRef.current) return;
+
       if (document.visibilityState === 'visible') scheduleWebRestart();
-      else stopWebLoop(true);
+      else hardStopWeb();
     };
-    const onPageHide = () => stopWebLoop(true);
+
+    const onPageHide = () => hardStopWeb();
 
     document.addEventListener('visibilitychange', onVis);
     window.addEventListener('pagehide', onPageHide);
@@ -576,13 +569,12 @@ export default function SearchInput({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isNativeApp]);
 
-  // ✅ 사용자가 클릭했을 때부터 always on
+  // ✅ 사용자가 클릭하면 켜지고, 그 뒤로는 계속 유지(세션)
   const handleMicToggle = () => {
     if (typeof window === 'undefined') return;
 
     setMicOn((prev) => {
       const next = !prev;
-      micOnRef.current = next;
       try {
         if (next) sessionStorage.setItem(MIC_USER_ENABLED_KEY, 'true');
         else sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
@@ -609,9 +601,7 @@ export default function SearchInput({
             placeholder={
               placeholder ||
               (micOn
-                ? isNativeApp
-                  ? '🎙️ 앱 마이크 ON: 말씀하세요 (상시 대기)'
-                  : '🎙️ 마이크 ON: 말씀하세요 (상시 대기)'
+                ? '🎙️ 마이크 ON: 말씀하세요 (상시 대기)'
                 : '① 마이크 클릭 후 음성 검색 ② 한글/영단어 입력 후 엔터 또는 검색')
             }
             className="flex-grow min-w-0 h-full px-3 md:px-6 text-sm md:text-base text-slate-700 placeholder:text-slate-400 outline-none bg-transparent"
