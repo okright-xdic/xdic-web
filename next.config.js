@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // ✅ 1. 앱 껍데기에 넣을 'out' 폴더를 만들어주는 가장 중요한 핵심!
-//  output: 'export',
+ // output: 'export',
 
   // ✅ 2. output: 'export' 사용 시 이미지 에러 방지용
   images: {

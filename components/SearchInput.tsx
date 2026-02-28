@@ -15,7 +15,7 @@ interface SearchInputProps {
 
 type RecentItem = { keyword: string; count: number };
 
-const RECENT_KEY = 'xdic_recent_searches_v2';
+const RECENT_KEY = 'xdic_recent_searches';
 const UPDATED_EVENT = 'xdic_recent_searches_updated';
 
 // 사용자가 마이크를 “켜본 적이 있는지”만 기억 (켜면 always-on 유지)

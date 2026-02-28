@@ -6,6 +6,7 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
+// export const dynamic = 'force-static';
 
 // [로테이션 정렬 함수: 카테고리 Zig-zag]
 const rotateResults = (items: any[], keyword: string) => {

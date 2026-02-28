@@ -6,8 +6,14 @@ const config: CapacitorConfig = {
   webDir: 'out',   // 반드시 next export 결과 폴더
   bundledWebRuntime: false,
   server: {
-    androidScheme: 'https'
-  },
+  "appId": "com.xdic.app", 
+  "appName": "xdic",
+  "webDir": "out",
+  "server": {
+    "url": "https://www.x-dic.com",
+    "cleartext": true
+  }
+}
   android: {
     allowMixedContent: true
   },
