@@ -520,8 +520,7 @@ export default function SearchInput({
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             readOnly={isPending}
-            placeholder={
-              placeholder={micOn ? '🎙️ 마이크 ON: 말씀하세요 (상시 대기)' : '검색어를 입력하거나 마이크를 클릭하세요'}
+            placeholder={micOn ? '🎙️ 마이크 ON: 말씀하세요 (상시 대기)' : '검색어를 입력하거나 마이크를 클릭하세요'}
             className="flex-grow min-w-0 h-full px-3 md:px-6 text-sm md:text-base text-slate-700 placeholder:text-slate-400 outline-none bg-transparent"
             autoComplete="off"
           />
