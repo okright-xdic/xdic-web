@@ -44,6 +44,8 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
+  const isNativeApp = typeof window !== 'undefined' ? Capacitor.isNativePlatform() : false;
+
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
@@ -66,9 +68,12 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
   const handleSpeak = (text: string) => {
-    const isNative = typeof window !== 'undefined' ? Capacitor.isNativePlatform() : false;
+    // ✅ 앱(WebView)에서는 speechSynthesis가 막혀 "지원하지 않습니다"가 자주 뜹니다.
+    if (isNativeApp) {
+      alert('앱에서는 발음 듣기 기능이 준비 중입니다. (텍스트 검색은 정상 작동)');
+      return;
+    }
 
-    // Web Speech TTS
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
@@ -82,16 +87,9 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
       utterance.pitch = 0.85;
       utterance.rate = 0.9;
       window.speechSynthesis.speak(utterance);
-      return;
+    } else {
+      alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
     }
-
-    // App WebView에서는 speechSynthesis가 없는 경우가 많음
-    if (isNative) {
-      alert('앱에서는 기기 환경(WebView) 때문에 "발음 듣기" 기능이 제한될 수 있습니다. (텍스트 검색/음성검색은 별개로 동작합니다)');
-      return;
-    }
-
-    alert('이 브라우저는 음성 듣기(TTS)를 지원하지 않습니다.');
   };
 
   const highlightMatch = (text: string) => {
@@ -223,12 +221,18 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
 
                   {results.length > itemsPerPage && (
                     <div className="flex justify-center items-center gap-3 mt-12 mb-12 select-none font-sans">
-                      <button onClick={() => handlePageChange(1)} disabled={currentPage === 1}
-                        className="text-xs font-bold text-slate-400 hover:text-orange-600 hover:bg-orange-50 px-2 py-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+                      <button
+                        onClick={() => handlePageChange(1)}
+                        disabled={currentPage === 1}
+                        className="text-xs font-bold text-slate-400 hover:text-orange-600 hover:bg-orange-50 px-2 py-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
                         &lt;&lt;
                       </button>
-                      <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}
-                        className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+                      <button
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
                         이전
                       </button>
 
@@ -250,12 +254,18 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                         ))}
                       </div>
 
-                      <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}
-                        className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+                      <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
                         다음
                       </button>
-                      <button onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages}
-                        className="text-xs font-bold text-slate-400 hover:text-orange-600 hover:bg-orange-50 px-2 py-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+                      <button
+                        onClick={() => handlePageChange(totalPages)}
+                        disabled={currentPage === totalPages}
+                        className="text-xs font-bold text-slate-400 hover:text-orange-600 hover:bg-orange-50 px-2 py-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
                         &gt;&gt;
                       </button>
                     </div>

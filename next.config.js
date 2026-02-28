@@ -1,21 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 빌드 시 ESLint(문법 검사) 에러가 있어도 무시하고 진행합니다.
-  eslint: {
-    ignoreDuringBuilds: true,
+  // ✅ 1. 앱 껍데기에 넣을 'out' 폴더를 만들어주는 가장 중요한 핵심!
+  output: 'export',
+
+  // ✅ 2. output: 'export' 사용 시 이미지 에러 방지용
+  images: {
+    unoptimized: true,
   },
 
-  // 빌드 시 TypeScript(타입 검사) 에러가 있어도 무시하고 진행합니다.
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: true },
 
-  // ✅ (권장) dev에서 StrictMode 이펙트 2번 실행로 인한 마이크/이펙트 꼬임 방지용
-  // (프로덕션에선 덜하지만, 로컬 테스트 안정성에 도움)
+  // dev에서 이펙트 2번 실행로 꼬이는 문제 완화
   reactStrictMode: false,
 
-  // ✅ (권장) Vercel/배포 환경에서 마이크 권한 정책을 "명시적으로 허용"
-  // 기본값이 막혀있는 경우(특정 헤더/프록시/보안설정) 대비
+  // 🚨 주의: output: 'export' 모드에서는 headers()를 사용할 수 없어서 임시로 막아둡니다. 
+  // 앱(Capacitor)에서는 안드로이드 자체 권한을 쓰기 때문에 웹용 헤더가 없어도 괜찮습니다!
+  /*
   async headers() {
     return [
       {
@@ -26,6 +27,7 @@ const nextConfig = {
       },
     ];
   },
+  */
 };
 
 module.exports = nextConfig;
