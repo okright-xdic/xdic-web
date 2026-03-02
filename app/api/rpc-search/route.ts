@@ -23,12 +23,7 @@ const matchScore = (lineText: string, keyword: string) => {
   const k = keyword.trim().toLowerCase();
   const t = (lineText || '').toLowerCase();
 
-  const isExact =
-    t === k ||
-    t === `${k} ` ||
-    t.startsWith(`${k} `) ||
-    t.startsWith(`${k}:`);
-
+  const isExact = t === k || t === `${k} ` || t.startsWith(`${k} `) || t.startsWith(`${k}:`);
   if (isExact) return 0;
   if (t.startsWith(k)) return 1;
   if (t.includes(k)) return 2;
@@ -67,26 +62,24 @@ const zigzagInterleave = (buckets: Record<number, Row[]>, maxTotal = 120) => {
 };
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const keyword = searchParams.get('q') ?? '';
-
-  const trimmed = (keyword || '').trim();
-  const noSpaceLen = trimmed.replace(/\s+/g, '').length;
-
-  // ✅ 1글자도 허용 (빈 값만 차단)
-  if (!trimmed || noSpaceLen < 1) {
-    return NextResponse.json({ results: [] });
-  }
-
-  const supabase = createRouteHandlerClient({ cookies });
-
-  // ✅ 요청하신 3단계
-  const q1 = ensureTrailingSpace(trimmed); // 1) 무조건 뒤에 space
-  const q2 = trimmed;                      // 2) space 제거
-  const hasInnerSpace = /\s+/.test(trimmed);
-  const q3 = hasInnerSpace ? ensureTrailingSpace(trimmed.replace(/\s+/g, '')) : ''; // 3) 합치기(+space)
-
   try {
+    const { searchParams } = new URL(request.url);
+    const keyword = searchParams.get('q') ?? '';
+    const trimmed = (keyword || '').trim();
+    const noSpaceLen = trimmed.replace(/\s+/g, '').length;
+
+    if (!trimmed || noSpaceLen < 1) {
+      return NextResponse.json({ results: [], meta: { total: 0 } });
+    }
+
+    const supabase = createRouteHandlerClient({ cookies });
+
+    // ✅ 3단계
+    const q1 = ensureTrailingSpace(trimmed); // 1) 뒤에 space
+    const q2 = trimmed; // 2) 원본
+    const hasInnerSpace = /\s+/.test(trimmed);
+    const q3 = hasInnerSpace ? ensureTrailingSpace(trimmed.replace(/\s+/g, '')) : ''; // 3) 합치기(+space)
+
     const merged: Row[] = [];
     const seen = new Set<string>();
 
@@ -100,24 +93,20 @@ export async function GET(request: Request) {
       }
     };
 
-    // 1) space 붙인 검색
     const { data: data1, error: err1 } = await supabase.rpc('search_dictionary_v8', { keyword: q1 });
     pushAll(data1);
 
-    // 2) 0건이면 space 제거 검색
     if (merged.length === 0) {
       const { data: data2 } = await supabase.rpc('search_dictionary_v8', { keyword: q2 });
       pushAll(data2);
     }
 
-    // 3) 그래도 0건이면 합치기(공백 있었을 때만)
     if (merged.length === 0 && q3) {
       const { data: data3 } = await supabase.rpc('search_dictionary_v8', { keyword: q3 });
       pushAll(data3);
     }
 
-    // RPC가 실패했고 여전히 0이면 마지막 안전장치(ilike)
-    if ((err1 as any) && merged.length === 0) {
+    if (err1 && merged.length === 0) {
       const { data: fallback } = await supabase
         .from('dictionary_lines')
         .select('id, category_id, source_order, line_text, line_hash')
@@ -129,7 +118,6 @@ export async function GET(request: Request) {
       pushAll(fallback as any[]);
     }
 
-    // 카테고리 버킷화 + 정렬 + 카테고리별 최대 10개
     const buckets: Record<number, Row[]> = {};
     for (let cat = 1; cat <= 12; cat++) buckets[cat] = [];
 
@@ -156,7 +144,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error: any) {
-    console.warn('⚠️ API 검색 에러:', error?.message);
-    return NextResponse.json({ results: [] });
+    console.warn('⚠️ /api/rpc-search error:', error?.message || error);
+    return NextResponse.json({ results: [], meta: { total: 0, error: 'search_failed' } });
   }
 }

@@ -71,7 +71,6 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
   const handleSpeak = (text: string) => {
-    // ✅ 앱(WebView)에서는 speechSynthesis가 불안정하므로 조용히 막기
     if (isNativeApp) return;
 
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -88,7 +87,6 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
       utterance.rate = 0.9;
       window.speechSynthesis.speak(utterance);
     } else {
-      // 웹에서도 지원 안하면 조용히 처리(팝업 난사 방지)
       alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
     }
   };
@@ -193,7 +191,6 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                         <li className="group bg-white rounded-lg py-2 px-3 border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all duration-200">
                           <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3 flex-1">
-                              {/* ✅ 앱에서는 발음 듣기 버튼 숨김(팝업 방지) */}
                               {!isNativeApp && (
                                 <button
                                   onClick={() => handleSpeak(item.line_text)}

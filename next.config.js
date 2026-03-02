@@ -1,9 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // ✅ 1. 앱 껍데기에 넣을 'out' 폴더를 만들어주는 가장 중요한 핵심!
- // output: 'export',
+  // ✅ Capacitor가 server.url로 https://www.x-dic.com 를 로드하는 구조면
+  // output: 'export' 는 필요 없습니다(오히려 API route 못 씀).
 
-  // ✅ 2. output: 'export' 사용 시 이미지 에러 방지용
   images: {
     unoptimized: true,
   },
@@ -11,23 +10,9 @@ const nextConfig = {
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
 
-  // dev에서 이펙트 2번 실행로 꼬이는 문제 완화
   reactStrictMode: false,
 
-  // 🚨 주의: output: 'export' 모드에서는 headers()를 사용할 수 없어서 임시로 막아둡니다. 
-  // 앱(Capacitor)에서는 안드로이드 자체 권한을 쓰기 때문에 웹용 헤더가 없어도 괜찮습니다!
-  /*
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          { key: 'Permissions-Policy', value: 'microphone=(self)' },
-        ],
-      },
-    ];
-  },
-  */
+  // (참고) export 모드에서는 headers() 사용 불가라 주석 유지
 };
 
 module.exports = nextConfig;
