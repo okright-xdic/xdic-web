@@ -4,7 +4,6 @@ const config: CapacitorConfig = {
   appId: 'com.xdic.app',
   appName: 'X-DIC',
   webDir: 'www',
-  bundledWebRuntime: false,
   server: {
     url: 'https://www.x-dic.com',
     cleartext: true
