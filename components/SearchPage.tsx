@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import SearchInput from '@/components/SearchInput';
@@ -9,7 +9,6 @@ import RecentKeywords from '@/components/RecentKeywords';
 import PopularKeywords from '@/components/PopularKeywords';
 import TrendGraph from '@/components/TrendGraph';
 import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
-import { Capacitor } from '@capacitor/core';
 
 interface SearchResult {
   id: string | number;
@@ -47,12 +46,7 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
-  const homeHref = isApp ? '/app' : '/';
-
-  const isNativeApp = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return Capacitor.isNativePlatform();
-  }, []);
+  const homeHref = isApp ? '/app/' : '/';
 
   useEffect(() => {
     setCurrentPage(1);
@@ -62,17 +56,13 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
     if (!displayQuery) return;
     const encoded = encodeURIComponent(displayQuery);
     const url =
-      site === 'google'
-        ? `https://www.google.com/search?q=${encoded}`
-        : `https://en.dict.naver.com/#/search?query=${encoded}`;
+      site === 'google' ? `https://www.google.com/search?q=${encoded}` : `https://en.dict.naver.com/#/search?query=${encoded}`;
     window.open(url, '_blank');
   };
 
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
   const handleSpeak = (text: string) => {
-    if (isNativeApp) return;
-
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
@@ -191,17 +181,15 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                         <li className="group bg-white rounded-lg py-2 px-3 border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all duration-200">
                           <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3 flex-1">
-                              {!isNativeApp && (
-                                <button
-                                  onClick={() => handleSpeak(item.line_text)}
-                                  className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
-                                  title="발음 듣기"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                                    <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
-                                  </svg>
-                                </button>
-                              )}
+                              <button
+                                onClick={() => handleSpeak(item.line_text)}
+                                className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                title="발음 듣기"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                                  <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
+                                </svg>
+                              </button>
 
                               <div className="text-base md:text-lg leading-snug break-keep">{highlightMatch(item.line_text)}</div>
                             </div>

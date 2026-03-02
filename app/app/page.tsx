@@ -1,104 +1,65 @@
 'use client';
 
-// app/app/page.tsx
-// 📱 스마트폰 앱 전용 페이지 (클라이언트 fetch 방식으로 안정화)
-
 import React, { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import SearchPage from '@/components/SearchPage';
 
-type Row = {
+type SearchResult = {
   id: string | number;
   category_id: number;
-  source_order?: number;
   line_text: string;
-};
-
-const rotateResults = (items: any[], keyword: string) => {
-  if (!items || items.length === 0) return [];
-  const lowerKeyword = keyword.trim().toLowerCase();
-  const buckets: Record<number, any[]> = {};
-  for (let i = 1; i <= 12; i++) buckets[i] = [];
-
-  const advancedSort = (a: any, b: any) => {
-    const aText = (a.line_text || '').toLowerCase();
-    const bText = (b.line_text || '').toLowerCase();
-    const isExactA = aText === lowerKeyword || aText.startsWith(lowerKeyword + ' ') || aText.startsWith(lowerKeyword + ':');
-    const isExactB = bText === lowerKeyword || bText.startsWith(lowerKeyword + ' ') || bText.startsWith(lowerKeyword + ':');
-    if (isExactA && !isExactB) return -1;
-    if (!isExactA && isExactB) return 1;
-
-    const startsA = aText.startsWith(lowerKeyword);
-    const startsB = bText.startsWith(lowerKeyword);
-    if (startsA && !startsB) return -1;
-    if (!startsA && startsB) return 1;
-
-    if (aText.length !== bText.length) return aText.length - bText.length;
-    return aText.localeCompare(bText);
-  };
-
-  items.forEach((item) => {
-    const catId = item.category_id >= 1 && item.category_id <= 12 ? item.category_id : 12;
-    buckets[catId].push(item);
-  });
-
-  let maxCount = 0;
-  for (let i = 1; i <= 12; i++) {
-    buckets[i].sort(advancedSort);
-    if (buckets[i].length > maxCount) maxCount = buckets[i].length;
-  }
-
-  const rotated: any[] = [];
-  for (let i = 0; i < maxCount; i++) {
-    for (let cat = 1; cat <= 12; cat++) {
-      if (buckets[cat][i]) rotated.push(buckets[cat][i]);
-    }
-  }
-  return rotated;
+  source_order?: number;
 };
 
 export default function AppPage() {
-  const sp = useSearchParams();
-  const query = useMemo(() => (sp.get('q') || '').toString(), [sp]);
-
-  const [results, setResults] = useState<Row[]>([]);
-  const [highlightKeys, setHighlightKeys] = useState<string[]>([]);
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // URL의 ?q= 읽기
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const sp = new URLSearchParams(window.location.search);
+    const q = (sp.get('q') || '').trim();
+    setQuery(q);
+  }, []);
 
   useEffect(() => {
     const q = (query || '').trim();
-    setHighlightKeys(q ? [q] : []);
-
-    const noSpaceLen = q.replace(/\s+/g, '').length;
-    if (!q || noSpaceLen < 1) {
+    const compact = q.replace(/\s+/g, '');
+    if (!q || compact.length < 2) {
       setResults([]);
       return;
     }
 
-    let cancelled = false;
-
-    const run = async () => {
-      setLoading(true);
+    let alive = true;
+    (async () => {
       try {
-        const url = `/api/rpc-search?q=${encodeURIComponent(q)}`;
-        const res = await fetch(url, { cache: 'no-store' });
+        setLoading(true);
+        const res = await fetch(`/api/rpc-search?q=${encodeURIComponent(q)}&limit=240&offset=0`);
         const json = await res.json();
-        const arr: Row[] = Array.isArray(json?.results) ? json.results : [];
-        const rotated = arr.length > 0 ? rotateResults(arr, q) : [];
-        if (!cancelled) setResults(rotated);
+        if (!alive) return;
+        setResults(Array.isArray(json?.results) ? json.results : []);
       } catch {
-        if (!cancelled) setResults([]);
+        if (!alive) return;
+        setResults([]);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!alive) return;
+        setLoading(false);
       }
-    };
+    })();
 
-    run();
     return () => {
-      cancelled = true;
+      alive = false;
     };
   }, [query]);
 
-  // loading UI가 필요하면 SearchPage에 prop 추가해도 됨 (지금은 결과만 넘김)
-  return <SearchPage query={query} results={results} highlightList={highlightKeys} isApp={true} />;
+  const highlightList = useMemo(() => {
+    const q = (query || '').trim();
+    if (!q) return [];
+    // 필요하면 여기서 하이라이트 키워드 리스트를 확장
+    return [q];
+  }, [query]);
+
+  // SearchPage는 props 형태가 {query, results}라서 그대로 전달
+  return <SearchPage query={query} results={results} highlightList={highlightList} isApp={true} />;
 }
