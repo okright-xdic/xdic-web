@@ -40,7 +40,7 @@ export default function AdSensePlaceholder({
   minHeight = 160,
   debugLabel,
 }: Props) {
-  const insRef = useRef<HTMLModElement | null>(null);
+  const insRef = useRef<HTMLElement | null>(null);
 
   const clientId = useMemo(() => {
     return (
