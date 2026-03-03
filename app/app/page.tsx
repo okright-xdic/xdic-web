@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import SearchPage from '@/components/SearchPage';
 
 type SearchResult = {
@@ -11,55 +12,69 @@ type SearchResult = {
 };
 
 export default function AppPage() {
+  const searchParams = useSearchParams();
+
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // URL의 ?q= 읽기
+  // ✅ URL의 ?q= 가 바뀔 때마다 query 갱신 (음성검색 router.push에도 즉시 반응)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const sp = new URLSearchParams(window.location.search);
-    const q = (sp.get('q') || '').trim();
+    const q = (searchParams?.get('q') || '').trim();
     setQuery(q);
-  }, []);
+  }, [searchParams]);
 
+  // ✅ query가 바뀌면 검색 호출
   useEffect(() => {
     const q = (query || '').trim();
     const compact = q.replace(/\s+/g, '');
+
     if (!q || compact.length < 2) {
       setResults([]);
+      setLoading(false);
       return;
     }
 
-    let alive = true;
+    const controller = new AbortController();
+
     (async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/rpc-search?q=${encodeURIComponent(q)}&limit=240&offset=0`);
+
+        const res = await fetch(
+          `/api/rpc-search?q=${encodeURIComponent(q)}&limit=240&offset=0`,
+          { signal: controller.signal }
+        );
+
+        if (!res.ok) {
+          setResults([]);
+          return;
+        }
+
         const json = await res.json();
-        if (!alive) return;
         setResults(Array.isArray(json?.results) ? json.results : []);
-      } catch {
-        if (!alive) return;
+      } catch (e: any) {
+        if (e?.name === 'AbortError') return;
         setResults([]);
       } finally {
-        if (!alive) return;
         setLoading(false);
       }
     })();
 
-    return () => {
-      alive = false;
-    };
+    return () => controller.abort();
   }, [query]);
 
   const highlightList = useMemo(() => {
     const q = (query || '').trim();
-    if (!q) return [];
-    // 필요하면 여기서 하이라이트 키워드 리스트를 확장
-    return [q];
+    return q ? [q] : [];
   }, [query]);
 
-  // SearchPage는 props 형태가 {query, results}라서 그대로 전달
-  return <SearchPage query={query} results={results} highlightList={highlightList} isApp={true} />;
+  return (
+    <SearchPage
+      query={query}
+      results={results}
+      highlightList={highlightList}
+      isApp={true}
+    />
+  );
 }

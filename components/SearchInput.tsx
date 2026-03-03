@@ -403,23 +403,32 @@ export default function SearchInput({
         return;
       }
 
-      // 2) 권한 확인/요청
-      let perm = await SpeechRecognition.checkPermissions();
-      if (perm.speechRecognition !== 'granted') {
+      // 2) 권한 확인/요청 (✅ speechRecognition + microphone 둘 다)
+      let perm: any = await SpeechRecognition.checkPermissions();
+
+      const isGranted = (v: any) => v === 'granted' || v === true;
+
+      const speechGranted = isGranted(perm?.speechRecognition);
+      const micGranted = isGranted(perm?.microphone);
+
+      if (!speechGranted || !micGranted) {
         perm = await SpeechRecognition.requestPermissions();
-      }
-      if (perm.speechRecognition !== 'granted') {
-        alert('마이크 권한이 필요합니다. 설정에서 X-DIC 마이크 권한을 허용해주세요.');
-        setMicOn(false);
-        nativeStartingRef.current = false;
-        return;
+
+        const speechGranted2 = isGranted(perm?.speechRecognition);
+        const micGranted2 = isGranted(perm?.microphone);
+
+        if (!speechGranted2 || !micGranted2) {
+          alert('마이크/음성 인식 권한이 필요합니다. 설정에서 X-DIC 권한을 허용해주세요.');
+          setMicOn(false);
+          nativeStartingRef.current = false;
+          return;
+        }
       }
 
-      // 3) 리스너 재설치 (결과는 이벤트로 옴) 5
+      // 3) 리스너 재설치 (결과는 이벤트로 옴)
       await removeNativeListeners();
 
       const h1 = await SpeechRecognition.addListener('listeningState', (event: any) => {
-        // capgo docs: event.status = 'started' | 'stopped' 6
         if (!isMountedRef.current) return;
         setIsListening(event?.status === 'started');
         if (event?.status === 'stopped' && micOnRef.current) {
@@ -428,7 +437,6 @@ export default function SearchInput({
       });
 
       const h2 = await SpeechRecognition.addListener('partialResults', (event: any) => {
-        // 화면에만 “살짝” 표시 (검색은 segmentResults에서 확정)
         const text = String(event?.matches?.[0] || '').trim();
         if (!text) return;
         if (!isMountedRef.current) return;
@@ -436,11 +444,9 @@ export default function SearchInput({
       });
 
       const h3 = await SpeechRecognition.addListener('segmentResults', (event: any) => {
-        // Android only 확정 결과 7
         const transcript = String(event?.matches?.[0] || '').trim();
         if (!transcript) return;
 
-        // 중복 폭주 방지(짧은 시간 동일 문장 연속 호출 방지)
         const now = Date.now();
         if (now - lastTranscriptAtRef.current < 450) return;
         lastTranscriptAtRef.current = now;
@@ -451,31 +457,29 @@ export default function SearchInput({
       });
 
       const h4 = await SpeechRecognition.addListener('endOfSegmentedSession', () => {
-        // Android only: 세션 종료되면 즉시 부활 8
         if (!micOnRef.current) return;
         scheduleNativeRestart(200);
       });
 
       nativeListenerHandlesRef.current = [h1, h2, h3, h4];
 
-      // 4) 시작: start()는 “결과 리턴이 아니라, 이벤트 스트림 시작” 9
+      // 4) 시작
       await SpeechRecognition.start({
         language: 'ko-KR',
         maxResults: 1,
         partialResults: true,
         popup: false,
-        allowForSilence: 1200, // Android only: 침묵 분할(너무 짧으면 끊김이 잦음) 10
+        allowForSilence: 1200,
       });
 
       nativeStartingRef.current = false;
 
-      // 안전장치: OS가 몰래 죽이면 다시 켬
+      // 안전장치
       scheduleNativeRestart(1200);
     } catch (e: any) {
       nativeStartingRef.current = false;
       if (!isMountedRef.current) return;
 
-      // 권한류만 OFF, 나머지는 부활
       const msg = String(e?.message || e || '').toLowerCase();
       if (msg.includes('denied') || msg.includes('permission')) {
         alert('마이크 권한이 차단되었습니다. 설정에서 권한을 허용해주세요.');
