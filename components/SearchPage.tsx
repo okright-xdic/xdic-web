@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import SearchInput from '@/components/SearchInput';
@@ -9,7 +9,6 @@ import RecentKeywords from '@/components/RecentKeywords';
 import PopularKeywords from '@/components/PopularKeywords';
 import TrendGraph from '@/components/TrendGraph';
 import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
-import { Capacitor } from '@capacitor/core';
 
 interface SearchResult {
   id: string | number;
@@ -47,24 +46,7 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
-  const isNativeApp = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return Capacitor.isNativePlatform();
-  }, []);
-
   const homeHref = isApp ? '/app' : '/';
-
-  // ✅ “결과 없음”이 잠깐 뜨는 플래시 방지용 (query 바뀌고 250ms 동안은 빈 results를 믿지 않음)
-  const [allowEmptyState, setAllowEmptyState] = useState(true);
-  useEffect(() => {
-    if (!displayQuery) {
-      setAllowEmptyState(true);
-      return;
-    }
-    setAllowEmptyState(false);
-    const t = setTimeout(() => setAllowEmptyState(true), 250);
-    return () => clearTimeout(t);
-  }, [displayQuery]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -82,33 +64,23 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
 
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
-  // ✅ TTS: 앱(WebView)에서는 지원이 불안정하니 버튼 자체를 숨기는 쪽이 안전
-  const warnedTtsRef = useRef(false);
-  const canSpeak = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return !isNativeApp && 'speechSynthesis' in window;
-  }, [isNativeApp]);
-
   const handleSpeak = (text: string) => {
-    if (!canSpeak) {
-      if (!warnedTtsRef.current) {
-        warnedTtsRef.current = true;
-        alert('이 기기에서는 발음 듣기(TTS)를 지원하지 않습니다.');
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice =
+        voices.find((v) => v.name.includes('Google US English')) || voices.find((v) => v.lang === 'en-US');
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+        utterance.lang = 'en-US';
       }
-      return;
+      utterance.pitch = 0.85;
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
     }
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find((v) => v.lang === 'en-US') || voices[0];
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
-      utterance.lang = preferredVoice.lang || 'en-US';
-    }
-    utterance.pitch = 0.85;
-    utterance.rate = 0.9;
-    window.speechSynthesis.speak(utterance);
   };
 
   const highlightMatch = (text: string) => {
@@ -149,8 +121,6 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  const shouldShowNoResult = displayQuery && !isTooShort && allowEmptyState && results.length === 0;
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -213,19 +183,15 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                         <li className="group bg-white rounded-lg py-2 px-3 border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all duration-200">
                           <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3 flex-1">
-                              {canSpeak ? (
-                                <button
-                                  onClick={() => handleSpeak(item.line_text)}
-                                  className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
-                                  title="발음 듣기"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                                    <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
-                                  </svg>
-                                </button>
-                              ) : (
-                                <div className="w-8 h-8" />
-                              )}
+                              <button
+                                onClick={() => handleSpeak(item.line_text)}
+                                className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                title="발음 듣기"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                                  <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
+                                </svg>
+                              </button>
 
                               <div className="text-base md:text-lg leading-snug break-keep">{highlightMatch(item.line_text)}</div>
                             </div>
@@ -302,7 +268,7 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                     <p className="text-sm text-slate-400">{results.length}개의 결과를 모두 확인했습니다.</p>
                   </div>
                 </div>
-              ) : shouldShowNoResult ? (
+              ) : (
                 <div className="flex flex-col items-center justify-center py-16 text-center px-4">
                   <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-3xl mb-4">🤔</div>
                   <h3 className="text-lg font-bold text-slate-800 mb-2">
@@ -323,11 +289,6 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                       Google 검색
                     </button>
                   </div>
-                </div>
-              ) : (
-                // ✅ 플래시 방지용 “잠깐 대기”
-                <div className="py-24 text-center text-slate-400">
-                  검색 중...
                 </div>
               )}
             </div>
