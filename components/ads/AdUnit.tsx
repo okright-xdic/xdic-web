@@ -61,7 +61,7 @@ export default function AdUnit({
   debugLabel,
   enabled = true,
 }: AdUnitProps) {
-  const insRef = useRef<HTMLInsElement | null>(null);
+  const insRef = useRef<HTMLElement | null>(null);
 
   const clientId = useMemo(() => {
     const fromEnv = process.env.NEXT_PUBLIC_ADSENSE_CLIENT
