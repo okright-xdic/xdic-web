@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:web": "next build",
+    "build:app": "cross-env CAP_BUILD=1 next build",
     "start": "next start",
     "lint": "next lint"
   },
