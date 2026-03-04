@@ -61,7 +61,7 @@ export default function AdUnit({
   debugLabel,
   enabled = true,
 }: AdUnitProps) {
-  const insRef = useRef<HTMLElement | null>(null);
+  const insRef = useRef<any>(null);
 
   const clientId = useMemo(() => {
     const fromEnv = process.env.NEXT_PUBLIC_ADSENSE_CLIENT
@@ -122,7 +122,7 @@ export default function AdUnit({
       <ins
         // refreshKey가 바뀌면 ins 자체를 새로 만들어 push 재시도 가능
         key={refreshKey ?? `${clientId}:${adSlot}`}
-        ref={insRef}
+        ref={insRef as any}
         className="adsbygoogle"
         style={{ display: 'block' }}
         data-ad-client={clientId}
