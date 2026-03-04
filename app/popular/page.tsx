@@ -7,7 +7,7 @@ import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import PopularKeywords from '@/components/PopularKeywords'; // 진짜 인기 검색어 컴포넌트
 import TrendGraph from '@/components/TrendGraph';
-import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
+import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder'; // 경로수정
 import RecentKeywords from '@/components/RecentKeywords'; // 우측 사이드바용
 
 export default function PopularPage() {
