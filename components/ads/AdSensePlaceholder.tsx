@@ -1,5 +1,7 @@
 'use client';
 
+import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
+
 import React, { useEffect, useMemo, useRef } from 'react';
 
 declare global {
