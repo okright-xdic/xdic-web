@@ -368,7 +368,8 @@ export default function SearchInput({
     // Capgo plugin 권한 플로우
     let perm: any;
     try {
-      perm = await SpeechRecognition.checkPermissions();
+      // ✅ 여기에 as any 추가
+      perm = (await SpeechRecognition.checkPermissions()) as any; 
     } catch {
       perm = null;
     }
@@ -383,7 +384,8 @@ export default function SearchInput({
     if (granted) return true;
 
     try {
-      const req = await SpeechRecognition.requestPermissions();
+      // ✅ 여기에도 as any 추가
+      const req = (await SpeechRecognition.requestPermissions()) as any; 
       const granted2 =
         req?.speechRecognition === 'granted' ||
         req?.microphone === 'granted' ||
