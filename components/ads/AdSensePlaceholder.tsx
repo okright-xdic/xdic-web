@@ -1,105 +1,46 @@
-'use client';
+'use client'; // ✅ 이거 없으면 Vercel 빌드 터집니다! 무조건 1번 줄!
 
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-declare global {
-  interface Window {
-    adsbygoogle?: any[];
-  }
-}
-
-type Props = {
-  /** 광고 슬롯(숫자 문자열) */
+export default function AdSensePlaceholder(props: {
   adSlot: string;
-
-  /** (선택) ca-pub-xxxx. 없으면 NEXT_PUBLIC_ADSENSE_CLIENT 사용 */
-  adClient?: string;
-
-  /** (선택) className */
-  className?: string;
-
-  /** (선택) data-ad-format */
-  adFormat?: 'auto' | 'fluid' | string;
-
-  /** (선택) 반응형 */
-  fullWidthResponsive?: boolean;
-
-  /** (선택) 레이아웃 흔들림 방지 최소 높이 */
-  minHeight?: number;
-
-  /** (선택) 디버그 라벨 */
   debugLabel?: string;
-};
+  minHeight?: number;
+}) {
+  const { adSlot, debugLabel, minHeight = 200 } = props;
 
-export default function AdSensePlaceholder({
-  adSlot,
-  adClient,
-  className = '',
-  adFormat = 'auto',
-  fullWidthResponsive = true,
-  minHeight = 160,
-  debugLabel,
-}: Props) {
-  const insRef = useRef<HTMLElement | null>(null);
+  // ✅ 핵심: HTMLElement -> HTMLModElement 완벽 수정
+  const insRef = useRef<HTMLModElement | null>(null);
 
-  const clientId = useMemo(() => {
-    return (
-      adClient ||
-      (process.env.NEXT_PUBLIC_ADSENSE_CLIENT
-        ? String(process.env.NEXT_PUBLIC_ADSENSE_CLIENT)
-        : 'ca-pub-8555893885172220') // ✅ 안전 기본값(원하시면 제거 가능)
-    );
-  }, [adClient]);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const el = insRef.current as any;
-    if (!el) return;
-
-    // ✅ 이미 로드된 광고면 중복 push 방지
-    const status = el.getAttribute?.('data-adsbygoogle-status');
-    if (status === 'done') {
-      if (debugLabel) console.log(`[AdSense] already done: ${debugLabel}`);
-      return;
+    // adsbygoogle push 시도
+    try {
+      // @ts-ignore
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch {
+      // push 실패 시 재시도 가능하게 key만 증가
+      setRefreshKey((k) => k + 1);
     }
-
-    // ✅ 스크립트가 아직 로드 중일 수 있어 약간 딜레이 후 push
-    const t = window.setTimeout(() => {
-      try {
-        window.adsbygoogle = window.adsbygoogle || [];
-        window.adsbygoogle.push({});
-        if (debugLabel) console.log(`[AdSense] push ok: ${debugLabel}`);
-      } catch (e) {
-        if (debugLabel) console.warn(`[AdSense] push fail: ${debugLabel}`, e);
-      }
-    }, 80);
-
-    return () => window.clearTimeout(t);
-  }, [adSlot, clientId, adFormat, fullWidthResponsive, debugLabel]);
-
-  // clientId가 비어 있으면(환경변수 누락 등) 개발 중엔 박스만 보여주기
-  if (!clientId) {
-    return (
-      <div
-        className={`w-full bg-slate-100 border border-slate-200 border-dashed rounded-xl flex items-center justify-center text-slate-400 my-6 ${className}`}
-        style={{ minHeight }}
-      >
-        AdSense client id missing (NEXT_PUBLIC_ADSENSE_CLIENT)
-      </div>
-    );
-  }
+  }, [adSlot]);
 
   return (
-    <div className={`w-full my-6 ${className}`} style={{ minHeight }}>
+    <div style={{ minHeight }} className="w-full my-6">
       <ins
-        ref={insRef as any}
+        key={`${adSlot}:${refreshKey}`}
+        ref={insRef}
         className="adsbygoogle"
         style={{ display: 'block' }}
-        data-ad-client={clientId}
+        // ✅ XXXXXX 대신 대표님의 진짜 애드센스 환경변수를 가져오도록 수정! (없을 경우를 대비한 안전망 포함)
+        data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-8555893885172220"}
         data-ad-slot={adSlot}
-        data-ad-format={adFormat}
-        data-full-width-responsive={fullWidthResponsive ? 'true' : 'false'}
+        data-ad-format="auto"
+        data-full-width-responsive="true"
       />
+      {debugLabel ? (
+        <div className="text-[10px] text-slate-300 mt-1">{debugLabel}</div>
+      ) : null}
     </div>
   );
 }
