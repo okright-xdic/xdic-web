@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import SearchInput from '@/components/SearchInput';
@@ -9,7 +9,6 @@ import RecentKeywords from '@/components/RecentKeywords';
 import PopularKeywords from '@/components/PopularKeywords';
 import TrendGraph from '@/components/TrendGraph';
 import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
-import { Capacitor } from '@capacitor/core';
 
 interface SearchResult {
   id: string | number;
@@ -49,15 +48,6 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
 
   const homeHref = isApp ? '/app' : '/';
 
-  const isNativeApp = useMemo(() => {
-    return typeof window !== 'undefined' ? Capacitor.isNativePlatform() : false;
-  }, []);
-
-  const supportsSpeechSynthesis = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return 'speechSynthesis' in window && typeof (window as any).SpeechSynthesisUtterance !== 'undefined';
-  }, []);
-
   useEffect(() => {
     setCurrentPage(1);
   }, [results, query]);
@@ -75,35 +65,25 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
   const handleSpeak = (text: string) => {
-    if (isNativeApp) {
-      alert('📌 앱에서는 현재 “발음 듣기”가 기기 환경에 따라 제한될 수 있어요.\n(음성 검색은 정상 동작하도록 별도로 처리했습니다)');
-      return;
-    }
-
-    if (typeof window !== 'undefined' && supportsSpeechSynthesis) {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
-
-        const voices = window.speechSynthesis.getVoices?.() || [];
+        const voices = window.speechSynthesis.getVoices();
         const preferredVoice =
-          voices.find((v) => v.name?.includes('Google US English')) || voices.find((v) => v.lang === 'en-US');
+          voices.find((v) => v.name.includes('Google US English')) || voices.find((v) => v.lang === 'en-US');
         if (preferredVoice) {
           utterance.voice = preferredVoice;
           utterance.lang = 'en-US';
-        } else {
-          utterance.lang = 'en-US';
         }
-
         utterance.pitch = 0.85;
         utterance.rate = 0.9;
-
         window.speechSynthesis.speak(utterance);
       } catch {
-        alert('이 환경에서는 발음 듣기를 실행할 수 없습니다.');
+        alert('이 기기에서는 음성 듣기가 원활하지 않습니다.');
       }
     } else {
-      alert('이 브라우저는 발음 듣기를 지원하지 않습니다.');
+      alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
     }
   };
 
@@ -243,6 +223,7 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                       >
                         &lt;&lt;
                       </button>
+
                       <button
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
@@ -276,6 +257,7 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                       >
                         다음
                       </button>
+
                       <button
                         onClick={() => handlePageChange(totalPages)}
                         disabled={currentPage === totalPages}
@@ -296,7 +278,7 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                 <div className="flex flex-col items-center justify-center py-16 text-center px-4">
                   <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-3xl mb-4">🤔</div>
                   <h3 className="text-lg font-bold text-slate-800 mb-2">
-                    &apos;<span style={{ color: '#ef4444' }}>{displayQuery}</span>&apos;에 대한 결과가 없습니다.
+                    '<span style={{ color: '#ef4444' }}>{displayQuery}</span>'에 대한 결과가 없습니다.
                   </h3>
                   <p className="text-slate-500 text-sm mb-8">내부 사전에 데이터가 없네요. 외부 사이트에서 찾아보시겠어요?</p>
                   <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
