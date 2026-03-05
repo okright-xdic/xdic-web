@@ -65,7 +65,7 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
   const handleSpeak = (text: string) => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window && !Capacitor.isNativePlatform())
       try {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);

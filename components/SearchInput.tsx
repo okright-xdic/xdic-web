@@ -435,11 +435,12 @@ export default function SearchInput({
       nativeHandlesRef.current = h4 ? [h1, h2, h3, h4] : [h1, h2, h3];
 
       await SpeechRecognition.start({
-        language: 'ko-KR',
-        maxResults: 1,
-        partialResults: true,
-        popup: false,
-      } as any);
+  language: 'ko-KR',
+  maxResults: 1,
+  partialResults: true,
+  popup: false,
+  allowForSilence: 5000
+});
 
       nativeStartingRef.current = false;
 
