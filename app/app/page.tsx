@@ -18,7 +18,7 @@ export default function AppPage() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // ✅ URL의 ?q= 가 바뀔 때마다 query 갱신 (음성검색 router.push에도 즉시 반응)
+  // ✅ URL의 ?q= 가 바뀔 때마다 query 갱신
   useEffect(() => {
     const q = (searchParams?.get('q') || '').trim();
     setQuery(q);
@@ -41,10 +41,9 @@ export default function AppPage() {
       try {
         setLoading(true);
 
-        const res = await fetch(
-          `/api/rpc-search?q=${encodeURIComponent(q)}&limit=240&offset=0`,
-          { signal: controller.signal }
-        );
+        const res = await fetch(`/api/rpc-search?q=${encodeURIComponent(q)}&limit=240&offset=0`, {
+          signal: controller.signal,
+        });
 
         if (!res.ok) {
           setResults([]);
@@ -69,12 +68,5 @@ export default function AppPage() {
     return q ? [q] : [];
   }, [query]);
 
-  return (
-    <SearchPage
-      query={query}
-      results={results}
-      highlightList={highlightList}
-      isApp={true}
-    />
-  );
+  return <SearchPage query={query} results={results} highlightList={highlightList} isApp={true} />;
 }
