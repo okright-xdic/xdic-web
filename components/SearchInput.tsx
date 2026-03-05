@@ -147,8 +147,10 @@ export default function SearchInput({
 
     saveToRecent(trimmed);
 
-    // ✅ 핵심: 네이티브 앱은 무조건 /app 로 보냅니다.
-    const basePath = isNativeApp || isApp ? '/app' : '/';
+    // ✅ 핵심: 검색 페이지로 “정확히” 이동
+    // - 앱(네이티브/앱페이지): /app/search
+    // - 웹: /search
+    const basePath = isNativeApp || isApp ? '/app/search' : '/search';
 
     startTransition(() => {
       router.push(`${basePath}?q=${encodeURIComponent(finalQuery)}`);
@@ -403,16 +405,13 @@ export default function SearchInput({
       await removeNativeListeners();
 
       const onAnyResult = async (e: any) => {
-        // ✅ 어떤 기종은 matches[0], 어떤 기종은 value 형태로 옴
         const transcript = String(e?.matches?.[0] || e?.value || '').trim();
         if (!transcript) return;
-
         if (!isMountedRef.current) return;
 
         setQuery(transcript);
         goSearch(transcript);
 
-        // ✅ 결과를 잡았으면, 잠깐 쉬고 재시동 (끊김/꿀렁 방지)
         await hardStopNative();
         scheduleNativeRestart(700);
       };
@@ -423,11 +422,9 @@ export default function SearchInput({
       const h3 = await SpeechRecognition.addListener('listeningState', (e: any) => {
         if (!isMountedRef.current) return;
         setIsListening(!!e?.listening || !!e?.status);
-        // 가끔 OS가 몰래 꺼버리면 부활
         if (!e?.listening && micOnRef.current) scheduleNativeRestart(450);
       });
 
-      // end 이벤트가 있으면 더 안정적
       let h4: any = null;
       try {
         h4 = await SpeechRecognition.addListener('endOfSegmentedSession', () => {
@@ -441,12 +438,11 @@ export default function SearchInput({
         language: 'ko-KR',
         maxResults: 1,
         partialResults: true,
-        popup: false
+        popup: false,
       } as any);
 
       nativeStartingRef.current = false;
 
-      // 안전장치(가끔 아무 이벤트도 안 오는 경우)
       scheduleNativeRestart(2500);
     } catch {
       nativeStartingRef.current = false;
