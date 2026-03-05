@@ -46,7 +46,7 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
-  const homeHref = isApp ? '/app' : '/';
+  const homeHref = isApp ? '/search' : '/';
 
   useEffect(() => {
     setCurrentPage(1);

@@ -443,7 +443,7 @@ export default function SearchInput({
 
       nativeStartingRef.current = false;
 
-      scheduleNativeRestart(2500);
+const basePath = isApp ? '/search' : '/';      scheduleNativeRestart(2500);
     } catch {
       nativeStartingRef.current = false;
       scheduleNativeRestart(900);
