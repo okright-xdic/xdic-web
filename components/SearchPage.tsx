@@ -1,10 +1,8 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Capacitor } from '@capacitor/core';
-
 import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import RecentKeywords from '@/components/RecentKeywords';
@@ -48,17 +46,6 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
-  // ✅ Vercel 타입 에러 방지: 안전하게 네이티브 여부 계산
-  const isNativeApp = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    try {
-      return Capacitor.isNativePlatform();
-    } catch {
-      return false;
-    }
-  }, []);
-
-  // 홈 링크 (원래대로 /app이면 /app로 가게)
   const homeHref = isApp ? '/app' : '/';
 
   useEffect(() => {
@@ -77,33 +64,25 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
 
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
-  // ✅ "발음 듣기"는 웹(브라우저)에서만 안정적
   const handleSpeak = (text: string) => {
-    // 앱(캡)에서는 대부분 speechSynthesis가 막혀있음 → 조용히 안내
-    if (isNativeApp) {
-      alert('앱에서는 “발음 듣기(스피커)” 기능이 기기 환경에 따라 제한될 수 있어요.\n(검색용 음성 인식은 SearchInput에서 처리됩니다)');
-      return;
-    }
+    if (isApp) return;
 
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      try {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.cancel();
 
-        const voices = window.speechSynthesis.getVoices?.() || [];
-        const preferredVoice =
-          voices.find((v) => v.name?.includes('Google US English')) || voices.find((v) => v.lang === 'en-US');
+      const utterance = new SpeechSynthesisUtterance(text);
+      const voices = window.speechSynthesis.getVoices();
+      const preferredVoice =
+        voices.find((v) => v.name.includes('Google US English')) || voices.find((v) => v.lang === 'en-US');
 
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
         utterance.lang = 'en-US';
-        if (preferredVoice) utterance.voice = preferredVoice;
-
-        utterance.pitch = 0.85;
-        utterance.rate = 0.9;
-
-        window.speechSynthesis.speak(utterance);
-      } catch {
-        alert('이 기기에서는 음성 듣기가 원활하지 않습니다.');
       }
+
+      utterance.pitch = 0.85;
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
     } else {
       alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
     }
@@ -123,8 +102,8 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
           const lowerPart = part.toLowerCase();
           const lowerQuery = displayQuery.toLowerCase();
           const isMatch = sortedKeys.some((k) => k.toLowerCase() === lowerPart);
-
           let color = '#334155';
+
           if (isMatch) {
             if (lowerPart === lowerQuery) color = '#ea580c';
             else color = '#2563eb';
@@ -211,20 +190,17 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                         <li className="group bg-white rounded-lg py-2 px-3 border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all duration-200">
                           <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3 flex-1">
-                              <button
-                                onClick={() => handleSpeak(item.line_text)}
-                                className={`flex-shrink-0 w-8 h-8 rounded-full transition-all flex items-center justify-center shadow-sm ${
-                                  isNativeApp
-                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                                    : 'bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white'
-                                }`}
-                                title={isNativeApp ? '앱에서는 발음 듣기가 제한될 수 있어요' : '발음 듣기'}
-                                disabled={isNativeApp}
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                                  <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
-                                </svg>
-                              </button>
+                              {!isApp && (
+                                <button
+                                  onClick={() => handleSpeak(item.line_text)}
+                                  className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                  title="발음 듣기"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                                    <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
+                                  </svg>
+                                </button>
+                              )}
 
                               <div className="text-base md:text-lg leading-snug break-keep">{highlightMatch(item.line_text)}</div>
                             </div>
