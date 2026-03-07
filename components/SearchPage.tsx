@@ -39,7 +39,12 @@ const CATEGORY_NAMES: Record<number, string> = {
   12: '기타',
 };
 
-export default function SearchPage({ query, results, highlightList = [], isApp = false }: SearchPageProps) {
+export default function SearchPage({
+  query,
+  results,
+  highlightList = [],
+  isApp = false,
+}: SearchPageProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -65,7 +70,11 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
   const handleSpeak = (text: string) => {
-    if (isApp) return;
+    // ✅ 앱에서는 발음 듣기 버튼을 숨기므로 여기까지 거의 안 오지만, 안전장치로 한 번 더 막음
+    if (isApp) {
+      alert('앱에서는 발음 듣기 기능이 지원되지 않습니다.');
+      return;
+    }
 
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -73,7 +82,8 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
       const utterance = new SpeechSynthesisUtterance(text);
       const voices = window.speechSynthesis.getVoices();
       const preferredVoice =
-        voices.find((v) => v.name.includes('Google US English')) || voices.find((v) => v.lang === 'en-US');
+        voices.find((v) => v.name.includes('Google US English')) ||
+        voices.find((v) => v.lang === 'en-US');
 
       if (preferredVoice) {
         utterance.voice = preferredVoice;
@@ -89,7 +99,9 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   };
 
   const highlightMatch = (text: string) => {
-    if (!highlightList || highlightList.length === 0) return <span style={{ color: '#1e293b' }}>{text}</span>;
+    if (!highlightList || highlightList.length === 0) {
+      return <span style={{ color: '#1e293b' }}>{text}</span>;
+    }
 
     const sortedKeys = [...highlightList].filter(Boolean).sort((a, b) => b.length - a.length);
     const escapedKeys = sortedKeys.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
@@ -202,7 +214,9 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                                 </button>
                               )}
 
-                              <div className="text-base md:text-lg leading-snug break-keep">{highlightMatch(item.line_text)}</div>
+                              <div className="text-base md:text-lg leading-snug break-keep">
+                                {highlightMatch(item.line_text)}
+                              </div>
                             </div>
 
                             <span
@@ -214,7 +228,9 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                           </div>
                         </li>
 
-                        {idx === 6 && <AdSensePlaceholder adSlot="8675599033" debugLabel="PC_검색결과_중간" minHeight={200} />}
+                        {idx === 6 && (
+                          <AdSensePlaceholder adSlot="8675599033" debugLabel="PC_검색결과_중간" minHeight={200} />
+                        )}
                       </React.Fragment>
                     ))}
                   </ul>
