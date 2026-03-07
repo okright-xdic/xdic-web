@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Capacitor } from '@capacitor/core';
 import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import RecentKeywords from '@/components/RecentKeywords';
@@ -48,7 +47,6 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
   const homeHref = isApp ? '/app' : '/';
-  const isNativeApp = typeof window !== 'undefined' ? Capacitor.isNativePlatform() : false;
 
   useEffect(() => {
     setCurrentPage(1);
@@ -67,8 +65,6 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
   const handleSpeak = (text: string) => {
-    if (isNativeApp) return;
-
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
@@ -191,7 +187,7 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                         <li className="group bg-white rounded-lg py-2 px-3 border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all duration-200">
                           <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3 flex-1">
-                              {!isNativeApp && (
+                              {!isApp && (
                                 <button
                                   onClick={() => handleSpeak(item.line_text)}
                                   className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
