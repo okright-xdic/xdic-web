@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Capacitor } from '@capacitor/core';
 import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import RecentKeywords from '@/components/RecentKeywords';
@@ -39,12 +40,7 @@ const CATEGORY_NAMES: Record<number, string> = {
   12: '기타',
 };
 
-export default function SearchPage({
-  query,
-  results,
-  highlightList = [],
-  isApp = false,
-}: SearchPageProps) {
+export default function SearchPage({ query, results, highlightList = [], isApp = false }: SearchPageProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -52,6 +48,7 @@ export default function SearchPage({
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
   const homeHref = isApp ? '/app' : '/';
+  const isNativeApp = typeof window !== 'undefined' ? Capacitor.isNativePlatform() : false;
 
   useEffect(() => {
     setCurrentPage(1);
@@ -70,20 +67,14 @@ export default function SearchPage({
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
   const handleSpeak = (text: string) => {
-    // ✅ 앱에서는 발음 듣기 버튼을 숨기므로 여기까지 거의 안 오지만, 안전장치로 한 번 더 막음
-    if (isApp) {
-      alert('앱에서는 발음 듣기 기능이 지원되지 않습니다.');
-      return;
-    }
+    if (isNativeApp) return;
 
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-
       const utterance = new SpeechSynthesisUtterance(text);
       const voices = window.speechSynthesis.getVoices();
       const preferredVoice =
-        voices.find((v) => v.name.includes('Google US English')) ||
-        voices.find((v) => v.lang === 'en-US');
+        voices.find((v) => v.name.includes('Google US English')) || voices.find((v) => v.lang === 'en-US');
 
       if (preferredVoice) {
         utterance.voice = preferredVoice;
@@ -99,9 +90,7 @@ export default function SearchPage({
   };
 
   const highlightMatch = (text: string) => {
-    if (!highlightList || highlightList.length === 0) {
-      return <span style={{ color: '#1e293b' }}>{text}</span>;
-    }
+    if (!highlightList || highlightList.length === 0) return <span style={{ color: '#1e293b' }}>{text}</span>;
 
     const sortedKeys = [...highlightList].filter(Boolean).sort((a, b) => b.length - a.length);
     const escapedKeys = sortedKeys.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
@@ -202,7 +191,7 @@ export default function SearchPage({
                         <li className="group bg-white rounded-lg py-2 px-3 border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all duration-200">
                           <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3 flex-1">
-                              {!isApp && (
+                              {!isNativeApp && (
                                 <button
                                   onClick={() => handleSpeak(item.line_text)}
                                   className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
@@ -214,9 +203,7 @@ export default function SearchPage({
                                 </button>
                               )}
 
-                              <div className="text-base md:text-lg leading-snug break-keep">
-                                {highlightMatch(item.line_text)}
-                              </div>
+                              <div className="text-base md:text-lg leading-snug break-keep">{highlightMatch(item.line_text)}</div>
                             </div>
 
                             <span
@@ -228,9 +215,7 @@ export default function SearchPage({
                           </div>
                         </li>
 
-                        {idx === 6 && (
-                          <AdSensePlaceholder adSlot="8675599033" debugLabel="PC_검색결과_중간" minHeight={200} />
-                        )}
+                        {idx === 6 && <AdSensePlaceholder adSlot="8675599033" debugLabel="PC_검색결과_중간" minHeight={200} />}
                       </React.Fragment>
                     ))}
                   </ul>
@@ -244,7 +229,6 @@ export default function SearchPage({
                       >
                         &lt;&lt;
                       </button>
-
                       <button
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
@@ -278,7 +262,6 @@ export default function SearchPage({
                       >
                         다음
                       </button>
-
                       <button
                         onClick={() => handlePageChange(totalPages)}
                         disabled={currentPage === totalPages}
