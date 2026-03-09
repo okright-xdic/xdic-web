@@ -39,7 +39,12 @@ const CATEGORY_NAMES: Record<number, string> = {
   12: '기타',
 };
 
-export default function SearchPage({ query, results, highlightList = [], isApp = false }: SearchPageProps) {
+export default function SearchPage({
+  query,
+  results,
+  highlightList = [],
+  isApp = false,
+}: SearchPageProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -65,7 +70,7 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
   const handleSpeak = (text: string) => {
-    // 앱(WebView)에서는 speechSynthesis 미지원/불안정 사례가 많으므로 버튼 클릭 시 조용히 안내
+    // ✅ 앱(WebView)에서는 speechSynthesis가 불안정하므로 차단
     if (isApp) {
       alert('앱에서는 현재 발음 듣기 기능을 지원하지 않습니다.');
       return;
@@ -73,10 +78,13 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
 
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
+
       const utterance = new SpeechSynthesisUtterance(text);
       const voices = window.speechSynthesis.getVoices();
+
       const preferredVoice =
-        voices.find((v) => v.name.includes('Google US English')) || voices.find((v) => v.lang === 'en-US');
+        voices.find((v) => v.name.includes('Google US English')) ||
+        voices.find((v) => v.lang === 'en-US');
 
       if (preferredVoice) {
         utterance.voice = preferredVoice;
@@ -92,7 +100,9 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   };
 
   const highlightMatch = (text: string) => {
-    if (!highlightList || highlightList.length === 0) return <span style={{ color: '#1e293b' }}>{text}</span>;
+    if (!highlightList || highlightList.length === 0) {
+      return <span style={{ color: '#1e293b' }}>{text}</span>;
+    }
 
     const sortedKeys = [...highlightList].filter(Boolean).sort((a, b) => b.length - a.length);
     const escapedKeys = sortedKeys.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
@@ -105,8 +115,8 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
           const lowerPart = part.toLowerCase();
           const lowerQuery = displayQuery.toLowerCase();
           const isMatch = sortedKeys.some((k) => k.toLowerCase() === lowerPart);
-          let color = '#334155';
 
+          let color = '#334155';
           if (isMatch) {
             if (lowerPart === lowerQuery) color = '#ea580c';
             else color = '#2563eb';
@@ -203,7 +213,9 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                                 </svg>
                               </button>
 
-                              <div className="text-base md:text-lg leading-snug break-keep">{highlightMatch(item.line_text)}</div>
+                              <div className="text-base md:text-lg leading-snug break-keep">
+                                {highlightMatch(item.line_text)}
+                              </div>
                             </div>
 
                             <span
@@ -215,7 +227,13 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                           </div>
                         </li>
 
-                        {idx === 6 && <AdSensePlaceholder adSlot="8675599033" debugLabel="PC_검색결과_중간" minHeight={200} />}
+                        {idx === 6 && (
+                          <AdSensePlaceholder
+                            adSlot="8675599033"
+                            debugLabel="PC_검색결과_중간"
+                            minHeight={200}
+                          />
+                        )}
                       </React.Fragment>
                     ))}
                   </ul>
@@ -272,7 +290,11 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                     </div>
                   )}
 
-                  <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_검색결과_하단" minHeight={250} />
+                  <AdSensePlaceholder
+                    adSlot="2218001895"
+                    debugLabel="PC_검색결과_하단"
+                    minHeight={250}
+                  />
 
                   <div className="py-8 text-center border-t border-slate-100 mt-8">
                     <p className="text-sm text-slate-400">{results.length}개의 결과를 모두 확인했습니다.</p>
@@ -280,11 +302,15 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-3xl mb-4">🤔</div>
+                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-3xl mb-4">
+                    🤔
+                  </div>
                   <h3 className="text-lg font-bold text-slate-800 mb-2">
                     '<span style={{ color: '#ef4444' }}>{displayQuery}</span>'에 대한 결과가 없습니다.
                   </h3>
-                  <p className="text-slate-500 text-sm mb-8">내부 사전에 데이터가 없네요. 외부 사이트에서 찾아보시겠어요?</p>
+                  <p className="text-slate-500 text-sm mb-8">
+                    내부 사전에 데이터가 없네요. 외부 사이트에서 찾아보시겠어요?
+                  </p>
                   <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
                     <button
                       onClick={() => handleExternalSearch('naver')}
@@ -315,7 +341,7 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
         </div>
       </main>
 
-      <div className="flex-grow py-[5vh]"></div>
+      <div className="flex-grow py-[5vh]" />
       <div className="flex-none">
         <Footer />
       </div>
