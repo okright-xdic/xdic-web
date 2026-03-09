@@ -55,7 +55,7 @@ export default function SearchInput({
   const nativeRestartTimerRef = useRef<any>(null);
   const nativeListenerHandlesRef = useRef<any[]>([]);
   const nativeStartingRef = useRef(false);
-  const nativeRunningRef = useRef(false);
+  const nativeSessionActiveRef = useRef(false);
   const lastNativeTranscriptRef = useRef<string>('');
   const lastNativeTranscriptAtRef = useRef<number>(0);
 
@@ -69,7 +69,6 @@ export default function SearchInput({
     return () => clearTimeout(t);
   }, [autoFocus]);
 
-  // ✅ 이전에 사용자가 ON으로 바꿨으면 복원
   useEffect(() => {
     isMountedRef.current = true;
 
@@ -354,7 +353,7 @@ export default function SearchInput({
 
   // =========================================================
   // Native Speech (@capgo)
-  // 핵심: 결과는 start() 반환값이 아니라 이벤트에서 받음
+  // 결과는 이벤트에서 받고, 재시작은 stopped/end 에서만 수행
   // =========================================================
   const clearNativeTimer = () => {
     if (nativeRestartTimerRef.current) clearTimeout(nativeRestartTimerRef.current);
@@ -379,7 +378,7 @@ export default function SearchInput({
   const stopNativeLoop = async (hard = false) => {
     clearNativeTimer();
     nativeStartingRef.current = false;
-    nativeRunningRef.current = false;
+    nativeSessionActiveRef.current = false;
 
     if (isMountedRef.current) setIsListening(false);
 
@@ -393,7 +392,7 @@ export default function SearchInput({
     await removeNativeListeners();
   };
 
-  const scheduleNativeRestart = (delay = 600) => {
+  const scheduleNativeRestart = (delay = 900) => {
     if (!micOnRef.current || !isMountedRef.current) return;
 
     clearNativeTimer();
@@ -405,7 +404,7 @@ export default function SearchInput({
 
   const startNativeLoop = async () => {
     if (!isNativeApp || !micOnRef.current || !isMountedRef.current) return;
-    if (nativeStartingRef.current || nativeRunningRef.current) return;
+    if (nativeStartingRef.current || nativeSessionActiveRef.current) return;
 
     nativeStartingRef.current = true;
 
@@ -433,19 +432,24 @@ export default function SearchInput({
         return;
       }
 
+      const currentState = await SpeechRecognition.isListening();
+      if (currentState.listening) {
+        nativeSessionActiveRef.current = true;
+        nativeStartingRef.current = false;
+        return;
+      }
+
       await removeNativeListeners();
 
       const h1 = await SpeechRecognition.addListener('listeningState', (event: any) => {
         if (!isMountedRef.current) return;
 
         const listening = event?.status === 'started';
+        nativeSessionActiveRef.current = listening;
         setIsListening(listening);
 
-        if (event?.status === 'stopped') {
-          nativeRunningRef.current = false;
-          if (micOnRef.current) {
-            scheduleNativeRestart(700);
-          }
+        if (event?.status === 'stopped' && micOnRef.current) {
+          scheduleNativeRestart(1000);
         }
       });
 
@@ -463,7 +467,7 @@ export default function SearchInput({
         const now = Date.now();
         const isDuplicate =
           transcript === lastNativeTranscriptRef.current &&
-          now - lastNativeTranscriptAtRef.current < 1500;
+          now - lastNativeTranscriptAtRef.current < 1800;
 
         if (isDuplicate) return;
 
@@ -476,30 +480,25 @@ export default function SearchInput({
       });
 
       const h4 = await SpeechRecognition.addListener('endOfSegmentedSession', () => {
-        nativeRunningRef.current = false;
+        nativeSessionActiveRef.current = false;
         if (!micOnRef.current) return;
-        scheduleNativeRestart(700);
+        scheduleNativeRestart(1000);
       });
 
       nativeListenerHandlesRef.current = [h1, h2, h3, h4];
-
-      nativeRunningRef.current = true;
 
       await SpeechRecognition.start({
         language: 'ko-KR',
         maxResults: 1,
         partialResults: true,
         popup: false,
-        allowForSilence: 2500,
+        allowForSilence: 3500
       });
 
       nativeStartingRef.current = false;
-
-      // ✅ 너무 잦은 재시작 방지. 한 템포 쉬고 watchdog
-      scheduleNativeRestart(2500);
     } catch (e: any) {
       nativeStartingRef.current = false;
-      nativeRunningRef.current = false;
+      nativeSessionActiveRef.current = false;
 
       if (!isMountedRef.current) return;
 
@@ -514,7 +513,7 @@ export default function SearchInput({
         return;
       }
 
-      scheduleNativeRestart(1000);
+      scheduleNativeRestart(1200);
     }
   };
 
@@ -548,7 +547,6 @@ export default function SearchInput({
     };
   }, [micOn, isNativeApp]);
 
-  // 웹만 visibility 복구
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (isNativeApp) return;
