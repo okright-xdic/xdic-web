@@ -54,6 +54,8 @@ export default function SearchInput({
   const nativeListenersAttachedRef = useRef(false);
   const nativeHasFinalResultRef = useRef(false);
   const nativeLastPreviewRef = useRef('');
+  const nativeListenerHandlesRef = useRef<any[]>([]);
+  const lastSegmentRef = useRef<string>('');
 
   useEffect(() => {
     setQuery(initialQuery || '');
@@ -148,7 +150,9 @@ export default function SearchInput({
   const validate = (trimmed: string) => {
     if (!trimmed) return { ok: false, msg: '' };
     if (trimmed.length > 50) return { ok: false, msg: '검색어는 50자 이내로 입력해주세요.' };
-    if (BANNED_WORDS.some((w) => trimmed.includes(w))) return { ok: false, msg: '부적절한 단어가 포함되어 있습니다.' };
+    if (BANNED_WORDS.some((w) => trimmed.includes(w))) {
+      return { ok: false, msg: '부적절한 단어가 포함되어 있습니다.' };
+    }
     return { ok: true, msg: '' };
   };
 
@@ -258,6 +262,7 @@ export default function SearchInput({
 
   const startWebLoop = () => {
     if (!micOnRef.current || !isMountedRef.current) return;
+    if (isNativeApp) return;
 
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) {
@@ -363,6 +368,8 @@ export default function SearchInput({
     nativeStartingRef.current = false;
     nativeHasFinalResultRef.current = false;
     nativeLastPreviewRef.current = '';
+    lastSegmentRef.current = '';
+
     if (isMountedRef.current) setIsListening(false);
 
     if (!isNativeApp) return;
@@ -388,8 +395,9 @@ export default function SearchInput({
     if (nativeListenersAttachedRef.current) return;
 
     const hListening = await SpeechRecognition.addListener('listeningState', (event: any) => {
-      const started = event?.status === 'started';
+      const started = String(event?.status || '').toLowerCase() === 'started';
       if (!isMountedRef.current) return;
+
       setIsListening(started);
 
       if (!started && micOnRef.current && !nativeHasFinalResultRef.current) {
@@ -398,7 +406,8 @@ export default function SearchInput({
     });
 
     const hPartial = await SpeechRecognition.addListener('partialResults', (event: any) => {
-      const preview = String(event?.matches?.[0] || '').trim();
+      let preview = String(event?.matches?.[0] || '').trim();
+      preview = preview.replace(/[.,?!]/g, '').trim();
       if (!preview || !isMountedRef.current) return;
 
       nativeLastPreviewRef.current = preview;
@@ -406,8 +415,12 @@ export default function SearchInput({
     });
 
     const hSegment = await SpeechRecognition.addListener('segmentResults', (event: any) => {
-      const transcript = String(event?.matches?.[0] || '').trim();
+      let transcript = String(event?.matches?.[0] || '').trim();
+      transcript = transcript.replace(/[.,?!]/g, '').trim();
       if (!transcript) return;
+
+      if (transcript === lastSegmentRef.current) return;
+      lastSegmentRef.current = transcript;
 
       const now = Date.now();
       if (now - lastFinalResultAtRef.current < 900) return;
@@ -418,7 +431,6 @@ export default function SearchInput({
       if (!isMountedRef.current) return;
       setQuery(transcript);
 
-      // 즉시 재시작 대신 검색 후 잠깐 쉬게 해서 “꿀링꿀링” 완화
       goSearch(transcript);
       scheduleNativeRestart(1400);
     });
@@ -476,7 +488,7 @@ export default function SearchInput({
         maxResults: 1,
         partialResults: true,
         popup: false,
-        allowForSilence: 1800
+        allowForSilence: 1800,
       });
 
       nativeStartingRef.current = false;
