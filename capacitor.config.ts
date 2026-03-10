@@ -8,13 +8,12 @@ const config: CapacitorConfig = {
   server: {
     url: 'https://www.x-dic.com',
     androidScheme: 'https',
+    allowNavigation: [
+      'x-dic.com',
+      'www.x-dic.com',
+      '*.vercel.app',
+    ],
   },
-
-  allowNavigation: [
-    'x-dic.com',
-    'www.x-dic.com',
-    '*.vercel.app',
-  ],
 
   plugins: {
     SpeechRecognition: {
