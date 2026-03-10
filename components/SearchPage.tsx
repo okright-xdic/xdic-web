@@ -39,12 +39,19 @@ const CATEGORY_NAMES: Record<number, string> = {
   12: '기타',
 };
 
-export default function SearchPage({ query, results, highlightList = [], isApp = false }: SearchPageProps) {
+export default function SearchPage({
+  query,
+  results,
+  highlightList = [],
+  isApp = false,
+}: SearchPageProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
   const displayQuery = (query || '').trim();
-  const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
+  const isTooShort =
+    displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
+
   const homeHref = isApp ? '/app' : '/';
 
   useEffect(() => {
@@ -64,14 +71,13 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
   const handleSpeak = (text: string) => {
-    if (isApp) return;
-
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       const voices = window.speechSynthesis.getVoices();
       const preferredVoice =
-        voices.find((v) => v.name.includes('Google US English')) || voices.find((v) => v.lang === 'en-US');
+        voices.find((v) => v.name.includes('Google US English')) ||
+        voices.find((v) => v.lang === 'en-US');
 
       if (preferredVoice) {
         utterance.voice = preferredVoice;
@@ -87,10 +93,18 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   };
 
   const highlightMatch = (text: string) => {
-    if (!highlightList || highlightList.length === 0) return <span style={{ color: '#1e293b' }}>{text}</span>;
+    if (!highlightList || highlightList.length === 0) {
+      return <span style={{ color: '#1e293b' }}>{text}</span>;
+    }
 
-    const sortedKeys = [...highlightList].filter(Boolean).sort((a, b) => b.length - a.length);
-    const escapedKeys = sortedKeys.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const sortedKeys = [...highlightList]
+      .filter(Boolean)
+      .sort((a, b) => b.length - a.length);
+
+    const escapedKeys = sortedKeys.map((k) =>
+      k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    );
+
     const regex = new RegExp(`(${escapedKeys.join('|')})`, 'gi');
     const parts = text.split(regex);
 
@@ -99,9 +113,11 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
         {parts.map((part, idx) => {
           const lowerPart = part.toLowerCase();
           const lowerQuery = displayQuery.toLowerCase();
-          const isMatch = sortedKeys.some((k) => k.toLowerCase() === lowerPart);
-          let color = '#334155';
+          const isMatch = sortedKeys.some(
+            (k) => k.toLowerCase() === lowerPart
+          );
 
+          let color = '#334155';
           if (isMatch) {
             if (lowerPart === lowerQuery) color = '#ea580c';
             else color = '#2563eb';
@@ -200,19 +216,32 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                                 </button>
                               )}
 
-                              <div className="text-base md:text-lg leading-snug break-keep">{highlightMatch(item.line_text)}</div>
+                              <div className="text-base md:text-lg leading-snug break-keep">
+                                {highlightMatch(item.line_text)}
+                              </div>
                             </div>
 
                             <span
                               className="flex-shrink-0 ml-3 px-2 py-0.5 rounded text-xs tracking-tight whitespace-nowrap shadow-sm"
-                              style={{ backgroundColor: '#d4b08c', color: '#ffffff', fontWeight: '500', fontFamily: 'sans-serif' }}
+                              style={{
+                                backgroundColor: '#d4b08c',
+                                color: '#ffffff',
+                                fontWeight: '500',
+                                fontFamily: 'sans-serif',
+                              }}
                             >
                               {getCategoryName(item.category_id)}
                             </span>
                           </div>
                         </li>
 
-                        {idx === 6 && <AdSensePlaceholder adSlot="8675599033" debugLabel="PC_검색결과_중간" minHeight={200} />}
+                        {idx === 6 && (
+                          <AdSensePlaceholder
+                            adSlot="8675599033"
+                            debugLabel="PC_검색결과_중간"
+                            minHeight={200}
+                          />
+                        )}
                       </React.Fragment>
                     ))}
                   </ul>
@@ -247,7 +276,9 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                             >
                               {number}
                             </button>
-                            {idx < arr.length - 1 && <span className="text-[10px] text-slate-300 mx-0.5">•</span>}
+                            {idx < arr.length - 1 && (
+                              <span className="text-[10px] text-slate-300 mx-0.5">•</span>
+                            )}
                           </React.Fragment>
                         ))}
                       </div>
@@ -281,7 +312,9 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
                   <h3 className="text-lg font-bold text-slate-800 mb-2">
                     '<span style={{ color: '#ef4444' }}>{displayQuery}</span>'에 대한 결과가 없습니다.
                   </h3>
-                  <p className="text-slate-500 text-sm mb-8">내부 사전에 데이터가 없네요. 외부 사이트에서 찾아보시겠어요?</p>
+                  <p className="text-slate-500 text-sm mb-8">
+                    내부 사전에 데이터가 없네요. 외부 사이트에서 찾아보시겠어요?
+                  </p>
                   <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
                     <button
                       onClick={() => handleExternalSearch('naver')}
