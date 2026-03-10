@@ -45,7 +45,6 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
 
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
-
   const homeHref = isApp ? '/app' : '/';
 
   useEffect(() => {
@@ -65,6 +64,8 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
   const handleSpeak = (text: string) => {
+    if (isApp) return;
+
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
