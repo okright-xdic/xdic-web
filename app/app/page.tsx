@@ -74,7 +74,6 @@ export default async function AppPage({
 }: {
   searchParams: { q?: string };
 }) {
-
   const query = (searchParams.q || '').toString();
   const cleanQuery = query.trim();
   const noSpaceLen = cleanQuery.replace(/\s+/g, '').length;
@@ -85,9 +84,7 @@ export default async function AppPage({
   let highlightKeys: string[] = cleanQuery ? [cleanQuery] : [];
 
   if (cleanQuery && noSpaceLen >= 2) {
-
     try {
-
       const { data: cat0Data } = await supabase
         .from('dictionary_lines')
         .select('line_text')
@@ -96,19 +93,14 @@ export default async function AppPage({
         .limit(10);
 
       if (cat0Data && cat0Data.length > 0) {
-
         const add: string[] = [];
 
         for (const row of cat0Data) {
-
           const words = String((row as any)?.line_text || '').split(/\s+/);
-
           add.push(...words);
-
         }
 
         highlightKeys = [...new Set([...highlightKeys, ...add])].filter((w) => w && w.trim());
-
       }
 
       const step1 = cleanQuery + ' ';
@@ -119,23 +111,16 @@ export default async function AppPage({
       if (Array.isArray(d1)) results = d1;
 
       if (results.length === 0) {
-
         const { data: d2 } = await supabase.rpc('search_dictionary_v8', { keyword: step2 });
-
         if (Array.isArray(d2) && d2.length > 0) results = d2;
-
       }
 
       if (results.length === 0 && step3) {
-
         const { data: d3 } = await supabase.rpc('search_dictionary_v8', { keyword: step3 });
-
         if (Array.isArray(d3) && d3.length > 0) results = d3;
-
       }
 
       if (results.length === 0) {
-
         const { data: fallback } = await supabase
           .from('dictionary_lines')
           .select('*')
@@ -144,17 +129,12 @@ export default async function AppPage({
           .limit(100);
 
         results = fallback || [];
-
       }
 
       if (results.length > 0) results = rotateResults(results, cleanQuery);
-
     } catch (e) {
-
       console.error('앱 검색 실패:', e);
-
     }
-
   }
 
   return (
@@ -165,5 +145,4 @@ export default async function AppPage({
       isApp={true}
     />
   );
-
 }
