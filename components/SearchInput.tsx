@@ -37,7 +37,7 @@ export default function SearchInput({
 
   const inputRef = useRef<HTMLInputElement>(null);
   const lastSearchAtRef = useRef<number>(0);
-  const lastSegmentRef = useRef<string>('');
+  const lastFinalTranscriptRef = useRef<string>('');
 
   const micOnRef = useRef(false);
   const isMountedRef = useRef(false);
@@ -350,7 +350,11 @@ export default function SearchInput({
 
   // =========================================================
   // (B) Native APP
-  // 핵심: start() 반환값이 아니라 리스너 이벤트로 결과를 받음
+  // 핵심:
+  // 1) 일부 기기에서 segmentResults가 안 오는 문제 회피
+  // 2) start() 종료 후 반환되는 matches를 최우선 사용
+  // 3) partialResults는 화면 표시용만 사용
+  // 4) 종료 후 자동 재시작으로 Always ON 유지
   // =========================================================
   const clearNativeTimer = () => {
     if (nativeRestartTimerRef.current) clearTimeout(nativeRestartTimerRef.current);
@@ -428,17 +432,12 @@ export default function SearchInput({
       }
 
       await removeNativeListeners();
-      lastSegmentRef.current = '';
+      lastFinalTranscriptRef.current = '';
 
       const listeningHandle = await SpeechRecognition.addListener('listeningState', (event: any) => {
         if (!isMountedRef.current) return;
-
         const status = String(event?.status || '').toLowerCase();
-        setIsListening(status === 'started');
-
-        if (status === 'stopped' && micOnRef.current) {
-          scheduleNativeRestart(250);
-        }
+        setIsListening(status === 'started' || status === 'listening');
       });
 
       const partialHandle = await SpeechRecognition.addListener('partialResults', (event: any) => {
@@ -448,30 +447,12 @@ export default function SearchInput({
         setQuery(partialText);
       });
 
-      const segmentHandle = await SpeechRecognition.addListener('segmentResults', (event: any) => {
-        if (!isMountedRef.current) return;
-
-        const transcript = String(event?.matches?.[0] || '').trim();
-        if (!transcript) return;
-
-        if (transcript === lastSegmentRef.current) return;
-        lastSegmentRef.current = transcript;
-
-        setQuery(transcript);
-        goSearch(transcript);
-      });
-
-      const endHandle = await SpeechRecognition.addListener('endOfSegmentedSession', () => {
-        if (!micOnRef.current) return;
-        scheduleNativeRestart(200);
-      });
-
-      nativeListenerHandlesRef.current = [listeningHandle, partialHandle, segmentHandle, endHandle];
+      nativeListenerHandlesRef.current = [listeningHandle, partialHandle];
 
       if (!isMountedRef.current) return;
       setIsListening(true);
 
-      await SpeechRecognition.start({
+      const result = await SpeechRecognition.start({
         language: 'ko-KR',
         maxResults: 1,
         partialResults: true,
@@ -480,6 +461,33 @@ export default function SearchInput({
       });
 
       nativeStartingRef.current = false;
+      if (!isMountedRef.current) return;
+      setIsListening(false);
+
+      let transcript = String(result?.matches?.[0] || '').trim();
+
+      // ✅ 구글 음성엔진이 붙이는 문장부호 제거
+      transcript = transcript.replace(/[.,?!。！？]/g, '').trim();
+
+      // ✅ 너무 짧거나 빈 값은 무시
+      if (!transcript) {
+        if (micOnRef.current) scheduleNativeRestart(300);
+        return;
+      }
+
+      // ✅ 동일 문장 연속 중복 검색 방지
+      if (transcript === lastFinalTranscriptRef.current) {
+        if (micOnRef.current) scheduleNativeRestart(300);
+        return;
+      }
+      lastFinalTranscriptRef.current = transcript;
+
+      setQuery(transcript);
+      goSearch(transcript);
+
+      if (micOnRef.current) {
+        scheduleNativeRestart(300);
+      }
     } catch (e: any) {
       if (!isMountedRef.current) return;
       setIsListening(false);
