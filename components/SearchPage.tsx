@@ -128,37 +128,41 @@ export default function SearchPage({ query, results = [], highlightList = [], is
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      {/* 🌟 수정 포인트: 다시 PC 황금비율인 max-w-4xl로 복구! */}
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
-        <header className="w-full pt-8 pb-2 md:pt-16 md:pb-6">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-8 md:mb-8">
-            <div className="flex-shrink-0">
-              <Link href={homeHref} className="cursor-pointer">
-                <Image
-                  src="/images/LOGO_01_ChatGPT_S.jpg"
-                  alt="X-DIC Logo"
-                  width={140}
-                  height={70}
-                  className="object-contain hover:opacity-90 transition-opacity"
-                  priority
-                />
-              </Link>
-            </div>
+        {/* 🌟 수정 포인트: 앱일 때는 패딩(여백)을 확 줄여서 검색창이 맨 위로 착! 붙게 만듭니다 */}
+        <header className={`w-full ${isApp ? 'pt-4 pb-2' : 'pt-8 pb-2 md:pt-16 md:pb-6'}`}>
+          
+          {/* 🌟 수정 포인트: 웹일 때만 로고와 문구를 보여줍니다! (앱에서는 투명 망토) */}
+          {!isApp && (
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-8 md:mb-8">
+              <div className="flex-shrink-0">
+                <Link href={homeHref} className="cursor-pointer">
+                  <Image
+                    src="/images/LOGO_01_ChatGPT_S.jpg"
+                    alt="X-DIC Logo"
+                    width={140}
+                    height={70}
+                    className="object-contain hover:opacity-90 transition-opacity"
+                    priority
+                  />
+                </Link>
+              </div>
 
-            <div className="flex flex-col gap-1 justify-center text-center md:text-left">
-              <Link href={homeHref} className="cursor-pointer hover:opacity-80 transition-opacity">
-                <h1 className="text-xl md:text-[24px] font-extrabold text-slate-800 leading-tight md:leading-none">
-                  한영/영한사전 – 복합어 전문 엑스딕!
-                </h1>
-              </Link>
-              <p className="text-sm md:text-[16px] text-slate-500 font-medium leading-tight mt-1">
-                Korean-English/English-Korean Dictionary – Compound Terminology Dictionary
-              </p>
-              <p className="text-[11px] md:text-[12px] text-slate-400 font-normal leading-tight mt-1">
-                * 엑스딕(X-DIC)은 Expert Dictionary의 약자로, 복합어 검색 전문 한영/영한 용어사전입니다.
-              </p>
+              <div className="flex flex-col gap-1 justify-center text-center md:text-left">
+                <Link href={homeHref} className="cursor-pointer hover:opacity-80 transition-opacity">
+                  <h1 className="text-xl md:text-[24px] font-extrabold text-slate-800 leading-tight md:leading-none">
+                    한영/영한사전 – 복합어 전문 엑스딕!
+                  </h1>
+                </Link>
+                <p className="text-sm md:text-[16px] text-slate-500 font-medium leading-tight mt-1">
+                  Korean-English/English-Korean Dictionary – Compound Terminology Dictionary
+                </p>
+                <p className="text-[11px] md:text-[12px] text-slate-400 font-normal leading-tight mt-1">
+                  * 엑스딕(X-DIC)은 Expert Dictionary의 약자로, 복합어 검색 전문 한영/영한 용어사전입니다.
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="w-full">
             <SearchInput initialQuery={displayQuery} isApp={isApp} />
@@ -167,7 +171,6 @@ export default function SearchPage({ query, results = [], highlightList = [], is
       </div>
 
       <main className="w-full flex-grow">
-        {/* 🌟 수정 포인트: 콘텐츠 영역도 max-w-4xl로 시원하게 복구! */}
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           {displayQuery ? (
             <div className="w-full mt-2">
@@ -213,7 +216,8 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                           </div>
                         </li>
 
-                        {idx === 6 && <AdSensePlaceholder adSlot="8675599033" debugLabel="PC_검색결과_중간" minHeight={200} />}
+                        {/* 앱에서는 심사를 위해 광고도 숨김 처리 */}
+                        {!isApp && idx === 6 && <AdSensePlaceholder adSlot="8675599033" debugLabel="PC_검색결과_중간" minHeight={200} />}
                       </React.Fragment>
                     ))}
                   </ul>
@@ -269,8 +273,9 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                       </button>
                     </div>
                   )}
-
-                  <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_검색결과_하단" minHeight={250} />
+                  
+                  {/* 앱에서는 심사를 위해 광고도 숨김 처리 */}
+                  {!isApp && <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_검색결과_하단" minHeight={250} />}
 
                   <div className="py-8 text-center border-t border-slate-100 mt-8">
                     <p className="text-sm text-slate-400">{results.length}개의 결과를 모두 확인했습니다.</p>
@@ -302,9 +307,12 @@ export default function SearchPage({ query, results = [], highlightList = [], is
             </div>
           ) : (
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              <div className="h-[180px] relative rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50">
-                <Image src="/images/mobile-app-banner-bright.png" alt="배너" fill className="object-contain" />
-              </div>
+              {/* 🌟 수정 포인트: 웹일 때만 배너 띄우기 (앱 심사 프리패스용) */}
+              {!isApp && (
+                <div className="h-[180px] relative rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50">
+                  <Image src="/images/mobile-app-banner-bright.png" alt="배너" fill className="object-contain" />
+                </div>
+              )}
               <RecentKeywords />
               <PopularKeywords />
               <TrendGraph />
@@ -314,9 +322,13 @@ export default function SearchPage({ query, results = [], highlightList = [], is
       </main>
 
       <div className="flex-grow py-[5vh]"></div>
-      <div className="flex-none">
-        <Footer />
-      </div>
+      
+      {/* 🌟 수정 포인트: 앱에서는 웹용 푸터(하단 회사정보)도 가려줍니다 */}
+      {!isApp && (
+        <div className="flex-none">
+          <Footer />
+        </div>
+      )}
     </div>
   );
 }
