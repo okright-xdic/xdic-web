@@ -9,7 +9,8 @@ interface Keyword {
   count: number;
 }
 
-const RECENT_KEY = 'recent_searches_v2';
+// 🌟 수정 포인트: SearchInput과 똑같은 이름표(Key)로 맞춤!
+const RECENT_KEY = 'xdic_recent_searches_v2';
 const UPDATED_EVENT = 'xdic_recent_searches_updated';
 
 // 🎨 17가지 파스텔톤
