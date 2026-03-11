@@ -19,7 +19,7 @@ interface SearchResult {
 
 interface SearchPageProps {
   query: string;
-  results: SearchResult[];
+  results?: SearchResult[]; // 🌟 안전장치: 결과값이 없을 때 에러 방지
   highlightList?: string[];
   isApp?: boolean;
 }
@@ -39,7 +39,7 @@ const CATEGORY_NAMES: Record<number, string> = {
   12: '기타',
 };
 
-export default function SearchPage({ query, results, highlightList = [], isApp = false }: SearchPageProps) {
+export default function SearchPage({ query, results = [], highlightList = [], isApp = false }: SearchPageProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -128,7 +128,8 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
+      {/* 🌟 수정 포인트: max-w-4xl을 max-w-2xl로 줄여서 모니터 덮는 현상 방지! */}
+      <div className="flex-none w-full max-w-2xl mx-auto px-4 md:px-6">
         <header className="w-full pt-8 pb-2 md:pt-16 md:pb-6">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-8 md:mb-8">
             <div className="flex-shrink-0">
@@ -166,7 +167,8 @@ export default function SearchPage({ query, results, highlightList = [], isApp =
       </div>
 
       <main className="w-full flex-grow">
-        <div className="container mx-auto px-4 md:px-6 max-w-4xl">
+        {/* 🌟 수정 포인트: 여기도 max-w-2xl로 통일하여 하단 컨텐츠도 아담하게 정렬 */}
+        <div className="container mx-auto px-4 md:px-6 max-w-2xl">
           {displayQuery ? (
             <div className="w-full mt-2">
               {isTooShort ? (
