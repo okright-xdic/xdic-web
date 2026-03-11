@@ -53,8 +53,10 @@ export default function SearchInput({
   // Native refs
   // -------------------------
   const nativeRestartTimerRef = useRef<any>(null);
-  const nativeRunningRef = useRef(false);
-  const nativeResultListenerRef = useRef<any>(null);
+  const nativeStartingRef = useRef(false);
+  const nativeListenerHandlesRef = useRef<any[]>([]);
+  const speechTimeoutRef = useRef<any>(null);
+  const latestTranscriptRef = useRef<string>('');
 
   useEffect(() => {
     setQuery(initialQuery || '');
@@ -79,6 +81,7 @@ export default function SearchInput({
       isMountedRef.current = false;
       stopWebLoop(true);
       stopNativeLoop(true);
+      if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -348,16 +351,29 @@ export default function SearchInput({
   };
 
   // =========================================================
-  // (B) Native APP: 3월 7일식 단순 로직 + result fallback 1개
+  // (B) Native APP - 타이머 방아쇠 방식
   // =========================================================
   const clearNativeTimer = () => {
     if (nativeRestartTimerRef.current) clearTimeout(nativeRestartTimerRef.current);
     nativeRestartTimerRef.current = null;
+    if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current);
+  };
+
+  const removeNativeListeners = async () => {
+    const handles = nativeListenerHandlesRef.current;
+    nativeListenerHandlesRef.current = [];
+    for (const handle of handles) {
+      try {
+        await handle?.remove?.();
+      } catch {}
+    }
+    try {
+      await SpeechRecognition.removeAllListeners();
+    } catch {}
   };
 
   const scheduleNativeRestart = (delay = 450) => {
     if (!micOnRef.current || !isMountedRef.current) return;
-
     clearNativeTimer();
     nativeRestartTimerRef.current = setTimeout(() => {
       if (!micOnRef.current || !isMountedRef.current) return;
@@ -367,35 +383,29 @@ export default function SearchInput({
 
   const stopNativeLoop = async (hard = false) => {
     clearNativeTimer();
-    nativeRunningRef.current = false;
+    nativeStartingRef.current = false;
     if (isMountedRef.current) setIsListening(false);
-
     if (!isNativeApp) return;
     if (!hard) return;
 
     try {
-      await nativeResultListenerRef.current?.remove?.();
-    } catch {}
-    nativeResultListenerRef.current = null;
-
-    try {
       await SpeechRecognition.stop();
-      await SpeechRecognition.removeAllListeners();
     } catch {}
+    await removeNativeListeners();
   };
 
   const startNativeLoop = async () => {
     if (!isNativeApp || !micOnRef.current || !isMountedRef.current) return;
-    if (nativeRunningRef.current) return;
+    if (nativeStartingRef.current) return;
 
-    nativeRunningRef.current = true;
+    nativeStartingRef.current = true;
 
     try {
-      const { available } = await SpeechRecognition.available();
-      if (!available) {
+      const availability = await SpeechRecognition.available();
+      if (!availability?.available) {
         alert('이 기기에서는 음성 인식을 사용할 수 없습니다.');
         setMicOn(false);
-        nativeRunningRef.current = false;
+        nativeStartingRef.current = false;
         return;
       }
 
@@ -405,61 +415,65 @@ export default function SearchInput({
       }
 
       if (perm.speechRecognition !== 'granted') {
-        alert('마이크 권한이 필요합니다. 스마트폰 설정에서 X-DIC 마이크 권한을 허용해주세요.');
+        alert('마이크 권한이 필요합니다. 설정에서 권한을 허용해주세요.');
         setMicOn(false);
         try {
           sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
         } catch {}
-        nativeRunningRef.current = false;
+        nativeStartingRef.current = false;
         return;
       }
 
-      try {
-        await nativeResultListenerRef.current?.remove?.();
-      } catch {}
-      nativeResultListenerRef.current = null;
+      await removeNativeListeners();
+      latestTranscriptRef.current = '';
 
-      // fallback result listener
-      nativeResultListenerRef.current = await SpeechRecognition.addListener('result', (event: any) => {
-        const raw = String(event?.matches?.[0] || '').trim();
-        const transcript = raw.replace(/[.,?!]/g, '').trim();
+      const listeningHandle = await (SpeechRecognition as any).addListener('listeningState', (event: any) => {
+        if (!isMountedRef.current) return;
+        const status = String(event?.status || '').toLowerCase();
 
-        if (!transcript) return;
+        setIsListening(status === 'started' || status === 'listening');
+
+        if (status === 'stopped' && micOnRef.current) {
+          scheduleNativeRestart(300);
+        }
+      });
+
+      const partialHandle = await (SpeechRecognition as any).addListener('partialResults', (event: any) => {
         if (!isMountedRef.current) return;
 
-        setQuery(transcript);
-        goSearch(transcript);
+        let partialText = String(event?.matches?.[0] || '').trim();
+        partialText = partialText.replace(/[.,?!]/g, '').trim();
+        if (!partialText) return;
+
+        setQuery(partialText);
+        latestTranscriptRef.current = partialText;
+
+        if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current);
+        speechTimeoutRef.current = setTimeout(() => {
+          if (latestTranscriptRef.current) {
+            goSearch(latestTranscriptRef.current);
+            latestTranscriptRef.current = '';
+          }
+        }, 1200);
       });
+
+      nativeListenerHandlesRef.current = [listeningHandle, partialHandle];
 
       if (!isMountedRef.current) return;
       setIsListening(true);
 
-      const result = await SpeechRecognition.start({
+      await SpeechRecognition.start({
         language: 'ko-KR',
         maxResults: 1,
-        partialResults: false,
+        partialResults: true,
         popup: false,
-        allowForSilence: 1800
       });
 
-      if (!isMountedRef.current) return;
-      setIsListening(false);
-
-      let transcript = String(result?.matches?.[0] || '').trim();
-      transcript = transcript.replace(/[.,?!]/g, '').trim();
-
-      if (transcript) {
-        setQuery(transcript);
-        goSearch(transcript);
-      }
-
-      nativeRunningRef.current = false;
-
-      if (micOnRef.current) scheduleNativeRestart(250);
+      nativeStartingRef.current = false;
     } catch (e: any) {
       if (!isMountedRef.current) return;
       setIsListening(false);
-      nativeRunningRef.current = false;
+      nativeStartingRef.current = false;
 
       const msg = String(e?.message || e || '').toLowerCase();
 
