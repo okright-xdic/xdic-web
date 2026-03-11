@@ -129,12 +129,27 @@ export default function SearchPage({ query, results = [], highlightList = [], is
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
-        {/* 🌟 수정 포인트: 앱일 때는 패딩(여백)을 확 줄여서 검색창이 맨 위로 착! 붙게 만듭니다 */}
-        <header className={`w-full ${isApp ? 'pt-4 pb-2' : 'pt-8 pb-2 md:pt-16 md:pb-6'}`}>
+        
+        {/* 🌟 수정 포인트: 앱일 때는 시계 공간(pt-12)을 넉넉히 비워줍니다! */}
+        <header className={`w-full ${isApp ? 'pt-14 pb-6' : 'pt-8 pb-2 md:pt-16 md:pb-6'}`}>
           
-          {/* 🌟 수정 포인트: 웹일 때만 로고와 문구를 보여줍니다! (앱에서는 투명 망토) */}
-          {!isApp && (
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-8 md:mb-8">
+          {isApp ? (
+            /* 🌟 앱 전용 UI: 시계 아래로 띄운 뒤, 로고만 정중앙에 예쁘게 배치 (문구는 숨김) */
+            <div className="flex justify-center mb-6">
+              <Link href={homeHref} className="cursor-pointer">
+                <Image
+                  src="/images/LOGO_01_ChatGPT_S.jpg"
+                  alt="X-DIC Logo"
+                  width={140}
+                  height={70}
+                  className="object-contain hover:opacity-90 transition-opacity"
+                  priority
+                />
+              </Link>
+            </div>
+          ) : (
+            /* 🌟 웹 전용 UI: 기존처럼 로고와 텍스트를 좌측으로 배치 */
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-8">
               <div className="flex-shrink-0">
                 <Link href={homeHref} className="cursor-pointer">
                   <Image
@@ -307,7 +322,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
             </div>
           ) : (
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              {/* 🌟 수정 포인트: 웹일 때만 배너 띄우기 (앱 심사 프리패스용) */}
+              {/* 🌟 웹일 때만 배너 띄우기 (앱 심사 프리패스용) */}
               {!isApp && (
                 <div className="h-[180px] relative rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50">
                   <Image src="/images/mobile-app-banner-bright.png" alt="배너" fill className="object-contain" />
@@ -323,7 +338,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
 
       <div className="flex-grow py-[5vh]"></div>
       
-      {/* 🌟 수정 포인트: 앱에서는 웹용 푸터(하단 회사정보)도 가려줍니다 */}
+      {/* 🌟 앱에서는 웹용 푸터(하단 회사정보)도 가려줍니다 */}
       {!isApp && (
         <div className="flex-none">
           <Footer />
