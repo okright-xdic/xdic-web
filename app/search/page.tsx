@@ -1,5 +1,5 @@
-// app/app/page.tsx
-// ✅ 앱(/app)도 "서버 검색"으로 통일해서 /와 결과/정렬/하이라이트를 완전히 동일하게 만듭니다.
+// app/search/page.tsx
+// ✅ PC 웹(/search) 전용 페이지입니다. 광고가 정상 노출되도록 isApp={false}를 적용합니다.
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -61,7 +61,7 @@ const rotateResults = (items: any[], keyword: string) => {
   return rotated;
 };
 
-export default async function AppPage({
+export default async function WebSearchPage({
   searchParams,
 }: {
   searchParams: { q?: string };
@@ -125,10 +125,10 @@ export default async function AppPage({
 
       if (results.length > 0) results = rotateResults(results, cleanQuery);
     } catch (e) {
-      console.error('❌ 앱 검색 실패:', e);
+      console.error('❌ 웹 검색 실패:', e);
     }
   }
 
-  // ✅ 앱은 광고/배너 숨김
-  return <SearchPage query={query} results={results} highlightList={highlightKeys} isApp={true} />;
+  // ✅ 핵심 변경 포인트: PC 웹이므로 isApp={false} 로 전달하여 광고가 튼튼하게 자리 잡도록 합니다!
+  return <SearchPage query={query} results={results} highlightList={highlightKeys} isApp={false} />;
 }
