@@ -130,7 +130,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
     <div className="flex flex-col min-h-screen bg-white">
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
         
-        {/* 🌟 수정 포인트: 앱일 때는 시계 공간(pt-12)을 넉넉히 비워줍니다! */}
+        {/* 🌟 수정 포인트 1: 앱일 때는 시계 공간(pt-14)을 넉넉히 비워줍니다! */}
         <header className={`w-full ${isApp ? 'pt-14 pb-6' : 'pt-8 pb-2 md:pt-16 md:pb-6'}`}>
           
           {isApp ? (
@@ -231,7 +231,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                           </div>
                         </li>
 
-                        {/* 앱에서는 심사를 위해 광고도 숨김 처리 */}
+                        {/* 🌟 수정 포인트 2: 앱에서는 심사를 위해 검색결과 중간 광고도 숨김 처리 */}
                         {!isApp && idx === 6 && <AdSensePlaceholder adSlot="8675599033" debugLabel="PC_검색결과_중간" minHeight={200} />}
                       </React.Fragment>
                     ))}
@@ -289,7 +289,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                     </div>
                   )}
                   
-                  {/* 앱에서는 심사를 위해 광고도 숨김 처리 */}
+                  {/* 🌟 수정 포인트 3: 앱에서는 심사를 위해 하단 광고도 숨김 처리 */}
                   {!isApp && <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_검색결과_하단" minHeight={250} />}
 
                   <div className="py-8 text-center border-t border-slate-100 mt-8">
@@ -322,7 +322,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
             </div>
           ) : (
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              {/* 🌟 웹일 때만 배너 띄우기 (앱 심사 프리패스용) */}
+              {/* 🌟 수정 포인트 4: 웹일 때만 메인 배너 띄우기 (앱 심사 프리패스용) */}
               {!isApp && (
                 <div className="h-[180px] relative rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50">
                   <Image src="/images/mobile-app-banner-bright.png" alt="배너" fill className="object-contain" />
@@ -338,7 +338,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
 
       <div className="flex-grow py-[5vh]"></div>
       
-      {/* 🌟 앱에서는 웹용 푸터(하단 회사정보)도 가려줍니다 */}
+      {/* 🌟 수정 포인트 5: 앱에서는 웹용 푸터(하단 회사정보)도 가려줍니다 */}
       {!isApp && (
         <div className="flex-none">
           <Footer />
