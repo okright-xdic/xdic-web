@@ -353,6 +353,7 @@ export default function SearchInput({
         
         setIsListening(status === 'started' || status === 'listening');
 
+        // 🌟 Always ON 마법 1: 마이크가 꺼지면, 루프를 안전하게 재시작시킵니다!
         if (status === 'stopped') {
           nativeStartingRef.current = false;
           if (micOnRef.current) {
@@ -368,6 +369,7 @@ export default function SearchInput({
         partialText = partialText.replace(/[.,?!]/g, '').trim(); 
         if (!partialText) return;
 
+        // 🌟 무한루프 방지: 들어온 단어가 '이전 단어'와 완전히 다를 때만 타이머를 돌립니다.
         if (partialText !== latestTranscriptRef.current) {
           setQuery(partialText);
           latestTranscriptRef.current = partialText;
@@ -378,6 +380,8 @@ export default function SearchInput({
               goSearch(latestTranscriptRef.current);
               latestTranscriptRef.current = ''; 
               
+              // 🌟 Always ON 마법 2: 검색을 쏘자마자 마이크를 강제로 한 번 리셋!
+              // 이렇게 해야 listeningState가 'stopped'로 떨어지며 위의 Always ON 마법 1이 발동해 자연스럽게 재시작됩니다.
               try { SpeechRecognition.stop(); } catch(e) {}
             }
           }, 1200);
@@ -481,35 +485,24 @@ export default function SearchInput({
               </button>
             )}
 
-            <button type="button" onClick={handleMicToggle} disabled={isPending} className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all ${micOn ? isListening ? 'bg-red-600 text-white shadow-md animate-pulse' : 'bg-red-50 text-red-600 ring-2 ring-red-200' : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50'} ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}>
+            <button type="button" onClick={handleMicToggle} disabled={isPending} className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all ${micOn ? isListening ? 'bg-red-600 text-white shadow-md animate-pulse' : 'bg-red-50 text-red-600 ring-2 ring-red-200' : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50'}`}>
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
               </svg>
             </button>
 
-            {/* 🌟 검색 버튼 UI 변경: isPending일 때 회색 버튼 + 빙글빙글 스피너 */}
-            <button type="submit" disabled={isPending} className={`h-8 md:h-10 px-3 md:px-6 rounded-full font-bold transition-all flex items-center gap-1.5 ${isPending ? 'bg-slate-400 text-white cursor-not-allowed' : 'bg-slate-900 text-white hover:bg-slate-800'}`}>
-              {isPending ? (
-                <svg className="animate-spin w-4 h-4 md:w-5 md:h-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              ) : (
-                <svg viewBox="0 0 24 24" className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 19a8 8 0 100-16 8 8 0 000 16z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
-                </svg>
-              )}
-              <span className="hidden md:inline text-sm md:text-base">{isPending ? '검색중' : '검색'}</span>
+            <button type="submit" disabled={isPending} className="h-8 md:h-10 px-3 md:px-6 rounded-full bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all flex items-center gap-1.5">
+              <svg viewBox="0 0 24 24" className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 19a8 8 0 100-16 8 8 0 000 16z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
+              </svg>
+              <span className="hidden md:inline text-sm md:text-base">검색</span>
             </button>
           </div>
         </div>
 
-        {/* 🌟 하단 텍스트 변경: isPending일 때 파란색 글씨로 로딩 안내! */}
-        <div className={`mt-2 h-5 text-xs md:text-sm text-center font-bold transition-all ${isPending ? 'text-blue-500 animate-pulse' : (micOn ? 'text-red-500' : 'text-transparent')}`}>
-          {isPending 
-            ? '🔍 사전에서 단어를 찾고 있습니다...' 
-            : (micOn ? (isListening ? '듣고 있습니다... (말씀하세요)' : '마이크 ON 상태로 대기 중입니다') : ' ')}
+        <div className={`mt-2 h-5 text-xs md:text-sm text-center font-bold ${micOn ? 'text-red-500' : 'text-transparent'}`}>
+          {micOn ? (isListening ? '듣고 있습니다... (말씀하세요)' : '마이크 ON 상태로 대기 중입니다') : ' '}
         </div>
       </form>
     </div>
