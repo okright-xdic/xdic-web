@@ -175,6 +175,15 @@ export default function SearchInput({
 
     saveToRecent(trimmed);
 
+    // 🌟 [추가된 로직] 인기 검색어 수집을 위해 DB(API)로 검색어를 몰래 쏩니다!
+    if (typeof window !== 'undefined') {
+      fetch('/api/log-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keyword: trimmed }),
+      }).catch((err) => console.error('검색어 로깅 실패:', err));
+    }
+
     const basePath = isApp || isNativeApp ? '/app' : '/';
     startTransition(() => {
       router.push(`${basePath}?q=${encodeURIComponent(finalQuery)}`);
@@ -408,13 +417,11 @@ export default function SearchInput({
         return;
       }
 
-      // ✨ 안전장치 2: 이전 마이크 세션이 꼬여서 먹통(대기 중)되는 것을 방지하기 위해 확실히 정리!
       try { await SpeechRecognition.stop(); } catch(e) {}
 
       if (!isMountedRef.current) return;
-      setIsListening(true); // "듣고 있습니다..." 켜짐
+      setIsListening(true); 
 
-      // ✅ A급 프로그래머 원본: partialResults를 false로 두고 말이 완벽히 끝날 때까지 기다린다.
       const result = await SpeechRecognition.start({
         language: 'ko-KR',
         maxResults: 1,
@@ -424,21 +431,19 @@ export default function SearchInput({
       });
 
       if (!isMountedRef.current) return;
-      setIsListening(false); // 말이 끝나면 "듣고 있습니다..." 꺼짐
+      setIsListening(false); 
 
       let transcript = String(result?.matches?.[0] || '').trim();
       
-      // ✨ 안전장치 1: 구글 마이크가 멋대로 붙이는 마침표(.), 쉼표 등 특수기호 싹둑 제거!
       transcript = transcript.replace(/[.,?!]/g, '').trim();
 
       if (transcript) {
         setQuery(transcript);
-        goSearch(transcript); // 깔끔해진 단어로 즉시 엔터(검색)!
+        goSearch(transcript); 
       }
 
       nativeRunningRef.current = false;
 
-      // ✅ Always ON: 두 번째 실행이 씹히지 않도록 딜레이를 살짝(400ms) 주어 재시작
       if (micOnRef.current) scheduleNativeRestart(400);
     } catch (e: any) {
       if (!isMountedRef.current) return;
@@ -456,14 +461,10 @@ export default function SearchInput({
         return;
       }
 
-      // 무음/취소 오류 시 숨돌릴 틈을 주고 재시작 (먹통 방지)
       if (micOnRef.current) scheduleNativeRestart(600);
     }
   };
 
-  // =========================================================
-  // micOn -> 웹/앱 분기
-  // =========================================================
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
