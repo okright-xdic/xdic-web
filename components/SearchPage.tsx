@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Capacitor } from '@capacitor/core'; // 🌟 핵심 1: 스마트폰 감지 센서 달기
 import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import RecentKeywords from '@/components/RecentKeywords';
@@ -43,10 +44,21 @@ export default function SearchPage({ query, results = [], highlightList = [], is
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
+  // 🌟 핵심 2: 앱인지 아닌지 무조건 찾아내는 마법의 3줄!
+  const [clientIsApp, setClientIsApp] = useState(false);
+  useEffect(() => {
+    if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) {
+      setClientIsApp(true); // "어? 나 스마트폰 안이네? 앱 모드 켜!"
+    }
+  }, []);
+
+  // 🌟 최종 판단: 원래 넘어온 isApp이 true이거나, 폰에서 켜졌으면 무조건 앱 모드로 작동!
+  const displayIsApp = isApp || clientIsApp;
+
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
-  const homeHref = isApp ? '/app' : '/';
+  const homeHref = displayIsApp ? '/app' : '/';
 
   useEffect(() => {
     setCurrentPage(1);
@@ -130,11 +142,9 @@ export default function SearchPage({ query, results = [], highlightList = [], is
     <div className="flex flex-col min-h-screen bg-white">
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
         
-        {/* 🌟 수정 포인트 1: 앱일 때는 시계 공간(pt-14)을 넉넉히 비워줍니다! */}
-        <header className={`w-full ${isApp ? 'pt-14 pb-6' : 'pt-8 pb-2 md:pt-16 md:pb-6'}`}>
+        <header className={`w-full ${displayIsApp ? 'pt-14 pb-6' : 'pt-8 pb-2 md:pt-16 md:pb-6'}`}>
           
-          {isApp ? (
-            /* 🌟 앱 전용 UI: 시계 아래로 띄운 뒤, 로고만 정중앙에 예쁘게 배치 (문구는 숨김) */
+          {displayIsApp ? (
             <div className="flex justify-center mb-6">
               <Link href={homeHref} className="cursor-pointer">
                 <Image
@@ -148,7 +158,6 @@ export default function SearchPage({ query, results = [], highlightList = [], is
               </Link>
             </div>
           ) : (
-            /* 🌟 웹 전용 UI: 기존처럼 로고와 텍스트를 좌측으로 배치 */
             <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-8">
               <div className="flex-shrink-0">
                 <Link href={homeHref} className="cursor-pointer">
@@ -180,7 +189,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
           )}
 
           <div className="w-full">
-            <SearchInput initialQuery={displayQuery} isApp={isApp} />
+            <SearchInput initialQuery={displayQuery} isApp={displayIsApp} />
           </div>
         </header>
       </div>
@@ -207,7 +216,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                         <li className="group bg-white rounded-lg py-2 px-3 border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all duration-200">
                           <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3 flex-1">
-                              {!isApp && (
+                              {!displayIsApp && (
                                 <button
                                   onClick={() => handleSpeak(item.line_text)}
                                   className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
@@ -231,8 +240,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                           </div>
                         </li>
 
-                        {/* 🌟 수정 포인트 2: 앱에서는 심사를 위해 검색결과 중간 광고도 숨김 처리 */}
-                        {!isApp && idx === 6 && <AdSensePlaceholder adSlot="8675599033" debugLabel="PC_검색결과_중간" minHeight={200} />}
+                        {!displayIsApp && idx === 6 && <AdSensePlaceholder adSlot="8675599033" debugLabel="PC_검색결과_중간" minHeight={200} />}
                       </React.Fragment>
                     ))}
                   </ul>
@@ -289,8 +297,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                     </div>
                   )}
                   
-                  {/* 🌟 수정 포인트 3: 앱에서는 심사를 위해 하단 광고도 숨김 처리 */}
-                  {!isApp && <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_검색결과_하단" minHeight={250} />}
+                  {!displayIsApp && <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_검색결과_하단" minHeight={250} />}
 
                   <div className="py-8 text-center border-t border-slate-100 mt-8">
                     <p className="text-sm text-slate-400">{results.length}개의 결과를 모두 확인했습니다.</p>
@@ -322,8 +329,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
             </div>
           ) : (
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              {/* 🌟 수정 포인트 4: 웹일 때만 메인 배너 띄우기 (앱 심사 프리패스용) */}
-              {!isApp && (
+              {!displayIsApp && (
                 <div className="h-[180px] relative rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50">
                   <Image src="/images/mobile-app-banner-bright.png" alt="배너" fill className="object-contain" />
                 </div>
@@ -338,8 +344,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
 
       <div className="flex-grow py-[5vh]"></div>
       
-      {/* 🌟 수정 포인트 5: 앱에서는 웹용 푸터(하단 회사정보)도 가려줍니다 */}
-      {!isApp && (
+      {!displayIsApp && (
         <div className="flex-none">
           <Footer />
         </div>
