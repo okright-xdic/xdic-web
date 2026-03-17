@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Capacitor } from '@capacitor/core'; // 🌟 핵심 1: 스마트폰 감지 센서 달기
+import { Capacitor } from '@capacitor/core';
 import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import RecentKeywords from '@/components/RecentKeywords';
@@ -44,21 +44,17 @@ export default function SearchPage({ query, results = [], highlightList = [], is
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  // 🌟 핵심 2: 앱인지 아닌지 무조건 찾아내는 마법의 3줄!
   const [clientIsApp, setClientIsApp] = useState(false);
   useEffect(() => {
     if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) {
-      setClientIsApp(true); // "어? 나 스마트폰 안이네? 앱 모드 켜!"
+      setClientIsApp(true);
     }
   }, []);
 
-  // 🌟 최종 판단: 원래 넘어온 isApp이 true이거나, 폰에서 켜졌으면 무조건 앱 모드로 작동!
   const displayIsApp = isApp || clientIsApp;
 
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
-
-  const homeHref = displayIsApp ? '/app' : '/';
 
   useEffect(() => {
     setCurrentPage(1);
@@ -146,7 +142,8 @@ export default function SearchPage({ query, results = [], highlightList = [], is
           
           {displayIsApp ? (
             <div className="flex justify-center mb-6">
-              <Link href={homeHref} className="cursor-pointer">
+              {/* 🌟 수정 포인트 1: 앱일 때는 무조건 /app 주소로 강제 이동하게 만듦! (캐시 오류 원천 차단) */}
+              <a href="/app" className="cursor-pointer">
                 <Image
                   src="/images/LOGO_01_ChatGPT_S.jpg"
                   alt="X-DIC Logo"
@@ -155,12 +152,13 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                   className="object-contain hover:opacity-90 transition-opacity"
                   priority
                 />
-              </Link>
+              </a>
             </div>
           ) : (
             <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-8">
               <div className="flex-shrink-0">
-                <Link href={homeHref} className="cursor-pointer">
+                {/* 🌟 수정 포인트 2: PC 웹일 때는 무조건 / 주소로 강제 이동! */}
+                <a href="/" className="cursor-pointer">
                   <Image
                     src="/images/LOGO_01_ChatGPT_S.jpg"
                     alt="X-DIC Logo"
@@ -169,15 +167,15 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                     className="object-contain hover:opacity-90 transition-opacity"
                     priority
                   />
-                </Link>
+                </a>
               </div>
 
               <div className="flex flex-col gap-1 justify-center text-center md:text-left">
-                <Link href={homeHref} className="cursor-pointer hover:opacity-80 transition-opacity">
+                <a href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
                   <h1 className="text-xl md:text-[24px] font-extrabold text-slate-800 leading-tight md:leading-none">
                     한영/영한사전 – 복합어 전문 엑스딕!
                   </h1>
-                </Link>
+                </a>
                 <p className="text-sm md:text-[16px] text-slate-500 font-medium leading-tight mt-1">
                   Korean-English/English-Korean Dictionary – Compound Terminology Dictionary
                 </p>
