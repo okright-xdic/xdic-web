@@ -9,7 +9,6 @@ interface Keyword {
   count: number;
 }
 
-// 🌟 수정 포인트: SearchInput과 똑같은 이름표(Key)로 맞춤!
 const RECENT_KEY = 'xdic_recent_searches_v2';
 const UPDATED_EVENT = 'xdic_recent_searches_updated';
 
@@ -44,7 +43,6 @@ export default function RecentKeywords({ className }: { className?: string }) {
     try {
       const parsed = JSON.parse(raw);
 
-      // ✅ 새 포맷: [{keyword,count}]
       if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') {
         return parsed
           .map((x: any) => ({
@@ -54,7 +52,6 @@ export default function RecentKeywords({ className }: { className?: string }) {
           .filter((x: Keyword) => x.keyword);
       }
 
-      // ✅ 구 포맷: ["사랑","가"]
       if (Array.isArray(parsed) && (parsed.length === 0 || typeof parsed[0] === 'string')) {
         return parsed
           .map((s: any) => String(s || '').trim())
@@ -79,10 +76,7 @@ export default function RecentKeywords({ className }: { className?: string }) {
     setMounted(true);
     loadKeywords();
 
-    // ✅ 같은 탭: custom event
     window.addEventListener(UPDATED_EVENT, loadKeywords);
-
-    // ✅ 다른 탭/창: storage event
     window.addEventListener('storage', loadKeywords);
 
     return () => {
@@ -94,8 +88,6 @@ export default function RecentKeywords({ className }: { className?: string }) {
   const handleKeywordClick = (text: string) => {
     const trimmed = (text || '').trim();
     if (!trimmed) return;
-
-    // PC: 항상 뒤에 공백 붙여 이동 (서버 3단계 로직이 처리)
     const finalQuery = trimmed.endsWith(' ') ? trimmed : trimmed + ' ';
     router.push(`/?q=${encodeURIComponent(finalQuery)}`);
   };

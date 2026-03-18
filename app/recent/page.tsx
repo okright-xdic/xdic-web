@@ -6,9 +6,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
-import PopularKeywords from '@/components/PopularKeywords'; // 인기 검색어 복구
-import TrendGraph from '@/components/TrendGraph';       // 트렌드 복구
-import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder'; // 광고 복구
+import PopularKeywords from '@/components/PopularKeywords';
+import TrendGraph from '@/components/TrendGraph';
+import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
+
+// 🌟 메인 위젯과 완벽하게 동일한 열쇠(Key) 사용!
+const RECENT_KEY = 'xdic_recent_searches_v2';
+const UPDATED_EVENT = 'xdic_recent_searches_updated';
 
 // 🎨 17가지 파스텔톤 캔디 컬러 팔레트
 const COLOR_PALETTES = [
@@ -40,8 +44,8 @@ export default function RecentPage() {
   const [recentKeywords, setRecentKeywords] = useState<RecentKeyword[]>([]);
   const router = useRouter();
 
-  useEffect(() => {
-    const saved = localStorage.getItem('recent_searches_v2');
+  const loadKeywords = () => {
+    const saved = localStorage.getItem(RECENT_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -51,7 +55,19 @@ export default function RecentPage() {
       } catch (e) {
         console.error('Parsing Error', e);
       }
+    } else {
+      setRecentKeywords([]);
     }
+  };
+
+  useEffect(() => {
+    loadKeywords();
+    
+    // 다른 컴포넌트(위젯 등)에서 검색어가 업데이트되면 이 페이지도 즉시 새로고침!
+    window.addEventListener(UPDATED_EVENT, loadKeywords);
+    return () => {
+      window.removeEventListener(UPDATED_EVENT, loadKeywords);
+    };
   }, []);
 
   const handleSearch = (text: string) => {
@@ -62,13 +78,17 @@ export default function RecentPage() {
     e.stopPropagation();
     const newKeywords = recentKeywords.filter((k) => k.keyword !== text);
     setRecentKeywords(newKeywords);
-    localStorage.setItem('recent_searches_v2', JSON.stringify(newKeywords));
+    localStorage.setItem(RECENT_KEY, JSON.stringify(newKeywords));
+    // 삭제 후 다른 위젯들에도 알려줌
+    window.dispatchEvent(new Event(UPDATED_EVENT));
   };
 
   const handleClearAll = () => {
     if (confirm('정말 모든 검색 기록을 삭제하시겠습니까?')) {
       setRecentKeywords([]);
-      localStorage.removeItem('recent_searches_v2');
+      localStorage.removeItem(RECENT_KEY);
+      // 삭제 후 다른 위젯들에도 알려줌
+      window.dispatchEvent(new Event(UPDATED_EVENT));
     }
   };
 
@@ -111,14 +131,13 @@ export default function RecentPage() {
         <div className="container mx-auto px-4 md:px-6 max-w-4xl space-y-8 pb-20">
           
           {/* ======================================================== */}
-          {/* [섹션 1: 주인공] 최근 검색어 (제목 수정 완료!) */}
+          {/* [섹션 1: 주인공] 최근 검색어 */}
           {/* ======================================================== */}
           <section className="bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-200 mt-4 relative overflow-hidden min-h-[300px]">
             {/* 배경 장식 */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-full blur-3xl -z-10 opacity-50"></div>
 
             <div className="flex items-center justify-between mb-8">
-              {/* [수정 완료] 제목: 나의 검색 기록 -> 최근 검색어 */}
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <span className="text-2xl">🕒</span> 최근 검색어 <span className="text-sm font-normal text-slate-400">({recentKeywords.length})</span>
               </h2>
@@ -138,7 +157,6 @@ export default function RecentPage() {
                   <div 
                     key={idx}
                     onClick={() => handleSearch(item.keyword)}
-                    // [디자인] 메인화면과 동일한 캔디 컬러 로직 적용
                     className={`
                       group flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full border cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5
                       ${getColorClass(item.keyword)}
@@ -152,7 +170,6 @@ export default function RecentPage() {
                       </span>
                     )}
 
-                    {/* 개별 삭제 버튼 */}
                     <button 
                       onClick={(e) => handleDelete(e, item.keyword)}
                       className="w-5 h-5 flex items-center justify-center rounded-full bg-black/5 hover:bg-black/20 text-current transition-colors ml-1"
@@ -163,7 +180,6 @@ export default function RecentPage() {
                 ))}
               </div>
             ) : (
-              // 기록이 없을 때 화면
               <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                 <div className="text-4xl opacity-20 mb-3">💬</div>
                 <p className="text-slate-500 font-medium">아직 검색 기록이 없습니다.</p>
@@ -173,34 +189,33 @@ export default function RecentPage() {
           </section>
 
           {/* ======================================================== */}
-          {/* [섹션 2] 나머지 친구들 복구 (광고 + 인기 + 트렌드 + 배너) */}
+          {/* [섹션 2] 나머지 친구들 (광고 + 인기 + 트렌드 + 배너) */}
           {/* ======================================================== */}
           
-{/* PC_최신검색어_더보기_중간 */}
-<AdSensePlaceholder
-  adSlot="2840187537"
-  debugLabel="PC_최신검색어_더보기_중간"
-/>
+          {/* PC_최신검색어_더보기_중간 */}
+          <AdSensePlaceholder
+            adSlot="2840187537"
+            debugLabel="PC_최신검색어_더보기_중간"
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            {/* 인기 검색어 (복구) */}
+            {/* 인기 검색어 */}
             <div className="md:col-span-2">
                <div className="flex items-center gap-2 mb-3 px-2">
                   <span className="text-xl">🔥</span>
                   <h3 className="text-lg font-bold text-slate-700">함께 많이 찾는 검색어</h3>
                </div>
-               {/* 인기 검색어 컴포넌트 재사용 */}
                <PopularKeywords className="min-h-[400px] border-blue-100 shadow-sm" />
             </div>
 
-            {/* 트렌드 그래프 (복구) */}
+            {/* 트렌드 그래프 */}
             <div className="md:col-span-1">
                <h3 className="text-lg font-bold text-slate-700 mb-3 px-2">📈 검색어 트렌드</h3>
                <TrendGraph />
             </div>
 
-            {/* 앱 배너 (복구) */}
+            {/* 앱 배너 */}
             <div className="md:col-span-1 h-[250px] relative rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50 group cursor-pointer">
               <Image 
                 src="/images/mobile-app-banner-bright.png" 
