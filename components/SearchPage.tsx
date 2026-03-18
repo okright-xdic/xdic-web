@@ -25,7 +25,9 @@ interface SearchPageProps {
   isApp?: boolean;
 }
 
+// 🌟 수정 포인트: 0번 인덱스에 대표님이 원하시는 '기준 영어'를 딱! 박아줍니다.
 const CATEGORY_NAMES: Record<number, string> = {
+  0: '기준 영어',
   1: '기본영어',
   2: '인문사회용어',
   3: '기계_전기_전자용어',
@@ -142,7 +144,6 @@ export default function SearchPage({ query, results = [], highlightList = [], is
           
           {displayIsApp ? (
             <div className="flex justify-center mb-6">
-              {/* 🌟 수정 포인트 1: 앱일 때는 무조건 /app 주소로 강제 이동하게 만듦! (캐시 오류 원천 차단) */}
               <a href="/app" className="cursor-pointer">
                 <Image
                   src="/images/LOGO_01_ChatGPT_S.jpg"
@@ -157,7 +158,6 @@ export default function SearchPage({ query, results = [], highlightList = [], is
           ) : (
             <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-8">
               <div className="flex-shrink-0">
-                {/* 🌟 수정 포인트 2: PC 웹일 때는 무조건 / 주소로 강제 이동! */}
                 <a href="/" className="cursor-pointer">
                   <Image
                     src="/images/LOGO_01_ChatGPT_S.jpg"

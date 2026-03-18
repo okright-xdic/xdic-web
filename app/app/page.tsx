@@ -16,7 +16,8 @@ const rotateResults = (items: any[], keyword: string) => {
   const lowerKeyword = keyword.trim().toLowerCase();
 
   const buckets: Record<number, any[]> = {};
-  for (let i = 1; i <= 12; i++) buckets[i] = [];
+  // 🌟 수정 포인트: 0번 카테고리(기준 영어) 바구니 추가! (0부터 12까지)
+  for (let i = 0; i <= 12; i++) buckets[i] = [];
 
   const advancedSort = (a: any, b: any) => {
     const aText = (a.line_text || '').toLowerCase();
@@ -47,21 +48,24 @@ const rotateResults = (items: any[], keyword: string) => {
   };
 
   items.forEach((item) => {
-    const catId = item.category_id >= 1 && item.category_id <= 12 ? item.category_id : 12;
+    // 🌟 수정 포인트: 0번 카테고리 범위 포함
+    const catId = item.category_id >= 0 && item.category_id <= 12 ? item.category_id : 12;
     buckets[catId].push(item);
   });
 
   let maxCount = 0;
 
-  for (let i = 1; i <= 12; i++) {
+  // 🌟 수정 포인트: 0번부터 순회
+  for (let i = 0; i <= 12; i++) {
     buckets[i].sort(advancedSort);
     if (buckets[i].length > maxCount) maxCount = buckets[i].length;
   }
 
   const rotated: any[] = [];
 
+  // 🌟 수정 포인트: 0번부터 지그재그 출력
   for (let i = 0; i < maxCount; i++) {
-    for (let cat = 1; cat <= 12; cat++) {
+    for (let cat = 0; cat <= 12; cat++) {
       if (buckets[cat][i]) rotated.push(buckets[cat][i]);
     }
   }

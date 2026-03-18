@@ -20,6 +20,9 @@ const UPDATED_EVENT = 'xdic_recent_searches_updated';
 const MIC_USER_ENABLED_KEY = 'xdic_mic_user_enabled_v1';
 const BANNED_WORDS = ['비속어', '욕설', 'badword', 'xxx', '도박', '성인'];
 
+// 🌟 핵심: 마이크 상태를 단순 ON/OFF가 아닌 '언어'로 관리합니다.
+type MicLang = 'ko-KR' | 'en-US' | null;
+
 export default function SearchInput({
   initialQuery = '',
   placeholder,
@@ -32,13 +35,13 @@ export default function SearchInput({
 
   const [query, setQuery] = useState(initialQuery || '');
   const [isPending, startTransition] = useTransition();
-  const [micOn, setMicOn] = useState(false);
+  const [micLang, setMicLang] = useState<MicLang>(null);
   const [isListening, setIsListening] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const lastSearchAtRef = useRef<number>(0);
 
-  const micOnRef = useRef(false);
+  const micLangRef = useRef<MicLang>(null);
   const isMountedRef = useRef(false);
 
   // -------------------------
@@ -50,7 +53,7 @@ export default function SearchInput({
   const webStartingRef = useRef(false);
 
   // -------------------------
-  // Native refs (A급 프로그래머 원본 기준)
+  // Native refs
   // -------------------------
   const nativeRestartTimerRef = useRef<any>(null);
   const nativeRunningRef = useRef(false);
@@ -69,9 +72,15 @@ export default function SearchInput({
     isMountedRef.current = true;
 
     if (typeof window !== 'undefined') {
-      const enabled = sessionStorage.getItem(MIC_USER_ENABLED_KEY) === 'true';
-      micOnRef.current = enabled;
-      setMicOn(enabled);
+      const saved = sessionStorage.getItem(MIC_USER_ENABLED_KEY);
+      // 기존 호환성을 위해 'true'로 저장된 분들은 한국어로 매핑합니다.
+      if (saved === 'true' || saved === 'ko-KR') {
+        micLangRef.current = 'ko-KR';
+        setMicLang('ko-KR');
+      } else if (saved === 'en-US') {
+        micLangRef.current = 'en-US';
+        setMicLang('en-US');
+      }
     }
 
     return () => {
@@ -83,8 +92,8 @@ export default function SearchInput({
   }, []);
 
   useEffect(() => {
-    micOnRef.current = micOn;
-  }, [micOn]);
+    micLangRef.current = micLang;
+  }, [micLang]);
 
   // =========================================================
   // 최근 검색어 저장
@@ -175,7 +184,6 @@ export default function SearchInput({
 
     saveToRecent(trimmed);
 
-    // 🌟 [추가된 로직] 인기 검색어 수집을 위해 DB(API)로 검색어를 몰래 쏩니다!
     if (typeof window !== 'undefined') {
       fetch('/api/log-search', {
         method: 'POST',
@@ -263,7 +271,7 @@ export default function SearchInput({
   };
 
   const scheduleWebRestart = () => {
-    if (!micOnRef.current || !isMountedRef.current) return;
+    if (!micLangRef.current || !isMountedRef.current) return;
     if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
 
     clearWebTimer();
@@ -271,19 +279,19 @@ export default function SearchInput({
     webBackoffRef.current = Math.min(Math.floor(webBackoffRef.current * 1.5), 3000);
 
     webRestartTimerRef.current = setTimeout(() => {
-      if (!micOnRef.current || !isMountedRef.current) return;
+      if (!micLangRef.current || !isMountedRef.current) return;
       startWebLoop();
     }, delay);
   };
 
   const startWebLoop = () => {
-    if (!micOnRef.current || !isMountedRef.current) return;
+    if (!micLangRef.current || !isMountedRef.current) return;
     if (isNativeApp) return;
 
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) {
       alert('이 브라우저는 음성 인식을 지원하지 않습니다. (Chrome 권장)');
-      setMicOn(false);
+      setMicLang(null);
       try {
         sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
       } catch {}
@@ -296,7 +304,8 @@ export default function SearchInput({
     const recognition = new Ctor();
     recognitionRef.current = recognition;
 
-    recognition.lang = 'ko-KR';
+    // 🌟 선택된 언어로 세팅합니다!
+    recognition.lang = micLangRef.current;
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
@@ -329,7 +338,7 @@ export default function SearchInput({
       const err = String(e?.error || '');
       if (err === 'not-allowed' || err === 'service-not-allowed' || err === 'audio-capture') {
         alert('마이크 권한이 차단되었습니다. 브라우저/기기 설정에서 마이크를 허용해주세요.');
-        setMicOn(false);
+        setMicLang(null);
         try {
           sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
         } catch {}
@@ -343,7 +352,7 @@ export default function SearchInput({
     recognition.onend = () => {
       if (!isMountedRef.current) return;
       setIsListening(false);
-      if (micOnRef.current) scheduleWebRestart();
+      if (micLangRef.current) scheduleWebRestart();
     };
 
     try {
@@ -356,7 +365,7 @@ export default function SearchInput({
   };
 
   // =========================================================
-  // (B) Native APP: A급 프로그래머 원본 + 마침표 제거 & 안정성 보완
+  // (B) Native APP
   // =========================================================
   const clearNativeTimer = () => {
     if (nativeRestartTimerRef.current) clearTimeout(nativeRestartTimerRef.current);
@@ -364,11 +373,11 @@ export default function SearchInput({
   };
 
   const scheduleNativeRestart = (delay = 450) => {
-    if (!micOnRef.current || !isMountedRef.current) return;
+    if (!micLangRef.current || !isMountedRef.current) return;
 
     clearNativeTimer();
     nativeRestartTimerRef.current = setTimeout(() => {
-      if (!micOnRef.current || !isMountedRef.current) return;
+      if (!micLangRef.current || !isMountedRef.current) return;
       startNativeLoop();
     }, delay);
   };
@@ -388,7 +397,7 @@ export default function SearchInput({
   };
 
   const startNativeLoop = async () => {
-    if (!isNativeApp || !micOnRef.current || !isMountedRef.current) return;
+    if (!isNativeApp || !micLangRef.current || !isMountedRef.current) return;
     if (nativeRunningRef.current) return;
 
     nativeRunningRef.current = true;
@@ -397,7 +406,7 @@ export default function SearchInput({
       const { available } = await SpeechRecognition.available();
       if (!available) {
         alert('이 기기에서는 음성 인식을 사용할 수 없습니다.');
-        setMicOn(false);
+        setMicLang(null);
         nativeRunningRef.current = false;
         return;
       }
@@ -409,7 +418,7 @@ export default function SearchInput({
 
       if (perm.speechRecognition !== 'granted') {
         alert('마이크 권한이 필요합니다. 스마트폰 설정에서 X-DIC 마이크 권한을 허용해주세요.');
-        setMicOn(false);
+        setMicLang(null);
         try {
           sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
         } catch {}
@@ -422,8 +431,9 @@ export default function SearchInput({
       if (!isMountedRef.current) return;
       setIsListening(true); 
 
+      // 🌟 선택된 언어로 Native 인식 시작!
       const result = await SpeechRecognition.start({
-        language: 'ko-KR',
+        language: micLangRef.current,
         maxResults: 1,
         partialResults: false,
         popup: false,
@@ -434,7 +444,6 @@ export default function SearchInput({
       setIsListening(false); 
 
       let transcript = String(result?.matches?.[0] || '').trim();
-      
       transcript = transcript.replace(/[.,?!]/g, '').trim();
 
       if (transcript) {
@@ -444,7 +453,7 @@ export default function SearchInput({
 
       nativeRunningRef.current = false;
 
-      if (micOnRef.current) scheduleNativeRestart(400);
+      if (micLangRef.current) scheduleNativeRestart(400);
     } catch (e: any) {
       if (!isMountedRef.current) return;
       setIsListening(false);
@@ -454,28 +463,28 @@ export default function SearchInput({
 
       if (msg.includes('denied') || msg.includes('permission')) {
         alert('마이크 권한이 차단되었습니다. 설정에서 권한을 허용해주세요.');
-        setMicOn(false);
+        setMicLang(null);
         try {
           sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
         } catch {}
         return;
       }
 
-      if (micOnRef.current) scheduleNativeRestart(600);
+      if (micLangRef.current) scheduleNativeRestart(600);
     }
   };
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    if (!micOn) {
+    if (!micLang) {
       stopWebLoop(true);
       stopNativeLoop(true);
       return;
     }
 
     try {
-      sessionStorage.setItem(MIC_USER_ENABLED_KEY, 'true');
+      sessionStorage.setItem(MIC_USER_ENABLED_KEY, micLang);
     } catch {}
 
     if (isNativeApp) {
@@ -491,14 +500,14 @@ export default function SearchInput({
       stopNativeLoop(true);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [micOn, isNativeApp]);
+  }, [micLang, isNativeApp]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (isNativeApp) return;
 
     const onVis = () => {
-      if (!micOnRef.current) return;
+      if (!micLangRef.current) return;
       if (document.visibilityState === 'visible') scheduleWebRestart();
       else stopWebLoop(true);
     };
@@ -514,16 +523,20 @@ export default function SearchInput({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isNativeApp]);
 
-  const handleMicToggle = () => {
+  // 🌟 언어를 인자로 받는 새로운 토글 핸들러
+  const handleMicToggle = (targetLang: 'ko-KR' | 'en-US') => {
     if (typeof window === 'undefined') return;
 
-    setMicOn((prev) => {
-      const next = !prev;
-      try {
-        if (next) sessionStorage.setItem(MIC_USER_ENABLED_KEY, 'true');
-        else sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
-      } catch {}
-      return next;
+    setMicLang((prev) => {
+      if (prev === targetLang) {
+        // 이미 켜진 언어를 누르면 끄기
+        try { sessionStorage.removeItem(MIC_USER_ENABLED_KEY); } catch {}
+        return null;
+      } else {
+        // 다른 언어를 누르거나, 처음 켤 때
+        try { sessionStorage.setItem(MIC_USER_ENABLED_KEY, targetLang); } catch {}
+        return targetLang;
+      }
     });
   };
 
@@ -531,8 +544,15 @@ export default function SearchInput({
     <div className={`relative w-full ${className}`}>
       <form onSubmit={handleSearch} className="w-full">
         <div
+          // 🌟 마이크 선택에 따라 테두리 색상도 예쁘게 변하도록 적용 (한국어: 빨강 / 영어: 파랑)
           className={`relative flex items-center w-full h-12 md:h-14 rounded-full border-2 bg-white overflow-hidden shadow-sm transition-colors
-            ${micOn ? 'border-red-500 ring-2 ring-red-100' : 'border-blue-500 focus-within:ring-2 focus-within:ring-blue-100'}`}
+            ${
+              micLang === 'ko-KR'
+                ? 'border-red-500 ring-2 ring-red-100'
+                : micLang === 'en-US'
+                ? 'border-blue-500 ring-2 ring-blue-100'
+                : 'border-blue-500 focus-within:ring-2 focus-within:ring-blue-100'
+            }`}
         >
           <input
             ref={inputRef}
@@ -544,7 +564,11 @@ export default function SearchInput({
             readOnly={isPending}
             placeholder={
               placeholder ||
-              (micOn ? '🎙️ 마이크 ON: 말씀하세요 (상시 대기)' : '① 마이크 클릭 후 음성 검색 ② 단어 입력!')
+              (micLang === 'ko-KR'
+                ? '🎙️ 한국어 음성 검색 (대기 중)'
+                : micLang === 'en-US'
+                ? '🎙️ 영어 음성 검색 (대기 중)'
+                : '① KOR/ENG 선택 ② 단어 검색!')
             }
             className="flex-grow min-w-0 h-full px-3 md:px-6 text-sm md:text-base text-slate-700 placeholder:text-slate-400 outline-none bg-transparent"
             autoComplete="off"
@@ -564,46 +588,71 @@ export default function SearchInput({
               </button>
             )}
 
+            {/* 🌟 한국어 마이크 버튼 */}
             <button
               type="button"
-              onClick={handleMicToggle}
+              onClick={() => handleMicToggle('ko-KR')}
               disabled={isPending}
-              className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all
+              className={`px-2 h-8 md:h-10 rounded-full flex items-center justify-center gap-1 transition-all border
                 ${
-                  micOn
+                  micLang === 'ko-KR'
                     ? isListening
-                      ? 'bg-red-600 text-white shadow-md animate-pulse'
-                      : 'bg-red-50 text-red-600 ring-2 ring-red-200'
-                    : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50'
+                      ? 'bg-red-600 text-white border-red-600 shadow-md animate-pulse'
+                      : 'bg-red-50 text-red-600 border-red-200 ring-2 ring-red-200'
+                    : 'bg-white text-slate-400 border-slate-200 hover:text-red-600 hover:bg-red-50 hover:border-red-100'
                 }`}
-              title={micOn ? '음성 검색 끄기' : '음성 검색 켜기'}
+              title="한국어 음성 검색"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
-                />
+              <span className="text-[11px] md:text-xs font-bold font-sans">KOR</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+              </svg>
+            </button>
+
+            {/* 🌟 영어 마이크 버튼 */}
+            <button
+              type="button"
+              onClick={() => handleMicToggle('en-US')}
+              disabled={isPending}
+              className={`px-2 h-8 md:h-10 rounded-full flex items-center justify-center gap-1 transition-all border
+                ${
+                  micLang === 'en-US'
+                    ? isListening
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-md animate-pulse'
+                      : 'bg-blue-50 text-blue-600 border-blue-200 ring-2 ring-blue-200'
+                    : 'bg-white text-slate-400 border-slate-200 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-100'
+                }`}
+              title="영어 음성 검색"
+            >
+              <span className="text-[11px] md:text-xs font-bold font-sans">ENG</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
               </svg>
             </button>
 
             <button
               type="submit"
               disabled={isPending}
-              className="h-8 md:h-10 px-3 md:px-6 rounded-full bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all flex items-center gap-1.5"
+              className="h-8 md:h-10 px-3 md:px-5 rounded-full bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all flex items-center gap-1.5 ml-1"
               title="검색"
             >
               <svg viewBox="0 0 24 24" className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M11 19a8 8 0 100-16 8 8 0 000 16z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
               </svg>
-              <span className="hidden md:inline text-sm md:text-base">검색</span>
             </button>
           </div>
         </div>
 
-        <div className={`mt-2 h-5 text-xs md:text-sm text-center ${micOn ? 'text-red-500' : 'text-transparent'}`}>
-          {micOn ? (isListening ? '듣고 있습니다... (말씀하세요)' : '마이크 ON 상태로 대기 중입니다') : ' '}
+        {/* 🌟 하단 상태 메시지도 언어에 따라 빨강/파랑으로 우아하게 변경! */}
+        <div className={`mt-2 h-5 text-xs md:text-sm text-center font-medium
+          ${micLang === 'ko-KR' ? 'text-red-500' : micLang === 'en-US' ? 'text-blue-500' : 'text-transparent'}`}
+        >
+          {micLang
+            ? isListening
+              ? `듣고 있습니다... (${micLang === 'ko-KR' ? '한국어' : '영어'})`
+              : `${micLang === 'ko-KR' ? '한국어' : '영어'} 마이크 ON 상태로 대기 중입니다`
+            : ' '}
         </div>
       </form>
     </div>

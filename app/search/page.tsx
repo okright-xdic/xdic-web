@@ -14,7 +14,8 @@ const rotateResults = (items: any[], keyword: string) => {
   const lowerKeyword = keyword.trim().toLowerCase();
 
   const buckets: Record<number, any[]> = {};
-  for (let i = 1; i <= 12; i++) buckets[i] = [];
+  // 🌟 수정 포인트: 0번 카테고리(기준 영어) 바구니를 추가합니다! (0부터 12까지)
+  for (let i = 0; i <= 12; i++) buckets[i] = [];
 
   const advancedSort = (a: any, b: any) => {
     const aText = (a.line_text || '').toLowerCase();
@@ -42,19 +43,22 @@ const rotateResults = (items: any[], keyword: string) => {
   };
 
   items.forEach((item) => {
-    const catId = item.category_id >= 1 && item.category_id <= 12 ? item.category_id : 12;
+    // 🌟 수정 포인트: 0번 카테고리도 기타(12)로 빠지지 않고 0번 자기 바구니에 담기도록 범위 확장!
+    const catId = item.category_id >= 0 && item.category_id <= 12 ? item.category_id : 12;
     buckets[catId].push(item);
   });
 
   let maxCount = 0;
-  for (let i = 1; i <= 12; i++) {
+  // 🌟 수정 포인트: 0번 바구니부터 순회하도록 0으로 변경
+  for (let i = 0; i <= 12; i++) {
     buckets[i].sort(advancedSort);
     if (buckets[i].length > maxCount) maxCount = buckets[i].length;
   }
 
   const rotated: any[] = [];
   for (let i = 0; i < maxCount; i++) {
-    for (let cat = 1; cat <= 12; cat++) {
+    // 🌟 수정 포인트: 출력할 때도 0번(기준 영어)부터 꺼내도록 0으로 변경
+    for (let cat = 0; cat <= 12; cat++) {
       if (buckets[cat][i]) rotated.push(buckets[cat][i]);
     }
   }
