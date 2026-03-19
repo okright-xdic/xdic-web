@@ -1,15 +1,144 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
+
+// DB 구조 타입
+interface Notice {
+  id: number;
+  title: string;
+  content: string;
+  created_at: string;
+}
 
 export default function NoticePage() {
+  const supabase = createClient();
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  
+  // 관리자 및 글쓰기 상태
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isWriting, setIsWriting] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  
+  // 입력 폼
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+
+  // 1. 게시글 불러오기
+  const fetchNotices = async () => {
+    const { data, error } = await supabase
+      .from('notices')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (data) setNotices(data);
+    if (error) console.error('게시글 불러오기 실패:', error);
+  };
+
+  useEffect(() => {
+    fetchNotices();
+  }, []);
+
+  // 2. 관리자 로그인 로직
+  const handleAdminLogin = () => {
+    if (isAdmin) {
+      setIsAdmin(false);
+      setIsWriting(false);
+      setEditingId(null);
+      alert('관리자 모드가 해제되었습니다.');
+      return;
+    }
+    const pwd = prompt('관리자 비밀번호를 입력하세요:');
+    if (pwd === 'okright91088!!') {
+      setIsAdmin(true);
+      alert('관리자 모드로 접속되었습니다. 자유롭게 글을 작성/수정/삭제할 수 있습니다.');
+    } else if (pwd !== null) {
+      alert('비밀번호가 일치하지 않습니다.');
+    }
+  };
+
+  // 3. 글 저장 및 수정하기
+  const handleSave = async () => {
+    if (!title.trim() || !content.trim()) {
+      alert('제목과 내용을 모두 입력해주세요.');
+      return;
+    }
+
+    if (editingId) {
+      const { error } = await supabase
+        .from('notices')
+        .update({ title, content })
+        .eq('id', editingId);
+
+      if (error) {
+        alert('글 수정에 실패했습니다.');
+        console.error(error);
+      } else {
+        alert('성공적으로 수정되었습니다!');
+        resetForm();
+        fetchNotices();
+      }
+    } else {
+      const { error } = await supabase
+        .from('notices')
+        .insert([{ title, content }]);
+
+      if (error) {
+        alert('글 저장에 실패했습니다.');
+        console.error(error);
+      } else {
+        alert('성공적으로 등록되었습니다!');
+        resetForm();
+        fetchNotices();
+      }
+    }
+  };
+
+  // 4. 글 수정 버튼 눌렀을 때
+  const handleEditClick = (notice: Notice) => {
+    setEditingId(notice.id);
+    setTitle(notice.title);
+    setContent(notice.content);
+    setIsWriting(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 5. 글 삭제하기
+  const handleDelete = async (id: number) => {
+    if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
+
+    const { error } = await supabase.from('notices').delete().eq('id', id);
+    if (error) {
+      alert('삭제에 실패했습니다.');
+    } else {
+      alert('삭제되었습니다.');
+      fetchNotices();
+    }
+  };
+
+  const resetForm = () => {
+    setTitle('');
+    setContent('');
+    setIsWriting(false);
+    setEditingId(null);
+  };
+
+  const toggleNotice = (id: number) => {
+    setExpandedId(expandedId === id ? null : id);
+  };
+
+  const renderContentWithLineBreaks = (text: string) => {
+    return text.replace(/\n/g, '<br />');
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       
-      {/* 1. 상단 로고 헤더 */}
-      <header className="w-full bg-white border-b border-slate-200 py-6 px-4 md:px-6">
+      {/* 1. 상단 헤더 */}
+      <header className="w-full bg-white border-b border-slate-200 py-6 px-4 md:px-6 shadow-sm">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
             <Image 
@@ -20,117 +149,140 @@ export default function NoticePage() {
               className="object-contain" 
             />
           </Link>
-          <h1 className="text-xl md:text-2xl font-extrabold text-slate-800">
-            📢 공지사항 및 FAQ
+          <h1 className="text-xl md:text-2xl font-extrabold text-slate-800 flex items-center gap-2">
+            <span>📢</span> 공지사항 / FAQ
           </h1>
         </div>
       </header>
 
-      {/* 2. 메인 컨텐츠 영역 */}
-      <main className="max-w-3xl mx-auto mt-8 px-4 md:px-6 space-y-10">
+      {/* 2. 메인 컨텐츠 */}
+      <main className="max-w-3xl mx-auto mt-8 px-4 md:px-6">
         
-        {/* =======================================================
-            [게시물 1] 가장 최근 중요 공지사항 영역
-            (이 박스를 복사해서 위에 계속 쌓아 올리면 최신순 게시판이 됩니다!)
-        ======================================================= */}
-        <article className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          
-          {/* 게시물 제목 및 날짜 */}
-          <div className="bg-blue-50 border-b border-blue-100 px-6 py-4">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="bg-blue-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-sm">필독</span>
-              <span className="text-sm text-slate-500 font-medium">2026. 03. 20</span>
-            </div>
-            <h2 className="text-xl font-bold text-slate-800">
-              엑스딕(X-DIC) 정식 서비스 오픈 및 평가단 모집 안내
-            </h2>
+        {isAdmin && !isWriting && (
+          <div className="flex justify-end mb-4">
+            <button 
+              onClick={() => {
+                resetForm();
+                setIsWriting(true);
+              }}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 shadow-md transition-all"
+            >
+              + 새 글 쓰기
+            </button>
           </div>
+        )}
 
-          {/* 게시물 본문 (텍스트 + 이미지) */}
-          <div className="p-6 md:p-8 text-slate-700 leading-relaxed space-y-6">
-            
-            <p>
-              안녕하세요, 복합어 전문 용어사전 엑스딕(X-DIC)입니다.<br/>
-              여러분들의 영어 검색 시간을 획기적으로 줄여줄 엑스딕이 드디어 정식 오픈을 준비하고 있습니다.
-            </p>
+        {isAdmin && isWriting && (
+          <div className="bg-white p-6 rounded-2xl shadow-md border border-blue-400 mb-8 animate-in fade-in slide-in-from-top-4">
+            <h2 className="text-lg font-bold text-blue-700 mb-4 flex items-center gap-2">
+              <span>✍️</span> {editingId ? '공지사항 수정하기' : '새 공지사항 작성'}
+            </h2>
+            <input 
+              type="text" 
+              placeholder="제목을 입력하세요" 
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full p-3 border border-slate-300 rounded-lg mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
+            />
+            <textarea 
+              placeholder="내용을 입력하세요. (엔터를 치면 줄바꿈이 그대로 적용됩니다!)&#13;&#10;이미지를 넣으려면 <img src='/images/사진이름.jpg' /> 형식으로 적어주세요." 
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="w-full p-3 border border-slate-300 rounded-lg mb-4 h-80 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={resetForm}
+                className="px-5 py-2 border border-slate-300 text-slate-600 text-sm rounded-lg hover:bg-slate-100 font-bold"
+              >
+                취소
+              </button>
+              <button 
+                onClick={handleSave}
+                className="px-5 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 font-bold"
+              >
+                {editingId ? '수정 완료' : '저장하기'}
+              </button>
+            </div>
+          </div>
+        )}
 
-            {/* 📸 대표님이 만드신 이미지를 넣는 곳! */}
-            <div className="w-full flex justify-center py-4">
-              <div className="relative w-full max-w-[600px] h-[300px] bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
-                {/* [이미지 교체 방법] 
-                  1. public/images 폴더 안에 이미지를 넣습니다. (예: my-notice.png)
-                  2. 아래 src="/images/my-notice.png" 로 이름을 바꿔줍니다. 
-                */}
-                <div className="flex items-center justify-center h-full text-slate-400 font-bold">
-                  여기에 대표님이 만드신 안내 이미지가 들어갑니다. (public/images/...)
+        {/* 3. 게시글 목록 */}
+        <div className="space-y-4">
+          {notices.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
+              <p className="text-slate-400 font-medium text-sm">등록된 공지사항이 없습니다.</p>
+            </div>
+          ) : (
+            notices.map((notice) => (
+              <article key={notice.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-all">
+                
+                <div 
+                  onClick={() => toggleNotice(notice.id)}
+                  className={`px-6 py-4 cursor-pointer flex justify-between items-center transition-colors ${expandedId === notice.id ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="bg-slate-800 text-white text-[10px] font-bold px-2 py-0.5 rounded-sm">안내</span>
+                      <span className="text-[12px] text-slate-400 font-medium">
+                        {new Date(notice.created_at).toLocaleDateString('ko-KR')}
+                      </span>
+                    </div>
+                    {/* 🌟 제목 폰트 크기 조절 (text-base로 변경) */}
+                    <h2 className={`text-base font-bold transition-colors ${expandedId === notice.id ? 'text-blue-700' : 'text-slate-800'}`}>
+                      {notice.title}
+                    </h2>
+                  </div>
+                  <span className="text-xl text-slate-400 ml-4">
+                    {expandedId === notice.id ? '−' : '＋'}
+                  </span>
                 </div>
-                {/* 실제 이미지를 넣을 때는 아래 주석을 풀고 사용하세요 */}
-                {/* <Image src="/images/여기에_이미지이름.jpg" alt="공지사항 이미지" fill className="object-contain" /> */}
-              </div>
-            </div>
 
-            <p>
-              현재 안드로이드 앱 출시를 위한 <b>비공개 테스트 평가단</b>을 모집하고 있습니다.<br/>
-              사전 평가단에 참여하여 가장 먼저 엑스딕의 강력한 듀얼 음성 검색 기능을 체험해 보세요!
-            </p>
+                {expandedId === notice.id && (
+                  <div className="p-6 md:p-8 border-t border-slate-100 bg-white animate-in fade-in">
+                    
+                    <div 
+                      className="text-slate-700 text-sm md:text-[15px] leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: renderContentWithLineBreaks(notice.content) }}
+                    />
+                    
+                    {isAdmin && (
+                      <div className="mt-8 pt-4 border-t border-slate-100 flex justify-end gap-2">
+                        <button 
+                          onClick={() => handleEditClick(notice)}
+                          className="text-xs px-3 py-1.5 border border-blue-200 text-blue-600 rounded hover:bg-blue-50 transition-colors font-bold"
+                        >
+                          수정
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(notice.id)}
+                          className="text-xs px-3 py-1.5 border border-red-200 text-red-500 rounded hover:bg-red-50 transition-colors font-bold"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </article>
+            ))
+          )}
+        </div>
 
-            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-              <h3 className="font-bold text-slate-800 mb-2">📱 앱 설치 방법</h3>
-              <ol className="list-decimal list-inside space-y-1 text-sm text-slate-600 ml-2">
-                <li>아래 링크를 클릭하여 테스트 화면으로 이동합니다.</li>
-                <li>파란색 글씨의 <b>'download it on Google Play'</b>를 클릭합니다.</li>
-                <li><b>'설치'</b> 버튼을 클릭하여 스마트폰에 다운로드합니다.</li>
-              </ol>
-            </div>
-            
-          </div>
-        </article>
-
-        {/* =======================================================
-            [게시물 2] 자주 묻는 질문 (FAQ) 영역
-        ======================================================= */}
-        <article className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          
-          <div className="bg-slate-50 border-b border-slate-100 px-6 py-4">
-            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-              <span>💡</span> 자주 묻는 질문 (FAQ)
-            </h2>
-          </div>
-
-          <div className="p-6 md:p-8 space-y-8">
-            
-            {/* Q&A 1 */}
-            <div>
-              <h3 className="flex gap-2 font-bold text-lg text-slate-800 mb-2">
-                <span className="text-blue-600">Q.</span> 엑스딕은 어떤 점이 다른가요?
-              </h3>
-              <p className="flex gap-2 text-slate-600 leading-relaxed pl-8">
-                <span className="text-slate-400 font-bold">A.</span> 
-                일반 번역기에서는 엉뚱하게 번역되는 길고 복잡한 '전문 용어'와 '복합어' 데이터에 특화되어 있습니다. 또한 한국어와 영어 음성 마이크를 완벽히 분리하여 오류 없이 초고속으로 검색이 가능합니다.
-              </p>
-            </div>
-
-            {/* Q&A 2 */}
-            <div>
-              <h3 className="flex gap-2 font-bold text-lg text-slate-800 mb-2">
-                <span className="text-blue-600">Q.</span> 발음이 이상하게 들려요. 어떻게 하나요?
-              </h3>
-              <p className="flex gap-2 text-slate-600 leading-relaxed pl-8">
-                <span className="text-slate-400 font-bold">A.</span> 
-                엑스딕은 사용하시는 스마트폰 기기 내에 설치된 최고급 성우(TTS)를 자동으로 불러와서 읽어줍니다. 구글이나 애플의 기본 TTS 엔진이 설치되어 있지 않은 구형 기기나 윈도우 PC에서는 기본 기계음이 나올 수 있습니다.
-              </p>
-            </div>
-
-          </div>
-        </article>
-
-        {/* 돌아가기 버튼 */}
-        <div className="flex justify-center pt-8">
+        {/* 🌟 메인 화면으로 돌아가기 버튼 (크기 및 여백 세련되게 축소) */}
+        <div className="flex flex-col items-center justify-center pt-10 space-y-5">
           <Link href="/">
-            <button className="px-8 py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-full transition-colors shadow-sm">
+            <button className="text-sm px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-medium rounded-full transition-colors shadow-sm">
               메인 화면으로 돌아가기
             </button>
           </Link>
+
+          <button 
+            onClick={handleAdminLogin}
+            className="text-[11px] text-slate-300 hover:text-slate-500 underline"
+          >
+            {isAdmin ? '관리자 로그아웃' : '관리자 로그인'}
+          </button>
         </div>
 
       </main>

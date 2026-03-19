@@ -73,7 +73,6 @@ export default function SearchPage({ query, results = [], highlightList = [], is
 
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
-  // 🌟 [최종의 최종] 눈치 빠른 바통 터치 로직 (숫자/기호 흡수) & 속도 개선
   const handleSpeak = (text: string) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel(); 
@@ -99,18 +98,13 @@ export default function SearchPage({ query, results = [], highlightList = [], is
         koVoices.find(v => v.name.includes('Samsung')) ||
         koVoices[0];
 
-      // ✂️ 글자를 덩어리로 묶는 똑똑한 로직 (숫자/기호는 앞글자 언어에 붙이기)
       const parts: { lang: string; text: string }[] = [];
-      
-      // 첫 글자가 영어면 영어모드, 아니면 한글모드로 시작
       let currentLang = /[a-zA-Z]/.test(text.charAt(0)) ? 'en' : 'ko'; 
       let currentText = '';
 
       for (let i = 0; i < text.length; i++) {
         const char = text[i];
-        
         if (/[a-zA-Z]/.test(char)) {
-          // 영어가 나왔을 때
           if (currentLang !== 'en' && currentText.trim().length > 0) {
             parts.push({ lang: currentLang, text: currentText });
             currentText = '';
@@ -118,7 +112,6 @@ export default function SearchPage({ query, results = [], highlightList = [], is
           currentLang = 'en';
           currentText += char;
         } else if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(char)) {
-          // 한글이 나왔을 때
           if (currentLang !== 'ko' && currentText.trim().length > 0) {
             parts.push({ lang: currentLang, text: currentText });
             currentText = '';
@@ -126,7 +119,6 @@ export default function SearchPage({ query, results = [], highlightList = [], is
           currentLang = 'ko';
           currentText += char;
         } else {
-          // 숫자, 공백, 기호가 나왔을 때는? -> 현재 마이크 잡고 있는 사람이 이어서 읽음! (100 -> 백)
           currentText += char;
         }
       }
@@ -134,9 +126,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
         parts.push({ lang: currentLang, text: currentText });
       }
 
-      // 쪼갠 덩어리를 순서대로 읽기
       parts.forEach((part) => {
-        // 읽을 수 있는 글자(한글, 영어, 숫자)가 하나도 없으면 스킵
         if (!/[a-zA-Z가-힣0-9]/.test(part.text)) return; 
 
         const utterance = new SpeechSynthesisUtterance(part.text);
@@ -145,12 +135,12 @@ export default function SearchPage({ query, results = [], highlightList = [], is
           if (koVoice) utterance.voice = koVoice;
           utterance.lang = koVoice ? koVoice.lang : 'ko-KR';
           utterance.pitch = 0.95; 
-          utterance.rate = 1.05; // 🌟 답답했던 속도를 시원하게 정상 속도 이상으로 업!
+          utterance.rate = 1.05; 
         } else {
           if (enVoice) utterance.voice = enVoice;
           utterance.lang = enVoice ? enVoice.lang : 'en-US';
           utterance.pitch = 0.9;  
-          utterance.rate = 0.85; // 영어는 버터발음 유지
+          utterance.rate = 0.85; 
         }
 
         window.speechSynthesis.speak(utterance);
@@ -392,15 +382,54 @@ export default function SearchPage({ query, results = [], highlightList = [], is
               )}
             </div>
           ) : (
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              {!displayIsApp && (
-                <div className="h-[180px] relative rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50">
-                  <Image src="/images/mobile-app-banner-bright.png" alt="배너" fill className="object-contain" />
+            // ==========================================================
+            // 🌟 [애드센스 승인 전략] 검색 전 초기 화면 콘텐츠 대폭 보강! 🌟
+            // ==========================================================
+            <div className="mt-8 space-y-8 animate-in fade-in duration-500">
+              
+              {/* 1. 오늘의 추천 복합어 (사전 콘텐츠 제공) */}
+              <div className="bg-blue-50/50 rounded-2xl p-6 md:p-8 border border-blue-100 shadow-sm">
+                <h2 className="text-lg md:text-xl font-extrabold text-slate-800 mb-5 flex items-center gap-2">
+                  <span className="text-blue-600">💡</span> 오늘의 추천 복합어 및 전문용어
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { en: "Artificial Intelligence", ko: "인공지능 (컴퓨터/IT)", desc: "인간의 학습능력, 추론능력, 지각능력을 인공적으로 구현한 컴퓨터 시스템" },
+                    { en: "Foreign Direct Investment", ko: "외국인 직접 투자 (무역/경제)", desc: "외국인이 경영 참가와 기술제휴 등 국내 기업과 지속적인 경제관계를 수립할 목적으로 투자하는 것" },
+                    { en: "Magnetic Resonance Imaging", ko: "자기 공명 영상 (의학)", desc: "강한 자기장 내에서 인체에 고주파를 전막하여 발생하는 자기 공명 신호를 영상화하는 기술" },
+                    { en: "Search Engine Optimization", ko: "검색 엔진 최적화 (IT/마케팅)", desc: "검색 엔진에서 찾기 쉽도록 사이트를 개선하고 트래픽을 늘리는 프로세스" }
+                  ].map((item, i) => (
+                    <div key={i} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="font-extrabold text-blue-700 text-[15px] mb-1.5 tracking-tight">{item.en}</div>
+                      <div className="font-bold text-slate-800 text-[14px] mb-2">{item.ko}</div>
+                      <div className="text-slate-500 text-[13px] leading-relaxed">{item.desc}</div>
+                    </div>
+                  ))}
                 </div>
-              )}
-              <RecentKeywords />
-              <PopularKeywords />
-              <TrendGraph />
+              </div>
+
+              {/* 2. 기존 위젯 영역 (최근/인기검색어, 배너 등) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                {!displayIsApp && (
+                  <div className="h-[180px] relative rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50">
+                    <Image src="/images/mobile-app-banner-bright.png" alt="배너" fill className="object-contain" />
+                  </div>
+                )}
+                <RecentKeywords />
+                <PopularKeywords />
+                <TrendGraph />
+              </div>
+
+              {/* 3. SEO 및 로봇을 위한 엑스딕 소개글 (키워드 덩어리) */}
+              <div className="bg-slate-50 rounded-2xl p-6 md:p-8 border border-slate-200 text-sm text-slate-600 leading-relaxed shadow-sm">
+                <h3 className="font-extrabold text-slate-800 mb-3 text-base flex items-center gap-2">
+                  <span>📖</span> 엑스딕(X-DIC) 영한/한영 복합어 사전 활용 가이드
+                </h3>
+                <p className="mb-2">엑스딕은 일반적인 영어 사전이나 번역기에서 정확한 의미를 찾기 어려운 <strong>전문 용어 및 복합어(Compound Words)</strong> 검색에 특화된 차세대 영한/한영 사전 플랫폼입니다.</p>
+                <p className="mb-2">IT, 의학, 기계, 전기, 전자, 무역, 경제 등 무려 12개 이상의 세분화된 전문 카테고리 빅데이터를 바탕으로 실무자와 학생들에게 가장 정확한 번역 결과를 제공합니다. 번역기로 해결되지 않는 긴 영어 단어나 전공 서적의 난해한 용어들을 엑스딕의 초고속 듀얼 음성 검색 기능을 통해 0.1초 만에 확인해 보세요.</p>
+                <p>PC와 모바일 웹 브라우저는 물론, 곧 출시될 안드로이드 전용 앱(APP)을 통해서도 언제 어디서나 강력한 사전 검색 기능을 100% 무료로 이용하실 수 있습니다.</p>
+              </div>
+
             </div>
           )}
         </div>
