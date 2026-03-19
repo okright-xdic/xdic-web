@@ -73,14 +73,13 @@ export default function SearchPage({ query, results = [], highlightList = [], is
 
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
-  // 🌟 [최종 완성형] 한글/영어 바통 터치(이어달리기) 로직!
+  // 🌟 [최종의 최종] 눈치 빠른 바통 터치 로직 (숫자/기호 흡수) & 속도 개선
   const handleSpeak = (text: string) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); // 기존 재생 중지
+      window.speechSynthesis.cancel(); 
       
       const voices = window.speechSynthesis.getVoices();
 
-      // 한국어/영어 성우 VIP 섭외
       const enVoices = voices.filter(v => v.lang.startsWith('en'));
       const koVoices = voices.filter(v => v.lang.startsWith('ko'));
 
@@ -100,31 +99,60 @@ export default function SearchPage({ query, results = [], highlightList = [], is
         koVoices.find(v => v.name.includes('Samsung')) ||
         koVoices[0];
 
-      // 텍스트를 한글 덩어리와 그 외(영어/기호) 덩어리로 쪼갭니다 (가위질!)
-      const parts = text.split(/([ㄱ-ㅎ|ㅏ-ㅣ|가-힣]+)/g).filter(p => p.trim() !== '');
+      // ✂️ 글자를 덩어리로 묶는 똑똑한 로직 (숫자/기호는 앞글자 언어에 붙이기)
+      const parts: { lang: string; text: string }[] = [];
+      
+      // 첫 글자가 영어면 영어모드, 아니면 한글모드로 시작
+      let currentLang = /[a-zA-Z]/.test(text.charAt(0)) ? 'en' : 'ko'; 
+      let currentText = '';
 
-      // 쪼갠 조각들을 순서대로 예약 걸기 (바통 터치)
-      parts.forEach((part) => {
-        const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(part);
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
         
-        // 영어나 한글 글자가 없는 단순 기호(" , - ")만 있는 덩어리는 스킵
-        if (!isKorean && !/[a-zA-Z0-9]/.test(part)) return;
+        if (/[a-zA-Z]/.test(char)) {
+          // 영어가 나왔을 때
+          if (currentLang !== 'en' && currentText.trim().length > 0) {
+            parts.push({ lang: currentLang, text: currentText });
+            currentText = '';
+          }
+          currentLang = 'en';
+          currentText += char;
+        } else if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(char)) {
+          // 한글이 나왔을 때
+          if (currentLang !== 'ko' && currentText.trim().length > 0) {
+            parts.push({ lang: currentLang, text: currentText });
+            currentText = '';
+          }
+          currentLang = 'ko';
+          currentText += char;
+        } else {
+          // 숫자, 공백, 기호가 나왔을 때는? -> 현재 마이크 잡고 있는 사람이 이어서 읽음! (100 -> 백)
+          currentText += char;
+        }
+      }
+      if (currentText.trim().length > 0) {
+        parts.push({ lang: currentLang, text: currentText });
+      }
 
-        const utterance = new SpeechSynthesisUtterance(part);
+      // 쪼갠 덩어리를 순서대로 읽기
+      parts.forEach((part) => {
+        // 읽을 수 있는 글자(한글, 영어, 숫자)가 하나도 없으면 스킵
+        if (!/[a-zA-Z가-힣0-9]/.test(part.text)) return; 
 
-        if (isKorean) {
+        const utterance = new SpeechSynthesisUtterance(part.text);
+
+        if (part.lang === 'ko') {
           if (koVoice) utterance.voice = koVoice;
           utterance.lang = koVoice ? koVoice.lang : 'ko-KR';
           utterance.pitch = 0.95; 
-          utterance.rate = 0.95; // 한국어는 정상 속도
+          utterance.rate = 1.05; // 🌟 답답했던 속도를 시원하게 정상 속도 이상으로 업!
         } else {
           if (enVoice) utterance.voice = enVoice;
           utterance.lang = enVoice ? enVoice.lang : 'en-US';
           utterance.pitch = 0.9;  
-          utterance.rate = 0.85; // 영어는 살짝 여유롭게 (발음 굿!)
+          utterance.rate = 0.85; // 영어는 버터발음 유지
         }
 
-        // 스피커에 예약 줄서기!
         window.speechSynthesis.speak(utterance);
       });
 
