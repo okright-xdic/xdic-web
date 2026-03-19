@@ -73,49 +73,60 @@ export default function SearchPage({ query, results = [], highlightList = [], is
 
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
-  // 🌟 VIP 아나운서 섭외 및 한국어/영어 완벽 분리 로직 적용!
+  // 🌟 (완전 개조) 남성/전문가 톤 중심의 완벽한 발음 매칭 로직!
   const handleSpeak = (text: string) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); // 기존에 읽던 건 멈춤
+      window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
+      
+      // 기기에 설치된 모든 성우 목록 가져오기
       const voices = window.speechSynthesis.getVoices();
 
-      // 1. 한국어가 포함되어 있는지 검사 (정규식)
+      // 1. 한국어 포함 여부 확인 (한글이 한 글자라도 있으면 한국어 성우가 읽어야 함)
       const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(text);
-      utterance.lang = isKorean ? 'ko-KR' : 'en-US';
 
-      // 2. 최고급 아나운서 목소리 찾기 (기기별 호환)
-      let preferredVoice;
+      // 2. 언어(lang) 코드를 기준으로 완벽하게 성우 그룹 분리! (절대 섞이지 않음)
+      const availableVoices = voices.filter(v => v.lang.startsWith(isKorean ? 'ko' : 'en'));
       
+      let selectedVoice = null;
+
       if (isKorean) {
-        const koVoices = voices.filter((v) => v.lang.includes('ko'));
-        preferredVoice =
-          koVoices.find((v) => v.name.includes('Google') && v.name.includes('Male')) || // 구글 남성
-          koVoices.find((v) => v.name.includes('Google')) || // 구글 기본
-          koVoices.find((v) => v.name.includes('Sora')) || // 애플(iOS) 고품질
-          koVoices.find((v) => v.name.includes('Yuna')) || // 애플(iOS)
-          koVoices.find((v) => v.name.includes('Samsung')) || // 삼성 갤럭시 내장
-          koVoices[0]; // 없으면 아무 한국어나
+        // [한국어] 남성 및 고품질 성우 우선 찾기
+        selectedVoice = 
+          availableVoices.find((v) => v.name.toLowerCase().includes('male')) || // 구글 남성 등
+          availableVoices.find((v) => v.name.includes('Sora')) || // 애플(iOS) 고품질
+          availableVoices.find((v) => v.name.includes('Google')) || // 구글 기본
+          availableVoices.find((v) => v.name.includes('Samsung')) || // 삼성 갤럭시
+          availableVoices.find((v) => v.name.includes('Microsoft')) || // 윈도우 PC
+          availableVoices[0]; // 없으면 해당 기기의 첫 번째 한국어 성우
       } else {
-        const enVoices = voices.filter((v) => v.lang.includes('en'));
-        preferredVoice =
-          enVoices.find((v) => v.name.includes('Google US English Male')) || // 구글 남성
-          enVoices.find((v) => v.name.includes('Alex')) || // 애플(iOS) 남성 명품
-          enVoices.find((v) => v.name.includes('Daniel')) || // 애플(iOS) 영국 남성
-          enVoices.find((v) => v.name.includes('Samantha')) || // 애플(iOS) 고품질 여성
-          enVoices.find((v) => v.name.includes('Google UK English Male')) || // 구글 영국 남성
-          enVoices.find((v) => v.name.includes('Google US English')) || // 구글 기본
-          enVoices.find((v) => v.name.includes('Samsung')) || // 삼성 갤럭시 내장
-          enVoices[0]; // 없으면 아무 영어나
+        // [영어] 남성 명품 성우 우선 찾기
+        selectedVoice = 
+          availableVoices.find((v) => v.name.includes('Google US English Male')) || 
+          availableVoices.find((v) => v.name.includes('Google UK English Male')) || 
+          availableVoices.find((v) => v.name.includes('Alex')) || // 애플(iOS) 명품 남성
+          availableVoices.find((v) => v.name.includes('Daniel')) || // 애플(iOS) 영국 남성
+          availableVoices.find((v) => v.name.includes('Arthur')) || // 애플(iOS) 남성
+          availableVoices.find((v) => v.name.includes('David')) || // 윈도우 PC 남성
+          availableVoices.find((v) => v.name.includes('Guy')) || // 윈도우 PC 남성
+          availableVoices.find((v) => v.name.includes('Google')) || // 구글 여성
+          availableVoices.find((v) => v.name.includes('Samsung')) || // 삼성 갤럭시
+          availableVoices[0]; // 없으면 해당 기기의 첫 번째 영어 성우
       }
 
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
+      // 성우 배정 및 언어 강제 동기화 (버그 방지)
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+        utterance.lang = selectedVoice.lang;
+      } else {
+        utterance.lang = isKorean ? 'ko-KR' : 'en-US';
       }
 
-      // 3. 아나운서처럼 차분하고 또렷하게 톤 조절
-      utterance.pitch = isKorean ? 0.95 : 0.9; // 살짝 낮게
-      utterance.rate = isKorean ? 0.95 : 0.85; // 영어가 너무 빠르지 않게 살짝 늦춤
+      // 3. 전문가 앵커 톤 세팅! (핵심)
+      // 피치(pitch)를 0.8로 낮춰서 여성 목소리라도 최대한 차분하고 굵게 들리도록 조절
+      utterance.pitch = 0.8; 
+      // 너무 방방 뜨지 않게 속도 살짝 조절
+      utterance.rate = isKorean ? 0.9 : 0.85;
 
       window.speechSynthesis.speak(utterance);
     } else {
