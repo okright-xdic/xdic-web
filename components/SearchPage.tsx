@@ -73,59 +73,61 @@ export default function SearchPage({ query, results = [], highlightList = [], is
 
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
-  // 🌟 [혁신 로직] 한글은 빼버리고 '영어'만 원어민이 읽어주는 마법!
+  // 🌟 [최종 완성형] 한글/영어 바통 터치(이어달리기) 로직!
   const handleSpeak = (text: string) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+      window.speechSynthesis.cancel(); // 기존 재생 중지
       
       const voices = window.speechSynthesis.getVoices();
 
-      // 1. 텍스트에서 '한글'을 완전히 제거합니다.
-      const englishOnlyText = text.replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '').trim();
-      
-      // 특수기호만 남았는지 확인 (예: " - " 처럼 글자가 없는 경우 대비)
-      const hasEnglishLetters = /[a-zA-Z]/.test(englishOnlyText);
+      // 한국어/영어 성우 VIP 섭외
+      const enVoices = voices.filter(v => v.lang.startsWith('en'));
+      const koVoices = voices.filter(v => v.lang.startsWith('ko'));
 
-      // 영어가 있으면 '영어만' 읽고, 영어가 아예 없으면 '원본 텍스트(한국어)'를 읽습니다.
-      const textToRead = hasEnglishLetters ? englishOnlyText : text;
-      const utterance = new SpeechSynthesisUtterance(textToRead);
+      const enVoice = 
+        enVoices.find(v => v.name.includes('Google US English Male')) || 
+        enVoices.find(v => v.name.includes('Google UK English')) || 
+        enVoices.find(v => v.name.includes('Alex')) || 
+        enVoices.find(v => v.name.includes('Daniel')) || 
+        enVoices.find(v => v.name.includes('Google US English')) || 
+        enVoices.find(v => v.name.includes('Samsung')) ||
+        enVoices[0];
 
-      let selectedVoice = null;
+      const koVoice = 
+        koVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) || 
+        koVoices.find(v => v.name.includes('Google')) || 
+        koVoices.find(v => v.name.includes('Sora')) || 
+        koVoices.find(v => v.name.includes('Samsung')) ||
+        koVoices[0];
 
-      if (hasEnglishLetters) {
-        // [영어 전용 명품 성우 섭외]
-        const enVoices = voices.filter(v => v.lang.startsWith('en'));
-        selectedVoice = 
-          enVoices.find(v => v.name.includes('Google US English Male')) || 
-          enVoices.find(v => v.name.includes('Google UK English')) || 
-          enVoices.find(v => v.name.includes('Alex')) || // 아이폰 고급 남성
-          enVoices.find(v => v.name.includes('Daniel')) || 
-          enVoices.find(v => v.name.includes('Google US English')) || // 구글 기본 영어
-          enVoices.find(v => v.name.includes('Samsung')) ||
-          enVoices[0];
+      // 텍스트를 한글 덩어리와 그 외(영어/기호) 덩어리로 쪼갭니다 (가위질!)
+      const parts = text.split(/([ㄱ-ㅎ|ㅏ-ㅣ|가-힣]+)/g).filter(p => p.trim() !== '');
 
-        utterance.lang = selectedVoice ? selectedVoice.lang : 'en-US';
-        utterance.pitch = 0.9;  // 차분한 톤
-        utterance.rate = 0.85;  // 듣기 좋은 속도
-      } else {
-        // [한국어 전용 성우 섭외] (영어가 아예 없는 경우)
-        const koVoices = voices.filter(v => v.lang.startsWith('ko'));
-        selectedVoice = 
-          koVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) || 
-          koVoices.find(v => v.name.includes('Google')) || 
-          koVoices.find(v => v.name.includes('Sora')) || 
-          koVoices[0];
+      // 쪼갠 조각들을 순서대로 예약 걸기 (바통 터치)
+      parts.forEach((part) => {
+        const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(part);
+        
+        // 영어나 한글 글자가 없는 단순 기호(" , - ")만 있는 덩어리는 스킵
+        if (!isKorean && !/[a-zA-Z0-9]/.test(part)) return;
 
-        utterance.lang = selectedVoice ? selectedVoice.lang : 'ko-KR';
-        utterance.pitch = 0.95;
-        utterance.rate = 0.9;
-      }
+        const utterance = new SpeechSynthesisUtterance(part);
 
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      }
+        if (isKorean) {
+          if (koVoice) utterance.voice = koVoice;
+          utterance.lang = koVoice ? koVoice.lang : 'ko-KR';
+          utterance.pitch = 0.95; 
+          utterance.rate = 0.95; // 한국어는 정상 속도
+        } else {
+          if (enVoice) utterance.voice = enVoice;
+          utterance.lang = enVoice ? enVoice.lang : 'en-US';
+          utterance.pitch = 0.9;  
+          utterance.rate = 0.85; // 영어는 살짝 여유롭게 (발음 굿!)
+        }
 
-      window.speechSynthesis.speak(utterance);
+        // 스피커에 예약 줄서기!
+        window.speechSynthesis.speak(utterance);
+      });
+
     } else {
       alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
     }
