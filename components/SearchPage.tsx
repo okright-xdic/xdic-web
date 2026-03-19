@@ -25,7 +25,6 @@ interface SearchPageProps {
   isApp?: boolean;
 }
 
-// 🌟 수정 포인트: 0번 인덱스에 대표님이 원하시는 '기준 영어'를 딱! 박아줍니다.
 const CATEGORY_NAMES: Record<number, string> = {
   0: '기준 영어',
   1: '기본영어',
@@ -74,21 +73,50 @@ export default function SearchPage({ query, results = [], highlightList = [], is
 
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
+  // 🌟 VIP 아나운서 섭외 및 한국어/영어 완벽 분리 로직 적용!
   const handleSpeak = (text: string) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+      window.speechSynthesis.cancel(); // 기존에 읽던 건 멈춤
       const utterance = new SpeechSynthesisUtterance(text);
       const voices = window.speechSynthesis.getVoices();
-      const preferredVoice =
-        voices.find((v) => v.name.includes('Google US English')) || voices.find((v) => v.lang === 'en-US');
+
+      // 1. 한국어가 포함되어 있는지 검사 (정규식)
+      const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(text);
+      utterance.lang = isKorean ? 'ko-KR' : 'en-US';
+
+      // 2. 최고급 아나운서 목소리 찾기 (기기별 호환)
+      let preferredVoice;
+      
+      if (isKorean) {
+        const koVoices = voices.filter((v) => v.lang.includes('ko'));
+        preferredVoice =
+          koVoices.find((v) => v.name.includes('Google') && v.name.includes('Male')) || // 구글 남성
+          koVoices.find((v) => v.name.includes('Google')) || // 구글 기본
+          koVoices.find((v) => v.name.includes('Sora')) || // 애플(iOS) 고품질
+          koVoices.find((v) => v.name.includes('Yuna')) || // 애플(iOS)
+          koVoices.find((v) => v.name.includes('Samsung')) || // 삼성 갤럭시 내장
+          koVoices[0]; // 없으면 아무 한국어나
+      } else {
+        const enVoices = voices.filter((v) => v.lang.includes('en'));
+        preferredVoice =
+          enVoices.find((v) => v.name.includes('Google US English Male')) || // 구글 남성
+          enVoices.find((v) => v.name.includes('Alex')) || // 애플(iOS) 남성 명품
+          enVoices.find((v) => v.name.includes('Daniel')) || // 애플(iOS) 영국 남성
+          enVoices.find((v) => v.name.includes('Samantha')) || // 애플(iOS) 고품질 여성
+          enVoices.find((v) => v.name.includes('Google UK English Male')) || // 구글 영국 남성
+          enVoices.find((v) => v.name.includes('Google US English')) || // 구글 기본
+          enVoices.find((v) => v.name.includes('Samsung')) || // 삼성 갤럭시 내장
+          enVoices[0]; // 없으면 아무 영어나
+      }
 
       if (preferredVoice) {
         utterance.voice = preferredVoice;
-        utterance.lang = 'en-US';
       }
 
-      utterance.pitch = 0.85;
-      utterance.rate = 0.9;
+      // 3. 아나운서처럼 차분하고 또렷하게 톤 조절
+      utterance.pitch = isKorean ? 0.95 : 0.9; // 살짝 낮게
+      utterance.rate = isKorean ? 0.95 : 0.85; // 영어가 너무 빠르지 않게 살짝 늦춤
+
       window.speechSynthesis.speak(utterance);
     } else {
       alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
