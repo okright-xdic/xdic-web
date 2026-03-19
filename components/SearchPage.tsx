@@ -73,61 +73,57 @@ export default function SearchPage({ query, results = [], highlightList = [], is
 
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
-  // 🌟 (최종 개조) 숨어있는 최고급 '명품 성우' 지명 수배 로직
+  // 🌟 [혁신 로직] 한글은 빼버리고 '영어'만 원어민이 읽어주는 마법!
   const handleSpeak = (text: string) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
+      
       const voices = window.speechSynthesis.getVoices();
 
-      // 한글 포함 여부 (언어 분리벽)
-      const isKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(text);
-
-      // 🌟 기기에 깔린 프리미엄 성우 이름 리스트 (위에서부터 1순위로 찾습니다)
-      const koPreferences = [
-        'Google 한국의',           // 안드로이드/크롬의 가장 깔끔한 기본음
-        'Sora',                    // 아이폰 프리미엄 여성
-        'Yuna',                    // 아이폰 기본 여성
-        'Microsoft SunHi Online',  // 엣지 브라우저 프리미엄 여성
-        'Microsoft InJoon Online', // 엣지 브라우저 프리미엄 남성
-        'Samsung',                 // 삼성 갤럭시 전용
-      ];
-
-      const enPreferences = [
-        'Google US English',       // 안드로이드/크롬 깔끔한 기본음
-        'Google UK English Male',  // 구글 영국 남성 (매우 점잖음)
-        'Alex',                    // 아이폰 명품 남성음
-        'Samantha',                // 아이폰 프리미엄 여성음
-        'Microsoft Guy Online',    // 엣지 프리미엄 남성음
-        'Samsung',                 // 삼성 갤럭시 전용
-      ];
-
-      const availableVoices = voices.filter((v) => v.lang.startsWith(isKorean ? 'ko' : 'en'));
-      const prefs = isKorean ? koPreferences : enPreferences;
+      // 1. 텍스트에서 '한글'을 완전히 제거합니다.
+      const englishOnlyText = text.replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '').trim();
       
+      // 특수기호만 남았는지 확인 (예: " - " 처럼 글자가 없는 경우 대비)
+      const hasEnglishLetters = /[a-zA-Z]/.test(englishOnlyText);
+
+      // 영어가 있으면 '영어만' 읽고, 영어가 아예 없으면 '원본 텍스트(한국어)'를 읽습니다.
+      const textToRead = hasEnglishLetters ? englishOnlyText : text;
+      const utterance = new SpeechSynthesisUtterance(textToRead);
+
       let selectedVoice = null;
 
-      // 1순위부터 차례대로 기기 안에 있는지 샅샅이 뒤집니다.
-      for (const pref of prefs) {
-        selectedVoice = availableVoices.find((v) => v.name.includes(pref));
-        if (selectedVoice) break;
-      }
+      if (hasEnglishLetters) {
+        // [영어 전용 명품 성우 섭외]
+        const enVoices = voices.filter(v => v.lang.startsWith('en'));
+        selectedVoice = 
+          enVoices.find(v => v.name.includes('Google US English Male')) || 
+          enVoices.find(v => v.name.includes('Google UK English')) || 
+          enVoices.find(v => v.name.includes('Alex')) || // 아이폰 고급 남성
+          enVoices.find(v => v.name.includes('Daniel')) || 
+          enVoices.find(v => v.name.includes('Google US English')) || // 구글 기본 영어
+          enVoices.find(v => v.name.includes('Samsung')) ||
+          enVoices[0];
 
-      // 명단에 있는 고급 성우가 폰/PC에 하나도 없다면, 어쩔 수 없이 해당 언어의 첫 번째 성우를 씁니다.
-      if (!selectedVoice && availableVoices.length > 0) {
-        selectedVoice = availableVoices[0];
+        utterance.lang = selectedVoice ? selectedVoice.lang : 'en-US';
+        utterance.pitch = 0.9;  // 차분한 톤
+        utterance.rate = 0.85;  // 듣기 좋은 속도
+      } else {
+        // [한국어 전용 성우 섭외] (영어가 아예 없는 경우)
+        const koVoices = voices.filter(v => v.lang.startsWith('ko'));
+        selectedVoice = 
+          koVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) || 
+          koVoices.find(v => v.name.includes('Google')) || 
+          koVoices.find(v => v.name.includes('Sora')) || 
+          koVoices[0];
+
+        utterance.lang = selectedVoice ? selectedVoice.lang : 'ko-KR';
+        utterance.pitch = 0.95;
+        utterance.rate = 0.9;
       }
 
       if (selectedVoice) {
         utterance.voice = selectedVoice;
-        utterance.lang = selectedVoice.lang;
-      } else {
-        utterance.lang = isKorean ? 'ko-KR' : 'en-US';
       }
-
-      // 기계음을 조금이라도 숨기기 위한 톤/속도 미세 조정
-      utterance.pitch = 0.95; // 살짝 차분하게
-      utterance.rate = isKorean ? 0.9 : 0.85; // 조금 여유롭게 읽기
 
       window.speechSynthesis.speak(utterance);
     } else {
