@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 
+// 🌟 [핀포인트 수정 1] 0번 '기준 영어' 추가!
 const CATEGORY_NAMES: { [key: number]: string } = {
-  1: '기본영어', 2: '인문사회용어', 3: '기계_전기_전자용어', 4: '교육_종교_예체능용어',
+  0: '기준 영어', 1: '기본영어', 2: '인문사회용어', 3: '기계_전기_전자용어', 4: '교육_종교_예체능용어',
   5: '무역경제용어', 6: '자동차_환경용어', 7: '물리_화학용어', 8: '컴퓨터용어',
   9: '의학용어', 10: '인문사회기타용어', 11: '과학기술기타용어', 12: '기타'
 };
@@ -57,18 +58,15 @@ export default function SearchResults({ keyword }: { keyword: string }) {
   const renderHighlightedText = (text: string, key: string) => {
     if (!key.trim()) return <span>{text}</span>;
 
-    // 1. 한글 자소 분리 방지를 위해 NFC로 정규화 (이게 핵심입니다!)
     const normalizedText = text.normalize('NFC');
     const normalizedKey = key.trim().normalize('NFC');
 
-    // 2. 특수문자 이스케이프 및 정규식 생성
     const escapedKey = normalizedKey.replace(/\s+/g, ' ').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const parts = normalizedText.split(new RegExp(`(${escapedKey})`, 'gi'));
 
     return (
       <p className="text-[20px] text-slate-800 leading-snug font-normal">
         {parts.map((part, i) => 
-          // 3. 소문자로 변환하여 비교 (정규화된 키와 일치하면 오렌지색)
           part.toLowerCase() === normalizedKey.toLowerCase() ? (
             <span key={i} className="text-orange-500 font-normal">{part}</span>
           ) : (
@@ -90,7 +88,20 @@ export default function SearchResults({ keyword }: { keyword: string }) {
       try {
         const response = await fetch(`/api/rpc-search?q=${encodeURIComponent(trimmedKey)}`);
         const data = await response.json();
-        setResults(data.results || []);
+        
+        // 🌟 [핀포인트 수정 2] 서버에서 받은 결과를 무조건 5개씩만 필터링!
+        const rawResults = data.results || [];
+        const categoryCount: Record<number, number> = {};
+
+        const limitedResults = rawResults.filter((item: any) => {
+          const catId = item.category_id != null ? item.category_id : 12; 
+          categoryCount[catId] = (categoryCount[catId] || 0) + 1;
+          return categoryCount[catId] <= 5; // 5개까지만 통과
+        });
+
+        setResults(limitedResults);
+        // 🌟 필터링 끝
+
       } catch (err) {
         setResults([]);
       } finally {
@@ -151,7 +162,7 @@ export default function SearchResults({ keyword }: { keyword: string }) {
                       </div>
 
                       <span className="text-[17px] text-blue-600 font-normal whitespace-nowrap shrink-0 tracking-tight font-sans">
-                        [{CATEGORY_NAMES[item.category_id]}]
+                        [{CATEGORY_NAMES[item.category_id] || '기타'}]
                       </span>
                     </div>
                     {idx === 6 && <AdPlaceholder label="Google AdSense - Feed Ad" />}

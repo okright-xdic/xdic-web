@@ -61,6 +61,15 @@ export default function SearchPage({ query, results = [], highlightList = [], is
     setCurrentPage(1);
   }, [results, query]);
 
+  const displayResults = React.useMemo(() => {
+    const categoryCount: Record<number, number> = {};
+    return results.filter(item => {
+      const catId = item.category_id != null ? item.category_id : 12;
+      categoryCount[catId] = (categoryCount[catId] || 0) + 1;
+      return categoryCount[catId] <= 5;
+    });
+  }, [results]);
+
   const handleExternalSearch = (site: 'google' | 'naver') => {
     if (!displayQuery) return;
     const encoded = encodeURIComponent(displayQuery);
@@ -184,8 +193,8 @@ export default function SearchPage({ query, results = [], highlightList = [], is
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = results.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(results.length / itemsPerPage);
+  const currentItems = displayResults.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(displayResults.length / itemsPerPage);
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
@@ -196,7 +205,6 @@ export default function SearchPage({ query, results = [], highlightList = [], is
     <div className="flex flex-col min-h-screen bg-white">
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
         
-        {/* 🌟 헤더의 불필요한 하단 여백(pb)을 완전히 제거하여 위아래 대칭을 맞췄습니다 */}
         <header className={`w-full ${displayIsApp ? 'pt-14 pb-0' : 'pt-8 pb-0 md:pt-16 md:pb-0'}`}>
           
           {displayIsApp ? (
@@ -213,7 +221,6 @@ export default function SearchPage({ query, results = [], highlightList = [], is
               </a>
             </div>
           ) : (
-            // 🌟 설명 텍스트와 검색창 사이의 간격을 mb-5 로 고정했습니다.
             <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-5">
               <div className="flex-shrink-0">
                 <a href="/" className="cursor-pointer">
@@ -258,11 +265,11 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                 <div className="py-32 text-center text-slate-400 text-xl font-light italic animate-in fade-in slide-in-from-bottom-2 duration-300">
                   단어는 <span style={{ color: '#ea580c', fontWeight: 'bold' }}>두 글자 이상</span> 입력해 주세요.
                 </div>
-              ) : results.length > 0 ? (
+              ) : displayResults.length > 0 ? (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                     <span className="text-sm font-semibold text-slate-500">
-                      검색 결과 <span style={{ color: '#2563eb', fontWeight: 'bold' }}>{results.length}</span>건
+                      검색 결과 <span style={{ color: '#2563eb', fontWeight: 'bold' }}>{displayResults.length}</span>건
                     </span>
                   </div>
 
@@ -301,7 +308,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                     ))}
                   </ul>
 
-                  {results.length > itemsPerPage && (
+                  {displayResults.length > itemsPerPage && (
                     <div className="flex justify-center items-center gap-3 mt-12 mb-12 select-none font-sans">
                       <button
                         onClick={() => handlePageChange(1)}
@@ -356,7 +363,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                   {!displayIsApp && <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_검색결과_하단" minHeight={250} />}
 
                   <div className="py-8 text-center border-t border-slate-100 mt-8">
-                    <p className="text-sm text-slate-400">{results.length}개의 결과를 모두 확인했습니다.</p>
+                    <p className="text-sm text-slate-400">{displayResults.length}개의 결과를 모두 확인했습니다.</p>
                   </div>
                 </div>
               ) : (
@@ -384,13 +391,11 @@ export default function SearchPage({ query, results = [], highlightList = [], is
               )}
             </div>
           ) : (
-            // ==========================================================
-            // 🌟 검색창과 추천 단어 사이의 간격을 mt-5 로 고정하여 위아래 완벽 대칭!
-            // ==========================================================
             <div className="mt-5 space-y-4 md:space-y-6 animate-in fade-in duration-500">
               
               <div className="bg-blue-50/50 rounded-xl md:rounded-2xl p-4 md:p-6 border border-blue-100 shadow-sm">
-                <h2 className="text-base md:text-lg font-extrabold text-slate-800 mb-3 md:mb-4 flex items-center gap-2">
+                {/* 🌟 폰트 크기를 text-sm md:text-base 로 확 줄여서 통일감을 주었습니다! */}
+                <h2 className="text-sm md:text-base font-extrabold text-slate-800 mb-3 md:mb-4 flex items-center gap-2">
                   <span className="text-blue-600">💡</span> 오늘의 추천 복합어 및 전문용어
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
