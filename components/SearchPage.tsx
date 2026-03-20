@@ -196,10 +196,11 @@ export default function SearchPage({ query, results = [], highlightList = [], is
     <div className="flex flex-col min-h-screen bg-white">
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
         
-        <header className={`w-full ${displayIsApp ? 'pt-14 pb-6' : 'pt-8 pb-2 md:pt-16 md:pb-6'}`}>
+        {/* 🌟 헤더의 불필요한 하단 여백(pb)을 완전히 제거하여 위아래 대칭을 맞췄습니다 */}
+        <header className={`w-full ${displayIsApp ? 'pt-14 pb-0' : 'pt-8 pb-0 md:pt-16 md:pb-0'}`}>
           
           {displayIsApp ? (
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-5">
               <a href="/app" className="cursor-pointer">
                 <Image
                   src="/images/LOGO_01_ChatGPT_S.jpg"
@@ -212,7 +213,8 @@ export default function SearchPage({ query, results = [], highlightList = [], is
               </a>
             </div>
           ) : (
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-8">
+            // 🌟 설명 텍스트와 검색창 사이의 간격을 mb-5 로 고정했습니다.
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-5">
               <div className="flex-shrink-0">
                 <a href="/" className="cursor-pointer">
                   <Image
@@ -251,7 +253,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
       <main className="w-full flex-grow">
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           {displayQuery ? (
-            <div className="w-full mt-2">
+            <div className="w-full mt-5">
               {isTooShort ? (
                 <div className="py-32 text-center text-slate-400 text-xl font-light italic animate-in fade-in slide-in-from-bottom-2 duration-300">
                   단어는 <span style={{ color: '#ea580c', fontWeight: 'bold' }}>두 글자 이상</span> 입력해 주세요.
@@ -383,32 +385,30 @@ export default function SearchPage({ query, results = [], highlightList = [], is
             </div>
           ) : (
             // ==========================================================
-            // 🌟 [애드센스 승인 전략] 검색 전 초기 화면 콘텐츠 대폭 보강! 🌟
+            // 🌟 검색창과 추천 단어 사이의 간격을 mt-5 로 고정하여 위아래 완벽 대칭!
             // ==========================================================
-            <div className="mt-8 space-y-8 animate-in fade-in duration-500">
+            <div className="mt-5 space-y-4 md:space-y-6 animate-in fade-in duration-500">
               
-              {/* 1. 오늘의 추천 복합어 (사전 콘텐츠 제공) */}
-              <div className="bg-blue-50/50 rounded-2xl p-6 md:p-8 border border-blue-100 shadow-sm">
-                <h2 className="text-lg md:text-xl font-extrabold text-slate-800 mb-5 flex items-center gap-2">
+              <div className="bg-blue-50/50 rounded-xl md:rounded-2xl p-4 md:p-6 border border-blue-100 shadow-sm">
+                <h2 className="text-base md:text-lg font-extrabold text-slate-800 mb-3 md:mb-4 flex items-center gap-2">
                   <span className="text-blue-600">💡</span> 오늘의 추천 복합어 및 전문용어
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {[
                     { en: "Artificial Intelligence", ko: "인공지능 (컴퓨터/IT)", desc: "인간의 학습능력, 추론능력, 지각능력을 인공적으로 구현한 컴퓨터 시스템" },
                     { en: "Foreign Direct Investment", ko: "외국인 직접 투자 (무역/경제)", desc: "외국인이 경영 참가와 기술제휴 등 국내 기업과 지속적인 경제관계를 수립할 목적으로 투자하는 것" },
                     { en: "Magnetic Resonance Imaging", ko: "자기 공명 영상 (의학)", desc: "강한 자기장 내에서 인체에 고주파를 전막하여 발생하는 자기 공명 신호를 영상화하는 기술" },
                     { en: "Search Engine Optimization", ko: "검색 엔진 최적화 (IT/마케팅)", desc: "검색 엔진에서 찾기 쉽도록 사이트를 개선하고 트래픽을 늘리는 프로세스" }
                   ].map((item, i) => (
-                    <div key={i} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="font-extrabold text-blue-700 text-[15px] mb-1.5 tracking-tight">{item.en}</div>
-                      <div className="font-bold text-slate-800 text-[14px] mb-2">{item.ko}</div>
-                      <div className="text-slate-500 text-[13px] leading-relaxed">{item.desc}</div>
+                    <div key={i} className="bg-white p-3.5 md:p-4 rounded-lg md:rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="font-extrabold text-blue-700 text-[13px] md:text-[14px] mb-1 tracking-tight">{item.en}</div>
+                      <div className="font-bold text-slate-800 text-[12px] md:text-[13px] mb-1">{item.ko}</div>
+                      <div className="text-slate-500 text-[11px] md:text-[12px] leading-snug line-clamp-2">{item.desc}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* 2. 기존 위젯 영역 (최근/인기검색어, 배너 등) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 {!displayIsApp && (
                   <div className="h-[180px] relative rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50">
@@ -420,13 +420,12 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                 <TrendGraph />
               </div>
 
-              {/* 3. SEO 및 로봇을 위한 엑스딕 소개글 (키워드 덩어리) */}
-              <div className="bg-slate-50 rounded-2xl p-6 md:p-8 border border-slate-200 text-sm text-slate-600 leading-relaxed shadow-sm">
-                <h3 className="font-extrabold text-slate-800 mb-3 text-base flex items-center gap-2">
+              <div className="bg-slate-50 rounded-xl md:rounded-2xl p-5 md:p-8 border border-slate-200 text-xs md:text-sm text-slate-600 leading-relaxed shadow-sm">
+                <h3 className="font-extrabold text-slate-800 mb-2 md:mb-3 text-sm md:text-base flex items-center gap-2">
                   <span>📖</span> 엑스딕(X-DIC) 영한/한영 복합어 사전 활용 가이드
                 </h3>
-                <p className="mb-2">엑스딕은 일반적인 영어 사전이나 번역기에서 정확한 의미를 찾기 어려운 <strong>전문 용어 및 복합어(Compound Words)</strong> 검색에 특화된 차세대 영한/한영 사전 플랫폼입니다.</p>
-                <p className="mb-2">IT, 의학, 기계, 전기, 전자, 무역, 경제 등 무려 12개 이상의 세분화된 전문 카테고리 빅데이터를 바탕으로 실무자와 학생들에게 가장 정확한 번역 결과를 제공합니다. 번역기로 해결되지 않는 긴 영어 단어나 전공 서적의 난해한 용어들을 엑스딕의 초고속 듀얼 음성 검색 기능을 통해 0.1초 만에 확인해 보세요.</p>
+                <p className="mb-1.5 md:mb-2">엑스딕은 일반적인 영어 사전이나 번역기에서 정확한 의미를 찾기 어려운 <strong>전문 용어 및 복합어(Compound Words)</strong> 검색에 특화된 차세대 영한/한영 사전 플랫폼입니다.</p>
+                <p className="mb-1.5 md:mb-2">IT, 의학, 기계, 전기, 전자, 무역, 경제 등 무려 12개 이상의 세분화된 전문 카테고리 빅데이터를 바탕으로 실무자와 학생들에게 가장 정확한 번역 결과를 제공합니다. 번역기로 해결되지 않는 긴 영어 단어나 전공 서적의 난해한 용어들을 엑스딕의 초고속 듀얼 음성 검색 기능을 통해 0.1초 만에 확인해 보세요.</p>
                 <p>PC와 모바일 웹 브라우저는 물론, 곧 출시될 안드로이드 전용 앱(APP)을 통해서도 언제 어디서나 강력한 사전 검색 기능을 100% 무료로 이용하실 수 있습니다.</p>
               </div>
 

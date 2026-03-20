@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
 
-// DB 구조 타입
 interface Notice {
   id: number;
   title: string;
@@ -18,16 +17,13 @@ export default function NoticePage() {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   
-  // 관리자 및 글쓰기 상태
   const [isAdmin, setIsAdmin] = useState(false);
   const [isWriting, setIsWriting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   
-  // 입력 폼
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
 
-  // 1. 게시글 불러오기
   const fetchNotices = async () => {
     const { data, error } = await supabase
       .from('notices')
@@ -42,7 +38,6 @@ export default function NoticePage() {
     fetchNotices();
   }, []);
 
-  // 2. 관리자 로그인 로직
   const handleAdminLogin = () => {
     if (isAdmin) {
       setIsAdmin(false);
@@ -60,7 +55,6 @@ export default function NoticePage() {
     }
   };
 
-  // 3. 글 저장 및 수정하기
   const handleSave = async () => {
     if (!title.trim() || !content.trim()) {
       alert('제목과 내용을 모두 입력해주세요.');
@@ -75,7 +69,6 @@ export default function NoticePage() {
 
       if (error) {
         alert('글 수정에 실패했습니다.');
-        console.error(error);
       } else {
         alert('성공적으로 수정되었습니다!');
         resetForm();
@@ -88,7 +81,6 @@ export default function NoticePage() {
 
       if (error) {
         alert('글 저장에 실패했습니다.');
-        console.error(error);
       } else {
         alert('성공적으로 등록되었습니다!');
         resetForm();
@@ -97,7 +89,6 @@ export default function NoticePage() {
     }
   };
 
-  // 4. 글 수정 버튼 눌렀을 때
   const handleEditClick = (notice: Notice) => {
     setEditingId(notice.id);
     setTitle(notice.title);
@@ -106,14 +97,11 @@ export default function NoticePage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // 5. 글 삭제하기
   const handleDelete = async (id: number) => {
     if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
-
     const { error } = await supabase.from('notices').delete().eq('id', id);
-    if (error) {
-      alert('삭제에 실패했습니다.');
-    } else {
+    if (error) alert('삭제에 실패했습니다.');
+    else {
       alert('삭제되었습니다.');
       fetchNotices();
     }
@@ -134,10 +122,39 @@ export default function NoticePage() {
     return text.replace(/\n/g, '<br />');
   };
 
+  // 🌟 [핵심 마법] 붙여넣기 할 때 이미지를 가로채서 텍스트 코드로 변환하는 기능!
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData.items;
+    
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        e.preventDefault(); // 기본 붙여넣기(글자만 됨) 무시!
+        
+        const file = items[i].getAsFile();
+        if (!file) continue;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const base64String = event.target?.result as string;
+          // 화면에 예쁘게 나오도록 img 태그를 자동으로 만들어 줍니다.
+          const imgTag = `\n<img src="${base64String}" alt="첨부 이미지" style="max-width: 100%; height: auto; margin: 10px 0; border-radius: 8px; border: 1px solid #e2e8f0;" />\n`;
+
+          // 현재 커서 위치에 이미지 태그 끼워넣기
+          const textarea = e.target as HTMLTextAreaElement;
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+
+          const newContent = content.substring(0, start) + imgTag + content.substring(end);
+          setContent(newContent);
+        };
+        reader.readAsDataURL(file); // 이미지를 텍스트 데이터(Base64)로 읽어들임
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       
-      {/* 1. 상단 헤더 */}
       <header className="w-full bg-white border-b border-slate-200 py-6 px-4 md:px-6 shadow-sm">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
@@ -155,7 +172,6 @@ export default function NoticePage() {
         </div>
       </header>
 
-      {/* 2. 메인 컨텐츠 */}
       <main className="max-w-3xl mx-auto mt-8 px-4 md:px-6">
         
         {isAdmin && !isWriting && (
@@ -184,10 +200,12 @@ export default function NoticePage() {
               onChange={(e) => setTitle(e.target.value)}
               className="w-full p-3 border border-slate-300 rounded-lg mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
             />
+            {/* 🌟 onPaste 이벤트를 달아서 붙여넣기를 감시합니다! */}
             <textarea 
-              placeholder="내용을 입력하세요. (엔터를 치면 줄바꿈이 그대로 적용됩니다!)&#13;&#10;이미지를 넣으려면 <img src='/images/사진이름.jpg' /> 형식으로 적어주세요." 
+              placeholder="워드 등에서 복사한 글이나 사진을 여기에 그대로 붙여넣기(Ctrl+V) 하세요!" 
               value={content}
               onChange={(e) => setContent(e.target.value)}
+              onPaste={handlePaste} 
               className="w-full p-3 border border-slate-300 rounded-lg mb-4 h-80 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <div className="flex justify-end gap-3">
@@ -207,7 +225,6 @@ export default function NoticePage() {
           </div>
         )}
 
-        {/* 3. 게시글 목록 */}
         <div className="space-y-4">
           {notices.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
@@ -228,7 +245,6 @@ export default function NoticePage() {
                         {new Date(notice.created_at).toLocaleDateString('ko-KR')}
                       </span>
                     </div>
-                    {/* 🌟 제목 폰트 크기 조절 (text-base로 변경) */}
                     <h2 className={`text-base font-bold transition-colors ${expandedId === notice.id ? 'text-blue-700' : 'text-slate-800'}`}>
                       {notice.title}
                     </h2>
@@ -239,7 +255,7 @@ export default function NoticePage() {
                 </div>
 
                 {expandedId === notice.id && (
-                  <div className="p-6 md:p-8 border-t border-slate-100 bg-white animate-in fade-in">
+                  <div className="p-6 md:p-8 border-t border-slate-100 bg-white animate-in fade-in overflow-hidden">
                     
                     <div 
                       className="text-slate-700 text-sm md:text-[15px] leading-relaxed"
@@ -269,7 +285,6 @@ export default function NoticePage() {
           )}
         </div>
 
-        {/* 🌟 메인 화면으로 돌아가기 버튼 (크기 및 여백 세련되게 축소) */}
         <div className="flex flex-col items-center justify-center pt-10 space-y-5">
           <Link href="/">
             <button className="text-sm px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-medium rounded-full transition-colors shadow-sm">
