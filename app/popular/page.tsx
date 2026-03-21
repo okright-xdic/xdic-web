@@ -5,16 +5,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
-import PopularKeywords from '@/components/PopularKeywords'; // 진짜 인기 검색어 컴포넌트
+import PopularKeywords from '@/components/PopularKeywords'; 
 import TrendGraph from '@/components/TrendGraph';
-import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder'; // 경로수정
-import RecentKeywords from '@/components/RecentKeywords'; // 우측 사이드바용
+import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder'; 
+import RecentKeywords from '@/components/RecentKeywords'; 
+// 🌟 뉘앙스 위젯 불러오기!
+import NuanceWidget from '@/components/NuanceWidget';
 
 export default function PopularPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      
-      {/* 1. 공통 헤더 */}
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
         <header className="w-full pt-8 pb-2 md:pt-16 md:pb-6">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-8 md:mb-8">
@@ -36,13 +36,9 @@ export default function PopularPage() {
         </header>
       </div>
 
-      {/* 2. 메인 컨텐츠 영역 */}
       <main className="w-full flex-grow">
         <div className="container mx-auto px-4 md:px-6 max-w-4xl space-y-8 pb-20">
-          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* [좌측 메인] 실시간 인기 검색어 Top 100 */}
             <section className="md:col-span-2 space-y-4">
                <div className="flex items-center gap-2 px-2">
                   <span className="text-2xl">🔥</span>
@@ -50,23 +46,16 @@ export default function PopularPage() {
                      실시간 인기 검색어 <span className="text-blue-600">Top 100</span>
                   </h2>
                </div>
-               
-               {/* 인기 검색어 리스트를 길게 보여주는 역할 */}
                <div className="bg-white border border-blue-100 rounded-2xl shadow-sm p-2">
                  <PopularKeywords className="min-h-[800px] shadow-none border-0" />
                </div>
             </section>
 
-            {/* [우측 사이드] 부가 정보 (트렌드, 배너, 최근검색어) */}
             <aside className="md:col-span-1 space-y-6">
-              
-              {/* 1. 트렌드 그래프 */}
               <div>
                 <h3 className="text-sm font-bold text-slate-500 mb-2 px-1">📈 검색어 트렌드</h3>
                 <TrendGraph />
               </div>
-
-              {/* 2. 광고 배너 */}
               <div className="h-[200px] relative rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50 group cursor-pointer">
                 <Image 
                   src="/images/mobile-app-banner-bright.png" 
@@ -75,25 +64,24 @@ export default function PopularPage() {
                   className="object-contain group-hover:scale-105 transition-transform duration-500" 
                 />
               </div>
-
-              {/* 3. 내 검색 기록 (작게 표시) */}
               <div>
                  <h3 className="text-sm font-bold text-slate-500 mb-2 px-1">🕒 내 검색 기록</h3>
                  <RecentKeywords className="border-slate-100 shadow-none bg-slate-50" />
               </div>
-
             </aside>
           </div>
 
-{/* PC_인기검색어_더보기_하단 */}
-<AdSensePlaceholder
-  adSlot="5466350874"
-  debugLabel="PC_인기검색어_더보기_하단"
-/>
+          {/* 🌟 광고 바로 위 구원투수: 뉘앙스 위젯 배치! */}
+          <div className="mt-8 mb-4">
+            <NuanceWidget />
+          </div>
 
+          <AdSensePlaceholder
+            adSlot="5466350874"
+            debugLabel="PC_인기검색어_더보기_하단"
+          />
         </div>
       </main>
-
       <div className="flex-none"><Footer /></div>
     </div>
   );

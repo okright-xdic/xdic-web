@@ -9,12 +9,12 @@ import PopularKeywords from '@/components/PopularKeywords';
 import RecentKeywords from '@/components/RecentKeywords';
 import TrendGraph from '@/components/TrendGraph';
 import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
+// 🌟 뉘앙스 위젯 불러오기!
+import NuanceWidget from '@/components/NuanceWidget';
 
 export default function TrendPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      
-      {/* 1. 상단 헤더 영역 (홈 화면 디자인 유지) */}
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
         <header className="w-full pt-8 pb-2 md:pt-16 md:pb-6">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-8 md:mb-8">
@@ -43,50 +43,39 @@ export default function TrendPage() {
         </header>
       </div>
 
-      {/* 2. 메인 컨텐츠 영역 */}
       <main className="w-full flex-grow">
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
-          
-          {/* [가장 중요한 수정] 
-            CSS 클래스가 먹통일 때를 대비해 style 속성으로 높이를 강제 지정합니다.
-            Snap7, Snap11에서 잘 나오는 작은 사이즈(400px)를 적용합니다.
-          */}
           <section className="mt-4 w-full">
             <div style={{ height: '400px', width: '100%' }} className="relative">
               <TrendGraph className="w-full h-full shadow-md border border-slate-200" />
             </div>
           </section>
 
-          {/* 광고 영역 */}
-          <div className="my-6">
-  <AdSensePlaceholder
-    adSlot="9488087447"
-    debugLabel="PC_주간트랜드_더보기_중간"
-  />
-</div>
+          {/* 🌟 광고 바로 위 구원투수: 뉘앙스 위젯 배치! */}
+          <div className="mt-8 mb-4">
+            <NuanceWidget />
+          </div>
 
-          {/* 하단 서브 메뉴들 (Snap11 구조와 동일하게 배치) */}
+          <div className="my-6">
+            <AdSensePlaceholder
+              adSlot="9488087447"
+              debugLabel="PC_주간트랜드_더보기_중간"
+            />
+          </div>
+
           <section className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-12">
-            
-            {/* 배너 */}
             <div className="h-[180px] relative rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50">
               <Image src="/images/mobile-app-banner-bright.png" alt="배너" fill className="object-contain" />
             </div>
-
-            {/* 최근 검색어 */}
             <RecentKeywords />
-
-            {/* 인기 검색어 (가로로 넓게) */}
             <div className="md:col-span-2">
                <PopularKeywords />
             </div>
-
           </section>
 
         </div>
       </main>
 
-      {/* 3. 하단 푸터 */}
       <div className="flex-none"><Footer /></div>
     </div>
   );

@@ -10,6 +10,8 @@ import RecentKeywords from '@/components/RecentKeywords';
 import PopularKeywords from '@/components/PopularKeywords';
 import TrendGraph from '@/components/TrendGraph';
 import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
+// 🌟 뉘앙스 위젯 불러오기
+import NuanceWidget from '@/components/NuanceWidget'; 
 
 interface SearchResult {
   id: string | number;
@@ -360,6 +362,10 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                     </div>
                   )}
                   
+                  <div className="mt-12 mb-4">
+                    <NuanceWidget />
+                  </div>
+
                   {!displayIsApp && <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_검색결과_하단" minHeight={250} />}
 
                   <div className="py-8 text-center border-t border-slate-100 mt-8">
@@ -393,8 +399,15 @@ export default function SearchPage({ query, results = [], highlightList = [], is
           ) : (
             <div className="mt-5 space-y-4 md:space-y-6 animate-in fade-in duration-500">
               
+              {/* ========================================================== */}
+              {/* 🌟 1. 뉘앙스 위젯을 맨 위(첫 번째)로 끌어올렸습니다! */}
+              {/* ========================================================== */}
+              <NuanceWidget />
+
+              {/* ========================================================== */}
+              {/* 🌟 2. 오늘의 추천 복합어는 두 번째로 이동했습니다! */}
+              {/* ========================================================== */}
               <div className="bg-blue-50/50 rounded-xl md:rounded-2xl p-4 md:p-6 border border-blue-100 shadow-sm">
-                {/* 🌟 폰트 크기를 text-sm md:text-base 로 확 줄여서 통일감을 주었습니다! */}
                 <h2 className="text-sm md:text-base font-extrabold text-slate-800 mb-3 md:mb-4 flex items-center gap-2">
                   <span className="text-blue-600">💡</span> 오늘의 추천 복합어 및 전문용어
                 </h2>

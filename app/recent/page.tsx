@@ -9,12 +9,12 @@ import Footer from '@/components/Footer';
 import PopularKeywords from '@/components/PopularKeywords';
 import TrendGraph from '@/components/TrendGraph';
 import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
+// 🌟 뉘앙스 위젯 불러오기!
+import NuanceWidget from '@/components/NuanceWidget';
 
-// 🌟 메인 위젯과 완벽하게 동일한 열쇠(Key) 사용!
 const RECENT_KEY = 'xdic_recent_searches_v2';
 const UPDATED_EVENT = 'xdic_recent_searches_updated';
 
-// 🎨 17가지 파스텔톤 캔디 컬러 팔레트
 const COLOR_PALETTES = [
   'bg-red-50 text-red-600 border-red-100 hover:bg-red-100 hover:border-red-200',
   'bg-orange-50 text-orange-600 border-orange-100 hover:bg-orange-100 hover:border-orange-200',
@@ -62,8 +62,6 @@ export default function RecentPage() {
 
   useEffect(() => {
     loadKeywords();
-    
-    // 다른 컴포넌트(위젯 등)에서 검색어가 업데이트되면 이 페이지도 즉시 새로고침!
     window.addEventListener(UPDATED_EVENT, loadKeywords);
     return () => {
       window.removeEventListener(UPDATED_EVENT, loadKeywords);
@@ -79,7 +77,6 @@ export default function RecentPage() {
     const newKeywords = recentKeywords.filter((k) => k.keyword !== text);
     setRecentKeywords(newKeywords);
     localStorage.setItem(RECENT_KEY, JSON.stringify(newKeywords));
-    // 삭제 후 다른 위젯들에도 알려줌
     window.dispatchEvent(new Event(UPDATED_EVENT));
   };
 
@@ -87,7 +84,6 @@ export default function RecentPage() {
     if (confirm('정말 모든 검색 기록을 삭제하시겠습니까?')) {
       setRecentKeywords([]);
       localStorage.removeItem(RECENT_KEY);
-      // 삭제 후 다른 위젯들에도 알려줌
       window.dispatchEvent(new Event(UPDATED_EVENT));
     }
   };
@@ -103,8 +99,6 @@ export default function RecentPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      
-      {/* 1. 공통 헤더 */}
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
         <header className="w-full pt-8 pb-2 md:pt-16 md:pb-6">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-8 md:mb-8">
@@ -126,15 +120,9 @@ export default function RecentPage() {
         </header>
       </div>
 
-      {/* 2. 메인 컨텐츠 영역 */}
       <main className="w-full flex-grow">
         <div className="container mx-auto px-4 md:px-6 max-w-4xl space-y-8 pb-20">
-          
-          {/* ======================================================== */}
-          {/* [섹션 1: 주인공] 최근 검색어 */}
-          {/* ======================================================== */}
           <section className="bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-200 mt-4 relative overflow-hidden min-h-[300px]">
-            {/* 배경 장식 */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-full blur-3xl -z-10 opacity-50"></div>
 
             <div className="flex items-center justify-between mb-8">
@@ -163,13 +151,11 @@ export default function RecentPage() {
                     `}
                   >
                     <span className="font-bold text-sm md:text-base"># {item.keyword}</span>
-                    
                     {item.count && item.count > 1 && (
                       <span className="text-xs font-extrabold opacity-70">
                         (x{item.count})
                       </span>
                     )}
-
                     <button 
                       onClick={(e) => handleDelete(e, item.keyword)}
                       className="w-5 h-5 flex items-center justify-center rounded-full bg-black/5 hover:bg-black/20 text-current transition-colors ml-1"
@@ -188,19 +174,17 @@ export default function RecentPage() {
             )}
           </section>
 
-          {/* ======================================================== */}
-          {/* [섹션 2] 나머지 친구들 (광고 + 인기 + 트렌드 + 배너) */}
-          {/* ======================================================== */}
-          
-          {/* PC_최신검색어_더보기_중간 */}
+          {/* 🌟 광고 바로 위 구원투수: 뉘앙스 위젯 배치! */}
+          <div className="mt-8 mb-4">
+            <NuanceWidget />
+          </div>
+
           <AdSensePlaceholder
             adSlot="2840187537"
             debugLabel="PC_최신검색어_더보기_중간"
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* 인기 검색어 */}
             <div className="md:col-span-2">
                <div className="flex items-center gap-2 mb-3 px-2">
                   <span className="text-xl">🔥</span>
@@ -209,13 +193,11 @@ export default function RecentPage() {
                <PopularKeywords className="min-h-[400px] border-blue-100 shadow-sm" />
             </div>
 
-            {/* 트렌드 그래프 */}
             <div className="md:col-span-1">
                <h3 className="text-lg font-bold text-slate-700 mb-3 px-2">📈 검색어 트렌드</h3>
                <TrendGraph />
             </div>
 
-            {/* 앱 배너 */}
             <div className="md:col-span-1 h-[250px] relative rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50 group cursor-pointer">
               <Image 
                 src="/images/mobile-app-banner-bright.png" 
@@ -224,12 +206,9 @@ export default function RecentPage() {
                 className="object-contain group-hover:scale-105 transition-transform duration-500" 
               />
             </div>
-            
           </div>
-
         </div>
       </main>
-
       <div className="flex-none"><Footer /></div>
     </div>
   );
