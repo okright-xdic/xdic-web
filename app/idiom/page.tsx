@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+// 🌟 useRef라는 마법의 자물쇠 도구를 추가로 불러옵니다!
+import React, { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
@@ -23,6 +24,9 @@ export default function IdiomPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // 🌟 자물쇠 추가
+  const isUrlHandled = useRef(false);
+
   const [isAdmin, setIsAdmin] = useState(false);
   const [isWriting, setIsWriting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -44,7 +48,10 @@ export default function IdiomPage() {
   }, []);
 
   useEffect(() => {
-    if (idioms.length > 0) {
+    // 🌟 데이터가 있고, 처음 1번만 실행!
+    if (idioms.length > 0 && !isUrlHandled.current) {
+      isUrlHandled.current = true; // 🌟 실행 완료. 자물쇠 철칵!
+
       const params = new URLSearchParams(window.location.search);
       const targetId = params.get('id');
       
@@ -66,7 +73,7 @@ export default function IdiomPage() {
         }
       }
     }
-  }, [idioms]);
+  }, [idioms]); // 🌟 조회수로 인해 상태가 변해도 자물쇠가 막아줍니다!
 
   const handleAdminLogin = () => {
     if (isAdmin) {
@@ -222,7 +229,6 @@ export default function IdiomPage() {
             <div style={{ borderColor: '#2563EB' }} className="flex items-center py-3 border-b-2 bg-white text-sm md:text-base font-bold text-slate-700 text-center">
               <div className="w-16 md:w-20">번호</div>
               <div className="flex-1 text-left px-4">제목</div>
-              {/* 🌟 완벽하게 주석 처리하여 HTML에서 제거! */}
               {/* <div className="w-16 md:w-24">조회수</div> */}
             </div>
 
@@ -243,7 +249,6 @@ export default function IdiomPage() {
                         <div style={{ color: expandedId === idiom.id ? '#2563EB' : '#1e293b' }} className="flex-1 text-left px-4 text-[14px] md:text-[15px] font-bold truncate transition-colors">
                           {idiom.title}
                         </div>
-                        {/* 🌟 완벽하게 주석 처리하여 HTML에서 제거! */}
                         {/* <div className="w-16 md:w-24 text-[12px] text-slate-400">{idiom.views || 0}</div> */}
                       </div>
 
