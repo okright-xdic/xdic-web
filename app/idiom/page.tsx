@@ -26,7 +26,6 @@ export default function IdiomPage() {
   const [content, setContent] = useState('');
 
   const fetchIdioms = async () => {
-    // 🌟 뉘앙스 대신 idioms 테이블에서 불러옵니다!
     const { data, error } = await supabase
       .from('idioms')
       .select('*')
@@ -153,25 +152,34 @@ export default function IdiomPage() {
           <div className="flex items-center justify-between mb-6 px-2">
              <div className="flex items-center gap-2">
                 <span className="text-2xl">📚</span>
-                <h2 className="text-xl md:text-2xl font-black text-slate-800">
-                   필수 숙어 해설
-                </h2>
+                <h2 className="text-xl md:text-2xl font-black text-slate-800">필수 숙어 해설</h2>
              </div>
+             
              {isAdmin && !isWriting && (
-                <button onClick={() => { resetForm(); setIsWriting(true); }} className="bg-blue-600 text-white px-4 py-2 md:px-6 md:py-2 rounded-lg text-sm font-bold hover:bg-blue-700 shadow-md transition-all">
+                <button 
+                  onClick={() => { resetForm(); setIsWriting(true); }} 
+                  style={{ backgroundColor: '#2563eb', color: '#ffffff' }}
+                  className="px-4 py-2 md:px-6 md:py-2 rounded-lg text-sm font-bold shadow-md hover:opacity-80 transition-opacity"
+                >
                   + 새 해설 쓰기
                 </button>
              )}
           </div>
 
           {isAdmin && isWriting && (
-            <div className="bg-white p-6 rounded-2xl shadow-md border border-blue-400 mb-8 animate-in fade-in slide-in-from-top-4">
-              <h2 className="text-lg font-bold text-blue-700 mb-4 flex items-center gap-2"><span>✍️</span> {editingId ? '해설 수정하기' : '새 해설 작성'}</h2>
-              <input type="text" placeholder="제목을 입력하세요 (예: The apple of one's eye: 귀중한 존재)" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full p-3 border border-slate-300 rounded-lg mb-4 text-sm font-bold focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all" />
-              <textarea placeholder="워드에서 작성한 글이나 사진을 그대로 붙여넣기 하세요!" value={content} onChange={(e) => setContent(e.target.value)} onPaste={handlePaste} className="w-full p-3 border border-slate-300 rounded-lg mb-4 h-80 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all" />
+            <div style={{ borderColor: '#2563eb' }} className="bg-white p-6 rounded-2xl shadow-md border mb-8 animate-in fade-in slide-in-from-top-4">
+              <h2 style={{ color: '#2563eb' }} className="text-lg font-bold mb-4 flex items-center gap-2"><span>✍️</span> {editingId ? '해설 수정하기' : '새 해설 작성'}</h2>
+              <input type="text" placeholder="제목을 입력하세요" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full p-3 border border-slate-300 rounded-lg mb-4 text-sm font-bold outline-none" />
+              <textarea placeholder="내용을 입력하세요" value={content} onChange={(e) => setContent(e.target.value)} onPaste={handlePaste} className="w-full p-3 border border-slate-300 rounded-lg mb-4 h-80 text-sm outline-none" />
               <div className="flex justify-end gap-3">
                 <button onClick={resetForm} className="px-5 py-2 border border-slate-300 text-slate-600 text-sm rounded-lg hover:bg-slate-100 font-bold transition-colors">취소</button>
-                <button onClick={handleSave} className="px-5 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 font-bold shadow-sm transition-colors">{editingId ? '수정 완료' : '저장하기'}</button>
+                <button 
+                  onClick={handleSave} 
+                  style={{ backgroundColor: '#2563eb', color: '#ffffff' }}
+                  className="px-5 py-2 text-sm rounded-lg font-bold shadow-sm hover:opacity-80 transition-opacity"
+                >
+                  {editingId ? '수정 완료' : '저장하기'}
+                </button>
               </div>
             </div>
           )}
@@ -182,25 +190,34 @@ export default function IdiomPage() {
             ) : (
               idioms.map((idiom, index) => (
                 <article key={idiom.id} id={`idiom-${idiom.id}`} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-all hover:shadow-md">
-                  <div onClick={() => toggleIdiom(idiom.id)} className={`px-5 md:px-6 py-4 cursor-pointer flex justify-between items-center transition-colors ${expandedId === idiom.id ? 'bg-blue-50/70' : 'hover:bg-slate-50'}`}>
+                  <div onClick={() => toggleIdiom(idiom.id)} style={{ backgroundColor: expandedId === idiom.id ? '#eff6ff' : '#ffffff' }} className="px-5 md:px-6 py-4 cursor-pointer flex justify-between items-center transition-colors hover:bg-slate-50">
                     <div className="flex items-center flex-1 gap-3 md:gap-4">
-                      <span className={`flex-shrink-0 w-7 h-7 flex items-center justify-center text-[13px] font-black rounded-full transition-all ${expandedId === idiom.id ? 'bg-blue-500 text-white shadow-md' : 'bg-blue-100 text-blue-700 shadow-inner'}`}>
+                      
+                      <span 
+                        style={{ 
+                          backgroundColor: expandedId === idiom.id ? '#2563eb' : '#dbeafe',
+                          color: expandedId === idiom.id ? '#ffffff' : '#1d4ed8'
+                        }} 
+                        className="flex-shrink-0 w-7 h-7 flex items-center justify-center text-[13px] font-black rounded-full transition-colors shadow-sm"
+                      >
                         {index + 1}
                       </span>
-                      <h2 className={`text-[15px] md:text-[17px] font-bold transition-colors ${expandedId === idiom.id ? 'text-blue-700' : 'text-slate-800'}`}>
+                      
+                      <h2 style={{ color: expandedId === idiom.id ? '#2563eb' : '#1e293b' }} className="text-[15px] md:text-[17px] font-bold transition-colors">
                         {idiom.title}
                       </h2>
                     </div>
-                    <span className={`flex-shrink-0 text-xl ml-4 transition-transform duration-300 flex items-center justify-center w-8 h-8 rounded-full ${expandedId === idiom.id ? 'text-blue-600 bg-blue-100 rotate-180' : 'text-slate-400 bg-slate-50'}`}>
+                    <span style={{ color: expandedId === idiom.id ? '#2563eb' : '#94a3b8' }} className="flex-shrink-0 text-xl ml-4 transition-transform duration-300 flex items-center justify-center w-8 h-8 rounded-full">
                       {expandedId === idiom.id ? '−' : '＋'}
                     </span>
                   </div>
                   {expandedId === idiom.id && (
                     <div className="p-6 md:p-8 border-t border-blue-100 bg-white animate-in fade-in overflow-hidden">
                       <div className="text-slate-700 text-sm md:text-[16px] leading-loose break-keep font-sans" dangerouslySetInnerHTML={{ __html: renderContentWithLineBreaks(idiom.content) }} />
+                      
                       {isAdmin && (
                         <div className="mt-8 pt-4 border-t border-slate-100 flex justify-end gap-2">
-                          <button onClick={() => handleEditClick(idiom)} className="text-xs px-4 py-2 border border-blue-200 text-blue-600 rounded-lg font-bold hover:bg-blue-50 transition-colors">수정</button>
+                          <button onClick={() => handleEditClick(idiom)} style={{ color: '#2563eb', borderColor: '#2563eb' }} className="text-xs px-4 py-2 border rounded-lg font-bold hover:opacity-70 transition-opacity">수정</button>
                           <button onClick={() => handleDelete(idiom.id)} className="text-xs px-4 py-2 border border-red-200 text-red-500 rounded-lg font-bold hover:bg-red-50 transition-colors">삭제</button>
                         </div>
                       )}

@@ -18,7 +18,6 @@ export default function NuanceWidget() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // 🌟 두 게시판의 데이터를 동시에 빛의 속도로 불러옵니다!
       const [nuanceRes, idiomRes] = await Promise.all([
         supabase.from('nuances').select('id, title, created_at').order('created_at', { ascending: false }).limit(3),
         supabase.from('idioms').select('id, title, created_at').order('created_at', { ascending: false }).limit(3)
@@ -39,7 +38,7 @@ export default function NuanceWidget() {
         <div className="bg-emerald-50/40 rounded-xl md:rounded-2xl p-4 md:p-6 border border-emerald-100 shadow-sm">
           <div className="flex justify-between items-center mb-3 md:mb-4">
             <h2 className="text-sm md:text-base font-extrabold text-slate-800 flex items-center gap-2">
-              <span className="text-emerald-600">💡</span> 영단어 뉘앙스 해설
+              <span style={{ color: '#059669' }}>💡</span> 영단어 뉘앙스 해설
             </h2>
             <div className="w-10 h-4 bg-emerald-200/50 rounded animate-pulse"></div>
           </div>
@@ -57,7 +56,7 @@ export default function NuanceWidget() {
         <div className="bg-blue-50/40 rounded-xl md:rounded-2xl p-4 md:p-6 border border-blue-100 shadow-sm">
           <div className="flex justify-between items-center mb-3 md:mb-4">
             <h2 className="text-sm md:text-base font-extrabold text-slate-800 flex items-center gap-2">
-              <span className="text-blue-600">📚</span> 필수 숙어 해설
+              <span style={{ color: '#2563eb' }}>📚</span> 필수 숙어 해설
             </h2>
             <div className="w-10 h-4 bg-blue-200/50 rounded animate-pulse"></div>
           </div>
@@ -80,22 +79,22 @@ export default function NuanceWidget() {
       <div className="bg-emerald-50/40 rounded-xl md:rounded-2xl p-4 md:p-6 border border-emerald-100 shadow-sm">
         <div className="flex justify-between items-center mb-3 md:mb-4">
           <h2 className="text-sm md:text-base font-extrabold text-slate-800 flex items-center gap-2">
-            <span className="text-emerald-600">💡</span> 영단어 뉘앙스 해설
+            <span style={{ color: '#059669' }}>💡</span> 영단어 뉘앙스 해설
           </h2>
           <Link href="/nuance">
-            <span className="text-xs font-bold text-slate-400 hover:text-emerald-600 cursor-pointer transition-colors">
+            <span style={{ color: '#059669' }} className="text-[13px] font-extrabold hover:opacity-70 cursor-pointer transition-opacity">
               더보기 +
             </span>
           </Link>
         </div>
         <ul className="space-y-2.5">
           {nuances.length > 0 ? nuances.map((item, index) => (
-            <li key={item.id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm hover:border-emerald-300 hover:shadow transition-all group">
+            <li key={item.id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm hover:shadow transition-all group">
               <Link href={`/nuance?id=${item.id}`} className="flex items-center gap-3">
-                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-emerald-100 text-emerald-700 text-[12px] font-black rounded-full shadow-inner">
+                <span style={{ backgroundColor: '#d1fae5', color: '#059669' }} className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-[12px] font-black rounded-full shadow-inner">
                   {index + 1}
                 </span>
-                <p className="text-[13px] md:text-[14px] font-bold text-slate-700 group-hover:text-emerald-700 truncate">
+                <p style={{ color: '#334155' }} className="text-[13px] md:text-[14px] font-bold group-hover:opacity-70 truncate transition-opacity">
                   {item.title}
                 </p>
               </Link>
@@ -110,22 +109,22 @@ export default function NuanceWidget() {
       <div className="bg-blue-50/40 rounded-xl md:rounded-2xl p-4 md:p-6 border border-blue-100 shadow-sm">
         <div className="flex justify-between items-center mb-3 md:mb-4">
           <h2 className="text-sm md:text-base font-extrabold text-slate-800 flex items-center gap-2">
-            <span className="text-blue-600">📚</span> 필수 숙어 해설
+            <span style={{ color: '#2563eb' }}>📚</span> 필수 숙어 해설
           </h2>
           <Link href="/idiom">
-            <span className="text-xs font-bold text-slate-400 hover:text-blue-600 cursor-pointer transition-colors">
+            <span style={{ color: '#2563eb' }} className="text-[13px] font-extrabold hover:opacity-70 cursor-pointer transition-opacity">
               더보기 +
             </span>
           </Link>
         </div>
         <ul className="space-y-2.5">
           {idioms.length > 0 ? idioms.map((item, index) => (
-            <li key={item.id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm hover:border-blue-300 hover:shadow transition-all group">
+            <li key={item.id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm hover:shadow transition-all group">
               <Link href={`/idiom?id=${item.id}`} className="flex items-center gap-3">
-                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-blue-100 text-blue-700 text-[12px] font-black rounded-full shadow-inner">
+                <span style={{ backgroundColor: '#dbeafe', color: '#2563eb' }} className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-[12px] font-black rounded-full shadow-inner">
                   {index + 1}
                 </span>
-                <p className="text-[13px] md:text-[14px] font-bold text-slate-700 group-hover:text-blue-700 truncate">
+                <p style={{ color: '#334155' }} className="text-[13px] md:text-[14px] font-bold group-hover:opacity-70 truncate transition-opacity">
                   {item.title}
                 </p>
               </Link>
