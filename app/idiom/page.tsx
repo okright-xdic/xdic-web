@@ -12,6 +12,7 @@ interface Idiom {
   title: string;
   content: string;
   created_at: string;
+  views?: number;
 }
 
 export default function IdiomPage() {
@@ -19,6 +20,9 @@ export default function IdiomPage() {
   const [idioms, setIdioms] = useState<Idiom[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const [isAdmin, setIsAdmin] = useState(false);
   const [isWriting, setIsWriting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -46,14 +50,20 @@ export default function IdiomPage() {
       
       if (targetId) {
         const idNum = Number(targetId);
-        setExpandedId(idNum); 
         
-        setTimeout(() => {
-          const element = document.getElementById(`idiom-${idNum}`);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 100);
+        const itemIndex = idioms.findIndex(n => n.id === idNum);
+        if (itemIndex !== -1) {
+          const targetPage = Math.floor(itemIndex / itemsPerPage) + 1;
+          setCurrentPage(targetPage);
+          setExpandedId(idNum); 
+          
+          setTimeout(() => {
+            const element = document.getElementById(`idiom-${idNum}`);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }, 100);
+        }
       }
     }
   }, [idioms]);
@@ -99,7 +109,18 @@ export default function IdiomPage() {
   };
 
   const resetForm = () => { setTitle(''); setContent(''); setIsWriting(false); setEditingId(null); };
-  const toggleIdiom = (id: number) => setExpandedId(expandedId === id ? null : id);
+  
+  const toggleIdiom = async (targetIdiom: Idiom) => {
+    const isOpening = expandedId !== targetIdiom.id;
+    setExpandedId(isOpening ? targetIdiom.id : null);
+
+    if (isOpening) {
+      const newViews = (targetIdiom.views || 0) + 1;
+      setIdioms(idioms.map(n => n.id === targetIdiom.id ? { ...n, views: newViews } : n));
+      await supabase.from('idioms').update({ views: newViews }).eq('id', targetIdiom.id);
+    }
+  };
+
   const renderContentWithLineBreaks = (text: string) => text.replace(/\n/g, '<br />');
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
@@ -121,6 +142,16 @@ export default function IdiomPage() {
         reader.readAsDataURL(file);
       }
     }
+  };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = idioms.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(idioms.length / itemsPerPage) || 1;
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -152,13 +183,15 @@ export default function IdiomPage() {
           <div className="flex items-center justify-between mb-6 px-2">
              <div className="flex items-center gap-2">
                 <span className="text-2xl">📚</span>
-                <h2 className="text-xl md:text-2xl font-black text-slate-800">필수 숙어 해설</h2>
+                <h2 className="text-xl md:text-2xl font-black text-slate-800">
+                   필수 숙어 해설
+                </h2>
              </div>
              
              {isAdmin && !isWriting && (
                 <button 
                   onClick={() => { resetForm(); setIsWriting(true); }} 
-                  style={{ backgroundColor: '#2563eb', color: '#ffffff' }}
+                  style={{ backgroundColor: '#2563EB', color: '#ffffff' }}
                   className="px-4 py-2 md:px-6 md:py-2 rounded-lg text-sm font-bold shadow-md hover:opacity-80 transition-opacity"
                 >
                   + 새 해설 쓰기
@@ -167,15 +200,15 @@ export default function IdiomPage() {
           </div>
 
           {isAdmin && isWriting && (
-            <div style={{ borderColor: '#2563eb' }} className="bg-white p-6 rounded-2xl shadow-md border mb-8 animate-in fade-in slide-in-from-top-4">
-              <h2 style={{ color: '#2563eb' }} className="text-lg font-bold mb-4 flex items-center gap-2"><span>✍️</span> {editingId ? '해설 수정하기' : '새 해설 작성'}</h2>
-              <input type="text" placeholder="제목을 입력하세요" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full p-3 border border-slate-300 rounded-lg mb-4 text-sm font-bold outline-none" />
-              <textarea placeholder="내용을 입력하세요" value={content} onChange={(e) => setContent(e.target.value)} onPaste={handlePaste} className="w-full p-3 border border-slate-300 rounded-lg mb-4 h-80 text-sm outline-none" />
+            <div style={{ borderColor: '#2563EB' }} className="bg-white p-6 rounded-2xl shadow-md border mb-8 animate-in fade-in slide-in-from-top-4">
+              <h2 style={{ color: '#2563EB' }} className="text-lg font-bold mb-4 flex items-center gap-2"><span>✍️</span> {editingId ? '해설 수정하기' : '새 해설 작성'}</h2>
+              <input type="text" placeholder="제목을 입력하세요 (예: The apple of one's eye: 귀중한 존재)" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full p-3 border border-slate-300 rounded-lg mb-4 text-sm font-bold outline-none" />
+              <textarea placeholder="워드에서 작성한 글이나 사진을 그대로 붙여넣기 하세요!" value={content} onChange={(e) => setContent(e.target.value)} onPaste={handlePaste} className="w-full p-3 border border-slate-300 rounded-lg mb-4 h-80 text-sm outline-none" />
               <div className="flex justify-end gap-3">
                 <button onClick={resetForm} className="px-5 py-2 border border-slate-300 text-slate-600 text-sm rounded-lg hover:bg-slate-100 font-bold transition-colors">취소</button>
                 <button 
                   onClick={handleSave} 
-                  style={{ backgroundColor: '#2563eb', color: '#ffffff' }}
+                  style={{ backgroundColor: '#2563EB', color: '#ffffff' }}
                   className="px-5 py-2 text-sm rounded-lg font-bold shadow-sm hover:opacity-80 transition-opacity"
                 >
                   {editingId ? '수정 완료' : '저장하기'}
@@ -184,55 +217,87 @@ export default function IdiomPage() {
             </div>
           )}
 
-          <div className="space-y-4">
-            {idioms.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300"><p className="text-slate-400 font-medium text-sm">등록된 해설이 없습니다.</p></div>
-            ) : (
-              idioms.map((idiom, index) => (
-                <article key={idiom.id} id={`idiom-${idiom.id}`} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-all hover:shadow-md">
-                  <div onClick={() => toggleIdiom(idiom.id)} style={{ backgroundColor: expandedId === idiom.id ? '#eff6ff' : '#ffffff' }} className="px-5 md:px-6 py-4 cursor-pointer flex justify-between items-center transition-colors hover:bg-slate-50">
-                    <div className="flex items-center flex-1 gap-3 md:gap-4">
-                      
-                      <span 
-                        style={{ 
-                          backgroundColor: expandedId === idiom.id ? '#2563eb' : '#dbeafe',
-                          color: expandedId === idiom.id ? '#ffffff' : '#1d4ed8'
-                        }} 
-                        className="flex-shrink-0 w-7 h-7 flex items-center justify-center text-[13px] font-black rounded-full transition-colors shadow-sm"
-                      >
-                        {index + 1}
-                      </span>
-                      
-                      <h2 style={{ color: expandedId === idiom.id ? '#2563eb' : '#1e293b' }} className="text-[15px] md:text-[17px] font-bold transition-colors">
-                        {idiom.title}
-                      </h2>
-                    </div>
-                    <span style={{ color: expandedId === idiom.id ? '#2563eb' : '#94a3b8' }} className="flex-shrink-0 text-xl ml-4 transition-transform duration-300 flex items-center justify-center w-8 h-8 rounded-full">
-                      {expandedId === idiom.id ? '−' : '＋'}
-                    </span>
-                  </div>
-                  {expandedId === idiom.id && (
-                    <div className="p-6 md:p-8 border-t border-blue-100 bg-white animate-in fade-in overflow-hidden">
-                      <div className="text-slate-700 text-sm md:text-[16px] leading-loose break-keep font-sans" dangerouslySetInnerHTML={{ __html: renderContentWithLineBreaks(idiom.content) }} />
-                      
-                      {isAdmin && (
-                        <div className="mt-8 pt-4 border-t border-slate-100 flex justify-end gap-2">
-                          <button onClick={() => handleEditClick(idiom)} style={{ color: '#2563eb', borderColor: '#2563eb' }} className="text-xs px-4 py-2 border rounded-lg font-bold hover:opacity-70 transition-opacity">수정</button>
-                          <button onClick={() => handleDelete(idiom.id)} className="text-xs px-4 py-2 border border-red-200 text-red-500 rounded-lg font-bold hover:bg-red-50 transition-colors">삭제</button>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            
+            <div style={{ borderColor: '#2563EB' }} className="flex items-center py-3 border-b-2 bg-white text-sm md:text-base font-bold text-slate-700 text-center">
+              <div className="w-16 md:w-20">번호</div>
+              <div className="flex-1 text-left px-4">제목</div>
+              {/* 🌟 완벽하게 주석 처리하여 HTML에서 제거! */}
+              {/* <div className="w-16 md:w-24">조회수</div> */}
+            </div>
+
+            <div className="flex flex-col">
+              {currentItems.length === 0 ? (
+                <div className="text-center py-20 text-slate-400 font-medium text-sm">등록된 해설이 없습니다.</div>
+              ) : (
+                currentItems.map((idiom, index) => {
+                  const absoluteIndex = indexOfFirstItem + index;
+                  const displayNum = idioms.length - absoluteIndex;
+
+                  return (
+                    <article key={idiom.id} id={`idiom-${idiom.id}`} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                      <div onClick={() => toggleIdiom(idiom)} className="flex items-center py-4 cursor-pointer text-center">
+                        <div className="w-16 md:w-20 text-[13px] md:text-sm font-bold text-slate-400">
+                          {displayNum}
+                        </div>
+                        <div style={{ color: expandedId === idiom.id ? '#2563EB' : '#1e293b' }} className="flex-1 text-left px-4 text-[14px] md:text-[15px] font-bold truncate transition-colors">
+                          {idiom.title}
+                        </div>
+                        {/* 🌟 완벽하게 주석 처리하여 HTML에서 제거! */}
+                        {/* <div className="w-16 md:w-24 text-[12px] text-slate-400">{idiom.views || 0}</div> */}
+                      </div>
+
+                      {expandedId === idiom.id && (
+                        <div className="p-6 md:p-8 bg-slate-50 border-t border-slate-100 animate-in fade-in overflow-hidden">
+                          <div className="text-slate-700 text-sm md:text-[16px] leading-loose break-keep font-sans" dangerouslySetInnerHTML={{ __html: renderContentWithLineBreaks(idiom.content) }} />
+                          
+                          {isAdmin && (
+                            <div className="mt-8 pt-4 border-t border-slate-200 flex justify-end gap-2">
+                              <button onClick={() => handleEditClick(idiom)} style={{ color: '#2563EB', borderColor: '#2563EB' }} className="text-xs px-4 py-2 border rounded-lg font-bold hover:opacity-70 transition-opacity">수정</button>
+                              <button onClick={() => handleDelete(idiom.id)} className="text-xs px-4 py-2 border border-red-200 text-red-500 rounded-lg font-bold hover:bg-red-50 transition-colors">삭제</button>
+                            </div>
+                          )}
                         </div>
                       )}
-                    </div>
-                  )}
-                </article>
-              ))
-            )}
+                    </article>
+                  );
+                })
+              )}
+            </div>
           </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-8 mb-4 font-sans">
+              <button onClick={() => handlePageChange(1)} disabled={currentPage === 1} className="w-8 h-8 flex items-center justify-center rounded text-sm text-slate-400 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">&lt;&lt;</button>
+              <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="w-8 h-8 flex items-center justify-center rounded text-sm text-slate-400 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">&lt;</button>
+              
+              <div className="flex items-center gap-1 mx-2">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+                  <button 
+                    key={num} 
+                    onClick={() => handlePageChange(num)} 
+                    style={{ 
+                      backgroundColor: currentPage === num ? '#2563EB' : 'transparent',
+                      color: currentPage === num ? '#ffffff' : '#64748b'
+                    }}
+                    className="w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold transition-all hover:bg-slate-100"
+                  >
+                    {num}
+                  </button>
+                ))}
+              </div>
+
+              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="w-8 h-8 flex items-center justify-center rounded text-sm text-slate-400 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">&gt;</button>
+              <button onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages} className="w-8 h-8 flex items-center justify-center rounded text-sm text-slate-400 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">&gt;&gt;</button>
+            </div>
+          )}
 
           <div className="flex flex-col items-center justify-center pt-12 space-y-5">
             <button onClick={handleAdminLogin} className="text-[11px] text-slate-400 hover:text-slate-600 transition-colors underline underline-offset-4">{isAdmin ? '관리자 로그아웃' : '관리자 로그인'}</button>
           </div>
         </div>
       </main>
+
       <div className="flex-none bg-white"><Footer /></div>
     </div>
   );
