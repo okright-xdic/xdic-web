@@ -42,7 +42,6 @@ const CATEGORY_NAMES: Record<number, string> = {
   12: '기타',
 };
 
-// 알록달록한 파스텔톤 해시태그 컬러 팔레트
 const TAG_COLORS = [
   'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-100',
   'bg-pink-50 text-pink-600 hover:bg-pink-100 border-pink-100',
@@ -255,7 +254,6 @@ export default function SearchPage({
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           {displayQuery ? (
             <div className="w-full mt-5">
-              {/* === 검색 결과 화면 (생략 없이 원본 유지) === */}
               {isTooShort ? (
                 <div className="py-32 text-center text-slate-400 text-xl font-light italic animate-in fade-in slide-in-from-bottom-2 duration-300">
                   단어는 <span style={{ color: '#ea580c', fontWeight: 'bold' }}>두 글자 이상</span> 입력해 주세요.
@@ -357,23 +355,25 @@ export default function SearchPage({
                 </div>
               </div>
 
-              {/* === 그리드 영역: 위치 변경 및 크기 통일 === */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 
-                {/* 1. 배너 (좌측 상단) */}
                 {!displayIsApp && (
                   <div className="h-[280px] relative rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50">
                     <Image src="/images/mobile-app-banner-bright.png" alt="배너" fill className="object-contain" />
                   </div>
                 )}
                 
-                {/* ========================================================== */}
-                {/* 🌟 2. 최근 검색어 (우측 상단으로 이동 & 예전 해시태그 디자인 복구!) */}
-                {/* ========================================================== */}
+                {/* 🌟 2. 최근 검색어 (가짜 버튼을 진짜 Link로 교체) */}
                 <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[280px]">
-                  <h2 className="text-[15px] font-extrabold text-slate-800 mb-4 flex items-center gap-2">
-                    <span className="text-blue-500">🕒</span> 실시간 전체 유저 검색어
-                  </h2>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-[15px] font-extrabold text-slate-800 flex items-center gap-2">
+                      <span className="text-blue-500">🕒</span> 실시간 전체 유저 검색어
+                    </h2>
+                    {/* 🌟 수정 부분: 버튼 대신 Link 태그로 이동 적용! */}
+                    <Link href="/recent" className="text-[11px] font-medium text-slate-400 hover:text-slate-600 transition-colors">
+                      더보기 &gt;
+                    </Link>
+                  </div>
                   <div className="flex flex-wrap gap-2 overflow-y-auto content-start flex-grow pr-1" style={{ scrollbarWidth: 'thin' }}>
                     {recentSearches.length > 0 ? (
                       recentSearches.map((item, idx) => {
@@ -394,13 +394,17 @@ export default function SearchPage({
                   </div>
                 </div>
 
-                {/* ========================================================== */}
-                {/* 🌟 3. 인기 검색어 TOP 20 (좌측 하단으로 이동 & 예전 스크롤 리스트 디자인 복구!) */}
-                {/* ========================================================== */}
+                {/* 🌟 3. 인기 검색어 TOP 20 (가짜 버튼을 진짜 Link로 교체) */}
                 <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[280px]">
-                  <h2 className="text-[15px] font-extrabold text-slate-800 mb-3 flex items-center gap-2">
-                    <span className="text-red-500">🔥</span> 실시간 인기 검색어 TOP 20
-                  </h2>
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-[15px] font-extrabold text-slate-800 flex items-center gap-2">
+                      <span className="text-red-500">🔥</span> 실시간 인기 검색어 TOP 20
+                    </h2>
+                    {/* 🌟 수정 부분: 버튼 대신 Link 태그로 이동 적용! */}
+                    <Link href="/popular" className="text-[11px] font-medium text-slate-400 hover:text-slate-600 transition-colors">
+                      더보기 &gt;
+                    </Link>
+                  </div>
                   <ul className="flex-grow overflow-y-auto pr-2 space-y-1" style={{ scrollbarWidth: 'thin' }}>
                     {popularSearches.length > 0 ? (
                       popularSearches.map((word, idx) => (
