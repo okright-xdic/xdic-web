@@ -1,6 +1,5 @@
 'use client';
 
-// 🌟 useRef라는 마법의 자물쇠 도구를 추가로 불러옵니다!
 import React, { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -24,7 +23,6 @@ export default function NuancePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // 🌟 [핵심 해결책] 주소창을 읽고 이동하는 걸 '딱 한 번만' 하도록 기억하는 자물쇠입니다.
   const isUrlHandled = useRef(false);
 
   const [isAdmin, setIsAdmin] = useState(false);
@@ -48,22 +46,18 @@ export default function NuancePage() {
   }, []);
 
   useEffect(() => {
-    // 🌟 데이터가 있고, 아직 자물쇠가 안 잠겼을 때만(처음 1번만) 실행!
     if (nuances.length > 0 && !isUrlHandled.current) {
-      isUrlHandled.current = true; // 🌟 한 번 실행했으니 자물쇠를 철칵! 잠급니다.
-
+      isUrlHandled.current = true;
       const params = new URLSearchParams(window.location.search);
       const targetId = params.get('id');
       
       if (targetId) {
         const idNum = Number(targetId);
-        
         const itemIndex = nuances.findIndex(n => n.id === idNum);
         if (itemIndex !== -1) {
           const targetPage = Math.floor(itemIndex / itemsPerPage) + 1;
           setCurrentPage(targetPage);
           setExpandedId(idNum); 
-          
           setTimeout(() => {
             const element = document.getElementById(`nuance-${idNum}`);
             if (element) {
@@ -73,7 +67,7 @@ export default function NuancePage() {
         }
       }
     }
-  }, [nuances]); // 🌟 이제 조회수가 올라가서 nuances가 변경되어도 자물쇠 때문에 무시됩니다!
+  }, [nuances]);
 
   const handleAdminLogin = () => {
     if (isAdmin) {
@@ -229,7 +223,6 @@ export default function NuancePage() {
             <div style={{ borderColor: '#059669' }} className="flex items-center py-3 border-b-2 bg-white text-sm md:text-base font-bold text-slate-700 text-center">
               <div className="w-16 md:w-20">번호</div>
               <div className="flex-1 text-left px-4">제목</div>
-              {/* <div className="w-16 md:w-24">조회수</div> */}
             </div>
 
             <div className="flex flex-col">
@@ -249,21 +242,19 @@ export default function NuancePage() {
                         <div style={{ color: expandedId === nuance.id ? '#059669' : '#1e293b' }} className="flex-1 text-left px-4 text-[14px] md:text-[15px] font-bold truncate transition-colors">
                           {nuance.title}
                         </div>
-                        {/* <div className="w-16 md:w-24 text-[12px] text-slate-400">{nuance.views || 0}</div> */}
                       </div>
 
-                      {expandedId === nuance.id && (
-                        <div className="p-6 md:p-8 bg-slate-50 border-t border-slate-100 animate-in fade-in overflow-hidden">
-                          <div className="text-slate-700 text-sm md:text-[16px] leading-loose break-keep font-sans" dangerouslySetInnerHTML={{ __html: renderContentWithLineBreaks(nuance.content) }} />
-                          
-                          {isAdmin && (
-                            <div className="mt-8 pt-4 border-t border-slate-200 flex justify-end gap-2">
-                              <button onClick={() => handleEditClick(nuance)} style={{ color: '#059669', borderColor: '#059669' }} className="text-xs px-4 py-2 border rounded-lg font-bold hover:opacity-70 transition-opacity">수정</button>
-                              <button onClick={() => handleDelete(nuance.id)} className="text-xs px-4 py-2 border border-red-200 text-red-500 rounded-lg font-bold hover:bg-red-50 transition-colors">삭제</button>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      {/* 🌟 마법의 핵심: hidden으로 모습만 감추고 코드는 남겨서 구글봇이 싹 다 긁어가게 만듭니다! */}
+                      <div className={`p-6 md:p-8 bg-slate-50 border-t border-slate-100 overflow-hidden transition-all duration-300 ${expandedId === nuance.id ? 'block animate-in fade-in' : 'hidden'}`}>
+                        <div className="text-slate-700 text-sm md:text-[16px] leading-loose break-keep font-sans" dangerouslySetInnerHTML={{ __html: renderContentWithLineBreaks(nuance.content) }} />
+                        
+                        {isAdmin && (
+                          <div className="mt-8 pt-4 border-t border-slate-200 flex justify-end gap-2">
+                            <button onClick={() => handleEditClick(nuance)} style={{ color: '#059669', borderColor: '#059669' }} className="text-xs px-4 py-2 border rounded-lg font-bold hover:opacity-70 transition-opacity">수정</button>
+                            <button onClick={() => handleDelete(nuance.id)} className="text-xs px-4 py-2 border border-red-200 text-red-500 rounded-lg font-bold hover:bg-red-50 transition-colors">삭제</button>
+                          </div>
+                        )}
+                      </div>
                     </article>
                   );
                 })

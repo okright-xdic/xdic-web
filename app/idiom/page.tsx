@@ -1,6 +1,5 @@
 'use client';
 
-// 🌟 useRef라는 마법의 자물쇠 도구를 추가로 불러옵니다!
 import React, { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -24,7 +23,6 @@ export default function IdiomPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // 🌟 자물쇠 추가
   const isUrlHandled = useRef(false);
 
   const [isAdmin, setIsAdmin] = useState(false);
@@ -48,22 +46,18 @@ export default function IdiomPage() {
   }, []);
 
   useEffect(() => {
-    // 🌟 데이터가 있고, 처음 1번만 실행!
     if (idioms.length > 0 && !isUrlHandled.current) {
-      isUrlHandled.current = true; // 🌟 실행 완료. 자물쇠 철칵!
-
+      isUrlHandled.current = true;
       const params = new URLSearchParams(window.location.search);
       const targetId = params.get('id');
       
       if (targetId) {
         const idNum = Number(targetId);
-        
         const itemIndex = idioms.findIndex(n => n.id === idNum);
         if (itemIndex !== -1) {
           const targetPage = Math.floor(itemIndex / itemsPerPage) + 1;
           setCurrentPage(targetPage);
           setExpandedId(idNum); 
-          
           setTimeout(() => {
             const element = document.getElementById(`idiom-${idNum}`);
             if (element) {
@@ -73,7 +67,7 @@ export default function IdiomPage() {
         }
       }
     }
-  }, [idioms]); // 🌟 조회수로 인해 상태가 변해도 자물쇠가 막아줍니다!
+  }, [idioms]);
 
   const handleAdminLogin = () => {
     if (isAdmin) {
@@ -229,7 +223,6 @@ export default function IdiomPage() {
             <div style={{ borderColor: '#2563EB' }} className="flex items-center py-3 border-b-2 bg-white text-sm md:text-base font-bold text-slate-700 text-center">
               <div className="w-16 md:w-20">번호</div>
               <div className="flex-1 text-left px-4">제목</div>
-              {/* <div className="w-16 md:w-24">조회수</div> */}
             </div>
 
             <div className="flex flex-col">
@@ -249,21 +242,19 @@ export default function IdiomPage() {
                         <div style={{ color: expandedId === idiom.id ? '#2563EB' : '#1e293b' }} className="flex-1 text-left px-4 text-[14px] md:text-[15px] font-bold truncate transition-colors">
                           {idiom.title}
                         </div>
-                        {/* <div className="w-16 md:w-24 text-[12px] text-slate-400">{idiom.views || 0}</div> */}
                       </div>
 
-                      {expandedId === idiom.id && (
-                        <div className="p-6 md:p-8 bg-slate-50 border-t border-slate-100 animate-in fade-in overflow-hidden">
-                          <div className="text-slate-700 text-sm md:text-[16px] leading-loose break-keep font-sans" dangerouslySetInnerHTML={{ __html: renderContentWithLineBreaks(idiom.content) }} />
-                          
-                          {isAdmin && (
-                            <div className="mt-8 pt-4 border-t border-slate-200 flex justify-end gap-2">
-                              <button onClick={() => handleEditClick(idiom)} style={{ color: '#2563EB', borderColor: '#2563EB' }} className="text-xs px-4 py-2 border rounded-lg font-bold hover:opacity-70 transition-opacity">수정</button>
-                              <button onClick={() => handleDelete(idiom.id)} className="text-xs px-4 py-2 border border-red-200 text-red-500 rounded-lg font-bold hover:bg-red-50 transition-colors">삭제</button>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      {/* 🌟 마법의 핵심: hidden으로 모습만 감추고 코드는 남겨서 구글봇이 싹 다 긁어가게 만듭니다! */}
+                      <div className={`p-6 md:p-8 bg-slate-50 border-t border-slate-100 overflow-hidden transition-all duration-300 ${expandedId === idiom.id ? 'block animate-in fade-in' : 'hidden'}`}>
+                        <div className="text-slate-700 text-sm md:text-[16px] leading-loose break-keep font-sans" dangerouslySetInnerHTML={{ __html: renderContentWithLineBreaks(idiom.content) }} />
+                        
+                        {isAdmin && (
+                          <div className="mt-8 pt-4 border-t border-slate-200 flex justify-end gap-2">
+                            <button onClick={() => handleEditClick(idiom)} style={{ color: '#2563EB', borderColor: '#2563EB' }} className="text-xs px-4 py-2 border rounded-lg font-bold hover:opacity-70 transition-opacity">수정</button>
+                            <button onClick={() => handleDelete(idiom.id)} className="text-xs px-4 py-2 border border-red-200 text-red-500 rounded-lg font-bold hover:bg-red-50 transition-colors">삭제</button>
+                          </div>
+                        )}
+                      </div>
                     </article>
                   );
                 })
