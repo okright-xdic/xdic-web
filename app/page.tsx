@@ -76,11 +76,43 @@ export default async function Page({
   let results: any[] = [];
   let highlightKeys: string[] = cleanQuery ? [cleanQuery] : [];
 
+  // 실시간 최근 검색어 & 인기 검색어 집계 로직 (이전과 동일)
+  let globalRecent: { word: string; count: number }[] = [];
+  let globalPopular: string[] = [];
+
+  try {
+    const { data: logs } = await supabase
+      .from('search_logs')
+      .select('keyword')
+      .order('created_at', { ascending: false })
+      .limit(1000);
+
+    if (logs && logs.length > 0) {
+      // 빈도수 계산
+      const counts: Record<string, number> = {};
+      logs.forEach(l => {
+        counts[l.keyword] = (counts[l.keyword] || 0) + 1;
+      });
+
+      // 1. 최근 검색어 (중복 제거 후 최근 15개提取, 카운트 포함)
+      const uniqueRecents = Array.from(new Set(logs.map(l => l.keyword)));
+      globalRecent = uniqueRecents.slice(0, 15).map(word => ({
+        word,
+        count: counts[word] || 1
+      }));
+
+      // 2. 인기 검색어 (빈도수 계산 후 Top 20)
+      globalPopular = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1]) // 많이 검색된 순으로 정렬
+        .map(entry => entry[0])
+        .slice(0, 20);
+    }
+  } catch (e) {
+    console.error('검색어 집계 실패:', e);
+  }
+
   if (cleanQuery && noSpaceLen >= 2) {
     try {
-      // ---------------------------------------------------------
-      // [STEP 0] 하이라이트 확장 (category_id=0)
-      // ---------------------------------------------------------
       const { data: cat0Data } = await supabase
         .from('dictionary_lines')
         .select('line_text')
@@ -97,33 +129,23 @@ export default async function Page({
         highlightKeys = [...new Set([...highlightKeys, ...add])].filter((w) => w && w.trim());
       }
 
-      // ---------------------------------------------------------
-      // ✅ 3단계 “만능” 검색
-      // 1) 항상 뒤에 space 붙여 검색
-      // 2) 결과 없으면 space 제거 후 검색
-      // 3) 그래도 없으면(공백 있으면) 합쳐서 검색
-      // ---------------------------------------------------------
       const step1 = cleanQuery + ' ';
       const step2 = cleanQuery;
       const step3 = cleanQuery.includes(' ') ? cleanQuery.replace(/\s+/g, '') : '';
 
-      // STEP 1
       const { data: d1, error: e1 } = await supabase.rpc('search_dictionary_v8', { keyword: step1 });
       if (!e1 && Array.isArray(d1)) results = d1;
 
-      // STEP 2
       if (results.length === 0) {
         const { data: d2 } = await supabase.rpc('search_dictionary_v8', { keyword: step2 });
         if (Array.isArray(d2) && d2.length > 0) results = d2;
       }
 
-      // STEP 3
       if (results.length === 0 && step3) {
         const { data: d3 } = await supabase.rpc('search_dictionary_v8', { keyword: step3 });
         if (Array.isArray(d3) && d3.length > 0) results = d3;
       }
 
-      // [비상 검색] - RPC 실패/에러 시 like 검색
       if (results.length === 0) {
         const { data: fallback } = await supabase
           .from('dictionary_lines')
@@ -135,7 +157,6 @@ export default async function Page({
         results = fallback || [];
       }
 
-      // [최종 정렬]
       if (results.length > 0) {
         results = rotateResults(results, cleanQuery);
       }
@@ -144,8 +165,17 @@ export default async function Page({
     }
   }
 
-  // ✅ 웹은 기본 false (광고/배너 표시)
   const isApp = searchParams.app === '1';
 
-  return <SearchPage query={query} results={results} highlightList={highlightKeys} isApp={isApp} />;
+  // SearchPage로 집계한 데이터를 넘겨줍니다!
+  return (
+    <SearchPage 
+      query={query} 
+      results={results} 
+      highlightList={highlightKeys} 
+      isApp={isApp} 
+      popularSearches={globalPopular}
+      recentSearches={globalRecent}
+    />
+  );
 }

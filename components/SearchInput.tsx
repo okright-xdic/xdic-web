@@ -13,14 +13,9 @@ interface SearchInputProps {
   isApp?: boolean;
 }
 
-type RecentItem = { keyword: string; count: number };
-
-const RECENT_KEY = 'xdic_recent_searches_v2';
-const UPDATED_EVENT = 'xdic_recent_searches_updated';
 const MIC_USER_ENABLED_KEY = 'xdic_mic_user_enabled_v1';
 const BANNED_WORDS = ['비속어', '욕설', 'badword', 'xxx', '도박', '성인'];
 
-// 🌟 핵심: 마이크 상태를 단순 ON/OFF가 아닌 '언어'로 관리합니다.
 type MicLang = 'ko-KR' | 'en-US' | null;
 
 export default function SearchInput({
@@ -44,17 +39,11 @@ export default function SearchInput({
   const micLangRef = useRef<MicLang>(null);
   const isMountedRef = useRef(false);
 
-  // -------------------------
-  // WebSpeech refs
-  // -------------------------
   const recognitionRef = useRef<any>(null);
   const webRestartTimerRef = useRef<any>(null);
   const webBackoffRef = useRef<number>(700);
   const webStartingRef = useRef(false);
 
-  // -------------------------
-  // Native refs
-  // -------------------------
   const nativeRestartTimerRef = useRef<any>(null);
   const nativeRunningRef = useRef(false);
 
@@ -73,7 +62,6 @@ export default function SearchInput({
 
     if (typeof window !== 'undefined') {
       const saved = sessionStorage.getItem(MIC_USER_ENABLED_KEY);
-      // 기존 호환성을 위해 'true'로 저장된 분들은 한국어로 매핑합니다.
       if (saved === 'true' || saved === 'ko-KR') {
         micLangRef.current = 'ko-KR';
         setMicLang('ko-KR');
@@ -95,63 +83,6 @@ export default function SearchInput({
     micLangRef.current = micLang;
   }, [micLang]);
 
-  // =========================================================
-  // 최근 검색어 저장
-  // =========================================================
-  const safeParse = (raw: string | null): RecentItem[] => {
-    if (!raw) return [];
-    try {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') {
-        return parsed
-          .map((x: any) => ({
-            keyword: String(x?.keyword || '').trim(),
-            count: Number(x?.count || 1),
-          }))
-          .filter((x: RecentItem) => x.keyword);
-      }
-      if (Array.isArray(parsed) && (parsed.length === 0 || typeof parsed[0] === 'string')) {
-        return parsed
-          .map((s: any) => String(s || '').trim())
-          .filter(Boolean)
-          .map((keyword) => ({ keyword, count: 1 }));
-      }
-      return [];
-    } catch {
-      return [];
-    }
-  };
-
-  const dispatchRecentUpdated = () => {
-    if (typeof window === 'undefined') return;
-    window.dispatchEvent(new Event(UPDATED_EVENT));
-  };
-
-  const saveToRecent = (keywordRaw: string) => {
-    if (typeof window === 'undefined') return;
-    const cleaned = String(keywordRaw || '').trim();
-    if (!cleaned) return;
-
-    const raw = localStorage.getItem(RECENT_KEY);
-    let items = safeParse(raw);
-
-    const idx = items.findIndex((it) => it.keyword === cleaned);
-    if (idx >= 0) {
-      const target = items[idx];
-      items.splice(idx, 1);
-      items.unshift({ ...target, count: (target.count || 1) + 1 });
-    } else {
-      items.unshift({ keyword: cleaned, count: 1 });
-    }
-
-    if (items.length > 20) items = items.slice(0, 20);
-    localStorage.setItem(RECENT_KEY, JSON.stringify(items));
-    dispatchRecentUpdated();
-  };
-
-  // =========================================================
-  // 검색
-  // =========================================================
   const normalizeFinalQuery = (rawQuery: string) => {
     const trimmed = (rawQuery || '').trim();
     if (!trimmed) return '';
@@ -182,8 +113,7 @@ export default function SearchInput({
     const finalQuery = normalizeFinalQuery(rawQuery);
     if (!finalQuery) return;
 
-    saveToRecent(trimmed);
-
+    // 🌟 [추가됨] 로컬이 아닌 서버(DB)로 검색어 전송!
     if (typeof window !== 'undefined') {
       fetch('/api/log-search', {
         method: 'POST',
@@ -221,9 +151,6 @@ export default function SearchInput({
     setQuery(pasted.replace(/\s+/g, ' ').trim());
   };
 
-  // =========================================================
-  // (A) Web Speech API
-  // =========================================================
   const getSpeechRecognitionCtor = () => {
     if (typeof window === 'undefined') return null;
     return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
@@ -304,7 +231,6 @@ export default function SearchInput({
     const recognition = new Ctor();
     recognitionRef.current = recognition;
 
-    // 🌟 선택된 언어로 세팅합니다!
     recognition.lang = micLangRef.current;
     recognition.continuous = false;
     recognition.interimResults = false;
@@ -364,9 +290,6 @@ export default function SearchInput({
     }
   };
 
-  // =========================================================
-  // (B) Native APP
-  // =========================================================
   const clearNativeTimer = () => {
     if (nativeRestartTimerRef.current) clearTimeout(nativeRestartTimerRef.current);
     nativeRestartTimerRef.current = null;
@@ -431,7 +354,6 @@ export default function SearchInput({
       if (!isMountedRef.current) return;
       setIsListening(true); 
 
-      // 🌟 선택된 언어로 Native 인식 시작!
       const result = await SpeechRecognition.start({
         language: micLangRef.current,
         maxResults: 1,
@@ -523,17 +445,14 @@ export default function SearchInput({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isNativeApp]);
 
-  // 🌟 언어를 인자로 받는 새로운 토글 핸들러
   const handleMicToggle = (targetLang: 'ko-KR' | 'en-US') => {
     if (typeof window === 'undefined') return;
 
     setMicLang((prev) => {
       if (prev === targetLang) {
-        // 이미 켜진 언어를 누르면 끄기
         try { sessionStorage.removeItem(MIC_USER_ENABLED_KEY); } catch {}
         return null;
       } else {
-        // 다른 언어를 누르거나, 처음 켤 때
         try { sessionStorage.setItem(MIC_USER_ENABLED_KEY, targetLang); } catch {}
         return targetLang;
       }
@@ -544,7 +463,6 @@ export default function SearchInput({
     <div className={`relative w-full ${className}`}>
       <form onSubmit={handleSearch} className="w-full">
         <div
-          // 🌟 마이크 선택에 따라 테두리 색상도 예쁘게 변하도록 적용 (한국어: 빨강 / 영어: 파랑)
           className={`relative flex items-center w-full h-12 md:h-14 rounded-full border-2 bg-white overflow-hidden shadow-sm transition-colors
             ${
               micLang === 'ko-KR'
@@ -588,7 +506,6 @@ export default function SearchInput({
               </button>
             )}
 
-            {/* 🌟 한국어 마이크 버튼 */}
             <button
               type="button"
               onClick={() => handleMicToggle('ko-KR')}
@@ -609,7 +526,6 @@ export default function SearchInput({
               </svg>
             </button>
 
-            {/* 🌟 영어 마이크 버튼 */}
             <button
               type="button"
               onClick={() => handleMicToggle('en-US')}
@@ -644,7 +560,6 @@ export default function SearchInput({
           </div>
         </div>
 
-        {/* 🌟 하단 상태 메시지도 언어에 따라 빨강/파랑으로 우아하게 변경! */}
         <div className={`mt-2 h-5 text-xs md:text-sm text-center font-medium
           ${micLang === 'ko-KR' ? 'text-red-500' : micLang === 'en-US' ? 'text-blue-500' : 'text-transparent'}`}
         >

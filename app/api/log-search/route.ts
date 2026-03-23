@@ -6,7 +6,7 @@ export async function POST(request: Request) {
     const { keyword } = await request.json();
     const trimmed = (keyword || '').trim();
 
-    // 단어가 없거나 너무 짧으면 저장하지 않음
+    // 단어가 없거나 너무 짧으면 저장하지 않음 (의미 없는 데이터 방지)
     if (!trimmed || trimmed.length < 2) {
       return NextResponse.json({ success: false, msg: 'Too short' });
     }

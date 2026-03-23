@@ -6,11 +6,8 @@ import Link from 'next/link';
 import { Capacitor } from '@capacitor/core';
 import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
-import RecentKeywords from '@/components/RecentKeywords';
-import PopularKeywords from '@/components/PopularKeywords';
 import TrendGraph from '@/components/TrendGraph';
 import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
-// 🌟 뉘앙스 위젯 불러오기
 import NuanceWidget from '@/components/NuanceWidget'; 
 
 interface SearchResult {
@@ -25,6 +22,8 @@ interface SearchPageProps {
   results?: SearchResult[];
   highlightList?: string[];
   isApp?: boolean;
+  popularSearches?: string[];
+  recentSearches?: { word: string; count: number }[];
 }
 
 const CATEGORY_NAMES: Record<number, string> = {
@@ -43,7 +42,23 @@ const CATEGORY_NAMES: Record<number, string> = {
   12: '기타',
 };
 
-export default function SearchPage({ query, results = [], highlightList = [], isApp = false }: SearchPageProps) {
+// 알록달록한 파스텔톤 해시태그 컬러 팔레트
+const TAG_COLORS = [
+  'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-100',
+  'bg-pink-50 text-pink-600 hover:bg-pink-100 border-pink-100',
+  'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-100',
+  'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-100',
+  'bg-purple-50 text-purple-600 hover:bg-purple-100 border-purple-100',
+];
+
+export default function SearchPage({ 
+  query, 
+  results = [], 
+  highlightList = [], 
+  isApp = false,
+  popularSearches = [], 
+  recentSearches = []   
+}: SearchPageProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -58,6 +73,10 @@ export default function SearchPage({ query, results = [], highlightList = [], is
 
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
+
+  const getSearchUrl = (keyword: string) => {
+    return displayIsApp ? `/app?q=${encodeURIComponent(keyword)}` : `/?q=${encodeURIComponent(keyword)}`;
+  };
 
   useEffect(() => {
     setCurrentPage(1);
@@ -89,7 +108,6 @@ export default function SearchPage({ query, results = [], highlightList = [], is
       window.speechSynthesis.cancel(); 
       
       const voices = window.speechSynthesis.getVoices();
-
       const enVoices = voices.filter(v => v.lang.startsWith('en'));
       const koVoices = voices.filter(v => v.lang.startsWith('ko'));
 
@@ -141,7 +159,6 @@ export default function SearchPage({ query, results = [], highlightList = [], is
         if (!/[a-zA-Z가-힣0-9]/.test(part.text)) return; 
 
         const utterance = new SpeechSynthesisUtterance(part.text);
-
         if (part.lang === 'ko') {
           if (koVoice) utterance.voice = koVoice;
           utterance.lang = koVoice ? koVoice.lang : 'ko-KR';
@@ -153,7 +170,6 @@ export default function SearchPage({ query, results = [], highlightList = [], is
           utterance.pitch = 0.9;  
           utterance.rate = 0.85; 
         }
-
         window.speechSynthesis.speak(utterance);
       });
 
@@ -206,53 +222,29 @@ export default function SearchPage({ query, results = [], highlightList = [], is
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
-        
         <header className={`w-full ${displayIsApp ? 'pt-14 pb-0' : 'pt-8 pb-0 md:pt-16 md:pb-0'}`}>
-          
           {displayIsApp ? (
             <div className="flex justify-center mb-5">
               <a href="/app" className="cursor-pointer">
-                <Image
-                  src="/images/LOGO_01_ChatGPT_S.jpg"
-                  alt="X-DIC Logo"
-                  width={140}
-                  height={70}
-                  className="object-contain hover:opacity-90 transition-opacity"
-                  priority
-                />
+                <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="X-DIC Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
               </a>
             </div>
           ) : (
             <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-5">
               <div className="flex-shrink-0">
                 <a href="/" className="cursor-pointer">
-                  <Image
-                    src="/images/LOGO_01_ChatGPT_S.jpg"
-                    alt="X-DIC Logo"
-                    width={140}
-                    height={70}
-                    className="object-contain hover:opacity-90 transition-opacity"
-                    priority
-                  />
+                  <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="X-DIC Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
                 </a>
               </div>
-
               <div className="flex flex-col gap-1 justify-center text-center md:text-left">
                 <a href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
-                  <h1 className="text-xl md:text-[24px] font-extrabold text-slate-800 leading-tight md:leading-none">
-                    한영/영한사전 – 복합어 전문 엑스딕!
-                  </h1>
+                  <h1 className="text-xl md:text-[24px] font-extrabold text-slate-800 leading-tight md:leading-none">한영/영한사전 – 복합어 전문 엑스딕!</h1>
                 </a>
-                <p className="text-sm md:text-[16px] text-slate-500 font-medium leading-tight mt-1">
-                  Korean-English/English-Korean Dictionary – Compound Terminology Dictionary
-                </p>
-                <p className="text-[11px] md:text-[12px] text-slate-400 font-normal leading-tight mt-1">
-                  * 엑스딕(X-DIC)은 Expert Dictionary의 약자로, 복합어 검색 전문 한영/영한 용어사전입니다.
-                </p>
+                <p className="text-sm md:text-[16px] text-slate-500 font-medium leading-tight mt-1">Korean-English/English-Korean Dictionary – Compound Terminology Dictionary</p>
+                <p className="text-[11px] md:text-[12px] text-slate-400 font-normal leading-tight mt-1">* 엑스딕(X-DIC)은 Expert Dictionary의 약자로, 복합어 검색 전문 한영/영한 용어사전입니다.</p>
               </div>
             </div>
           )}
-
           <div className="w-full">
             <SearchInput initialQuery={displayQuery} isApp={displayIsApp} />
           </div>
@@ -263,6 +255,7 @@ export default function SearchPage({ query, results = [], highlightList = [], is
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           {displayQuery ? (
             <div className="w-full mt-5">
+              {/* === 검색 결과 화면 (생략 없이 원본 유지) === */}
               {isTooShort ? (
                 <div className="py-32 text-center text-slate-400 text-xl font-light italic animate-in fade-in slide-in-from-bottom-2 duration-300">
                   단어는 <span style={{ color: '#ea580c', fontWeight: 'bold' }}>두 글자 이상</span> 입력해 주세요.
@@ -287,24 +280,16 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                                   className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
                                   title="발음 듣기"
                                 >
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                                    <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
-                                  </svg>
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
                                 </button>
                               )}
-
                               <div className="text-base md:text-lg leading-snug break-keep">{highlightMatch(item.line_text)}</div>
                             </div>
-
-                            <span
-                              className="flex-shrink-0 ml-3 px-2 py-0.5 rounded text-xs tracking-tight whitespace-nowrap shadow-sm"
-                              style={{ backgroundColor: '#d4b08c', color: '#ffffff', fontWeight: '500', fontFamily: 'sans-serif' }}
-                            >
+                            <span className="flex-shrink-0 ml-3 px-2 py-0.5 rounded text-xs tracking-tight whitespace-nowrap shadow-sm" style={{ backgroundColor: '#d4b08c', color: '#ffffff', fontWeight: '500', fontFamily: 'sans-serif' }}>
                               {getCategoryName(item.category_id)}
                             </span>
                           </div>
                         </li>
-
                         {!displayIsApp && idx === 6 && <AdSensePlaceholder adSlot="8675599033" debugLabel="PC_검색결과_중간" minHeight={200} />}
                       </React.Fragment>
                     ))}
@@ -312,62 +297,23 @@ export default function SearchPage({ query, results = [], highlightList = [], is
 
                   {displayResults.length > itemsPerPage && (
                     <div className="flex justify-center items-center gap-3 mt-12 mb-12 select-none font-sans">
-                      <button
-                        onClick={() => handlePageChange(1)}
-                        disabled={currentPage === 1}
-                        className="text-xs font-bold text-slate-400 hover:text-orange-600 hover:bg-orange-50 px-2 py-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        &lt;&lt;
-                      </button>
-                      <button
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        이전
-                      </button>
-
+                      <button onClick={() => handlePageChange(1)} disabled={currentPage === 1} className="text-xs font-bold text-slate-400 hover:text-orange-600 hover:bg-orange-50 px-2 py-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed">&lt;&lt;</button>
+                      <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">이전</button>
                       <div className="flex items-center gap-2 mx-2">
                         {Array.from({ length: totalPages }, (_, i) => i + 1).map((number, idx, arr) => (
                           <React.Fragment key={number}>
-                            <button
-                              onClick={() => handlePageChange(number)}
-                              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${
-                                currentPage === number
-                                  ? 'bg-slate-800 text-white font-bold shadow-md transform scale-105'
-                                  : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
-                              }`}
-                            >
-                              {number}
-                            </button>
+                            <button onClick={() => handlePageChange(number)} className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${currentPage === number ? 'bg-slate-800 text-white font-bold shadow-md transform scale-105' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'}`}>{number}</button>
                             {idx < arr.length - 1 && <span className="text-[10px] text-slate-300 mx-0.5">•</span>}
                           </React.Fragment>
                         ))}
                       </div>
-
-                      <button
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        다음
-                      </button>
-                      <button
-                        onClick={() => handlePageChange(totalPages)}
-                        disabled={currentPage === totalPages}
-                        className="text-xs font-bold text-slate-400 hover:text-orange-600 hover:bg-orange-50 px-2 py-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        &gt;&gt;
-                      </button>
+                      <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">다음</button>
+                      <button onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages} className="text-xs font-bold text-slate-400 hover:text-orange-600 hover:bg-orange-50 px-2 py-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed">&gt;&gt;</button>
                     </div>
                   )}
                   
-                  <div className="mt-12 mb-4">
-                    <NuanceWidget />
-                  </div>
-
+                  <div className="mt-12 mb-4"><NuanceWidget /></div>
                   {!displayIsApp && <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_검색결과_하단" minHeight={250} />}
-
                   <div className="py-8 text-center border-t border-slate-100 mt-8">
                     <p className="text-sm text-slate-400">{displayResults.length}개의 결과를 모두 확인했습니다.</p>
                   </div>
@@ -380,18 +326,8 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                   </h3>
                   <p className="text-slate-500 text-sm mb-8">내부 사전에 데이터가 없네요. 외부 사이트에서 찾아보시겠어요?</p>
                   <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
-                    <button
-                      onClick={() => handleExternalSearch('naver')}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-[#03C75A] hover:bg-[#02b351] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md"
-                    >
-                      <span className="text-lg font-serif">N</span>네이버 사전 검색
-                    </button>
-                    <button
-                      onClick={() => handleExternalSearch('google')}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition-all shadow-sm hover:shadow-md"
-                    >
-                      Google 검색
-                    </button>
+                    <button onClick={() => handleExternalSearch('naver')} className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-[#03C75A] hover:bg-[#02b351] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md"><span className="text-lg font-serif">N</span>네이버 사전 검색</button>
+                    <button onClick={() => handleExternalSearch('google')} className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition-all shadow-sm hover:shadow-md">Google 검색</button>
                   </div>
                 </div>
               )}
@@ -399,14 +335,8 @@ export default function SearchPage({ query, results = [], highlightList = [], is
           ) : (
             <div className="mt-5 space-y-4 md:space-y-6 animate-in fade-in duration-500">
               
-              {/* ========================================================== */}
-              {/* 🌟 1. 뉘앙스 위젯을 맨 위(첫 번째)로 끌어올렸습니다! */}
-              {/* ========================================================== */}
               <NuanceWidget />
 
-              {/* ========================================================== */}
-              {/* 🌟 2. 오늘의 추천 복합어는 두 번째로 이동했습니다! */}
-              {/* ========================================================== */}
               <div className="bg-blue-50/50 rounded-xl md:rounded-2xl p-4 md:p-6 border border-blue-100 shadow-sm">
                 <h2 className="text-sm md:text-base font-extrabold text-slate-800 mb-3 md:mb-4 flex items-center gap-2">
                   <span className="text-blue-600">💡</span> 오늘의 추천 복합어 및 전문용어
@@ -427,18 +357,81 @@ export default function SearchPage({ query, results = [], highlightList = [], is
                 </div>
               </div>
 
+              {/* === 그리드 영역: 위치 변경 및 크기 통일 === */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                
+                {/* 1. 배너 (좌측 상단) */}
                 {!displayIsApp && (
-                  <div className="h-[180px] relative rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50">
+                  <div className="h-[280px] relative rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50">
                     <Image src="/images/mobile-app-banner-bright.png" alt="배너" fill className="object-contain" />
                   </div>
                 )}
-                <RecentKeywords />
-                <PopularKeywords />
+                
+                {/* ========================================================== */}
+                {/* 🌟 2. 최근 검색어 (우측 상단으로 이동 & 예전 해시태그 디자인 복구!) */}
+                {/* ========================================================== */}
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[280px]">
+                  <h2 className="text-[15px] font-extrabold text-slate-800 mb-4 flex items-center gap-2">
+                    <span className="text-blue-500">🕒</span> 실시간 전체 유저 검색어
+                  </h2>
+                  <div className="flex flex-wrap gap-2 overflow-y-auto content-start flex-grow pr-1" style={{ scrollbarWidth: 'thin' }}>
+                    {recentSearches.length > 0 ? (
+                      recentSearches.map((item, idx) => {
+                        const colorClass = TAG_COLORS[idx % TAG_COLORS.length];
+                        return (
+                          <Link key={idx} href={getSearchUrl(item.word)} className={`group flex items-center px-3 py-1.5 rounded-full border text-[13px] font-bold transition-all shadow-sm ${colorClass}`}>
+                            <span className="opacity-50 mr-1 font-normal">#</span>
+                            <span>{item.word}</span>
+                            {item.count > 1 && (
+                              <span className="ml-1 opacity-70 text-[11px] font-normal">(x{item.count})</span>
+                            )}
+                          </Link>
+                        );
+                      })
+                    ) : (
+                      <div className="text-sm text-slate-400 font-medium px-1">최근 검색 데이터를 불러오는 중입니다...</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* ========================================================== */}
+                {/* 🌟 3. 인기 검색어 TOP 20 (좌측 하단으로 이동 & 예전 스크롤 리스트 디자인 복구!) */}
+                {/* ========================================================== */}
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[280px]">
+                  <h2 className="text-[15px] font-extrabold text-slate-800 mb-3 flex items-center gap-2">
+                    <span className="text-red-500">🔥</span> 실시간 인기 검색어 TOP 20
+                  </h2>
+                  <ul className="flex-grow overflow-y-auto pr-2 space-y-1" style={{ scrollbarWidth: 'thin' }}>
+                    {popularSearches.length > 0 ? (
+                      popularSearches.map((word, idx) => (
+                        <li key={idx}>
+                          <Link href={getSearchUrl(word)} className="flex items-center py-2 px-2 hover:bg-slate-50 rounded-lg transition-colors group">
+                            <span className={`w-5 h-5 flex items-center justify-center rounded text-[11px] font-bold mr-3 transition-colors
+                              ${idx === 0 ? 'bg-yellow-100 text-yellow-700 group-hover:bg-yellow-200' : 
+                                idx === 1 ? 'bg-slate-200 text-slate-700 group-hover:bg-slate-300' : 
+                                idx === 2 ? 'bg-orange-100 text-orange-700 group-hover:bg-orange-200' : 
+                                'bg-slate-50 text-slate-400 group-hover:bg-slate-200'}`}
+                            >
+                              {idx + 1}
+                            </span>
+                            <span className="text-[14px] text-slate-700 font-medium truncate group-hover:text-blue-600 transition-colors">
+                              {word}
+                            </span>
+                          </Link>
+                        </li>
+                      ))
+                    ) : (
+                      <div className="text-sm text-slate-400 font-medium px-1">실시간 데이터를 분석 중입니다...</div>
+                    )}
+                  </ul>
+                </div>
+
+                {/* 4. 트렌드 그래프 (우측 하단) */}
                 <TrendGraph />
+                
               </div>
 
-              <div className="bg-slate-50 rounded-xl md:rounded-2xl p-5 md:p-8 border border-slate-200 text-xs md:text-sm text-slate-600 leading-relaxed shadow-sm">
+              <div className="bg-slate-50 rounded-xl md:rounded-2xl p-5 md:p-8 border border-slate-200 text-xs md:text-sm text-slate-600 leading-relaxed shadow-sm mt-8">
                 <h3 className="font-extrabold text-slate-800 mb-2 md:mb-3 text-sm md:text-base flex items-center gap-2">
                   <span>📖</span> 엑스딕(X-DIC) 영한/한영 복합어 사전 활용 가이드
                 </h3>
