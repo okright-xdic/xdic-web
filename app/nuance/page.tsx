@@ -210,7 +210,7 @@ export default function NuancePage() {
                 <button 
                   onClick={handleSave} 
                   style={{ backgroundColor: '#059669', color: '#ffffff' }}
-                  className="px-5 py-2 text-sm rounded-lg font-bold shadow-sm hover:opacity-80 transition-opacity"
+                  className="px-5 py-2 text-sm rounded-lg font-bold shadow-md hover:opacity-80 transition-opacity"
                 >
                   {editingId ? '수정 완료' : '저장하기'}
                 </button>
@@ -244,7 +244,6 @@ export default function NuancePage() {
                         </div>
                       </div>
 
-                      {/* 🌟 마법의 핵심: hidden으로 모습만 감추고 코드는 남겨서 구글봇이 싹 다 긁어가게 만듭니다! */}
                       <div className={`p-6 md:p-8 bg-slate-50 border-t border-slate-100 overflow-hidden transition-all duration-300 ${expandedId === nuance.id ? 'block animate-in fade-in' : 'hidden'}`}>
                         <div className="text-slate-700 text-sm md:text-[16px] leading-loose break-keep font-sans" dangerouslySetInnerHTML={{ __html: renderContentWithLineBreaks(nuance.content) }} />
                         
