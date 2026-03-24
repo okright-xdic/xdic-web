@@ -57,6 +57,61 @@ export default function SearchInput({
     return () => clearTimeout(t);
   }, [autoFocus]);
 
+  // =========================================================
+  // 🌟 [무적 마법 1] 전역 붙여넣기 (Ctrl+V) 완벽 납치!
+  // =========================================================
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleGlobalPaste = (e: ClipboardEvent) => {
+      // 복사된 텍스트가 있는지 확인
+      const pastedText = e.clipboardData?.getData('text');
+      
+      if (pastedText) {
+        // 브라우저가 원래 하려던 짓(글자 이어붙이기)을 완벽하게 차단!
+        e.preventDefault();
+        
+        // 쓸데없는 띄어쓰기 싹 정리
+        const cleanText = pastedText.replace(/\s+/g, ' ').trim();
+        
+        // 묻지도 따지지도 않고 기존 검색어 날려버린 후 새 단어로 100% 덮어쓰기!
+        setQuery(cleanText);
+        
+        // 검색창으로 커서 강제 소환!
+        inputRef.current?.focus();
+      }
+    };
+
+    // 문서 전체 어디서든 Ctrl+V를 누르면 위 로직이 작동하도록 감시
+    document.addEventListener('paste', handleGlobalPaste);
+    return () => document.removeEventListener('paste', handleGlobalPaste);
+  }, []);
+
+  // =========================================================
+  // 🌟 [무적 마법 2] 엑스딕 내부에서 복사 (Ctrl+C) 시 자동 리셋
+  // =========================================================
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleGlobalCopy = () => {
+      // 사용자가 이미 검색창 안에서 글씨를 복사 중이라면 무시 (검색어 보호)
+      if (document.activeElement === inputRef.current) return;
+
+      // 마우스로 드래그한 글씨가 있는지 확인
+      const selection = window.getSelection();
+      if (selection && selection.toString().trim().length > 0) {
+        // 컴퓨터가 클립보드에 복사를 완료할 수 있도록 0.05초 대기 후 리셋!
+        setTimeout(() => {
+          setQuery('');
+          inputRef.current?.focus();
+        }, 50);
+      }
+    };
+
+    document.addEventListener('copy', handleGlobalCopy);
+    return () => document.removeEventListener('copy', handleGlobalCopy);
+  }, []);
+
   useEffect(() => {
     isMountedRef.current = true;
 
@@ -113,7 +168,6 @@ export default function SearchInput({
     const finalQuery = normalizeFinalQuery(rawQuery);
     if (!finalQuery) return;
 
-    // 🌟 [추가됨] 로컬이 아닌 서버(DB)로 검색어 전송!
     if (typeof window !== 'undefined') {
       fetch('/api/log-search', {
         method: 'POST',
@@ -143,12 +197,6 @@ export default function SearchInput({
   const handleClear = () => {
     setQuery('');
     setTimeout(() => inputRef.current?.focus(), 0);
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData('text') || '';
-    setQuery(pasted.replace(/\s+/g, ' ').trim());
   };
 
   const getSpeechRecognitionCtor = () => {
@@ -478,7 +526,8 @@ export default function SearchInput({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            onPaste={handlePaste}
+            // 🌟 [무적 마법 3] 검색창 클릭 시 글씨 파란색으로 '전체 선택'!
+            onFocus={(e) => e.target.select()} 
             readOnly={isPending}
             placeholder={
               placeholder ||
