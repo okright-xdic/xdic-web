@@ -245,7 +245,8 @@ export default function SearchPage({
             </div>
           )}
           <div className="w-full">
-            <SearchInput initialQuery={displayQuery} isApp={displayIsApp} />
+            {/* 🌟 수정 부분: autoFocus={!displayQuery} 추가! 메인화면일 때만 켜지게 설정! */}
+            <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
           </div>
         </header>
       </div>
@@ -363,13 +364,11 @@ export default function SearchPage({
                   </div>
                 )}
                 
-                {/* 🌟 2. 최근 검색어 (가짜 버튼을 진짜 Link로 교체) */}
                 <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[280px]">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-[15px] font-extrabold text-slate-800 flex items-center gap-2">
                       <span className="text-blue-500">🕒</span> 실시간 전체 유저 검색어
                     </h2>
-                    {/* 🌟 수정 부분: 버튼 대신 Link 태그로 이동 적용! */}
                     <Link href="/recent" className="text-[11px] font-medium text-slate-400 hover:text-slate-600 transition-colors">
                       더보기 &gt;
                     </Link>
@@ -394,13 +393,11 @@ export default function SearchPage({
                   </div>
                 </div>
 
-                {/* 🌟 3. 인기 검색어 TOP 20 (가짜 버튼을 진짜 Link로 교체) */}
                 <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[280px]">
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-[15px] font-extrabold text-slate-800 flex items-center gap-2">
                       <span className="text-red-500">🔥</span> 실시간 인기 검색어 TOP 20
                     </h2>
-                    {/* 🌟 수정 부분: 버튼 대신 Link 태그로 이동 적용! */}
                     <Link href="/popular" className="text-[11px] font-medium text-slate-400 hover:text-slate-600 transition-colors">
                       더보기 &gt;
                     </Link>
@@ -430,7 +427,6 @@ export default function SearchPage({
                   </ul>
                 </div>
 
-                {/* 4. 트렌드 그래프 (우측 하단) */}
                 <TrendGraph />
                 
               </div>
