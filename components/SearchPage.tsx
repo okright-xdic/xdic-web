@@ -24,6 +24,8 @@ interface SearchPageProps {
   isApp?: boolean;
   popularSearches?: string[];
   recentSearches?: { word: string; count: number }[];
+  isPartialMatch?: boolean;
+  matchedKeywords?: string[];
 }
 
 const CATEGORY_NAMES: Record<number, string> = {
@@ -56,7 +58,9 @@ export default function SearchPage({
   highlightList = [], 
   isApp = false,
   popularSearches = [], 
-  recentSearches = []   
+  recentSearches = [],
+  isPartialMatch = false,
+  matchedKeywords = []    
 }: SearchPageProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
@@ -245,7 +249,6 @@ export default function SearchPage({
             </div>
           )}
           <div className="w-full">
-            {/* 🌟 수정 부분: autoFocus={!displayQuery} 추가! 메인화면일 때만 켜지게 설정! */}
             <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
           </div>
         </header>
@@ -261,6 +264,23 @@ export default function SearchPage({
                 </div>
               ) : displayResults.length > 0 ? (
                 <div className="space-y-6">
+                  
+                  {isPartialMatch && matchedKeywords.length > 0 && (
+                    <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl shadow-sm mb-4 animate-in fade-in slide-in-from-top-2">
+                      <div className="flex items-start gap-3">
+                        <span className="text-xl">💡</span>
+                        <div>
+                          <p className="text-[14px] md:text-[15px] font-bold text-slate-800 mb-1 leading-snug">
+                            입력하신 문장 전체와 정확히 일치하는 용어가 없습니다.
+                          </p>
+                          <p className="text-[12px] md:text-[13px] text-slate-600">
+                            대신, 추출한 핵심 단어 <strong className="text-orange-600">"{matchedKeywords.join(', ')}"</strong> (이)가 포함된 결과를 찾아봤어요!
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                     <span className="text-sm font-semibold text-slate-500">
                       검색 결과 <span style={{ color: '#2563eb', fontWeight: 'bold' }}>{displayResults.length}</span>건

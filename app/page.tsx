@@ -62,6 +62,34 @@ const rotateResults = (items: any[], keyword: string) => {
   return rotated;
 };
 
+// 🌟 [핵심 마법] 한국어 조사/어미 & 영어 쓸데없는 단어 강력 필터링!
+const extractKeywords = (query: string): string[] => {
+  const tokens = query.split(/\s+/);
+  
+  // 한국어 흔한 조사 및 어미 확장
+  const kStopSuffixes = /(은|는|이|가|을|를|에|에게|에서|로|으로|의|와|과|하다|합니다|습니다|해요|했어요|할|하는|된|될|고|지|면|서|이다|입니다|입니까|인가요|인가|인데요|인지|이냐)$/g;
+  
+  // 영어 의미 없는 단어들
+  const eStopWords = new Set([
+    'a', 'an', 'the', 'is', 'are', 'was', 'were', 'am', 'be', 'been', 'being',
+    'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'about', 'as', 'into', 'like', 'through', 'after', 'over', 'between', 'out', 'against', 'during', 'without', 'before', 'under', 'around', 'among',
+    'and', 'or', 'but', 'so', 'because', 'although', 'if',
+    'i', 'you', 'he', 'she', 'it', 'they', 'we', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'their', 'our', 'mine', 'yours', 'theirs', 'ours',
+    'this', 'that', 'these', 'those',
+    'what', 'how', 'who', 'where', 'when', 'why', 'which', 'whose', 'whom',
+    'do', 'does', 'did', 'have', 'has', 'had', 'can', 'could', 'will', 'would', 'shall', 'should', 'may', 'might', 'must', 'cannot'
+  ]);
+
+  return tokens
+    .map(t => {
+      let clean = t;
+      if (eStopWords.has(clean.toLowerCase())) return '';
+      clean = clean.replace(kStopSuffixes, '');
+      return clean;
+    })
+    .filter(t => t.length >= 2); 
+};
+
 export default async function Page({
   searchParams,
 }: {
@@ -76,7 +104,9 @@ export default async function Page({
   let results: any[] = [];
   let highlightKeys: string[] = cleanQuery ? [cleanQuery] : [];
 
-  // 실시간 최근 검색어 & 인기 검색어 집계 로직 (이전과 동일)
+  let isPartialMatch = false;
+  let matchedKeywords: string[] = [];
+
   let globalRecent: { word: string; count: number }[] = [];
   let globalPopular: string[] = [];
 
@@ -88,22 +118,19 @@ export default async function Page({
       .limit(1000);
 
     if (logs && logs.length > 0) {
-      // 빈도수 계산
       const counts: Record<string, number> = {};
       logs.forEach(l => {
         counts[l.keyword] = (counts[l.keyword] || 0) + 1;
       });
 
-      // 1. 최근 검색어 (중복 제거 후 최근 15개提取, 카운트 포함)
       const uniqueRecents = Array.from(new Set(logs.map(l => l.keyword)));
       globalRecent = uniqueRecents.slice(0, 15).map(word => ({
         word,
         count: counts[word] || 1
       }));
 
-      // 2. 인기 검색어 (빈도수 계산 후 Top 20)
       globalPopular = Object.entries(counts)
-        .sort((a, b) => b[1] - a[1]) // 많이 검색된 순으로 정렬
+        .sort((a, b) => b[1] - a[1])
         .map(entry => entry[0])
         .slice(0, 20);
     }
@@ -157,6 +184,47 @@ export default async function Page({
         results = fallback || [];
       }
 
+      // =========================================================
+      // 🌟 [수정 완료] 조건: 1. 기존 결과가 0개일 때 AND 2. 검색어가 3단어 이상일 때만 발동!
+      // =========================================================
+      const wordCount = cleanQuery.split(/\s+/).length;
+      
+      if (results.length === 0 && wordCount >= 3) {
+        const validKeywords = extractKeywords(cleanQuery);
+        
+        if (validKeywords.length > 0) {
+          // 1순위: 남은 뼈대 단어들이 '모두' 포함된 문장 찾기 (AND 검색)
+          let andQueryBuilder = supabase.from('dictionary_lines').select('*');
+          validKeywords.forEach(k => {
+            andQueryBuilder = andQueryBuilder.ilike('line_text', `%${k}%`);
+          });
+          
+          const { data: andData } = await andQueryBuilder.limit(100);
+
+          if (andData && andData.length > 0) {
+            results = andData;
+            isPartialMatch = true;
+            matchedKeywords = validKeywords;
+            highlightKeys = [...new Set([...highlightKeys, ...validKeywords])];
+          } else {
+            // 2순위: 뼈대 단어 중 '하나라도' 포함된 문장 찾기 (OR 검색)
+            const orQueryStr = validKeywords.map(k => `line_text.ilike.%${k}%`).join(',');
+            const { data: partialData } = await supabase
+              .from('dictionary_lines')
+              .select('*')
+              .or(orQueryStr)
+              .limit(120);
+
+            if (partialData && partialData.length > 0) {
+              results = partialData;
+              isPartialMatch = true;
+              matchedKeywords = validKeywords;
+              highlightKeys = [...new Set([...highlightKeys, ...validKeywords])];
+            }
+          }
+        }
+      }
+
       if (results.length > 0) {
         results = rotateResults(results, cleanQuery);
       }
@@ -167,7 +235,6 @@ export default async function Page({
 
   const isApp = searchParams.app === '1';
 
-  // SearchPage로 집계한 데이터를 넘겨줍니다!
   return (
     <SearchPage 
       query={query} 
@@ -176,6 +243,8 @@ export default async function Page({
       isApp={isApp} 
       popularSearches={globalPopular}
       recentSearches={globalRecent}
+      isPartialMatch={isPartialMatch}
+      matchedKeywords={matchedKeywords}
     />
   );
 }
