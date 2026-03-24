@@ -5,7 +5,6 @@ import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 
-// ✅ 검색은 매 요청마다 갱신되게 (RPC/DB 반영 안정화)
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
@@ -62,14 +61,26 @@ const rotateResults = (items: any[], keyword: string) => {
   return rotated;
 };
 
-// 🌟 [핵심 마법] 한국어 조사/어미 & 영어 쓸데없는 단어 강력 필터링!
+// =========================================================
+// 🌟 [최고급 형태소 분석기] 한국어 기능어(Stop words) 완벽 제거!
+// =========================================================
 const extractKeywords = (query: string): string[] => {
   const tokens = query.split(/\s+/);
   
-  // 한국어 흔한 조사 및 어미 확장
-  const kStopSuffixes = /(은|는|이|가|을|를|에|에게|에서|로|으로|의|와|과|하다|합니다|습니다|해요|했어요|할|하는|된|될|고|지|면|서|이다|입니다|입니까|인가요|인가|인데요|인지|이냐)$/g;
+  // 1. 한국어 조사 및 어미
+  const kStopSuffixes = /(하셨습니까|하셨습니다|해보세요|했습니다|했습니까|하셨어요|했어요|보세요|하세요|이시여|라게|것을|도록|부터|까지|하고|이며|했다|봐요|했어|해라|에서|에게|으로|께서|이다|입니다|입니까|인가요|인가|인데요|인지|이냐|은|는|이|가|을|를|의|에|로|아|야|도|만|와|과|랑|고|지|면|서|된|될|할|하는)$/g;
   
-  // 영어 의미 없는 단어들
+  // 🌟 2. [신규 추가] 한국어 기능어 (대명사, 의문사, 존재사 등 완벽 차단)
+  const kStopWords = new Set([
+    '어디', '언제', '누구', '무엇', '어떻게', '왜', '어느', '무슨', '어떤', 
+    '이', '그', '저', '이것', '그것', '저것', '여기', '거기', '저기',
+    '있나요', '있습니까', '있어요', '있어', '있는', '있을', '있', 
+    '없나요', '없습니까', '없어요', '없어', '없는', '없을', '없',
+    '입니다', '입니까', '이에요', '예요', '합니다', '합니까', '해요', '해', '하는', '할', 
+    '수', '것', '들', '제', '내', '네', '너', '나', '우리', '저희', '좀', '잘', '더'
+  ]);
+
+  // 3. 영어 기능어 (의문사, 조동사, 전치사 등)
   const eStopWords = new Set([
     'a', 'an', 'the', 'is', 'are', 'was', 'were', 'am', 'be', 'been', 'being',
     'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'about', 'as', 'into', 'like', 'through', 'after', 'over', 'between', 'out', 'against', 'during', 'without', 'before', 'under', 'around', 'among',
@@ -80,15 +91,44 @@ const extractKeywords = (query: string): string[] => {
     'do', 'does', 'did', 'have', 'has', 'had', 'can', 'could', 'will', 'would', 'shall', 'should', 'may', 'might', 'must', 'cannot'
   ]);
 
+  // 4. 영어 불규칙 복수형 맵핑
+  const irregulars: Record<string, string> = {
+    men: 'man', women: 'woman', children: 'child', feet: 'foot', teeth: 'tooth', mice: 'mouse'
+  };
+
   return tokens
     .map(t => {
-      let clean = t;
-      if (eStopWords.has(clean.toLowerCase())) return '';
+      // 특수기호 1차 제거
+      let clean = t.replace(/[.,?!]/g, ''); 
+
+      // 1차 필터링: 원형이 바로 기능어인 경우 삭제
+      if (eStopWords.has(clean.toLowerCase()) || kStopWords.has(clean)) return '';
+
+      // 영어 불규칙 복수형 변환
+      if (irregulars[clean.toLowerCase()]) {
+        clean = irregulars[clean.toLowerCase()];
+      } 
+      // 영어 규칙 복수형 변환
+      else if (/^[a-zA-Z]+$/.test(clean)) {
+        if (clean.endsWith('ies')) clean = clean.slice(0, -3) + 'y'; 
+        else if (clean.endsWith('ves')) clean = clean.slice(0, -3); 
+        else if (clean.endsWith('es')) clean = clean.slice(0, -2); 
+        else if (clean.endsWith('s') && !clean.endsWith('ss') && !clean.endsWith('is') && !clean.endsWith('us')) {
+          clean = clean.slice(0, -1); 
+        }
+      }
+
+      // 한국어 조사/어미 자르기 (예: "어디에" -> "어디")
       clean = clean.replace(kStopSuffixes, '');
+      
+      // 🌟 2차 필터링: 조사를 자르고 났더니 기능어가 된 경우 삭제 (예: "어디" 삭제!)
+      if (kStopWords.has(clean)) return '';
+
       return clean;
     })
-    .filter(t => t.length >= 2); 
+    .filter(t => t.length >= 2); // 2글자 이상의 핵심 내용어(Root) 단어만 생존!
 };
+// =========================================================
 
 export default async function Page({
   searchParams,
@@ -184,16 +224,14 @@ export default async function Page({
         results = fallback || [];
       }
 
-      // =========================================================
-      // 🌟 [수정 완료] 조건: 1. 기존 결과가 0개일 때 AND 2. 검색어가 3단어 이상일 때만 발동!
-      // =========================================================
       const wordCount = cleanQuery.split(/\s+/).length;
       
+      // 🌟 결과가 0개이고 3단어 이상일 때만 내용어 추출 발동!
       if (results.length === 0 && wordCount >= 3) {
         const validKeywords = extractKeywords(cleanQuery);
         
         if (validKeywords.length > 0) {
-          // 1순위: 남은 뼈대 단어들이 '모두' 포함된 문장 찾기 (AND 검색)
+          // 1순위: 핵심 내용어들이 '모두' 포함된 문장 찾기 (AND 검색)
           let andQueryBuilder = supabase.from('dictionary_lines').select('*');
           validKeywords.forEach(k => {
             andQueryBuilder = andQueryBuilder.ilike('line_text', `%${k}%`);
@@ -207,7 +245,7 @@ export default async function Page({
             matchedKeywords = validKeywords;
             highlightKeys = [...new Set([...highlightKeys, ...validKeywords])];
           } else {
-            // 2순위: 뼈대 단어 중 '하나라도' 포함된 문장 찾기 (OR 검색)
+            // 2순위: 핵심 내용어 중 '하나라도' 포함된 문장 찾기 (OR 검색)
             const orQueryStr = validKeywords.map(k => `line_text.ilike.%${k}%`).join(',');
             const { data: partialData } = await supabase
               .from('dictionary_lines')
