@@ -64,25 +64,19 @@ export default function SearchInput({
     if (typeof window === 'undefined') return;
 
     const handleGlobalPaste = (e: ClipboardEvent) => {
-      // 복사된 텍스트가 있는지 확인
       const pastedText = e.clipboardData?.getData('text');
       
       if (pastedText) {
-        // 브라우저가 원래 하려던 짓(글자 이어붙이기)을 완벽하게 차단!
         e.preventDefault();
         
-        // 쓸데없는 띄어쓰기 싹 정리
         const cleanText = pastedText.replace(/\s+/g, ' ').trim();
         
-        // 묻지도 따지지도 않고 기존 검색어 날려버린 후 새 단어로 100% 덮어쓰기!
         setQuery(cleanText);
         
-        // 검색창으로 커서 강제 소환!
         inputRef.current?.focus();
       }
     };
 
-    // 문서 전체 어디서든 Ctrl+V를 누르면 위 로직이 작동하도록 감시
     document.addEventListener('paste', handleGlobalPaste);
     return () => document.removeEventListener('paste', handleGlobalPaste);
   }, []);
@@ -94,13 +88,10 @@ export default function SearchInput({
     if (typeof window === 'undefined') return;
 
     const handleGlobalCopy = () => {
-      // 사용자가 이미 검색창 안에서 글씨를 복사 중이라면 무시 (검색어 보호)
       if (document.activeElement === inputRef.current) return;
 
-      // 마우스로 드래그한 글씨가 있는지 확인
       const selection = window.getSelection();
       if (selection && selection.toString().trim().length > 0) {
-        // 컴퓨터가 클립보드에 복사를 완료할 수 있도록 0.05초 대기 후 리셋!
         setTimeout(() => {
           setQuery('');
           inputRef.current?.focus();
@@ -148,7 +139,7 @@ export default function SearchInput({
 
   const validate = (trimmed: string) => {
     if (!trimmed) return { ok: false, msg: '' };
-    if (trimmed.length > 50) return { ok: false, msg: '검색어는 50자 이내로 입력해주세요.' };
+    if (trimmed.length > 150) return { ok: false, msg: '검색어는 150자 이내로 입력해주세요.' };
     if (BANNED_WORDS.some((w) => trimmed.includes(w))) return { ok: false, msg: '부적절한 단어가 포함되어 있습니다.' };
     return { ok: true, msg: '' };
   };

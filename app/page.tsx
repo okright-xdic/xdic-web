@@ -14,7 +14,7 @@ const rotateResults = (items: any[], keyword: string) => {
   const lowerKeyword = keyword.trim().toLowerCase();
 
   const buckets: Record<number, any[]> = {};
-  for (let i = 1; i <= 12; i++) buckets[i] = [];
+  for (let i = 0; i <= 12; i++) buckets[i] = [];
 
   const advancedSort = (a: any, b: any) => {
     const aText = (a.line_text || '').toLowerCase();
@@ -42,19 +42,19 @@ const rotateResults = (items: any[], keyword: string) => {
   };
 
   items.forEach((item) => {
-    const catId = item.category_id >= 1 && item.category_id <= 12 ? item.category_id : 12;
+    const catId = item.category_id >= 0 && item.category_id <= 12 ? item.category_id : 12;
     buckets[catId].push(item);
   });
 
   let maxCount = 0;
-  for (let i = 1; i <= 12; i++) {
+  for (let i = 0; i <= 12; i++) {
     buckets[i].sort(advancedSort);
     if (buckets[i].length > maxCount) maxCount = buckets[i].length;
   }
 
   const rotated: any[] = [];
   for (let i = 0; i < maxCount; i++) {
-    for (let cat = 1; cat <= 12; cat++) {
+    for (let cat = 0; cat <= 12; cat++) {
       if (buckets[cat][i]) rotated.push(buckets[cat][i]);
     }
   }
@@ -67,10 +67,8 @@ const rotateResults = (items: any[], keyword: string) => {
 const extractKeywords = (query: string): string[] => {
   const tokens = query.split(/\s+/);
   
-  // 1. 한국어 조사 및 어미
   const kStopSuffixes = /(하셨습니까|하셨습니다|해보세요|했습니다|했습니까|하셨어요|했어요|보세요|하세요|이시여|라게|것을|도록|부터|까지|하고|이며|했다|봐요|했어|해라|에서|에게|으로|께서|이다|입니다|입니까|인가요|인가|인데요|인지|이냐|은|는|이|가|을|를|의|에|로|아|야|도|만|와|과|랑|고|지|면|서|된|될|할|하는)$/g;
   
-  // 🌟 2. [신규 추가] 한국어 기능어 (대명사, 의문사, 존재사 등 완벽 차단)
   const kStopWords = new Set([
     '어디', '언제', '누구', '무엇', '어떻게', '왜', '어느', '무슨', '어떤', 
     '이', '그', '저', '이것', '그것', '저것', '여기', '거기', '저기',
@@ -80,7 +78,6 @@ const extractKeywords = (query: string): string[] => {
     '수', '것', '들', '제', '내', '네', '너', '나', '우리', '저희', '좀', '잘', '더'
   ]);
 
-  // 3. 영어 기능어 (의문사, 조동사, 전치사 등)
   const eStopWords = new Set([
     'a', 'an', 'the', 'is', 'are', 'was', 'were', 'am', 'be', 'been', 'being',
     'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'about', 'as', 'into', 'like', 'through', 'after', 'over', 'between', 'out', 'against', 'during', 'without', 'before', 'under', 'around', 'among',
@@ -91,24 +88,18 @@ const extractKeywords = (query: string): string[] => {
     'do', 'does', 'did', 'have', 'has', 'had', 'can', 'could', 'will', 'would', 'shall', 'should', 'may', 'might', 'must', 'cannot'
   ]);
 
-  // 4. 영어 불규칙 복수형 맵핑
   const irregulars: Record<string, string> = {
     men: 'man', women: 'woman', children: 'child', feet: 'foot', teeth: 'tooth', mice: 'mouse'
   };
 
   return tokens
     .map(t => {
-      // 특수기호 1차 제거
       let clean = t.replace(/[.,?!]/g, ''); 
-
-      // 1차 필터링: 원형이 바로 기능어인 경우 삭제
       if (eStopWords.has(clean.toLowerCase()) || kStopWords.has(clean)) return '';
 
-      // 영어 불규칙 복수형 변환
       if (irregulars[clean.toLowerCase()]) {
         clean = irregulars[clean.toLowerCase()];
       } 
-      // 영어 규칙 복수형 변환
       else if (/^[a-zA-Z]+$/.test(clean)) {
         if (clean.endsWith('ies')) clean = clean.slice(0, -3) + 'y'; 
         else if (clean.endsWith('ves')) clean = clean.slice(0, -3); 
@@ -118,15 +109,12 @@ const extractKeywords = (query: string): string[] => {
         }
       }
 
-      // 한국어 조사/어미 자르기 (예: "어디에" -> "어디")
       clean = clean.replace(kStopSuffixes, '');
-      
-      // 🌟 2차 필터링: 조사를 자르고 났더니 기능어가 된 경우 삭제 (예: "어디" 삭제!)
       if (kStopWords.has(clean)) return '';
 
       return clean;
     })
-    .filter(t => t.length >= 2); // 2글자 이상의 핵심 내용어(Root) 단어만 생존!
+    .filter(t => t.length >= 2);
 };
 // =========================================================
 
@@ -180,22 +168,7 @@ export default async function Page({
 
   if (cleanQuery && noSpaceLen >= 2) {
     try {
-      const { data: cat0Data } = await supabase
-        .from('dictionary_lines')
-        .select('line_text')
-        .eq('category_id', 0)
-        .ilike('line_text', `%${cleanQuery}%`)
-        .limit(10);
-
-      if (cat0Data && cat0Data.length > 0) {
-        const add: string[] = [];
-        for (const row of cat0Data) {
-          const words = String((row as any)?.line_text || '').split(/\s+/);
-          add.push(...words);
-        }
-        highlightKeys = [...new Set([...highlightKeys, ...add])].filter((w) => w && w.trim());
-      }
-
+      // 🚀 1. 검색부터 바로 시원하게 진행합니다. (비효율적인 cat0Data 사전 검색 삭제!)
       const step1 = cleanQuery + ' ';
       const step2 = cleanQuery;
       const step3 = cleanQuery.includes(' ') ? cleanQuery.replace(/\s+/g, '') : '';
@@ -226,12 +199,11 @@ export default async function Page({
 
       const wordCount = cleanQuery.split(/\s+/).length;
       
-      // 🌟 결과가 0개이고 3단어 이상일 때만 내용어 추출 발동!
+      // 🚀 2. 결과가 없을 때의 부분 일치 검색
       if (results.length === 0 && wordCount >= 3) {
         const validKeywords = extractKeywords(cleanQuery);
         
         if (validKeywords.length > 0) {
-          // 1순위: 핵심 내용어들이 '모두' 포함된 문장 찾기 (AND 검색)
           let andQueryBuilder = supabase.from('dictionary_lines').select('*');
           validKeywords.forEach(k => {
             andQueryBuilder = andQueryBuilder.ilike('line_text', `%${k}%`);
@@ -245,7 +217,6 @@ export default async function Page({
             matchedKeywords = validKeywords;
             highlightKeys = [...new Set([...highlightKeys, ...validKeywords])];
           } else {
-            // 2순위: 핵심 내용어 중 '하나라도' 포함된 문장 찾기 (OR 검색)
             const orQueryStr = validKeywords.map(k => `line_text.ilike.%${k}%`).join(',');
             const { data: partialData } = await supabase
               .from('dictionary_lines')
@@ -263,7 +234,22 @@ export default async function Page({
         }
       }
 
+      // 🚀 3. [핵심 로직] 이미 찾은 결과(results) 안에서 확실하게 단어를 추출합니다!
       if (results.length > 0) {
+        // 화면에 보여질 진짜 0번 카테고리 데이터만 쏙 빼옵니다.
+        const cat0Items = results.filter((item) => item.category_id === 0);
+        
+        if (cat0Items.length > 0) {
+          const add: string[] = [];
+          cat0Items.forEach((row) => {
+            const cleanText = String(row.line_text || '').replace(/[.,:;()]/g, '');
+            const words = cleanText.split(/\s+/);
+            add.push(...words);
+          });
+          highlightKeys = [...new Set([...highlightKeys, ...add])].filter((w) => w && w.trim());
+        }
+
+        // 마지막으로 예쁘게 섞어주기
         results = rotateResults(results, cleanQuery);
       }
     } catch (e) {
