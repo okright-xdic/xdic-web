@@ -29,7 +29,7 @@ interface SearchPageProps {
 }
 
 const CATEGORY_NAMES: Record<number, string> = {
-  0: '0.한글영어말뭉치',
+  0: '기초영어',
   1: '기본영어',
   2: '인문사회용어',
   3: '기계_전기_전자용어',
