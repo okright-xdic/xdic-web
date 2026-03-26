@@ -354,6 +354,17 @@ export default function SearchPage({
           ) : (
             <div className="mt-5 space-y-4 md:space-y-6 animate-in fade-in duration-500">
               
+              {/* ✅ 스마트하고 눈에 잘 띄는 뱃지형 공지사항 링크 */}
+              <div className="flex justify-end -mb-3 md:-mb-5 pr-2 relative z-10">
+                <Link href="/notice" className="group flex items-center gap-1.5 px-4 py-1.5 bg-white border border-slate-200 shadow-sm hover:border-blue-400 hover:shadow-md hover:bg-blue-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-slate-600 hover:text-blue-700 transition-all duration-300">
+                  <span className="text-[14px] group-hover:scale-110 transition-transform">📢</span> 
+                  <span>공지사항 / FAQ</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+
               <NuanceWidget />
 
               <div className="bg-blue-50/50 rounded-xl md:rounded-2xl p-4 md:p-6 border border-blue-100 shadow-sm">

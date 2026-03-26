@@ -17,6 +17,9 @@ export default function NoticePage() {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   
+  // 🌟 [핵심 마법] 로딩 중인지 확인하는 상태를 추가합니다!
+  const [isLoading, setIsLoading] = useState(true); 
+  
   const [isAdmin, setIsAdmin] = useState(false);
   const [isWriting, setIsWriting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -25,6 +28,8 @@ export default function NoticePage() {
   const [content, setContent] = useState('');
 
   const fetchNotices = async () => {
+    setIsLoading(true); // 데이터를 가져오기 시작할 때 로딩 ON
+
     const { data, error } = await supabase
       .from('notices')
       .select('*')
@@ -32,6 +37,8 @@ export default function NoticePage() {
     
     if (data) setNotices(data);
     if (error) console.error('게시글 불러오기 실패:', error);
+    
+    setIsLoading(false); // 🌟 데이터를 다 가져왔거나 에러가 나면 로딩 OFF
   };
 
   useEffect(() => {
@@ -122,13 +129,12 @@ export default function NoticePage() {
     return text.replace(/\n/g, '<br />');
   };
 
-  // 🌟 [핵심 마법] 붙여넣기 할 때 이미지를 가로채서 텍스트 코드로 변환하는 기능!
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     const items = e.clipboardData.items;
     
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.indexOf('image') !== -1) {
-        e.preventDefault(); // 기본 붙여넣기(글자만 됨) 무시!
+        e.preventDefault(); 
         
         const file = items[i].getAsFile();
         if (!file) continue;
@@ -136,10 +142,8 @@ export default function NoticePage() {
         const reader = new FileReader();
         reader.onload = (event) => {
           const base64String = event.target?.result as string;
-          // 화면에 예쁘게 나오도록 img 태그를 자동으로 만들어 줍니다.
           const imgTag = `\n<img src="${base64String}" alt="첨부 이미지" style="max-width: 100%; height: auto; margin: 10px 0; border-radius: 8px; border: 1px solid #e2e8f0;" />\n`;
 
-          // 현재 커서 위치에 이미지 태그 끼워넣기
           const textarea = e.target as HTMLTextAreaElement;
           const start = textarea.selectionStart;
           const end = textarea.selectionEnd;
@@ -147,7 +151,7 @@ export default function NoticePage() {
           const newContent = content.substring(0, start) + imgTag + content.substring(end);
           setContent(newContent);
         };
-        reader.readAsDataURL(file); // 이미지를 텍스트 데이터(Base64)로 읽어들임
+        reader.readAsDataURL(file); 
       }
     }
   };
@@ -200,7 +204,6 @@ export default function NoticePage() {
               onChange={(e) => setTitle(e.target.value)}
               className="w-full p-3 border border-slate-300 rounded-lg mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold"
             />
-            {/* 🌟 onPaste 이벤트를 달아서 붙여넣기를 감시합니다! */}
             <textarea 
               placeholder="워드 등에서 복사한 글이나 사진을 여기에 그대로 붙여넣기(Ctrl+V) 하세요!" 
               value={content}
@@ -225,8 +228,14 @@ export default function NoticePage() {
           </div>
         )}
 
+        {/* 🌟 여기서 로딩 중일 때, 데이터가 없을 때, 데이터가 있을 때를 분기합니다. */}
         <div className="space-y-4">
-          {notices.length === 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-slate-200 shadow-sm">
+              <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+              <p className="text-slate-500 font-medium text-sm">데이터를 불러오는 중입니다...</p>
+            </div>
+          ) : notices.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
               <p className="text-slate-400 font-medium text-sm">등록된 공지사항이 없습니다.</p>
             </div>
