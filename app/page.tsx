@@ -167,11 +167,9 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
         }
       }
 
-      // 🌟 [최종 하이라이트 로직] 언어 반전(Language Reversal)으로 완벽한 대응어 핀셋 추출!
       if (results.length > 0) {
         const cleanQueryNoSpace = cleanQuery.replace(/[\s\-_]/g, '').toLowerCase();
         
-        // 검색어에 한글이 한 글자라도 포함되어 있는지 검사합니다.
         const isKoreanQuery = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(cleanQuery);
 
         results.forEach((row) => {
@@ -196,7 +194,6 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
 
           // 2. 파란색 대응어 하이라이트 (언어 반전 마법)
           if (isKoreanQuery) {
-            // 한글 검색 시 -> 문장 안의 '영어 단어'들만 싹 다 파란색으로!
             const engMatches = text.match(/[a-zA-Z0-9\-]+/g);
             if (engMatches) {
               engMatches.forEach(w => {
@@ -204,7 +201,6 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
               });
             }
           } else {
-            // 영어 검색 시 -> 문장 안의 '한글 단어'들만 싹 다 파란색으로!
             const korMatches = text.match(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]+/g);
             if (korMatches) {
               korMatches.forEach(w => {
@@ -224,6 +220,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
     }
   }
 
+  // ✅ 오류 해결: 이제 구형 highlightList 대신 orangeKeys와 blueKeys를 넘겨줍니다!
   const isApp = searchParams.app === '1';
 
   return (
