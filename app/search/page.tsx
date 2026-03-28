@@ -1,5 +1,5 @@
 // app/search/page.tsx
-// ✅ PC 웹(/search) 전용 페이지입니다. 광고가 정상 노출되도록 isApp={false}를 적용합니다.
+// ✅ PC 웹(/search) 전용 페이지: 언어 반전(Language Reversal) 기반 완벽 Pinpoint 형광펜 탑재
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -8,13 +8,11 @@ import { cookies } from 'next/headers';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// [로테이션 정렬 함수: 카테고리 Zig-zag]
 const rotateResults = (items: any[], keyword: string) => {
   if (!items || items.length === 0) return [];
   const lowerKeyword = keyword.trim().toLowerCase();
 
   const buckets: Record<number, any[]> = {};
-  // 🌟 수정 포인트: 0번 카테고리(기준 영어) 바구니를 추가합니다! (0부터 12까지)
   for (let i = 0; i <= 12; i++) buckets[i] = [];
 
   const advancedSort = (a: any, b: any) => {
@@ -43,13 +41,11 @@ const rotateResults = (items: any[], keyword: string) => {
   };
 
   items.forEach((item) => {
-    // 🌟 수정 포인트: 0번 카테고리도 기타(12)로 빠지지 않고 0번 자기 바구니에 담기도록 범위 확장!
     const catId = item.category_id >= 0 && item.category_id <= 12 ? item.category_id : 12;
     buckets[catId].push(item);
   });
 
   let maxCount = 0;
-  // 🌟 수정 포인트: 0번 바구니부터 순회하도록 0으로 변경
   for (let i = 0; i <= 12; i++) {
     buckets[i].sort(advancedSort);
     if (buckets[i].length > maxCount) maxCount = buckets[i].length;
@@ -57,12 +53,59 @@ const rotateResults = (items: any[], keyword: string) => {
 
   const rotated: any[] = [];
   for (let i = 0; i < maxCount; i++) {
-    // 🌟 수정 포인트: 출력할 때도 0번(기준 영어)부터 꺼내도록 0으로 변경
     for (let cat = 0; cat <= 12; cat++) {
       if (buckets[cat][i]) rotated.push(buckets[cat][i]);
     }
   }
   return rotated;
+};
+
+const extractKeywords = (query: string): string[] => {
+  const tokens = query.split(/\s+/);
+  const kStopSuffixes = /(하셨습니까|하셨습니다|해보세요|했습니다|했습니까|하셨어요|했어요|보세요|하세요|이시여|라게|것을|도록|부터|까지|하고|이며|했다|봐요|했어|해라|에서|에게|으로|께서|이다|입니다|입니까|인가요|인가|인데요|인지|이냐|은|는|이|가|을|를|의|에|로|아|야|도|만|와|과|랑|고|지|면|서|된|될|할|하는)$/g;
+  
+  const kStopWords = new Set([
+    '어디', '언제', '누구', '무엇', '어떻게', '왜', '어느', '무슨', '어떤', 
+    '이', '그', '저', '이것', '그것', '저것', '여기', '거기', '저기',
+    '있나요', '있습니까', '있어요', '있어', '있는', '있을', '있', 
+    '없나요', '없습니까', '없어요', '없어', '없는', '없을', '없',
+    '입니다', '입니까', '이에요', '예요', '합니다', '합니까', '해요', '해', '하는', '할', 
+    '수', '것', '들', '제', '내', '네', '너', '나', '우리', '저희', '좀', '잘', '더'
+  ]);
+
+  const eStopWords = new Set([
+    'a', 'an', 'the', 'is', 'are', 'was', 'were', 'am', 'be', 'been', 'being',
+    'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'about', 'as', 'into', 'like', 'through', 'after', 'over', 'between', 'out', 'against', 'during', 'without', 'before', 'under', 'around', 'among',
+    'and', 'or', 'but', 'so', 'because', 'although', 'if',
+    'i', 'you', 'he', 'she', 'it', 'they', 'we', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'their', 'our', 'mine', 'yours', 'theirs', 'ours',
+    'this', 'that', 'these', 'those',
+    'what', 'how', 'who', 'where', 'when', 'why', 'which', 'whose', 'whom',
+    'do', 'does', 'did', 'have', 'has', 'had', 'can', 'could', 'will', 'would', 'shall', 'should', 'may', 'might', 'must', 'cannot'
+  ]);
+
+  const irregulars: Record<string, string> = {
+    men: 'man', women: 'woman', children: 'child', feet: 'foot', teeth: 'tooth', mice: 'mouse'
+  };
+
+  return tokens
+    .map(t => {
+      let clean = t.replace(/[.,?!]/g, ''); 
+      if (eStopWords.has(clean.toLowerCase()) || kStopWords.has(clean)) return '';
+      if (irregulars[clean.toLowerCase()]) {
+        clean = irregulars[clean.toLowerCase()];
+      } else if (/^[a-zA-Z]+$/.test(clean)) {
+        if (clean.endsWith('ies')) clean = clean.slice(0, -3) + 'y'; 
+        else if (clean.endsWith('ves')) clean = clean.slice(0, -3); 
+        else if (clean.endsWith('es')) clean = clean.slice(0, -2); 
+        else if (clean.endsWith('s') && !clean.endsWith('ss') && !clean.endsWith('is') && !clean.endsWith('us')) {
+          clean = clean.slice(0, -1); 
+        }
+      }
+      clean = clean.replace(kStopSuffixes, '');
+      if (kStopWords.has(clean)) return '';
+      return clean;
+    })
+    .filter(t => t.length >= 2);
 };
 
 export default async function WebSearchPage({
@@ -77,62 +120,107 @@ export default async function WebSearchPage({
   const supabase = createServerComponentClient({ cookies });
 
   let results: any[] = [];
-  let highlightKeys: string[] = cleanQuery ? [cleanQuery] : [];
+  
+  // 🌟 주황색 리스트와 파란색 리스트 분리!
+  let orangeKeys: string[] = cleanQuery ? [cleanQuery] : [];
+  let blueKeys: string[] = [];
+
+  let isPartialMatch = false;
+  let matchedKeywords: string[] = [];
 
   if (cleanQuery && noSpaceLen >= 2) {
     try {
-      // [STEP 0] 하이라이트 확장 (category_id=0)
-      const { data: cat0Data } = await supabase
-        .from('dictionary_lines')
-        .select('line_text')
-        .eq('category_id', 0)
-        .ilike('line_text', `%${cleanQuery}%`)
-        .limit(10);
-
-      if (cat0Data && cat0Data.length > 0) {
-        const add: string[] = [];
-        for (const row of cat0Data) {
-          const words = String((row as any)?.line_text || '').split(/\s+/);
-          add.push(...words);
-        }
-        highlightKeys = [...new Set([...highlightKeys, ...add])].filter((w) => w && w.trim());
-      }
-
-      // ✅ 3단계 “만능” 검색
-      const step1 = cleanQuery + ' ';
-      const step2 = cleanQuery;
-      const step3 = cleanQuery.includes(' ') ? cleanQuery.replace(/\s+/g, '') : '';
-
-      const { data: d1 } = await supabase.rpc('search_dictionary_v8', { keyword: step1 });
-      if (Array.isArray(d1)) results = d1;
+      const { data, error } = await supabase.rpc('search_dictionary_smart', { keyword: query });
+      if (!error && Array.isArray(data)) results = data;
 
       if (results.length === 0) {
-        const { data: d2 } = await supabase.rpc('search_dictionary_v8', { keyword: step2 });
-        if (Array.isArray(d2) && d2.length > 0) results = d2;
-      }
-
-      if (results.length === 0 && step3) {
-        const { data: d3 } = await supabase.rpc('search_dictionary_v8', { keyword: step3 });
-        if (Array.isArray(d3) && d3.length > 0) results = d3;
-      }
-
-      // fallback
-      if (results.length === 0) {
-        const { data: fallback } = await supabase
-          .from('dictionary_lines')
-          .select('*')
-          .ilike('line_text', `%${cleanQuery}%`)
-          .order('category_id', { ascending: true })
-          .limit(100);
+        const { data: fallback } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${cleanQuery}%`).order('category_id', { ascending: true }).limit(100);
         results = fallback || [];
       }
 
-      if (results.length > 0) results = rotateResults(results, cleanQuery);
+      if (results.length === 0 && cleanQuery.split(/\s+/).length >= 3) {
+        const validKeywords = extractKeywords(cleanQuery);
+        if (validKeywords.length > 0) {
+          let andQueryBuilder = supabase.from('dictionary_lines').select('*');
+          validKeywords.forEach(k => { andQueryBuilder = andQueryBuilder.ilike('line_text', `%${k}%`); });
+          const { data: andData } = await andQueryBuilder.limit(100);
+
+          if (andData && andData.length > 0) {
+            results = andData; isPartialMatch = true; matchedKeywords = validKeywords; 
+            orangeKeys = [...new Set([...orangeKeys, ...validKeywords])];
+          } else {
+            const orQueryStr = validKeywords.map(k => `line_text.ilike.%${k}%`).join(',');
+            const { data: partialData } = await supabase.from('dictionary_lines').select('*').or(orQueryStr).limit(120);
+            if (partialData && partialData.length > 0) {
+              results = partialData; isPartialMatch = true; matchedKeywords = validKeywords; 
+              orangeKeys = [...new Set([...orangeKeys, ...validKeywords])];
+            }
+          }
+        }
+      }
+
+      // 🌟 [최종 하이라이트 로직] 언어 반전(Language Reversal)으로 완벽한 대응어 핀셋 추출!
+      if (results.length > 0) {
+        const cleanQueryNoSpace = cleanQuery.replace(/[\s\-_]/g, '').toLowerCase();
+        const isKoreanQuery = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(cleanQuery);
+
+        results.forEach((row) => {
+          const text = String(row.line_text || '');
+          const cleanText = text.replace(/[.,:;()\[\]]/g, '');
+          const tokens = cleanText.split(/\s+/);
+
+          // 1. 오렌지 하이라이트 (검색어 완벽 복원)
+          for (let i = 0; i < tokens.length; i++) {
+            let combined = '';
+            let original = [];
+            for (let j = i; j < tokens.length; j++) {
+              combined += tokens[j].replace(/[\-_]/g, '').toLowerCase();
+              original.push(tokens[j]);
+              if (combined === cleanQueryNoSpace) {
+                orangeKeys.push(original.join(' ')); 
+                break;
+              }
+              if (combined.length > cleanQueryNoSpace.length) break;
+            }
+          }
+
+          // 2. 파란색 대응어 하이라이트 (언어 반전 마법)
+          if (isKoreanQuery) {
+            const engMatches = text.match(/[a-zA-Z0-9\-]+/g);
+            if (engMatches) {
+              engMatches.forEach(w => {
+                if (w.trim().length >= 2) blueKeys.push(w);
+              });
+            }
+          } else {
+            const korMatches = text.match(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]+/g);
+            if (korMatches) {
+              korMatches.forEach(w => {
+                if (w.trim().length >= 1) blueKeys.push(w);
+              });
+            }
+          }
+        });
+
+        orangeKeys = [...new Set(orangeKeys)].filter((w) => w && w.trim());
+        blueKeys = [...new Set(blueKeys)].filter((w) => w && w.trim());
+
+        results = rotateResults(results, cleanQuery);
+      }
     } catch (e) {
-      console.error('❌ 웹 검색 실패:', e);
+      console.error('❌ 검색 실패:', e);
     }
   }
 
-  // ✅ 핵심 변경 포인트: PC 웹이므로 isApp={false} 로 전달하여 광고가 튼튼하게 자리 잡도록 합니다!
-  return <SearchPage query={query} results={results} highlightList={highlightKeys} isApp={false} />;
+  // ✅ 오류 해결: 이제 구형 highlightList 대신 orangeKeys와 blueKeys를 넘겨줍니다!
+  // PC 웹이므로 isApp={false} 로 전달하여 광고가 튼튼하게 자리 잡도록 합니다!
+  return (
+    <SearchPage 
+      query={query} 
+      results={results} 
+      orangeKeys={orangeKeys} 
+      blueKeys={blueKeys} 
+      isApp={false} 
+    />
+  );
 }
