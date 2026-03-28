@@ -84,22 +84,27 @@ export default function NuancePage() {
     }
   };
 
+  // 🌟 에러 탐지기 장착 완료!
   const handleSave = async () => {
     if (!title.trim() || !content.trim()) return alert('제목과 내용을 모두 입력해주세요.');
     if (editingId) {
-      await supabase.from('nuances').update({ title, content }).eq('id', editingId);
+      const { error } = await supabase.from('nuances').update({ title, content }).eq('id', editingId);
+      if (error) return alert(`수정 실패 (DB 에러): ${error.message}`);
       alert('수정되었습니다!');
     } else {
-      await supabase.from('nuances').insert([{ title, content }]);
+      const { error } = await supabase.from('nuances').insert([{ title, content }]);
+      if (error) return alert(`등록 실패 (DB 에러): ${error.message}`);
       alert('등록되었습니다!');
     }
     resetForm();
     fetchNuances();
   };
 
+  // 🌟 에러 탐지기 장착 완료!
   const handleDelete = async (id: number) => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
-    await supabase.from('nuances').delete().eq('id', id);
+    const { error } = await supabase.from('nuances').delete().eq('id', id);
+    if (error) return alert(`삭제 실패 (DB 에러): ${error.message}`);
     alert('삭제되었습니다.');
     fetchNuances();
   };

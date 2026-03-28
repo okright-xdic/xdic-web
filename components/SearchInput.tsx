@@ -58,21 +58,18 @@ export default function SearchInput({
   }, [autoFocus]);
 
   // =========================================================
-  // 🌟 [무적 마법 1] 전역 붙여넣기 (Ctrl+V) 완벽 납치! (수정됨)
+  // 🌟 [무적 마법 1] 전역 붙여넣기 (Ctrl+V) 완벽 납치 방어!
   // =========================================================
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const handleGlobalPaste = (e: ClipboardEvent) => {
-      // ✅ [추가된 핵심 방어 로직] 
-      // 현재 사용자가 클릭(포커스)해 둔 요소가 다른 입력창(input, textarea)인지 확인합니다.
       const activeEl = document.activeElement;
       const tagName = activeEl?.tagName.toLowerCase();
       // contenteditable 속성이 있는 div 등도 예외 처리
       const isInputOrTextarea = tagName === 'input' || tagName === 'textarea' || (activeEl as HTMLElement)?.isContentEditable;
 
-      // 만약 다른 입력창에 커서가 깜빡이고 있다면? -> 가로채지 않고 즉시 패스! (기본 붙여넣기 허용)
-      // (단, 자기 자신인 메인 검색창에 직접 붙여넣는 경우는 정상 처리합니다.)
+      // 만약 다른 입력창에 커서가 깜빡이고 있다면? -> 가로채지 않고 즉시 패스!
       if (isInputOrTextarea && activeEl !== inputRef.current) {
         return; 
       }
@@ -95,12 +92,21 @@ export default function SearchInput({
   }, []);
 
   // =========================================================
-  // 🌟 [무적 마법 2] 엑스딕 내부에서 복사 (Ctrl+C) 시 자동 리셋
+  // 🌟 [무적 마법 2] 엑스딕 내부에서 복사 (Ctrl+C) 시 완벽 방어!
   // =========================================================
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const handleGlobalCopy = () => {
+      const activeEl = document.activeElement;
+      const tagName = activeEl?.tagName.toLowerCase();
+      const isInputOrTextarea = tagName === 'input' || tagName === 'textarea' || (activeEl as HTMLElement)?.isContentEditable;
+
+      // ✅ [핵심 추가] 사용자가 다른 입력창(새 해설 작성 등)에서 복사 중이라면 검색창 리셋 안 함!
+      if (isInputOrTextarea && activeEl !== inputRef.current) {
+        return; 
+      }
+
       if (document.activeElement === inputRef.current) return;
 
       const selection = window.getSelection();

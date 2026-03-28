@@ -20,7 +20,8 @@ interface SearchResult {
 interface SearchPageProps {
   query: string;
   results?: SearchResult[];
-  highlightList?: string[];
+  orangeKeys?: string[]; // 🌟 주황색(검색어) 전용 리스트
+  blueKeys?: string[];   // 🌟 파란색(대응어) 전용 리스트
   isApp?: boolean;
   popularSearches?: string[];
   recentSearches?: { word: string; count: number }[];
@@ -55,7 +56,8 @@ const TAG_COLORS = [
 export default function SearchPage({ 
   query, 
   results = [], 
-  highlightList = [], 
+  orangeKeys = [], 
+  blueKeys = [],
   isApp = false,
   popularSearches = [], 
   recentSearches = [],
@@ -73,7 +75,6 @@ export default function SearchPage({
   }, []);
 
   const displayIsApp = isApp || clientIsApp;
-
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
@@ -109,26 +110,12 @@ export default function SearchPage({
   const handleSpeak = (text: string) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel(); 
-      
       const voices = window.speechSynthesis.getVoices();
       const enVoices = voices.filter(v => v.lang.startsWith('en'));
       const koVoices = voices.filter(v => v.lang.startsWith('ko'));
 
-      const enVoice = 
-        enVoices.find(v => v.name.includes('Google US English Male')) || 
-        enVoices.find(v => v.name.includes('Google UK English')) || 
-        enVoices.find(v => v.name.includes('Alex')) || 
-        enVoices.find(v => v.name.includes('Daniel')) || 
-        enVoices.find(v => v.name.includes('Google US English')) || 
-        enVoices.find(v => v.name.includes('Samsung')) ||
-        enVoices[0];
-
-      const koVoice = 
-        koVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) || 
-        koVoices.find(v => v.name.includes('Google')) || 
-        koVoices.find(v => v.name.includes('Sora')) || 
-        koVoices.find(v => v.name.includes('Samsung')) ||
-        koVoices[0];
+      const enVoice = enVoices.find(v => v.name.includes('Google US English Male')) || enVoices[0];
+      const koVoice = koVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) || koVoices[0];
 
       const parts: { lang: string; text: string }[] = [];
       let currentLang = /[a-zA-Z]/.test(text.charAt(0)) ? 'en' : 'ko'; 
@@ -141,51 +128,44 @@ export default function SearchPage({
             parts.push({ lang: currentLang, text: currentText });
             currentText = '';
           }
-          currentLang = 'en';
-          currentText += char;
+          currentLang = 'en'; currentText += char;
         } else if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(char)) {
           if (currentLang !== 'ko' && currentText.trim().length > 0) {
             parts.push({ lang: currentLang, text: currentText });
             currentText = '';
           }
-          currentLang = 'ko';
-          currentText += char;
+          currentLang = 'ko'; currentText += char;
         } else {
           currentText += char;
         }
       }
-      if (currentText.trim().length > 0) {
-        parts.push({ lang: currentLang, text: currentText });
-      }
+      if (currentText.trim().length > 0) parts.push({ lang: currentLang, text: currentText });
 
       parts.forEach((part) => {
         if (!/[a-zA-Z가-힣0-9]/.test(part.text)) return; 
-
         const utterance = new SpeechSynthesisUtterance(part.text);
         if (part.lang === 'ko') {
           if (koVoice) utterance.voice = koVoice;
           utterance.lang = koVoice ? koVoice.lang : 'ko-KR';
-          utterance.pitch = 0.95; 
-          utterance.rate = 1.05; 
+          utterance.pitch = 0.95; utterance.rate = 1.05; 
         } else {
           if (enVoice) utterance.voice = enVoice;
           utterance.lang = enVoice ? enVoice.lang : 'en-US';
-          utterance.pitch = 0.9;  
-          utterance.rate = 0.85; 
+          utterance.pitch = 0.9; utterance.rate = 0.85; 
         }
         window.speechSynthesis.speak(utterance);
       });
-
     } else {
       alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
     }
   };
 
   const highlightMatch = (text: string) => {
-    if (!highlightList || highlightList.length === 0) return <span style={{ color: '#1e293b' }}>{text}</span>;
+    // 🌟 핵심 마법: 주황색 리스트와 파란색 리스트를 합쳐서 자를 준비를 합니다.
+    const allKeys = [...new Set([...orangeKeys, ...blueKeys])].filter(Boolean).sort((a, b) => b.length - a.length);
+    if (allKeys.length === 0) return <span style={{ color: '#334155' }}>{text}</span>;
 
-    const sortedKeys = [...highlightList].filter(Boolean).sort((a, b) => b.length - a.length);
-    const escapedKeys = sortedKeys.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const escapedKeys = allKeys.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
     const regex = new RegExp(`(${escapedKeys.join('|')})`, 'gi');
     const parts = text.split(regex);
 
@@ -193,13 +173,18 @@ export default function SearchPage({
       <>
         {parts.map((part, idx) => {
           const lowerPart = part.toLowerCase();
-          const lowerQuery = displayQuery.toLowerCase();
-          const isMatch = sortedKeys.some((k) => k.toLowerCase() === lowerPart);
-          let color = '#334155';
+          let color = '#334155'; // 기본색 (진한 회색/검정)
 
-          if (isMatch) {
-            if (lowerPart === lowerQuery) color = '#ea580c';
-            else color = '#2563eb';
+          // 1순위: 주황색 리스트(검색어)에 있는지 확인
+          const isOrange = orangeKeys.some((k) => k.toLowerCase() === lowerPart);
+          // 2순위: 파란색 리스트(대응어)에 있는지 확인
+          const isBlue = blueKeys.some((k) => k.toLowerCase() === lowerPart);
+
+          // 🌟 주황색이 무조건 최우선입니다!
+          if (isOrange) {
+            color = '#ea580c'; 
+          } else if (isBlue) {
+            color = '#2563eb'; 
           }
 
           return (
@@ -354,7 +339,6 @@ export default function SearchPage({
           ) : (
             <div className="mt-5 space-y-4 md:space-y-6 animate-in fade-in duration-500">
               
-              {/* ✅ 스마트하고 눈에 잘 띄는 뱃지형 공지사항 링크 */}
               <div className="flex justify-end -mb-3 md:-mb-5 pr-2 relative z-10">
                 <Link href="/notice" className="group flex items-center gap-1.5 px-4 py-1.5 bg-white border border-slate-200 shadow-sm hover:border-blue-400 hover:shadow-md hover:bg-blue-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-slate-600 hover:text-blue-700 transition-all duration-300">
                   <span className="text-[14px] group-hover:scale-110 transition-transform">📢</span> 
