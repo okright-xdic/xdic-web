@@ -19,13 +19,22 @@ export default function Footer() {
             <span className="text-[16px] font-bold text-slate-700 block">
               About / Contact
             </span>
-            {/* 🌟 게시판으로 가는 문(버튼) */}
-            <Link 
-              href="/notice" 
-              className="text-[12px] font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded transition-colors border border-blue-200 bg-white shadow-sm flex items-center gap-1"
-            >
-              <span>📢</span> 공지사항 / FAQ
-            </Link>
+            
+            {/* 🌟 게시판 및 회화 가이드로 가는 문(버튼들) */}
+            <div className="flex items-center gap-2">
+              <Link 
+                href="/conversation" 
+                className="text-[12px] font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded transition-colors border border-blue-200 bg-white shadow-sm flex items-center gap-1"
+              >
+                <span>📖</span> 필수 영어회화
+              </Link>
+              <Link 
+                href="/notice" 
+                className="text-[12px] font-bold text-slate-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded transition-colors border border-slate-200 bg-white shadow-sm flex items-center gap-1"
+              >
+                <span>📢</span> 공지사항 / FAQ
+              </Link>
+            </div>
           </div>
 
           {/* 줄 1: 상호명 | 대표 */}

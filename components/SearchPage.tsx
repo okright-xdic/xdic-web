@@ -8,7 +8,7 @@ import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import TrendGraph from '@/components/TrendGraph';
 import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
-import NuanceWidget from '@/components/NuanceWidget'; 
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 interface SearchResult {
   id: string | number;
@@ -20,8 +20,8 @@ interface SearchResult {
 interface SearchPageProps {
   query: string;
   results?: SearchResult[];
-  orangeKeys?: string[]; // 🌟 주황색(검색어) 전용 리스트
-  blueKeys?: string[];   // 🌟 파란색(대응어) 전용 리스트
+  orangeKeys?: string[]; 
+  blueKeys?: string[];   
   isApp?: boolean;
   popularSearches?: string[];
   recentSearches?: { word: string; count: number }[];
@@ -30,19 +30,9 @@ interface SearchPageProps {
 }
 
 const CATEGORY_NAMES: Record<number, string> = {
-  0: '기초영어',
-  1: '기본영어',
-  2: '인문사회용어',
-  3: '기계_전기_전자용어',
-  4: '교육_종교_예체능용어',
-  5: '무역경제용어',
-  6: '자동차_환경용어',
-  7: '물리_화학용어',
-  8: '컴퓨터용어',
-  9: '의학용어',
-  10: '인문사회기타용어',
-  11: '과학기술기타용어',
-  12: '기타',
+  0: '기초영어', 1: '기본영어', 2: '인문사회용어', 3: '기계_전기_전자용어',
+  4: '교육_종교_예체능용어', 5: '무역경제용어', 6: '자동차_환경용어', 7: '물리_화학용어',
+  8: '컴퓨터용어', 9: '의학용어', 10: '인문사회기타용어', 11: '과학기술기타용어', 12: '기타',
 };
 
 const TAG_COLORS = [
@@ -54,37 +44,35 @@ const TAG_COLORS = [
 ];
 
 export default function SearchPage({ 
-  query, 
-  results = [], 
-  orangeKeys = [], 
-  blueKeys = [],
-  isApp = false,
-  popularSearches = [], 
-  recentSearches = [],
-  isPartialMatch = false,
-  matchedKeywords = []    
+  query, results = [], orangeKeys = [], blueKeys = [],
+  isApp = false, popularSearches = [], recentSearches = [],
+  isPartialMatch = false, matchedKeywords = []    
 }: SearchPageProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-
   const [clientIsApp, setClientIsApp] = useState(false);
+  const [previewData, setPreviewData] = useState<any[]>([]);
+
+  const supabase = createClientComponentClient();
+
   useEffect(() => {
-    if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) {
-      setClientIsApp(true);
-    }
-  }, []);
+    if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) setClientIsApp(true);
+    
+    // 🌟 메인 화면 미리보기도 DB에서 최신순으로 3개 가져오기!
+    const fetchPreview = async () => {
+      const { data } = await supabase.from('conversation_lines').select('*').order('created_at', { ascending: false }).limit(3);
+      if (data) setPreviewData(data);
+    };
+    fetchPreview();
+  }, [supabase]);
 
   const displayIsApp = isApp || clientIsApp;
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
-  const getSearchUrl = (keyword: string) => {
-    return displayIsApp ? `/app?q=${encodeURIComponent(keyword)}` : `/?q=${encodeURIComponent(keyword)}`;
-  };
+  const getSearchUrl = (keyword: string) => displayIsApp ? `/app?q=${encodeURIComponent(keyword)}` : `/?q=${encodeURIComponent(keyword)}`;
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [results, query]);
+  useEffect(() => setCurrentPage(1), [results, query]);
 
   const displayResults = React.useMemo(() => {
     const categoryCount: Record<number, number> = {};
@@ -98,14 +86,37 @@ export default function SearchPage({
   const handleExternalSearch = (site: 'google' | 'naver') => {
     if (!displayQuery) return;
     const encoded = encodeURIComponent(displayQuery);
-    const url =
-      site === 'google'
-        ? `https://www.google.com/search?q=${encoded}`
-        : `https://en.dict.naver.com/#/search?query=${encoded}`;
+    const url = site === 'google' ? `https://www.google.com/search?q=${encoded}` : `https://en.dict.naver.com/#/search?query=${encoded}`;
     window.open(url, '_blank');
   };
 
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
+
+  const highlightMatch = (text: string) => {
+    const allKeys = [...new Set([...orangeKeys, ...blueKeys])].filter(Boolean).sort((a, b) => b.length - a.length);
+    if (allKeys.length === 0) return <span style={{ color: '#111111' }}>{text}</span>;
+
+    const escapedKeys = allKeys.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const regex = new RegExp(`(${escapedKeys.join('|')})`, 'gi');
+    const parts = text.split(regex);
+    const lowerQueryNoSpace = displayQuery.toLowerCase().replace(/\s+/g, '');
+
+    return (
+      <>
+        {parts.map((part, idx) => {
+          const lowerPart = part.toLowerCase();
+          const lowerPartNoSpace = lowerPart.replace(/\s+/g, ''); 
+          let color = '#111111'; 
+
+          if (orangeKeys.some((k) => k.toLowerCase() === lowerPart)) color = '#ea580c'; 
+          else if (blueKeys.some((k) => k.toLowerCase() === lowerPart)) color = '#2563eb'; 
+          if (lowerPartNoSpace === lowerQueryNoSpace && orangeKeys.length > 0) color = '#ea580c'; 
+
+          return <span key={idx} style={{ color, fontWeight: 400 }}>{part}</span>;
+        })}
+      </>
+    );
+  };
 
   const handleSpeak = (text: string) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -114,7 +125,7 @@ export default function SearchPage({
       const enVoices = voices.filter(v => v.lang.startsWith('en'));
       const koVoices = voices.filter(v => v.lang.startsWith('ko'));
 
-      const enVoice = enVoices.find(v => v.name.includes('Google US English Male')) || enVoices[0];
+      const enVoice = enVoices.find(v => v.name.includes('Google US English Male')) || enVoices.find(v => v.name.includes('Google US English')) || enVoices[0];
       const koVoice = koVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) || koVoices[0];
 
       const parts: { lang: string; text: string }[] = [];
@@ -158,43 +169,6 @@ export default function SearchPage({
     } else {
       alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
     }
-  };
-
-  const highlightMatch = (text: string) => {
-    // 🌟 핵심 마법: 주황색 리스트와 파란색 리스트를 합쳐서 자를 준비를 합니다.
-    const allKeys = [...new Set([...orangeKeys, ...blueKeys])].filter(Boolean).sort((a, b) => b.length - a.length);
-    if (allKeys.length === 0) return <span style={{ color: '#334155' }}>{text}</span>;
-
-    const escapedKeys = allKeys.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-    const regex = new RegExp(`(${escapedKeys.join('|')})`, 'gi');
-    const parts = text.split(regex);
-
-    return (
-      <>
-        {parts.map((part, idx) => {
-          const lowerPart = part.toLowerCase();
-          let color = '#334155'; // 기본색 (진한 회색/검정)
-
-          // 1순위: 주황색 리스트(검색어)에 있는지 확인
-          const isOrange = orangeKeys.some((k) => k.toLowerCase() === lowerPart);
-          // 2순위: 파란색 리스트(대응어)에 있는지 확인
-          const isBlue = blueKeys.some((k) => k.toLowerCase() === lowerPart);
-
-          // 🌟 주황색이 무조건 최우선입니다!
-          if (isOrange) {
-            color = '#ea580c'; 
-          } else if (isBlue) {
-            color = '#2563eb'; 
-          }
-
-          return (
-            <span key={idx} style={{ color, fontWeight: 400 }}>
-              {part}
-            </span>
-          );
-        })}
-      </>
-    );
   };
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -242,6 +216,7 @@ export default function SearchPage({
       <main className="w-full flex-grow">
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           {displayQuery ? (
+            /* ---------------- 검색 결과 화면 ---------------- */
             <div className="w-full mt-5">
               {isTooShort ? (
                 <div className="py-32 text-center text-slate-400 text-xl font-light italic animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -249,7 +224,6 @@ export default function SearchPage({
                 </div>
               ) : displayResults.length > 0 ? (
                 <div className="space-y-6">
-                  
                   {isPartialMatch && matchedKeywords.length > 0 && (
                     <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl shadow-sm mb-4 animate-in fade-in slide-in-from-top-2">
                       <div className="flex items-start gap-3">
@@ -289,7 +263,7 @@ export default function SearchPage({
                               )}
                               <div className="text-base md:text-lg leading-snug break-keep">{highlightMatch(item.line_text)}</div>
                             </div>
-                            <span className="flex-shrink-0 ml-3 px-2 py-0.5 rounded text-xs tracking-tight whitespace-nowrap shadow-sm" style={{ backgroundColor: '#d4b08c', color: '#ffffff', fontWeight: '500', fontFamily: 'sans-serif' }}>
+                            <span className="flex-shrink-0 ml-3 px-2 py-0.5 rounded text-xs tracking-tight whitespace-nowrap shadow-sm" style={{ backgroundColor: '#d4b08c', color: '#ffffff', fontWeight: '500' }}>
                               {getCategoryName(item.category_id)}
                             </span>
                           </div>
@@ -301,26 +275,22 @@ export default function SearchPage({
 
                   {displayResults.length > itemsPerPage && (
                     <div className="flex justify-center items-center gap-3 mt-12 mb-12 select-none font-sans">
-                      <button onClick={() => handlePageChange(1)} disabled={currentPage === 1} className="text-xs font-bold text-slate-400 hover:text-orange-600 hover:bg-orange-50 px-2 py-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed">&lt;&lt;</button>
-                      <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">이전</button>
+                      <button onClick={() => handlePageChange(1)} disabled={currentPage === 1} className="text-xs font-bold text-slate-400 hover:text-orange-600 px-2 py-1 rounded transition-colors disabled:opacity-30">&lt;&lt;</button>
+                      <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30">이전</button>
                       <div className="flex items-center gap-2 mx-2">
                         {Array.from({ length: totalPages }, (_, i) => i + 1).map((number, idx, arr) => (
                           <React.Fragment key={number}>
-                            <button onClick={() => handlePageChange(number)} className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${currentPage === number ? 'bg-slate-800 text-white font-bold shadow-md transform scale-105' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'}`}>{number}</button>
+                            <button onClick={() => handlePageChange(number)} className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${currentPage === number ? 'bg-slate-800 text-white font-bold shadow-md transform scale-105' : 'text-slate-400 hover:bg-slate-100'}`}>{number}</button>
                             {idx < arr.length - 1 && <span className="text-[10px] text-slate-300 mx-0.5">•</span>}
                           </React.Fragment>
                         ))}
                       </div>
-                      <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">다음</button>
-                      <button onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages} className="text-xs font-bold text-slate-400 hover:text-orange-600 hover:bg-orange-50 px-2 py-1 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed">&gt;&gt;</button>
+                      <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30">다음</button>
+                      <button onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages} className="text-xs font-bold text-slate-400 hover:text-orange-600 px-2 py-1 rounded transition-colors disabled:opacity-30">&gt;&gt;</button>
                     </div>
                   )}
                   
-                  <div className="mt-12 mb-4"><NuanceWidget /></div>
                   {!displayIsApp && <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_검색결과_하단" minHeight={250} />}
-                  <div className="py-8 text-center border-t border-slate-100 mt-8">
-                    <p className="text-sm text-slate-400">{displayResults.length}개의 결과를 모두 확인했습니다.</p>
-                  </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 text-center px-4">
@@ -328,132 +298,106 @@ export default function SearchPage({
                   <h3 className="text-lg font-bold text-slate-800 mb-2">
                     '<span style={{ color: '#ef4444' }}>{displayQuery}</span>'에 대한 결과가 없습니다.
                   </h3>
-                  <p className="text-slate-500 text-sm mb-8">내부 사전에 데이터가 없네요. 외부 사이트에서 찾아보시겠어요?</p>
-                  <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
-                    <button onClick={() => handleExternalSearch('naver')} className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-[#03C75A] hover:bg-[#02b351] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md"><span className="text-lg font-serif">N</span>네이버 사전 검색</button>
-                    <button onClick={() => handleExternalSearch('google')} className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition-all shadow-sm hover:shadow-md">Google 검색</button>
+                  <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md mt-4">
+                    <button onClick={() => handleExternalSearch('naver')} className="flex-1 py-3 px-4 bg-[#03C75A] text-white rounded-xl font-bold shadow-sm">네이버 사전 검색</button>
+                    <button onClick={() => handleExternalSearch('google')} className="flex-1 py-3 px-4 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold shadow-sm">Google 검색</button>
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            <div className="mt-5 space-y-4 md:space-y-6 animate-in fade-in duration-500">
+            /* ---------------- 🌟 메인 화면 (검색 전) ---------------- */
+            <div className="mt-5 space-y-8 animate-in fade-in duration-500">
               
-              <div className="flex justify-end -mb-3 md:-mb-5 pr-2 relative z-10">
-                <Link href="/notice" className="group flex items-center gap-1.5 px-4 py-1.5 bg-white border border-slate-200 shadow-sm hover:border-blue-400 hover:shadow-md hover:bg-blue-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-slate-600 hover:text-blue-700 transition-all duration-300">
+              <div className="flex flex-wrap items-center justify-end gap-2 -mb-3 md:-mb-5 pr-2 relative z-10">
+                <Link href="/conversation" className="group flex items-center gap-1.5 px-4 py-1.5 bg-white border border-blue-200 shadow-sm hover:border-blue-400 hover:shadow-md hover:bg-blue-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-blue-600 hover:text-blue-800 transition-all duration-300">
+                  <span className="text-[14px] group-hover:scale-110 transition-transform">📖</span> 
+                  <span>필수 영어회화</span>
+                </Link>
+                <Link href="/notice" className="group flex items-center gap-1.5 px-4 py-1.5 bg-white border border-slate-200 shadow-sm hover:border-slate-400 hover:shadow-md hover:bg-slate-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-slate-600 hover:text-slate-800 transition-all duration-300">
                   <span className="text-[14px] group-hover:scale-110 transition-transform">📢</span> 
                   <span>공지사항 / FAQ</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
                 </Link>
               </div>
 
-              <NuanceWidget />
-
-              <div className="bg-blue-50/50 rounded-xl md:rounded-2xl p-4 md:p-6 border border-blue-100 shadow-sm">
-                <h2 className="text-sm md:text-base font-extrabold text-slate-800 mb-3 md:mb-4 flex items-center gap-2">
-                  <span className="text-blue-600">💡</span> 오늘의 추천 복합어 및 전문용어
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {[
-                    { en: "Artificial Intelligence", ko: "인공지능 (컴퓨터/IT)", desc: "인간의 학습능력, 추론능력, 지각능력을 인공적으로 구현한 컴퓨터 시스템" },
-                    { en: "Foreign Direct Investment", ko: "외국인 직접 투자 (무역/경제)", desc: "외국인이 경영 참가와 기술제휴 등 국내 기업과 지속적인 경제관계를 수립할 목적으로 투자하는 것" },
-                    { en: "Magnetic Resonance Imaging", ko: "자기 공명 영상 (의학)", desc: "강한 자기장 내에서 인체에 고주파를 전막하여 발생하는 자기 공명 신호를 영상화하는 기술" },
-                    { en: "Search Engine Optimization", ko: "검색 엔진 최적화 (IT/마케팅)", desc: "검색 엔진에서 찾기 쉽도록 사이트를 개선하고 트래픽을 늘리는 프로세스" }
-                  ].map((item, i) => (
-                    <div key={i} className="bg-white p-3.5 md:p-4 rounded-lg md:rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="font-extrabold text-blue-700 text-[13px] md:text-[14px] mb-1 tracking-tight">{item.en}</div>
-                      <div className="font-bold text-slate-800 text-[12px] md:text-[13px] mb-1">{item.ko}</div>
-                      <div className="text-slate-500 text-[11px] md:text-[12px] leading-snug line-clamp-2">{item.desc}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                
-                {!displayIsApp && (
-                  <div className="h-[280px] relative rounded-2xl overflow-hidden shadow-sm border border-slate-100 bg-slate-50">
-                    <Image src="/images/mobile-app-banner-bright.png" alt="배너" fill className="object-contain" />
-                  </div>
-                )}
-                
-                <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[280px]">
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[260px]">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-[15px] font-extrabold text-slate-800 flex items-center gap-2">
-                      <span className="text-blue-500">🕒</span> 실시간 전체 유저 검색어
-                    </h2>
-                    <Link href="/recent" className="text-[11px] font-medium text-slate-400 hover:text-slate-600 transition-colors">
-                      더보기 &gt;
-                    </Link>
+                    <h2 className="text-[15px] font-extrabold text-slate-800 flex items-center gap-2"><span className="text-blue-500">🕒</span> 실시간 최근 검색어</h2>
                   </div>
-                  <div className="flex flex-wrap gap-2 overflow-y-auto content-start flex-grow pr-1" style={{ scrollbarWidth: 'thin' }}>
-                    {recentSearches.length > 0 ? (
-                      recentSearches.map((item, idx) => {
-                        const colorClass = TAG_COLORS[idx % TAG_COLORS.length];
-                        return (
-                          <Link key={idx} href={getSearchUrl(item.word)} className={`group flex items-center px-3 py-1.5 rounded-full border text-[13px] font-bold transition-all shadow-sm ${colorClass}`}>
-                            <span className="opacity-50 mr-1 font-normal">#</span>
-                            <span>{item.word}</span>
-                            {item.count > 1 && (
-                              <span className="ml-1 opacity-70 text-[11px] font-normal">(x{item.count})</span>
-                            )}
-                          </Link>
-                        );
-                      })
-                    ) : (
-                      <div className="text-sm text-slate-400 font-medium px-1">최근 검색 데이터를 불러오는 중입니다...</div>
-                    )}
+                  <div className="flex flex-wrap gap-2 overflow-y-auto content-start flex-grow">
+                    {recentSearches.length > 0 ? recentSearches.map((item, idx) => (
+                      <Link key={idx} href={getSearchUrl(item.word)} className={`px-3 py-1.5 rounded-full border text-[13px] font-bold ${TAG_COLORS[idx % TAG_COLORS.length]}`}>
+                        <span className="opacity-50 mr-1">#</span>{item.word}
+                      </Link>
+                    )) : <div className="text-sm text-slate-400">데이터 수집 중...</div>}
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[280px]">
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[260px]">
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-[15px] font-extrabold text-slate-800 flex items-center gap-2">
-                      <span className="text-red-500">🔥</span> 실시간 인기 검색어 TOP 20
-                    </h2>
-                    <Link href="/popular" className="text-[11px] font-medium text-slate-400 hover:text-slate-600 transition-colors">
-                      더보기 &gt;
-                    </Link>
+                    <h2 className="text-[15px] font-extrabold text-slate-800 flex items-center gap-2"><span className="text-red-500">🔥</span> 인기 검색어 TOP</h2>
                   </div>
-                  <ul className="flex-grow overflow-y-auto pr-2 space-y-1" style={{ scrollbarWidth: 'thin' }}>
-                    {popularSearches.length > 0 ? (
-                      popularSearches.map((word, idx) => (
-                        <li key={idx}>
-                          <Link href={getSearchUrl(word)} className="flex items-center py-2 px-2 hover:bg-slate-50 rounded-lg transition-colors group">
-                            <span className={`w-5 h-5 flex items-center justify-center rounded text-[11px] font-bold mr-3 transition-colors
-                              ${idx === 0 ? 'bg-yellow-100 text-yellow-700 group-hover:bg-yellow-200' : 
-                                idx === 1 ? 'bg-slate-200 text-slate-700 group-hover:bg-slate-300' : 
-                                idx === 2 ? 'bg-orange-100 text-orange-700 group-hover:bg-orange-200' : 
-                                'bg-slate-50 text-slate-400 group-hover:bg-slate-200'}`}
-                            >
-                              {idx + 1}
-                            </span>
-                            <span className="text-[14px] text-slate-700 font-medium truncate group-hover:text-blue-600 transition-colors">
-                              {word}
-                            </span>
-                          </Link>
-                        </li>
-                      ))
-                    ) : (
-                      <div className="text-sm text-slate-400 font-medium px-1">실시간 데이터를 분석 중입니다...</div>
-                    )}
+                  <ul className="flex-grow overflow-y-auto pr-2 space-y-1">
+                    {popularSearches.length > 0 ? popularSearches.map((word, idx) => (
+                      <li key={idx}>
+                        <Link href={getSearchUrl(word)} className="flex items-center py-2 px-2 hover:bg-slate-50 rounded-lg group">
+                          <span className="w-5 h-5 flex items-center justify-center rounded text-[11px] font-bold mr-3 bg-slate-100 text-slate-500">{idx + 1}</span>
+                          <span className="text-[14px] text-slate-700 font-medium truncate group-hover:text-blue-600">{word}</span>
+                        </Link>
+                      </li>
+                    )) : <div className="text-sm text-slate-400">데이터 수집 중...</div>}
                   </ul>
                 </div>
+              </div>
 
-                <TrendGraph />
+              {/* 🌟 수정 3: 메인 화면 폰트 키우고 '해설: ' 로 변경! */}
+              <article className="bg-slate-50/80 rounded-2xl p-6 md:p-8 border border-slate-200 text-slate-700 shadow-sm mt-8">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 border-b border-slate-200 pb-4 gap-4">
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+                      <span>📖</span> 엑스딕 필수 영어회화 & 번역가 해설
+                    </h2>
+                    <p className="mt-2 text-sm text-slate-500">원어민들이 가장 자주 사용하는 핵심 문장과 뉘앙스를 확인하세요.</p>
+                  </div>
+                  <Link href="/conversation" className="hidden md:flex items-center gap-1 text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors whitespace-nowrap">
+                    전체 보기 <span>&gt;</span>
+                  </Link>
+                </div>
                 
-              </div>
+                <div className="grid grid-cols-1 gap-5">
+                  {previewData.length > 0 ? previewData.map((item, idx) => (
+                    <div key={idx} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                      <div className="bg-slate-800 px-4 py-2">
+                        <h3 className="text-sm font-bold text-white">{item.category}</h3>
+                      </div>
+                      <div className="p-4 hover:bg-slate-50 transition-colors">
+                        <div className="flex items-start gap-3 mb-3">
+                          <button onClick={() => handleSpeak(item.en_text)} className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm mt-0.5" title="발음 듣기">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
+                          </button>
+                          <div>
+                            <h4 className="text-base md:text-lg font-extrabold text-blue-700 mb-0.5">{item.en_text}</h4>
+                            <p className="text-sm md:text-base font-bold text-slate-800">{item.ko_text}</p>
+                          </div>
+                        </div>
+                        {/* 🌟 폰트를 키우고 '해설: ' 로 바꾼 부분입니다! */}
+                        <div className="ml-11 bg-slate-100 rounded-lg p-4 border border-slate-200 text-sm md:text-base text-slate-700 leading-relaxed line-clamp-2">
+                          <span className="font-extrabold text-blue-700 mr-1.5">💡 해설: </span>{item.description}
+                        </div>
+                      </div>
+                    </div>
+                  )) : (
+                    <div className="text-center py-8 text-slate-400 text-sm">데이터를 불러오는 중입니다...</div>
+                  )}
+                </div>
 
-              <div className="bg-slate-50 rounded-xl md:rounded-2xl p-5 md:p-8 border border-slate-200 text-xs md:text-sm text-slate-600 leading-relaxed shadow-sm mt-8">
-                <h3 className="font-extrabold text-slate-800 mb-2 md:mb-3 text-sm md:text-base flex items-center gap-2">
-                  <span>📖</span> 엑스딕(X-DIC) 영한/한영 복합어 사전 활용 가이드
-                </h3>
-                <p className="mb-1.5 md:mb-2">엑스딕은 일반적인 영어 사전이나 번역기에서 정확한 의미를 찾기 어려운 <strong>전문 용어 및 복합어(Compound Words)</strong> 검색에 특화된 차세대 영한/한영 사전 플랫폼입니다.</p>
-                <p className="mb-1.5 md:mb-2">IT, 의학, 기계, 전기, 전자, 무역, 경제 등 무려 12개 이상의 세분화된 전문 카테고리 빅데이터를 바탕으로 실무자와 학생들에게 가장 정확한 번역 결과를 제공합니다. 번역기로 해결되지 않는 긴 영어 단어나 전공 서적의 난해한 용어들을 엑스딕의 초고속 듀얼 음성 검색 기능을 통해 0.1초 만에 확인해 보세요.</p>
-                <p>PC와 모바일 웹 브라우저는 물론, 곧 출시될 안드로이드 전용 앱(APP)을 통해서도 언제 어디서나 강력한 사전 검색 기능을 100% 무료로 이용하실 수 있습니다.</p>
-              </div>
+                <div className="mt-6 md:hidden flex justify-center">
+                  <Link href="/conversation" className="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors border border-blue-200 bg-white px-6 py-2 rounded-full shadow-sm">
+                    전체 보기 &gt;
+                  </Link>
+                </div>
+              </article>
 
             </div>
           )}
@@ -461,12 +405,7 @@ export default function SearchPage({
       </main>
 
       <div className="flex-grow py-[5vh]"></div>
-      
-      {!displayIsApp && (
-        <div className="flex-none">
-          <Footer />
-        </div>
-      )}
+      {!displayIsApp && <div className="flex-none"><Footer /></div>}
     </div>
   );
 }
