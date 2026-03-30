@@ -54,12 +54,11 @@ export default function SearchPage({
   const [clientIsApp, setClientIsApp] = useState(false);
   const [previewData, setPreviewData] = useState<any[]>([]);
 
-  const supabase = createClientComponentClient();
+  const [supabase] = useState(() => createClientComponentClient());
 
   useEffect(() => {
     if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) setClientIsApp(true);
     
-    // DB에서 영어회화 최신 3개 가져오기
     const fetchPreview = async () => {
       const { data } = await supabase.from('conversation_lines').select('*').order('created_at', { ascending: false }).limit(3);
       if (data) setPreviewData(data);
@@ -159,11 +158,17 @@ export default function SearchPage({
         if (part.lang === 'ko') {
           if (koVoice) utterance.voice = koVoice;
           utterance.lang = koVoice ? koVoice.lang : 'ko-KR';
-          utterance.pitch = 0.95; utterance.rate = 1.05; 
+          // 🌟 한국어: 피치를 1.0으로 올려 더 맑게, 볼륨은 1.0(최대) 유지
+          utterance.pitch = 1.0; 
+          utterance.rate = 1.05; 
+          utterance.volume = 1.0; 
         } else {
           if (enVoice) utterance.voice = enVoice;
           utterance.lang = enVoice ? enVoice.lang : 'en-US';
-          utterance.pitch = 0.9; utterance.rate = 0.85; 
+          // 🌟 영어: 피치를 살짝 낮추고 볼륨을 0.75로 줄여서 상대적으로 한국어가 크게 들리도록 설정!
+          utterance.pitch = 0.9; 
+          utterance.rate = 0.85; 
+          utterance.volume = 0.75; 
         }
         window.speechSynthesis.speak(utterance);
       });
@@ -217,7 +222,6 @@ export default function SearchPage({
       <main className="w-full flex-grow">
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           {displayQuery ? (
-            /* ---------------- 검색 결과 화면 ---------------- */
             <div className="w-full mt-5">
               {isTooShort ? (
                 <div className="py-32 text-center text-slate-400 text-xl font-light italic animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -308,7 +312,6 @@ export default function SearchPage({
               )}
             </div>
           ) : (
-            /* ---------------- 🌟 메인 화면 (검색 전) ---------------- */
             <div className="mt-5 space-y-8 animate-in fade-in duration-500">
               
               <div className="flex flex-wrap items-center justify-end gap-2 -mb-3 md:-mb-5 pr-2 relative z-10">
@@ -326,7 +329,6 @@ export default function SearchPage({
                 <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[260px]">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-[15px] font-extrabold text-slate-800 flex items-center gap-2"><span className="text-blue-500">🕒</span> 실시간 최근 검색어</h2>
-                    {/* 🌟 잃어버린 더보기 버튼 복구! */}
                     <Link href="/recent" className="text-[11px] font-medium text-slate-400 hover:text-slate-600 transition-colors">
                       더보기 &gt;
                     </Link>
@@ -343,7 +345,6 @@ export default function SearchPage({
                 <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[260px]">
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-[15px] font-extrabold text-slate-800 flex items-center gap-2"><span className="text-red-500">🔥</span> 인기 검색어 TOP</h2>
-                    {/* 🌟 잃어버린 더보기 버튼 복구! */}
                     <Link href="/popular" className="text-[11px] font-medium text-slate-400 hover:text-slate-600 transition-colors">
                       더보기 &gt;
                     </Link>
@@ -382,7 +383,7 @@ export default function SearchPage({
                       </div>
                       <div className="p-4 hover:bg-slate-50 transition-colors">
                         <div className="flex items-start gap-3 mb-3">
-                          <button onClick={() => handleSpeak(item.en_text)} className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm mt-0.5" title="발음 듣기">
+                          <button onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)} className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm mt-0.5" title="발음 듣기">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
                           </button>
                           <div>
@@ -390,7 +391,10 @@ export default function SearchPage({
                             <p className="text-sm md:text-base font-bold text-slate-800">{item.ko_text}</p>
                           </div>
                         </div>
-                        <div className="ml-11 bg-slate-100 rounded-lg p-4 border border-slate-200 text-sm md:text-base text-slate-700 leading-relaxed line-clamp-2">
+                        <div 
+                          className="ml-11 bg-slate-100 rounded-lg p-4 border border-slate-200 text-sm md:text-base text-slate-700 leading-relaxed whitespace-pre-wrap max-h-[160px] overflow-y-auto" 
+                          style={{ scrollbarWidth: 'thin' }}
+                        >
                           <span className="font-extrabold text-blue-700 mr-1.5">💡 해설: </span>{item.description}
                         </div>
                       </div>
