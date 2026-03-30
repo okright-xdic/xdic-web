@@ -8,6 +8,7 @@ import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import TrendGraph from '@/components/TrendGraph';
 import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
+import NuanceWidget from '@/components/NuanceWidget'; 
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 interface SearchResult {
@@ -58,7 +59,7 @@ export default function SearchPage({
   useEffect(() => {
     if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) setClientIsApp(true);
     
-    // 🌟 메인 화면 미리보기도 DB에서 최신순으로 3개 가져오기!
+    // DB에서 영어회화 최신 3개 가져오기
     const fetchPreview = async () => {
       const { data } = await supabase.from('conversation_lines').select('*').order('created_at', { ascending: false }).limit(3);
       if (data) setPreviewData(data);
@@ -255,7 +256,7 @@ export default function SearchPage({
                               {!displayIsApp && (
                                 <button
                                   onClick={() => handleSpeak(item.line_text)}
-                                  className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                  className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm mt-0.5"
                                   title="발음 듣기"
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
@@ -290,6 +291,7 @@ export default function SearchPage({
                     </div>
                   )}
                   
+                  <div className="mt-12 mb-4"><NuanceWidget /></div>
                   {!displayIsApp && <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_검색결과_하단" minHeight={250} />}
                 </div>
               ) : (
@@ -324,6 +326,10 @@ export default function SearchPage({
                 <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[260px]">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-[15px] font-extrabold text-slate-800 flex items-center gap-2"><span className="text-blue-500">🕒</span> 실시간 최근 검색어</h2>
+                    {/* 🌟 잃어버린 더보기 버튼 복구! */}
+                    <Link href="/recent" className="text-[11px] font-medium text-slate-400 hover:text-slate-600 transition-colors">
+                      더보기 &gt;
+                    </Link>
                   </div>
                   <div className="flex flex-wrap gap-2 overflow-y-auto content-start flex-grow">
                     {recentSearches.length > 0 ? recentSearches.map((item, idx) => (
@@ -337,6 +343,10 @@ export default function SearchPage({
                 <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[260px]">
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-[15px] font-extrabold text-slate-800 flex items-center gap-2"><span className="text-red-500">🔥</span> 인기 검색어 TOP</h2>
+                    {/* 🌟 잃어버린 더보기 버튼 복구! */}
+                    <Link href="/popular" className="text-[11px] font-medium text-slate-400 hover:text-slate-600 transition-colors">
+                      더보기 &gt;
+                    </Link>
                   </div>
                   <ul className="flex-grow overflow-y-auto pr-2 space-y-1">
                     {popularSearches.length > 0 ? popularSearches.map((word, idx) => (
@@ -351,7 +361,6 @@ export default function SearchPage({
                 </div>
               </div>
 
-              {/* 🌟 수정 3: 메인 화면 폰트 키우고 '해설: ' 로 변경! */}
               <article className="bg-slate-50/80 rounded-2xl p-6 md:p-8 border border-slate-200 text-slate-700 shadow-sm mt-8">
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 border-b border-slate-200 pb-4 gap-4">
                   <div>
@@ -381,7 +390,6 @@ export default function SearchPage({
                             <p className="text-sm md:text-base font-bold text-slate-800">{item.ko_text}</p>
                           </div>
                         </div>
-                        {/* 🌟 폰트를 키우고 '해설: ' 로 바꾼 부분입니다! */}
                         <div className="ml-11 bg-slate-100 rounded-lg p-4 border border-slate-200 text-sm md:text-base text-slate-700 leading-relaxed line-clamp-2">
                           <span className="font-extrabold text-blue-700 mr-1.5">💡 해설: </span>{item.description}
                         </div>
@@ -398,6 +406,10 @@ export default function SearchPage({
                   </Link>
                 </div>
               </article>
+
+              <div className="w-full pt-4">
+                <NuanceWidget />
+              </div>
 
             </div>
           )}
