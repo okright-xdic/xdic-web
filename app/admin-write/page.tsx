@@ -10,11 +10,26 @@ export default function AdminWritePage() {
   const supabase = createClientComponentClient();
   const router = useRouter();
 
+  // 🌟 보안을 위한 상태값 추가
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+
   const [category, setCategory] = useState('✈️ 여행 영어 (Travel English)');
   const [enText, setEnText] = useState('');
   const [koText, setKoText] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 🌟 관리자 인증 처리 함수
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === 'okright91088!!') {
+      setIsAuthenticated(true);
+    } else {
+      alert('비밀번호가 일치하지 않습니다. 관리자만 접근 가능합니다.');
+      setPassword('');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +56,46 @@ export default function AdminWritePage() {
     }
   };
 
+  // 🔒 인증되지 않았을 때 보여줄 '자물쇠(로그인)' 화면
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+          <div className="text-center mb-8">
+            <div className="text-4xl mb-4">🔒</div>
+            <h1 className="text-2xl font-extrabold text-slate-800">관리자 인증</h1>
+            <p className="text-slate-500 text-sm mt-2">해설 등록을 위해 비밀번호를 입력해주세요.</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="비밀번호 입력"
+                className="w-full border border-slate-300 rounded-lg p-4 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-medium tracking-widest text-center"
+                autoFocus
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-slate-800 text-white font-bold rounded-lg py-4 hover:bg-slate-900 transition-colors"
+            >
+              입장하기
+            </button>
+            <div className="text-center mt-4">
+              <Link href="/conversation" className="text-sm font-medium text-slate-400 hover:text-slate-600 hover:underline">
+                돌아가기
+              </Link>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // 🔓 인증 성공 시 보여줄 '글쓰기' 화면
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4">
       <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
