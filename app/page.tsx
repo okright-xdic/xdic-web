@@ -1,5 +1,5 @@
 // app/page.tsx
-// ✅ 웹(/) 서버 검색: 언어 반전(Language Reversal) 기반 완벽 Pinpoint 형광펜 탑재
+// ✅ 웹(/) 서버 검색: 궁극의 하이브리드 Pinpoint 형광펜 (Cat 0 우선 + 필터링된 언어 반전) 탑재
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -7,6 +7,32 @@ import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+// 공통으로 사용할 필터링 단어들 (기능어, 조사 등)
+const kStopSuffixes = /(하셨습니까|하셨습니다|해보세요|했습니다|했습니까|하셨어요|했어요|보세요|하세요|이시여|라게|것을|도록|부터|까지|하고|이며|했다|봐요|했어|해라|에서|에게|으로|께서|이다|입니다|입니까|인가요|인가|인데요|인지|이냐|은|는|이|가|을|를|의|에|로|아|야|도|만|와|과|랑|고|지|면|서|된|될|할|하는)$/g;
+
+const kStopWords = new Set([
+  '어디', '언제', '누구', '무엇', '어떻게', '왜', '어느', '무슨', '어떤', 
+  '이', '그', '저', '이것', '그것', '저것', '여기', '거기', '저기',
+  '있나요', '있습니까', '있어요', '있어', '있는', '있을', '있', 
+  '없나요', '없습니까', '없어요', '없어', '없는', '없을', '없',
+  '입니다', '입니까', '이에요', '예요', '합니다', '합니까', '해요', '해', '하는', '할', 
+  '수', '것', '들', '제', '내', '네', '너', '나', '우리', '저희', '좀', '잘', '더'
+]);
+
+const eStopWords = new Set([
+  'a', 'an', 'the', 'is', 'are', 'was', 'were', 'am', 'be', 'been', 'being',
+  'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'about', 'as', 'into', 'like', 'through', 'after', 'over', 'between', 'out', 'against', 'during', 'without', 'before', 'under', 'around', 'among',
+  'and', 'or', 'but', 'so', 'because', 'although', 'if',
+  'i', 'you', 'he', 'she', 'it', 'they', 'we', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'their', 'our', 'mine', 'yours', 'theirs', 'ours',
+  'this', 'that', 'these', 'those',
+  'what', 'how', 'who', 'where', 'when', 'why', 'which', 'whose', 'whom',
+  'do', 'does', 'did', 'have', 'has', 'had', 'can', 'could', 'will', 'would', 'shall', 'should', 'may', 'might', 'must', 'cannot'
+]);
+
+const irregulars: Record<string, string> = {
+  men: 'man', women: 'woman', children: 'child', feet: 'foot', teeth: 'tooth', mice: 'mouse'
+};
 
 const rotateResults = (items: any[], keyword: string) => {
   if (!items || items.length === 0) return [];
@@ -62,31 +88,6 @@ const rotateResults = (items: any[], keyword: string) => {
 
 const extractKeywords = (query: string): string[] => {
   const tokens = query.split(/\s+/);
-  const kStopSuffixes = /(하셨습니까|하셨습니다|해보세요|했습니다|했습니까|하셨어요|했어요|보세요|하세요|이시여|라게|것을|도록|부터|까지|하고|이며|했다|봐요|했어|해라|에서|에게|으로|께서|이다|입니다|입니까|인가요|인가|인데요|인지|이냐|은|는|이|가|을|를|의|에|로|아|야|도|만|와|과|랑|고|지|면|서|된|될|할|하는)$/g;
-  
-  const kStopWords = new Set([
-    '어디', '언제', '누구', '무엇', '어떻게', '왜', '어느', '무슨', '어떤', 
-    '이', '그', '저', '이것', '그것', '저것', '여기', '거기', '저기',
-    '있나요', '있습니까', '있어요', '있어', '있는', '있을', '있', 
-    '없나요', '없습니까', '없어요', '없어', '없는', '없을', '없',
-    '입니다', '입니까', '이에요', '예요', '합니다', '합니까', '해요', '해', '하는', '할', 
-    '수', '것', '들', '제', '내', '네', '너', '나', '우리', '저희', '좀', '잘', '더'
-  ]);
-
-  const eStopWords = new Set([
-    'a', 'an', 'the', 'is', 'are', 'was', 'were', 'am', 'be', 'been', 'being',
-    'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'about', 'as', 'into', 'like', 'through', 'after', 'over', 'between', 'out', 'against', 'during', 'without', 'before', 'under', 'around', 'among',
-    'and', 'or', 'but', 'so', 'because', 'although', 'if',
-    'i', 'you', 'he', 'she', 'it', 'they', 'we', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'their', 'our', 'mine', 'yours', 'theirs', 'ours',
-    'this', 'that', 'these', 'those',
-    'what', 'how', 'who', 'where', 'when', 'why', 'which', 'whose', 'whom',
-    'do', 'does', 'did', 'have', 'has', 'had', 'can', 'could', 'will', 'would', 'shall', 'should', 'may', 'might', 'must', 'cannot'
-  ]);
-
-  const irregulars: Record<string, string> = {
-    men: 'man', women: 'woman', children: 'child', feet: 'foot', teeth: 'tooth', mice: 'mouse'
-  };
-
   return tokens
     .map(t => {
       let clean = t.replace(/[.,?!]/g, ''); 
@@ -167,17 +168,16 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
         }
       }
 
+      // 🌟 [궁극의 하이브리드 하이라이트 로직]
       if (results.length > 0) {
         const cleanQueryNoSpace = cleanQuery.replace(/[\s\-_]/g, '').toLowerCase();
-        
         const isKoreanQuery = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(cleanQuery);
 
+        // 1. 오렌지 하이라이트 (검색어 완벽 복원)
         results.forEach((row) => {
           const text = String(row.line_text || '');
           const cleanText = text.replace(/[.,:;()\[\]]/g, '');
           const tokens = cleanText.split(/\s+/);
-
-          // 1. 오렌지 하이라이트 (검색어 완벽 복원)
           for (let i = 0; i < tokens.length; i++) {
             let combined = '';
             let original = [];
@@ -191,24 +191,40 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
               if (combined.length > cleanQueryNoSpace.length) break;
             }
           }
-
-          // 2. 파란색 대응어 하이라이트 (언어 반전 마법)
-          if (isKoreanQuery) {
-            const engMatches = text.match(/[a-zA-Z0-9\-]+/g);
-            if (engMatches) {
-              engMatches.forEach(w => {
-                if (w.trim().length >= 2) blueKeys.push(w);
-              });
-            }
-          } else {
-            const korMatches = text.match(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]+/g);
-            if (korMatches) {
-              korMatches.forEach(w => {
-                if (w.trim().length >= 1) blueKeys.push(w);
-              });
-            }
-          }
         });
+
+        // 2. 파란색 대응어 하이라이트 (Cat 0 최우선 + 없으면 필터링 언어반전)
+        const cat0Items = results.filter(row => row.category_id === 0);
+        
+        if (cat0Items.length > 0) {
+          // 💡 1순위: 0번 카테고리가 있으면 예전의 '완벽한 핀포인트' 방식 그대로 추출!
+          cat0Items.forEach(row => {
+            const cleanText = String(row.line_text || '').replace(/[.,:;()\[\]]/g, '');
+            const words = cleanText.split(/\s+/);
+            blueKeys.push(...words);
+          });
+        } else {
+          // 💡 2순위: 0번 카테고리가 없으면(automatic instrument 등), 언어 반전을 쓰되 쓸데없는 단어(Stop words)는 철저히 걸러냄!
+          results.forEach((row) => {
+            const text = String(row.line_text || '');
+            if (isKoreanQuery) {
+              const engMatches = text.match(/[a-zA-Z0-9\-]+/g);
+              if (engMatches) {
+                engMatches.forEach(w => {
+                  if (w.trim().length >= 2 && !eStopWords.has(w.toLowerCase())) blueKeys.push(w);
+                });
+              }
+            } else {
+              const korMatches = text.match(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]+/g);
+              if (korMatches) {
+                korMatches.forEach(w => {
+                  let cleanW = w.replace(kStopSuffixes, '');
+                  if (cleanW.trim().length >= 1 && !kStopWords.has(cleanW)) blueKeys.push(cleanW);
+                });
+              }
+            }
+          });
+        }
 
         orangeKeys = [...new Set(orangeKeys)].filter((w) => w && w.trim());
         blueKeys = [...new Set(blueKeys)].filter((w) => w && w.trim());
@@ -220,7 +236,6 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
     }
   }
 
-  // ✅ 오류 해결: 이제 구형 highlightList 대신 orangeKeys와 blueKeys를 넘겨줍니다!
   const isApp = searchParams.app === '1';
 
   return (
