@@ -293,7 +293,6 @@ export default function SearchPage({
                     </div>
                   )}
                   
-                  {/* 🌟 부분 일치 시 나오는 외부 검색 버튼 추가! */}
                   {isPartialMatch && (
                     <div className="flex flex-col items-center justify-center py-10 mt-8 border-t border-slate-100 text-center px-4">
                       <p className="text-slate-700 text-[15px] font-bold mb-5">
@@ -380,7 +379,8 @@ export default function SearchPage({
               <article className="bg-slate-50/80 rounded-2xl p-6 md:p-8 border border-slate-200 text-slate-700 shadow-sm mt-8">
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 border-b border-slate-200 pb-4 gap-4">
                   <div>
-                    <h2 className="text-xl md:text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+                    {/* 🌟 여기서 폰트를 text-lg md:text-xl 로 줄였습니다! */}
+                    <h2 className="text-lg md:text-xl font-extrabold text-slate-900 flex items-center gap-2">
                       <span>📖</span> 엑스딕 필수 영어회화 & 번역가 해설
                     </h2>
                     <p className="mt-2 text-sm text-slate-500">원어민들이 가장 자주 사용하는 핵심 문장과 뉘앙스를 확인하세요.</p>
