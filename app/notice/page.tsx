@@ -1,9 +1,11 @@
+// app/notice/page.tsx
 'use client';
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { createClient } from '@/utils/supabase/client';
+// 🌟 핵심 버그 수정: 공식 인증 라이브러리를 통해 Supabase 클라이언트를 생성합니다.
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 interface Notice {
   id: number;
@@ -13,13 +15,12 @@ interface Notice {
 }
 
 export default function NoticePage() {
-  const supabase = createClient();
+  // 🌟 핵심 버그 수정: 무한루프를 방지하고 안전하게 DB에 접근하기 위해 useState 적용
+  const [supabase] = useState(() => createClientComponentClient());
+  
   const [notices, setNotices] = useState<Notice[]>([]);
   const [expandedId, setExpandedId] = useState<number | null>(null);
-  
-  // 🌟 [핵심 마법] 로딩 중인지 확인하는 상태를 추가합니다!
   const [isLoading, setIsLoading] = useState(true); 
-  
   const [isAdmin, setIsAdmin] = useState(false);
   const [isWriting, setIsWriting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -28,8 +29,7 @@ export default function NoticePage() {
   const [content, setContent] = useState('');
 
   const fetchNotices = async () => {
-    setIsLoading(true); // 데이터를 가져오기 시작할 때 로딩 ON
-
+    setIsLoading(true); 
     const { data, error } = await supabase
       .from('notices')
       .select('*')
@@ -38,12 +38,12 @@ export default function NoticePage() {
     if (data) setNotices(data);
     if (error) console.error('게시글 불러오기 실패:', error);
     
-    setIsLoading(false); // 🌟 데이터를 다 가져왔거나 에러가 나면 로딩 OFF
+    setIsLoading(false); 
   };
 
   useEffect(() => {
     fetchNotices();
-  }, []);
+  }, [supabase]);
 
   const handleAdminLogin = () => {
     if (isAdmin) {
@@ -75,7 +75,8 @@ export default function NoticePage() {
         .eq('id', editingId);
 
       if (error) {
-        alert('글 수정에 실패했습니다.');
+        console.error(error);
+        alert('글 수정에 실패했습니다: ' + error.message);
       } else {
         alert('성공적으로 수정되었습니다!');
         resetForm();
@@ -87,7 +88,8 @@ export default function NoticePage() {
         .insert([{ title, content }]);
 
       if (error) {
-        alert('글 저장에 실패했습니다.');
+        console.error(error);
+        alert('글 저장에 실패했습니다: ' + error.message);
       } else {
         alert('성공적으로 등록되었습니다!');
         resetForm();
@@ -107,8 +109,10 @@ export default function NoticePage() {
   const handleDelete = async (id: number) => {
     if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
     const { error } = await supabase.from('notices').delete().eq('id', id);
-    if (error) alert('삭제에 실패했습니다.');
-    else {
+    if (error) {
+      console.error(error);
+      alert('삭제에 실패했습니다: ' + error.message);
+    } else {
       alert('삭제되었습니다.');
       fetchNotices();
     }
@@ -228,7 +232,6 @@ export default function NoticePage() {
           </div>
         )}
 
-        {/* 🌟 여기서 로딩 중일 때, 데이터가 없을 때, 데이터가 있을 때를 분기합니다. */}
         <div className="space-y-4">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-slate-200 shadow-sm">

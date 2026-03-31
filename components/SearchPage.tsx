@@ -158,14 +158,12 @@ export default function SearchPage({
         if (part.lang === 'ko') {
           if (koVoice) utterance.voice = koVoice;
           utterance.lang = koVoice ? koVoice.lang : 'ko-KR';
-          // 🌟 한국어: 피치를 1.0으로 올려 더 맑게, 볼륨은 1.0(최대) 유지
           utterance.pitch = 1.0; 
           utterance.rate = 1.05; 
           utterance.volume = 1.0; 
         } else {
           if (enVoice) utterance.voice = enVoice;
           utterance.lang = enVoice ? enVoice.lang : 'en-US';
-          // 🌟 영어: 피치를 살짝 낮추고 볼륨을 0.75로 줄여서 상대적으로 한국어가 크게 들리도록 설정!
           utterance.pitch = 0.9; 
           utterance.rate = 0.85; 
           utterance.volume = 0.75; 
@@ -295,6 +293,23 @@ export default function SearchPage({
                     </div>
                   )}
                   
+                  {/* 🌟 부분 일치 시 나오는 외부 검색 버튼 추가! */}
+                  {isPartialMatch && (
+                    <div className="flex flex-col items-center justify-center py-10 mt-8 border-t border-slate-100 text-center px-4">
+                      <p className="text-slate-700 text-[15px] font-bold mb-5">
+                        '<span style={{ color: '#ea580c' }}>{displayQuery}</span>'에 대해 더 검색을 원하시면, 아래 버튼을 클릭하세요.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+                        <button onClick={() => handleExternalSearch('naver')} className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-[#03C75A] hover:bg-[#02b351] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md">
+                          네이버 사전 검색
+                        </button>
+                        <button onClick={() => handleExternalSearch('google')} className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition-all shadow-sm hover:shadow-md">
+                          Google 검색
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="mt-12 mb-4"><NuanceWidget /></div>
                   {!displayIsApp && <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_검색결과_하단" minHeight={250} />}
                 </div>

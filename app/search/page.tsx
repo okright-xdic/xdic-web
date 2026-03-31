@@ -1,5 +1,5 @@
 // app/search/page.tsx
-// ✅ PC 웹(/search) 전용 페이지: 궁극의 하이브리드 Pinpoint 형광펜 (Cat 0 우선 + 필터링된 언어 반전) 탑재
+// ✅ PC 웹(/search) 전용 페이지: 궁극의 하이브리드 Pinpoint 형광펜 탑재 및 2단어 이상 부분 일치 로직 적용
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -126,6 +126,21 @@ export default async function WebSearchPage({
   let isPartialMatch = false;
   let matchedKeywords: string[] = [];
 
+  // 웹(Web) 페이지용 검색 추이 및 인기/최근 검색어 데이터 불러오기 (SearchPage에 넘겨주기 위해 추가)
+  let globalRecent: { word: string; count: number }[] = [];
+  let globalPopular: string[] = [];
+
+  try {
+    const { data: logs } = await supabase.from('search_logs').select('keyword').order('created_at', { ascending: false }).limit(1000);
+    if (logs && logs.length > 0) {
+      const counts: Record<string, number> = {};
+      logs.forEach(l => { counts[l.keyword] = (counts[l.keyword] || 0) + 1; });
+      const uniqueRecents = Array.from(new Set(logs.map(l => l.keyword)));
+      globalRecent = uniqueRecents.slice(0, 15).map(word => ({ word, count: counts[word] || 1 }));
+      globalPopular = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(entry => entry[0]).slice(0, 20);
+    }
+  } catch (e) {}
+
   if (cleanQuery && noSpaceLen >= 2) {
     try {
       const { data, error } = await supabase.rpc('search_dictionary_smart', { keyword: query });
@@ -136,7 +151,10 @@ export default async function WebSearchPage({
         results = fallback || [];
       }
 
-      if (results.length === 0 && cleanQuery.split(/\s+/).length >= 3) {
+      const wordCount = cleanQuery.split(/\s+/).length;
+
+      // 🌟 핵심 수정: 3단어 제한을 2단어(wordCount >= 2)로 풀어서 웹에서도 동일하게 잡도록 수정!
+      if (results.length === 0 && wordCount >= 2) {
         const validKeywords = extractKeywords(cleanQuery);
         if (validKeywords.length > 0) {
           let andQueryBuilder = supabase.from('dictionary_lines').select('*');
@@ -228,6 +246,10 @@ export default async function WebSearchPage({
       orangeKeys={orangeKeys} 
       blueKeys={blueKeys} 
       isApp={false} 
+      popularSearches={globalPopular}
+      recentSearches={globalRecent}
+      isPartialMatch={isPartialMatch}
+      matchedKeywords={matchedKeywords}
     />
   );
 }

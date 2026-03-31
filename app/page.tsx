@@ -1,5 +1,5 @@
 // app/page.tsx
-// ✅ 웹(/) 서버 검색: 궁극의 하이브리드 Pinpoint 형광펜 (Cat 0 우선 + 필터링된 언어 반전) 탑재
+// ✅ 웹(/) 서버 검색: 궁극의 하이브리드 Pinpoint 형광펜 탑재 및 2단어 이상 부분 일치 로직 적용
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -147,7 +147,9 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
         results = fallback || [];
       }
 
-      if (results.length === 0 && cleanQuery.split(/\s+/).length >= 3) {
+      const wordCount = cleanQuery.split(/\s+/).length;
+
+      if (results.length === 0 && wordCount >= 2) {
         const validKeywords = extractKeywords(cleanQuery);
         if (validKeywords.length > 0) {
           let andQueryBuilder = supabase.from('dictionary_lines').select('*');
@@ -168,12 +170,10 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
         }
       }
 
-      // 🌟 [궁극의 하이브리드 하이라이트 로직]
       if (results.length > 0) {
         const cleanQueryNoSpace = cleanQuery.replace(/[\s\-_]/g, '').toLowerCase();
         const isKoreanQuery = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(cleanQuery);
 
-        // 1. 오렌지 하이라이트 (검색어 완벽 복원)
         results.forEach((row) => {
           const text = String(row.line_text || '');
           const cleanText = text.replace(/[.,:;()\[\]]/g, '');
@@ -193,18 +193,15 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
           }
         });
 
-        // 2. 파란색 대응어 하이라이트 (Cat 0 최우선 + 없으면 필터링 언어반전)
         const cat0Items = results.filter(row => row.category_id === 0);
         
         if (cat0Items.length > 0) {
-          // 💡 1순위: 0번 카테고리가 있으면 예전의 '완벽한 핀포인트' 방식 그대로 추출!
           cat0Items.forEach(row => {
             const cleanText = String(row.line_text || '').replace(/[.,:;()\[\]]/g, '');
             const words = cleanText.split(/\s+/);
             blueKeys.push(...words);
           });
         } else {
-          // 💡 2순위: 0번 카테고리가 없으면(automatic instrument 등), 언어 반전을 쓰되 쓸데없는 단어(Stop words)는 철저히 걸러냄!
           results.forEach((row) => {
             const text = String(row.line_text || '');
             if (isKoreanQuery) {

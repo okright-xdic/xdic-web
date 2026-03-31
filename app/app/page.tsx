@@ -1,5 +1,5 @@
 // app/app/page.tsx
-// ✅ 앱(/app) 서버 검색: 궁극의 하이브리드 Pinpoint 형광펜 (Cat 0 우선 + 필터링된 언어 반전) 탑재
+// ✅ 앱(/app) 서버 검색: 궁극의 하이브리드 Pinpoint 형광펜 탑재 및 2단어 이상 부분 일치 로직 적용
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -148,7 +148,8 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
 
       const wordCount = cleanQuery.split(/\s+/).length;
       
-      if (results.length === 0 && wordCount >= 3) {
+      // 🌟 핵심 수정: 3단어 제한을 2단어(wordCount >= 2)로 풀어서 '세계 챔피언'도 잡아내게 만듭니다!
+      if (results.length === 0 && wordCount >= 2) {
         const validKeywords = extractKeywords(cleanQuery);
         if (validKeywords.length > 0) {
           let andQueryBuilder = supabase.from('dictionary_lines').select('*');
