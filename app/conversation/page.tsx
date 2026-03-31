@@ -6,13 +6,22 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Capacitor } from '@capacitor/core'; // 🌟 앱 여부 판별을 위해 Capacitor 추가
 
 export default function ConversationPage() {
   const [supabase] = useState(() => createClientComponentClient());
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // 🌟 앱 구동 환경인지 확인하는 상태 추가
+  const [isApp, setIsApp] = useState(false);
 
   useEffect(() => {
+    // 클라이언트 마운트 시 앱 여부 체크
+    if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) {
+      setIsApp(true);
+    }
+
     const fetchData = async () => {
       const { data: lines, error } = await supabase
         .from('conversation_lines')
@@ -71,14 +80,12 @@ export default function ConversationPage() {
         if (part.lang === 'ko') {
           if (koVoice) utterance.voice = koVoice;
           utterance.lang = koVoice ? koVoice.lang : 'ko-KR';
-          // 🌟 한국어: 피치를 1.0으로 올려 더 맑게, 볼륨은 1.0(최대) 유지
           utterance.pitch = 1.0; 
           utterance.rate = 1.05; 
           utterance.volume = 1.0; 
         } else {
           if (enVoice) utterance.voice = enVoice;
           utterance.lang = enVoice ? enVoice.lang : 'en-US';
-          // 🌟 영어: 피치를 살짝 낮추고 볼륨을 0.75로 줄여서 상대적으로 한국어가 크게 들리도록 설정!
           utterance.pitch = 0.9; 
           utterance.rate = 0.85; 
           utterance.volume = 0.75; 
@@ -101,7 +108,7 @@ export default function ConversationPage() {
             엑스딕(X-DIC) 필수 영어회화 가이드
           </h1>
           <p className="text-slate-500 max-w-2xl text-sm md:text-base leading-relaxed">
-            여행, 일상, 비즈니스 상황에서 원어민들이 가장 자주 사용하는 핵심 영어 문장과 그 속에 숨겨진 뉘앙스를 완벽하게 분석해 드립니다. 마이크 버튼을 눌러 원어민의 발음을 직접 확인해 보세요!
+            여행, 일상, 비즈니스 상황에서 원어민들이 가장 자주 사용하는 핵심 영어 문장과 그 속에 숨겨진 뉘앙스를 완벽하게 분석해 드립니다. {isApp ? '' : '마이크 버튼을 눌러 원어민의 발음을 직접 확인해 보세요!'}
           </p>
           <Link href="/admin-write" className="mt-2 text-xs font-bold text-blue-500 hover:underline border border-blue-200 px-3 py-1 rounded-full bg-white">
             + 관리자 해설 등록
@@ -128,15 +135,18 @@ export default function ConversationPage() {
                     {items.map((item, itemIdx) => (
                       <article key={itemIdx} className="p-6 hover:bg-slate-50 transition-colors">
                         <div className="flex items-start gap-4 mb-3">
-                          <button
-                            onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)}
-                            className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm mt-1"
-                            title="원어민 발음 듣기"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                              <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
-                            </svg>
-                          </button>
+                          {/* 🌟 앱일 때는 전체 회화 페이지의 음성 버튼도 숨김! */}
+                          {!isApp && (
+                            <button
+                              onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)}
+                              className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm mt-1"
+                              title="원어민 발음 듣기"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                                <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
+                              </svg>
+                            </button>
+                          )}
                           
                           <div>
                             <h3 className="text-lg md:text-xl font-extrabold text-blue-700 mb-1 leading-snug">

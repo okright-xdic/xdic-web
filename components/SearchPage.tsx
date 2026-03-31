@@ -379,7 +379,6 @@ export default function SearchPage({
               <article className="bg-slate-50/80 rounded-2xl p-6 md:p-8 border border-slate-200 text-slate-700 shadow-sm mt-8">
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 border-b border-slate-200 pb-4 gap-4">
                   <div>
-                    {/* 🌟 여기서 폰트를 text-lg md:text-xl 로 줄였습니다! */}
                     <h2 className="text-lg md:text-xl font-extrabold text-slate-900 flex items-center gap-2">
                       <span>📖</span> 엑스딕 필수 영어회화 & 번역가 해설
                     </h2>
@@ -398,9 +397,12 @@ export default function SearchPage({
                       </div>
                       <div className="p-4 hover:bg-slate-50 transition-colors">
                         <div className="flex items-start gap-3 mb-3">
-                          <button onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)} className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm mt-0.5" title="발음 듣기">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
-                          </button>
+                          {/* 🌟 앱일 때는 메인 화면 회화 미리보기의 음성 버튼도 숨김! */}
+                          {!displayIsApp && (
+                            <button onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)} className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm mt-0.5" title="발음 듣기">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
+                            </button>
+                          )}
                           <div>
                             <h4 className="text-base md:text-lg font-extrabold text-blue-700 mb-0.5">{item.en_text}</h4>
                             <p className="text-sm md:text-base font-bold text-slate-800">{item.ko_text}</p>
