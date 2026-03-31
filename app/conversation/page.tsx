@@ -16,20 +16,26 @@ export default function ConversationPage() {
   const [loading, setLoading] = useState(true);
   const [isApp, setIsApp] = useState(false);
 
+  // 🌟 관리자 로그인 및 수정/삭제를 위한 상태 추가
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({ category: '', en_text: '', ko_text: '', description: '' });
+
+  const fetchData = async () => {
+    setLoading(true);
+    const { data: lines, error } = await supabase
+      .from('conversation_lines')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (!error && lines) setData(lines);
+    setLoading(false);
+  };
+
   useEffect(() => {
     if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) {
       setIsApp(true);
     }
-
-    const fetchData = async () => {
-      const { data: lines, error } = await supabase
-        .from('conversation_lines')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (!error && lines) setData(lines);
-      setLoading(false);
-    };
     fetchData();
   }, [supabase]);
 
@@ -38,6 +44,63 @@ export default function ConversationPage() {
     "☕ 일상 회화 (Casual Conversation)",
     "💼 비즈니스 회화 (Business English)"
   ];
+
+  // 🌟 관리자 기능: 로그인
+  const handleAdminLogin = () => {
+    if (isAdmin) {
+      setIsAdmin(false);
+      setEditingId(null);
+      alert('관리자 모드가 해제되었습니다.');
+      return;
+    }
+    const pwd = prompt('관리자 비밀번호를 입력하세요:');
+    if (pwd === 'okright91088!!') {
+      setIsAdmin(true);
+      alert('관리자 모드로 접속되었습니다. 게시물을 자유롭게 수정/삭제할 수 있습니다.');
+    } else if (pwd !== null) {
+      alert('비밀번호가 일치하지 않습니다.');
+    }
+  };
+
+  // 🌟 관리자 기능: 삭제
+  const handleDelete = async (id: number) => {
+    if (!confirm('정말 이 회화 게시물을 삭제하시겠습니까?')) return;
+    const { error } = await supabase.from('conversation_lines').delete().eq('id', id);
+    if (error) {
+      console.error(error);
+      alert('삭제에 실패했습니다: ' + error.message);
+    } else {
+      alert('성공적으로 삭제되었습니다.');
+      fetchData(); // 데이터 새로고침
+    }
+  };
+
+  // 🌟 관리자 기능: 수정 완료 저장
+  const handleEditSave = async (id: number) => {
+    if (!editForm.en_text.trim() || !editForm.ko_text.trim() || !editForm.description.trim()) {
+      alert('영어 문장, 한국어 뜻, 해설을 모두 입력해주세요.');
+      return;
+    }
+
+    const { error } = await supabase
+      .from('conversation_lines')
+      .update({
+        category: editForm.category,
+        en_text: editForm.en_text,
+        ko_text: editForm.ko_text,
+        description: editForm.description
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.error(error);
+      alert('수정에 실패했습니다: ' + error.message);
+    } else {
+      alert('성공적으로 수정되었습니다!');
+      setEditingId(null);
+      fetchData(); // 데이터 새로고침
+    }
+  };
 
   const handleSpeak = (text: string) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -148,35 +211,110 @@ export default function ConversationPage() {
                   
                   <div className="divide-y divide-slate-100">
                     {items.map((item, itemIdx) => (
-                      <article key={itemIdx} className="p-6 hover:bg-slate-50 transition-colors">
-                        <div className="flex items-start gap-4 mb-3">
-                          {!isApp && (
-                            <button
-                              onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)}
-                              className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm mt-1"
-                              title="원어민 발음 듣기"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                                <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
-                              </svg>
-                            </button>
-                          )}
-                          
-                          <div>
-                            <h3 className="text-lg md:text-xl font-extrabold text-blue-700 mb-1 leading-snug">
-                              {item.en_text}
-                            </h3>
-                            <p className="text-base font-bold text-slate-800 mb-3">
-                              {item.ko_text}
-                            </p>
-                          </div>
-                        </div>
+                      <React.Fragment key={item.id || itemIdx}>
                         
-                        <div className="ml-14 bg-slate-100 rounded-xl p-4 border border-slate-200 text-sm md:text-base text-slate-600 leading-relaxed whitespace-pre-wrap">
-                          <span className="font-extrabold text-slate-700 mr-2">💡 번역가 해설: </span>
-                          {item.description}
-                        </div>
-                      </article>
+                        {/* 🌟 수정 모드일 때 보여질 인라인 폼 */}
+                        {isAdmin && editingId === item.id ? (
+                          <div className="p-6 bg-blue-50 border-b border-blue-200">
+                            <div className="flex flex-col gap-3">
+                              <select
+                                value={editForm.category}
+                                onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                                className="p-3 border border-blue-300 rounded-lg text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                {categories.map((cat) => (
+                                  <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                              </select>
+                              <input
+                                type="text"
+                                value={editForm.en_text}
+                                onChange={(e) => setEditForm({ ...editForm, en_text: e.target.value })}
+                                placeholder="영어 문장을 입력하세요"
+                                className="p-3 border border-blue-300 rounded-lg font-extrabold text-blue-700 outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                              <input
+                                type="text"
+                                value={editForm.ko_text}
+                                onChange={(e) => setEditForm({ ...editForm, ko_text: e.target.value })}
+                                placeholder="한국어 뜻을 입력하세요"
+                                className="p-3 border border-blue-300 rounded-lg font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                              <textarea
+                                value={editForm.description}
+                                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                placeholder="번역가 해설을 입력하세요"
+                                className="p-3 border border-blue-300 rounded-lg h-32 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                              <div className="flex justify-end gap-2 mt-2">
+                                <button onClick={() => setEditingId(null)} className="px-5 py-2 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-100 font-bold text-sm transition-colors">
+                                  취소
+                                </button>
+                                <button onClick={() => handleEditSave(item.id)} className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-sm transition-colors shadow-sm">
+                                  수정 완료
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          /* 기존 뷰 모드 */
+                          <article className="p-6 hover:bg-slate-50 transition-colors">
+                            <div className="flex items-start gap-4 mb-3">
+                              {!isApp && (
+                                <button
+                                  onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)}
+                                  className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm mt-1"
+                                  title="원어민 발음 듣기"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                                    <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
+                                  </svg>
+                                </button>
+                              )}
+                              
+                              <div>
+                                <h3 className="text-lg md:text-xl font-extrabold text-blue-700 mb-1 leading-snug">
+                                  {item.en_text}
+                                </h3>
+                                <p className="text-base font-bold text-slate-800 mb-3">
+                                  {item.ko_text}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="ml-14 bg-slate-100 rounded-xl p-4 border border-slate-200 text-sm md:text-base text-slate-600 leading-relaxed whitespace-pre-wrap">
+                              <span className="font-extrabold text-slate-700 mr-2">💡 번역가 해설: </span>
+                              {item.description}
+                            </div>
+
+                            {/* 🌟 관리자 로그인 시 나타나는 [수정/삭제] 버튼 */}
+                            {isAdmin && (
+                              <div className="ml-14 flex justify-end gap-2 mt-4 pt-4 border-t border-slate-200/60">
+                                <button
+                                  onClick={() => {
+                                    setEditingId(item.id);
+                                    setEditForm({
+                                      category: item.category,
+                                      en_text: item.en_text,
+                                      ko_text: item.ko_text,
+                                      description: item.description
+                                    });
+                                  }}
+                                  className="text-xs px-4 py-1.5 border border-blue-200 text-blue-600 rounded hover:bg-blue-50 transition-colors font-bold shadow-sm"
+                                >
+                                  수정
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(item.id)}
+                                  className="text-xs px-4 py-1.5 border border-red-200 text-red-500 rounded hover:bg-red-50 transition-colors font-bold shadow-sm"
+                                >
+                                  삭제
+                                </button>
+                              </div>
+                            )}
+                          </article>
+                        )}
+                      </React.Fragment>
                     ))}
                   </div>
                 </section>
@@ -184,8 +322,7 @@ export default function ConversationPage() {
             })
           )}
 
-          {/* 🌟 회화 페이지 하단 네비게이션 추가! */}
-          <div className="flex items-center justify-between w-full mt-16 px-1 pt-8 border-t border-slate-200">
+          <div className="flex items-center justify-between w-full mt-16 mb-6 px-1 pt-8 pb-4 border-t border-slate-200">
             <button onClick={() => router.back()} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
               뒤로
@@ -195,6 +332,17 @@ export default function ConversationPage() {
               홈으로
             </Link>
           </div>
+
+          {/* 🌟 관리자 로그인 / 로그아웃 버튼 (최하단) */}
+          <div className="flex justify-center pb-12">
+            <button 
+              onClick={handleAdminLogin}
+              className="text-[12px] text-slate-400 hover:text-slate-600 underline font-medium"
+            >
+              {isAdmin ? '관리자 로그아웃' : '관리자 로그인'}
+            </button>
+          </div>
+
         </div>
       </main>
 
