@@ -6,18 +6,17 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { Capacitor } from '@capacitor/core'; // 🌟 앱 여부 판별을 위해 Capacitor 추가
+import { Capacitor } from '@capacitor/core';
+import { useRouter } from 'next/navigation';
 
 export default function ConversationPage() {
+  const router = useRouter(); 
   const [supabase] = useState(() => createClientComponentClient());
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // 🌟 앱 구동 환경인지 확인하는 상태 추가
   const [isApp, setIsApp] = useState(false);
 
   useEffect(() => {
-    // 클라이언트 마운트 시 앱 여부 체크
     if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) {
       setIsApp(true);
     }
@@ -100,8 +99,24 @@ export default function ConversationPage() {
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6 pt-8 md:pt-16 pb-6">
+        
+        <div className="flex items-center justify-between w-full mb-6 px-1">
+          <button onClick={() => router.back()} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+            뒤로
+          </button>
+          <Link href={isApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+            </svg>
+            홈으로
+          </Link>
+        </div>
+
         <div className="flex flex-col items-center justify-center text-center gap-4 mb-8 border-b border-slate-200 pb-8">
-          <Link href="/" className="cursor-pointer hover:opacity-90 transition-opacity">
+          <Link href={isApp ? '/app' : '/'} className="cursor-pointer hover:opacity-90 transition-opacity">
             <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="X-DIC Logo" width={160} height={80} className="object-contain" priority />
           </Link>
           <h1 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight">
@@ -135,7 +150,6 @@ export default function ConversationPage() {
                     {items.map((item, itemIdx) => (
                       <article key={itemIdx} className="p-6 hover:bg-slate-50 transition-colors">
                         <div className="flex items-start gap-4 mb-3">
-                          {/* 🌟 앱일 때는 전체 회화 페이지의 음성 버튼도 숨김! */}
                           {!isApp && (
                             <button
                               onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)}
@@ -169,6 +183,18 @@ export default function ConversationPage() {
               )
             })
           )}
+
+          {/* 🌟 회화 페이지 하단 네비게이션 추가! */}
+          <div className="flex items-center justify-between w-full mt-16 px-1 pt-8 border-t border-slate-200">
+            <button onClick={() => router.back()} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+              뒤로
+            </button>
+            <Link href={isApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+              홈으로
+            </Link>
+          </div>
         </div>
       </main>
 

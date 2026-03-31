@@ -10,6 +10,7 @@ import TrendGraph from '@/components/TrendGraph';
 import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
 import NuanceWidget from '@/components/NuanceWidget'; 
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useRouter } from 'next/navigation';
 
 interface SearchResult {
   id: string | number;
@@ -49,6 +50,7 @@ export default function SearchPage({
   isApp = false, popularSearches = [], recentSearches = [],
   isPartialMatch = false, matchedKeywords = []    
 }: SearchPageProps) {
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const [clientIsApp, setClientIsApp] = useState(false);
@@ -188,24 +190,39 @@ export default function SearchPage({
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
-        <header className={`w-full ${displayIsApp ? 'pt-14 pb-0' : 'pt-8 pb-0 md:pt-16 md:pb-0'}`}>
+        <header className={`w-full ${displayIsApp ? 'pt-8 pb-0' : 'pt-8 pb-0 md:pt-12 md:pb-0'}`}>
+          
+          {/* 🌟 수정 포인트: 검색어가 있을 때(결과 화면)만 상단 뒤로/홈으로 버튼을 표시합니다! */}
+          {displayQuery && (
+            <div className="flex items-center justify-between w-full mb-6 px-1">
+              <button onClick={() => router.back()} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                뒤로
+              </button>
+              <Link href={displayIsApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+                홈으로
+              </Link>
+            </div>
+          )}
+
           {displayIsApp ? (
             <div className="flex justify-center mb-5">
-              <a href="/app" className="cursor-pointer">
+              <Link href="/app" className="cursor-pointer">
                 <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="X-DIC Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
-              </a>
+              </Link>
             </div>
           ) : (
             <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-5">
               <div className="flex-shrink-0">
-                <a href="/" className="cursor-pointer">
+                <Link href="/" className="cursor-pointer">
                   <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="X-DIC Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
-                </a>
+                </Link>
               </div>
               <div className="flex flex-col gap-1 justify-center text-center md:text-left">
-                <a href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
+                <Link href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
                   <h1 className="text-xl md:text-[24px] font-extrabold text-slate-800 leading-tight md:leading-none">한영/영한사전 – 복합어 전문 엑스딕!</h1>
-                </a>
+                </Link>
                 <p className="text-sm md:text-[16px] text-slate-500 font-medium leading-tight mt-1">Korean-English/English-Korean Dictionary – Compound Terminology Dictionary</p>
                 <p className="text-[11px] md:text-[12px] text-slate-400 font-normal leading-tight mt-1">* 엑스딕(X-DIC)은 Expert Dictionary의 약자로, 복합어 검색 전문 한영/영한 용어사전입니다.</p>
               </div>
@@ -311,6 +328,19 @@ export default function SearchPage({
 
                   <div className="mt-12 mb-4"><NuanceWidget /></div>
                   {!displayIsApp && <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_검색결과_하단" minHeight={250} />}
+
+                  {/* 🌟 하단 네비게이션 */}
+                  <div className="flex items-center justify-between w-full mt-10 mb-6 px-1 pt-6 border-t border-slate-100">
+                    <button onClick={() => router.back()} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                      뒤로
+                    </button>
+                    <Link href={displayIsApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+                      홈으로
+                    </Link>
+                  </div>
+
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 text-center px-4">
@@ -321,6 +351,18 @@ export default function SearchPage({
                   <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md mt-4">
                     <button onClick={() => handleExternalSearch('naver')} className="flex-1 py-3 px-4 bg-[#03C75A] text-white rounded-xl font-bold shadow-sm">네이버 사전 검색</button>
                     <button onClick={() => handleExternalSearch('google')} className="flex-1 py-3 px-4 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold shadow-sm">Google 검색</button>
+                  </div>
+                  
+                  {/* 🌟 결과 없음 화면 하단 네비게이션 */}
+                  <div className="flex items-center justify-between w-full max-w-md mt-12 px-1 pt-6 border-t border-slate-100">
+                    <button onClick={() => router.back()} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                      뒤로
+                    </button>
+                    <Link href={displayIsApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+                      홈으로
+                    </Link>
                   </div>
                 </div>
               )}
@@ -397,7 +439,6 @@ export default function SearchPage({
                       </div>
                       <div className="p-4 hover:bg-slate-50 transition-colors">
                         <div className="flex items-start gap-3 mb-3">
-                          {/* 🌟 앱일 때는 메인 화면 회화 미리보기의 음성 버튼도 숨김! */}
                           {!displayIsApp && (
                             <button onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)} className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm mt-0.5" title="발음 듣기">
                               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
