@@ -56,6 +56,9 @@ export default function SearchPage({
   const [clientIsApp, setClientIsApp] = useState(false);
   const [previewData, setPreviewData] = useState<any[]>([]);
 
+  // 🌟 어떤 항목이 복사되었는지 기억하는 상태 추가
+  const [copiedId, setCopiedId] = useState<string | number | null>(null);
+
   const [supabase] = useState(() => createClientComponentClient());
 
   useEffect(() => {
@@ -118,6 +121,18 @@ export default function SearchPage({
         })}
       </>
     );
+  };
+
+  // 🌟 원터치 복사 기능 함수!
+  const handleCopy = async (text: string, id: string | number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      // 2초 뒤에 원래 아이콘으로 되돌아옵니다.
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      alert('복사 기능을 지원하지 않는 기기입니다.');
+    }
   };
 
   const handleSpeak = (text: string) => {
@@ -192,7 +207,6 @@ export default function SearchPage({
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
         <header className={`w-full ${displayIsApp ? 'pt-8 pb-0' : 'pt-8 pb-0 md:pt-12 md:pb-0'}`}>
           
-          {/* 🌟 수정 포인트: 검색어가 있을 때(결과 화면)만 상단 뒤로/홈으로 버튼을 표시합니다! */}
           {displayQuery && (
             <div className="flex items-center justify-between w-full mb-6 px-1">
               <button onClick={() => router.back()} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
@@ -272,15 +286,31 @@ export default function SearchPage({
                         <li className="group bg-white rounded-lg py-2 px-3 border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all duration-200">
                           <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3 flex-1">
-                              {!displayIsApp && (
+                              
+                              {/* 🌟 여기에 스피커 버튼과 복사 버튼이 나란히 표시됩니다! */}
+                              <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
+                                {!displayIsApp && (
+                                  <button
+                                    onClick={() => handleSpeak(item.line_text)}
+                                    className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                    title="발음 듣기"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
+                                  </button>
+                                )}
                                 <button
-                                  onClick={() => handleSpeak(item.line_text)}
-                                  className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm mt-0.5"
-                                  title="발음 듣기"
+                                  onClick={() => handleCopy(item.line_text, item.id || idx)}
+                                  className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm"
+                                  title="텍스트 복사"
                                 >
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
+                                  {copiedId === (item.id || idx) ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-emerald-500"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>
+                                  ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" /></svg>
+                                  )}
                                 </button>
-                              )}
+                              </div>
+
                               <div className="text-base md:text-lg leading-snug break-keep">{highlightMatch(item.line_text)}</div>
                             </div>
                             <span className="flex-shrink-0 ml-3 px-2 py-0.5 rounded text-xs tracking-tight whitespace-nowrap shadow-sm" style={{ backgroundColor: '#d4b08c', color: '#ffffff', fontWeight: '500' }}>
@@ -329,7 +359,6 @@ export default function SearchPage({
                   <div className="mt-12 mb-4"><NuanceWidget /></div>
                   {!displayIsApp && <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_검색결과_하단" minHeight={250} />}
 
-                  {/* 🌟 하단 네비게이션 */}
                   <div className="flex items-center justify-between w-full mt-10 mb-6 px-1 pt-6 border-t border-slate-100">
                     <button onClick={() => router.back()} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
@@ -353,7 +382,6 @@ export default function SearchPage({
                     <button onClick={() => handleExternalSearch('google')} className="flex-1 py-3 px-4 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold shadow-sm">Google 검색</button>
                   </div>
                   
-                  {/* 🌟 결과 없음 화면 하단 네비게이션 */}
                   <div className="flex items-center justify-between w-full max-w-md mt-12 px-1 pt-6 border-t border-slate-100">
                     <button onClick={() => router.back()} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
@@ -439,11 +467,23 @@ export default function SearchPage({
                       </div>
                       <div className="p-4 hover:bg-slate-50 transition-colors">
                         <div className="flex items-start gap-3 mb-3">
-                          {!displayIsApp && (
-                            <button onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)} className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm mt-0.5" title="발음 듣기">
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
+                          
+                          {/* 🌟 메인화면 미리보기에도 복사 버튼 적용 */}
+                          <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
+                            {!displayIsApp && (
+                              <button onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)} className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
+                              </button>
+                            )}
+                            <button onClick={() => handleCopy(`${item.en_text} - ${item.ko_text}`, item.id || idx)} className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm" title="문장 복사">
+                              {copiedId === (item.id || idx) ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-emerald-500"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>
+                              ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" /></svg>
+                              )}
                             </button>
-                          )}
+                          </div>
+
                           <div>
                             <h4 className="text-base md:text-lg font-extrabold text-blue-700 mb-0.5">{item.en_text}</h4>
                             <p className="text-sm md:text-base font-bold text-slate-800">{item.ko_text}</p>
