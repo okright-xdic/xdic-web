@@ -56,7 +56,6 @@ export default function SearchPage({
   const [clientIsApp, setClientIsApp] = useState(false);
   const [previewData, setPreviewData] = useState<any[]>([]);
 
-  // 🌟 어떤 항목이 복사되었는지 기억하는 상태 추가
   const [copiedId, setCopiedId] = useState<string | number | null>(null);
 
   const [supabase] = useState(() => createClientComponentClient());
@@ -65,6 +64,7 @@ export default function SearchPage({
     if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) setClientIsApp(true);
     
     const fetchPreview = async () => {
+      // 최신 회화 3개를 가져오는 로직
       const { data } = await supabase.from('conversation_lines').select('*').order('created_at', { ascending: false }).limit(3);
       if (data) setPreviewData(data);
     };
@@ -123,12 +123,10 @@ export default function SearchPage({
     );
   };
 
-  // 🌟 원터치 복사 기능 함수!
   const handleCopy = async (text: string, id: string | number) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedId(id);
-      // 2초 뒤에 원래 아이콘으로 되돌아옵니다.
       setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
       alert('복사 기능을 지원하지 않는 기기입니다.');
@@ -200,6 +198,15 @@ export default function SearchPage({
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 🌟 카테고리 이름을 받아서 알맞은 URL 파라미터로 변환해주는 헬퍼 함수
+  const getCategoryUrlKey = (categoryName: string) => {
+    if (!categoryName) return '';
+    if (categoryName.includes('여행')) return 'travel';
+    if (categoryName.includes('일상')) return 'casual';
+    if (categoryName.includes('비즈니스')) return 'business';
+    return '';
   };
 
   return (
@@ -286,8 +293,6 @@ export default function SearchPage({
                         <li className="group bg-white rounded-lg py-2 px-3 border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all duration-200">
                           <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3 flex-1">
-                              
-                              {/* 🌟 여기에 스피커 버튼과 복사 버튼이 나란히 표시됩니다! */}
                               <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
                                 {!displayIsApp && (
                                   <button
@@ -462,13 +467,21 @@ export default function SearchPage({
                 <div className="grid grid-cols-1 gap-5">
                   {previewData.length > 0 ? previewData.map((item, idx) => (
                     <div key={idx} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                      <div className="bg-slate-800 px-4 py-2">
+                      
+                      {/* 🌟 메인 페이지 미리보기에도 개별 더보기 버튼 추가! */}
+                      <div className="bg-slate-800 px-4 py-2 flex justify-between items-center">
                         <h3 className="text-sm font-bold text-white">{item.category}</h3>
+                        <Link href={`/conversation?type=${
+                          item.category?.includes('여행') ? 'travel' :
+                          item.category?.includes('일상') ? 'casual' :
+                          item.category?.includes('비즈니스') ? 'business' : ''
+                        }`} className="text-[11px] font-medium text-slate-300 hover:text-white transition-colors border border-slate-600 px-2 py-0.5 rounded-full">
+                          더보기 &gt;
+                        </Link>
                       </div>
+
                       <div className="p-4 hover:bg-slate-50 transition-colors">
                         <div className="flex items-start gap-3 mb-3">
-                          
-                          {/* 🌟 메인화면 미리보기에도 복사 버튼 적용 */}
                           <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
                             {!displayIsApp && (
                               <button onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)} className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
