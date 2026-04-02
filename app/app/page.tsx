@@ -18,7 +18,7 @@ const kKeepWords = new Set([
 const kStopWords = new Set([
   '에', '에서', '에게', '로', '으로', '와', '과', '의',
   '다', '까', '요', '음', '함', '고', '면', '해서',
-  '것', '곳', '수', '등', '내', '경우', '경우', '때',
+  '것', '곳', '수', '등', '내', '경우', '때',
   '및', '등등', '또한', '역시', '게다가', '즉', '하지만', '그리고'
 ]);
 
@@ -32,8 +32,8 @@ const eStopWords = new Set([
 ]);
 
 const irregulars: Record<string, string> = {
-  // 🌟 기존 명사 불규칙
-  fungi: 'fungus', feet: 'foot', foci: 'focus', criteria: 'criterion', crises: 'crisis', children: 'child', cacti: 'cactus', analyses: 'analysis', geese: 'goose', halves: 'half', knives: 'knife', leaves: 'leaf', lice: 'louse', lives: 'life', media: 'medium', mice: 'mouse', nuclei: 'nucleus', phenomena: 'phenomenon', shelves: 'shelf', thieves: 'thief', teeth: 'tooth', wives: 'wife', wolves: 'wolf', women: 'woman'
+  // 🌟 기존 명사 불규칙 (마지막에 쉼표 추가 완료!)
+  fungi: 'fungus', feet: 'foot', foci: 'focus', criteria: 'criterion', crises: 'crisis', children: 'child', cacti: 'cactus', analyses: 'analysis', geese: 'goose', halves: 'half', knives: 'knife', leaves: 'leaf', lice: 'louse', lives: 'life', media: 'medium', mice: 'mouse', nuclei: 'nucleus', phenomena: 'phenomenon', shelves: 'shelf', thieves: 'thief', teeth: 'tooth', wives: 'wife', wolves: 'wolf', women: 'woman',
 
   // 🌟 새롭게 추가된 동사 불규칙 100선 (변형된 형태 -> 동사원형)
   lent: 'lend', lay: 'lie', lain: 'lie', lost: 'lose', made: 'make', might: 'may',
