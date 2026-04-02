@@ -8,11 +8,14 @@ import { cookies } from 'next/headers';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// 공통으로 사용할 필터링 단어들 (기능어, 조사 등)
-const kStopSuffixes = /(하셨습니까|하셨습니다|해보세요|했습니다|했습니까|하셨어요|했어요|보세요|하세요|이시여|라게|것을|도록|부터|까지|하고|이며|했다|봐요|했어|해라|에서|에게|으로|께서|이다|입니다|입니까|인가요|인가|인데요|인지|이냐|은|는|이|가|을|를|의|에|로|아|야|도|만|와|과|랑|고|지|면|서|된|될|할|하는)$/g;
+// 🌟 형용사/관형어 보호 사전 (조사를 자르지 않고 원형 그대로 보존할 단어들)
+const kKeepWords = new Set([
+  '좋은', '많은', '작은', '큰', '새로운', '나쁜', '어려운',
+  '가는', '낮은', '깊은', '밝은', '맑은'
+]);
 
+// 공통 필터링 단어들
 const kStopWords = new Set([
-  '어디', '언제', '누구', '무엇', '어떻게', '왜', '어느', '무슨', '어떤', 
   '이', '그', '저', '이것', '그것', '저것', '여기', '거기', '저기',
   '있나요', '있습니까', '있어요', '있어', '있는', '있을', '있', 
   '없나요', '없습니까', '없어요', '없어', '없는', '없을', '없',
@@ -26,12 +29,39 @@ const eStopWords = new Set([
   'and', 'or', 'but', 'so', 'because', 'although', 'if',
   'i', 'you', 'he', 'she', 'it', 'they', 'we', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'their', 'our', 'mine', 'yours', 'theirs', 'ours',
   'this', 'that', 'these', 'those',
-  'what', 'how', 'who', 'where', 'when', 'why', 'which', 'whose', 'whom',
   'do', 'does', 'did', 'have', 'has', 'had', 'can', 'could', 'will', 'would', 'shall', 'should', 'may', 'might', 'must', 'cannot'
 ]);
 
 const irregulars: Record<string, string> = {
   men: 'man', women: 'woman', children: 'child', feet: 'foot', teeth: 'tooth', mice: 'mouse'
+};
+
+// 🌟 핵심 수정: 받침 유무 판별 및 보호 단어 우대 함수 적용
+const cleanKoreanKeyword = (word: string): string => {
+  if (kKeepWords.has(word)) return word;
+
+  let clean = word;
+  if (clean.length >= 2) {
+    const lastChar = clean[clean.length - 1];
+    const prevChar = clean[clean.length - 2];
+    const prevCode = prevChar.charCodeAt(0);
+
+    if (prevCode >= 0xac00 && prevCode <= 0xd7a3) {
+      const hasJongseong = (prevCode - 0xac00) % 28 > 0;
+
+      if (hasJongseong && ['이', '은', '을'].includes(lastChar)) {
+        clean = clean.slice(0, -1);
+      }
+      else if (!hasJongseong && ['가', '는', '를'].includes(lastChar)) {
+        clean = clean.slice(0, -1);
+      }
+    }
+  }
+
+  const otherSuffixes = /(하셨습니까|하셨습니다|해보세요|했습니다|했습니까|하셨어요|했어요|보세요|하세요|이시여|라게|것을|도록|부터|까지|하고|이며|했다|봐요|했어|해라|에서|에게|으로|께서|이다|입니다|입니까|인가요|인가|인데요|인지|이냐|의|에|로|아|야|도|만|와|과|랑|고|지|면|서|된|될|할|하는)$/g;
+  
+  clean = clean.replace(otherSuffixes, '');
+  return clean;
 };
 
 const rotateResults = (items: any[], keyword: string) => {
@@ -102,11 +132,17 @@ const extractKeywords = (query: string): string[] => {
           clean = clean.slice(0, -1); 
         }
       }
-      clean = clean.replace(kStopSuffixes, '');
+      
+      clean = cleanKoreanKeyword(clean);
+      
       if (kStopWords.has(clean)) return '';
       return clean;
     })
-    .filter(t => t.length >= 2);
+    // 🌟 한글 1글자 허용
+    .filter(t => {
+      if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(t)) return t.length >= 1;
+      return t.length >= 2;
+    });
 };
 
 export default async function Page({ searchParams }: { searchParams: { q?: string; app?: string }; }) {
@@ -215,7 +251,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
               const korMatches = text.match(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]+/g);
               if (korMatches) {
                 korMatches.forEach(w => {
-                  let cleanW = w.replace(kStopSuffixes, '');
+                  let cleanW = cleanKoreanKeyword(w);
                   if (cleanW.trim().length >= 1 && !kStopWords.has(cleanW)) blueKeys.push(cleanW);
                 });
               }

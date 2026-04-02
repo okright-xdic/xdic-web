@@ -64,7 +64,6 @@ export default function SearchPage({
     if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) setClientIsApp(true);
     
     const fetchPreview = async () => {
-      // 최신 회화 3개를 가져오는 로직
       const { data } = await supabase.from('conversation_lines').select('*').order('created_at', { ascending: false }).limit(3);
       if (data) setPreviewData(data);
     };
@@ -200,7 +199,6 @@ export default function SearchPage({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // 🌟 카테고리 이름을 받아서 알맞은 URL 파라미터로 변환해주는 헬퍼 함수
   const getCategoryUrlKey = (categoryName: string) => {
     if (!categoryName) return '';
     if (categoryName.includes('여행')) return 'travel';
@@ -468,7 +466,6 @@ export default function SearchPage({
                   {previewData.length > 0 ? previewData.map((item, idx) => (
                     <div key={idx} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                       
-                      {/* 🌟 메인 페이지 미리보기에도 개별 더보기 버튼 추가! */}
                       <div className="bg-slate-800 px-4 py-2 flex justify-between items-center">
                         <h3 className="text-sm font-bold text-white">{item.category}</h3>
                         <Link href={`/conversation?type=${
