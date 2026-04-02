@@ -5,6 +5,8 @@ import React, { useEffect, useState, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
+// 🌟 애드센스 컴포넌트 불러오기 추가
+import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Capacitor } from '@capacitor/core';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -349,7 +351,7 @@ function ConversationMain() {
                     <div className="bg-slate-800 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <h2 className="text-xl font-bold text-white">{categoryName}</h2>
                       
-                      {/* 🌟 핵심 수정 포인트: 조건 없이 무조건 [더보기 >] 버튼이 나타나게 수정했습니다!! */}
+                      {/* 🌟 조건 없이 무조건 [더보기 >] 버튼이 나타나게 수정 */}
                       <Link href={`/conversation?type=${urlKey}`} className="text-sm font-bold text-slate-200 bg-slate-700 hover:bg-blue-600 px-4 py-1.5 rounded-full transition-colors shadow-sm text-center sm:text-right">
                         더보기 &gt;
                       </Link>
@@ -369,6 +371,13 @@ function ConversationMain() {
                   </section>
                 )
               })}
+            </div>
+          )}
+
+          {/* 🌟 애드센스 광고 영역 (웹 환경일 때만 하단에 렌더링) */}
+          {!isApp && (
+            <div className="mt-12 mb-4 w-full flex justify-center">
+              <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_회화_하단" minHeight={250} />
             </div>
           )}
 

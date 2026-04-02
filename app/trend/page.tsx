@@ -8,7 +8,6 @@ import Footer from '@/components/Footer';
 import PopularKeywords from '@/components/PopularKeywords';
 import RecentKeywords from '@/components/RecentKeywords';
 import TrendGraph from '@/components/TrendGraph';
-import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
 // 🌟 뉘앙스 위젯 불러오기!
 import NuanceWidget from '@/components/NuanceWidget';
 
@@ -57,10 +56,6 @@ export default function TrendPage() {
           </div>
 
           <div className="my-6">
-            <AdSensePlaceholder
-              adSlot="9488087447"
-              debugLabel="PC_주간트랜드_더보기_중간"
-            />
           </div>
 
           <section className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-12">

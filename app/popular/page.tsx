@@ -7,7 +7,6 @@ import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import PopularKeywords from '@/components/PopularKeywords'; 
 import TrendGraph from '@/components/TrendGraph';
-import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder'; 
 import RecentKeywords from '@/components/RecentKeywords'; 
 // 🌟 뉘앙스 위젯 불러오기!
 import NuanceWidget from '@/components/NuanceWidget';
@@ -76,10 +75,6 @@ export default function PopularPage() {
             <NuanceWidget />
           </div>
 
-          <AdSensePlaceholder
-            adSlot="5466350874"
-            debugLabel="PC_인기검색어_더보기_하단"
-          />
         </div>
       </main>
       <div className="flex-none"><Footer /></div>

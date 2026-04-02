@@ -8,7 +8,6 @@ import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import PopularKeywords from '@/components/PopularKeywords';
 import TrendGraph from '@/components/TrendGraph';
-import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
 // 🌟 뉘앙스 위젯 불러오기!
 import NuanceWidget from '@/components/NuanceWidget';
 
@@ -178,11 +177,6 @@ export default function RecentPage() {
           <div className="mt-8 mb-4">
             <NuanceWidget />
           </div>
-
-          <AdSensePlaceholder
-            adSlot="2840187537"
-            debugLabel="PC_최신검색어_더보기_중간"
-          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
