@@ -16,11 +16,10 @@ const kKeepWords = new Set([
 
 // 공통 필터링 단어들
 const kStopWords = new Set([
-  '이', '그', '저', '이것', '그것', '저것', '여기', '거기', '저기',
-  '있나요', '있습니까', '있어요', '있어', '있는', '있을', '있', 
-  '없나요', '없습니까', '없어요', '없어', '없는', '없을', '없',
-  '입니다', '입니까', '이에요', '예요', '합니다', '합니까', '해요', '해', '하는', '할', 
-  '수', '것', '들', '제', '내', '네', '너', '나', '우리', '저희', '좀', '잘', '더'
+  '에', '에서', '에게', '로', '으로', '와', '과', '의',
+  '다', '까', '요', '음', '함', '고', '면', '해서',
+  '것', '곳', '수', '등', '내', '경우', '경우', '때',
+  '및', '등등', '또한', '역시', '게다가', '즉', '하지만', '그리고'
 ]);
 
 const eStopWords = new Set([
@@ -33,7 +32,35 @@ const eStopWords = new Set([
 ]);
 
 const irregulars: Record<string, string> = {
-  men: 'man', women: 'woman', children: 'child', feet: 'foot', teeth: 'tooth', mice: 'mouse'
+  // 🌟 기존 명사 불규칙
+  men: 'man', women: 'woman', children: 'child', feet: 'foot', teeth: 'tooth', mice: 'mouse',
+
+  // 🌟 새롭게 추가된 동사 불규칙 100선 (변형된 형태 -> 동사원형)
+  lent: 'lend', lay: 'lie', lain: 'lie', lost: 'lose', made: 'make', might: 'may',
+  meant: 'mean', met: 'meet', mistook: 'mistake', mistaken: 'mistake', paid: 'pay',
+  has: 'have', had: 'have', heard: 'hear', hid: 'hide', hidden: 'hide', held: 'hold',
+  kept: 'keep', knew: 'know', known: 'know', laid: 'lay', led: 'lead', left: 'leave',
+  arose: 'arise', arisen: 'arise', am: 'be', is: 'be', are: 'be', was: 'be', were: 'be',
+  been: 'be', bore: 'bear', born: 'bear', ran: 'run', stood: 'stand', stole: 'steal',
+  stolen: 'steal', struck: 'strike', stricken: 'strike', swam: 'swim', swum: 'swim',
+  wept: 'weep', sowed: 'sow', sown: 'sow', knelt: 'kneel', dug: 'dig', does: 'do',
+  did: 'do', done: 'do', drew: 'draw', drawn: 'draw', drank: 'drink', drunk: 'drink',
+  drove: 'drive', driven: 'drive', said: 'say', saw: 'see', seen: 'see', sought: 'seek',
+  sold: 'sell', sent: 'send', shook: 'shake', shaken: 'shake', wore: 'wear', worn: 'wear',
+  would: 'will', won: 'win', wrote: 'write', written: 'write', fell: 'fall', fallen: 'fall',
+  felt: 'feel', fought: 'fight', found: 'find', flew: 'fly', flown: 'fly', forgot: 'forget',
+  forgotten: 'forget', forgave: 'forgive', forgiven: 'forgive', froze: 'freeze',
+  frozen: 'freeze', got: 'get', gotten: 'get', gave: 'give', given: 'give', went: 'go',
+  gone: 'go', grew: 'grow', grown: 'grow', hung: 'hang', hanged: 'hang', took: 'take',
+  taken: 'take', taught: 'teach', tore: 'tear', torn: 'tear', told: 'tell', thought: 'think',
+  threw: 'throw', thrown: 'throw', understood: 'understand', shone: 'shine', shot: 'shoot',
+  showed: 'show', shown: 'show', sang: 'sing', sung: 'sing', sank: 'sink', sunk: 'sink',
+  sat: 'sit', slept: 'sleep', smelt: 'smell', spoke: 'speak', spoken: 'speak', spent: 'spend',
+  rode: 'ride', ridden: 'ride', rang: 'ring', rung: 'ring', rose: 'rise', risen: 'rise',
+  wove: 'weave', woven: 'weave', became: 'become', began: 'begin', begun: 'begin',
+  bound: 'bind', bit: 'bite', blew: 'blow', blown: 'blow', broke: 'break', broken: 'break',
+  brought: 'bring', built: 'build', bought: 'buy', could: 'can', caught: 'catch',
+  chose: 'choose', chosen: 'choose', came: 'come'
 };
 
 // 🌟 핵심 수정: 받침 유무 판별 및 보호 단어 우대 함수 적용
