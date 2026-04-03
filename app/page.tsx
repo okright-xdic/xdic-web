@@ -8,18 +8,17 @@ import { cookies } from 'next/headers';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// 🌟 형용사/관형어 보호 사전 (조사를 자르지 않고 원형 그대로 보존할 단어들)
 const kKeepWords = new Set([
   '좋은', '많은', '작은', '큰', '새로운', '나쁜', '어려운',
   '가는', '낮은', '깊은', '밝은', '맑은'
 ]);
 
-// 공통 필터링 단어들
 const kStopWords = new Set([
   '에', '에서', '에게', '로', '으로', '와', '과', '의',
   '다', '까', '요', '음', '함', '고', '면', '해서',
-  '것', '곳', '수', '등', '내', '경우', '경우', '때',
-  '및', '등등', '또한', '역시', '게다가', '즉', '하지만', '그리고'
+  '것', '곳', '수', '등', '내', '경우', '때',
+  '및', '등등', '또한', '역시', '게다가', '즉', '하지만', '그리고',
+  '나', '너', '저', '그', '이', '보', '주', '가', '오', '하', '해', '할', '된', '될', '안', '않', '못', '좀', '잘', '더', '들', '제', '네'
 ]);
 
 const eStopWords = new Set([
@@ -32,10 +31,7 @@ const eStopWords = new Set([
 ]);
 
 const irregulars: Record<string, string> = {
-  // 🌟 기존 명사 불규칙
   fungi: 'fungus', feet: 'foot', foci: 'focus', criteria: 'criterion', crises: 'crisis', children: 'child', cacti: 'cactus', analyses: 'analysis', geese: 'goose', halves: 'half', knives: 'knife', leaves: 'leaf', lice: 'louse', lives: 'life', media: 'medium', mice: 'mouse', nuclei: 'nucleus', phenomena: 'phenomenon', shelves: 'shelf', thieves: 'thief', teeth: 'tooth', wives: 'wife', wolves: 'wolf', women: 'woman',
-
-  // 🌟 새롭게 추가된 동사 불규칙 100선 (변형된 형태 -> 동사원형)
   lent: 'lend', lay: 'lie', lain: 'lie', lost: 'lose', made: 'make', might: 'may',
   meant: 'mean', met: 'meet', mistook: 'mistake', mistaken: 'mistake', paid: 'pay',
   has: 'have', had: 'have', heard: 'hear', hid: 'hide', hidden: 'hide', held: 'hold',
@@ -63,7 +59,6 @@ const irregulars: Record<string, string> = {
   chose: 'choose', chosen: 'choose', came: 'come'
 };
 
-// 🌟 핵심 수정: 받침 유무 판별 및 보호 단어 우대 함수 적용
 const cleanKoreanKeyword = (word: string): string => {
   if (kKeepWords.has(word)) return word;
 
@@ -91,46 +86,54 @@ const cleanKoreanKeyword = (word: string): string => {
   return clean;
 };
 
+// 🌟 핵심 수정 1: 완벽 일치 단어(공백 무시)를 지그재그 회전에서 구출하여 1등으로 올림!
 const rotateResults = (items: any[], keyword: string) => {
   if (!items || items.length === 0) return [];
   const lowerKeyword = keyword.trim().toLowerCase();
+  const lowerKeywordNoSpace = lowerKeyword.replace(/\s+/g, '');
+
+  const itemsWithIndex = items.map((item, idx) => ({ ...item, _db_index: idx }));
+
+  const exactMatches: any[] = [];
+  const partialMatches: any[] = [];
+
+  itemsWithIndex.forEach((item) => {
+    const textNoSpace = (item.line_text || '').toLowerCase().replace(/\s+/g, '');
+    const textOriginal = (item.line_text || '').toLowerCase();
+
+    const isExactNoSpace =
+      textNoSpace === lowerKeywordNoSpace ||
+      textNoSpace.startsWith(lowerKeywordNoSpace + ':') ||
+      textNoSpace.startsWith(lowerKeywordNoSpace + '-');
+
+    const isExactOriginal =
+      textOriginal === lowerKeyword ||
+      textOriginal.startsWith(lowerKeyword + ' ') ||
+      textOriginal.startsWith(lowerKeyword + ':');
+
+    if (isExactNoSpace || isExactOriginal) {
+      exactMatches.push(item);
+    } else {
+      partialMatches.push(item);
+    }
+  });
+
+  exactMatches.sort((a, b) => a._db_index - b._db_index);
 
   const buckets: Record<number, any[]> = {};
   for (let i = 0; i <= 12; i++) buckets[i] = [];
 
-  const advancedSort = (a: any, b: any) => {
-    const aText = (a.line_text || '').toLowerCase();
-    const bText = (b.line_text || '').toLowerCase();
-
-    const isExactA =
-      aText === lowerKeyword ||
-      aText.startsWith(lowerKeyword + ' ') ||
-      aText.startsWith(lowerKeyword + ':');
-    const isExactB =
-      bText === lowerKeyword ||
-      bText.startsWith(lowerKeyword + ' ') ||
-      bText.startsWith(lowerKeyword + ':');
-
-    if (isExactA && !isExactB) return -1;
-    if (!isExactA && isExactB) return 1;
-
-    const startsA = aText.startsWith(lowerKeyword);
-    const startsB = bText.startsWith(lowerKeyword);
-    if (startsA && !startsB) return -1;
-    if (!startsA && startsB) return 1;
-
-    if (aText.length !== bText.length) return aText.length - bText.length;
-    return aText.localeCompare(bText);
-  };
-
-  items.forEach((item) => {
+  partialMatches.forEach((item) => {
     const catId = item.category_id >= 0 && item.category_id <= 12 ? item.category_id : 12;
     buckets[catId].push(item);
   });
 
+  for (let i = 0; i <= 12; i++) {
+    buckets[i].sort((a, b) => a._db_index - b._db_index);
+  }
+
   let maxCount = 0;
   for (let i = 0; i <= 12; i++) {
-    buckets[i].sort(advancedSort);
     if (buckets[i].length > maxCount) maxCount = buckets[i].length;
   }
 
@@ -140,7 +143,8 @@ const rotateResults = (items: any[], keyword: string) => {
       if (buckets[cat][i]) rotated.push(buckets[cat][i]);
     }
   }
-  return rotated;
+  
+  return [...exactMatches, ...rotated];
 };
 
 const extractKeywords = (query: string): string[] => {
@@ -161,11 +165,9 @@ const extractKeywords = (query: string): string[] => {
       }
       
       clean = cleanKoreanKeyword(clean);
-      
       if (kStopWords.has(clean)) return '';
       return clean;
     })
-    // 🌟 한글 1글자 허용
     .filter(t => {
       if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(t)) return t.length >= 1;
       return t.length >= 2;
@@ -233,6 +235,22 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
         }
       }
 
+      // 🌟 핵심 수정 2: '산화물자석'처럼 띄어쓰기 없는 1단어 검색 시 구조대 등판!
+      if (results.length === 0 && wordCount === 1 && cleanQuery.length >= 3) {
+        const spacedQuery = cleanQuery.split('').join('%'); // '산%화%물%자%석' 변환
+        const { data: fuzzyData } = await supabase.from('dictionary_lines')
+          .select('*')
+          .ilike('line_text', `%${spacedQuery}%`)
+          .limit(120);
+
+        if (fuzzyData && fuzzyData.length > 0) {
+          results = fuzzyData;
+          isPartialMatch = true;
+          matchedKeywords = [cleanQuery];
+          orangeKeys.push(cleanQuery);
+        }
+      }
+
       if (results.length > 0) {
         const cleanQueryNoSpace = cleanQuery.replace(/[\s\-_]/g, '').toLowerCase();
         const isKoreanQuery = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(cleanQuery);
@@ -241,6 +259,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
           const text = String(row.line_text || '');
           const cleanText = text.replace(/[.,:;()\[\]]/g, '');
           const tokens = cleanText.split(/\s+/);
+
           for (let i = 0; i < tokens.length; i++) {
             let combined = '';
             let original = [];

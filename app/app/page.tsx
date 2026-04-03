@@ -8,18 +8,17 @@ import { cookies } from 'next/headers';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// 🌟 형용사/관형어 보호 사전 (조사를 자르지 않고 원형 그대로 보존할 단어들)
 const kKeepWords = new Set([
   '좋은', '많은', '작은', '큰', '새로운', '나쁜', '어려운',
   '가는', '낮은', '깊은', '밝은', '맑은'
 ]);
 
-// 공통 필터링 단어들
 const kStopWords = new Set([
   '에', '에서', '에게', '로', '으로', '와', '과', '의',
   '다', '까', '요', '음', '함', '고', '면', '해서',
   '것', '곳', '수', '등', '내', '경우', '때',
-  '및', '등등', '또한', '역시', '게다가', '즉', '하지만', '그리고'
+  '및', '등등', '또한', '역시', '게다가', '즉', '하지만', '그리고',
+  '나', '너', '저', '그', '이', '보', '주', '가', '오', '하', '해', '할', '된', '될', '안', '않', '못', '좀', '잘', '더', '들', '제', '네'
 ]);
 
 const eStopWords = new Set([
@@ -32,10 +31,7 @@ const eStopWords = new Set([
 ]);
 
 const irregulars: Record<string, string> = {
-  // 🌟 기존 명사 불규칙 (마지막에 쉼표 추가 완료!)
   fungi: 'fungus', feet: 'foot', foci: 'focus', criteria: 'criterion', crises: 'crisis', children: 'child', cacti: 'cactus', analyses: 'analysis', geese: 'goose', halves: 'half', knives: 'knife', leaves: 'leaf', lice: 'louse', lives: 'life', media: 'medium', mice: 'mouse', nuclei: 'nucleus', phenomena: 'phenomenon', shelves: 'shelf', thieves: 'thief', teeth: 'tooth', wives: 'wife', wolves: 'wolf', women: 'woman',
-
-  // 🌟 새롭게 추가된 동사 불규칙 100선 (변형된 형태 -> 동사원형)
   lent: 'lend', lay: 'lie', lain: 'lie', lost: 'lose', made: 'make', might: 'may',
   meant: 'mean', met: 'meet', mistook: 'mistake', mistaken: 'mistake', paid: 'pay',
   has: 'have', had: 'have', heard: 'hear', hid: 'hide', hidden: 'hide', held: 'hold',
@@ -63,9 +59,7 @@ const irregulars: Record<string, string> = {
   chose: 'choose', chosen: 'choose', came: 'come'
 };
 
-// 🌟 핵심 수정: 받침 유무를 판별하여 조사를 스마트하게 제거하는 함수 (형태소 분석기급)
 const cleanKoreanKeyword = (word: string): string => {
-  // 🌟 1. 보호 사전(Whitelist)에 있는 형용사면 건드리지 않고 그대로 통과!
   if (kKeepWords.has(word)) return word;
 
   let clean = word;
@@ -74,78 +68,84 @@ const cleanKoreanKeyword = (word: string): string => {
     const prevChar = clean[clean.length - 2];
     const prevCode = prevChar.charCodeAt(0);
 
-    // 이전 글자가 한글(가~힣)인 경우에만 받침 확인
     if (prevCode >= 0xac00 && prevCode <= 0xd7a3) {
       const hasJongseong = (prevCode - 0xac00) % 28 > 0;
 
-      // 1. 받침이 있을 때 붙는 조사 (이, 은, 을)
       if (hasJongseong && ['이', '은', '을'].includes(lastChar)) {
         clean = clean.slice(0, -1);
       }
-      // 2. 받침이 없을 때 붙는 조사 (가, 는, 를)
       else if (!hasJongseong && ['가', '는', '를'].includes(lastChar)) {
         clean = clean.slice(0, -1);
       }
     }
   }
 
-  // 은,는,이,가,을,를 을 제외한 나머지 기능어/조사 정규식으로 2차 정리
   const otherSuffixes = /(하셨습니까|하셨습니다|해보세요|했습니다|했습니까|하셨어요|했어요|보세요|하세요|이시여|라게|것을|도록|부터|까지|하고|이며|했다|봐요|했어|해라|에서|에게|으로|께서|이다|입니다|입니까|인가요|인가|인데요|인지|이냐|의|에|로|아|야|도|만|와|과|랑|고|지|면|서|된|될|할|하는)$/g;
   
   clean = clean.replace(otherSuffixes, '');
   return clean;
 };
 
+// 🌟 핵심 수정 1: 완벽 일치 단어(공백 무시)를 지그재그 회전에서 구출하여 1등으로 올림!
 const rotateResults = (items: any[], keyword: string) => {
   if (!items || items.length === 0) return [];
   const lowerKeyword = keyword.trim().toLowerCase();
+  const lowerKeywordNoSpace = lowerKeyword.replace(/\s+/g, '');
+
+  const itemsWithIndex = items.map((item, idx) => ({ ...item, _db_index: idx }));
+
+  const exactMatches: any[] = [];
+  const partialMatches: any[] = [];
+
+  itemsWithIndex.forEach((item) => {
+    const textNoSpace = (item.line_text || '').toLowerCase().replace(/\s+/g, '');
+    const textOriginal = (item.line_text || '').toLowerCase();
+
+    // 공백 무시 일치 검사 (artificialintelligence 구출 작전)
+    const isExactNoSpace =
+      textNoSpace === lowerKeywordNoSpace ||
+      textNoSpace.startsWith(lowerKeywordNoSpace + ':') ||
+      textNoSpace.startsWith(lowerKeywordNoSpace + '-');
+
+    const isExactOriginal =
+      textOriginal === lowerKeyword ||
+      textOriginal.startsWith(lowerKeyword + ' ') ||
+      textOriginal.startsWith(lowerKeyword + ':');
+
+    if (isExactNoSpace || isExactOriginal) {
+      exactMatches.push(item);
+    } else {
+      partialMatches.push(item);
+    }
+  });
+
+  exactMatches.sort((a, b) => a._db_index - b._db_index);
 
   const buckets: Record<number, any[]> = {};
-  for (let i = 1; i <= 12; i++) buckets[i] = [];
+  for (let i = 0; i <= 12; i++) buckets[i] = [];
 
-  const advancedSort = (a: any, b: any) => {
-    const aText = (a.line_text || '').toLowerCase();
-    const bText = (b.line_text || '').toLowerCase();
-
-    const isExactA =
-      aText === lowerKeyword ||
-      aText.startsWith(lowerKeyword + ' ') ||
-      aText.startsWith(lowerKeyword + ':');
-    const isExactB =
-      bText === lowerKeyword ||
-      bText.startsWith(lowerKeyword + ' ') ||
-      bText.startsWith(lowerKeyword + ':');
-
-    if (isExactA && !isExactB) return -1;
-    if (!isExactA && isExactB) return 1;
-
-    const startsA = aText.startsWith(lowerKeyword);
-    const startsB = bText.startsWith(lowerKeyword);
-    if (startsA && !startsB) return -1;
-    if (!startsA && startsB) return 1;
-
-    if (aText.length !== bText.length) return aText.length - bText.length;
-    return aText.localeCompare(bText);
-  };
-
-  items.forEach((item) => {
-    const catId = item.category_id >= 1 && item.category_id <= 12 ? item.category_id : 12;
+  partialMatches.forEach((item) => {
+    const catId = item.category_id >= 0 && item.category_id <= 12 ? item.category_id : 12;
     buckets[catId].push(item);
   });
 
+  for (let i = 0; i <= 12; i++) {
+    buckets[i].sort((a, b) => a._db_index - b._db_index);
+  }
+
   let maxCount = 0;
-  for (let i = 1; i <= 12; i++) {
-    buckets[i].sort(advancedSort);
+  for (let i = 0; i <= 12; i++) {
     if (buckets[i].length > maxCount) maxCount = buckets[i].length;
   }
 
   const rotated: any[] = [];
   for (let i = 0; i < maxCount; i++) {
-    for (let cat = 1; cat <= 12; cat++) {
+    for (let cat = 0; cat <= 12; cat++) {
       if (buckets[cat][i]) rotated.push(buckets[cat][i]);
     }
   }
-  return rotated;
+  
+  return [...exactMatches, ...rotated];
 };
 
 const extractKeywords = (query: string): string[] => {
@@ -165,13 +165,10 @@ const extractKeywords = (query: string): string[] => {
         }
       }
       
-      // 🌟 스마트 한글 형태소 분석 적용!
       clean = cleanKoreanKeyword(clean);
-      
       if (kStopWords.has(clean)) return '';
       return clean;
     })
-    // 🌟 2. 한글은 1글자('돈', '책', '좋' 등)도 검색되도록 살려두고, 영어는 2글자 이상만 허용!
     .filter(t => {
       if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(t)) return t.length >= 1;
       return t.length >= 2;
@@ -217,7 +214,7 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
       }
 
       const wordCount = cleanQuery.split(/\s+/).length;
-      
+
       if (results.length === 0 && wordCount >= 2) {
         const validKeywords = extractKeywords(cleanQuery);
         if (validKeywords.length > 0) {
@@ -236,6 +233,22 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
               orangeKeys = [...new Set([...orangeKeys, ...validKeywords])];
             }
           }
+        }
+      }
+
+      // 🌟 핵심 수정 2: '산화물자석'처럼 띄어쓰기 없는 1단어 검색 시 구조대 등판!
+      if (results.length === 0 && wordCount === 1 && cleanQuery.length >= 3) {
+        const spacedQuery = cleanQuery.split('').join('%'); // '산%화%물%자%석' 변환
+        const { data: fuzzyData } = await supabase.from('dictionary_lines')
+          .select('*')
+          .ilike('line_text', `%${spacedQuery}%`)
+          .limit(120);
+
+        if (fuzzyData && fuzzyData.length > 0) {
+          results = fuzzyData;
+          isPartialMatch = true;
+          matchedKeywords = [cleanQuery];
+          orangeKeys.push(cleanQuery);
         }
       }
 
@@ -286,7 +299,6 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
               if (korMatches) {
                 korMatches.forEach(w => {
                   let cleanW = cleanKoreanKeyword(w);
-                  // 🌟 여기도 한글 1글자 생존 규칙 적용
                   if (cleanW.trim().length >= 1 && !kStopWords.has(cleanW)) blueKeys.push(cleanW);
                 });
               }
