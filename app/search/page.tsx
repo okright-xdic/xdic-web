@@ -62,7 +62,29 @@ const irregulars: Record<string, string> = {
   wove: 'weave', woven: 'weave', became: 'become', began: 'begin', begun: 'begin',
   bound: 'bind', bit: 'bite', blew: 'blow', blown: 'blow', broke: 'break', broken: 'break',
   brought: 'bring', built: 'build', bought: 'buy', could: 'can', caught: 'catch',
-  chose: 'choose', chosen: 'choose', came: 'come'
+  chose: 'choose', chosen: 'choose', came: 'come',
+
+  // 🌟 신규 추가: 형용사/부사 비교급 및 최상급
+  tallest: 'tall', taller: 'tall', smallest: 'small', smaller: 'small',
+  oldest: 'old', older: 'old', slowest: 'slow', slower: 'slow',
+  longest: 'long', longer: 'long', lowest: 'low', lower: 'low',
+  highest: 'high', higher: 'high', coldest: 'cold', colder: 'cold',
+  warmest: 'warm', warmer: 'warm', strongest: 'strong', stronger: 'strong',
+  hottest: 'hot', hotter: 'hot', weakest: 'weak', weaker: 'weak',
+  darkest: 'dark', darker: 'dark', brightest: 'bright', brighter: 'bright',
+  kindest: 'kind', kinder: 'kind', dirtiest: 'dirty', dirtier: 'dirty',
+  cleanest: 'clean', cleaner: 'clean', smartest: 'smart', smarter: 'smart',
+  nicest: 'nice', nicer: 'nice', largest: 'large', larger: 'large',
+  safest: 'safe', safer: 'safe', broadest: 'broad', broader: 'broad',
+  happiest: 'happy', happier: 'happy', luckiest: 'lucky', luckier: 'lucky',
+  prettiest: 'pretty', prettier: 'pretty', easiest: 'easy', easier: 'easy',
+  funniest: 'funny', funnier: 'funny', noisiest: 'noisy', noisier: 'noisy',
+  busiest: 'busy', busier: 'busy', earliest: 'early', earlier: 'early',
+  friendliest: 'friendly', friendlier: 'friendly', healthiest: 'healthy', healthier: 'healthy',
+  best: 'good', better: 'good', worst: 'bad', worse: 'bad',
+  farthest: 'far', farther: 'far', furthest: 'far', further: 'far',
+  most: 'many', more: 'many', least: 'little', less: 'little',
+  fastest: 'fast', faster: 'fast'
 };
 
 const cleanKoreanKeyword = (word: string): string => {
