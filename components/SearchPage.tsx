@@ -48,7 +48,7 @@ const TAG_COLORS = [
 export default function SearchPage({ 
   query, results = [], orangeKeys = [], blueKeys = [],
   isApp = false, popularSearches = [], recentSearches = [],
-  isPartialMatch = false, matchedKeywords = []    
+  isPartialMatch = false, matchedKeywords = []   
 }: SearchPageProps) {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
@@ -100,8 +100,16 @@ export default function SearchPage({
     const allKeys = [...new Set([...orangeKeys, ...blueKeys])].filter(Boolean).sort((a, b) => b.length - a.length);
     if (allKeys.length === 0) return <span style={{ color: '#111111' }}>{text}</span>;
 
-    const escapedKeys = allKeys.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-    const regex = new RegExp(`(${escapedKeys.join('|')})`, 'gi');
+    // 🌟 수프로 방패: 한글이 없는 순수 영어는 \b(단어 경계) 필터 적용 (shower 방어)
+    const escapedRegexParts = allKeys.map(k => {
+      const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      if (!/[가-힣]/.test(k)) { 
+        return `\\b${escaped}\\b`; 
+      }
+      return escaped; 
+    });
+
+    const regex = new RegExp(`(${escapedRegexParts.join('|')})`, 'gi');
     const parts = text.split(regex);
     const lowerQueryNoSpace = displayQuery.toLowerCase().replace(/\s+/g, '');
 
@@ -116,6 +124,7 @@ export default function SearchPage({
           else if (blueKeys.some((k) => k.toLowerCase() === lowerPart)) color = '#2563eb'; 
           if (lowerPartNoSpace === lowerQueryNoSpace && orangeKeys.length > 0) color = '#ea580c'; 
 
+          // 🌟 볼드체 제거 완수! (fontWeight: 400)
           return <span key={idx} style={{ color, fontWeight: 400 }}>{part}</span>;
         })}
       </>
@@ -197,14 +206,6 @@ export default function SearchPage({
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const getCategoryUrlKey = (categoryName: string) => {
-    if (!categoryName) return '';
-    if (categoryName.includes('여행')) return 'travel';
-    if (categoryName.includes('일상')) return 'casual';
-    if (categoryName.includes('비즈니스')) return 'business';
-    return '';
   };
 
   return (
