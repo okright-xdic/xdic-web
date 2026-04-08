@@ -1,5 +1,5 @@
 // app/search/page.tsx
-// ✅ PC 웹(/search) 전용 페이지: 궁극의 하이브리드 Pinpoint 형광펜 탑재 및 2단어 이상 부분 일치 로직 적용
+// ✅ PC 웹(/search) 전용 페이지: 궁극의 하이브리드 Pinpoint 형광펜 탑재 및 스마트 OR 확장 검색 로직 적용
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -64,7 +64,6 @@ const irregulars: Record<string, string> = {
   brought: 'bring', built: 'build', bought: 'buy', could: 'can', caught: 'catch',
   chose: 'choose', chosen: 'choose', came: 'come',
 
-  // 🌟 신규 추가: 형용사/부사 비교급 및 최상급
   tallest: 'tall', taller: 'tall', smallest: 'small', smaller: 'small',
   oldest: 'old', older: 'old', slowest: 'slow', slower: 'slow',
   longest: 'long', longer: 'long', lowest: 'low', lower: 'low',
@@ -148,7 +147,6 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
         partialMatches.push(item);
       }
     } else {
-      // ✅ includes로 변경: 'AILS Automatic Instrument'도 이젠 완벽 일치 VIP 방으로 입장!
       const isExactNoSpace = textNoSpace.includes(lowerKeywordNoSpace);
       const isExactOriginal = textOriginal.includes(lowerKeyword);
 
@@ -254,48 +252,131 @@ export default async function WebSearchPage({
       const { data, error } = await supabase.rpc('search_dictionary_smart', { keyword: query });
       if (!error && Array.isArray(data)) results = data;
 
-      const initialResultCount = results.length;
-      const wordCount = cleanQuery.split(/\s+/).length;
       const baseExtracted = extractKeywords(cleanQuery); 
+      const wordCount = cleanQuery.split(/\s+/).length;
 
-      if (wordCount >= 2 && results.length < 120 && baseExtracted.length > 0) {
-        let andQueryBuilder = supabase.from('dictionary_lines').select('*');
-        baseExtracted.forEach(k => { andQueryBuilder = andQueryBuilder.ilike('line_text', `%${k}%`); });
-        const { data: andData } = await andQueryBuilder.limit(120);
-
-        if (andData && andData.length > 0) {
+      if (cleanQuery.includes(' ')) {
+        const noSpaceQuery = cleanQuery.replace(/\s+/g, '');
+        const { data: noSpaceData } = await supabase.rpc('search_dictionary_smart', { keyword: noSpaceQuery });
+        if (noSpaceData && Array.isArray(noSpaceData)) {
           const existingIds = new Set(results.map(r => r.id));
-          const newAnds = andData.filter(r => !existingIds.has(r.id));
-          results = [...results, ...newAnds].slice(0, 120);
-          
-          if (initialResultCount === 0) {
-            isPartialMatch = true; 
-            matchedKeywords = baseExtracted;
-          }
+          const newItems = noSpaceData.filter(r => !existingIds.has(r.id));
+          results = [...results, ...newItems];
+          baseExtracted.push(noSpaceQuery);
+        }
+      }
+
+      const initialResultCount = results.length;
+
+      let smartSplitFound = false;
+      let foundP1 = "";
+      let foundP2 = "";
+      let splitOrPieces: string[] = [];
+
+      if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 10 && /[가-힣]/.test(cleanQuery)) {
+        const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
+        const splitPairs = [];
+        for (let i = 2; i <= safeQuery.length - 2; i++) {
+          const p1 = safeQuery.slice(0, i);
+          const p2 = safeQuery.slice(i);
+          splitPairs.push({ p1, p2 });
+          if (p1.length >= 2) splitOrPieces.push(p1);
+          if (p2.length >= 2) splitOrPieces.push(p2);
         }
 
-        if (results.length < 120) {
-          const orQueryStr = baseExtracted.map(k => `line_text.ilike.%${k}%`).join(',');
-          const { data: orData } = await supabase.from('dictionary_lines').select('*').or(orQueryStr).limit(120);
-          if (orData && orData.length > 0) {
+        if (splitPairs.length > 0) {
+          const andQueryStrs = splitPairs.map(pair => `and(line_text.ilike.%${pair.p1}%,line_text.ilike.%${pair.p2}%)`);
+          const { data: splitData } = await supabase.from('dictionary_lines')
+            .select('*')
+            .or(andQueryStrs.join(','))
+            .limit(50);
+
+          if (splitData && splitData.length > 0) {
             const existingIds = new Set(results.map(r => r.id));
-            const newOrs = orData.filter(r => !existingIds.has(r.id));
-            results = [...results, ...newOrs].slice(0, 120);
-            
-            if (initialResultCount === 0 && !isPartialMatch) {
-              isPartialMatch = true; 
-              matchedKeywords = baseExtracted;
+            const newSplits = splitData.filter(r => !existingIds.has(r.id));
+            if (newSplits.length > 0) {
+              results = [...results, ...newSplits];
+              smartSplitFound = true;
+
+              if (initialResultCount === 0) {
+                isPartialMatch = true;
+                matchedKeywords = [safeQuery];
+              }
+
+              const sampleText = splitData[0].line_text || '';
+              for (const pair of splitPairs) {
+                if (sampleText.includes(pair.p1) && sampleText.includes(pair.p2)) {
+                  foundP1 = pair.p1;
+                  foundP2 = pair.p2;
+                  break;
+                }
+              }
             }
           }
         }
       }
 
-      if (results.length === 0 && wordCount === 1 && cleanQuery.length >= 3) {
-        const spacedQuery = cleanQuery.split('').join('%'); 
+      if (wordCount >= 2 && results.length < 50 && baseExtracted.length > 0) {
+        let andQueryBuilder = supabase.from('dictionary_lines').select('*');
+        baseExtracted.forEach(k => { andQueryBuilder = andQueryBuilder.ilike('line_text', `%${k}%`); });
+        const { data: andData } = await andQueryBuilder.limit(50);
+
+        if (andData && andData.length > 0) {
+          const existingIds = new Set(results.map(r => r.id));
+          const newAnds = andData.filter(r => !existingIds.has(r.id));
+          results = [...results, ...newAnds];
+
+          if (initialResultCount === 0) {
+            isPartialMatch = true;
+            matchedKeywords = baseExtracted;
+          }
+        }
+      }
+
+      // 💡 수프로 최적화 핵심: 풍성한 OR 확장 검색 (산화물 38건, 자석 35건 끌어오기!)
+      if (results.length < 100) {
+        let orKeywords = [...baseExtracted];
+
+        if (smartSplitFound && foundP1 && foundP2) {
+           orKeywords.push(foundP1, foundP2);
+        } else if (wordCount === 1 && splitOrPieces.length > 0) {
+           orKeywords.push(...splitOrPieces);
+        }
+
+        const validOrKeywords = [...new Set(orKeywords)].filter(k => k.length >= 2);
+
+        if (validOrKeywords.length > 0) {
+          const orQueryStrs = validOrKeywords.map(k => `line_text.ilike.%${k}%`);
+          const { data: orData } = await supabase.from('dictionary_lines')
+            .select('*')
+            .or(orQueryStrs.join(','))
+            .limit(120);
+
+          if (orData && orData.length > 0) {
+            const existingIds = new Set(results.map(r => r.id));
+            const newOrs = orData.filter(r => !existingIds.has(r.id));
+            results = [...results, ...newOrs].slice(0, 150);
+
+            if (initialResultCount === 0 && !smartSplitFound) {
+               isPartialMatch = true;
+               matchedKeywords = validOrKeywords;
+            }
+
+            if (smartSplitFound && foundP1 && foundP2) {
+               orangeKeys.push(foundP1, foundP2);
+            } else if (wordCount === 1 && splitOrPieces.length > 0) {
+               orangeKeys.push(...splitOrPieces);
+            }
+          }
+        }
+      }
+
+      if (results.length === 0 && wordCount === 1 && cleanQuery.length >= 2 && cleanQuery.length <= 4) {
+        const spacedQuery = cleanQuery.split('').join('%');
         const { data: fuzzyData } = await supabase.from('dictionary_lines')
           .select('*')
           .ilike('line_text', `%${spacedQuery}%`)
-          .limit(120);
+          .limit(30);
 
         if (fuzzyData && fuzzyData.length > 0) {
           results = fuzzyData;
@@ -321,7 +402,7 @@ export default async function WebSearchPage({
               original.push(tokens[j]);
               if (combined === cleanQueryNoSpace) {
                 orangeKeys.push(original.join(' ')); 
-                orangeKeys.push(...original); // ✅ artificial, intelligence 쪼개진 단어도 강제 추가
+                orangeKeys.push(...original); 
                 break;
               }
               if (combined.length > cleanQueryNoSpace.length) break;
@@ -329,7 +410,6 @@ export default async function WebSearchPage({
           }
         });
 
-        // ✅ '기술', '연구소', '자동', '계기' 등 추출된 개별 단어 모조리 주황색 추가!
         orangeKeys.push(...baseExtracted);
 
         const cat0Items = results.filter(row => row.category_id === 0);
