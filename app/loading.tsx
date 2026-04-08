@@ -15,10 +15,10 @@ export default function Loading() {
 
          {/* 텍스트 */}
          <p className="text-lg font-bold text-slate-700 animate-pulse">
-           데이터를 불러오고 있습니다...
+          검색을 시작하고 있습니다...
          </p>
          <p className="text-sm text-slate-400 mt-2">
-           전문 용어 사전 준비 중
+           조금만 기다려주세요♪ ♬
          </p>
        </div>
     </div>
