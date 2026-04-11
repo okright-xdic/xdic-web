@@ -100,7 +100,6 @@ export default function SearchPage({
     const allKeys = [...new Set([...orangeKeys, ...blueKeys])].filter(Boolean).sort((a, b) => b.length - a.length);
     if (allKeys.length === 0) return <span style={{ color: '#111111' }}>{text}</span>;
 
-    // 🌟 수프로 방패: 한글이 없는 순수 영어는 \b(단어 경계) 필터 적용 (shower 방어)
     const escapedRegexParts = allKeys.map(k => {
       const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       if (!/[가-힣]/.test(k)) { 
@@ -124,7 +123,6 @@ export default function SearchPage({
           else if (blueKeys.some((k) => k.toLowerCase() === lowerPart)) color = '#2563eb'; 
           if (lowerPartNoSpace === lowerQueryNoSpace && orangeKeys.length > 0) color = '#ea580c'; 
 
-          // 🌟 볼드체 제거 완수! (fontWeight: 400)
           return <span key={idx} style={{ color, fontWeight: 400 }}>{part}</span>;
         })}
       </>
@@ -373,7 +371,6 @@ export default function SearchPage({
                       홈으로
                     </Link>
                   </div>
-
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 text-center px-4">

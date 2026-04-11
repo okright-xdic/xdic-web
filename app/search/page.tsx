@@ -1,5 +1,5 @@
 // app/search/page.tsx
-// ✅ PC 웹(/search) 서버 검색: 완벽 핀포인트 파란색 색칠 & 사오정 데이터 원천 차단 로직
+// ✅ PC 웹(/search) 서버 검색: 1. 일치 시 오지랖 역검색(OR) 차단 / 2. 두 단어 이상은 Exact Match만 허용 (논리 완벽 패치!)
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -9,7 +9,8 @@ export const dynamic = 'force-dynamic';
 
 const kKeepWords = new Set([
   '좋은', '많은', '작은', '큰', '새로운', '나쁜', '어려운',
-  '가는', '낮은', '깊은', '밝은', '맑은'
+  '가는', '낮은', '깊은', '밝은', '맑은',
+  '사랑', '사람', '서로', '바로', '함께', '같이', '다시'
 ]);
 
 const kStopWords = new Set([
@@ -61,52 +62,28 @@ const irregulars: Record<string, string> = {
   wove: 'weave', woven: 'weave', became: 'become', began: 'begin', begun: 'begin',
   bound: 'bind', bit: 'bite', blew: 'blow', blown: 'blow', broke: 'break', broken: 'break',
   brought: 'bring', built: 'build', bought: 'buy', could: 'can', caught: 'catch',
-  chose: 'choose', chosen: 'choose', came: 'come',
-  tallest: 'tall', taller: 'tall', smallest: 'small', smaller: 'small',
-  oldest: 'old', older: 'old', slowest: 'slow', slower: 'slow',
-  longest: 'long', longer: 'long', lowest: 'low', lower: 'low',
-  highest: 'high', higher: 'high', coldest: 'cold', colder: 'cold',
-  warmest: 'warm', warmer: 'warm', strongest: 'strong', stronger: 'strong',
-  hottest: 'hot', hotter: 'hot', weakest: 'weak', weaker: 'weak',
-  darkest: 'dark', darker: 'dark', brightest: 'bright', brighter: 'bright',
-  kindest: 'kind', kinder: 'kind', dirtiest: 'dirty', dirtier: 'dirty',
-  cleanest: 'clean', cleaner: 'clean', smartest: 'smart', smarter: 'smart',
-  nicest: 'nice', nicer: 'nice', largest: 'large', larger: 'large',
-  safest: 'safe', safer: 'safe', broadest: 'broad', broader: 'broad',
-  happiest: 'happy', happier: 'happy', luckiest: 'lucky', luckier: 'lucky',
-  prettiest: 'pretty', prettier: 'pretty', easiest: 'easy', easier: 'easy',
-  funniest: 'funny', funnier: 'funny', noisiest: 'noisy', noisier: 'noisy',
-  busiest: 'busy', busier: 'busy', earliest: 'early', earlier: 'early',
-  friendliest: 'friendly', friendlier: 'friendly', healthiest: 'healthy', healthier: 'healthy',
-  best: 'good', better: 'good', worst: 'bad', worse: 'bad',
-  farthest: 'far', farther: 'far', furthest: 'far', further: 'far',
-  most: 'many', more: 'many', least: 'little', less: 'little',
-  fastest: 'fast', faster: 'fast'
+  chose: 'choose', chosen: 'choose', came: 'come'
 };
 
 const cleanKoreanKeyword = (word: string): string => {
   if (kKeepWords.has(word)) return word;
-
   let clean = word;
   if (clean.length >= 2) {
     const lastChar = clean[clean.length - 1];
     const prevChar = clean[clean.length - 2];
     const prevCode = prevChar.charCodeAt(0);
-
     if (prevCode >= 0xac00 && prevCode <= 0xd7a3) {
       const hasJongseong = (prevCode - 0xac00) % 28 > 0;
       if (hasJongseong && ['이', '은', '을'].includes(lastChar)) clean = clean.slice(0, -1);
       else if (!hasJongseong && ['가', '는', '를'].includes(lastChar)) clean = clean.slice(0, -1);
     }
   }
-
   for (const suffix of kSuffixes) {
     if (clean.endsWith(suffix) && clean.length > suffix.length) {
       clean = clean.slice(0, -suffix.length);
       break;
     }
   }
-
   const otherSuffixes = /(하셨습니까|하셨습니다|해보세요|했습니다|했습니까|하셨어요|했어요|보세요|하세요|했다|봐요|했어|해라|이다|입니다|입니까|인가요|인가|인데요|인지|이냐)$/g;
   clean = clean.replace(otherSuffixes, '');
   return clean;
@@ -115,19 +92,15 @@ const cleanKoreanKeyword = (word: string): string => {
 const rotateBuckets = (list: any[]) => {
   const buckets: Record<number, any[]> = {};
   for (let i = 0; i <= 12; i++) buckets[i] = [];
-
   list.forEach((item) => {
     const catId = item.category_id >= 0 && item.category_id <= 12 ? item.category_id : 12;
     buckets[catId].push(item);
   });
-
   for (let i = 0; i <= 12; i++) buckets[i].sort((a, b) => a._db_index - b._db_index);
-
   let maxCount = 0;
   for (let i = 0; i <= 12; i++) {
     if (buckets[i].length > maxCount) maxCount = buckets[i].length;
   }
-
   const rotated: any[] = [];
   for (let i = 0; i < maxCount; i++) {
     for (let cat = 0; cat <= 12; cat++) {
@@ -137,77 +110,99 @@ const rotateBuckets = (list: any[]) => {
   return rotated;
 };
 
-const rotateResults = (items: any[], keyword: string, extractedKeywords: string[]) => {
+// 🌟 무적의 VIP 판독기 및 사오정 필터
+const rotateResults = (items: any[], keyword: string, extractedKeywords: string[], flexRegexStr: string) => {
   if (!items || items.length === 0) return [];
-  const lowerKeyword = keyword.trim().toLowerCase();
-  const lowerKeywordNoSpace = lowerKeyword.replace(/\s+/g, '');
-  const lowerExtracted = extractedKeywords.map(k => k.toLowerCase().replace(/\s+/g, ''));
-
+  const lowerKeywordNoSpace = keyword.trim().toLowerCase().replace(/\s+/g, '');
   const itemsWithIndex = items.map((item, idx) => ({ ...item, _db_index: idx }));
 
-  const corpusExactMatch: any[] = [];
-  const corpusShortDefs: any[] = []; 
-  const dictExact: any[] = [];
-  const rpcMatches: any[] = []; 
+  const corpusSuperTight: any[] = [];
+  const corpusStandalone: any[] = [];
+  const corpusPartialMatch: any[] = [];
+  const dictSuperTight: any[] = [];
+  const dictStandalone: any[] = [];
+  const dictPartialMatch: any[] = [];
+  const rpcMatches: any[] = [];
   const andMatches: any[] = [];
   const orMatches: any[] = [];
+
+  const exactFrontRegex = new RegExp(`^${flexRegexStr}(?:\\s|\\(|\\)|\\[|\\]|,|:|\\.|$)`, 'i');
+  const exactStandaloneRegex = new RegExp(`(?:^|\\s|\\(|\\)|\\[|\\])${flexRegexStr}(?:\\s|\\(|\\)|\\[|\\]|,|:|\\.|$)`, 'i');
 
   itemsWithIndex.forEach((item) => {
     const textNoSpace = (item.line_text || '').toLowerCase().replace(/\s+/g, '');
     const textOriginal = (item.line_text || '').toLowerCase();
     const isCorpus = item.category_id === 0;
 
-    const isExactNoSpace = textNoSpace.includes(lowerKeywordNoSpace);
-    const isExactOriginal = textOriginal.includes(lowerKeyword);
+    // 🌟 완벽 일치 VIP ("기능장애" == "기능 장애")
+    const isSuperTight = item.is_exact_priority || exactFrontRegex.test(textOriginal);
+    const isStandalone = exactStandaloneRegex.test(textOriginal);
 
     if (isCorpus) {
-      if (isExactNoSpace || isExactOriginal) {
-        corpusExactMatch.push(item);
-      } else {
-        corpusShortDefs.push(item); 
-      }
+      if (isSuperTight) corpusSuperTight.push(item);
+      else if (isStandalone) corpusStandalone.push(item);
+      else corpusPartialMatch.push(item);
       return;
     }
 
-    if (isExactNoSpace || isExactOriginal) {
-      dictExact.push(item);
+    if (isSuperTight) {
+      dictSuperTight.push(item);
+    } else if (isStandalone) {
+      dictStandalone.push(item);
+    } else if (textNoSpace.includes(lowerKeywordNoSpace)) {
+      dictPartialMatch.push(item); // 단순 포함 (접두사/접미사)
     } else if (item.is_rpc) {
       rpcMatches.push(item);
     } else {
       let hasAll = true;
-      if (lowerExtracted.length > 0) {
-        for (const k of lowerExtracted) {
-          if (!textNoSpace.includes(k)) {
-            hasAll = false;
-            break;
-          }
+      if (extractedKeywords.length > 0) {
+        for (const k of extractedKeywords) {
+          if (!textNoSpace.includes(k.toLowerCase())) { hasAll = false; break; }
         }
-      } else {
-        hasAll = false;
-      }
+      } else { hasAll = false; }
 
       if (hasAll) andMatches.push(item);
       else orMatches.push(item);
     }
   });
 
-  corpusExactMatch.sort((a, b) => a._db_index - b._db_index);
-  corpusShortDefs.sort((a, b) => a._db_index - b._db_index);
-  dictExact.sort((a, b) => a._db_index - b._db_index);
-  rpcMatches.sort((a, b) => a._db_index - b._db_index);
-  
+  const rotatedDictSuperTight = rotateBuckets(dictSuperTight);
+  const rotatedDictStandalone = rotateBuckets(dictStandalone);
+  const rotatedDictPartial = rotateBuckets(dictPartialMatch);
   const rotatedAnd = rotateBuckets(andMatches);
+  const rotatedRpc = rotateBuckets(rpcMatches);
+  const rotatedOr = rotateBuckets(orMatches);
 
-  orMatches.sort((a, b) => {
-    const vipCats = [3, 4, 5, 6, 7, 8, 9, 10, 11];
-    const isAVip = vipCats.includes(a.category_id);
-    const isBVip = vipCats.includes(b.category_id);
-    if (isAVip && !isBVip) return -1;
-    if (!isAVip && isBVip) return 1;
-    return a._db_index - b._db_index;
-  });
+  corpusSuperTight.sort((a, b) => a._db_index - b._db_index);
+  corpusStandalone.sort((a, b) => a._db_index - b._db_index);
+  corpusPartialMatch.sort((a, b) => a._db_index - b._db_index);
 
-  return [...corpusExactMatch, ...corpusShortDefs, ...dictExact, ...rpcMatches, ...rotatedAnd, ...orMatches];
+  // 🌟 [Rule 1 & 2의 핵심] 정답(VIP)이 존재하면 사오정(RPC)과 오지랖(OR) 검색 결과를 화면에서 완전히 숨깁니다!
+  const hasTight = corpusSuperTight.length > 0 || dictSuperTight.length > 0 || corpusStandalone.length > 0 || dictStandalone.length > 0;
+
+  if (hasTight) {
+    return [
+      ...corpusSuperTight,
+      ...rotatedDictSuperTight,
+      ...corpusStandalone,
+      ...rotatedDictStandalone,
+      ...rotatedDictPartial, 
+      ...corpusPartialMatch,
+      ...rotatedAnd // 각 단어별 정확한 매치만 포함
+    ];
+  } else {
+    return [
+      ...corpusSuperTight,
+      ...rotatedDictSuperTight,
+      ...corpusStandalone,
+      ...rotatedDictStandalone,
+      ...rotatedDictPartial,
+      ...corpusPartialMatch,
+      ...rotatedAnd,
+      ...rotatedRpc, // 정답이 없을 때만 사오정 추천 보여줌
+      ...rotatedOr   // 정답이 없을 때만 부분 조각 보여줌
+    ];
+  }
 };
 
 const extractRawTokens = (query: string): string[] => {
@@ -230,7 +225,6 @@ const extractKeywords = (query: string): string[] => {
           clean = clean.slice(0, -1); 
         }
       }
-      
       clean = cleanKoreanKeyword(clean);
       if (kStopWords.has(clean)) return '';
       return clean;
@@ -249,6 +243,7 @@ export default async function WebSearchPage({
   const query = (searchParams.q || '').toString();
   const cleanQuery = query.trim();
   const noSpaceLen = cleanQuery.replace(/\s+/g, '').length;
+  const noSpaceQuery = cleanQuery.replace(/\s+/g, '');
 
   const isEnglishQuery = /^[a-zA-Z\s\-_]+$/.test(cleanQuery);
   const isKoreanQuery = /^[가-힣\s]+$/.test(cleanQuery);
@@ -262,44 +257,190 @@ export default async function WebSearchPage({
   let isPartialMatch = false;
   let matchedKeywords: string[] = [];
 
-  let globalRecent: { word: string; count: number }[] = [];
+  let globalRecent: { string; count: number }[] = [];
   let globalPopular: string[] = [];
 
-  try {
-    const { data: logs } = await supabase.from('search_logs').select('keyword').order('created_at', { ascending: false }).limit(1000);
-    if (logs && logs.length > 0) {
-      const counts: Record<string, number> = {};
-      logs.forEach(l => { counts[l.keyword] = (counts[l.keyword] || 0) + 1; });
-      const uniqueRecents = Array.from(new Set(logs.map(l => l.keyword)));
-      globalRecent = uniqueRecents.slice(0, 15).map(word => ({ word, count: counts[word] || 1 }));
-      globalPopular = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(entry => entry[0]).slice(0, 20);
-    }
-  } catch (e) {}
+  const promises: Promise<void>[] = [];
+  const resultsMap = new Map();
+  const addRes = (item: any) => { if (!resultsMap.has(item.id)) resultsMap.set(item.id, item); };
+
+  let wordCount = 0;
+  let baseExtracted: string[] = [];
+  let cat0Data: any[] = [];
+  let blueTokenData: any[] = [];
+
+  // 🌟 띄어쓰기를 완벽하게 무시하는 정규식 엔진
+  const flexStr = noSpaceQuery.split('').map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*');
+  const exactFrontRegex = new RegExp(`^${flexStr}(?:\\s|\\(|\\)|\\[|\\]|,|:|\\.|$)`, 'i');
+  const exactStandaloneRegex = new RegExp(`(?:^|\\s|\\(|\\)|\\[|\\])${flexStr}(?:\\s|\\(|\\)|\\[|\\]|,|:|\\.|$)`, 'i');
+
+  promises.push(
+    supabase.from('search_logs').select('keyword').order('created_at', { ascending: false }).limit(500)
+      .then(({ data: logs }) => {
+        if (logs && logs.length > 0) {
+          const counts: Record<string, number> = {};
+          logs.forEach(l => { counts[l.keyword] = (counts[l.keyword] || 0) + 1; });
+          const uniqueRecents = Array.from(new Set(logs.map(l => l.keyword)));
+          globalRecent = uniqueRecents.slice(0, 15).map(word => ({ word, count: counts[word] || 1 }));
+          globalPopular = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(entry => entry[0]).slice(0, 20);
+        }
+      }).catch(() => {})
+  );
 
   if (cleanQuery && noSpaceLen >= 2) {
-    try {
-      const wordCount = cleanQuery.split(/\s+/).length;
+    wordCount = cleanQuery.split(/\s+/).length;
+    baseExtracted = extractKeywords(cleanQuery);
 
-      let corpusData: any[] = [];
-      let secretBlueKeys: string[] = [];
+    // 1. VIP 전체 일치 검색 (띄어쓰기 여부 무시)
+    const exactQueriesArray = [
+      `line_text.eq.${cleanQuery}`, `line_text.ilike.${cleanQuery} %`, `line_text.ilike.${cleanQuery},%`, `line_text.ilike.% ${cleanQuery} %`, `line_text.ilike.% ${cleanQuery}`
+    ];
+    if (cleanQuery !== noSpaceQuery && noSpaceQuery.length >= 2) {
+      exactQueriesArray.push(
+        `line_text.eq.${noSpaceQuery}`, `line_text.ilike.${noSpaceQuery} %`, `line_text.ilike.${noSpaceQuery},%`, `line_text.ilike.% ${noSpaceQuery} %`, `line_text.ilike.% ${noSpaceQuery}`
+      );
+    }
+    promises.push(
+      supabase.from('dictionary_lines').select('*').or(exactQueriesArray.join(',')).limit(100)
+        .then(({ data }) => { if (data) data.forEach(item => { item.is_exact_priority = true; addRes(item); }); }).catch(() => {})
+    );
 
-      try {
-        const exactQueries = [`%${cleanQuery}%`];
-        const noSpaceQuery = cleanQuery.replace(/\s+/g, '');
-        if (cleanQuery !== noSpaceQuery && noSpaceQuery.length >= 2) {
-          exactQueries.push(`%${noSpaceQuery}%`); 
+    // 2. RPC (일단 호출해두고 나중에 Rule에 따라 버릴지 결정)
+    promises.push(
+      supabase.rpc('search_dictionary_smart', { keyword: query }).then(({ data }) => { if (Array.isArray(data)) data.forEach(item => addRes({ ...item, is_rpc: true })); }).catch(() => {})
+    );
+
+    // 3. 기초영어 말뭉치 전용 검색
+    promises.push(
+      supabase.from('dictionary_lines').select('*').eq('category_id', 0).or(exactQueriesArray.join(',')).limit(30)
+        .then(({ data }) => { if (data) data.forEach(addRes); }).catch(() => {})
+    );
+
+    // 4. [Rule 2] 두 단어 이상일 때 "각 단어별로 정확한(Exact) 결과만" 미리 챙겨둡니다.
+    if (wordCount >= 2 && baseExtracted.length > 0) {
+      const wordExactOrs: string[] = [];
+      baseExtracted.forEach(w => {
+        wordExactOrs.push(`line_text.eq.${w}`, `line_text.ilike.${w} %`, `line_text.ilike.% ${w} %`, `line_text.ilike.% ${w}`, `line_text.ilike.${w},%`);
+      });
+      if (wordExactOrs.length > 0) {
+        promises.push(
+          supabase.from('dictionary_lines').select('*').or(wordExactOrs.join(',')).limit(60)
+            .then(({ data }) => { if (data) data.forEach(addRes); }).catch(() => {})
+        );
+      }
+
+      let andQueryBuilder = supabase.from('dictionary_lines').select('*');
+      baseExtracted.forEach(k => { andQueryBuilder = andQueryBuilder.ilike('line_text', `%${k}%`); });
+      promises.push(
+        andQueryBuilder.limit(50).then(({ data }) => { 
+          if (data) { data.forEach(addRes); if (resultsMap.size === 0) { isPartialMatch = true; matchedKeywords = baseExtracted; } }
+        }).catch(() => {})
+      );
+    }
+
+    // 5. 쪼개기 검색 ("산화물자석" -> "산화물" + "자석")을 메인 검색으로 끌어올려 VIP를 찾아냅니다!
+    let splitPairs: any[] = [];
+    if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 10 && /[가-힣]/.test(cleanQuery)) {
+      const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
+      for (let i = 2; i <= safeQuery.length - 2; i++) {
+        splitPairs.push({ p1: safeQuery.slice(0, i), p2: safeQuery.slice(i) });
+      }
+      if (splitPairs.length > 0) {
+        const andQueryStrs = splitPairs.map(pair => `and(line_text.ilike.%${pair.p1}%,line_text.ilike.%${pair.p2}%)`);
+        promises.push(
+          supabase.from('dictionary_lines').select('*').or(andQueryStrs.join(',')).limit(50)
+            .then(({ data }) => { if (data) data.forEach(addRes); }).catch(() => {})
+        );
+      }
+    }
+
+    await Promise.all(promises);
+
+    results = Array.from(resultsMap.values());
+
+    // 🌟 [Rule 1 칼퇴근 판독기] 정답이 1개라도 있는지 검사!
+    let hasExactMatch = false;
+    for (const item of results) {
+      const txt = (item.line_text || '').toLowerCase();
+      if (item.is_exact_priority || exactFrontRegex.test(txt) || exactStandaloneRegex.test(txt)) {
+        hasExactMatch = true;
+        break;
+      }
+    }
+
+    // 🌟 Rule 1 적용: 정답이 없을 때만(hasExactMatch == false) 역검색(OR)을 허용합니다!
+    if (!hasExactMatch && results.length < 30) {
+      const fallbackPromises: Promise<void>[] = [];
+      let orKeywords = [...baseExtracted];
+
+      const validOrKeywords = [...new Set(orKeywords)].filter(k => {
+        if (/[가-힣]/.test(k) && k.length <= 1) return false; 
+        if (wordCount >= 3 && /[가-힣]/.test(k) && k.length <= 2) return false; 
+        return k.length >= 2;
+      });
+
+      // 🌟 [Rule 2 적용] 두 단어 이상 검색했을 땐 쓸데없는 부분일치(OR)를 돌리지 않습니다!
+      if (validOrKeywords.length > 0 && wordCount === 1) {
+        const orKeywordStrs = validOrKeywords.map(k => `line_text.ilike.%${k}%`).join(',');
+        fallbackPromises.push(
+          supabase.from('dictionary_lines').select('*').or(orKeywordStrs).limit(80)
+            .then(({ data }) => { if (data) data.forEach(addRes); }).catch(() => {})
+        );
+      }
+
+      if (wordCount === 1 && cleanQuery.length >= 2 && cleanQuery.length <= 4) {
+        const spacedQuery = cleanQuery.split('').join('%');
+        fallbackPromises.push(
+          supabase.from('dictionary_lines').select('*').ilike('line_text', `%${spacedQuery}%`).limit(30)
+            .then(({ data }) => {
+              if (data && resultsMap.size === 0) { data.forEach(addRes); isPartialMatch = true; matchedKeywords = [cleanQuery]; orangeKeys.push(cleanQuery); }
+            }).catch(() => {})
+        );
+      }
+
+      if (fallbackPromises.length > 0) await Promise.all(fallbackPromises);
+      results = Array.from(resultsMap.values());
+    }
+
+    if (results.length > 0) {
+      const cleanQueryNoSpace = cleanQuery.replace(/[\s\-_]/g, '').toLowerCase();
+      const allOriginalWords = cleanQuery.split(/\s+/).map(w => w.replace(/[.,:;()\[\]?!]/g, '')).filter(w => w.length > 0);
+      
+      allOriginalWords.forEach(w => {
+         if (w.length > 1 || !/[가-힣]/.test(w)) orangeKeys.push(w);
+      });
+      orangeKeys.push(...baseExtracted);
+      orangeKeys.push(noSpaceQuery);
+
+      results.forEach((row) => {
+        const text = String(row.line_text || '');
+        const cleanText = text.replace(/[.,:;()\[\]]/g, '');
+        const tokens = cleanText.split(/\s+/);
+        for (let i = 0; i < tokens.length; i++) {
+          let combined = '';
+          let original = [];
+          for (let j = i; j < tokens.length; j++) {
+            combined += tokens[j].replace(/[\-_]/g, '').toLowerCase();
+            original.push(tokens[j]);
+            if (combined === cleanQueryNoSpace) {
+              orangeKeys.push(original.join(' ')); 
+              orangeKeys.push(...original); 
+              break;
+            }
+            if (combined.length > cleanQueryNoSpace.length) break;
+          }
         }
+      });
 
-        const exactOr = exactQueries.map(q => `line_text.ilike.${q}`).join(',');
-        const { data: exactCat0 } = await supabase.from('dictionary_lines')
-          .select('*')
-          .eq('category_id', 0)
-          .or(exactOr)
-          .limit(30);
-        
-        if (exactCat0) {
-          corpusData = [...exactCat0];
-          exactCat0.forEach(row => {
+      orangeKeys = [...new Set(orangeKeys)].filter((w) => w && w.trim());
+      
+      // 🌟 [파란색 물감 완벽 부활] 검색된 결과들을 쭉 훑으면서 영단어를 모조리 건져내 파란색으로 칠합니다!
+      let secretBlueKeys: string[] = [];
+      results.forEach(row => {
+        if (row.category_id === 0 || row.category_id === 1 || row.category_id === 2 || row.category_id === 3 || row.category_id === 9) { 
+          const textOriginal = (row.line_text || '').toLowerCase();
+          const textNoSpace = textOriginal.replace(/\s+/g, '');
+          if (exactFrontRegex.test(textOriginal) || exactStandaloneRegex.test(textOriginal) || textNoSpace.includes(cleanQueryNoSpace)) {
             const words = String(row.line_text || '').replace(/[.,:;()\[\]?!"]/g, '').split(/\s+/).filter(w => w.length > 0);
             words.forEach(w => {
               const lw = w.toLowerCase();
@@ -308,267 +449,16 @@ export default async function WebSearchPage({
               if (isKoreanQuery && /^[a-zA-Z]+$/.test(w)) secretBlueKeys.push(w);
               if (!isEnglishQuery && !isKoreanQuery) secretBlueKeys.push(w);
             });
-          });
-        }
-        
-        // 🌟 수프로의 파란색 부활 로직: 띄어쓰기 그대로 모든 조각(how, long)을 사전에 던집니다!
-        const rawTokensForBlue = extractRawTokens(cleanQuery);
-        
-        for (const token of rawTokensForBlue) {
-          if (eStopWords.has(token.toLowerCase()) || kStopWords.has(token)) continue;
-          if (/[가-힣]/.test(token) && token.length === 1) continue; 
-
-          const { data: tokenData } = await supabase.from('dictionary_lines')
-            .select('*')
-            .eq('category_id', 0)
-            .ilike('line_text', `%${token}%`)
-            .limit(30);
-          
-          if (tokenData) {
-            let filtered = tokenData;
-            if (/^[a-zA-Z]+$/.test(token)) {
-              const regex = new RegExp(`\\b${token}\\b`, 'i');
-              filtered = tokenData.filter(r => regex.test(r.line_text || ''));
-            }
-            filtered.sort((a, b) => (a.line_text?.length || 0) - (b.line_text?.length || 0));
-
-            // 긴 문장이 아닐 때만 기초영어를 결과에 추가 (사오정 방지)
-            if (wordCount <= 2) {
-              corpusData = [...corpusData, ...filtered.slice(0, 3)];
-            }
-
-            // 파란색 물감 추출
-            filtered.slice(0, 10).forEach(row => {
-              const words = String(row.line_text || '').replace(/[.,:;()\[\]?!"]/g, '').split(/\s+/).filter(w => w.length > 0);
-              words.forEach(w => {
-                const lw = w.toLowerCase();
-                if (eStopWords.has(lw) || kStopWords.has(lw)) return;
-                if (isEnglishQuery && /[가-힣]/.test(w)) secretBlueKeys.push(w);
-                if (isKoreanQuery && /^[a-zA-Z]+$/.test(w)) secretBlueKeys.push(w);
-                if (!isEnglishQuery && !isKoreanQuery) secretBlueKeys.push(w);
-              });
-            });
           }
         }
-        
-        const seenCorpus = new Set();
-        corpusData = corpusData.filter(item => {
-          if (seenCorpus.has(item.id)) return false;
-          seenCorpus.add(item.id);
-          return true;
-        });
-      } catch(e) {}
+      });
 
-      // 🌟 RPC 호출 (80% 유사도 문장)
-      const { data, error } = await supabase.rpc('search_dictionary_smart', { keyword: query });
-      if (!error && Array.isArray(data)) {
-        results = data.map(item => ({ ...item, is_rpc: true }));
-      }
+      blueKeys = [...new Set(secretBlueKeys)].filter((b) => {
+        if (!b || !b.trim()) return false;
+        return !orangeKeys.some(o => o.toLowerCase() === b.toLowerCase()); 
+      });
 
-      if (corpusData.length > 0) {
-        const existingIds = new Set(results.map(r => r.id));
-        const newCorpus = corpusData.filter(r => !existingIds.has(r.id));
-        results = [...newCorpus, ...results]; 
-      }
-
-      const baseExtracted = extractKeywords(cleanQuery); 
-
-      if (cleanQuery.includes(' ')) {
-        const noSpaceQuery = cleanQuery.replace(/\s+/g, '');
-        const { data: noSpaceData } = await supabase.rpc('search_dictionary_smart', { keyword: noSpaceQuery });
-        if (noSpaceData && Array.isArray(noSpaceData)) {
-          const existingIds = new Set(results.map(r => r.id));
-          const newItems = noSpaceData.filter(r => !existingIds.has(r.id));
-          results = [...results, ...newItems];
-          baseExtracted.push(noSpaceQuery);
-        }
-      }
-
-      const initialResultCount = results.length;
-      let smartSplitFound = false;
-      let foundP1 = "";
-      let foundP2 = "";
-      let splitOrPieces: string[] = [];
-
-      if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 10 && /[가-힣]/.test(cleanQuery)) {
-        const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
-        const splitPairs = [];
-        for (let i = 2; i <= safeQuery.length - 2; i++) {
-          const p1 = safeQuery.slice(0, i);
-          const p2 = safeQuery.slice(i);
-          splitPairs.push({ p1, p2 });
-          if (p1.length >= 2) splitOrPieces.push(p1);
-          if (p2.length >= 2) splitOrPieces.push(p2);
-        }
-
-        if (splitPairs.length > 0) {
-          const andQueryStrs = splitPairs.map(pair => `and(line_text.ilike.%${pair.p1}%,line_text.ilike.%${pair.p2}%)`);
-          const { data: splitData } = await supabase.from('dictionary_lines')
-            .select('*')
-            .or(andQueryStrs.join(','))
-            .limit(50);
-
-          if (splitData && splitData.length > 0) {
-            const existingIds = new Set(results.map(r => r.id));
-            const newSplits = splitData.filter(r => !existingIds.has(r.id));
-            if (newSplits.length > 0) {
-              results = [...results, ...newSplits];
-              smartSplitFound = true;
-              if (initialResultCount === 0) {
-                isPartialMatch = true;
-                matchedKeywords = [safeQuery];
-              }
-
-              const sampleText = newSplits[0].line_text || '';
-              for (const pair of splitPairs) {
-                if (sampleText.includes(pair.p1) && sampleText.includes(pair.p2)) {
-                  foundP1 = pair.p1;
-                  foundP2 = pair.p2;
-                  break;
-                }
-              }
-            }
-          }
-        }
-      }
-
-      if (wordCount >= 2 && results.length < 50 && baseExtracted.length > 0) {
-        let andQueryBuilder = supabase.from('dictionary_lines').select('*');
-        baseExtracted.forEach(k => { andQueryBuilder = andQueryBuilder.ilike('line_text', `%${k}%`); });
-        const { data: andData } = await andQueryBuilder.limit(50);
-
-        if (andData && andData.length > 0) {
-          let filteredAnds = andData;
-          baseExtracted.forEach(k => {
-            if (/^[a-zA-Z]+$/.test(k)) {
-              const regex = new RegExp(`\\b${k}\\b`, 'i');
-              filteredAnds = filteredAnds.filter(row => regex.test(row.line_text || ''));
-            }
-          });
-
-          const existingIds = new Set(results.map(r => r.id));
-          const newAnds = filteredAnds.filter(r => !existingIds.has(r.id));
-          results = [...results, ...newAnds];
-
-          if (initialResultCount === 0) {
-            isPartialMatch = true;
-            matchedKeywords = baseExtracted;
-          }
-        }
-      }
-
-      // 🌟 사오정 원천 차단 셔터: 긴 문장에서 정답을 찾았다면 OR 검색 조기 종료!
-      let shouldDoOrSearch = true;
-      if (wordCount >= 3 && results.length > 0) {
-        shouldDoOrSearch = false; // 진발다이트, 난황샘 원천 차단!
-      }
-
-      if (shouldDoOrSearch && results.length < 100) {
-        let orKeywords = [...baseExtracted];
-
-        if (smartSplitFound && foundP1 && foundP2) {
-           orKeywords.push(foundP1, foundP2);
-        } else if (!smartSplitFound && wordCount === 1 && splitOrPieces.length > 0) {
-           orKeywords.push(...splitOrPieces);
-        }
-
-        const validOrKeywords = [...new Set(orKeywords)].filter(k => {
-          if (/[가-힣]/.test(k) && k.length <= 1) return false; 
-          if (wordCount >= 3 && /[가-힣]/.test(k) && k.length <= 2) return false; 
-          return k.length >= 2;
-        });
-
-        if (validOrKeywords.length > 0) {
-          let combinedOrData: any[] = [];
-          
-          for (const k of validOrKeywords) {
-            try {
-              const { data } = await supabase.from('dictionary_lines')
-                .select('*')
-                .ilike('line_text', `%${k}%`)
-                .limit(100);
-                
-              if (data && data.length > 0) {
-                let filteredData = data;
-                if (/^[a-zA-Z]+$/.test(k)) {
-                  const regex = new RegExp(`\\b${k}\\b`, 'i');
-                  filteredData = data.filter(row => regex.test(row.line_text || ''));
-                }
-                combinedOrData = [...combinedOrData, ...filteredData];
-              }
-            } catch(err) {}
-          }
-
-          if (combinedOrData.length > 0) {
-            const existingIds = new Set(results.map(r => r.id));
-            const newOrs = combinedOrData.filter(r => !existingIds.has(r.id));
-            results = [...results, ...newOrs].slice(0, 200);
-          }
-        }
-      }
-
-      if (results.length === 0 && wordCount === 1 && cleanQuery.length >= 2 && cleanQuery.length <= 4) {
-        try {
-          const spacedQuery = cleanQuery.split('').join('%');
-          const { data: fuzzyData } = await supabase.from('dictionary_lines')
-            .select('*')
-            .ilike('line_text', `%${spacedQuery}%`)
-            .limit(30);
-
-          if (fuzzyData && fuzzyData.length > 0) {
-            results = fuzzyData;
-            isPartialMatch = true;
-            matchedKeywords = [cleanQuery];
-            orangeKeys.push(cleanQuery);
-          }
-        } catch(err) {}
-      }
-
-      if (results.length > 0) {
-        const cleanQueryNoSpace = cleanQuery.replace(/[\s\-_]/g, '').toLowerCase();
-
-        const allOriginalWords = cleanQuery.split(/\s+/).map(w => w.replace(/[.,:;()\[\]?!]/g, '')).filter(w => w.length > 0);
-        
-        allOriginalWords.forEach(w => {
-           if (w.length === 1 && /[가-힣]/.test(w)) return; 
-           orangeKeys.push(w);
-        });
-        orangeKeys.push(...baseExtracted);
-
-        results.forEach((row) => {
-          const text = String(row.line_text || '');
-          const cleanText = text.replace(/[.,:;()\[\]]/g, '');
-          const tokens = cleanText.split(/\s+/);
-
-          for (let i = 0; i < tokens.length; i++) {
-            let combined = '';
-            let original = [];
-            for (let j = i; j < tokens.length; j++) {
-              combined += tokens[j].replace(/[\-_]/g, '').toLowerCase();
-              original.push(tokens[j]);
-              if (combined === cleanQueryNoSpace) {
-                orangeKeys.push(original.join(' ')); 
-                orangeKeys.push(...original); 
-                break;
-              }
-              if (combined.length > cleanQueryNoSpace.length) break;
-            }
-          }
-        });
-
-        orangeKeys = [...new Set(orangeKeys)].filter((w) => w && w.trim());
-        
-        // 🌟 완벽한 파란색 방패!
-        blueKeys = [...new Set(secretBlueKeys)].filter((b) => {
-          if (!b || !b.trim()) return false;
-          const isAlreadyOrange = orangeKeys.some(o => o.toLowerCase() === b.toLowerCase());
-          return !isAlreadyOrange; 
-        });
-
-        results = rotateResults(results, cleanQuery, baseExtracted);
-      }
-    } catch (e) {
-      console.error('❌ 검색 실패:', e);
+      results = rotateResults(results, cleanQuery, baseExtracted, flexStr);
     }
   }
 
