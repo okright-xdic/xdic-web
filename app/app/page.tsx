@@ -1,5 +1,5 @@
 // app/app/page.tsx
-// ✅ 앱(/app) 서버 검색: 1. 일치 시 오지랖 역검색(OR) 차단 / 2. 두 단어 이상은 Exact Match만 허용 (논리 완벽 패치!)
+// ✅ 앱(/app) 서버 검색: TypeScript 빌드 에러(PromiseLike) 완벽 해결 및 VIP 로직 적용!
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -110,7 +110,6 @@ const rotateBuckets = (list: any[]) => {
   return rotated;
 };
 
-// 🌟 무적의 VIP 판독기 및 사오정 필터
 const rotateResults = (items: any[], keyword: string, extractedKeywords: string[], flexRegexStr: string) => {
   if (!items || items.length === 0) return [];
   const lowerKeywordNoSpace = keyword.trim().toLowerCase().replace(/\s+/g, '');
@@ -134,7 +133,6 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
     const textOriginal = (item.line_text || '').toLowerCase();
     const isCorpus = item.category_id === 0;
 
-    // 🌟 완벽 일치 VIP ("기능장애" == "기능 장애")
     const isSuperTight = item.is_exact_priority || exactFrontRegex.test(textOriginal);
     const isStandalone = exactStandaloneRegex.test(textOriginal);
 
@@ -150,7 +148,7 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
     } else if (isStandalone) {
       dictStandalone.push(item);
     } else if (textNoSpace.includes(lowerKeywordNoSpace)) {
-      dictPartialMatch.push(item); // 단순 포함 (접두사/접미사)
+      dictPartialMatch.push(item);
     } else if (item.is_rpc) {
       rpcMatches.push(item);
     } else {
@@ -177,7 +175,6 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
   corpusStandalone.sort((a, b) => a._db_index - b._db_index);
   corpusPartialMatch.sort((a, b) => a._db_index - b._db_index);
 
-  // 🌟 [Rule 1 & 2의 핵심] 정답(VIP)이 존재하면 사오정(RPC)과 오지랖(OR) 검색 결과를 화면에서 완전히 숨깁니다!
   const hasTight = corpusSuperTight.length > 0 || dictSuperTight.length > 0 || corpusStandalone.length > 0 || dictStandalone.length > 0;
 
   if (hasTight) {
@@ -188,7 +185,7 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
       ...rotatedDictStandalone,
       ...rotatedDictPartial, 
       ...corpusPartialMatch,
-      ...rotatedAnd // 각 단어별 정확한 매치만 포함
+      ...rotatedAnd
     ];
   } else {
     return [
@@ -199,8 +196,8 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
       ...rotatedDictPartial,
       ...corpusPartialMatch,
       ...rotatedAnd,
-      ...rotatedRpc, // 정답이 없을 때만 사오정 추천 보여줌
-      ...rotatedOr   // 정답이 없을 때만 부분 조각 보여줌
+      ...rotatedRpc,
+      ...rotatedOr
     ];
   }
 };
@@ -262,30 +259,29 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
 
   let wordCount = 0;
   let baseExtracted: string[] = [];
+  let blueTokenData: any[] = [];
 
-  // 🌟 띄어쓰기를 완벽하게 무시하는 정규식 엔진
   const flexStr = noSpaceQuery.split('').map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*');
   const exactFrontRegex = new RegExp(`^${flexStr}(?:\\s|\\(|\\)|\\[|\\]|,|:|\\.|$)`, 'i');
   const exactStandaloneRegex = new RegExp(`(?:^|\\s|\\(|\\)|\\[|\\])${flexStr}(?:\\s|\\(|\\)|\\[|\\]|,|:|\\.|$)`, 'i');
 
-  promises.push(
-    supabase.from('search_logs').select('keyword').order('created_at', { ascending: false }).limit(500)
-      .then(({ data: logs }) => {
-        if (logs && logs.length > 0) {
-          const counts: Record<string, number> = {};
-          logs.forEach(l => { counts[l.keyword] = (counts[l.keyword] || 0) + 1; });
-          const uniqueRecents = Array.from(new Set(logs.map(l => l.keyword)));
-          globalRecent = uniqueRecents.slice(0, 15).map(word => ({ word, count: counts[word] || 1 }));
-          globalPopular = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(entry => entry[0]).slice(0, 20);
-        }
-      }).catch(() => {})
-  );
+  promises.push((async () => {
+    try {
+      const { data: logs } = await supabase.from('search_logs').select('keyword').order('created_at', { ascending: false }).limit(500);
+      if (logs && logs.length > 0) {
+        const counts: Record<string, number> = {};
+        logs.forEach(l => { counts[l.keyword] = (counts[l.keyword] || 0) + 1; });
+        const uniqueRecents = Array.from(new Set(logs.map(l => l.keyword)));
+        globalRecent = uniqueRecents.slice(0, 15).map(word => ({ word, count: counts[word] || 1 }));
+        globalPopular = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(entry => entry[0]).slice(0, 20);
+      }
+    } catch(e) {}
+  })());
 
   if (cleanQuery && noSpaceLen >= 2) {
     wordCount = cleanQuery.split(/\s+/).length;
     baseExtracted = extractKeywords(cleanQuery);
 
-    // 1. VIP 전체 일치 검색 (띄어쓰기 여부 무시)
     const exactQueriesArray = [
       `line_text.eq.${cleanQuery}`, `line_text.ilike.${cleanQuery} %`, `line_text.ilike.${cleanQuery},%`, `line_text.ilike.% ${cleanQuery} %`, `line_text.ilike.% ${cleanQuery}`
     ];
@@ -294,45 +290,64 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
         `line_text.eq.${noSpaceQuery}`, `line_text.ilike.${noSpaceQuery} %`, `line_text.ilike.${noSpaceQuery},%`, `line_text.ilike.% ${noSpaceQuery} %`, `line_text.ilike.% ${noSpaceQuery}`
       );
     }
-    promises.push(
-      supabase.from('dictionary_lines').select('*').or(exactQueriesArray.join(',')).limit(100)
-        .then(({ data }) => { if (data) data.forEach(item => { item.is_exact_priority = true; addRes(item); }); }).catch(() => {})
-    );
+    
+    promises.push((async () => {
+      try {
+        const { data } = await supabase.from('dictionary_lines').select('*').or(exactQueriesArray.join(',')).limit(100);
+        if (data) data.forEach(item => { item.is_exact_priority = true; addRes(item); });
+      } catch(e) {}
+    })());
 
-    // 2. RPC (일단 호출해두고 나중에 Rule에 따라 버릴지 결정)
-    promises.push(
-      supabase.rpc('search_dictionary_smart', { keyword: query }).then(({ data }) => { if (Array.isArray(data)) data.forEach(item => addRes({ ...item, is_rpc: true })); }).catch(() => {})
-    );
+    promises.push((async () => {
+      try {
+        const { data } = await supabase.rpc('search_dictionary_smart', { keyword: query });
+        if (Array.isArray(data)) data.forEach(item => addRes({ ...item, is_rpc: true }));
+      } catch(e) {}
+    })());
 
-    // 3. 기초영어 말뭉치 전용 검색
-    promises.push(
-      supabase.from('dictionary_lines').select('*').eq('category_id', 0).or(exactQueriesArray.join(',')).limit(30)
-        .then(({ data }) => { if (data) data.forEach(addRes); }).catch(() => {})
-    );
+    if (cleanQuery.includes(' ') && noSpaceQuery.length >= 2) {
+      promises.push((async () => {
+        try {
+          const { data } = await supabase.rpc('search_dictionary_smart', { keyword: noSpaceQuery });
+          if (Array.isArray(data)) data.forEach(item => addRes({ ...item, is_rpc: true }));
+        } catch(e) {}
+      })());
+    }
 
-    // 4. [Rule 2] 두 단어 이상일 때 "각 단어별로 정확한(Exact) 결과만" 미리 챙겨둡니다.
+    promises.push((async () => {
+      try {
+        const { data } = await supabase.from('dictionary_lines').select('*').eq('category_id', 0).or(exactQueriesArray.join(',')).limit(30);
+        if (data) data.forEach(item => addRes(item));
+      } catch(e) {}
+    })());
+
     if (wordCount >= 2 && baseExtracted.length > 0) {
       const wordExactOrs: string[] = [];
       baseExtracted.forEach(w => {
         wordExactOrs.push(`line_text.eq.${w}`, `line_text.ilike.${w} %`, `line_text.ilike.% ${w} %`, `line_text.ilike.% ${w}`, `line_text.ilike.${w},%`);
       });
       if (wordExactOrs.length > 0) {
-        promises.push(
-          supabase.from('dictionary_lines').select('*').or(wordExactOrs.join(',')).limit(60)
-            .then(({ data }) => { if (data) data.forEach(addRes); }).catch(() => {})
-        );
+        promises.push((async () => {
+          try {
+            const { data } = await supabase.from('dictionary_lines').select('*').or(wordExactOrs.join(',')).limit(60);
+            if (data) data.forEach(item => addRes(item));
+          } catch(e) {}
+        })());
       }
 
-      let andQueryBuilder = supabase.from('dictionary_lines').select('*');
-      baseExtracted.forEach(k => { andQueryBuilder = andQueryBuilder.ilike('line_text', `%${k}%`); });
-      promises.push(
-        andQueryBuilder.limit(50).then(({ data }) => { 
-          if (data) { data.forEach(addRes); if (resultsMap.size === 0) { isPartialMatch = true; matchedKeywords = baseExtracted; } }
-        }).catch(() => {})
-      );
+      promises.push((async () => {
+        try {
+          let andQueryBuilder = supabase.from('dictionary_lines').select('*');
+          baseExtracted.forEach(k => { andQueryBuilder = andQueryBuilder.ilike('line_text', `%${k}%`); });
+          const { data } = await andQueryBuilder.limit(50);
+          if (data) {
+            data.forEach(addRes); 
+            if (resultsMap.size === 0) { isPartialMatch = true; matchedKeywords = baseExtracted; }
+          }
+        } catch(e) {}
+      })());
     }
 
-    // 5. 쪼개기 검색 ("산화물자석" -> "산화물" + "자석")을 메인 검색으로 끌어올려 VIP를 찾아냅니다!
     let splitPairs: any[] = [];
     if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 10 && /[가-힣]/.test(cleanQuery)) {
       const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
@@ -341,19 +356,39 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
       }
       if (splitPairs.length > 0) {
         const andQueryStrs = splitPairs.map(pair => `and(line_text.ilike.%${pair.p1}%,line_text.ilike.%${pair.p2}%)`);
-        promises.push(
-          supabase.from('dictionary_lines').select('*').or(andQueryStrs.join(',')).limit(50)
-            .then(({ data }) => { if (data) data.forEach(addRes); }).catch(() => {})
-        );
+        promises.push((async () => {
+          try {
+            const { data } = await supabase.from('dictionary_lines').select('*').or(andQueryStrs.join(',')).limit(50);
+            if (data) data.forEach(addRes);
+          } catch(e) {}
+        })());
       }
+    }
+
+    const rawTokensForBlue = extractRawTokens(cleanQuery);
+    const validTokensForBlue = rawTokensForBlue.filter(token => {
+      if (eStopWords.has(token.toLowerCase()) || kStopWords.has(token)) return false;
+      if (/[가-힣]/.test(token) && token.length === 1) return false; 
+      return true;
+    });
+    if (validTokensForBlue.length > 0) {
+      const tokenOrs = validTokensForBlue.map(t => `line_text.ilike.%${t}%`).join(',');
+      promises.push((async () => {
+        try {
+          const { data } = await supabase.from('dictionary_lines').select('*').eq('category_id', 0).or(tokenOrs).limit(60);
+          if (data) blueTokenData = data;
+        } catch(e) {}
+      })());
     }
 
     await Promise.all(promises);
 
+    blueTokenData.forEach(addRes);
     results = Array.from(resultsMap.values());
 
-    // 🌟 [Rule 1 칼퇴근 판독기] 정답이 1개라도 있는지 검사!
     let hasExactMatch = false;
+    let smartSplitFound = false;
+
     for (const item of results) {
       const txt = (item.line_text || '').toLowerCase();
       if (item.is_exact_priority || exactFrontRegex.test(txt) || exactStandaloneRegex.test(txt)) {
@@ -362,8 +397,19 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
       }
     }
 
-    // 🌟 Rule 1 적용: 정답이 없을 때만(hasExactMatch == false) 역검색(OR)을 허용합니다!
-    if (!hasExactMatch && results.length < 30) {
+    if (wordCount === 1 && splitPairs.length > 0) {
+      for (const item of results) {
+        const sampleText = item.line_text || '';
+        for (const pair of splitPairs) {
+          if (sampleText.includes(pair.p1) && sampleText.includes(pair.p2)) {
+            smartSplitFound = true; break;
+          }
+        }
+        if (smartSplitFound) break;
+      }
+    }
+
+    if (!hasExactMatch && !smartSplitFound && results.length < 30) {
       const fallbackPromises: Promise<void>[] = [];
       let orKeywords = [...baseExtracted];
 
@@ -373,23 +419,24 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
         return k.length >= 2;
       });
 
-      // 🌟 [Rule 2 적용] 두 단어 이상 검색했을 땐 쓸데없는 부분일치(OR)를 돌리지 않습니다!
       if (validOrKeywords.length > 0 && wordCount === 1) {
         const orKeywordStrs = validOrKeywords.map(k => `line_text.ilike.%${k}%`).join(',');
-        fallbackPromises.push(
-          supabase.from('dictionary_lines').select('*').or(orKeywordStrs).limit(80)
-            .then(({ data }) => { if (data) data.forEach(addRes); }).catch(() => {})
-        );
+        fallbackPromises.push((async () => {
+          try {
+            const { data } = await supabase.from('dictionary_lines').select('*').or(orKeywordStrs).limit(80);
+            if (data) data.forEach(addRes);
+          } catch(e) {}
+        })());
       }
 
       if (wordCount === 1 && cleanQuery.length >= 2 && cleanQuery.length <= 4) {
         const spacedQuery = cleanQuery.split('').join('%');
-        fallbackPromises.push(
-          supabase.from('dictionary_lines').select('*').ilike('line_text', `%${spacedQuery}%`).limit(30)
-            .then(({ data }) => {
-              if (data && resultsMap.size === 0) { data.forEach(addRes); isPartialMatch = true; matchedKeywords = [cleanQuery]; orangeKeys.push(cleanQuery); }
-            }).catch(() => {})
-        );
+        fallbackPromises.push((async () => {
+          try {
+            const { data } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${spacedQuery}%`).limit(30);
+            if (data && resultsMap.size === 0) { data.forEach(addRes); isPartialMatch = true; matchedKeywords = [cleanQuery]; orangeKeys.push(cleanQuery); }
+          } catch(e) {}
+        })());
       }
 
       if (fallbackPromises.length > 0) await Promise.all(fallbackPromises);
@@ -428,7 +475,6 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
 
       orangeKeys = [...new Set(orangeKeys)].filter((w) => w && w.trim());
       
-      // 🌟 [파란색 물감 완벽 부활] 검색된 결과들을 쭉 훑으면서 영단어를 모조리 건져내 파란색으로 칠합니다!
       let secretBlueKeys: string[] = [];
       results.forEach(row => {
         if (row.category_id === 0 || row.category_id === 1 || row.category_id === 2 || row.category_id === 3 || row.category_id === 9) { 
