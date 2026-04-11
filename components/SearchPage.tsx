@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { Capacitor } from '@capacitor/core';
 import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
-import TrendGraph from '@/components/TrendGraph';
+import PopularKeywords from '@/components/PopularKeywords'; 
+import RecentKeywords from '@/components/RecentKeywords'; 
 import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
 import NuanceWidget from '@/components/NuanceWidget'; 
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -37,14 +38,6 @@ const CATEGORY_NAMES: Record<number, string> = {
   8: '컴퓨터용어', 9: '의학용어', 10: '인문사회기타용어', 11: '과학기술기타용어', 12: '기타',
 };
 
-const TAG_COLORS = [
-  'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-100',
-  'bg-pink-50 text-pink-600 hover:bg-pink-100 border-pink-100',
-  'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-100',
-  'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border-emerald-100',
-  'bg-purple-50 text-purple-600 hover:bg-purple-100 border-purple-100',
-];
-
 export default function SearchPage({ 
   query, results = [], orangeKeys = [], blueKeys = [],
   isApp = false, popularSearches = [], recentSearches = [],
@@ -73,6 +66,24 @@ export default function SearchPage({
   const displayIsApp = isApp || clientIsApp;
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
+
+  // 🌟 [핵심] 홈 화면 캐시 갱신을 위해 <Link> 대신 <a href> 사용
+  const UnifiedHeader = () => (
+    <header className="w-full pt-8 pb-0 md:pt-12 md:pb-0">
+      <div className="flex flex-col items-center justify-center text-center gap-2 mb-6 px-1">
+        <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer mb-2">
+          <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="X-DIC Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
+        </a>
+        <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer hover:opacity-80 transition-opacity">
+          <h1 className="text-[22px] md:text-[26px] font-extrabold text-slate-800 leading-tight">한영/영한사전 – 복합어 전문 엑스딕!</h1>
+        </a>
+        <p className="text-[12px] md:text-[14px] text-slate-500 font-medium leading-tight">Korean-English/English-Korean Dictionary – Compound Terminology</p>
+      </div>
+      <div className="w-full">
+        <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
+      </div>
+    </header>
+  );
 
   const getSearchUrl = (keyword: string) => displayIsApp ? `/app?q=${encodeURIComponent(keyword)}` : `/?q=${encodeURIComponent(keyword)}`;
 
@@ -209,47 +220,41 @@ export default function SearchPage({
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
-        <header className={`w-full ${displayIsApp ? 'pt-8 pb-0' : 'pt-8 pb-0 md:pt-12 md:pb-0'}`}>
-          
-          {displayQuery && (
+        {!displayQuery && <UnifiedHeader />}
+
+        {displayQuery && (
+          <header className={`w-full ${displayIsApp ? 'pt-8 pb-0' : 'pt-8 pb-0 md:pt-12 md:pb-0'}`}>
             <div className="flex items-center justify-between w-full mb-6 px-1">
               <button onClick={() => router.back()} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
                 뒤로
               </button>
-              <Link href={displayIsApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+              {/* 🌟 캐시 파괴 <a> 태그 */}
+              <a href={displayIsApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
                 홈으로
-              </Link>
+              </a>
             </div>
-          )}
+            
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 mb-5 text-center">
+                <div className="flex-shrink-0 mb-2 md:mb-0">
+                    <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer">
+                        <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="X-DIC Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
+                    </a>
+                </div>
+                <div className="flex flex-col gap-1">
+                    <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer hover:opacity-80 transition-opacity">
+                        <h1 className="text-xl md:text-[24px] font-extrabold text-slate-800 leading-tight">한영/영한사전 – 복합어 전문 엑스딕!</h1>
+                    </a>
+                    <p className="text-sm md:text-[16px] text-slate-500 font-medium leading-tight">Korean-English/English-Korean Dictionary – Compound Terminology</p>
+                </div>
+            </div>
 
-          {displayIsApp ? (
-            <div className="flex justify-center mb-5">
-              <Link href="/app" className="cursor-pointer">
-                <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="X-DIC Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
-              </Link>
+            <div className="w-full">
+              <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
             </div>
-          ) : (
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-5">
-              <div className="flex-shrink-0">
-                <Link href="/" className="cursor-pointer">
-                  <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="X-DIC Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
-                </Link>
-              </div>
-              <div className="flex flex-col gap-1 justify-center text-center md:text-left">
-                <Link href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
-                  <h1 className="text-xl md:text-[24px] font-extrabold text-slate-800 leading-tight md:leading-none">한영/영한사전 – 복합어 전문 엑스딕!</h1>
-                </Link>
-                <p className="text-sm md:text-[16px] text-slate-500 font-medium leading-tight mt-1">Korean-English/English-Korean Dictionary – Compound Terminology Dictionary</p>
-                <p className="text-[11px] md:text-[12px] text-slate-400 font-normal leading-tight mt-1">* 엑스딕(X-DIC)은 Expert Dictionary의 약자로, 복합어 검색 전문 한영/영한 용어사전입니다.</p>
-              </div>
-            </div>
-          )}
-          <div className="w-full">
-            <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
-          </div>
-        </header>
+          </header>
+        )}
       </div>
 
       <main className="w-full flex-grow">
@@ -366,10 +371,11 @@ export default function SearchPage({
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
                       뒤로
                     </button>
-                    <Link href={displayIsApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+                    {/* 🌟 캐시 파괴 <a> 태그 */}
+                    <a href={displayIsApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
                       홈으로
-                    </Link>
+                    </a>
                   </div>
                 </div>
               ) : (
@@ -388,10 +394,11 @@ export default function SearchPage({
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
                       뒤로
                     </button>
-                    <Link href={displayIsApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+                    {/* 🌟 캐시 파괴 <a> 태그 */}
+                    <a href={displayIsApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
                       홈으로
-                    </Link>
+                    </a>
                   </div>
                 </div>
               )}
@@ -410,40 +417,24 @@ export default function SearchPage({
                 </Link>
               </div>
 
+              {/* 🌟 미니멀리즘 대문! (트렌드 & 배너 삭제 완료) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[260px]">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-[15px] font-extrabold text-slate-800 flex items-center gap-2"><span className="text-blue-500">🕒</span> 실시간 최근 검색어</h2>
-                    <Link href="/recent" className="text-[11px] font-medium text-slate-400 hover:text-slate-600 transition-colors">
-                      더보기 &gt;
-                    </Link>
-                  </div>
-                  <div className="flex flex-wrap gap-2 overflow-y-auto content-start flex-grow">
-                    {recentSearches.length > 0 ? recentSearches.map((item, idx) => (
-                      <Link key={idx} href={getSearchUrl(item.word)} className={`px-3 py-1.5 rounded-full border text-[13px] font-bold ${TAG_COLORS[idx % TAG_COLORS.length]}`}>
-                        <span className="opacity-50 mr-1">#</span>{item.word}
-                      </Link>
-                    )) : <div className="text-sm text-slate-400">데이터 수집 중...</div>}
+                <div className="relative bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-[300px]">
+                  <Link href="/recent" className="absolute top-5 right-5 text-[12px] font-bold text-slate-400 hover:text-slate-600 transition-colors z-10 bg-white/80 px-2 py-1 rounded backdrop-blur-sm">
+                    더보기 &gt;
+                  </Link>
+                  <div className="w-full h-full p-2">
+                    <RecentKeywords className="w-full h-full border-0 shadow-none bg-transparent" />
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col h-[260px]">
-                  <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-[15px] font-extrabold text-slate-800 flex items-center gap-2"><span className="text-red-500">🔥</span> 인기 검색어 TOP</h2>
-                    <Link href="/popular" className="text-[11px] font-medium text-slate-400 hover:text-slate-600 transition-colors">
-                      더보기 &gt;
-                    </Link>
+                <div className="relative bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-[300px]">
+                  <Link href="/popular" className="absolute top-5 right-5 text-[12px] font-bold text-slate-400 hover:text-slate-600 transition-colors z-10 bg-white/80 px-2 py-1 rounded backdrop-blur-sm">
+                    더보기 &gt;
+                  </Link>
+                  <div className="w-full h-full p-2">
+                    <PopularKeywords className="w-full h-full border-0 shadow-none bg-transparent" />
                   </div>
-                  <ul className="flex-grow overflow-y-auto pr-2 space-y-1">
-                    {popularSearches.length > 0 ? popularSearches.map((word, idx) => (
-                      <li key={idx}>
-                        <Link href={getSearchUrl(word)} className="flex items-center py-2 px-2 hover:bg-slate-50 rounded-lg group">
-                          <span className="w-5 h-5 flex items-center justify-center rounded text-[11px] font-bold mr-3 bg-slate-100 text-slate-500">{idx + 1}</span>
-                          <span className="text-[14px] text-slate-700 font-medium truncate group-hover:text-blue-600">{word}</span>
-                        </Link>
-                      </li>
-                    )) : <div className="text-sm text-slate-400">데이터 수집 중...</div>}
-                  </ul>
                 </div>
               </div>
 

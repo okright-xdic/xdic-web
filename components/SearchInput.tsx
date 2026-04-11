@@ -14,6 +14,9 @@ interface SearchInputProps {
 }
 
 const MIC_USER_ENABLED_KEY = 'xdic_mic_user_enabled_v1';
+// 🌟 [핵심] 최근 검색어 컴포넌트들과 통신할 비밀 암호(Key)입니다!
+const RECENT_KEY = 'xdic_recent_searches_v2'; 
+const UPDATED_EVENT = 'xdic_recent_searches_updated';
 const BANNED_WORDS = ['비속어', '욕설', 'badword', 'xxx', '도박', '성인'];
 
 type MicLang = 'ko-KR' | 'en-US' | null;
@@ -57,19 +60,14 @@ export default function SearchInput({
     return () => clearTimeout(t);
   }, [autoFocus]);
 
-  // =========================================================
-  // 🌟 [무적 마법 1] 전역 붙여넣기 (Ctrl+V) 완벽 납치 방어!
-  // =========================================================
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const handleGlobalPaste = (e: ClipboardEvent) => {
       const activeEl = document.activeElement;
       const tagName = activeEl?.tagName.toLowerCase();
-      // contenteditable 속성이 있는 div 등도 예외 처리
       const isInputOrTextarea = tagName === 'input' || tagName === 'textarea' || (activeEl as HTMLElement)?.isContentEditable;
 
-      // 만약 다른 입력창에 커서가 깜빡이고 있다면? -> 가로채지 않고 즉시 패스!
       if (isInputOrTextarea && activeEl !== inputRef.current) {
         return; 
       }
@@ -78,11 +76,8 @@ export default function SearchInput({
       
       if (pastedText) {
         e.preventDefault();
-        
         const cleanText = pastedText.replace(/\s+/g, ' ').trim();
-        
         setQuery(cleanText);
-        
         inputRef.current?.focus();
       }
     };
@@ -91,9 +86,6 @@ export default function SearchInput({
     return () => document.removeEventListener('paste', handleGlobalPaste);
   }, []);
 
-  // =========================================================
-  // 🌟 [무적 마법 2] 엑스딕 내부에서 복사 (Ctrl+C) 시 완벽 방어!
-  // =========================================================
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -102,7 +94,6 @@ export default function SearchInput({
       const tagName = activeEl?.tagName.toLowerCase();
       const isInputOrTextarea = tagName === 'input' || tagName === 'textarea' || (activeEl as HTMLElement)?.isContentEditable;
 
-      // ✅ [핵심 추가] 사용자가 다른 입력창(새 해설 작성 등)에서 복사 중이라면 검색창 리셋 안 함!
       if (isInputOrTextarea && activeEl !== inputRef.current) {
         return; 
       }
@@ -163,6 +154,36 @@ export default function SearchInput({
     return { ok: true, msg: '' };
   };
 
+  // 🌟 [핵심 수술 1] 로컬 캐시에 '최근 검색어'를 즉시 구워버리는 함수!
+  const saveToRecent = (keyword: string) => {
+    if (typeof window === 'undefined') return;
+    try {
+      const saved = localStorage.getItem(RECENT_KEY);
+      let parsed = saved ? JSON.parse(saved) : [];
+      if (!Array.isArray(parsed)) parsed = [];
+
+      const existingIndex = parsed.findIndex((item: any) => item.keyword === keyword);
+      
+      if (existingIndex > -1) {
+        parsed[existingIndex].count = (parsed[existingIndex].count || 1) + 1;
+        // 검색 횟수만 올리고 순서를 맨 앞으로 당겨줍니다.
+        const [movedItem] = parsed.splice(existingIndex, 1);
+        parsed.unshift(movedItem);
+      } else {
+        parsed.unshift({ keyword, count: 1 });
+      }
+
+      // 최근 검색어는 30개까지만 유지!
+      const sliced = parsed.slice(0, 30);
+      localStorage.setItem(RECENT_KEY, JSON.stringify(sliced));
+      
+      // 🌟 "최근 검색어 업데이트 됐어!" 라고 동네방네 소리칩니다.
+      window.dispatchEvent(new Event(UPDATED_EVENT));
+    } catch (e) {
+      console.error('Recent keywords save error:', e);
+    }
+  };
+
   const goSearch = (rawQuery: string) => {
     const trimmed = (rawQuery || '').trim();
     const v = validate(trimmed);
@@ -179,7 +200,11 @@ export default function SearchInput({
     if (!finalQuery) return;
 
     if (typeof window !== 'undefined') {
-      fetch('/api/log-search', {
+      // 🌟 [핵심 수술 2] 로컬 브라우저에 최근 검색어 저장!
+      saveToRecent(trimmed);
+
+      // 🌟 [핵심 수술 3] 서버 통계청에 검색어 쏴주기! (인기 / 트렌드용)
+      fetch('/api/saveSearchKeyword', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ keyword: trimmed }),
@@ -536,7 +561,6 @@ export default function SearchInput({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            // 🌟 [무적 마법 3] 검색창 클릭 시 글씨 파란색으로 '전체 선택'!
             onFocus={(e) => e.target.select()} 
             readOnly={isPending}
             placeholder={
