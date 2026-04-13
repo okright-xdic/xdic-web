@@ -1,5 +1,5 @@
 // app/app/page.tsx
-// ✅ 앱(/app) 서버 검색: 영어 단어 독립 매치(\b) 도입! (위스키, 가르손느룩 등 사오정 검색 완벽 차단!)
+// ✅ 앱(/app) 서버 검색: 쿼리 에러(큰따옴표 누락) 완벽 해결 및 쪼갠 단어(Exact) 최우선 지그재그 정렬!
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -89,28 +89,16 @@ const cleanKoreanKeyword = (word: string): string => {
   return clean;
 };
 
-const rotateBuckets = (list: any[]) => {
-  const buckets: Record<number, any[]> = {};
-  for (let i = 0; i <= 12; i++) buckets[i] = [];
-  list.forEach((item) => {
-    const catId = item.category_id >= 0 && item.category_id <= 12 ? item.category_id : 12;
-    buckets[catId].push(item);
+const sortByCategory = (list: any[]) => {
+  return list.sort((a, b) => {
+    const catA = a.category_id != null ? a.category_id : 12;
+    const catB = b.category_id != null ? b.category_id : 12;
+    if (catA !== catB) return catA - catB;
+    return a._db_index - b._db_index;
   });
-  for (let i = 0; i <= 12; i++) buckets[i].sort((a, b) => a._db_index - b._db_index);
-  let maxCount = 0;
-  for (let i = 0; i <= 12; i++) {
-    if (buckets[i].length > maxCount) maxCount = buckets[i].length;
-  }
-  const rotated: any[] = [];
-  for (let i = 0; i < maxCount; i++) {
-    for (let cat = 0; cat <= 12; cat++) {
-      if (buckets[cat][i]) rotated.push(buckets[cat][i]);
-    }
-  }
-  return rotated;
 };
 
-const rotateResults = (items: any[], keyword: string, extractedKeywords: string[], flexRegexStr: string) => {
+const rotateResults = (items: any[], keyword: string, extractedKeywords: string[], flexStr: string, isSplitMode: boolean = false) => {
   if (!items || items.length === 0) return [];
   const lowerKeywordNoSpace = keyword.trim().toLowerCase().replace(/\s+/g, '');
   const itemsWithIndex = items.map((item, idx) => ({ ...item, _db_index: idx }));
@@ -124,9 +112,22 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
   const rpcMatches: any[] = [];
   const andMatches: any[] = [];
   const orMatches: any[] = [];
+  
+  const frontTightMatches: any[] = []; 
+  const frontPartialMatches: any[] = []; 
+  const backTightMatches: any[] = []; 
+  const backPartialMatches: any[] = []; 
 
-  const exactFrontRegex = new RegExp(`^${flexRegexStr}(?:\\s|\\(|\\)|\\[|\\]|,|:|\\.|$)`, 'i');
-  const exactStandaloneRegex = new RegExp(`(?:^|\\s|\\(|\\)|\\[|\\])${flexRegexStr}(?:\\s|\\(|\\)|\\[|\\]|,|:|\\.|$)`, 'i');
+  const exactFrontRegex = new RegExp(`^${flexStr}(?:\\s|\\(|\\)|\\[|\\]|,|:|\\.|$)`, 'i');
+  const exactStandaloneRegex = new RegExp(`(?:^|\\s|\\(|\\)|\\[|\\])${flexStr}(?:\\s|\\(|\\)|\\[|\\]|,|:|\\.|$)`, 'i');
+
+  const isStrictStandalone = (text: string, target: string) => {
+     if (!target) return false;
+     // 🌟 철통 보안 정규식: 한국어나 영어가 딱 붙어있으면 절대 1등석 안 줌!
+     const escapedTarget = target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+     const regex = new RegExp(`(?:^|[^가-힣a-zA-Z0-9_])${escapedTarget}(?:[^가-힣a-zA-Z0-9_]|$)`, 'i');
+     return regex.test(text);
+  };
 
   itemsWithIndex.forEach((item) => {
     const textNoSpace = (item.line_text || '').toLowerCase().replace(/\s+/g, '');
@@ -149,6 +150,14 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
       dictStandalone.push(item);
     } else if (textNoSpace.includes(lowerKeywordNoSpace)) {
       dictPartialMatch.push(item); 
+    } else if (item.split_type === 'front') {
+      const splitTarget = (item.split_keyword || '').toLowerCase();
+      if (isStrictStandalone(textOriginal, splitTarget)) frontTightMatches.push(item);
+      else frontPartialMatches.push(item);
+    } else if (item.split_type === 'back') {
+      const splitTarget = (item.split_keyword || '').toLowerCase();
+      if (isStrictStandalone(textOriginal, splitTarget)) backTightMatches.push(item);
+      else backPartialMatches.push(item);
     } else if (item.is_rpc) {
       rpcMatches.push(item);
     } else {
@@ -164,40 +173,49 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
     }
   });
 
-  const rotatedDictSuperTight = rotateBuckets(dictSuperTight);
-  const rotatedDictStandalone = rotateBuckets(dictStandalone);
-  const rotatedDictPartial = rotateBuckets(dictPartialMatch);
-  const rotatedAnd = rotateBuckets(andMatches);
-  const rotatedRpc = rotateBuckets(rpcMatches);
-  const rotatedOr = rotateBuckets(orMatches);
-
-  corpusSuperTight.sort((a, b) => a._db_index - b._db_index);
-  corpusStandalone.sort((a, b) => a._db_index - b._db_index);
-  corpusPartialMatch.sort((a, b) => a._db_index - b._db_index);
-
   const hasTight = corpusSuperTight.length > 0 || dictSuperTight.length > 0 || corpusStandalone.length > 0 || dictStandalone.length > 0;
 
-  if (hasTight) {
+  if (hasTight && !isSplitMode) {
     return [
-      ...corpusSuperTight,
-      ...rotatedDictSuperTight,
-      ...corpusStandalone,
-      ...rotatedDictStandalone,
-      ...rotatedDictPartial, 
-      ...corpusPartialMatch,
-      ...rotatedAnd 
+      ...sortByCategory(corpusSuperTight),
+      ...sortByCategory(dictSuperTight),
+      ...sortByCategory(corpusStandalone),
+      ...sortByCategory(dictStandalone),
+      ...sortByCategory(dictPartialMatch), 
+      ...sortByCategory(corpusPartialMatch),
+      ...sortByCategory(andMatches) 
     ];
   } else {
+    const combinedTightSplit: any[] = [];
+    const sortedFrontTight = sortByCategory(frontTightMatches);
+    const sortedBackTight = sortByCategory(backTightMatches);
+    const maxTightSplitLen = Math.max(sortedFrontTight.length, sortedBackTight.length);
+    for(let i=0; i < maxTightSplitLen; i++) {
+        if(sortedFrontTight[i]) combinedTightSplit.push(sortedFrontTight[i]); // 진짜 '동물' 1개
+        if(sortedBackTight[i]) combinedTightSplit.push(sortedBackTight[i]);   // 진짜 '농장' 1개
+    }
+
+    const combinedPartialSplit: any[] = [];
+    const sortedFrontPartial = sortByCategory(frontPartialMatches);
+    const sortedBackPartial = sortByCategory(backPartialMatches);
+    const maxPartialSplitLen = Math.max(sortedFrontPartial.length, sortedBackPartial.length);
+    for(let i=0; i < maxPartialSplitLen; i++) {
+        if(sortedFrontPartial[i]) combinedPartialSplit.push(sortedFrontPartial[i]);
+        if(sortedBackPartial[i]) combinedPartialSplit.push(sortedBackPartial[i]);
+    }
+
     return [
-      ...corpusSuperTight,
-      ...rotatedDictSuperTight,
-      ...corpusStandalone,
-      ...rotatedDictStandalone,
-      ...rotatedDictPartial,
-      ...corpusPartialMatch,
-      ...rotatedAnd,
-      ...rotatedRpc, 
-      ...rotatedOr   
+      ...sortByCategory(corpusSuperTight),
+      ...sortByCategory(dictSuperTight),
+      ...sortByCategory(corpusStandalone),
+      ...sortByCategory(dictStandalone),
+      ...combinedTightSplit, // 🌟 완벽한 독립 단어들만 최우선 배치 (동물->농장->동물->농장)
+      ...sortByCategory(dictPartialMatch),
+      ...sortByCategory(corpusPartialMatch),
+      ...sortByCategory(andMatches),
+      ...sortByCategory(rpcMatches), 
+      ...combinedPartialSplit, // 🌟 '척추동물', '배달부' 같은 찌끄러기들은 맨 뒤로 유배!
+      ...sortByCategory(orMatches)   
     ];
   }
 };
@@ -232,6 +250,21 @@ const extractKeywords = (query: string): string[] => {
     });
 };
 
+// 🌟 [수술 핵심 1] DB 에러 원천 봉쇄! (콤마, 마침표 들어간 검색 시 따옴표 강제 적용)
+const getExactQueries = (word: string) => {
+  const w = word.replace(/"/g, ''); 
+  return [
+    `line_text.eq."${w}"`,
+    `line_text.ilike."${w} %"`,
+    `line_text.ilike."% ${w} %"`,
+    `line_text.ilike."% ${w}"`,
+    `line_text.ilike."${w},%"`,
+    `line_text.ilike."% ${w},%"`,
+    `line_text.ilike."${w}.%"`,
+    `line_text.ilike."% ${w}.%"`
+  ].join(',');
+};
+
 export default async function AppPage({ searchParams }: { searchParams: { q?: string }; }) {
   const query = (searchParams.q || '').toString();
   const cleanQuery = query.trim();
@@ -242,6 +275,10 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
   const isKoreanQuery = /^[가-힣\s]+$/.test(cleanQuery);
 
   const supabase = createServerComponentClient({ cookies });
+
+  try {
+    await supabase.auth.getSession();
+  } catch(e) {}
 
   let results: any[] = [];
   let orangeKeys: string[] = cleanQuery ? [cleanQuery] : [];
@@ -262,8 +299,6 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
   let blueTokenData: any[] = [];
 
   const flexStr = noSpaceQuery.split('').map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*');
-  const exactFrontRegex = new RegExp(`^${flexStr}(?:\\s|\\(|\\)|\\[|\\]|,|:|\\.|$)`, 'i');
-  const exactStandaloneRegex = new RegExp(`(?:^|\\s|\\(|\\)|\\[|\\])${flexStr}(?:\\s|\\(|\\)|\\[|\\]|,|:|\\.|$)`, 'i');
 
   promises.push((async () => {
     try {
@@ -278,22 +313,35 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
     } catch(e) {}
   })());
 
+  let bestSplit: {p1: string, p2: string} | undefined = undefined;
   if (cleanQuery && noSpaceLen >= 2) {
     wordCount = cleanQuery.split(/\s+/).length;
     baseExtracted = extractKeywords(cleanQuery);
 
+    if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 10 && /[가-힣]/.test(cleanQuery)) {
+      const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
+      let splitPairs: any[] = [];
+      for (let i = 2; i <= safeQuery.length - 2; i++) {
+        splitPairs.push({ p1: safeQuery.slice(0, i), p2: safeQuery.slice(i) });
+      }
+      if (splitPairs.length > 0) {
+         bestSplit = splitPairs.reduce((prev, curr) => Math.abs(curr.p1.length - curr.p2.length) < Math.abs(prev.p1.length - prev.p2.length) ? curr : prev);
+      }
+    }
+
+    // 🌟 쿼리 에러 방지 큰따옴표 씌우기 완료!
     const exactQueriesArray = [
-      `line_text.eq.${cleanQuery}`, `line_text.ilike.${cleanQuery} %`, `line_text.ilike.${cleanQuery},%`, `line_text.ilike.% ${cleanQuery} %`, `line_text.ilike.% ${cleanQuery}`
+      `line_text.eq."${cleanQuery}"`, `line_text.ilike."${cleanQuery} %"`, `line_text.ilike."${cleanQuery},%"`, `line_text.ilike."% ${cleanQuery} %"`, `line_text.ilike."% ${cleanQuery}"`
     ];
     if (cleanQuery !== noSpaceQuery && noSpaceQuery.length >= 2) {
       exactQueriesArray.push(
-        `line_text.eq.${noSpaceQuery}`, `line_text.ilike.${noSpaceQuery} %`, `line_text.ilike.${noSpaceQuery},%`, `line_text.ilike.% ${noSpaceQuery} %`, `line_text.ilike.% ${noSpaceQuery}`
+        `line_text.eq."${noSpaceQuery}"`, `line_text.ilike."${noSpaceQuery} %"`, `line_text.ilike."${noSpaceQuery},%"`, `line_text.ilike."% ${noSpaceQuery} %"`, `line_text.ilike."% ${noSpaceQuery}"`
       );
     }
     
     promises.push((async () => {
       try {
-        const { data } = await supabase.from('dictionary_lines').select('*').or(exactQueriesArray.join(',')).limit(100);
+        const { data } = await supabase.from('dictionary_lines').select('*').or(exactQueriesArray.join(',')).order('category_id', { ascending: true }).limit(100);
         if (data) data.forEach(item => { item.is_exact_priority = true; addRes(item); });
       } catch(e) {}
     })());
@@ -314,63 +362,19 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
       })());
     }
 
-    promises.push((async () => {
-      try {
-        const { data } = await supabase.from('dictionary_lines').select('*').eq('category_id', 0).or(exactQueriesArray.join(',')).limit(30);
-        if (data) data.forEach(item => addRes(item));
-      } catch(e) {}
-    })());
-
-    if (wordCount >= 2 && baseExtracted.length > 0) {
-      const wordExactOrs: string[] = [];
-      baseExtracted.forEach(w => {
-        wordExactOrs.push(`line_text.eq.${w}`, `line_text.ilike.${w} %`, `line_text.ilike.% ${w} %`, `line_text.ilike.% ${w}`, `line_text.ilike.${w},%`);
-      });
-      if (wordExactOrs.length > 0) {
-        promises.push((async () => {
-          try {
-            const { data } = await supabase.from('dictionary_lines').select('*').or(wordExactOrs.join(',')).limit(60);
-            if (data) data.forEach(item => addRes(item));
-          } catch(e) {}
-        })());
-      }
-
+    // 🌟 [수술 핵심 2] 동물 농장이 한 문장에 들어간 녀석들 최우선 발굴!
+    if (bestSplit) {
       promises.push((async () => {
         try {
-          let andQueryBuilder = supabase.from('dictionary_lines').select('*');
-          baseExtracted.forEach(k => { andQueryBuilder = andQueryBuilder.ilike('line_text', `%${k}%`); });
-          const { data } = await andQueryBuilder.limit(50);
-          if (data) {
-            // 🌟 [수술 완벽 적용] AND 조건으로 가져온 결과도 영어일 경우 정확히 단어로 존재하는지(Boundaries) 검사!
-            data.forEach(item => {
-                const txt = item.line_text || '';
-                const isValid = baseExtracted.every(k => {
-                    if (/^[a-zA-Z]+$/.test(k)) return new RegExp(`\\b${k}\\b`, 'i').test(txt);
-                    return true;
-                });
-                if (isValid) addRes(item);
-            }); 
-            if (resultsMap.size === 0) { isPartialMatch = true; matchedKeywords = baseExtracted; }
-          }
+          const { data } = await supabase.from('dictionary_lines')
+            .select('*')
+            .ilike('line_text', `%${bestSplit!.p1}%`)
+            .ilike('line_text', `%${bestSplit!.p2}%`)
+            .order('category_id', { ascending: true })
+            .limit(50);
+          if (data) data.forEach(item => addRes(item));
         } catch(e) {}
       })());
-    }
-
-    let splitPairs: any[] = [];
-    if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 10 && /[가-힣]/.test(cleanQuery)) {
-      const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
-      for (let i = 2; i <= safeQuery.length - 2; i++) {
-        splitPairs.push({ p1: safeQuery.slice(0, i), p2: safeQuery.slice(i) });
-      }
-      if (splitPairs.length > 0) {
-        const andQueryStrs = splitPairs.map(pair => `and(line_text.ilike.%${pair.p1}%,line_text.ilike.%${pair.p2}%)`);
-        promises.push((async () => {
-          try {
-            const { data } = await supabase.from('dictionary_lines').select('*').or(andQueryStrs.join(',')).limit(50);
-            if (data) data.forEach(addRes);
-          } catch(e) {}
-        })());
-      }
     }
 
     const rawTokensForBlue = extractRawTokens(cleanQuery);
@@ -380,12 +384,11 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
       return true;
     });
     if (validTokensForBlue.length > 0) {
-      const tokenOrs = validTokensForBlue.map(t => `line_text.ilike.%${t}%`).join(',');
+      const tokenOrs = validTokensForBlue.map(t => `line_text.ilike."%${t}%"`).join(',');
       promises.push((async () => {
         try {
-          const { data } = await supabase.from('dictionary_lines').select('*').eq('category_id', 0).or(tokenOrs).limit(60);
+          const { data } = await supabase.from('dictionary_lines').select('*').eq('category_id', 0).or(tokenOrs).order('category_id', { ascending: true }).limit(60);
           if (data) {
-              // 🌟 [수술 완벽 적용] 'whisky' 사오정 방지! 영어 단어는 무조건 독립 단어(\b)일 때만 합격시킵니다!
               data.forEach(item => {
                   const txt = item.line_text || '';
                   const isValid = validTokensForBlue.some(t => {
@@ -405,63 +408,79 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
     results = Array.from(resultsMap.values());
 
     let hasExactMatch = false;
-    let smartSplitFound = false;
 
     for (const item of results) {
       const txt = (item.line_text || '').toLowerCase();
-      if (item.is_exact_priority || exactFrontRegex.test(txt) || exactStandaloneRegex.test(txt)) {
+      if (item.is_exact_priority || new RegExp(`(?:^|[^가-힣a-zA-Z0-9_])${flexStr}(?:[^가-힣a-zA-Z0-9_]|$)`, 'i').test(txt)) {
         hasExactMatch = true;
         break;
       }
     }
 
-    if (wordCount === 1 && splitPairs.length > 0) {
-      for (const item of results) {
-        const sampleText = item.line_text || '';
-        for (const pair of splitPairs) {
-          if (sampleText.includes(pair.p1) && sampleText.includes(pair.p2)) {
-            smartSplitFound = true; break;
-          }
-        }
-        if (smartSplitFound) break;
-      }
-    }
+    let isSplitModeActive = false; 
 
-    if (!hasExactMatch && !smartSplitFound && results.length < 30) {
+    // 🌟 칼퇴근 완화: 쪼갠 단어가 있으면 50개 미만일 때 무조건 실행!
+    if (!hasExactMatch && results.length < 50) {
       const fallbackPromises: Promise<void>[] = [];
       let orKeywords = [...baseExtracted];
 
-      const validOrKeywords = [...new Set(orKeywords)].filter(k => {
-        if (/[가-힣]/.test(k) && k.length <= 1) return false; 
-        if (wordCount >= 3 && /[가-힣]/.test(k) && k.length <= 2) return false; 
-        return k.length >= 2;
-      });
-
-      if (validOrKeywords.length > 0 && wordCount === 1) {
-        const orKeywordStrs = validOrKeywords.map(k => `line_text.ilike.%${k}%`).join(',');
+      if (wordCount === 1 && bestSplit) {
+        isSplitModeActive = true; 
+        
         fallbackPromises.push((async () => {
           try {
-            const { data } = await supabase.from('dictionary_lines').select('*').or(orKeywordStrs).limit(80);
-            if (data) {
-                // 🌟 [수술 완벽 적용] OR 검색 결과도 영어 단어일 경우 꼬리표(위스키) 차단!
-                data.forEach(item => {
-                    const txt = item.line_text || '';
-                    const isValid = validOrKeywords.some(t => {
-                        if (/^[a-zA-Z]+$/.test(t)) return new RegExp(`\\b${t}\\b`, 'i').test(txt);
-                        return txt.toLowerCase().includes(t.toLowerCase());
-                    });
-                    if (isValid) addRes(item);
-                });
-            }
+            // 🌟 진짜 '동물' 검색망 (Exact)
+            const { data } = await supabase.from('dictionary_lines').select('*').or(getExactQueries(bestSplit!.p1)).order('category_id', { ascending: true }).limit(50);
+            if (data) data.forEach(item => { item.split_type = 'front'; item.split_keyword = bestSplit!.p1; addRes(item); });
           } catch(e) {}
         })());
+
+        fallbackPromises.push((async () => {
+          try {
+            // 🌟 진짜 '농장' 검색망 (Exact)
+            const { data } = await supabase.from('dictionary_lines').select('*').or(getExactQueries(bestSplit!.p2)).order('category_id', { ascending: true }).limit(50);
+            if (data) data.forEach(item => { item.split_type = 'back'; item.split_keyword = bestSplit!.p2; addRes(item); });
+          } catch(e) {}
+        })());
+
+        fallbackPromises.push((async () => {
+          try {
+            // 🌟 찌꺼기 '%동물%' 검색망 (Partial)
+            const { data } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${bestSplit!.p1}%`).order('category_id', { ascending: true }).limit(30);
+            if (data) data.forEach(item => { if (!item.split_type) { item.split_type = 'front_partial'; item.split_keyword = bestSplit!.p1; addRes(item); } });
+          } catch(e) {}
+        })());
+
+        fallbackPromises.push((async () => {
+          try {
+            // 🌟 찌꺼기 '%농장%' 검색망 (Partial)
+            const { data } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${bestSplit!.p2}%`).order('category_id', { ascending: true }).limit(30);
+            if (data) data.forEach(item => { if (!item.split_type) { item.split_type = 'back_partial'; item.split_keyword = bestSplit!.p2; addRes(item); } });
+          } catch(e) {}
+        })());
+      } else {
+         const validOrKeywords = [...new Set(orKeywords)].filter(k => {
+           if (/[가-힣]/.test(k) && k.length <= 1) return false; 
+           if (wordCount >= 3 && /[가-힣]/.test(k) && k.length <= 2) return false; 
+           return k.length >= 2;
+         });
+
+         if (validOrKeywords.length > 0 && wordCount === 1) {
+           const orKeywordStrs = validOrKeywords.map(k => `line_text.ilike."%${k}%"`).join(',');
+           fallbackPromises.push((async () => {
+             try {
+               const { data } = await supabase.from('dictionary_lines').select('*').or(orKeywordStrs).order('category_id', { ascending: true }).limit(80);
+               if (data) data.forEach(item => addRes(item));
+             } catch(e) {}
+           })());
+         }
       }
 
-      if (wordCount === 1 && cleanQuery.length >= 2 && cleanQuery.length <= 4) {
+      if (wordCount === 1 && cleanQuery.length >= 2 && cleanQuery.length <= 4 && !bestSplit) {
         const spacedQuery = cleanQuery.split('').join('%');
         fallbackPromises.push((async () => {
           try {
-            const { data } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${spacedQuery}%`).limit(30);
+            const { data } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${spacedQuery}%`).order('category_id', { ascending: true }).limit(30);
             if (data && resultsMap.size === 0) { data.forEach(addRes); isPartialMatch = true; matchedKeywords = [cleanQuery]; orangeKeys.push(cleanQuery); }
           } catch(e) {}
         })());
@@ -480,6 +499,10 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
       });
       orangeKeys.push(...baseExtracted);
       orangeKeys.push(noSpaceQuery);
+
+      if (bestSplit) {
+         orangeKeys.push(bestSplit.p1, bestSplit.p2);
+      }
 
       results.forEach((row) => {
         const text = String(row.line_text || '');
@@ -508,7 +531,7 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
         if (row.category_id === 0 || row.category_id === 1 || row.category_id === 2 || row.category_id === 3 || row.category_id === 9) { 
           const textOriginal = (row.line_text || '').toLowerCase();
           const textNoSpace = textOriginal.replace(/\s+/g, '');
-          if (exactFrontRegex.test(textOriginal) || exactStandaloneRegex.test(textOriginal) || textNoSpace.includes(cleanQueryNoSpace)) {
+          if (new RegExp(`(?:^|[^가-힣a-zA-Z0-9_])${flexStr}(?:[^가-힣a-zA-Z0-9_]|$)`, 'i').test(textOriginal) || textNoSpace.includes(cleanQueryNoSpace)) {
             const words = String(row.line_text || '').replace(/[.,:;()\[\]?!"]/g, '').split(/\s+/).filter(w => w.length > 0);
             words.forEach(w => {
               const lw = w.toLowerCase();
@@ -527,7 +550,8 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
         return !isAlreadyOrange; 
       });
 
-      results = rotateResults(results, cleanQuery, baseExtracted, flexStr);
+      let isSplitModeActive = !!bestSplit;
+      results = rotateResults(results, cleanQuery, baseExtracted, flexStr, isSplitModeActive);
     }
   }
 
