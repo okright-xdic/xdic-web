@@ -1,5 +1,5 @@
 // app/page.tsx
-// ✅ 웹(/) 서버 검색: TypeScript 빌드 에러(PromiseLike) 완벽 해결 및 VIP 로직 적용!
+// ✅ 웹(/) 서버 검색: 영어 단어 독립 매치(\b) 도입! (위스키, 가르손느룩 등 사오정 검색 완벽 차단!)
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -232,11 +232,7 @@ const extractKeywords = (query: string): string[] => {
     });
 };
 
-export default async function WebSearchPage({
-  searchParams,
-}: {
-  searchParams: { q?: string };
-}) {
+export default async function Page({ searchParams }: { searchParams: { q?: string; app?: string }; }) {
   const query = (searchParams.q || '').toString();
   const cleanQuery = query.trim();
   const noSpaceLen = cleanQuery.replace(/\s+/g, '').length;
@@ -345,7 +341,15 @@ export default async function WebSearchPage({
           baseExtracted.forEach(k => { andQueryBuilder = andQueryBuilder.ilike('line_text', `%${k}%`); });
           const { data } = await andQueryBuilder.limit(50);
           if (data) {
-            data.forEach(addRes); 
+            // 🌟 [수술 완벽 적용] AND 조건으로 가져온 결과도 영어일 경우 정확히 단어로 존재하는지(Boundaries) 검사!
+            data.forEach(item => {
+                const txt = item.line_text || '';
+                const isValid = baseExtracted.every(k => {
+                    if (/^[a-zA-Z]+$/.test(k)) return new RegExp(`\\b${k}\\b`, 'i').test(txt);
+                    return true;
+                });
+                if (isValid) addRes(item);
+            }); 
             if (resultsMap.size === 0) { isPartialMatch = true; matchedKeywords = baseExtracted; }
           }
         } catch(e) {}
@@ -380,7 +384,17 @@ export default async function WebSearchPage({
       promises.push((async () => {
         try {
           const { data } = await supabase.from('dictionary_lines').select('*').eq('category_id', 0).or(tokenOrs).limit(60);
-          if (data) blueTokenData = data;
+          if (data) {
+              // 🌟 [수술 완벽 적용] 'whisky' 사오정 방지! 영어 단어는 무조건 독립 단어(\b)일 때만 합격시킵니다!
+              data.forEach(item => {
+                  const txt = item.line_text || '';
+                  const isValid = validTokensForBlue.some(t => {
+                      if (/^[a-zA-Z]+$/.test(t)) return new RegExp(`\\b${t}\\b`, 'i').test(txt);
+                      return txt.toLowerCase().includes(t.toLowerCase());
+                  });
+                  if (isValid) blueTokenData.push(item);
+              });
+          }
         } catch(e) {}
       })());
     }
@@ -428,7 +442,17 @@ export default async function WebSearchPage({
         fallbackPromises.push((async () => {
           try {
             const { data } = await supabase.from('dictionary_lines').select('*').or(orKeywordStrs).limit(80);
-            if (data) data.forEach(addRes);
+            if (data) {
+                // 🌟 [수술 완벽 적용] OR 검색 결과도 영어 단어일 경우 꼬리표(위스키) 차단!
+                data.forEach(item => {
+                    const txt = item.line_text || '';
+                    const isValid = validOrKeywords.some(t => {
+                        if (/^[a-zA-Z]+$/.test(t)) return new RegExp(`\\b${t}\\b`, 'i').test(txt);
+                        return txt.toLowerCase().includes(t.toLowerCase());
+                    });
+                    if (isValid) addRes(item);
+                });
+            }
           } catch(e) {}
         })());
       }
