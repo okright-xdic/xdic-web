@@ -417,7 +417,6 @@ export default function SearchPage({
                 </Link>
               </div>
 
-              {/* 🌟 미니멀리즘 대문! (트렌드 & 배너 삭제 완료) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div className="relative bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-[300px]">
                   <Link href="/recent" className="absolute top-5 right-5 text-[12px] font-bold text-slate-400 hover:text-slate-600 transition-colors z-10 bg-white/80 px-2 py-1 rounded backdrop-blur-sm">
@@ -433,7 +432,8 @@ export default function SearchPage({
                     더보기 &gt;
                   </Link>
                   <div className="w-full h-full p-2">
-                    <PopularKeywords className="w-full h-full border-0 shadow-none bg-transparent" />
+                    {/* 🌟 서버에서 내려준 globalPopular 프롭스를 강제로 입에 넣어줍니다! */}
+                    <PopularKeywords initialKeywords={popularSearches} className="w-full h-full border-0 shadow-none bg-transparent" />
                   </div>
                 </div>
               </div>
