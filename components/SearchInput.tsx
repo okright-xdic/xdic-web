@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Capacitor } from '@capacitor/core';
 import { SpeechRecognition } from '@capgo/capacitor-speech-recognition';
+// 🌟 [추가] 플랜 B (다이렉트 DB 꽂기)를 위한 Supabase 클라이언트 호출!
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'; 
 
 interface SearchInputProps {
   initialQuery?: string;
@@ -14,7 +16,6 @@ interface SearchInputProps {
 }
 
 const MIC_USER_ENABLED_KEY = 'xdic_mic_user_enabled_v1';
-// 🌟 [핵심] 최근 검색어 컴포넌트들과 통신할 비밀 암호(Key)입니다!
 const RECENT_KEY = 'xdic_recent_searches_v2'; 
 const UPDATED_EVENT = 'xdic_recent_searches_updated';
 const BANNED_WORDS = ['비속어', '욕설', 'badword', 'xxx', '도박', '성인'];
@@ -30,6 +31,7 @@ export default function SearchInput({
 }: SearchInputProps) {
   const router = useRouter();
   const isNativeApp = typeof window !== 'undefined' ? Capacitor.isNativePlatform() : false;
+  const supabase = createClientComponentClient(); // 🌟 Supabase 장착!
 
   const [query, setQuery] = useState(initialQuery || '');
   const [isPending, startTransition] = useTransition();
@@ -154,7 +156,6 @@ export default function SearchInput({
     return { ok: true, msg: '' };
   };
 
-  // 🌟 [핵심 수술 1] 로컬 캐시에 '최근 검색어'를 즉시 구워버리는 함수!
   const saveToRecent = (keyword: string) => {
     if (typeof window === 'undefined') return;
     try {
@@ -166,25 +167,23 @@ export default function SearchInput({
       
       if (existingIndex > -1) {
         parsed[existingIndex].count = (parsed[existingIndex].count || 1) + 1;
-        // 검색 횟수만 올리고 순서를 맨 앞으로 당겨줍니다.
         const [movedItem] = parsed.splice(existingIndex, 1);
         parsed.unshift(movedItem);
       } else {
         parsed.unshift({ keyword, count: 1 });
       }
 
-      // 최근 검색어는 30개까지만 유지!
       const sliced = parsed.slice(0, 30);
       localStorage.setItem(RECENT_KEY, JSON.stringify(sliced));
       
-      // 🌟 "최근 검색어 업데이트 됐어!" 라고 동네방네 소리칩니다.
       window.dispatchEvent(new Event(UPDATED_EVENT));
     } catch (e) {
       console.error('Recent keywords save error:', e);
     }
   };
 
-  const goSearch = (rawQuery: string) => {
+  // 🌟 [핵심 수술] goSearch를 async 함수로 변경하여 통신을 완벽히 기다리게 만듦!
+  const goSearch = async (rawQuery: string) => {
     const trimmed = (rawQuery || '').trim();
     const v = validate(trimmed);
     if (!v.ok) {
@@ -200,15 +199,29 @@ export default function SearchInput({
     if (!finalQuery) return;
 
     if (typeof window !== 'undefined') {
-      // 🌟 [핵심 수술 2] 로컬 브라우저에 최근 검색어 저장!
-      saveToRecent(trimmed);
+      saveToRecent(trimmed); // 로컬 저장
 
-      // 🌟 [핵심 수술 3] 서버 통계청에 검색어 쏴주기! (인기 / 트렌드용)
-      fetch('/api/saveSearchKeyword', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keyword: trimmed }),
-      }).catch((err) => console.error('검색어 로깅 실패:', err));
+      // 🌟 완벽한 이중 백업 API 통신 로직 (await 필수!)
+      try {
+        // 플랜 A: 조언받은 API 경로로 통신 시도!
+        const res = await fetch('/api/save-search-keyword', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keyword: trimmed }),
+        });
+        
+        // 플랜 B: 만약 선생님 프로젝트에 저 API 파일이 안 만들어져 있어서 에러가 나면?
+        if (!res.ok) {
+          // 다이렉트로 DB(search_logs)에 강제로 꽂아버립니다!
+          await supabase.from('search_logs').insert([{ keyword: trimmed }]);
+        }
+      } catch (error) {
+        console.error('API Error:', error);
+        // 네트워크 에러 시에도 최후의 수단으로 다이렉트 꽂기!
+        try {
+          await supabase.from('search_logs').insert([{ keyword: trimmed }]);
+        } catch(e) {}
+      }
     }
 
     const basePath = isApp || isNativeApp ? '/app' : '/';
