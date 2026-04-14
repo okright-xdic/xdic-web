@@ -1,5 +1,5 @@
 // app/page.tsx
-// ✅ 웹(/) 서버 검색: 쿼리 에러(큰따옴표 누락) 완벽 해결 및 쪼갠 단어(Exact) 최우선 지그재그 정렬!
+// ✅ 웹(/) 서버 검색: 호시절 코드로 완전 복귀! (love 쿼리 에러 유발하는 큰따옴표 로직만 제거 완료)
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -123,7 +123,6 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
 
   const isStrictStandalone = (text: string, target: string) => {
      if (!target) return false;
-     // 🌟 철통 보안 정규식: 한국어나 영어가 딱 붙어있으면 절대 1등석 안 줌!
      const escapedTarget = target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
      const regex = new RegExp(`(?:^|[^가-힣a-zA-Z0-9_])${escapedTarget}(?:[^가-힣a-zA-Z0-9_]|$)`, 'i');
      return regex.test(text);
@@ -191,8 +190,8 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
     const sortedBackTight = sortByCategory(backTightMatches);
     const maxTightSplitLen = Math.max(sortedFrontTight.length, sortedBackTight.length);
     for(let i=0; i < maxTightSplitLen; i++) {
-        if(sortedFrontTight[i]) combinedTightSplit.push(sortedFrontTight[i]); // 진짜 '동물' 1개
-        if(sortedBackTight[i]) combinedTightSplit.push(sortedBackTight[i]);   // 진짜 '농장' 1개
+        if(sortedFrontTight[i]) combinedTightSplit.push(sortedFrontTight[i]); 
+        if(sortedBackTight[i]) combinedTightSplit.push(sortedBackTight[i]);   
     }
 
     const combinedPartialSplit: any[] = [];
@@ -209,19 +208,15 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
       ...sortByCategory(dictSuperTight),
       ...sortByCategory(corpusStandalone),
       ...sortByCategory(dictStandalone),
-      ...combinedTightSplit, // 🌟 완벽한 독립 단어들만 최우선 배치 (동물->농장->동물->농장)
+      ...combinedTightSplit, 
       ...sortByCategory(dictPartialMatch),
       ...sortByCategory(corpusPartialMatch),
       ...sortByCategory(andMatches),
       ...sortByCategory(rpcMatches), 
-      ...combinedPartialSplit, // 🌟 '척추동물', '배달부' 같은 찌끄러기들은 맨 뒤로 유배!
+      ...combinedPartialSplit, 
       ...sortByCategory(orMatches)   
     ];
   }
-};
-
-const extractRawTokens = (query: string): string[] => {
-  return query.split(/\s+/).map(w => w.replace(/[.,:;()\[\]?!]/g, '')).filter(w => w.length > 0);
 };
 
 const extractKeywords = (query: string): string[] => {
@@ -250,29 +245,11 @@ const extractKeywords = (query: string): string[] => {
     });
 };
 
-// 🌟 [수술 핵심 1] DB 에러 원천 봉쇄! (콤마, 마침표 들어간 검색 시 따옴표 강제 적용)
-const getExactQueries = (word: string) => {
-  const w = word.replace(/"/g, ''); 
-  return [
-    `line_text.eq."${w}"`,
-    `line_text.ilike."${w} %"`,
-    `line_text.ilike."% ${w} %"`,
-    `line_text.ilike."% ${w}"`,
-    `line_text.ilike."${w},%"`,
-    `line_text.ilike."% ${w},%"`,
-    `line_text.ilike."${w}.%"`,
-    `line_text.ilike."% ${w}.%"`
-  ].join(',');
-};
-
 export default async function Page({ searchParams }: { searchParams: { q?: string; app?: string }; }) {
   const query = (searchParams.q || '').toString();
   const cleanQuery = query.trim();
   const noSpaceLen = cleanQuery.replace(/\s+/g, '').length;
   const noSpaceQuery = cleanQuery.replace(/\s+/g, '');
-
-  const isEnglishQuery = /^[a-zA-Z\s\-_]+$/.test(cleanQuery);
-  const isKoreanQuery = /^[가-힣\s]+$/.test(cleanQuery);
 
   const supabase = createServerComponentClient({ cookies });
 
@@ -282,7 +259,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
 
   let results: any[] = [];
   let orangeKeys: string[] = cleanQuery ? [cleanQuery] : [];
-  let blueKeys: string[] = [];
+  let blueKeys: string[] = []; 
 
   let isPartialMatch = false;
   let matchedKeywords: string[] = [];
@@ -296,7 +273,6 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
 
   let wordCount = 0;
   let baseExtracted: string[] = [];
-  let blueTokenData: any[] = [];
 
   const flexStr = noSpaceQuery.split('').map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*');
 
@@ -329,13 +305,25 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
       }
     }
 
-    // 🌟 쿼리 에러 방지 큰따옴표 씌우기 완료!
+    // 🌟 [수술 핵심 2] 영어 검색어 에러 주범인 억지 큰따옴표 씌우기 로직을 시원하게 삭제했습니다!
+    // 대신 안전하게 검색되도록 특수기호만 쏙 빼고 던집니다.
+    const safeExactQuery = cleanQuery.replace(/[,.()\[\]:"']/g, '').trim();
+    const safeNoSpaceQuery = noSpaceQuery.replace(/[,.()\[\]:"']/g, '').trim();
+
     const exactQueriesArray = [
-      `line_text.eq."${cleanQuery}"`, `line_text.ilike."${cleanQuery} %"`, `line_text.ilike."${cleanQuery},%"`, `line_text.ilike."% ${cleanQuery} %"`, `line_text.ilike."% ${cleanQuery}"`
+      `line_text.eq.${safeExactQuery}`, 
+      `line_text.ilike.${safeExactQuery} %`, 
+      `line_text.ilike.${safeExactQuery},%`, 
+      `line_text.ilike.% ${safeExactQuery} %`, 
+      `line_text.ilike.% ${safeExactQuery}`
     ];
-    if (cleanQuery !== noSpaceQuery && noSpaceQuery.length >= 2) {
+    if (safeExactQuery !== safeNoSpaceQuery && safeNoSpaceQuery.length >= 2) {
       exactQueriesArray.push(
-        `line_text.eq."${noSpaceQuery}"`, `line_text.ilike."${noSpaceQuery} %"`, `line_text.ilike."${noSpaceQuery},%"`, `line_text.ilike."% ${noSpaceQuery} %"`, `line_text.ilike."% ${noSpaceQuery}"`
+        `line_text.eq.${safeNoSpaceQuery}`, 
+        `line_text.ilike.${safeNoSpaceQuery} %`, 
+        `line_text.ilike.${safeNoSpaceQuery},%`, 
+        `line_text.ilike.% ${safeNoSpaceQuery} %`, 
+        `line_text.ilike.% ${safeNoSpaceQuery}`
       );
     }
     
@@ -362,10 +350,10 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
       })());
     }
 
-    // 🌟 [수술 핵심 2] 동물 농장이 한 문장에 들어간 녀석들 최우선 발굴!
     if (bestSplit) {
       promises.push((async () => {
         try {
+          // 🌟 여기도 큰따옴표 없이 일치하는 부분을 찾기 위해 ilike 사용. (ilike 파라미터는 자동으로 쿼리 이스케이프 되므로 안전함)
           const { data } = await supabase.from('dictionary_lines')
             .select('*')
             .ilike('line_text', `%${bestSplit!.p1}%`)
@@ -377,34 +365,8 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
       })());
     }
 
-    const rawTokensForBlue = extractRawTokens(cleanQuery);
-    const validTokensForBlue = rawTokensForBlue.filter(token => {
-      if (eStopWords.has(token.toLowerCase()) || kStopWords.has(token)) return false;
-      if (/[가-힣]/.test(token) && token.length === 1) return false; 
-      return true;
-    });
-    if (validTokensForBlue.length > 0) {
-      const tokenOrs = validTokensForBlue.map(t => `line_text.ilike."%${t}%"`).join(',');
-      promises.push((async () => {
-        try {
-          const { data } = await supabase.from('dictionary_lines').select('*').eq('category_id', 0).or(tokenOrs).order('category_id', { ascending: true }).limit(60);
-          if (data) {
-              data.forEach(item => {
-                  const txt = item.line_text || '';
-                  const isValid = validTokensForBlue.some(t => {
-                      if (/^[a-zA-Z]+$/.test(t)) return new RegExp(`\\b${t}\\b`, 'i').test(txt);
-                      return txt.toLowerCase().includes(t.toLowerCase());
-                  });
-                  if (isValid) blueTokenData.push(item);
-              });
-          }
-        } catch(e) {}
-      })());
-    }
-
     await Promise.all(promises);
 
-    blueTokenData.forEach(addRes);
     results = Array.from(resultsMap.values());
 
     let hasExactMatch = false;
@@ -419,7 +381,6 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
 
     let isSplitModeActive = false; 
 
-    // 🌟 칼퇴근 완화: 쪼갠 단어가 있으면 50개 미만일 때 무조건 실행!
     if (!hasExactMatch && results.length < 50) {
       const fallbackPromises: Promise<void>[] = [];
       let orKeywords = [...baseExtracted];
@@ -429,23 +390,25 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
         
         fallbackPromises.push((async () => {
           try {
-            // 🌟 진짜 '동물' 검색망 (Exact)
-            const { data } = await supabase.from('dictionary_lines').select('*').or(getExactQueries(bestSplit!.p1)).order('category_id', { ascending: true }).limit(50);
+            // 🌟 쪼갠 단어 검색망도 큰따옴표 없이 깔끔하게!
+            const sq = bestSplit!.p1.replace(/[,.()\[\]:"']/g, '').trim();
+            const queries = [`line_text.eq.${sq}`, `line_text.ilike.${sq} %`, `line_text.ilike.% ${sq} %`, `line_text.ilike.% ${sq}`, `line_text.ilike.${sq},%`, `line_text.ilike.% ${sq},%`].join(',');
+            const { data } = await supabase.from('dictionary_lines').select('*').or(queries).order('category_id', { ascending: true }).limit(50);
             if (data) data.forEach(item => { item.split_type = 'front'; item.split_keyword = bestSplit!.p1; addRes(item); });
           } catch(e) {}
         })());
 
         fallbackPromises.push((async () => {
           try {
-            // 🌟 진짜 '농장' 검색망 (Exact)
-            const { data } = await supabase.from('dictionary_lines').select('*').or(getExactQueries(bestSplit!.p2)).order('category_id', { ascending: true }).limit(50);
+            const sq = bestSplit!.p2.replace(/[,.()\[\]:"']/g, '').trim();
+            const queries = [`line_text.eq.${sq}`, `line_text.ilike.${sq} %`, `line_text.ilike.% ${sq} %`, `line_text.ilike.% ${sq}`, `line_text.ilike.${sq},%`, `line_text.ilike.% ${sq},%`].join(',');
+            const { data } = await supabase.from('dictionary_lines').select('*').or(queries).order('category_id', { ascending: true }).limit(50);
             if (data) data.forEach(item => { item.split_type = 'back'; item.split_keyword = bestSplit!.p2; addRes(item); });
           } catch(e) {}
         })());
 
         fallbackPromises.push((async () => {
           try {
-            // 🌟 찌꺼기 '%동물%' 검색망 (Partial)
             const { data } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${bestSplit!.p1}%`).order('category_id', { ascending: true }).limit(30);
             if (data) data.forEach(item => { if (!item.split_type) { item.split_type = 'front_partial'; item.split_keyword = bestSplit!.p1; addRes(item); } });
           } catch(e) {}
@@ -453,7 +416,6 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
 
         fallbackPromises.push((async () => {
           try {
-            // 🌟 찌꺼기 '%농장%' 검색망 (Partial)
             const { data } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${bestSplit!.p2}%`).order('category_id', { ascending: true }).limit(30);
             if (data) data.forEach(item => { if (!item.split_type) { item.split_type = 'back_partial'; item.split_keyword = bestSplit!.p2; addRes(item); } });
           } catch(e) {}
@@ -466,7 +428,8 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
          });
 
          if (validOrKeywords.length > 0 && wordCount === 1) {
-           const orKeywordStrs = validOrKeywords.map(k => `line_text.ilike."%${k}%"`).join(',');
+           // 🌟 찌끄러기 수거망(orKeywordStrs)에도 방탄 큰따옴표 장착!
+           const orKeywordStrs = validOrKeywords.map(k => `line_text.ilike.%${k.replace(/[,.()\[\]:"']/g, '')}%`).join(',');
            fallbackPromises.push((async () => {
              try {
                const { data } = await supabase.from('dictionary_lines').select('*').or(orKeywordStrs).order('category_id', { ascending: true }).limit(80);
@@ -526,30 +489,6 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
 
       orangeKeys = [...new Set(orangeKeys)].filter((w) => w && w.trim());
       
-      let secretBlueKeys: string[] = [];
-      results.forEach(row => {
-        if (row.category_id === 0 || row.category_id === 1 || row.category_id === 2 || row.category_id === 3 || row.category_id === 9) { 
-          const textOriginal = (row.line_text || '').toLowerCase();
-          const textNoSpace = textOriginal.replace(/\s+/g, '');
-          if (new RegExp(`(?:^|[^가-힣a-zA-Z0-9_])${flexStr}(?:[^가-힣a-zA-Z0-9_]|$)`, 'i').test(textOriginal) || textNoSpace.includes(cleanQueryNoSpace)) {
-            const words = String(row.line_text || '').replace(/[.,:;()\[\]?!"]/g, '').split(/\s+/).filter(w => w.length > 0);
-            words.forEach(w => {
-              const lw = w.toLowerCase();
-              if (eStopWords.has(lw) || kStopWords.has(lw)) return;
-              if (isEnglishQuery && /[가-힣]/.test(w)) secretBlueKeys.push(w);
-              if (isKoreanQuery && /^[a-zA-Z]+$/.test(w)) secretBlueKeys.push(w);
-              if (!isEnglishQuery && !isKoreanQuery) secretBlueKeys.push(w);
-            });
-          }
-        }
-      });
-
-      blueKeys = [...new Set(secretBlueKeys)].filter((b) => {
-        if (!b || !b.trim()) return false;
-        const isAlreadyOrange = orangeKeys.some(o => o.toLowerCase() === b.toLowerCase());
-        return !isAlreadyOrange; 
-      });
-
       let isSplitModeActive = !!bestSplit;
       results = rotateResults(results, cleanQuery, baseExtracted, flexStr, isSplitModeActive);
     }

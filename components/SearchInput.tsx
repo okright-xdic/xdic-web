@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Capacitor } from '@capacitor/core';
 import { SpeechRecognition } from '@capgo/capacitor-speech-recognition';
-// 🌟 [추가] 플랜 B (다이렉트 DB 꽂기)를 위한 Supabase 클라이언트 호출!
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'; 
 
 interface SearchInputProps {
@@ -31,7 +30,7 @@ export default function SearchInput({
 }: SearchInputProps) {
   const router = useRouter();
   const isNativeApp = typeof window !== 'undefined' ? Capacitor.isNativePlatform() : false;
-  const supabase = createClientComponentClient(); // 🌟 Supabase 장착!
+  const supabase = createClientComponentClient();
 
   const [query, setQuery] = useState(initialQuery || '');
   const [isPending, startTransition] = useTransition();
@@ -182,7 +181,6 @@ export default function SearchInput({
     }
   };
 
-  // 🌟 [핵심 수술] goSearch를 async 함수로 변경하여 통신을 완벽히 기다리게 만듦!
   const goSearch = async (rawQuery: string) => {
     const trimmed = (rawQuery || '').trim();
     const v = validate(trimmed);
@@ -199,25 +197,20 @@ export default function SearchInput({
     if (!finalQuery) return;
 
     if (typeof window !== 'undefined') {
-      saveToRecent(trimmed); // 로컬 저장
+      saveToRecent(trimmed); 
 
-      // 🌟 완벽한 이중 백업 API 통신 로직 (await 필수!)
       try {
-        // 플랜 A: 조언받은 API 경로로 통신 시도!
         const res = await fetch('/api/save-search-keyword', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ keyword: trimmed }),
         });
         
-        // 플랜 B: 만약 선생님 프로젝트에 저 API 파일이 안 만들어져 있어서 에러가 나면?
         if (!res.ok) {
-          // 다이렉트로 DB(search_logs)에 강제로 꽂아버립니다!
           await supabase.from('search_logs').insert([{ keyword: trimmed }]);
         }
       } catch (error) {
         console.error('API Error:', error);
-        // 네트워크 에러 시에도 최후의 수단으로 다이렉트 꽂기!
         try {
           await supabase.from('search_logs').insert([{ keyword: trimmed }]);
         } catch(e) {}

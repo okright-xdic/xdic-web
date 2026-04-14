@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Capacitor } from '@capacitor/core';
@@ -67,7 +67,41 @@ export default function SearchPage({
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
-  // 🌟 [핵심] 홈 화면 캐시 갱신을 위해 <Link> 대신 <a href> 사용
+  const derivedBlueKeys = useMemo(() => {
+    const keys: string[] = [];
+    const lowerQuery = displayQuery.toLowerCase().trim();
+    if (!lowerQuery) return keys;
+
+    const isKoreanQuery = /[가-힣]/.test(lowerQuery) && !/[a-zA-Z]/.test(lowerQuery);
+    const isEnglishQuery = /[a-zA-Z]/.test(lowerQuery) && !/[가-힣]/.test(lowerQuery);
+
+    results.forEach(item => {
+      if (item.category_id === 0 || item.category_id === 1) {
+        const text = item.line_text || '';
+        const cleanText = text.replace(/[.,:;()\[\]?!"]/g, '');
+        const words = cleanText.split(/\s+/).filter(Boolean);
+
+        if (words.length >= 1 && words.length <= 3) {
+          const hasExactQuery = words.some(w => w.toLowerCase() === lowerQuery);
+          if (hasExactQuery) {
+            words.forEach(w => {
+              const cw = w.toLowerCase();
+              if (cw !== lowerQuery) {
+                if (isKoreanQuery && /^[a-zA-Z\-]+$/.test(cw)) keys.push(w);
+                else if (isEnglishQuery && /[가-힣]/.test(cw)) keys.push(w);
+              }
+            });
+          }
+        }
+      }
+    });
+
+    return [...new Set(keys)].filter(b => {
+       return !(orangeKeys || []).some(o => o.toLowerCase() === b.toLowerCase());
+    });
+  }, [displayQuery, results, orangeKeys]);
+
+
   const UnifiedHeader = () => (
     <header className="w-full pt-8 pb-0 md:pt-12 md:pb-0">
       <div className="flex flex-col items-center justify-center text-center gap-2 mb-6 px-1">
@@ -108,8 +142,8 @@ export default function SearchPage({
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
 
   const highlightMatch = (text: string) => {
-    const allKeys = [...new Set([...orangeKeys, ...blueKeys])].filter(Boolean).sort((a, b) => b.length - a.length);
-    if (allKeys.length === 0) return <span style={{ color: '#111111' }}>{text}</span>;
+    const allKeys = [...new Set([...orangeKeys, ...derivedBlueKeys])].filter(Boolean).sort((a, b) => b.length - a.length);
+    if (allKeys.length === 0) return <span style={{ color: '#334155' }}>{text}</span>;
 
     const escapedRegexParts = allKeys.map(k => {
       const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -128,12 +162,21 @@ export default function SearchPage({
         {parts.map((part, idx) => {
           const lowerPart = part.toLowerCase();
           const lowerPartNoSpace = lowerPart.replace(/\s+/g, ''); 
-          let color = '#111111'; 
+          
+          let color = '#334155'; // 기본 텍스트 색상
 
-          if (orangeKeys.some((k) => k.toLowerCase() === lowerPart)) color = '#ea580c'; 
-          else if (blueKeys.some((k) => k.toLowerCase() === lowerPart)) color = '#2563eb'; 
-          if (lowerPartNoSpace === lowerQueryNoSpace && orangeKeys.length > 0) color = '#ea580c'; 
+          // 🌟 볼드체(fontWeight) 완전히 삭제! 오직 색상만 지정하여 100% 일반체로 통일합니다!
+          if (orangeKeys.some((k) => k.toLowerCase() === lowerPart)) {
+              color = '#ea580c';
+          } else if (derivedBlueKeys.some((k) => k.toLowerCase() === lowerPart)) {
+              color = '#2563eb';
+          }
+          
+          if (lowerPartNoSpace === lowerQueryNoSpace && orangeKeys.length > 0) {
+              color = '#ea580c';
+          }
 
+          // fontWeight: 400 으로 안전하게 쐐기를 박습니다.
           return <span key={idx} style={{ color, fontWeight: 400 }}>{part}</span>;
         })}
       </>
@@ -229,7 +272,6 @@ export default function SearchPage({
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
                 뒤로
               </button>
-              {/* 🌟 캐시 파괴 <a> 태그 */}
               <a href={displayIsApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
                 홈으로
@@ -371,7 +413,6 @@ export default function SearchPage({
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
                       뒤로
                     </button>
-                    {/* 🌟 캐시 파괴 <a> 태그 */}
                     <a href={displayIsApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
                       홈으로
@@ -394,7 +435,6 @@ export default function SearchPage({
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
                       뒤로
                     </button>
-                    {/* 🌟 캐시 파괴 <a> 태그 */}
                     <a href={displayIsApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
                       홈으로
@@ -417,7 +457,6 @@ export default function SearchPage({
                 </Link>
               </div>
 
-              {/* 🌟 미니멀리즘 대문! (트렌드 & 배너 삭제 완료) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div className="relative bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-[300px]">
                   <Link href="/recent" className="absolute top-5 right-5 text-[12px] font-bold text-slate-400 hover:text-slate-600 transition-colors z-10 bg-white/80 px-2 py-1 rounded backdrop-blur-sm">
