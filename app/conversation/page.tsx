@@ -10,7 +10,9 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Capacitor } from '@capacitor/core';
 import { useRouter, useSearchParams } from 'next/navigation';
 
+// 🌟 'todays' 카테고리가 새롭게 추가되었습니다!
 const CATEGORY_MAP: Record<string, string> = {
+  'todays': "💡 오늘의 영어회화 (Today's Picks)",
   'travel': "✈️ 여행 영어 (Travel English)",
   'casual': "☕ 일상 회화 (Casual Conversation)",
   'business': "💼 비즈니스 회화 (Business English)"
@@ -85,21 +87,23 @@ function ConversationMain() {
     }
   };
 
-  // 🌟 오늘의 영어회화 '게시' 처리 함수
   const handleSetTodaysPick = async (id: number) => {
     if (!confirm('이 문장을 메인 화면의 "오늘의 영어회화"로 게시하시겠습니까?')) return;
 
     try {
-      await supabase.from('conversation_lines').update({ is_todays_pick: false }).neq('id', 0);
-      
+      // 🌟 이전 코드를 지우고, 과거 내역을 덮어쓰지 않고 시간(picked_at)만 기록합니다!
       const { error } = await supabase
         .from('conversation_lines')
-        .update({ is_todays_pick: true })
+        .update({ 
+          is_todays_pick: true,
+          picked_at: new Date().toISOString() 
+        })
         .eq('id', id);
 
       if (error) throw error;
       
       alert('메인 화면 "오늘의 영어회화"에 성공적으로 게시되었습니다! 🚀');
+      fetchData(); // 갱신된 데이터를 다시 불러옵니다.
     } catch (err: any) {
       alert('게시 실패: ' + err.message);
     }
@@ -136,7 +140,6 @@ function ConversationMain() {
     }
   };
 
-  // 🌟 [수정 완료] 한/영 분리하여 본섭의 두 남자 아나운서가 순서대로 읽도록 세팅!
   const handleSpeak = (enText: string, koText: string) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel(); 
@@ -174,7 +177,9 @@ function ConversationMain() {
               onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
               className="p-3 border border-blue-300 rounded-lg text-sm font-bold text-slate-700 outline-none"
             >
-              {Object.values(CATEGORY_MAP).map((cat) => (
+              {Object.entries(CATEGORY_MAP)
+                .filter(([key]) => key !== 'todays') // 🌟 관리자가 수동으로 '오늘의회화'를 기본 카테고리로 지정하는 것 방지
+                .map(([_, cat]) => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
@@ -206,7 +211,6 @@ function ConversationMain() {
           <div className="flex items-start gap-4 mb-3">
             <div className="flex-shrink-0 flex items-center gap-1.5 mt-1">
               {!isApp && (
-                // 🌟 [수정 완료] 한영 매개변수를 각각 따로따로 넘겨줍니다!
                 <button onClick={() => handleSpeak(item.en_text, item.ko_text)} className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="원어민 발음 듣기">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
                 </button>
@@ -287,12 +291,20 @@ function ConversationMain() {
               <div className="bg-slate-800 px-6 py-5 flex justify-between items-center">
                 <h2 className="text-xl md:text-2xl font-bold text-white">{selectedCategory}</h2>
                 <span className="text-sm font-medium text-slate-300">
-                  총 {data.filter(d => d.category === selectedCategory).length}개
+                  총 {typeParam === 'todays' ? data.filter(d => d.is_todays_pick).length : data.filter(d => d.category === selectedCategory).length}개
                 </span>
               </div>
               <div className="divide-y divide-slate-100">
                 {(() => {
-                  const filteredData = data.filter(d => d.category === selectedCategory);
+                  // 🌟 todays 카테고리일 때는 is_todays_pick이 true인 것만 모아서 최신 게시순 정렬!
+                  const filteredData = typeParam === 'todays'
+                    ? data.filter(d => d.is_todays_pick).sort((a, b) => {
+                        const dateA = a.picked_at ? new Date(a.picked_at).getTime() : 0;
+                        const dateB = b.picked_at ? new Date(b.picked_at).getTime() : 0;
+                        return dateB - dateA;
+                      })
+                    : data.filter(d => d.category === selectedCategory);
+                    
                   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
                   const startIndex = (currentPage - 1) * itemsPerPage;
                   const currentItems = filteredData.slice(startIndex, startIndex + itemsPerPage);
@@ -319,9 +331,18 @@ function ConversationMain() {
           ) : (
             <div className="space-y-12">
               {Object.entries(CATEGORY_MAP).map(([urlKey, categoryName]) => {
-                const categoryItems = data.filter(d => d.category === categoryName);
+                // 🌟 미리보기 화면에서도 오늘의 회화 전용 데이터를 필터링합니다.
+                const categoryItems = urlKey === 'todays'
+                  ? data.filter(d => d.is_todays_pick).sort((a, b) => {
+                      const dateA = a.picked_at ? new Date(a.picked_at).getTime() : 0;
+                      const dateB = b.picked_at ? new Date(b.picked_at).getTime() : 0;
+                      return dateB - dateA;
+                    })
+                  : data.filter(d => d.category === categoryName);
+
                 if (categoryItems.length === 0) return null;
                 const previewItems = categoryItems.slice(0, 5);
+                
                 return (
                   <section key={urlKey} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div className="bg-slate-800 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">

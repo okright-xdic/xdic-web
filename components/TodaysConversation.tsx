@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import Link from 'next/link'; // 🌟 Link 태그 추가
 
 interface Conversation {
   id: string | number;
@@ -18,11 +19,13 @@ export default function TodaysConversation() {
 
   useEffect(() => {
     const fetchTodaysPick = async () => {
-      // is_todays_pick이 true인 데이터 1개를 가져옴
+      // 🌟 is_todays_pick이 true인 것 중 가장 최근(picked_at)에 게시된 1개만 가져옴!
       const { data } = await supabase
         .from('conversation_lines')
         .select('*')
         .eq('is_todays_pick', true)
+        .order('picked_at', { ascending: false, nullsFirst: false })
+        .limit(1)
         .single();
       
       if (data) setItem(data);
@@ -30,10 +33,10 @@ export default function TodaysConversation() {
     fetchTodaysPick();
   }, [supabase]);
 
-  if (!item) return null; // 등록된 오늘의 회화가 없으면 렌더링하지 않음
+  if (!item) return null;
 
   const handleCopy = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // 복사 버튼 누를 때 아코디언 열리는 것 방지
+    e.stopPropagation();
     try {
       await navigator.clipboard.writeText(`${item.en_text} - ${item.ko_text}`);
       setCopied(true);
@@ -44,32 +47,28 @@ export default function TodaysConversation() {
   };
 
   const handleSpeak = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 스피커 버튼 누를 때 아코디언 열리는 것 방지
+    e.stopPropagation();
 
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); // 이전 음성 초기화
+      window.speechSynthesis.cancel();
 
       const voices = window.speechSynthesis.getVoices();
       const enVoices = voices.filter(v => v.lang.startsWith('en'));
       const koVoices = voices.filter(v => v.lang.startsWith('ko'));
 
-      // 본섭의 발음 좋은 두 아나운서(남자) 세팅
       const enVoice = enVoices.find(v => v.name.includes('Google US English Male')) || enVoices.find(v => v.name.includes('Google US English')) || enVoices[0];
       const koVoice = koVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) || koVoices[0];
 
-      // 1. 영어 문장 장전
       const enUtterance = new SpeechSynthesisUtterance(item.en_text);
       if (enVoice) enUtterance.voice = enVoice;
       enUtterance.lang = enVoice ? enVoice.lang : 'en-US';
       enUtterance.rate = 0.85;
 
-      // 2. 한국어 문장 장전
       const koUtterance = new SpeechSynthesisUtterance(item.ko_text);
       if (koVoice) koUtterance.voice = koVoice;
       koUtterance.lang = koVoice ? koVoice.lang : 'ko-KR';
       koUtterance.rate = 1.05;
 
-      // 3. 발사! (알아서 영어가 끝난 후 한국어가 재생됩니다)
       window.speechSynthesis.speak(enUtterance);
       window.speechSynthesis.speak(koUtterance);
     } else {
@@ -83,10 +82,18 @@ export default function TodaysConversation() {
         onClick={() => setIsExpanded(!isExpanded)}
         className="group relative bg-blue-50/50 hover:bg-blue-50 border border-blue-100 rounded-2xl p-4 cursor-pointer transition-all shadow-sm hover:shadow-md"
       >
-        <div className="absolute -top-3 left-4 bg-white px-2">
+        {/* 🌟 여기에 [전체보기] 링크를 추가했습니다! */}
+        <div className="absolute -top-3 left-4 bg-white px-2 flex items-center gap-2.5">
           <span className="text-xs font-extrabold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
             💡 오늘의 영어회화
           </span>
+          <Link 
+            href="/conversation?type=todays" 
+            onClick={(e) => e.stopPropagation()} 
+            className="text-[11px] font-bold text-slate-400 hover:text-blue-600 transition-colors"
+          >
+            전체보기 &gt;
+          </Link>
         </div>
 
         <div className="flex items-start gap-3 mt-1">
@@ -121,7 +128,6 @@ export default function TodaysConversation() {
           </div>
         </div>
 
-        {/* 🌟 여기에 마법의 단어 'whitespace-pre-wrap'을 추가했습니다! */}
         {isExpanded && item.description && (
           <div className="mt-4 pt-4 border-t border-blue-100/50 animate-in fade-in slide-in-from-top-2">
             <div className="bg-white rounded-xl p-3.5 border border-blue-100 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
