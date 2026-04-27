@@ -10,6 +10,7 @@ import PopularKeywords from '@/components/PopularKeywords';
 import RecentKeywords from '@/components/RecentKeywords'; 
 import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
 import NuanceWidget from '@/components/NuanceWidget'; 
+import TodaysConversation from '@/components/TodaysConversation'; // 🌟 오늘의 회화 컴포넌트 import 추가!
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 
@@ -115,6 +116,10 @@ export default function SearchPage({
       </div>
       <div className="w-full">
         <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
+        
+        {/* 🌟 메인 화면 검색창 바로 아래에 오늘의 회화 장착! */}
+        <TodaysConversation />
+
       </div>
     </header>
   );
@@ -165,7 +170,7 @@ export default function SearchPage({
           
           let color = '#334155'; // 기본 텍스트 색상
 
-          // 🌟 볼드체(fontWeight) 완전히 삭제! 오직 색상만 지정하여 100% 일반체로 통일합니다!
+          // 볼드체(fontWeight) 완전히 삭제! 오직 색상만 지정하여 100% 일반체로 통일합니다!
           if (orangeKeys.some((k) => k.toLowerCase() === lowerPart)) {
               color = '#ea580c';
           } else if (derivedBlueKeys.some((k) => k.toLowerCase() === lowerPart)) {
