@@ -29,7 +29,6 @@ export default function SearchInput({
   isApp = false,
 }: SearchInputProps) {
   const router = useRouter();
-  const isNativeApp = typeof window !== 'undefined' ? Capacitor.isNativePlatform() : false;
   const supabase = createClientComponentClient();
 
   const [query, setQuery] = useState(initialQuery || '');
@@ -51,6 +50,11 @@ export default function SearchInput({
   const nativeRestartTimerRef = useRef<any>(null);
   const nativeRunningRef = useRef(false);
 
+  // 🌟 앱/웹 판별기
+  const checkIsNative = () => {
+    return typeof window !== 'undefined' && Capacitor.isNativePlatform();
+  };
+
   useEffect(() => {
     setQuery(initialQuery || '');
   }, [initialQuery]);
@@ -69,9 +73,7 @@ export default function SearchInput({
       const tagName = activeEl?.tagName.toLowerCase();
       const isInputOrTextarea = tagName === 'input' || tagName === 'textarea' || (activeEl as HTMLElement)?.isContentEditable;
 
-      if (isInputOrTextarea && activeEl !== inputRef.current) {
-        return; 
-      }
+      if (isInputOrTextarea && activeEl !== inputRef.current) return; 
 
       const pastedText = e.clipboardData?.getData('text');
       
@@ -95,10 +97,7 @@ export default function SearchInput({
       const tagName = activeEl?.tagName.toLowerCase();
       const isInputOrTextarea = tagName === 'input' || tagName === 'textarea' || (activeEl as HTMLElement)?.isContentEditable;
 
-      if (isInputOrTextarea && activeEl !== inputRef.current) {
-        return; 
-      }
-
+      if (isInputOrTextarea && activeEl !== inputRef.current) return; 
       if (document.activeElement === inputRef.current) return;
 
       const selection = window.getSelection();
@@ -210,14 +209,11 @@ export default function SearchInput({
           await supabase.from('search_logs').insert([{ keyword: trimmed }]);
         }
       } catch (error) {
-        console.error('API Error:', error);
-        try {
-          await supabase.from('search_logs').insert([{ keyword: trimmed }]);
-        } catch(e) {}
+        try { await supabase.from('search_logs').insert([{ keyword: trimmed }]); } catch(e) {}
       }
     }
 
-    const basePath = isApp || isNativeApp ? '/app' : '/';
+    const basePath = isApp || checkIsNative() ? '/app' : '/';
     startTransition(() => {
       router.push(`${basePath}?q=${encodeURIComponent(finalQuery)}`);
     });
@@ -258,12 +254,8 @@ export default function SearchInput({
         recognitionRef.current.onend = null;
         recognitionRef.current.onerror = null;
       } catch {}
-      try {
-        recognitionRef.current.abort?.();
-      } catch {}
-      try {
-        recognitionRef.current.stop?.();
-      } catch {}
+      try { recognitionRef.current.abort?.(); } catch {}
+      try { recognitionRef.current.stop?.(); } catch {}
     }
     recognitionRef.current = null;
     webStartingRef.current = false;
@@ -279,9 +271,7 @@ export default function SearchInput({
       return;
     }
 
-    try {
-      recognitionRef.current?.stop?.();
-    } catch {}
+    try { recognitionRef.current?.stop?.(); } catch {}
     webStartingRef.current = false;
     if (isMountedRef.current) setIsListening(false);
   };
@@ -302,15 +292,13 @@ export default function SearchInput({
 
   const startWebLoop = () => {
     if (!micLangRef.current || !isMountedRef.current) return;
-    if (isNativeApp) return;
+    if (checkIsNative()) return; // 🌟 웹에서만 동작
 
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) {
       alert('이 브라우저는 음성 인식을 지원하지 않습니다. (Chrome 권장)');
       setMicLang(null);
-      try {
-        sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
-      } catch {}
+      try { sessionStorage.removeItem(MIC_USER_ENABLED_KEY); } catch {}
       return;
     }
 
@@ -340,7 +328,8 @@ export default function SearchInput({
 
       if (transcript) {
         setQuery(transcript);
-        goSearch(transcript);
+        // 🌟 100ms 딜레이로 꿀링 해결
+        setTimeout(() => { goSearch(transcript); }, 100);
       }
 
       scheduleWebRestart();
@@ -354,9 +343,7 @@ export default function SearchInput({
       if (err === 'not-allowed' || err === 'service-not-allowed' || err === 'audio-capture') {
         alert('마이크 권한이 차단되었습니다. 브라우저/기기 설정에서 마이크를 허용해주세요.');
         setMicLang(null);
-        try {
-          sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
-        } catch {}
+        try { sessionStorage.removeItem(MIC_USER_ENABLED_KEY); } catch {}
         hardStopWeb();
         return;
       }
@@ -399,7 +386,7 @@ export default function SearchInput({
     nativeRunningRef.current = false;
     if (isMountedRef.current) setIsListening(false);
 
-    if (!isNativeApp) return;
+    if (!checkIsNative()) return;
     if (!hard) return;
 
     try {
@@ -409,7 +396,7 @@ export default function SearchInput({
   };
 
   const startNativeLoop = async () => {
-    if (!isNativeApp || !micLangRef.current || !isMountedRef.current) return;
+    if (!checkIsNative() || !micLangRef.current || !isMountedRef.current) return; // 🌟 네이티브 플러그인 전용
     if (nativeRunningRef.current) return;
 
     nativeRunningRef.current = true;
@@ -431,9 +418,7 @@ export default function SearchInput({
       if (perm.speechRecognition !== 'granted') {
         alert('마이크 권한이 필요합니다. 스마트폰 설정에서 X-DIC 마이크 권한을 허용해주세요.');
         setMicLang(null);
-        try {
-          sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
-        } catch {}
+        try { sessionStorage.removeItem(MIC_USER_ENABLED_KEY); } catch {}
         nativeRunningRef.current = false;
         return;
       }
@@ -459,7 +444,8 @@ export default function SearchInput({
 
       if (transcript) {
         setQuery(transcript);
-        goSearch(transcript); 
+        // 🌟 앱에서도 동일하게 100ms 딜레이 부여!
+        setTimeout(() => { goSearch(transcript); }, 100);
       }
 
       nativeRunningRef.current = false;
@@ -475,9 +461,7 @@ export default function SearchInput({
       if (msg.includes('denied') || msg.includes('permission')) {
         alert('마이크 권한이 차단되었습니다. 설정에서 권한을 허용해주세요.');
         setMicLang(null);
-        try {
-          sessionStorage.removeItem(MIC_USER_ENABLED_KEY);
-        } catch {}
+        try { sessionStorage.removeItem(MIC_USER_ENABLED_KEY); } catch {}
         return;
       }
 
@@ -498,7 +482,8 @@ export default function SearchInput({
       sessionStorage.setItem(MIC_USER_ENABLED_KEY, micLang);
     } catch {}
 
-    if (isNativeApp) {
+    // 🌟 분기점
+    if (checkIsNative()) {
       stopWebLoop(true);
       startNativeLoop();
     } else {
@@ -511,11 +496,11 @@ export default function SearchInput({
       stopNativeLoop(true);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [micLang, isNativeApp]);
+  }, [micLang]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (isNativeApp) return;
+    if (checkIsNative()) return;
 
     const onVis = () => {
       if (!micLangRef.current) return;
@@ -532,7 +517,7 @@ export default function SearchInput({
       window.removeEventListener('pagehide', onPageHide);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isNativeApp]);
+  }, []);
 
   const handleMicToggle = (targetLang: 'ko-KR' | 'en-US') => {
     if (typeof window === 'undefined') return;

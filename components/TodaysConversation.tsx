@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import Link from 'next/link'; // 🌟 Link 태그 추가
+import Link from 'next/link';
 
 interface Conversation {
   id: string | number;
@@ -15,11 +15,11 @@ export default function TodaysConversation() {
   const [item, setItem] = useState<Conversation | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
+
   const supabase = createClientComponentClient();
 
   useEffect(() => {
     const fetchTodaysPick = async () => {
-      // 🌟 is_todays_pick이 true인 것 중 가장 최근(picked_at)에 게시된 1개만 가져옴!
       const { data } = await supabase
         .from('conversation_lines')
         .select('*')
@@ -27,7 +27,7 @@ export default function TodaysConversation() {
         .order('picked_at', { ascending: false, nullsFirst: false })
         .limit(1)
         .single();
-      
+
       if (data) setItem(data);
     };
     fetchTodaysPick();
@@ -41,36 +41,17 @@ export default function TodaysConversation() {
       await navigator.clipboard.writeText(`${item.en_text} - ${item.ko_text}`);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('복사 실패');
-    }
+    } catch {}
   };
 
-  const handleSpeak = (e: React.MouseEvent) => {
+  const handleSpeak = (text: string, e: React.MouseEvent) => {
     e.stopPropagation();
-
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-
-      const voices = window.speechSynthesis.getVoices();
-      const enVoices = voices.filter(v => v.lang.startsWith('en'));
-      const koVoices = voices.filter(v => v.lang.startsWith('ko'));
-
-      const enVoice = enVoices.find(v => v.name.includes('Google US English Male')) || enVoices.find(v => v.name.includes('Google US English')) || enVoices[0];
-      const koVoice = koVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) || koVoices[0];
-
-      const enUtterance = new SpeechSynthesisUtterance(item.en_text);
-      if (enVoice) enUtterance.voice = enVoice;
-      enUtterance.lang = enVoice ? enVoice.lang : 'en-US';
-      enUtterance.rate = 0.85;
-
-      const koUtterance = new SpeechSynthesisUtterance(item.ko_text);
-      if (koVoice) koUtterance.voice = koVoice;
-      koUtterance.lang = koVoice ? koVoice.lang : 'ko-KR';
-      koUtterance.rate = 1.05;
-
-      window.speechSynthesis.speak(enUtterance);
-      window.speechSynthesis.speak(koUtterance);
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'en-US';
+      utter.rate = 0.9;
+      window.speechSynthesis.speak(utter);
     } else {
       alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
     }
@@ -78,18 +59,17 @@ export default function TodaysConversation() {
 
   return (
     <div className="w-full max-w-2xl mx-auto mt-6 mb-2 px-2 animate-in fade-in duration-500">
-      <div 
+      <div
         onClick={() => setIsExpanded(!isExpanded)}
         className="group relative bg-blue-50/50 hover:bg-blue-50 border border-blue-100 rounded-2xl p-4 cursor-pointer transition-all shadow-sm hover:shadow-md"
       >
-        {/* 🌟 여기에 [전체보기] 링크를 추가했습니다! */}
         <div className="absolute -top-3 left-4 bg-white px-2 flex items-center gap-2.5">
           <span className="text-xs font-extrabold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
             💡 오늘의 영어회화
           </span>
-          <Link 
-            href="/conversation?type=todays" 
-            onClick={(e) => e.stopPropagation()} 
+          <Link
+            href="/conversation?type=todays"
+            onClick={(e) => e.stopPropagation()}
             className="text-[11px] font-bold text-slate-400 hover:text-blue-600 transition-colors"
           >
             전체보기 &gt;
@@ -98,14 +78,14 @@ export default function TodaysConversation() {
 
         <div className="flex items-start gap-3 mt-1">
           <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
-            <button 
-              onClick={handleSpeak}
+            <button
+              onClick={(e) => handleSpeak(item.en_text, e)}
               className="w-8 h-8 rounded-full bg-white text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
               title="발음 듣기"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
             </button>
-            <button 
+            <button
               onClick={handleCopy}
               className="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 hover:bg-slate-100 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm"
               title="복사하기"
@@ -117,10 +97,14 @@ export default function TodaysConversation() {
               )}
             </button>
           </div>
-          
+
           <div className="flex-1">
-            <h4 className="text-lg font-extrabold text-blue-700 tracking-tight">{item.en_text}</h4>
-            <p className="text-[15px] font-bold text-slate-800 mt-0.5">{item.ko_text}</p>
+            <h4 className="text-lg font-extrabold text-blue-700 tracking-tight">
+              {item.en_text}
+            </h4>
+            <p className="text-[15px] font-bold text-slate-800 mt-0.5">
+              {item.ko_text}
+            </p>
           </div>
 
           <div className="flex-shrink-0 text-slate-400 mt-2">

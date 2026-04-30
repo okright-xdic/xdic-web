@@ -8,9 +8,10 @@ import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import PopularKeywords from '@/components/PopularKeywords'; 
 import RecentKeywords from '@/components/RecentKeywords'; 
-import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
+// import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder'; // 🌟 구글 애드센스 임시 비활성화
+import KakaoAdFit from '@/components/ads/KakaoAdFit'; // 🌟 카카오 애드핏 컴포넌트 불러오기!
 import NuanceWidget from '@/components/NuanceWidget'; 
-import TodaysConversation from '@/components/TodaysConversation'; // 🌟 오늘의 회화 컴포넌트 import 추가!
+import TodaysConversation from '@/components/TodaysConversation'; 
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 
@@ -47,7 +48,9 @@ export default function SearchPage({
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+  
   const [clientIsApp, setClientIsApp] = useState(false);
+  const [mounted, setMounted] = useState(false); // 🌟 화면 준비 완료 체크
   const [previewData, setPreviewData] = useState<any[]>([]);
 
   const [copiedId, setCopiedId] = useState<string | number | null>(null);
@@ -55,7 +58,17 @@ export default function SearchPage({
   const [supabase] = useState(() => createClientComponentClient());
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && Capacitor.isNativePlatform()) setClientIsApp(true);
+    setMounted(true);
+    
+    // 🌟 수프로의 궁극기: 앱 환경 10000% 판별 로직!
+    // Capacitor 판단 + 안드로이드 웹뷰(wv) 고유 지문까지 모두 색출해냅니다!
+    if (typeof window !== 'undefined') {
+      const ua = navigator.userAgent || '';
+      const isNativeEnv = Capacitor.isNativePlatform() || ua.includes('wv') || ua.includes('Capacitor');
+      if (isNativeEnv) {
+        setClientIsApp(true);
+      }
+    }
     
     const fetchPreview = async () => {
       const { data } = await supabase.from('conversation_lines').select('*').order('created_at', { ascending: false }).limit(3);
@@ -102,7 +115,6 @@ export default function SearchPage({
     });
   }, [displayQuery, results, orangeKeys]);
 
-
   const UnifiedHeader = () => (
     <header className="w-full pt-8 pb-0 md:pt-12 md:pb-0">
       <div className="flex flex-col items-center justify-center text-center gap-2 mb-6 px-1">
@@ -117,8 +129,8 @@ export default function SearchPage({
       <div className="w-full">
         <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
         
-        {/* 🌟 메인 화면 검색창 바로 아래에 오늘의 회화 장착! */}
-        <TodaysConversation />
+        {/* 🌟 10000% 차단막 🌟: 완벽히 웹일 때만 렌더링하고, 앱일 때는 흔적도 없이 증발시킵니다! */}
+        {mounted && !displayIsApp && <TodaysConversation />}
 
       </div>
     </header>
@@ -170,7 +182,6 @@ export default function SearchPage({
           
           let color = '#334155'; // 기본 텍스트 색상
 
-          // 볼드체(fontWeight) 완전히 삭제! 오직 색상만 지정하여 100% 일반체로 통일합니다!
           if (orangeKeys.some((k) => k.toLowerCase() === lowerPart)) {
               color = '#ea580c';
           } else if (derivedBlueKeys.some((k) => k.toLowerCase() === lowerPart)) {
@@ -181,7 +192,6 @@ export default function SearchPage({
               color = '#ea580c';
           }
 
-          // fontWeight: 400 으로 안전하게 쐐기를 박습니다.
           return <span key={idx} style={{ color, fontWeight: 400 }}>{part}</span>;
         })}
       </>
@@ -343,15 +353,14 @@ export default function SearchPage({
                           <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3 flex-1">
                               <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
-                                {!displayIsApp && (
-                                  <button
-                                    onClick={() => handleSpeak(item.line_text)}
-                                    className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
-                                    title="발음 듣기"
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
-                                  </button>
-                                )}
+                                <button
+                                  onClick={() => handleSpeak(item.line_text)}
+                                  className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                  title="발음 듣기"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
+                                </button>
+                                
                                 <button
                                   onClick={() => handleCopy(item.line_text, item.id || idx)}
                                   className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm"
@@ -372,7 +381,11 @@ export default function SearchPage({
                             </span>
                           </div>
                         </li>
-                        {!displayIsApp && idx === 6 && <AdSensePlaceholder adSlot="8675599033" debugLabel="PC_검색결과_중간" minHeight={200} />}
+                        
+                        {!displayIsApp && idx === 6 && (
+                           <KakaoAdFit unit="DAN-Gui4SG5eMaraSbpv" width="728" height="90" />
+                        )}
+                        
                       </React.Fragment>
                     ))}
                   </ul>
@@ -411,7 +424,10 @@ export default function SearchPage({
                   )}
 
                   <div className="mt-12 mb-4"><NuanceWidget /></div>
-                  {!displayIsApp && <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_검색결과_하단" minHeight={250} />}
+                  
+                  {!displayIsApp && (
+                     <KakaoAdFit unit="DAN-Gui4SG5eMaraSbpv" width="728" height="90" />
+                  )}
 
                   <div className="flex items-center justify-between w-full mt-10 mb-6 px-1 pt-6 border-t border-slate-100">
                     <button onClick={() => router.back()} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
@@ -513,11 +529,10 @@ export default function SearchPage({
                       <div className="p-4 hover:bg-slate-50 transition-colors">
                         <div className="flex items-start gap-3 mb-3">
                           <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
-                            {!displayIsApp && (
-                              <button onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)} className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
-                              </button>
-                            )}
+                            <button onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)} className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
+                            </button>
+                            
                             <button onClick={() => handleCopy(`${item.en_text} - ${item.ko_text}`, item.id || idx)} className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm" title="문장 복사">
                               {copiedId === (item.id || idx) ? (
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-emerald-500"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>
