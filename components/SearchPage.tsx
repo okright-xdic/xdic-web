@@ -11,7 +11,7 @@ import RecentKeywords from '@/components/RecentKeywords';
 import KakaoAdFit from '@/components/ads/KakaoAdFit'; 
 import NuanceWidget from '@/components/NuanceWidget'; 
 import TodaysConversation from '@/components/TodaysConversation'; 
-import AppTodaysConversation from '@/components/AppTodaysConversation'; // 🌟 앱 전용 수동 컴포넌트 추가
+import AppTodaysConversation from '@/components/AppTodaysConversation'; 
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 
@@ -127,10 +127,7 @@ export default function SearchPage({
       <div className="w-full">
         <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
         
-        {/* 🌟 웹 전용 오늘의 회화 */}
         {mounted && !displayIsApp && <TodaysConversation />}
-
-        {/* 🌟 앱 평가단 전용 수동 오늘의 회화 추가! */}
         {mounted && displayIsApp && <AppTodaysConversation />}
 
       </div>
@@ -181,7 +178,7 @@ export default function SearchPage({
           const lowerPart = part.toLowerCase();
           const lowerPartNoSpace = lowerPart.replace(/\s+/g, ''); 
           
-          let color = '#334155'; // 기본 텍스트 색상
+          let color = '#334155';
 
           if (orangeKeys.some((k) => k.toLowerCase() === lowerPart)) {
               color = '#ea580c';
@@ -385,8 +382,13 @@ export default function SearchPage({
                           </div>
                         </li>
                         
+                        {/* 🌟 중간 광고에 보호막 추가 🌟 */}
                         {!displayIsApp && idx === 6 && (
-                           <KakaoAdFit unit="DAN-Gui4SG5eMaraSbpv" width="728" height="90" />
+                          <div className="w-full overflow-hidden flex justify-center my-4">
+                            <div className="overflow-x-auto max-w-full">
+                              <KakaoAdFit unit="DAN-Gui4SG5eMaraSbpv" width="728" height="90" />
+                            </div>
+                          </div>
                         )}
                         
                       </React.Fragment>
@@ -428,9 +430,7 @@ export default function SearchPage({
 
                   <div className="mt-12 mb-4"><NuanceWidget /></div>
                   
-                  {!displayIsApp && (
-                     <KakaoAdFit unit="DAN-Gui4SG5eMaraSbpv" width="728" height="90" />
-                  )}
+                  {/* 🌟 하단 광고 삭제 완료 🌟 */}
 
                   <div className="flex items-center justify-between w-full mt-10 mb-6 px-1 pt-6 border-t border-slate-100">
                     <button onClick={() => router.back()} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
