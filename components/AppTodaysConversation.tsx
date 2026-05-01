@@ -9,6 +9,7 @@ export default function AppTodaysConversation() {
     en_text: "Please let me know the results.",
     ko_text: "결과를 통보해 주시겠어요?",
     description: `"직장/업무요청"에 해당하는 영어회화입니다.
+
 "Please let me know"는 "알려주세요", "말씀해 주세요", "연락 주세요"라는 뜻입니다.
 
 다음은 다양한 예문입니다. 참고하세요. 
