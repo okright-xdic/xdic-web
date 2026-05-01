@@ -4,11 +4,24 @@
 import React, { useState } from 'react';
 
 export default function AppTodaysConversation() {
-  // 🌟 [수동 업데이트 영역] 매일매일 이곳의 글자만 바꿔주시면 됩니다!
+// 🌟 [수동 업데이트 영역] 매일매일 이곳의 글자만 바꿔주시면 됩니다!
   const todaysData = {
-    en_text: "It's a piece of cake.",
-    ko_text: "식은 죽 먹기죠.",
-    description: "앱 평가단 여러분 환영합니다! 🎉\n'식은 죽 먹기'처럼 아주 쉬운 일을 의미하는 표현입니다. 오늘 하루도 화이팅하세요!"
+    en_text: "Please let me know the results.",
+    ko_text: "결과를 통보해 주시겠어요?",
+    description: `"직장/업무요청"에 해당하는 영어회화입니다.
+"Please let me know"는 "알려주세요", "말씀해 주세요", "연락 주세요"라는 뜻입니다.
+
+다음은 다양한 예문입니다. 참고하세요. 
+
+이 부분 좀 수정해 주시겠어요? Could you revise this part?
+전화 좀 바꿔주시겠어요? Could you transfer the call to me?
+내선 번호 알려주시겠어요? What is your extension number?
+이 일정표를 공유해 주시겠어요? Could you share this schedule?
+가능한 한 빨리 처리해 주세요. Please take care of it as soon as possible.
+서명해서 돌려보내 주시겠어요? Could you sign and return it to me?
+이 안건을 검토해 주시겠어요? Could you review this agenda?
+피드백을 주시면 감사하겠습니다. I would appreciate your feedback.
+내일 저한테 다시 알려주시겠어요? Can you remind me tomorrow?`
   };
 
   const [isExpanded, setIsExpanded] = useState(false);
