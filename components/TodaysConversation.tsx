@@ -44,14 +44,60 @@ export default function TodaysConversation() {
     } catch {}
   };
 
-  const handleSpeak = (text: string, e: React.MouseEvent) => {
+  // 🌟 한글과 영어를 완벽하게 분리해서 발음하는 스마트 함수로 교체! 🌟
+  const handleSpeak = (e: React.MouseEvent, text: string) => {
     e.stopPropagation();
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = 'en-US';
-      utter.rate = 0.9;
-      window.speechSynthesis.speak(utter);
+      const voices = window.speechSynthesis.getVoices();
+      const enVoices = voices.filter(v => v.lang.startsWith('en'));
+      const koVoices = voices.filter(v => v.lang.startsWith('ko'));
+
+      const enVoice = enVoices.find(v => v.name.includes('Google US English Male')) || enVoices.find(v => v.name.includes('Google US English')) || enVoices[0];
+      const koVoice = koVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) || koVoices[0];
+
+      const parts: { lang: string; text: string }[] = [];
+      let currentLang = /[a-zA-Z]/.test(text.charAt(0)) ? 'en' : 'ko';
+      let currentText = '';
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (/[a-zA-Z]/.test(char)) {
+          if (currentLang !== 'en' && currentText.trim().length > 0) {
+            parts.push({ lang: currentLang, text: currentText });
+            currentText = '';
+          }
+          currentLang = 'en'; currentText += char;
+        } else if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(char)) {
+          if (currentLang !== 'ko' && currentText.trim().length > 0) {
+            parts.push({ lang: currentLang, text: currentText });
+            currentText = '';
+          }
+          currentLang = 'ko'; currentText += char;
+        } else {
+          currentText += char;
+        }
+      }
+      if (currentText.trim().length > 0) parts.push({ lang: currentLang, text: currentText });
+
+      parts.forEach((part) => {
+        if (!/[a-zA-Z가-힣0-9]/.test(part.text)) return;
+        const utterance = new SpeechSynthesisUtterance(part.text);
+        if (part.lang === 'ko') {
+          if (koVoice) utterance.voice = koVoice;
+          utterance.lang = koVoice ? koVoice.lang : 'ko-KR';
+          utterance.pitch = 1.0;
+          utterance.rate = 1.05;
+          utterance.volume = 1.0;
+        } else {
+          if (enVoice) utterance.voice = enVoice;
+          utterance.lang = enVoice ? enVoice.lang : 'en-US';
+          utterance.pitch = 0.9;
+          utterance.rate = 0.85;
+          utterance.volume = 0.75;
+        }
+        window.speechSynthesis.speak(utterance);
+      });
     } else {
       alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
     }
@@ -78,8 +124,10 @@ export default function TodaysConversation() {
 
         <div className="flex items-start gap-3 mt-1">
           <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
+            
+            {/* 🌟 영어와 한글을 합쳐서 넘겨주도록 버튼 수정! 🌟 */}
             <button
-              onClick={(e) => handleSpeak(item.en_text, e)}
+              onClick={(e) => handleSpeak(e, `${item.en_text} ... ${item.ko_text}`)}
               className="w-8 h-8 rounded-full bg-white text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
               title="발음 듣기"
             >

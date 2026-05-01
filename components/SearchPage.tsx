@@ -34,18 +34,19 @@ interface SearchPageProps {
   matchedKeywords?: string[];
 }
 
+// 🌟 선생님께서 모바일 최적화로 수정해주신 카테고리명 적용 완료! 🌟
 const CATEGORY_NAMES: Record<number, string> = {
   0: '기초영어(Reference English)', 
   1: '기본영어(Basic English)', 
   2: '인문사회용어(Terms for Humanities&Sociology)', 
-  3: '기계_전기_전자용어(Terms for Machine_Electricity_Electronics)', 
-  4: '교육_종교_예체능용어(Terms for Education_Religion_Arts&Sports)',
+  3: '기계_전기_전자용어(Machine_Electricity_Electronics)', 
+  4: '교육_종교_예체능용어(Education_Religion_Arts&Sports)',
   5: '무역경제용어(Terms for Trade and Economy)', 
   6: '자동차_환경용어(Terms for Automobile_Environment)', 
   7: '물리_화학용어(Terms for Physics_Chemistry)', 
   8: '컴퓨터용어(Computer Terms)', 
   9: '의학용어(Medical Terms)', 
-  10: '인문사회기타용어(Terms for Humanities&Sociology_Others)', 
+  10: '인문사회기타용어(Humanities&Sociology_Others)', 
   11: '과학기술기타용어(Terms for Science&Technology)', 
   12: '기타(Other Terms)'
 };
@@ -168,7 +169,7 @@ export default function SearchPage({
 
   const highlightMatch = (text: string) => {
     const allKeys = [...new Set([...orangeKeys, ...derivedBlueKeys])].filter(Boolean).sort((a, b) => b.length - a.length);
-    if (allKeys.length === 0) return <span style={{ color: '#334155' }}>{text}</span>;
+    if (allKeys.length === 0) return <span style={{ color: '#334155', fontWeight: 400 }}>{text}</span>;
 
     const escapedRegexParts = allKeys.map(k => {
       const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -189,18 +190,22 @@ export default function SearchPage({
           const lowerPartNoSpace = lowerPart.replace(/\s+/g, ''); 
           
           let color = '#334155';
+          let weight = 400; // 일반체(400) 고정!
 
           if (orangeKeys.some((k) => k.toLowerCase() === lowerPart)) {
               color = '#ea580c';
+              weight = 400; // 핵심 키워드도 굵기는 똑같이 일반체로!
           } else if (derivedBlueKeys.some((k) => k.toLowerCase() === lowerPart)) {
               color = '#2563eb';
+              weight = 400;
           }
           
           if (lowerPartNoSpace === lowerQueryNoSpace && orangeKeys.length > 0) {
               color = '#ea580c';
+              weight = 400;
           }
 
-          return <span key={idx} style={{ color, fontWeight: 400 }}>{part}</span>;
+          return <span key={idx} style={{ color, fontWeight: weight }}>{part}</span>;
         })}
       </>
     );
@@ -354,48 +359,45 @@ export default function SearchPage({
                     </span>
                   </div>
 
-                  {/* 🌟 리스트 전체 간격을 조금 더 타이트하게 (space-y-1.5) 🌟 */}
                   <ul className="space-y-1.5">
                     {currentItems.map((item, idx) => (
                       <React.Fragment key={String(item.id || idx)}>
-                        {/* 🌟 박스의 상하/좌우 패딩을 줄이고(py-2 px-3), 테두리를 살짝 더 진하게(border-slate-200) 변경 🌟 */}
-                        <li className="group bg-white rounded-lg py-2 px-3 md:py-2.5 md:px-4 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
-                          {/* 🌟 내부 요소 간격(gap)을 1로 압축 🌟 */}
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-start gap-2.5">
-                              <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
-                                {mounted && !displayIsApp && (
-                                  <button
-                                    onClick={() => handleSpeak(item.line_text)}
-                                    className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
-                                    title="발음 듣기"
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
-                                  </button>
-                                )}
-                                
+                        <li className="relative group bg-white rounded-lg px-3 py-2 md:px-4 md:py-2.5 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+                          <div className="flex items-start gap-2.5">
+                            <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
+                              {mounted && !displayIsApp && (
                                 <button
-                                  onClick={() => handleCopy(item.line_text, item.id || idx)}
-                                  className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm"
-                                  title="텍스트 복사"
+                                  onClick={() => handleSpeak(item.line_text)}
+                                  className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                  title="발음 듣기"
                                 >
-                                  {copiedId === (item.id || idx) ? (
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-emerald-500"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>
-                                  ) : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" /></svg>
-                                  )}
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
                                 </button>
-                              </div>
+                              )}
+                              
+                              <button
+                                onClick={() => handleCopy(item.line_text, item.id || idx)}
+                                className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm"
+                                title="텍스트 복사"
+                              >
+                                {copiedId === (item.id || idx) ? (
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-emerald-500"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>
+                                ) : (
+                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" /></svg>
+                                )}
+                              </button>
+                            </div>
 
-                              <div className="flex-1 text-[15px] md:text-[17px] leading-snug break-keep">{highlightMatch(item.line_text)}</div>
+                            {/* 🌟 텍스트 굵기는 얇고 깔끔하게, 크기는 라이브 사이트(x-dic.com)와 동일하게 16px~18px로 상향 조정! 🌟 */}
+                            <div className="flex-1 text-[16px] md:text-[18px] leading-snug break-keep pb-4 md:pb-5">
+                              {highlightMatch(item.line_text)}
                             </div>
-                            
-                            {/* 🌟 카테고리 폰트 확대 및 상단 여백 축소 🌟 */}
-                            <div className="flex justify-end mt-0.5">
-                              <span className="inline-block px-2.5 py-1 rounded text-xs md:text-[13px] tracking-tight shadow-sm" style={{ backgroundColor: '#d4b08c', color: '#ffffff', fontWeight: '600' }}>
-                                {getCategoryName(item.category_id)}
-                              </span>
-                            </div>
+                          </div>
+                          
+                          <div className="absolute bottom-1.5 right-2 md:bottom-2 md:right-3">
+                            <span className="inline-block px-2 py-0.5 rounded text-[11px] md:text-[12px] tracking-tight shadow-sm" style={{ backgroundColor: '#d4b08c', color: '#ffffff', fontWeight: '600' }}>
+                              {getCategoryName(item.category_id)}
+                            </span>
                           </div>
                         </li>
                         
