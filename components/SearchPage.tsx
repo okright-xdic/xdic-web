@@ -35,9 +35,19 @@ interface SearchPageProps {
 }
 
 const CATEGORY_NAMES: Record<number, string> = {
-  0: '기초영어', 1: '기본영어', 2: '인문사회용어', 3: '기계_전기_전자용어',
-  4: '교육_종교_예체능용어', 5: '무역경제용어', 6: '자동차_환경용어', 7: '물리_화학용어',
-  8: '컴퓨터용어', 9: '의학용어', 10: '인문사회기타용어', 11: '과학기술기타용어', 12: '기타',
+  0: '기초영어(Reference English)', 
+  1: '기본영어(Basic English)', 
+  2: '인문사회용어(Terms for Humanities&Sociology)', 
+  3: '기계_전기_전자용어(Terms for Machine_Electricity_Electronics)', 
+  4: '교육_종교_예체능용어(Terms for Education_Religion_Arts&Sports)',
+  5: '무역경제용어(Terms for Trade and Economy)', 
+  6: '자동차_환경용어(Terms for Automobile_Environment)', 
+  7: '물리_화학용어(Terms for Physics_Chemistry)', 
+  8: '컴퓨터용어(Computer Terms)', 
+  9: '의학용어(Medical Terms)', 
+  10: '인문사회기타용어(Terms for Humanities&Sociology_Others)', 
+  11: '과학기술기타용어(Terms for Science&Technology)', 
+  12: '기타(Other Terms)'
 };
 
 export default function SearchPage({ 
@@ -154,7 +164,7 @@ export default function SearchPage({
     window.open(url, '_blank');
   };
 
-  const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타';
+  const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타(Other Terms)';
 
   const highlightMatch = (text: string) => {
     const allKeys = [...new Set([...orangeKeys, ...derivedBlueKeys])].filter(Boolean).sort((a, b) => b.length - a.length);
@@ -344,12 +354,15 @@ export default function SearchPage({
                     </span>
                   </div>
 
-                  <ul className="space-y-1">
+                  {/* 🌟 리스트 전체 간격을 조금 더 타이트하게 (space-y-1.5) 🌟 */}
+                  <ul className="space-y-1.5">
                     {currentItems.map((item, idx) => (
                       <React.Fragment key={String(item.id || idx)}>
-                        <li className="group bg-white rounded-lg py-2 px-3 border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all duration-200">
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3 flex-1">
+                        {/* 🌟 박스의 상하/좌우 패딩을 줄이고(py-2 px-3), 테두리를 살짝 더 진하게(border-slate-200) 변경 🌟 */}
+                        <li className="group bg-white rounded-lg py-2 px-3 md:py-2.5 md:px-4 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
+                          {/* 🌟 내부 요소 간격(gap)을 1로 압축 🌟 */}
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-start gap-2.5">
                               <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
                                 {mounted && !displayIsApp && (
                                   <button
@@ -374,15 +387,18 @@ export default function SearchPage({
                                 </button>
                               </div>
 
-                              <div className="text-base md:text-lg leading-snug break-keep">{highlightMatch(item.line_text)}</div>
+                              <div className="flex-1 text-[15px] md:text-[17px] leading-snug break-keep">{highlightMatch(item.line_text)}</div>
                             </div>
-                            <span className="flex-shrink-0 ml-3 px-2 py-0.5 rounded text-xs tracking-tight whitespace-nowrap shadow-sm" style={{ backgroundColor: '#d4b08c', color: '#ffffff', fontWeight: '500' }}>
-                              {getCategoryName(item.category_id)}
-                            </span>
+                            
+                            {/* 🌟 카테고리 폰트 확대 및 상단 여백 축소 🌟 */}
+                            <div className="flex justify-end mt-0.5">
+                              <span className="inline-block px-2.5 py-1 rounded text-xs md:text-[13px] tracking-tight shadow-sm" style={{ backgroundColor: '#d4b08c', color: '#ffffff', fontWeight: '600' }}>
+                                {getCategoryName(item.category_id)}
+                              </span>
+                            </div>
                           </div>
                         </li>
                         
-                        {/* 🌟 스마트 광고 노출 로직: 7개 이상이면 7번째 밑에, 미만이면 맨 마지막 항목 밑에 노출! */}
                         {!displayIsApp && idx === Math.min(6, currentItems.length - 1) && (
                           <div className="w-full overflow-hidden flex justify-center my-4">
                             <div className="overflow-x-auto max-w-full">
