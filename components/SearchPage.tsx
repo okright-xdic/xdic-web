@@ -8,10 +8,10 @@ import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import PopularKeywords from '@/components/PopularKeywords'; 
 import RecentKeywords from '@/components/RecentKeywords'; 
-// import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder'; // 🌟 구글 애드센스 임시 비활성화
-import KakaoAdFit from '@/components/ads/KakaoAdFit'; // 🌟 카카오 애드핏 컴포넌트 불러오기!
+import KakaoAdFit from '@/components/ads/KakaoAdFit'; 
 import NuanceWidget from '@/components/NuanceWidget'; 
 import TodaysConversation from '@/components/TodaysConversation'; 
+import AppTodaysConversation from '@/components/AppTodaysConversation'; // 🌟 앱 전용 수동 컴포넌트 추가
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 
@@ -50,7 +50,7 @@ export default function SearchPage({
   const itemsPerPage = 20;
   
   const [clientIsApp, setClientIsApp] = useState(false);
-  const [mounted, setMounted] = useState(false); // 🌟 화면 준비 완료 체크
+  const [mounted, setMounted] = useState(false);
   const [previewData, setPreviewData] = useState<any[]>([]);
 
   const [copiedId, setCopiedId] = useState<string | number | null>(null);
@@ -60,8 +60,6 @@ export default function SearchPage({
   useEffect(() => {
     setMounted(true);
     
-    // 🌟 수프로의 궁극기: 앱 환경 10000% 판별 로직!
-    // Capacitor 판단 + 안드로이드 웹뷰(wv) 고유 지문까지 모두 색출해냅니다!
     if (typeof window !== 'undefined') {
       const ua = navigator.userAgent || '';
       const isNativeEnv = Capacitor.isNativePlatform() || ua.includes('wv') || ua.includes('Capacitor');
@@ -129,8 +127,11 @@ export default function SearchPage({
       <div className="w-full">
         <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
         
-        {/* 🌟 10000% 차단막 🌟: 완벽히 웹일 때만 렌더링하고, 앱일 때는 흔적도 없이 증발시킵니다! */}
+        {/* 🌟 웹 전용 오늘의 회화 */}
         {mounted && !displayIsApp && <TodaysConversation />}
+
+        {/* 🌟 앱 평가단 전용 수동 오늘의 회화 추가! */}
+        {mounted && displayIsApp && <AppTodaysConversation />}
 
       </div>
     </header>
@@ -353,13 +354,15 @@ export default function SearchPage({
                           <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3 flex-1">
                               <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
-                                <button
-                                  onClick={() => handleSpeak(item.line_text)}
-                                  className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
-                                  title="발음 듣기"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
-                                </button>
+                                {mounted && !displayIsApp && (
+                                  <button
+                                    onClick={() => handleSpeak(item.line_text)}
+                                    className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                    title="발음 듣기"
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
+                                  </button>
+                                )}
                                 
                                 <button
                                   onClick={() => handleCopy(item.line_text, item.id || idx)}
@@ -529,9 +532,11 @@ export default function SearchPage({
                       <div className="p-4 hover:bg-slate-50 transition-colors">
                         <div className="flex items-start gap-3 mb-3">
                           <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
-                            <button onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)} className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
-                            </button>
+                            {mounted && !displayIsApp && (
+                              <button onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)} className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
+                              </button>
+                            )}
                             
                             <button onClick={() => handleCopy(`${item.en_text} - ${item.ko_text}`, item.id || idx)} className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm" title="문장 복사">
                               {copiedId === (item.id || idx) ? (
