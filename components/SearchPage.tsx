@@ -382,8 +382,8 @@ export default function SearchPage({
                           </div>
                         </li>
                         
-                        {/* 🌟 중간 광고에 보호막 추가 🌟 */}
-                        {!displayIsApp && idx === 6 && (
+                        {/* 🌟 스마트 광고 노출 로직: 7개 이상이면 7번째 밑에, 미만이면 맨 마지막 항목 밑에 노출! */}
+                        {!displayIsApp && idx === Math.min(6, currentItems.length - 1) && (
                           <div className="w-full overflow-hidden flex justify-center my-4">
                             <div className="overflow-x-auto max-w-full">
                               <KakaoAdFit unit="DAN-Gui4SG5eMaraSbpv" width="728" height="90" />
@@ -430,8 +430,6 @@ export default function SearchPage({
 
                   <div className="mt-12 mb-4"><NuanceWidget /></div>
                   
-                  {/* 🌟 하단 광고 삭제 완료 🌟 */}
-
                   <div className="flex items-center justify-between w-full mt-10 mb-6 px-1 pt-6 border-t border-slate-100">
                     <button onClick={() => router.back()} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
