@@ -1,5 +1,5 @@
 // app/app/page.tsx
-// ✅ 앱(/app) 서버 검색: 불필요한 따옴표 삭제! (love 에러 완벽 해결)
+// ✅ 앱(/app) 서버 검색: 불필요한 따옴표 및 콤마 완벽 삭제! (love 및 사랑 에러 완벽 해결)
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -245,22 +245,18 @@ const extractKeywords = (query: string): string[] => {
     });
 };
 
-// 🌟 [수술 핵심 2] 쿼리를 망가뜨리는 기호만 안전하게 지우고 던집니다! (큰따옴표는 절대 쓰지 않음!)
+// 🌟 [수술 핵심 1] DB 에러를 유발하던 '콤마(,)' 검색을 완전히 제거했습니다!
 const getExactQueries = (word: string) => {
   const w = word.replace(/[,.()\[\]:"']/g, '').trim(); 
   return [
     `line_text.eq.${w}`,
     `line_text.ilike.${w} %`,
     `line_text.ilike.% ${w} %`,
-    `line_text.ilike.% ${w}`,
-    `line_text.ilike.${w},%`,
-    `line_text.ilike.% ${w},%`,
-    `line_text.ilike.${w}.%`,
-    `line_text.ilike.% ${w}.%`
+    `line_text.ilike.% ${w}`
   ].join(',');
 };
 
-export default async function AppPage({ searchParams }: { searchParams: { q?: string }; }) {
+export default async function Page({ searchParams }: { searchParams: { q?: string; app?: string }; }) {
   const query = (searchParams.q || '').toString();
   const cleanQuery = query.trim();
   const noSpaceLen = cleanQuery.replace(/\s+/g, '').length;
@@ -323,10 +319,10 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
     const safeExactQuery = cleanQuery.replace(/[,.()\[\]:"']/g, '').trim();
     const safeNoSpaceQuery = noSpaceQuery.replace(/[,.()\[\]:"']/g, '').trim();
 
+    // 🌟 [수술 핵심 1] DB 에러를 유발하던 '콤마(,)' 검색을 완전히 제거했습니다!
     const exactQueriesArray = [
       `line_text.eq.${safeExactQuery}`, 
       `line_text.ilike.${safeExactQuery} %`, 
-      `line_text.ilike.${safeExactQuery},%`, 
       `line_text.ilike.% ${safeExactQuery} %`, 
       `line_text.ilike.% ${safeExactQuery}`
     ];
@@ -334,7 +330,6 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
       exactQueriesArray.push(
         `line_text.eq.${safeNoSpaceQuery}`, 
         `line_text.ilike.${safeNoSpaceQuery} %`, 
-        `line_text.ilike.${safeNoSpaceQuery},%`, 
         `line_text.ilike.% ${safeNoSpaceQuery} %`, 
         `line_text.ilike.% ${safeNoSpaceQuery}`
       );
@@ -445,7 +440,8 @@ export default async function AppPage({ searchParams }: { searchParams: { q?: st
          }
       }
 
-      if (wordCount === 1 && cleanQuery.length >= 2 && cleanQuery.length <= 4 && !bestSplit) {
+      // 🌟 [수술 핵심 2] 억지 띄어쓰기(l%o%v%e)는 '한글' 일 때만 허용하여 영어 검색 에러 차단!
+      if (wordCount === 1 && cleanQuery.length >= 2 && cleanQuery.length <= 4 && !bestSplit && /[가-힣]/.test(cleanQuery)) {
         const spacedQuery = cleanQuery.split('').join('%');
         fallbackPromises.push((async () => {
           try {

@@ -34,7 +34,6 @@ interface SearchPageProps {
   matchedKeywords?: string[];
 }
 
-// 🌟 선생님께서 모바일 최적화로 수정해주신 카테고리명 적용 완료! 🌟
 const CATEGORY_NAMES: Record<number, string> = {
   0: '기초영어(Reference English)', 
   1: '기본영어(Basic English)', 
@@ -194,7 +193,7 @@ export default function SearchPage({
 
           if (orangeKeys.some((k) => k.toLowerCase() === lowerPart)) {
               color = '#ea580c';
-              weight = 400; // 핵심 키워드도 굵기는 똑같이 일반체로!
+              weight = 400; // 핵심 키워드도 굵기는 똑같이 일반체로! (색깔만 다르게)
           } else if (derivedBlueKeys.some((k) => k.toLowerCase() === lowerPart)) {
               color = '#2563eb';
               weight = 400;
@@ -388,7 +387,7 @@ export default function SearchPage({
                               </button>
                             </div>
 
-                            {/* 🌟 텍스트 굵기는 얇고 깔끔하게, 크기는 라이브 사이트(x-dic.com)와 동일하게 16px~18px로 상향 조정! 🌟 */}
+                            {/* 🌟 텍스트 크기를 16px~18px로 맞추어 x-dic.com과 동일한 비율 유지! 🌟 */}
                             <div className="flex-1 text-[16px] md:text-[18px] leading-snug break-keep pb-4 md:pb-5">
                               {highlightMatch(item.line_text)}
                             </div>
