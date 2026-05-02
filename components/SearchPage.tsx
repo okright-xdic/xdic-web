@@ -34,15 +34,16 @@ interface SearchPageProps {
   matchedKeywords?: string[];
 }
 
+// 🌟 언더바(_)를 예쁜 가운데점(·)으로 완벽 교체했습니다! 🌟
 const CATEGORY_NAMES: Record<number, string> = {
   0: '기초영어(Reference English)', 
   1: '기본영어(Basic English)', 
   2: '인문사회용어(Terms for Humanities&Sociology)', 
-  3: '기계_전기_전자용어(Machine_Electricity_Electronics)', 
-  4: '교육_종교_예체능용어(Education_Religion_Arts&Sports)',
+  3: '기계·전기·전자용어(Machine·Electricity·Electronics)', 
+  4: '교육·종교·예체능용어(Education·Religion·Arts&Sports)',
   5: '무역경제용어(Terms for Trade and Economy)', 
-  6: '자동차_환경용어(Terms for Automobile_Environment)', 
-  7: '물리_화학용어(Terms for Physics_Chemistry)', 
+  6: '자동차·환경용어(Terms for Automobile·Environment)', 
+  7: '물리·화학용어(Terms for Physics·Chemistry)', 
   8: '컴퓨터용어(Computer Terms)', 
   9: '의학용어(Medical Terms)', 
   10: '인문사회기타용어(Humanities&Sociology_Others)', 
@@ -189,11 +190,11 @@ export default function SearchPage({
           const lowerPartNoSpace = lowerPart.replace(/\s+/g, ''); 
           
           let color = '#334155';
-          let weight = 400; // 일반체(400) 고정!
+          let weight = 400; 
 
           if (orangeKeys.some((k) => k.toLowerCase() === lowerPart)) {
               color = '#ea580c';
-              weight = 400; // 핵심 키워드도 굵기는 똑같이 일반체로! (색깔만 다르게)
+              weight = 400; 
           } else if (derivedBlueKeys.some((k) => k.toLowerCase() === lowerPart)) {
               color = '#2563eb';
               weight = 400;
@@ -387,7 +388,6 @@ export default function SearchPage({
                               </button>
                             </div>
 
-                            {/* 🌟 텍스트 크기를 16px~18px로 맞추어 x-dic.com과 동일한 비율 유지! 🌟 */}
                             <div className="flex-1 text-[16px] md:text-[18px] leading-snug break-keep pb-4 md:pb-5">
                               {highlightMatch(item.line_text)}
                             </div>
