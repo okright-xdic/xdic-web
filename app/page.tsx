@@ -1,5 +1,5 @@
 // app/page.tsx
-// ✅ 웹(/) 서버 검색: 2단어 이상 검색어(전시를 축하드립니다) 부분 일치 완벽 해결 및 사오정 필터링!
+// ✅ 웹(/) 서버 검색: 띄어쓰기 보정 최우선, 사오정 필터링, 결과 보강(1페이지 채우기) 및 억울한 배너 차단 완벽 적용!
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -98,7 +98,24 @@ const sortByCategory = (list: any[]) => {
   });
 };
 
-// 🌟 [수술 1] 사오정 결과('발전시키다')를 밀어내고 진짜 단어('전시')를 위로 올리는 정렬 함수 업그레이드!
+const sortByRelevanceAndCategory = (list: any[]) => {
+  return list.sort((a, b) => {
+    const countA = a._matchCount || 0;
+    const countB = b._matchCount || 0;
+    if (countA !== countB) return countB - countA;
+
+    const lenA = a._maxMatchedLen || 0;
+    const lenB = b._maxMatchedLen || 0;
+    if (lenA !== lenB) return lenB - lenA;
+
+    const catA = a.category_id != null ? a.category_id : 12;
+    const catB = b.category_id != null ? b.category_id : 12;
+    if (catA !== catB) return catA - catB;
+    
+    return (a._db_index || 0) - (b._db_index || 0);
+  });
+};
+
 const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[], flexStr: string, isSplitMode: boolean = false) => {
   if (!items || items.length === 0) return [];
   const lowerKeywordNoSpace = keyword.trim().toLowerCase().replace(/\s+/g, '');
@@ -112,7 +129,6 @@ const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[
   const dictPartialMatch: any[] = [];
   const rpcMatches: any[] = [];
   
-  // 🌟 독립 단어(전시)와 부분 단어(발전시키다)를 분리할 배열을 새로 만듭니다!
   const andMatchesBoundary: any[] = [];
   const andMatchesPartial: any[] = [];
   const orMatchesBoundary: any[] = [];
@@ -133,7 +149,6 @@ const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[
      return regex.test(text);
   };
 
-  // 🌟 이것이 사오정 판독기입니다! (단어 앞에 한글이 붙어있으면 가짜 단어로 판별)
   const isWordBoundary = (text: string, target: string) => {
      if (!target) return false;
      const escaped = target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -175,15 +190,26 @@ const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[
     } else {
       let hasAll = true;
       let hasBoundary = false;
+      let matchCount = 0;
+      let maxMatchedLen = 0;
+
       if (allSearchKeywords.length > 0) {
         for (const k of allSearchKeywords) {
-          if (!textNoSpace.includes(k.toLowerCase())) { hasAll = false; }
-          // 🌟 검색한 핵심 단어가 독립적으로 존재하면 최상단으로 올릴 수 있게 체크!
-          if (isWordBoundary(textOriginal, k.toLowerCase())) { hasBoundary = true; }
+          if (textNoSpace.includes(k.toLowerCase())) {
+            matchCount++;
+            if (isWordBoundary(textOriginal, k.toLowerCase())) { 
+              hasBoundary = true; 
+              if (k.length > maxMatchedLen) maxMatchedLen = k.length;
+            }
+          } else { 
+            hasAll = false; 
+          }
         }
       } else { hasAll = false; }
 
-      // 🌟 진짜 단어(Boundary)와 가짜 단어(Partial) 분리 수용!
+      item._matchCount = matchCount;
+      item._maxMatchedLen = maxMatchedLen;
+
       if (hasAll) {
          if (hasBoundary) andMatchesBoundary.push(item);
          else andMatchesPartial.push(item);
@@ -204,8 +230,8 @@ const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[
       ...sortByCategory(dictStandalone),
       ...sortByCategory(dictPartialMatch), 
       ...sortByCategory(corpusPartialMatch),
-      ...sortByCategory(andMatchesBoundary), 
-      ...sortByCategory(andMatchesPartial)
+      ...sortByRelevanceAndCategory(andMatchesBoundary), 
+      ...sortByRelevanceAndCategory(andMatchesPartial)
     ];
   } else {
     const combinedTightSplit: any[] = [];
@@ -234,12 +260,12 @@ const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[
       ...combinedTightSplit, 
       ...sortByCategory(dictPartialMatch),
       ...sortByCategory(corpusPartialMatch),
-      ...sortByCategory(andMatchesBoundary),
-      ...sortByCategory(andMatchesPartial),
+      ...sortByRelevanceAndCategory(andMatchesBoundary),
+      ...sortByRelevanceAndCategory(andMatchesPartial),
       ...sortByCategory(rpcMatches), 
       ...combinedPartialSplit, 
-      ...sortByCategory(orMatchesBoundary),  // 🌟 진짜 단어 최상단 노출
-      ...sortByCategory(orMatchesPartial)    // 🌟 가짜 사오정 단어 최하단 배치!
+      ...sortByRelevanceAndCategory(orMatchesBoundary),  
+      ...sortByRelevanceAndCategory(orMatchesPartial)    
     ];
   }
 };
@@ -270,7 +296,6 @@ const extractKeywords = (query: string): string[] => {
     });
 };
 
-// 🌟 [수술 2] SQL 에러의 주범이었던 별표(*)를 제거하고 다시 %로 복구! 
 const getExactQueries = (word: string) => {
   const w = word.replace(/[,.()\[\]:"']/g, '').trim(); 
   return [
@@ -309,7 +334,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
 
   let wordCount = 0;
   let baseExtracted: string[] = [];
-  let allSearchKeywords: string[] = []; // 🌟 원본 단어('전시를')까지 모두 담을 그릇!
+  let allSearchKeywords: string[] = []; 
 
   const flexStr = noSpaceQuery.split('').map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*');
 
@@ -331,7 +356,6 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
     wordCount = cleanQuery.split(/\s+/).length;
     baseExtracted = extractKeywords(cleanQuery);
     
-    // 🌟 원본 단어('전시를', '축하드립니다')를 훼손하지 않고 고스란히 추가!
     const rawTokens = cleanQuery.split(/\s+/).map(t => t.replace(/[.,?!]/g, ''));
     allSearchKeywords = [...new Set([...baseExtracted, ...rawTokens])].filter(k => k.length >= 2 || /[가-힣]/.test(k));
 
@@ -362,6 +386,31 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
         `line_text.ilike."% ${safeNoSpaceQuery} %"`, 
         `line_text.ilike."% ${safeNoSpaceQuery}"`
       );
+    }
+
+    if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 10 && /[가-힣]/.test(cleanQuery)) {
+      const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
+      let splitPairs: any[] = [];
+      for (let i = 1; i < safeQuery.length; i++) {
+        splitPairs.push({ p1: safeQuery.slice(0, i), p2: safeQuery.slice(i) });
+      }
+      
+      splitPairs.forEach(pair => {
+         const spaceCorrected = `${pair.p1} ${pair.p2}`;
+         exactQueriesArray.push(
+           `line_text.eq."${spaceCorrected}"`,
+           `line_text.ilike."${spaceCorrected} %"`,
+           `line_text.ilike."% ${spaceCorrected} %"`,
+           `line_text.ilike."% ${spaceCorrected}"`
+         );
+      });
+
+      const validPairs = splitPairs.filter(p => p.p1.length >= 2 && p.p2.length >= 2);
+      if (validPairs.length > 0) {
+         bestSplit = validPairs.reduce((prev, curr) => Math.abs(curr.p1.length - curr.p2.length) < Math.abs(prev.p1.length - prev.p2.length) ? curr : prev);
+      } else if (splitPairs.length > 0) {
+         bestSplit = splitPairs.reduce((prev, curr) => Math.abs(curr.p1.length - curr.p2.length) < Math.abs(prev.p1.length - prev.p2.length) ? curr : prev);
+      }
     }
     
     promises.push((async () => {
@@ -417,7 +466,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
 
     let isSplitModeActive = false; 
 
-    if (!hasExactMatch && results.length < 50) {
+    if ((!hasExactMatch || results.length < 20) && results.length < 50) {
       const fallbackPromises: Promise<void>[] = [];
       
       if (wordCount === 1 && bestSplit) {
@@ -457,9 +506,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
            return k.length >= 2;
          });
 
-         // 🌟 [수술 3] 1단어 제한 삭제! 다중 단어일 때 진짜 단어(Boundary)부터 찾고 가짜 단어(Partial)를 찾습니다!
          if (validOrKeywords.length > 0) {
-           isPartialMatch = true;
            matchedKeywords = validOrKeywords;
            orangeKeys.push(...validOrKeywords);
 
@@ -467,7 +514,6 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
              const cleanK = k.replace(/[,.()\[\]:"']/g, '');
              if (!cleanK) return;
 
-             // 1. 진짜 단어 우선 검색 (전시를, 축하드립니다 등)
              fallbackPromises.push((async () => {
                try {
                  const exactQs = getExactQueries(cleanK);
@@ -476,7 +522,6 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
                } catch(e) {}
              })());
 
-             // 2. 가짜 단어 포함 검색 (발전시키다 등)
              fallbackPromises.push((async () => {
                try {
                  const { data } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${cleanK}%`).order('category_id', { ascending: true }).limit(30);
@@ -487,23 +532,30 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
          }
       }
 
-      if (wordCount === 1 && cleanQuery.length >= 2 && cleanQuery.length <= 4 && !bestSplit && /[가-힣]/.test(cleanQuery)) {
-        const spacedQuery = cleanQuery.split('').join('%');
-        fallbackPromises.push((async () => {
-          try {
-            const { data } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${spacedQuery}%`).order('category_id', { ascending: true }).limit(30);
-            if (data && data.length > 0) { 
-              data.forEach(addRes); 
-              isPartialMatch = true; 
-              matchedKeywords = [cleanQuery]; 
-              orangeKeys.push(cleanQuery); 
+      if (fallbackPromises.length > 0) {
+          await Promise.all(fallbackPromises);
+          results = Array.from(resultsMap.values());
+          
+          let foundExactInFallback = false;
+          const lowerNoSpace = noSpaceQuery.toLowerCase();
+          for (const item of results) {
+            const textNoSpace = (item.line_text || '').toLowerCase().replace(/\s+/g, '');
+            if (item.is_exact_priority || textNoSpace.includes(lowerNoSpace)) {
+              foundExactInFallback = true;
+              break;
             }
-          } catch(e) {}
-        })());
-      }
+          }
 
-      if (fallbackPromises.length > 0) await Promise.all(fallbackPromises);
-      results = Array.from(resultsMap.values());
+          if (!hasExactMatch && !foundExactInFallback && matchedKeywords.length > 0) {
+              isPartialMatch = true;
+          } else {
+              isPartialMatch = false; 
+          }
+      }
+    }
+
+    if (hasExactMatch) {
+      isPartialMatch = false;
     }
 
     if (results.length > 0) {
