@@ -6,23 +6,18 @@ import React, { useState } from 'react';
 export default function AppTodaysConversation() {
 // 🌟 [수동 업데이트 영역] 매일매일 이곳의 글자만 바꿔주시면 됩니다!
   const todaysData = {
-    en_text: "Please let me know the results.",
-    ko_text: "결과를 통보해 주시겠어요?",
-    description: `"직장/업무요청"에 해당하는 영어회화입니다.
-
-"Please let me know"는 "알려주세요", "말씀해 주세요", "연락 주세요"라는 뜻입니다.
+    en_text: "I have a reservation under the name Kim.",
+    ko_text: "'김'이라는 이름으로 예약했습니다.",
+    description: `"호텔/체크인"에 관한 여행 영어입니다.
+Do you have a booking?: 'Reservation' 대신 'Booking'을 사용하여 동일한 의미 전달.
+Did you make a reservation?: '예약을 했는지' 행위 여부를 묻는 능동형 문장.
+Do you have an appointment?: 병원, 미용실 등 '사람과의 약속'을 묻는 경우. 
 
 다음은 다양한 예문입니다. 참고하세요. 
 
-이 부분 좀 수정해 주시겠어요? Could you revise this part?
-전화 좀 바꿔주시겠어요? Could you transfer the call to me?
-내선 번호 알려주시겠어요? What is your extension number?
-이 일정표를 공유해 주시겠어요? Could you share this schedule?
-가능한 한 빨리 처리해 주세요. Please take care of it as soon as possible.
-서명해서 돌려보내 주시겠어요? Could you sign and return it to me?
-이 안건을 검토해 주시겠어요? Could you review this agenda?
-피드백을 주시면 감사하겠습니다. I would appreciate your feedback.
-내일 저한테 다시 알려주시겠어요? Can you remind me tomorrow?`
+체크인하고 싶습니다. I'd like to check in, please.
+제 예약 확인 번호입니다. Here is my confirmation number.
+성함을 철자대로 말씀해 주시겠어요? Could you spell your last name, please?`
   };
 
   const [isExpanded, setIsExpanded] = useState(false);
