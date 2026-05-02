@@ -1,5 +1,5 @@
 // app/app/page.tsx
-// ✅ 앱(/app) 서버 검색: 불필요한 따옴표 및 콤마 완벽 삭제! (love 및 사랑 에러 완벽 해결)
+// ✅ 앱(/app) 서버 검색: 2단어 이상 검색어(전시를 축하드립니다) 부분 일치 완벽 해결 및 사오정 필터링!
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -98,7 +98,8 @@ const sortByCategory = (list: any[]) => {
   });
 };
 
-const rotateResults = (items: any[], keyword: string, extractedKeywords: string[], flexStr: string, isSplitMode: boolean = false) => {
+// 🌟 [수술 1] 사오정 결과('발전시키다')를 밀어내고 진짜 단어('전시')를 위로 올리는 정렬 함수 업그레이드!
+const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[], flexStr: string, isSplitMode: boolean = false) => {
   if (!items || items.length === 0) return [];
   const lowerKeywordNoSpace = keyword.trim().toLowerCase().replace(/\s+/g, '');
   const itemsWithIndex = items.map((item, idx) => ({ ...item, _db_index: idx }));
@@ -110,8 +111,12 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
   const dictStandalone: any[] = [];
   const dictPartialMatch: any[] = [];
   const rpcMatches: any[] = [];
-  const andMatches: any[] = [];
-  const orMatches: any[] = [];
+  
+  // 🌟 독립 단어(전시)와 부분 단어(발전시키다)를 분리할 배열을 새로 만듭니다!
+  const andMatchesBoundary: any[] = [];
+  const andMatchesPartial: any[] = [];
+  const orMatchesBoundary: any[] = [];
+  const orMatchesPartial: any[] = [];
   
   const frontTightMatches: any[] = []; 
   const frontPartialMatches: any[] = []; 
@@ -125,6 +130,14 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
      if (!target) return false;
      const escapedTarget = target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
      const regex = new RegExp(`(?:^|[^가-힣a-zA-Z0-9_])${escapedTarget}(?:[^가-힣a-zA-Z0-9_]|$)`, 'i');
+     return regex.test(text);
+  };
+
+  // 🌟 이것이 사오정 판독기입니다! (단어 앞에 한글이 붙어있으면 가짜 단어로 판별)
+  const isWordBoundary = (text: string, target: string) => {
+     if (!target) return false;
+     const escaped = target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+     const regex = new RegExp(`(?:^|[^가-힣a-zA-Z0-9_])${escaped}`, 'i');
      return regex.test(text);
   };
 
@@ -161,14 +174,23 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
       rpcMatches.push(item);
     } else {
       let hasAll = true;
-      if (extractedKeywords.length > 0) {
-        for (const k of extractedKeywords) {
-          if (!textNoSpace.includes(k.toLowerCase())) { hasAll = false; break; }
+      let hasBoundary = false;
+      if (allSearchKeywords.length > 0) {
+        for (const k of allSearchKeywords) {
+          if (!textNoSpace.includes(k.toLowerCase())) { hasAll = false; }
+          // 🌟 검색한 핵심 단어가 독립적으로 존재하면 최상단으로 올릴 수 있게 체크!
+          if (isWordBoundary(textOriginal, k.toLowerCase())) { hasBoundary = true; }
         }
       } else { hasAll = false; }
 
-      if (hasAll) andMatches.push(item);
-      else orMatches.push(item);
+      // 🌟 진짜 단어(Boundary)와 가짜 단어(Partial) 분리 수용!
+      if (hasAll) {
+         if (hasBoundary) andMatchesBoundary.push(item);
+         else andMatchesPartial.push(item);
+      } else {
+         if (hasBoundary) orMatchesBoundary.push(item);
+         else orMatchesPartial.push(item);
+      }
     }
   });
 
@@ -182,7 +204,8 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
       ...sortByCategory(dictStandalone),
       ...sortByCategory(dictPartialMatch), 
       ...sortByCategory(corpusPartialMatch),
-      ...sortByCategory(andMatches) 
+      ...sortByCategory(andMatchesBoundary), 
+      ...sortByCategory(andMatchesPartial)
     ];
   } else {
     const combinedTightSplit: any[] = [];
@@ -211,10 +234,12 @@ const rotateResults = (items: any[], keyword: string, extractedKeywords: string[
       ...combinedTightSplit, 
       ...sortByCategory(dictPartialMatch),
       ...sortByCategory(corpusPartialMatch),
-      ...sortByCategory(andMatches),
+      ...sortByCategory(andMatchesBoundary),
+      ...sortByCategory(andMatchesPartial),
       ...sortByCategory(rpcMatches), 
       ...combinedPartialSplit, 
-      ...sortByCategory(orMatches)   
+      ...sortByCategory(orMatchesBoundary),  // 🌟 진짜 단어 최상단 노출
+      ...sortByCategory(orMatchesPartial)    // 🌟 가짜 사오정 단어 최하단 배치!
     ];
   }
 };
@@ -245,14 +270,14 @@ const extractKeywords = (query: string): string[] => {
     });
 };
 
-// 🌟 [수술 핵심 1] DB 에러를 유발하던 '콤마(,)' 검색을 완전히 제거했습니다!
+// 🌟 [수술 2] SQL 에러의 주범이었던 별표(*)를 제거하고 다시 %로 복구! 
 const getExactQueries = (word: string) => {
   const w = word.replace(/[,.()\[\]:"']/g, '').trim(); 
   return [
-    `line_text.eq.${w}`,
-    `line_text.ilike.${w} %`,
-    `line_text.ilike.% ${w} %`,
-    `line_text.ilike.% ${w}`
+    `line_text.eq."${w}"`,
+    `line_text.ilike."${w} %"`,
+    `line_text.ilike."% ${w} %"`,
+    `line_text.ilike."% ${w}"`
   ].join(',');
 };
 
@@ -284,6 +309,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
 
   let wordCount = 0;
   let baseExtracted: string[] = [];
+  let allSearchKeywords: string[] = []; // 🌟 원본 단어('전시를')까지 모두 담을 그릇!
 
   const flexStr = noSpaceQuery.split('').map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*');
 
@@ -304,6 +330,10 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
   if (cleanQuery && noSpaceLen >= 2) {
     wordCount = cleanQuery.split(/\s+/).length;
     baseExtracted = extractKeywords(cleanQuery);
+    
+    // 🌟 원본 단어('전시를', '축하드립니다')를 훼손하지 않고 고스란히 추가!
+    const rawTokens = cleanQuery.split(/\s+/).map(t => t.replace(/[.,?!]/g, ''));
+    allSearchKeywords = [...new Set([...baseExtracted, ...rawTokens])].filter(k => k.length >= 2 || /[가-힣]/.test(k));
 
     if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 10 && /[가-힣]/.test(cleanQuery)) {
       const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
@@ -319,19 +349,18 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
     const safeExactQuery = cleanQuery.replace(/[,.()\[\]:"']/g, '').trim();
     const safeNoSpaceQuery = noSpaceQuery.replace(/[,.()\[\]:"']/g, '').trim();
 
-    // 🌟 [수술 핵심 1] DB 에러를 유발하던 '콤마(,)' 검색을 완전히 제거했습니다!
     const exactQueriesArray = [
-      `line_text.eq.${safeExactQuery}`, 
-      `line_text.ilike.${safeExactQuery} %`, 
-      `line_text.ilike.% ${safeExactQuery} %`, 
-      `line_text.ilike.% ${safeExactQuery}`
+      `line_text.eq."${safeExactQuery}"`, 
+      `line_text.ilike."${safeExactQuery} %"`, 
+      `line_text.ilike."% ${safeExactQuery} %"`, 
+      `line_text.ilike."% ${safeExactQuery}"`
     ];
     if (safeExactQuery !== safeNoSpaceQuery && safeNoSpaceQuery.length >= 2) {
       exactQueriesArray.push(
-        `line_text.eq.${safeNoSpaceQuery}`, 
-        `line_text.ilike.${safeNoSpaceQuery} %`, 
-        `line_text.ilike.% ${safeNoSpaceQuery} %`, 
-        `line_text.ilike.% ${safeNoSpaceQuery}`
+        `line_text.eq."${safeNoSpaceQuery}"`, 
+        `line_text.ilike."${safeNoSpaceQuery} %"`, 
+        `line_text.ilike."% ${safeNoSpaceQuery} %"`, 
+        `line_text.ilike."% ${safeNoSpaceQuery}"`
       );
     }
     
@@ -390,8 +419,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
 
     if (!hasExactMatch && results.length < 50) {
       const fallbackPromises: Promise<void>[] = [];
-      let orKeywords = [...baseExtracted];
-
+      
       if (wordCount === 1 && bestSplit) {
         isSplitModeActive = true; 
         
@@ -423,30 +451,53 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
           } catch(e) {}
         })());
       } else {
-         const validOrKeywords = [...new Set(orKeywords)].filter(k => {
+         const validOrKeywords = [...new Set(allSearchKeywords)].filter(k => {
            if (/[가-힣]/.test(k) && k.length <= 1) return false; 
            if (wordCount >= 3 && /[가-힣]/.test(k) && k.length <= 2) return false; 
            return k.length >= 2;
          });
 
-         if (validOrKeywords.length > 0 && wordCount === 1) {
-           const orKeywordStrs = validOrKeywords.map(k => `line_text.ilike.%${k.replace(/[,.()\[\]:"']/g, '')}%`).join(',');
-           fallbackPromises.push((async () => {
-             try {
-               const { data } = await supabase.from('dictionary_lines').select('*').or(orKeywordStrs).order('category_id', { ascending: true }).limit(80);
-               if (data) data.forEach(item => addRes(item));
-             } catch(e) {}
-           })());
+         // 🌟 [수술 3] 1단어 제한 삭제! 다중 단어일 때 진짜 단어(Boundary)부터 찾고 가짜 단어(Partial)를 찾습니다!
+         if (validOrKeywords.length > 0) {
+           isPartialMatch = true;
+           matchedKeywords = validOrKeywords;
+           orangeKeys.push(...validOrKeywords);
+
+           validOrKeywords.forEach(k => {
+             const cleanK = k.replace(/[,.()\[\]:"']/g, '');
+             if (!cleanK) return;
+
+             // 1. 진짜 단어 우선 검색 (전시를, 축하드립니다 등)
+             fallbackPromises.push((async () => {
+               try {
+                 const exactQs = getExactQueries(cleanK);
+                 const { data } = await supabase.from('dictionary_lines').select('*').or(exactQs).order('category_id', { ascending: true }).limit(50);
+                 if (data) data.forEach(item => addRes(item));
+               } catch(e) {}
+             })());
+
+             // 2. 가짜 단어 포함 검색 (발전시키다 등)
+             fallbackPromises.push((async () => {
+               try {
+                 const { data } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${cleanK}%`).order('category_id', { ascending: true }).limit(30);
+                 if (data) data.forEach(item => addRes(item));
+               } catch(e) {}
+             })());
+           });
          }
       }
 
-      // 🌟 [수술 핵심 2] 억지 띄어쓰기(l%o%v%e)는 '한글' 일 때만 허용하여 영어 검색 에러 차단!
       if (wordCount === 1 && cleanQuery.length >= 2 && cleanQuery.length <= 4 && !bestSplit && /[가-힣]/.test(cleanQuery)) {
         const spacedQuery = cleanQuery.split('').join('%');
         fallbackPromises.push((async () => {
           try {
             const { data } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${spacedQuery}%`).order('category_id', { ascending: true }).limit(30);
-            if (data && resultsMap.size === 0) { data.forEach(addRes); isPartialMatch = true; matchedKeywords = [cleanQuery]; orangeKeys.push(cleanQuery); }
+            if (data && data.length > 0) { 
+              data.forEach(addRes); 
+              isPartialMatch = true; 
+              matchedKeywords = [cleanQuery]; 
+              orangeKeys.push(cleanQuery); 
+            }
           } catch(e) {}
         })());
       }
@@ -462,7 +513,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
       allOriginalWords.forEach(w => {
          if (w.length > 1 || !/[가-힣]/.test(w)) orangeKeys.push(w);
       });
-      orangeKeys.push(...baseExtracted);
+      orangeKeys.push(...allSearchKeywords);
       orangeKeys.push(noSpaceQuery);
 
       if (bestSplit) {
@@ -492,7 +543,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
       orangeKeys = [...new Set(orangeKeys)].filter((w) => w && w.trim());
       
       let isSplitModeActive = !!bestSplit;
-      results = rotateResults(results, cleanQuery, baseExtracted, flexStr, isSplitModeActive);
+      results = rotateResults(results, cleanQuery, allSearchKeywords, flexStr, isSplitModeActive);
     }
   }
 

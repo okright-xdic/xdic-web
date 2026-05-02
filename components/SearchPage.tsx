@@ -34,7 +34,6 @@ interface SearchPageProps {
   matchedKeywords?: string[];
 }
 
-// 🌟 언더바(_)를 예쁜 가운데점(·)으로 완벽 교체했습니다! 🌟
 const CATEGORY_NAMES: Record<number, string> = {
   0: '기초영어(Reference English)', 
   1: '기본영어(Basic English)', 
