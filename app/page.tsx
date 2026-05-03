@@ -615,7 +615,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
     }
   }
 
-  const isApp = true; 
+  const isApp = false; 
 
   return (
     <SearchPage 
