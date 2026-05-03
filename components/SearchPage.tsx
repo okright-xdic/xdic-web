@@ -89,37 +89,56 @@ export default function SearchPage({
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
+  // 🌟 [수술] 무분별한 오지랖 색칠(라스트, cloudy)을 완벽 차단하는 초정밀 미니-사전 추출기!
   const derivedBlueKeys = useMemo(() => {
     const keys: string[] = [];
     const lowerQuery = displayQuery.toLowerCase().trim();
     if (!lowerQuery) return keys;
 
-    const isKoreanQuery = /[가-힣]/.test(lowerQuery) && !/[a-zA-Z]/.test(lowerQuery);
-    const isEnglishQuery = /[a-zA-Z]/.test(lowerQuery) && !/[가-힣]/.test(lowerQuery);
+    const stopWords = new Set(['a', 'an', 'the', 'is', 'are', 'was', 'were', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by']);
+    const queryTokens = lowerQuery.split(/\s+/).filter(t => t.length > 1 && !stopWords.has(t));
+    const lowerQueryNoSpace = lowerQuery.replace(/\s+/g, '');
 
     results.forEach(item => {
-      if (item.category_id === 0 || item.category_id === 1) {
-        const text = item.line_text || '';
-        const cleanText = text.replace(/[.,:;()\[\]?!"]/g, '');
-        const words = cleanText.split(/\s+/).filter(Boolean);
+      const text = item.line_text || '';
+      const cleanText = text.replace(/[.,:;()\[\]?!"]/g, '');
+      const words = cleanText.split(/\s+/).filter(Boolean);
 
-        if (words.length >= 1 && words.length <= 3) {
-          const hasExactQuery = words.some(w => w.toLowerCase() === lowerQuery);
-          if (hasExactQuery) {
-            words.forEach(w => {
-              const cw = w.toLowerCase();
-              if (cw !== lowerQuery) {
-                if (isKoreanQuery && /^[a-zA-Z\-]+$/.test(cw)) keys.push(w);
-                else if (isEnglishQuery && /[가-힣]/.test(cw)) keys.push(w);
+      const engWords = words.filter(w => /^[a-zA-Z\-]+$/.test(w));
+      const korWords = words.filter(w => /[가-힣]/.test(w));
+
+      if (engWords.length > 0 && korWords.length > 0) {
+          const engJoined = engWords.join('').toLowerCase();
+          const korJoined = korWords.join('').toLowerCase();
+          
+          // 1. 구문 자체가 완벽히 일치하는 경우 (예: "look at the sky" -> "하늘을 보세요")
+          if (engJoined === lowerQueryNoSpace) {
+              korWords.forEach(kw => keys.push(kw));
+          } else if (korJoined === lowerQueryNoSpace) {
+              engWords.forEach(ew => keys.push(ew));
+          } else {
+              // 2. 단어 대 단어 확실한 1:N 구조일 때만 번역어를 추출합니다!
+              // (라스트 룩 last look 처럼 2:2 구조에서는 절대 엉뚱한 단어를 추출하지 않게 막아줍니다!)
+              if (engWords.length === 1) {
+                  const ew = engWords[0].toLowerCase();
+                  if (queryTokens.includes(ew) || ew === lowerQueryNoSpace) {
+                      korWords.forEach(kw => keys.push(kw));
+                  }
               }
-            });
+              if (korWords.length === 1) {
+                  const kw = korWords[0].toLowerCase();
+                  if (queryTokens.includes(kw) || kw === lowerQueryNoSpace) {
+                      engWords.forEach(ew => keys.push(ew));
+                  }
+              }
           }
-        }
       }
     });
 
     return [...new Set(keys)].filter(b => {
-       return !(orangeKeys || []).some(o => o.toLowerCase() === b.toLowerCase());
+       const lowerB = b.toLowerCase();
+       if (stopWords.has(lowerB)) return false; 
+       return !(orangeKeys || []).some(o => o.toLowerCase() === lowerB);
     });
   }, [displayQuery, results, orangeKeys]);
 

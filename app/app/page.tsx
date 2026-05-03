@@ -1,5 +1,5 @@
 // app/app/page.tsx
-// ✅ 앱(/app) 서버 검색: p.catch 에러 완벽 해결! 안전한 try-catch 병렬 검색 도입
+// ✅ 서버 로직 완벽!
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -369,7 +369,6 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
     const safeExactQuery = cleanQuery.replace(/[,.()\[\]:"']/g, '').trim();
     const safeNoSpaceQuery = noSpaceQuery.replace(/[,.()\[\]:"']/g, '').trim();
 
-    // 🌟 [수술] 에러의 주범인 p.catch() 대신 100% 안전한 async/await + try/catch 구문으로 교체 완료!
     const fetchExactPhrase = async (qStr: string, isExactPriority: boolean = false) => {
         if (!qStr) return;
         const queries = [
@@ -426,13 +425,6 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
          bestSplit = splitPairs.reduce((prev, curr) => Math.abs(curr.p1.length - curr.p2.length) < Math.abs(prev.p1.length - prev.p2.length) ? curr : prev);
       }
     }
-
-    promises.push((async () => {
-      try {
-        const { data } = await supabase.rpc('search_dictionary_smart', { keyword: query });
-        if (Array.isArray(data)) data.forEach(item => addRes({ ...item, is_rpc: true }));
-      } catch(e) {}
-    })());
 
     if (cleanQuery.includes(' ') && noSpaceQuery.length >= 2) {
       promises.push((async () => {
@@ -504,7 +496,12 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
 
          if (validOrKeywords.length > 0) {
            matchedKeywords = validOrKeywords;
-           orangeKeys.push(...validOrKeywords);
+           
+           const orangeCandidates = validOrKeywords.filter(k => {
+              const lowerK = k.toLowerCase();
+              return !eStopWords.has(lowerK) && !kStopWords.has(lowerK);
+           });
+           orangeKeys.push(...orangeCandidates);
 
            validOrKeywords.forEach(k => {
              const cleanK = k.replace(/[,.()\[\]:"']/g, '');
@@ -557,9 +554,12 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
       const allOriginalWords = cleanQuery.split(/\s+/).map(w => w.replace(/[.,:;()\[\]?!]/g, '')).filter(w => w.length > 0);
       
       allOriginalWords.forEach(w => {
-         if (w.length > 1 || !/[가-힣]/.test(w)) orangeKeys.push(w);
+         const lowerW = w.toLowerCase();
+         if ((w.length > 1 || !/[가-힣]/.test(w)) && !eStopWords.has(lowerW) && !kStopWords.has(lowerW)) {
+             orangeKeys.push(w);
+         }
       });
-      orangeKeys.push(...allSearchKeywords);
+      orangeKeys.push(...allSearchKeywords.filter(k => !eStopWords.has(k.toLowerCase()) && !kStopWords.has(k.toLowerCase())));
       orangeKeys.push(noSpaceQuery);
 
       if (bestSplit) {
@@ -586,7 +586,11 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
         }
       });
 
-      orangeKeys = [...new Set(orangeKeys)].filter((w) => w && w.trim());
+      orangeKeys = [...new Set(orangeKeys)].filter((w) => {
+          if (!w || !w.trim()) return false;
+          const lowerW = w.trim().toLowerCase();
+          return !eStopWords.has(lowerW) && !kStopWords.has(lowerW);
+      });
       
       let isSplitModeActive = !!bestSplit;
       results = rotateResults(results, cleanQuery, allSearchKeywords, flexStr, isSplitModeActive);
