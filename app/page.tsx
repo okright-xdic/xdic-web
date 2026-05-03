@@ -1,5 +1,5 @@
 // app/page.tsx
-// ✅ 웹(/) 서버 검색: 띄어쓰기 보정 최우선, 사오정 필터링, 결과 보강(1페이지 채우기) 및 억울한 배너 차단 완벽 적용!
+// ✅ 웹(/) 서버 검색: p.catch 에러 완벽 해결! 안전한 try-catch 병렬 검색 도입
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -142,18 +142,25 @@ const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[
   const exactFrontRegex = new RegExp(`^${flexStr}(?:\\s|\\(|\\)|\\[|\\]|,|:|\\.|$)`, 'i');
   const exactStandaloneRegex = new RegExp(`(?:^|\\s|\\(|\\)|\\[|\\])${flexStr}(?:\\s|\\(|\\)|\\[|\\]|,|:|\\.|$)`, 'i');
 
+  // 🌟 [수술 1] 영단어의 경우 반드시 좌/우 양쪽 스펠링이 독립적인지 완벽하게 확인합니다!
   const isStrictStandalone = (text: string, target: string) => {
      if (!target) return false;
      const escapedTarget = target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-     const regex = new RegExp(`(?:^|[^가-힣a-zA-Z0-9_])${escapedTarget}(?:[^가-힣a-zA-Z0-9_]|$)`, 'i');
-     return regex.test(text);
+     const isEnglishOnly = /^[a-zA-Z0-9_\s\-]+$/.test(target);
+     if (isEnglishOnly) {
+         return new RegExp(`(?:^|[^a-zA-Z0-9_])${escapedTarget}(?=[^a-zA-Z0-9_]|$)`, 'i').test(text);
+     }
+     return new RegExp(`(?:^|[^가-힣a-zA-Z0-9_])${escapedTarget}(?:[^가-힣a-zA-Z0-9_]|$)`, 'i').test(text);
   };
 
   const isWordBoundary = (text: string, target: string) => {
      if (!target) return false;
      const escaped = target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-     const regex = new RegExp(`(?:^|[^가-힣a-zA-Z0-9_])${escaped}`, 'i');
-     return regex.test(text);
+     const isEnglishOnly = /^[a-zA-Z0-9_\s\-]+$/.test(target);
+     if (isEnglishOnly) {
+         return new RegExp(`(?:^|[^a-zA-Z0-9_])${escaped}(?=[^a-zA-Z0-9_]|$)`, 'i').test(text);
+     }
+     return new RegExp(`(?:^|[^가-힣a-zA-Z0-9_])${escaped}`, 'i').test(text);
   };
 
   itemsWithIndex.forEach((item) => {
@@ -185,9 +192,9 @@ const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[
       const splitTarget = (item.split_keyword || '').toLowerCase();
       if (isStrictStandalone(textOriginal, splitTarget)) backTightMatches.push(item);
       else backPartialMatches.push(item);
-    } else if (item.is_rpc) {
-      rpcMatches.push(item);
     } else {
+      // 🌟 [수술 2] 더이상 RPC 결과(weather 등)에 특혜를 주지 않습니다! 
+      // 무조건 키워드 포함 여부(matchCount)를 검사하여 0개면 무조건 꼴찌로 강등시킵니다!
       let hasAll = true;
       let hasBoundary = false;
       let matchCount = 0;
@@ -262,7 +269,6 @@ const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[
       ...sortByCategory(corpusPartialMatch),
       ...sortByRelevanceAndCategory(andMatchesBoundary),
       ...sortByRelevanceAndCategory(andMatchesPartial),
-      ...sortByCategory(rpcMatches), 
       ...combinedPartialSplit, 
       ...sortByRelevanceAndCategory(orMatchesBoundary),  
       ...sortByRelevanceAndCategory(orMatchesPartial)    
@@ -294,16 +300,6 @@ const extractKeywords = (query: string): string[] => {
       if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(t)) return t.length >= 1;
       return t.length >= 2;
     });
-};
-
-const getExactQueries = (word: string) => {
-  const w = word.replace(/[,.()\[\]:"']/g, '').trim(); 
-  return [
-    `line_text.eq."${w}"`,
-    `line_text.ilike."${w} %"`,
-    `line_text.ilike."% ${w} %"`,
-    `line_text.ilike."% ${w}"`
-  ].join(',');
 };
 
 export default async function Page({ searchParams }: { searchParams: { q?: string; app?: string }; }) {
@@ -356,8 +352,13 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
     wordCount = cleanQuery.split(/\s+/).length;
     baseExtracted = extractKeywords(cleanQuery);
     
+    // 🌟 [수술] 'at', 'the' 같은 전치사/관사가 부분 일치 검색으로 스펠링을 물고 오는 대참사 완벽 방지!
     const rawTokens = cleanQuery.split(/\s+/).map(t => t.replace(/[.,?!]/g, ''));
-    allSearchKeywords = [...new Set([...baseExtracted, ...rawTokens])].filter(k => k.length >= 2 || /[가-힣]/.test(k));
+    allSearchKeywords = [...new Set([...baseExtracted, ...rawTokens])].filter(k => {
+       const lowerK = k.toLowerCase();
+       if (eStopWords.has(lowerK) || kStopWords.has(lowerK)) return false; 
+       return k.length >= 2 || /[가-힣]/.test(k);
+    });
 
     if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 10 && /[가-힣]/.test(cleanQuery)) {
       const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
@@ -373,19 +374,42 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
     const safeExactQuery = cleanQuery.replace(/[,.()\[\]:"']/g, '').trim();
     const safeNoSpaceQuery = noSpaceQuery.replace(/[,.()\[\]:"']/g, '').trim();
 
-    const exactQueriesArray = [
-      `line_text.eq."${safeExactQuery}"`, 
-      `line_text.ilike."${safeExactQuery} %"`, 
-      `line_text.ilike."% ${safeExactQuery} %"`, 
-      `line_text.ilike."% ${safeExactQuery}"`
-    ];
+    // 🌟 [수술] 에러의 주범인 p.catch() 대신 100% 안전한 async/await + try/catch 구문으로 교체 완료!
+    const fetchExactPhrase = async (qStr: string, isExactPriority: boolean = false) => {
+        if (!qStr) return;
+        const queries = [
+            supabase.from('dictionary_lines').select('*').eq('line_text', qStr).limit(10),
+            supabase.from('dictionary_lines').select('*').ilike('line_text', `${qStr} %`).limit(20),
+            supabase.from('dictionary_lines').select('*').ilike('line_text', `% ${qStr} %`).limit(30),
+            supabase.from('dictionary_lines').select('*').ilike('line_text', `% ${qStr}`).limit(20),
+            supabase.from('dictionary_lines').select('*').ilike('line_text', `% ${qStr}.%`).limit(10),
+            supabase.from('dictionary_lines').select('*').ilike('line_text', `% ${qStr},%`).limit(10),
+            supabase.from('dictionary_lines').select('*').ilike('line_text', `% ${qStr}?%`).limit(10),
+            supabase.from('dictionary_lines').select('*').ilike('line_text', `% ${qStr}!%`).limit(10)
+        ];
+        
+        const res = await Promise.all(queries.map(async (p) => {
+            try {
+                return await p;
+            } catch (err) {
+                return { data: [] };
+            }
+        }));
+        
+        res.forEach(r => {
+            if (r && r.data) {
+                r.data.forEach((item: any) => {
+                    if (isExactPriority) item.is_exact_priority = true;
+                    addRes(item);
+                });
+            }
+        });
+    };
+
+    promises.push(fetchExactPhrase(safeExactQuery, true));
+    
     if (safeExactQuery !== safeNoSpaceQuery && safeNoSpaceQuery.length >= 2) {
-      exactQueriesArray.push(
-        `line_text.eq."${safeNoSpaceQuery}"`, 
-        `line_text.ilike."${safeNoSpaceQuery} %"`, 
-        `line_text.ilike."% ${safeNoSpaceQuery} %"`, 
-        `line_text.ilike."% ${safeNoSpaceQuery}"`
-      );
+      promises.push(fetchExactPhrase(safeNoSpaceQuery, true));
     }
 
     if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 10 && /[가-힣]/.test(cleanQuery)) {
@@ -397,12 +421,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
       
       splitPairs.forEach(pair => {
          const spaceCorrected = `${pair.p1} ${pair.p2}`;
-         exactQueriesArray.push(
-           `line_text.eq."${spaceCorrected}"`,
-           `line_text.ilike."${spaceCorrected} %"`,
-           `line_text.ilike."% ${spaceCorrected} %"`,
-           `line_text.ilike."% ${spaceCorrected}"`
-         );
+         promises.push(fetchExactPhrase(spaceCorrected, true));
       });
 
       const validPairs = splitPairs.filter(p => p.p1.length >= 2 && p.p2.length >= 2);
@@ -412,13 +431,6 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
          bestSplit = splitPairs.reduce((prev, curr) => Math.abs(curr.p1.length - curr.p2.length) < Math.abs(prev.p1.length - prev.p2.length) ? curr : prev);
       }
     }
-    
-    promises.push((async () => {
-      try {
-        const { data } = await supabase.from('dictionary_lines').select('*').or(exactQueriesArray.join(',')).order('category_id', { ascending: true }).limit(100);
-        if (data) data.forEach(item => { item.is_exact_priority = true; addRes(item); });
-      } catch(e) {}
-    })());
 
     promises.push((async () => {
       try {
@@ -472,19 +484,8 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
       if (wordCount === 1 && bestSplit) {
         isSplitModeActive = true; 
         
-        fallbackPromises.push((async () => {
-          try {
-            const { data } = await supabase.from('dictionary_lines').select('*').or(getExactQueries(bestSplit!.p1)).order('category_id', { ascending: true }).limit(50);
-            if (data) data.forEach(item => { item.split_type = 'front'; item.split_keyword = bestSplit!.p1; addRes(item); });
-          } catch(e) {}
-        })());
-
-        fallbackPromises.push((async () => {
-          try {
-            const { data } = await supabase.from('dictionary_lines').select('*').or(getExactQueries(bestSplit!.p2)).order('category_id', { ascending: true }).limit(50);
-            if (data) data.forEach(item => { item.split_type = 'back'; item.split_keyword = bestSplit!.p2; addRes(item); });
-          } catch(e) {}
-        })());
+        fallbackPromises.push(fetchExactPhrase(bestSplit!.p1, false));
+        fallbackPromises.push(fetchExactPhrase(bestSplit!.p2, false));
 
         fallbackPromises.push((async () => {
           try {
@@ -514,20 +515,20 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
              const cleanK = k.replace(/[,.()\[\]:"']/g, '');
              if (!cleanK) return;
 
-             fallbackPromises.push((async () => {
-               try {
-                 const exactQs = getExactQueries(cleanK);
-                 const { data } = await supabase.from('dictionary_lines').select('*').or(exactQs).order('category_id', { ascending: true }).limit(50);
-                 if (data) data.forEach(item => addRes(item));
-               } catch(e) {}
-             })());
+             const isEnglishK = /^[a-zA-Z0-9_\s\-]+$/.test(cleanK);
 
-             fallbackPromises.push((async () => {
-               try {
-                 const { data } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${cleanK}%`).order('category_id', { ascending: true }).limit(30);
-                 if (data) data.forEach(item => addRes(item));
-               } catch(e) {}
-             })());
+             // 🌟 에러 투성이 .or 구문 대신 완벽하게 안전한 병렬 함수 사용!
+             fallbackPromises.push(fetchExactPhrase(cleanK, false));
+
+             // 🌟 [수술 2] 영단어는 사오정 스펠링 대잔치(whisky, garconnelook)를 완벽하게 차단하기 위해 무차별 와일드카드 검색 금지!
+             if (!isEnglishK) {
+                 fallbackPromises.push((async () => {
+                   try {
+                     const { data } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${cleanK}%`).order('category_id', { ascending: true }).limit(30);
+                     if (data) data.forEach(item => addRes(item));
+                   } catch(e) {}
+                 })());
+             }
            });
          }
       }
@@ -599,7 +600,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
     }
   }
 
-  const isApp = false;
+  const isApp = true; 
 
   return (
     <SearchPage 
