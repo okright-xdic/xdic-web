@@ -62,8 +62,10 @@ export default function SearchPage({
   const [clientIsApp, setClientIsApp] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [previewData, setPreviewData] = useState<any[]>([]);
-
   const [copiedId, setCopiedId] = useState<string | number | null>(null);
+
+  // 🌟 [추가됨] 현재 접속한 기기가 모바일 해상도인지 PC 해상도인지 감지하는 상태값!
+  const [isMobileWeb, setIsMobileWeb] = useState(false);
 
   const [supabase] = useState(() => createClientComponentClient());
 
@@ -85,11 +87,22 @@ export default function SearchPage({
     fetchPreview();
   }, [supabase]);
 
+  // 🌟 [추가됨] 화면 크기가 변할 때마다 모바일인지 PC인지 실시간으로 체크하는 마법의 리스너!
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => {
+      // 768px 미만이면 모바일, 이상이면 PC로 판단합니다.
+      setIsMobileWeb(window.innerWidth < 768);
+    };
+    handleResize(); // 처음 렌더링될 때 한번 체크!
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const displayIsApp = isApp || clientIsApp;
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
-  // 🌟 [수술] 무분별한 오지랖 색칠(라스트, cloudy)을 완벽 차단하는 초정밀 미니-사전 추출기!
   const derivedBlueKeys = useMemo(() => {
     const keys: string[] = [];
     const lowerQuery = displayQuery.toLowerCase().trim();
@@ -111,13 +124,11 @@ export default function SearchPage({
           const engJoined = engWords.join('').toLowerCase();
           const korJoined = korWords.join('').toLowerCase();
           
-          // 1. 구문 자체가 완벽히 일치하는 경우 (예: "look at the sky" -> "하늘을 보세요")
           if (engJoined === lowerQueryNoSpace) {
               korWords.forEach(kw => keys.push(kw));
           } else if (korJoined === lowerQueryNoSpace) {
               engWords.forEach(ew => keys.push(ew));
           } else {
-              // 2. 단어 대 단어 확실한 1:N 구조일 때만 번역어를 추출합니다!
               if (engWords.length === 1) {
                   const ew = engWords[0].toLowerCase();
                   if (queryTokens.includes(ew) || ew === lowerQueryNoSpace) {
@@ -153,12 +164,9 @@ export default function SearchPage({
         <p className="text-[12px] md:text-[14px] text-slate-500 font-medium leading-tight">Korean-English/English-Korean Dictionary – Compound Terminology</p>
       </div>
       <div className="w-full">
-        {/* 🌟 억지로 던져주던 placeholder 속성을 뺐습니다! 이제 SearchInput 내부의 마이크 상태 문구가 제대로 작동합니다. */}
         <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
-        
         {mounted && !displayIsApp && <TodaysConversation />}
         {mounted && displayIsApp && <AppTodaysConversation />}
-
       </div>
     </header>
   );
@@ -339,7 +347,6 @@ export default function SearchPage({
             </div>
 
             <div className="w-full">
-              {/* 🌟 억지로 던져주던 placeholder 속성을 뺐습니다! SearchInput 내부 로직을 정상적으로 따릅니다. */}
               <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
             </div>
           </header>
@@ -419,11 +426,18 @@ export default function SearchPage({
                           </div>
                         </li>
                         
-                        {/* 🌟 카카오 애드핏 렌더링 구역 (선생님 코드 그대로 유지) */}
+                        {/* 🌟 카카오 애드핏 정식 반응형 렌더링 구역 (심사 통과 완료!) */}
                         {!displayIsApp && idx === Math.min(6, currentItems.length - 1) && (
-                          <div className="w-full overflow-hidden flex justify-center my-4">
-                            <div className="overflow-x-auto max-w-full">
-                              <KakaoAdFit unit="DAN-Gui4SG5eMaraSbpv" width="728" height="90" />
+                          <div className="w-full flex justify-center my-6">
+                            <div className={`relative flex items-center justify-center w-full max-w-[728px] ${isMobileWeb ? 'min-h-[100px]' : 'min-h-[90px]'} bg-transparent rounded-lg overflow-hidden`}>
+                              <div className="relative z-10 flex justify-center w-full overflow-x-auto max-w-full">
+                                <KakaoAdFit 
+                                  key={isMobileWeb ? 'DAN-C5u8rkTg1BugPsOE' : 'DAN-Gui4SG5eMaraSbpv'} 
+                                  unit={isMobileWeb ? 'DAN-C5u8rkTg1BugPsOE' : 'DAN-Gui4SG5eMaraSbpv'} 
+                                  width={isMobileWeb ? '320' : '728'} 
+                                  height={isMobileWeb ? '100' : '90'} 
+                                />
+                              </div>
                             </div>
                           </div>
                         )}
