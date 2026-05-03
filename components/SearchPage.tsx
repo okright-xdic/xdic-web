@@ -89,7 +89,6 @@ export default function SearchPage({
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
-  // 🌟 [수술] 무분별한 오지랖 색칠(라스트, cloudy)을 완벽 차단하는 초정밀 미니-사전 추출기!
   const derivedBlueKeys = useMemo(() => {
     const keys: string[] = [];
     const lowerQuery = displayQuery.toLowerCase().trim();
@@ -111,14 +110,11 @@ export default function SearchPage({
           const engJoined = engWords.join('').toLowerCase();
           const korJoined = korWords.join('').toLowerCase();
           
-          // 1. 구문 자체가 완벽히 일치하는 경우 (예: "look at the sky" -> "하늘을 보세요")
           if (engJoined === lowerQueryNoSpace) {
               korWords.forEach(kw => keys.push(kw));
           } else if (korJoined === lowerQueryNoSpace) {
               engWords.forEach(ew => keys.push(ew));
           } else {
-              // 2. 단어 대 단어 확실한 1:N 구조일 때만 번역어를 추출합니다!
-              // (라스트 룩 last look 처럼 2:2 구조에서는 절대 엉뚱한 단어를 추출하지 않게 막아줍니다!)
               if (engWords.length === 1) {
                   const ew = engWords[0].toLowerCase();
                   if (queryTokens.includes(ew) || ew === lowerQueryNoSpace) {
@@ -154,7 +150,8 @@ export default function SearchPage({
         <p className="text-[12px] md:text-[14px] text-slate-500 font-medium leading-tight">Korean-English/English-Korean Dictionary – Compound Terminology</p>
       </div>
       <div className="w-full">
-        <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
+        {/* 🌟 메인 페이지 검색창: Placeholder 정상 존재 */}
+        <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} placeholder="① KOR/ENG 선택 ② 단어 검색!" />
         
         {mounted && !displayIsApp && <TodaysConversation />}
         {mounted && displayIsApp && <AppTodaysConversation />}
@@ -339,7 +336,8 @@ export default function SearchPage({
             </div>
 
             <div className="w-full">
-              <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
+              {/* 🌟 결과 페이지 검색창: 누락되었던 Placeholder 든든하게 부활!! */}
+              <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} placeholder="① KOR/ENG 선택 ② 단어 검색!" />
             </div>
           </header>
         )}
