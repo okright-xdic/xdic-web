@@ -445,7 +445,7 @@ export default function SearchPage({
                           </div>
                         </li>
                         
-                        {/* 🌟 카카오 애드핏 정식 반응형 렌더링 구역 (심사 통과 완료!) */}
+                        {/* 🌟 첫 번째 중간 광고 (기존 유지) */}
                         {!displayIsApp && idx === Math.min(6, currentItems.length - 1) && (
                           <div className="w-full flex justify-center my-6">
                             <div className={`relative flex items-center justify-center w-full max-w-[728px] ${isMobileWeb ? 'min-h-[100px]' : 'min-h-[90px]'} bg-transparent rounded-lg overflow-hidden`}>
@@ -498,6 +498,22 @@ export default function SearchPage({
                     </div>
                   )}
 
+                  {/* 🌟 [수프로의 스마트 하단 광고] 결과가 10개 이상일 때만 하단에 등장! */}
+                  {!displayIsApp && currentItems.length >= 10 && (
+                    <div className="w-full flex justify-center mt-8 mb-2">
+                      <div className={`relative flex items-center justify-center w-full max-w-[728px] ${isMobileWeb ? 'min-h-[100px]' : 'min-h-[90px]'} bg-transparent rounded-lg overflow-hidden`}>
+                        <div className="relative z-10 flex justify-center w-full overflow-x-auto max-w-full">
+                          <KakaoAdFit 
+                            key={isMobileWeb ? 'Bottom-Mobile' : 'Bottom-PC'} 
+                            unit={isMobileWeb ? 'DAN-rTmeRojhcQi9r19X' : 'DAN-k31fweVZvecyVYdf'} 
+                            width={isMobileWeb ? '320' : '728'} 
+                            height={isMobileWeb ? '100' : '90'} 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="mt-12 mb-4"><NuanceWidget /></div>
                   
                   <div className="flex items-center justify-between w-full mt-10 mb-6 px-1 pt-6 border-t border-slate-100">
@@ -539,7 +555,6 @@ export default function SearchPage({
             <div className="mt-5 space-y-8 animate-in fade-in duration-500">
               
               <div className="flex flex-wrap items-center justify-end gap-2 -mb-3 md:-mb-5 pr-2 relative z-10">
-                {/* 🌟 [여기에 추가됨] 스마트 즐겨찾기 버튼!! */}
                 <button 
                   onClick={handleBookmarkClick} 
                   className="group flex items-center gap-1.5 px-4 py-1.5 bg-white border border-orange-200 shadow-sm hover:border-orange-400 hover:shadow-md hover:bg-orange-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-orange-600 hover:text-orange-800 transition-all duration-300"
