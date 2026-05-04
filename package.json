@@ -1,49 +1,33 @@
-{
-  "name": "xdic-web",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // 🔥 Vercel 서버용이 아닌 '모바일 앱'으로 굽기 위해 out 폴더를 강제 생성!
+  output: 'export',
+  
+  // Capacitor 환경에서 이미지 최적화 에러 방지
+  images: {
+    unoptimized: true,
   },
-  "dependencies": {
-    "@capacitor/android": "^8.0.2",
-    "@capacitor/app": "^8.1.0",
-    "@capacitor/cli": "^8.0.2",
-    "@capacitor/core": "^8.0.2",
-    "@capgo/capacitor-speech-recognition": "^8.0.10",
-    "@radix-ui/react-icons": "^1.3.2",
-    "@shadcn/ui": "^0.0.4",
-    "@supabase/auth-helpers-nextjs": "^0.8.0",
-    "@supabase/ssr": "^0.8.0",
-    "@supabase/supabase-js": "^2.90.1",
-    "better-sqlite3": "^12.6.2",
-    "bufferutil": "^4.1.0",
-    "canvas": "^3.2.1",
-    "dompurify": "^3.3.1",
-    "lodash.debounce": "^4.0.8",
-    "lucide-react": "^0.562.0",
-    "next": "^13.4.19",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "recharts": "^3.7.0",
-    "utf-8-validate": "^6.0.6"
+  
+  // 빌드할 때 과거의 찌꺼기(캐시)가 섞여서 500 에러를 내는 것을 방어!
+  generateBuildId: async () => {
+    return 'xdic-build-' + new Date().getTime();
   },
-  "devDependencies": {
-    "@types/dompurify": "^3.0.5",
-    "@types/node": "^20.0.0",
-    "@types/react": "^18.2.35",
-    "@types/react-dom": "^18.2.14",
-    "autoprefixer": "^10.4.23",
-    "eslint": "8.55.0",
-    "eslint-config-next": "13.4.19",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.19",
-    "typescript": "^5.3.3"
+};
+
+export default nextConfig;/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // 🔥 Vercel 서버용이 아닌 '모바일 앱'으로 굽기 위해 out 폴더를 강제 생성!
+  output: 'export',
+  
+  // Capacitor 환경에서 이미지 최적화 에러 방지
+  images: {
+    unoptimized: true,
   },
-  "engines": {
-    "node": "22.x"
-  }
-}
+  
+  // 빌드할 때 과거의 찌꺼기(캐시)가 섞여서 500 에러를 내는 것을 방어!
+  generateBuildId: async () => {
+    return 'xdic-build-' + new Date().getTime();
+  },
+};
+
+export default nextConfig;
