@@ -64,7 +64,6 @@ export default function SearchPage({
   const [previewData, setPreviewData] = useState<any[]>([]);
   const [copiedId, setCopiedId] = useState<string | number | null>(null);
 
-  // 🌟 [추가됨] 현재 접속한 기기가 모바일 해상도인지 PC 해상도인지 감지하는 상태값!
   const [isMobileWeb, setIsMobileWeb] = useState(false);
 
   const [supabase] = useState(() => createClientComponentClient());
@@ -87,14 +86,12 @@ export default function SearchPage({
     fetchPreview();
   }, [supabase]);
 
-  // 🌟 [추가됨] 화면 크기가 변할 때마다 모바일인지 PC인지 실시간으로 체크하는 마법의 리스너!
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handleResize = () => {
-      // 768px 미만이면 모바일, 이상이면 PC로 판단합니다.
       setIsMobileWeb(window.innerWidth < 768);
     };
-    handleResize(); // 처음 렌더링될 때 한번 체크!
+    handleResize(); 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -102,6 +99,28 @@ export default function SearchPage({
   const displayIsApp = isApp || clientIsApp;
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
+
+  // 🌟 [추가됨] 기기별 스마트 즐겨찾기 안내 마법 로직
+  const handleBookmarkClick = () => {
+    if (typeof window === 'undefined') return;
+    
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isMac = userAgent.includes('mac');
+    const isMobile = /iphone|ipad|ipod|android/.test(userAgent);
+
+    if (displayIsApp) {
+      alert('앱(App)에서는 이미 홈 화면에 설치되어 있습니다! 언제든 아이콘을 눌러 접속해주세요.');
+      return;
+    }
+
+    if (isMobile) {
+      alert('🌟 모바일 브라우저 환경입니다.\n화면 하단이나 상단 메뉴(⋮)에서 [⭐ 별 모양 아이콘]을 눌러 즐겨찾기에 추가해주세요!');
+    } else if (isMac) {
+      alert('🌟 Mac 환경입니다.\n키보드에서 [ Cmd + D ] 를 동시에 눌러 엑스딕을 즐겨찾기에 추가해주세요!');
+    } else {
+      alert('🌟 PC 환경입니다.\n키보드에서 [ Ctrl + D ] 를 동시에 눌러 엑스딕을 즐겨찾기에 추가해주세요!');
+    }
+  };
 
   const derivedBlueKeys = useMemo(() => {
     const keys: string[] = [];
@@ -520,6 +539,14 @@ export default function SearchPage({
             <div className="mt-5 space-y-8 animate-in fade-in duration-500">
               
               <div className="flex flex-wrap items-center justify-end gap-2 -mb-3 md:-mb-5 pr-2 relative z-10">
+                {/* 🌟 [여기에 추가됨] 스마트 즐겨찾기 버튼!! */}
+                <button 
+                  onClick={handleBookmarkClick} 
+                  className="group flex items-center gap-1.5 px-4 py-1.5 bg-white border border-orange-200 shadow-sm hover:border-orange-400 hover:shadow-md hover:bg-orange-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-orange-600 hover:text-orange-800 transition-all duration-300"
+                >
+                  <span className="text-[14px] group-hover:scale-110 transition-transform">⭐</span> 
+                  <span>즐겨찾기 추가</span>
+                </button>
                 <Link href="/conversation" className="group flex items-center gap-1.5 px-4 py-1.5 bg-white border border-blue-200 shadow-sm hover:border-blue-400 hover:shadow-md hover:bg-blue-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-blue-600 hover:text-blue-800 transition-all duration-300">
                   <span className="text-[14px] group-hover:scale-110 transition-transform">📖</span> 
                   <span>필수 영어회화</span>
