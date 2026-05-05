@@ -3,16 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 interface Keyword {
   keyword: string;
   count: number;
 }
 
-const RECENT_KEY = 'xdic_recent_searches_v2';
-const UPDATED_EVENT = 'xdic_recent_searches_updated';
-
-// 🎨 17가지 파스텔톤
+// 🎨 17가지 파스텔톤 (그대로 유지!)
 const COLOR_PALETTES = [
   'bg-red-50 text-red-600 border-red-100 hover:bg-red-100 hover:border-red-200',
   'bg-orange-50 text-orange-600 border-orange-100 hover:bg-orange-100 hover:border-orange-200',
@@ -37,75 +35,69 @@ export default function RecentKeywords({ className }: { className?: string }) {
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
-
-  const normalizeStored = (raw: string | null): Keyword[] => {
-    if (!raw) return [];
-    try {
-      const parsed = JSON.parse(raw);
-
-      if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') {
-        return parsed
-          .map((x: any) => ({
-            keyword: String(x?.keyword || '').trim(),
-            count: Number(x?.count || 1),
-          }))
-          .filter((x: Keyword) => x.keyword);
-      }
-
-      if (Array.isArray(parsed) && (parsed.length === 0 || typeof parsed[0] === 'string')) {
-        return parsed
-          .map((s: any) => String(s || '').trim())
-          .filter(Boolean)
-          .map((keyword) => ({ keyword, count: 1 }));
-      }
-
-      return [];
-    } catch (e) {
-      console.error('최근 검색어 로드 실패:', e);
-      return [];
-    }
-  };
-
-  const loadKeywords = () => {
-    const loaded = localStorage.getItem(RECENT_KEY);
-    const normalized = normalizeStored(loaded);
-    setKeywords(normalized);
-  };
+  
+  // 🔥 Supabase 클라이언트 연결
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
     setMounted(true);
-    loadKeywords();
+    fetchInitialKeywords();
 
-    window.addEventListener(UPDATED_EVENT, loadKeywords);
-    window.addEventListener('storage', loadKeywords);
+    // 🌟 핵심 마법: Supabase Realtime 구독 (채팅창처럼 실시간 수신)
+    const channel = supabase
+      .channel('realtime_search_logs')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'search_logs' },
+        (payload) => {
+          const newWord = payload.new.keyword;
+          if (newWord) {
+            setKeywords((prev) => {
+              // 중복되는 단어가 있으면 지우고 맨 앞에 새롭게 띄움 (채팅 최신글처럼)
+              const filtered = prev.filter((k) => k.keyword !== newWord);
+              return [{ keyword: newWord, count: 1 }, ...filtered].slice(0, 15); // 최신 15개 유지
+            });
+          }
+        }
+      )
+      .subscribe();
 
     return () => {
-      window.removeEventListener(UPDATED_EVENT, loadKeywords);
-      window.removeEventListener('storage', loadKeywords);
+      supabase.removeChannel(channel);
     };
-  }, []);
+  }, [supabase]);
+
+  // 페이지 처음 로딩 시 DB에서 최신 검색어 15개를 가져옴
+  const fetchInitialKeywords = async () => {
+    try {
+      const { data } = await supabase
+        .from('search_logs')
+        .select('keyword')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (data) {
+        const unique: Keyword[] = [];
+        const seen = new Set<string>();
+        for (const row of data) {
+          if (!seen.has(row.keyword)) {
+            seen.add(row.keyword);
+            unique.push({ keyword: row.keyword, count: 1 });
+          }
+          if (unique.length >= 15) break;
+        }
+        setKeywords(unique);
+      }
+    } catch (e) {
+      console.error('초기 데이터 로드 실패:', e);
+    }
+  };
 
   const handleKeywordClick = (text: string) => {
     const trimmed = (text || '').trim();
     if (!trimmed) return;
     const finalQuery = trimmed.endsWith(' ') ? trimmed : trimmed + ' ';
     router.push(`/?q=${encodeURIComponent(finalQuery)}`);
-  };
-
-  const handleClearAll = () => {
-    if (confirm('최근 검색 기록을 모두 삭제하시겠습니까?')) {
-      localStorage.removeItem(RECENT_KEY);
-      setKeywords([]);
-      window.dispatchEvent(new Event(UPDATED_EVENT));
-    }
-  };
-
-  const handleDeleteOne = (e: React.MouseEvent, text: string) => {
-    e.stopPropagation();
-    const newKeywords = keywords.filter((k) => k.keyword !== text);
-    setKeywords(newKeywords);
-    localStorage.setItem(RECENT_KEY, JSON.stringify(newKeywords));
-    window.dispatchEvent(new Event(UPDATED_EVENT));
   };
 
   const getColorClass = (word: string) => {
@@ -124,23 +116,16 @@ export default function RecentKeywords({ className }: { className?: string }) {
       }`}
     >
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-          <span className="text-base">🕒</span> 최근 검색어
+        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+          {/* 🔥 실시간 깜빡임 효과 (LIVE) */}
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+          </span>
+          실시간 라이브 검색
         </h3>
 
         <div className="flex items-center gap-3">
-          {keywords.length > 0 && (
-            <button
-              onClick={handleClearAll}
-              className="text-[11px] text-slate-400 hover:text-red-500 underline decoration-slate-200 underline-offset-2 transition-colors"
-              title="모든 기록을 삭제합니다"
-            >
-              전체 삭제
-            </button>
-          )}
-
-          {keywords.length > 0 && <span className="text-[10px] text-slate-200">|</span>}
-
           <Link
             href="/recent"
             className="text-[11px] text-slate-400 hover:text-blue-600 flex items-center gap-0.5 cursor-pointer transition-colors font-medium"
@@ -153,32 +138,22 @@ export default function RecentKeywords({ className }: { className?: string }) {
       <div className="flex-grow w-full">
         {keywords.length > 0 ? (
           <div className="flex flex-wrap gap-2">
-            {keywords.slice(0, 10).map((item, index) => (
+            {keywords.map((item, index) => (
               <div
                 key={`${item.keyword}-${index}`}
                 onClick={() => handleKeywordClick(item.keyword)}
-                className={`group flex items-center gap-1 px-2.5 py-1 text-xs rounded-full border cursor-pointer transition-all ${getColorClass(
+                className={`group flex items-center gap-1 px-2.5 py-1 text-xs rounded-full border cursor-pointer transition-all hover:scale-105 ${getColorClass(
                   item.keyword
                 )}`}
               >
                 <span className="font-bold truncate max-w-[140px] sm:max-w-none"># {item.keyword}</span>
-                {item.count > 1 && (
-                  <span className="text-[10px] opacity-70 font-extrabold ml-0.5">(x{item.count})</span>
-                )}
-                <button
-                  onClick={(e) => handleDeleteOne(e, item.keyword)}
-                  className="w-3.5 h-3.5 flex items-center justify-center rounded-full opacity-40 hover:opacity-100 hover:bg-black/10 ml-0.5 transition-all"
-                  title="삭제"
-                >
-                  ×
-                </button>
               </div>
             ))}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-20 text-slate-300 gap-2">
-            <div className="text-xl opacity-20">💬</div>
-            <p className="text-[11px]">최근 검색 내역이 없습니다.</p>
+            <div className="text-xl opacity-20">📡</div>
+            <p className="text-[11px]">실시간 검색어를 수신 중입니다...</p>
           </div>
         )}
       </div>
