@@ -6,18 +6,30 @@ import React, { useState } from 'react';
 export default function AppTodaysConversation() {
 // 🌟 [수동 업데이트 영역] 매일매일 이곳의 글자만 바꿔주시면 됩니다!
   const todaysData = {
-    en_text: "I have a reservation under the name Kim.",
-    ko_text: "'김'이라는 이름으로 예약했습니다.",
-    description: `"호텔/체크인"에 관한 여행 영어입니다.
-Do you have a booking?: 'Reservation' 대신 'Booking'을 사용하여 동일한 의미 전달.
-Did you make a reservation?: '예약을 했는지' 행위 여부를 묻는 능동형 문장.
-Do you have an appointment?: 병원, 미용실 등 '사람과의 약속'을 묻는 경우. 
+    en_text: "Can I take a look at the presentation file?",
+    ko_text: "'프레젠테이션 자료 좀 볼 수 있을까요?",
+    description: `"비즈니스/업무요청"에 관한 영어회화 표현입니다.
+☞ "Take a look at"은 영어에서 "~을 (한번) 살펴보다/보다"라는 뜻으로, 무언가를 확인하거나 주의 깊게 관찰할 때 사용합니다.
 
 다음은 다양한 예문입니다. 참고하세요. 
 
-체크인하고 싶습니다. I'd like to check in, please.
-제 예약 확인 번호입니다. Here is my confirmation number.
-성함을 철자대로 말씀해 주시겠어요? Could you spell your last name, please?`
+이 문서를 내일까지 검토해 주시겠어요? Could you review this document by tomorrow?
+이 프로젝트의 담당자가 누구인지 알려주시겠어요? Could you tell me who is in charge of this project?
+회의 일정을 다음 주로 미룰 수 있을까요? Could we postpone the meeting to next week?
+일정을 30분 정도 앞당길 수 있을까요? Could we move the schedule up by 30 minutes?
+결재를 부탁드려도 될까요? Could I ask for your approval?
+사인 먼저 해주실 수 있나요? Could you sign this first?
+조금 더 자세한 자료를 보내주시겠어요? Could you send me more detailed materials?
+이 비용에 대한 견적서를 보내주세요. Please send me a quote for this cost.
+예산안을 다시 짜주실 수 있나요? Could you revise the budget plan?
+그 건에 대해 업데이트된 내용이 있나요? Could you give me an update on that?
+진행 상황을 메일로 공유해 주세요. Please share the progress via email.
+보고서 마감일을 연장해 주실 수 있나요? Could you extend the deadline for the report?
+최종 수정본을 첨부해 주시겠어요? Could you attach the final revised version?
+회의실 예약을 부탁해도 될까요? Could you book a meeting room for us?
+이번 주 금요일까지 답변을 부탁드립니다. I'd appreciate a reply by this Friday.
+제안서를 한 번 더 확인해 주시겠어요? Could you double-check the proposal?
+이 부분의 수치를 다시 계산해 주세요. Please recalculate the figures in this part.`
   };
 
   const [isExpanded, setIsExpanded] = useState(false);
