@@ -1,26 +1,43 @@
-import React from 'react';
-import Link from 'next/link';
+'use client'; // 🌟 상태 관리를 위해 클라이언트 컴포넌트로 전환
 
-export const metadata = {
-  title: '의료진 전용 의학용어 사전 | 엑스딕(X-DIC)',
-  description: '간호사, 의사를 위한 실무 최적화 의학용어 검색 서비스입니다.',
-};
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function MedicalPage() {
-  // 🌟 검색엔진(SEO)과 사용자를 동시에 잡는 실무 의학용어 핵심 리스트
-  const medicalKeywords = [
+  const router = useRouter();
+  const [query, setQuery] = useState('');
+  const [myHistory, setMyHistory] = useState<string[]>([]);
+
+  // 1. 페이지 로드 시 기존 '보물창고' 기록 불러오기
+  useEffect(() => {
+    const saved = localStorage.getItem('xdic_medical_treasure');
+    if (saved) {
+      setMyHistory(JSON.parse(saved));
+    }
+  }, []);
+
+  // 2. 검색 실행 및 로컬 기록 저장 함수
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+
+    // 보물창고에 추가 (중복 제거 및 최신순 정렬)
+    const updatedHistory = [query.trim(), ...myHistory.filter(h => h !== query.trim())].slice(0, 20);
+    setMyHistory(updatedHistory);
+    localStorage.setItem('xdic_medical_treasure', JSON.stringify(updatedHistory));
+
+    // 메인 검색 결과 페이지로 이동 (전역 라이브 검색에는 영향을 주지 않음)
+    router.push(`/?q=${encodeURIComponent(query.trim())}`);
+  };
+
+  // 🌟 고정 추천 키워드 (SEO용)
+  const recommendedKeywords = [
     "Eosinophil cationic protein",
     "Myocardial Infarction",
     "Sepsis (패혈증)",
     "Hypertension",
     "Chronic Gastritis",
-    "Ectopic Pregnancy",
-    "Endocrine disorder",
-    "Depressive neurosis",
-    "Cervical cancer",
-    "Drug side effect",
-    "Acute appendicitis",
-    "Pulmonary embolism",
     "심폐소생술 (CPR)",
     "투약 오류 (Medication error)",
     "활력징후 (Vital signs)"
@@ -28,7 +45,7 @@ export default function MedicalPage() {
 
   return (
     <div className="min-h-screen bg-white font-sans">
-      {/* 🌟 스마트 상단 네비게이션 */}
+      {/* 스마트 상단 네비게이션 */}
       <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md border-b border-slate-100 z-50 shadow-sm">
         <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-slate-500 hover:text-blue-600 transition-colors font-bold text-sm bg-slate-50 hover:bg-blue-50 px-3 py-1.5 rounded-full">
@@ -41,20 +58,19 @@ export default function MedicalPage() {
       </nav>
 
       <main className="max-w-4xl mx-auto px-6 pt-32 pb-20">
-        {/* 히어로 섹션 */}
+        {/* 히어로 섹션: '전용 검색'으로 문구 수정 */}
         <div className="text-center mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
           <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight">
-            의학 영어 / 한글 용어 <span className="text-blue-600">100만개</span>
+            의학 영어 / 한글 용어 <span className="text-blue-600">전용 검색</span>
           </h1>
           <p className="mt-4 text-slate-500 font-bold text-lg">
             간호사 · 의사 · 의학논문 번역용 최적화 실무 사전
           </p>
         </div>
 
-        {/* 🛠️ 진짜 모터가 달린 검색바 (form 태그 적용) */}
-        <div className="relative max-w-2xl mx-auto mb-16 animate-in fade-in duration-1000">
-          {/* form 태그와 action="/" 속성을 사용해 메인 페이지로 쿼리 전달 */}
-          <form action="/" method="GET" className="flex items-center w-full h-16 bg-white rounded-2xl border-2 border-blue-500 shadow-xl overflow-hidden focus-within:ring-4 focus-within:ring-blue-100 transition-all">
+        {/* 🛠️ 스마트 검색바: 엔터 및 로컬 기록 연동 */}
+        <div className="relative max-w-2xl mx-auto mb-16">
+          <form onSubmit={handleSearch} className="flex items-center w-full h-16 bg-white rounded-2xl border-2 border-blue-500 shadow-xl overflow-hidden focus-within:ring-4 focus-within:ring-blue-100 transition-all">
             <div className="pl-6 text-blue-500">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -62,43 +78,70 @@ export default function MedicalPage() {
             </div>
             <input 
               type="text" 
-              name="q" // 🌟 매우 중요: 이 이름으로 쿼리가 전달됨 (/?q=검색어)
-              placeholder="예: Eosinophil cationic protein / 심근경색"
-              className="flex-grow h-full px-4 text-base md:text-lg outline-none font-medium placeholder:text-slate-300 text-slate-800"
-              required
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="예: myocardial infarction / 심근경색"
+              className="flex-grow h-full px-4 text-base md:text-lg outline-none font-medium text-slate-800"
               autoComplete="off"
             />
-            <button type="submit" className="h-full px-6 md:px-8 bg-blue-600 text-white font-black text-base md:text-lg hover:bg-blue-700 active:bg-blue-800 transition-colors">
+            <button type="submit" className="h-full px-6 md:px-8 bg-blue-600 text-white font-black text-base md:text-lg hover:bg-blue-700 transition-colors">
               검색
             </button>
           </form>
-          <p className="mt-4 text-center text-xs text-slate-400 font-medium">
-            [ 🏥 관련 의료 전문 자료 및 실무 용어 검색 최적화 ]
+          <p className="mt-4 text-center text-[11px] md:text-xs text-slate-400 font-medium">
+             📌 이곳에서 검색한 단어는 아래 나만의 보물창고에만 안전하게 기록됩니다.
           </p>
         </div>
 
-        {/* 하단 섹션: 텅 빈 박스 대신 실제 검색어 링크들 배치 (SEO + UX 극대화) */}
-        <div className="grid grid-cols-1 gap-12 mt-10">
-          <section className="animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            <h2 className="text-lg md:text-xl font-black text-slate-800 flex items-center gap-2 mb-6">
-              <span className="text-red-500">📈</span> 병원 실무 다빈도 검색 용어
+        <div className="grid grid-cols-1 gap-10 mt-10">
+          {/* 🎁 나만의 보물창고 (로컬 기록) */}
+          <section className="animate-in fade-in duration-700">
+            <h2 className="text-lg font-black text-slate-800 flex items-center gap-2 mb-4">
+              <span className="text-xl">🎁</span> 나만의 의학용어 보물창고
             </h2>
-            <div className="bg-slate-50/80 rounded-3xl p-6 md:p-8 border border-slate-200">
-              <div className="flex flex-wrap gap-2.5">
-                {medicalKeywords.map((keyword, index) => {
-                  // 검색어에서 괄호 부분은 빼고 실제 검색할 단어만 추출
-                  const queryParam = keyword.split('(')[0].trim();
-                  
-                  return (
+            <div className="bg-blue-50/50 rounded-3xl p-6 border border-blue-100 shadow-inner min-h-[120px]">
+              {myHistory.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {myHistory.map((item, i) => (
                     <Link 
-                      key={index}
-                      href={`/?q=${encodeURIComponent(queryParam)}`}
-                      className="inline-block px-4 py-2 bg-white border border-slate-200 text-slate-600 text-sm md:text-base font-bold rounded-full hover:border-blue-300 hover:text-blue-600 hover:shadow-md transition-all duration-300"
+                      key={i} 
+                      href={`/?q=${encodeURIComponent(item)}`}
+                      className="px-4 py-2 bg-white border border-blue-200 text-blue-600 text-sm font-bold rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
                     >
-                      # {keyword}
+                      {item}
                     </Link>
-                  );
-                })}
+                  ))}
+                  <button 
+                    onClick={() => { if(confirm('보물창고를 비울까요?')) { setMyHistory([]); localStorage.removeItem('xdic_medical_treasure'); }}}
+                    className="px-3 py-2 text-slate-400 hover:text-red-500 text-[11px] font-bold"
+                  >
+                    [비우기]
+                  </button>
+                </div>
+              ) : (
+                <div className="h-full flex items-center justify-center text-slate-400 text-sm italic py-4">
+                  아직 보물이 없네요. 위에서 의학용어를 검색해 보세요!
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* 📈 추천 검색어 (기존 SEO용) */}
+          <section>
+            <h2 className="text-lg font-black text-slate-800 flex items-center gap-2 mb-4">
+              <span className="text-red-500 text-xl">📈</span> 추천 의학 실무 용어
+            </h2>
+            <div className="bg-slate-50/80 rounded-3xl p-6 border border-slate-200">
+              <div className="flex flex-wrap gap-2">
+                {recommendedKeywords.map((keyword, index) => (
+                  <Link 
+                    key={index}
+                    href={`/?q=${encodeURIComponent(keyword.split('(')[0].trim())}`}
+                    className="px-4 py-2 bg-white border border-slate-200 text-slate-600 text-sm font-bold rounded-full hover:border-blue-300 hover:text-blue-600 transition-all"
+                  >
+                    # {keyword}
+                  </Link>
+                ))}
               </div>
             </div>
           </section>
