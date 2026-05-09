@@ -9,64 +9,86 @@ export const metadata = {
 export default function SitemapPage() {
   const sections = [
     {
-      title: "🔍 검색 및 데이터",
+      title: "검색 서비스",
+      icon: "🔍",
+      bgColor: "bg-blue-50",
+      textColor: "text-blue-600",
       links: [
-        { name: "엑스딕 메인 검색", href: "/" },
-        { name: "최근 검색어 리스트", href: "/recent" },
-        { name: "인기 검색어 TOP 20", href: "/popular" },
+        { name: "메인 검색 홈", href: "/", desc: "한영/영한 복합어 전문 검색" },
+        { name: "최근 검색어", href: "/recent", desc: "나의 검색 히스토리 확인" },
+        { name: "인기 검색어", href: "/popular", desc: "실시간 트렌드 단어 TOP 20" },
       ]
     },
     {
-      title: "📖 학습 콘텐츠",
+      title: "학습 및 해설",
+      icon: "📚",
+      bgColor: "bg-emerald-50",
+      textColor: "text-emerald-600",
       links: [
-        { name: "필수 영어회화 가이드", href: "/conversation" },
-        { name: "영단어 뉘앙스 해설", href: "/nuance" },
-        { name: "필수 숙어 해설", href: "/idiom" },
+        { name: "필수 영어회화", href: "/conversation", desc: "상황별 핵심 패턴과 예문" },
+        { name: "영단어 뉘앙스", href: "/nuance", desc: "비슷한 단어의 미묘한 차이" },
+        { name: "필수 숙어 해설", href: "/idiom", desc: "원어민이 자주 쓰는 관용구" },
       ]
     },
     {
-      title: "🏥 전문 서비스",
+      title: "전문가 섹션",
+      icon: "🩺",
+      bgColor: "bg-rose-50",
+      textColor: "text-rose-600",
       links: [
-        { name: "의료진 특화 의학용어 사전", href: "/medical" },
+        { name: "의료진 특화 사전", href: "/medical", desc: "의사/간호사용 실무 용어" },
       ]
     },
     {
-      title: "📢 고객 지원",
+      title: "고객 지원",
+      icon: "📢",
+      bgColor: "bg-slate-50",
+      textColor: "text-slate-600",
       links: [
-        { name: "공지사항 및 FAQ", href: "/notice" },
-        { name: "이용약관 및 개인정보처리방침", href: "/docs/terms_ko.pdf" },
+        { name: "공지사항 / FAQ", href: "/notice", desc: "업데이트 소식 및 자주 묻는 질문" },
+        { name: "이용약관(KO/EN)", href: "/docs/terms_ko.pdf", desc: "서비스 정책 및 개인정보 처리" },
       ]
     }
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-4xl mx-auto px-6 py-16">
-        <div className="mb-12 border-b border-slate-100 pb-8">
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-            <span className="text-blue-500">🗺️</span> 사이트맵
-          </h1>
-          <p className="mt-4 text-slate-500 text-lg">
-            엑스딕(X-DIC)이 제공하는 모든 서비스와 페이지를 안내해 드립니다.
+    <div className="min-h-screen bg-slate-50/50 font-sans">
+      <div className="max-w-5xl mx-auto px-6 py-20">
+        
+        {/* 상단 헤더 섹션 */}
+        <div className="text-center mb-16 animate-in fade-in slide-in-from-top-4 duration-700">
+          <Link href="/" className="inline-block mb-6 text-2xl font-black text-slate-800 tracking-tighter hover:opacity-70 transition-opacity">
+            <span className="text-blue-600">X</span>-DIC
+          </Link>
+          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">서비스 지도</h1>
+          <div className="w-12 h-1.5 bg-blue-500 mx-auto mt-6 rounded-full"></div>
+          <p className="mt-6 text-slate-500 text-lg font-medium">
+            엑스딕의 모든 가치있는 콘텐츠를 한 곳에서 확인하세요.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+        {/* 그리드 레이아웃 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {sections.map((section, idx) => (
-            <div key={idx} className="space-y-5">
-              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
-                {section.title}
-              </h2>
-              <ul className="space-y-3 pl-3">
+            <div key={idx} className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <div className="flex items-center gap-4 mb-8">
+                <div className={`w-14 h-14 ${section.bgColor} ${section.textColor} rounded-2xl flex items-center justify-center text-2xl shadow-inner`}>
+                  {section.icon}
+                </div>
+                <h2 className="text-xl font-black text-slate-800">{section.title}</h2>
+              </div>
+              
+              <ul className="space-y-6">
                 {section.links.map((link, lIdx) => (
                   <li key={lIdx}>
-                    <Link 
-                      href={link.href}
-                      className="text-slate-600 hover:text-blue-600 hover:underline underline-offset-4 transition-colors font-medium flex items-center gap-2 group"
-                    >
-                      <span className="text-slate-300 group-hover:text-blue-400">·</span>
-                      {link.name}
+                    <Link href={link.href} className="group block">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[16px] font-bold text-slate-700 group-hover:text-blue-600 transition-colors">
+                          {link.name}
+                        </span>
+                        <span className="text-slate-300 group-hover:translate-x-1 transition-transform">→</span>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-1 font-medium">{link.desc}</p>
                     </Link>
                   </li>
                 ))}
@@ -75,19 +97,14 @@ export default function SitemapPage() {
           ))}
         </div>
 
-        <div className="mt-20 p-8 bg-slate-50 rounded-2xl border border-slate-100">
-          <p className="text-center text-slate-400 text-sm">
-            원하시는 정보를 찾지 못하셨나요? <br className="md:hidden" /> 
-            메인 검색창에서 복합어와 전문 용어를 직접 검색해 보세요!
-          </p>
-          <div className="mt-6 flex justify-center">
-            <Link 
-              href="/"
-              className="px-8 py-3 bg-slate-800 text-white font-bold rounded-full hover:bg-blue-600 transition-all shadow-md"
-            >
-              메인으로 돌아가기
-            </Link>
-          </div>
+        {/* 하단 홈으로 가기 */}
+        <div className="mt-20 text-center">
+          <Link 
+            href="/"
+            className="inline-flex items-center gap-2 px-10 py-4 bg-slate-900 text-white font-bold rounded-full hover:bg-blue-600 hover:scale-105 active:scale-95 transition-all shadow-lg"
+          >
+            🏠 메인으로 돌아가기
+          </Link>
         </div>
       </div>
     </div>
