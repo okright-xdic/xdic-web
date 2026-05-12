@@ -25,7 +25,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
-        {/* ✅ 네이버 서치어드바이저 소유권 확인 태그 (여기에 추가되었습니다!) */}
+        {/* ✅ 네이버 서치어드바이저 소유권 확인 태그 */}
         <meta name="naver-site-verification" content="1b770031d6a3b92fa9cc725d68d2a8b81f3d40e1" />
 
         {/* ✅ Google AdSense 전역 스크립트 (반드시 1회만) */}
@@ -36,7 +36,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
 
-        {/* ▼▼▼ 구글 애널리틱스 (방문자 통계) 시작 ▼▼▼ */}
+        {/* ▼▼▼ 구글 애널리틱스 & 구글 애즈 통합 태그 시작 ▼▼▼ */}
         <Script
           strategy="afterInteractive"
           src={`https://www.googletagmanager.com/gtag/js?id=G-MJXKQ30RJJ`}
@@ -46,10 +46,15 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-MJXKQ30RJJ');
+            
+            // 기존 애널리틱스 통계 태그
+            gtag('config', 'G-MJXKQ30RJJ'); 
+            
+            // 🌟 이번에 새로 추가된 구글 애즈(광고) 태그
+            gtag('config', 'AW-977817955'); 
           `}
         </Script>
-        {/* ▲▲▲ 구글 애널리틱스 (방문자 통계) 끝 ▲▲▲ */}
+        {/* ▲▲▲ 구글 애널리틱스 & 구글 애즈 통합 태그 끝 ▲▲▲ */}
       </head>
 
       <body className="bg-white text-slate-900 font-sans antialiased">{children}</body>
