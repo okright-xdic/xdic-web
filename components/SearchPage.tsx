@@ -184,6 +184,18 @@ export default function SearchPage({
       </div>
       <div className="w-full">
         <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
+        
+        {/* ▼▼▼ 평가단 와글와글 입장 버튼 시작 ▼▼▼ */}
+        <div className="flex justify-end max-w-2xl mx-auto mt-2 mb-6 px-4 animate-in fade-in duration-500">
+          <a 
+            href="/app/waggle" 
+            className="animate-bounce bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-6 py-2.5 rounded-full shadow-lg border-2 border-white text-sm flex items-center gap-2 hover:scale-105 transition-transform"
+          >
+            <span className="text-xl">💬</span> 평가단 와글와글 입장!
+          </a>
+        </div>
+        {/* ▲▲▲ 평가단 와글와글 입장 버튼 끝 ▲▲▲ */}
+
         {mounted && !displayIsApp && <TodaysConversation />}
         {mounted && displayIsApp && <AppTodaysConversation />}
       </div>
@@ -367,6 +379,18 @@ export default function SearchPage({
 
             <div className="w-full">
               <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
+              
+              {/* ▼▼▼ 평가단 와글와글 입장 버튼 시작 ▼▼▼ */}
+              <div className="flex justify-end max-w-2xl mx-auto mt-2 mb-2 px-4 animate-in fade-in duration-500">
+                <a 
+                  href="/app/waggle" 
+                  className="animate-bounce bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-6 py-2.5 rounded-full shadow-lg border-2 border-white text-sm flex items-center gap-2 hover:scale-105 transition-transform"
+                >
+                  <span className="text-xl">💬</span> 평가단 와글와글 입장!
+                </a>
+              </div>
+              {/* ▲▲▲ 평가단 와글와글 입장 버튼 끝 ▲▲▲ */}
+
             </div>
           </header>
         )}

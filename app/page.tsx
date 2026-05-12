@@ -437,13 +437,6 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
       }
     }
 
-    promises.push((async () => {
-      try {
-        const { data } = await supabase.rpc('search_dictionary_smart', { keyword: query });
-        if (Array.isArray(data)) data.forEach(item => addRes({ ...item, is_rpc: true }));
-      } catch(e) {}
-    })());
-
     if (cleanQuery.includes(' ') && noSpaceQuery.length >= 2) {
       promises.push((async () => {
         try {
