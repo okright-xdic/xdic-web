@@ -100,7 +100,6 @@ export default function SearchPage({
   const displayQuery = (query || '').trim();
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
-  // 🌟 [추가됨] 기기별 스마트 즐겨찾기 안내 마법 로직
   const handleBookmarkClick = () => {
     if (typeof window === 'undefined') return;
     
@@ -185,16 +184,17 @@ export default function SearchPage({
       <div className="w-full">
         <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
         
-        {/* ▼▼▼ 평가단 와글와글 입장 버튼 시작 ▼▼▼ */}
-        <div className="flex justify-end max-w-2xl mx-auto mt-2 mb-6 px-4 animate-in fade-in duration-500">
-          <a 
-            href="/app/waggle" 
-            className="animate-bounce bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-6 py-2.5 rounded-full shadow-lg border-2 border-white text-sm flex items-center gap-2 hover:scale-105 transition-transform"
-          >
-            <span className="text-xl">💬</span> 평가단 와글와글 입장!
-          </a>
-        </div>
-        {/* ▲▲▲ 평가단 와글와글 입장 버튼 끝 ▲▲▲ */}
+        {/* 🌟 1. 메인 화면: 앱일 때만(displayIsApp이 true일 때만) 와글와글 버튼 표시 */}
+        {displayIsApp && (
+          <div className="flex justify-end max-w-2xl mx-auto mt-2 mb-6 px-4 animate-in fade-in duration-500">
+            <a 
+              href="/app/waggle" 
+              className="animate-bounce bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-6 py-2.5 rounded-full shadow-lg border-2 border-white text-sm flex items-center gap-2 hover:scale-105 transition-transform"
+            >
+              <span className="text-xl">💬</span> 평가단 와글와글 입장!
+            </a>
+          </div>
+        )}
 
         {mounted && !displayIsApp && <TodaysConversation />}
         {mounted && displayIsApp && <AppTodaysConversation />}
@@ -380,16 +380,17 @@ export default function SearchPage({
             <div className="w-full">
               <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
               
-              {/* ▼▼▼ 평가단 와글와글 입장 버튼 시작 ▼▼▼ */}
-              <div className="flex justify-end max-w-2xl mx-auto mt-2 mb-2 px-4 animate-in fade-in duration-500">
-                <a 
-                  href="/app/waggle" 
-                  className="animate-bounce bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-6 py-2.5 rounded-full shadow-lg border-2 border-white text-sm flex items-center gap-2 hover:scale-105 transition-transform"
-                >
-                  <span className="text-xl">💬</span> 평가단 와글와글 입장!
-                </a>
-              </div>
-              {/* ▲▲▲ 평가단 와글와글 입장 버튼 끝 ▲▲▲ */}
+              {/* 🌟 2. 검색 결과 화면: 앱일 때만(displayIsApp이 true일 때만) 와글와글 버튼 표시 */}
+              {displayIsApp && (
+                <div className="flex justify-end max-w-2xl mx-auto mt-2 mb-2 px-4 animate-in fade-in duration-500">
+                  <a 
+                    href="/app/waggle" 
+                    className="animate-bounce bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-6 py-2.5 rounded-full shadow-lg border-2 border-white text-sm flex items-center gap-2 hover:scale-105 transition-transform"
+                  >
+                    <span className="text-xl">💬</span> 평가단 와글와글 입장!
+                  </a>
+                </div>
+              )}
 
             </div>
           </header>
@@ -469,7 +470,7 @@ export default function SearchPage({
                           </div>
                         </li>
                         
-                        {/* 🌟 첫 번째 중간 광고 (기존 유지) */}
+                        {/* 🌟 첫 번째 중간 광고 */}
                         {!displayIsApp && idx === Math.min(6, currentItems.length - 1) && (
                           <div className="w-full flex justify-center my-6">
                             <div className={`relative flex items-center justify-center w-full max-w-[728px] ${isMobileWeb ? 'min-h-[100px]' : 'min-h-[90px]'} bg-transparent rounded-lg overflow-hidden`}>
@@ -522,7 +523,7 @@ export default function SearchPage({
                     </div>
                   )}
 
-                  {/* 🌟 [수프로의 스마트 하단 광고] 결과가 10개 이상일 때만 하단에 등장! */}
+                  {/* 🌟 하단 광고 */}
                   {!displayIsApp && currentItems.length >= 10 && (
                     <div className="w-full flex justify-center mt-8 mb-2">
                       <div className={`relative flex items-center justify-center w-full max-w-[728px] ${isMobileWeb ? 'min-h-[100px]' : 'min-h-[90px]'} bg-transparent rounded-lg overflow-hidden`}>

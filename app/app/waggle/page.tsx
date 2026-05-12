@@ -17,6 +17,9 @@ export default function WagglePage() {
   const [isSecret, setIsSecret] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // 🌟 시샵(선생님) 전용 마스터 열쇠 닉네임 설정
+  const MASTER_NICKNAME = '시샵0000'; 
+
   // 로컬 스토리지에서 이전 닉네임 불러오기 (자동 기억)
   useEffect(() => {
     const savedNick = localStorage.getItem('xdic_tester_nick');
@@ -27,7 +30,6 @@ export default function WagglePage() {
   }, []);
 
   const fetchFeedbacks = async () => {
-    // 🌟 이제 supabase 객체가 정상적으로 생성되었으므로 .from()을 읽을 수 있습니다.
     const { data, error } = await supabase
       .from('tester_feedback')
       .select('*')
@@ -40,10 +42,12 @@ export default function WagglePage() {
     e.preventDefault();
     if (!nickname || !password || !content) return alert('모든 항목을 입력해주세요!');
 
-    // 닉네임 가이드 체크 (이름 끝자 + 번호 4자리)
-    const nickRegex = /^[가-힣a-zA-Z]\d{4}$/;
-    if (!nickRegex.test(nickname)) {
-      return alert('닉네임 형식을 맞춰주세요! (예: 동5678)');
+    // 🌟 마스터 닉네임은 정규식 검사를 무사통과 하도록 예외 처리
+    if (nickname !== MASTER_NICKNAME) {
+      const nickRegex = /^[가-힣a-zA-Z]\d{4}$/;
+      if (!nickRegex.test(nickname)) {
+        return alert('닉네임 형식을 맞춰주세요! (예: 동5678)');
+      }
     }
 
     const { error } = await supabase.from('tester_feedback').insert([
@@ -65,10 +69,22 @@ export default function WagglePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-20">
-      <nav className="bg-white border-b p-4 sticky top-0 z-50 flex items-center gap-4">
-        <button onClick={() => router.back()} className="text-slate-400">←</button>
-        <h1 className="text-lg font-black text-slate-800">💬 평가단 와글와글</h1>
+      
+      {/* ▼▼▼ 엑스딕 스타일의 확실한 탈출구(네비게이션 바) 시작 ▼▼▼ */}
+      <nav className="bg-white border-b p-3 sticky top-0 z-50 flex items-center justify-between shadow-sm px-4">
+        <div className="flex items-center gap-2">
+          <button onClick={() => router.back()} className="flex items-center gap-1 text-slate-500 hover:text-slate-800 font-bold text-sm bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+            뒤로
+          </button>
+          <h1 className="text-[17px] font-black text-slate-800 ml-1">💬 와글와글</h1>
+        </div>
+        <a href="/app" className="flex items-center gap-1 text-slate-500 hover:text-slate-800 font-bold text-sm bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+          홈으로
+        </a>
       </nav>
+      {/* ▲▲▲ 탈출구 끝 ▲▲▲ */}
 
       <main className="p-4 max-w-2xl mx-auto">
         {/* 안내 문구 */}
@@ -119,7 +135,7 @@ export default function WagglePage() {
                     <span className="font-black text-blue-600 text-sm">{fb.nickname}</span>
                     <span className="text-[10px] text-slate-300">{new Date(fb.created_at).toLocaleDateString()}</span>
                   </div>
-                  {fb.is_secret && fb.nickname !== nickname ? (
+                  {fb.is_secret && fb.nickname !== nickname && nickname !== MASTER_NICKNAME ? (
                     <p className="text-slate-400 text-sm italic">🔒 작성자와 시샵만 볼 수 있는 비밀글입니다.</p>
                   ) : (
                     <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">{fb.content}</p>
