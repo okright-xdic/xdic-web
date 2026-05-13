@@ -138,7 +138,6 @@ export default function WagglePage() {
             className={`w-full p-4 border rounded-xl text-sm min-h-[100px] outline-blue-500 mb-3 ${isAdmin ? 'bg-indigo-50 border-indigo-200' : ''}`}
           />
           
-          {/* 🌟 폼 하단 버튼 영역: 무조건 렌더링되도록 수정 */}
           <div className="flex items-center justify-between pt-2 border-t border-slate-100">
             {isAdmin ? (
               <span className="text-sm font-black text-indigo-600 flex items-center gap-1.5">
@@ -176,6 +175,7 @@ export default function WagglePage() {
                       <span className={`text-[10px] ${isNotice ? 'text-indigo-400' : 'text-slate-300'}`}>{new Date(fb.created_at).toLocaleDateString()}</span>
                     </div>
                     
+                    {/* 🌟 1. 본문 내용 노출 권한 처리 */}
                     {isNotice ? (
                       <p className="text-indigo-900 text-[14px] font-bold leading-relaxed whitespace-pre-wrap">{fb.content}</p>
                     ) : canViewContent ? (
@@ -184,13 +184,22 @@ export default function WagglePage() {
                       <p className="text-slate-400 text-sm italic">🔒 작성자와 시샵만 볼 수 있는 비밀글입니다.</p>
                     )}
 
+                    {/* 🌟 2. 시샵 답변 노출 권한 처리 (비밀글 자동 동기화!) */}
                     {!isNotice && fb.reply && (
-                      <div className="mt-3 p-3 bg-slate-50 rounded-lg border-l-4 border-blue-400">
-                        <p className="text-[11px] font-black text-blue-500 mb-1">시샵(운영자) 답변</p>
-                        <p className="text-sm text-slate-600 whitespace-pre-wrap">{fb.reply}</p>
-                      </div>
+                      canViewContent ? (
+                        <div className="mt-3 p-3 bg-slate-50 rounded-lg border-l-4 border-blue-400">
+                          <p className="text-[11px] font-black text-blue-500 mb-1">시샵(운영자) 답변</p>
+                          <p className="text-sm text-slate-600 whitespace-pre-wrap">{fb.reply}</p>
+                        </div>
+                      ) : (
+                        <div className="mt-3 p-3 bg-slate-50 rounded-lg border-l-4 border-slate-300">
+                          <p className="text-[11px] font-black text-slate-400 mb-1">시샵(운영자) 답변</p>
+                          <p className="text-sm text-slate-400 italic">🔒 작성자와 시샵만 볼 수 있는 답변입니다.</p>
+                        </div>
+                      )
                     )}
 
+                    {/* 🌟 3. 시샵(관리자) 답변 달기 폼 */}
                     {isAdmin && !isNotice && (
                       <div className="mt-4 pt-3 border-t border-slate-100/50">
                         {replyingId === fb.id ? (
