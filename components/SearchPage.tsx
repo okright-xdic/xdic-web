@@ -177,14 +177,14 @@ export default function SearchPage({
           <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="X-DIC Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
         </a>
         <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer hover:opacity-80 transition-opacity">
-          <h1 className="text-[22px] md:text-[26px] font-extrabold text-slate-800 leading-tight">한영/영한사전 – 복합어 전문 엑스딕!</h1>
+          {/* 🌟 수정된 메인 타이틀 1 */}
+          <h1 className="text-[22px] md:text-[26px] font-extrabold text-slate-800 leading-tight">한영/영한사전 – 복합어(합성어) 전문 엑스딕!</h1>
         </a>
         <p className="text-[12px] md:text-[14px] text-slate-500 font-medium leading-tight">Korean-English/English-Korean Dictionary – Compound Terminology</p>
       </div>
       <div className="w-full">
         <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
         
-        {/* 🌟 1. 메인 화면: 앱일 때만(displayIsApp이 true일 때만) 와글와글 버튼 표시 */}
         {displayIsApp && (
           <div className="flex justify-end max-w-2xl mx-auto mt-2 mb-6 px-4 animate-in fade-in duration-500">
             <a 
@@ -371,7 +371,8 @@ export default function SearchPage({
                 </div>
                 <div className="flex flex-col gap-1">
                     <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer hover:opacity-80 transition-opacity">
-                        <h1 className="text-xl md:text-[24px] font-extrabold text-slate-800 leading-tight">한영/영한사전 – 복합어 전문 엑스딕!</h1>
+                        {/* 🌟 수정된 검색 후 타이틀 2 */}
+                        <h1 className="text-xl md:text-[24px] font-extrabold text-slate-800 leading-tight">한영/영한사전 – 복합어(합성어) 전문 엑스딕!</h1>
                     </a>
                     <p className="text-sm md:text-[16px] text-slate-500 font-medium leading-tight">Korean-English/English-Korean Dictionary – Compound Terminology</p>
                 </div>
@@ -380,7 +381,6 @@ export default function SearchPage({
             <div className="w-full">
               <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
               
-              {/* 🌟 2. 검색 결과 화면: 앱일 때만(displayIsApp이 true일 때만) 와글와글 버튼 표시 */}
               {displayIsApp && (
                 <div className="flex justify-end max-w-2xl mx-auto mt-2 mb-2 px-4 animate-in fade-in duration-500">
                   <a 
@@ -470,7 +470,6 @@ export default function SearchPage({
                           </div>
                         </li>
                         
-                        {/* 🌟 첫 번째 중간 광고 */}
                         {!displayIsApp && idx === Math.min(6, currentItems.length - 1) && (
                           <div className="w-full flex justify-center my-6">
                             <div className={`relative flex items-center justify-center w-full max-w-[728px] ${isMobileWeb ? 'min-h-[100px]' : 'min-h-[90px]'} bg-transparent rounded-lg overflow-hidden`}>
@@ -523,7 +522,6 @@ export default function SearchPage({
                     </div>
                   )}
 
-                  {/* 🌟 하단 광고 */}
                   {!displayIsApp && currentItems.length >= 10 && (
                     <div className="w-full flex justify-center mt-8 mb-2">
                       <div className={`relative flex items-center justify-center w-full max-w-[728px] ${isMobileWeb ? 'min-h-[100px]' : 'min-h-[90px]'} bg-transparent rounded-lg overflow-hidden`}>
@@ -594,6 +592,10 @@ export default function SearchPage({
                 <Link href="/notice" className="group flex items-center gap-1.5 px-4 py-1.5 bg-white border border-slate-200 shadow-sm hover:border-slate-400 hover:shadow-md hover:bg-slate-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-slate-600 hover:text-slate-800 transition-all duration-300">
                   <span className="text-[14px] group-hover:scale-110 transition-transform">📢</span> 
                   <span>공지사항 / FAQ</span>
+                </Link>
+                <Link href="/sitemap" className="group flex items-center gap-1.5 px-4 py-1.5 bg-white border border-emerald-200 shadow-sm hover:border-emerald-400 hover:shadow-md hover:bg-emerald-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-emerald-600 hover:text-emerald-800 transition-all duration-300">
+                  <span className="text-[14px] group-hover:scale-110 transition-transform">🗺️</span> 
+                  <span>사이트맵</span>
                 </Link>
               </div>
 
