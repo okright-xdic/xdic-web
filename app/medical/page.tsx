@@ -88,7 +88,7 @@ export default function MedicalPage() {
         {/* 히어로 섹션: '전용 검색'으로 문구 수정 */}
         <div className="text-center mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
           <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight">
-            의학 영어 / 한글 용어 <span className="text-blue-600">전용 검색</span>
+            의학 영어/한글 용어 <span className="text-blue-600">전용 검색</span>
           </h1>
           <p className="mt-4 text-slate-500 font-bold text-lg">
             간호사 · 의사 · 의학논문 번역용 최적화 실무 사전
