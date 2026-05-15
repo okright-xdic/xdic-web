@@ -1,5 +1,5 @@
 // app/app/page.tsx
-// ✅ 서버 로직 완벽!
+// ✅ 서버 로직 완벽! (영어 복합어 띄어쓰기 무한 보정 장착)
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -355,7 +355,8 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
        return k.length >= 2 || /[가-힣]/.test(k);
     });
 
-    if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 10 && /[가-힣]/.test(cleanQuery)) {
+    // 🌟 [수프로 변경점] 한글만 된다는 조건을 삭제하고 최대 길이를 25자로 대폭 늘렸습니다!
+    if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 25) {
       const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
       let splitPairs: any[] = [];
       for (let i = 2; i <= safeQuery.length - 2; i++) {
@@ -406,7 +407,8 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
       promises.push(fetchExactPhrase(safeNoSpaceQuery, true));
     }
 
-    if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 10 && /[가-힣]/.test(cleanQuery)) {
+    // 🌟 [수프로 변경점] 한글만 된다는 조건을 삭제하고 최대 길이를 25자로 대폭 늘렸습니다!
+    if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 25) {
       const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
       let splitPairs: any[] = [];
       for (let i = 1; i < safeQuery.length; i++) {
