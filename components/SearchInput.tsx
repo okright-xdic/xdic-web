@@ -25,13 +25,10 @@ type MicLang = 'ko-KR' | 'en-US' | null;
 const expandKoreanAbbreviations = (text: string) => {
   let res = text;
 
-  // 💡 0. 격식체(합쇼체) ➔ 해라체/기본형 일괄 변환 (선생님의 450개 데이터 무한대 커버!)
-  // "갔습니다 -> 갔다", "예뻤습니다 -> 예뻤다", "확인되었습니다 -> 확인되었다"
+  // 💡 0. 격식체(합쇼체) ➔ 해라체/기본형 일괄 변환
   res = res.replace(/습니다([^ ]*)$/, '다$1');
-  // "학생입니다 -> 학생이다", "의사입니다 -> 의사이다"
   res = res.replace(/입니다([^ ]*)$/, '이다$1');
   
-  // '-ㅂ니다' 로 끝나는 기본 동사/형용사 변환 (사전 등재형으로 복원)
   const formalMap: Record<string, string> = {
     '합니다': '하다', '갑니다': '가다', '옵니다': '오다', '봅니다': '보다', 
     '줍니다': '주다', '만듭니다': '만들다', '놉니다': '놀다', '압니다': '알다', 
@@ -44,7 +41,7 @@ const expandKoreanAbbreviations = (text: string) => {
     res = res.replace(regex, formalMap[key] + '$1');
   });
 
-  // 💡 1. 단일 글자 종결어미 변환 (과거형: 명사와 겹칠 위험이 없어 안전함)
+  // 💡 1. 단일 글자 종결어미 변환
   const endCharMap: Record<string, string> = {
     '했': '하였', '셨': '시었', '됐': '되었', '뵀': '뵈었', '쐤': '쐬었', '쬈': '쬐었',
     '뇄': '뇌었', '좼': '죄었', '괬': '괴었', '쇘': '쇠었', '혔': '히었', '렸': '리었',
@@ -122,7 +119,7 @@ const expandKoreanAbbreviations = (text: string) => {
     res = res.replace(regex, baseVal + '$1');
   });
 
-  // 💡 3. 현재형 종결어미 변환 (명사 파괴를 막기 위해 아주 명확한 단어들만 엄선!)
+  // 💡 3. 현재형 종결어미 변환
   const currentVerbMap: Record<string, string> = {
     // '-해요', '-해' ➔ '-한다'
     '공부해요': '공부한다', '공부해': '공부한다', '도착해요': '도착한다', '도착해': '도착한다',
@@ -259,6 +256,38 @@ const expandKoreanAbbreviations = (text: string) => {
   return res;
 };
 
+// 🌟 [수프로 마법] 흐르는 글씨(Marquee) 훅 (선생님의 오리지널 심플 버전으로 원복!)
+function useMarquee(text: string, speed: number = 150) {
+  const [displayText, setDisplayText] = useState(text);
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    if (isHovered) return;
+    const interval = setInterval(() => {
+      setDisplayText((prev) => prev.substring(1) + prev[0]);
+    }, speed);
+    return () => clearInterval(interval);
+  }, [isHovered, speed]);
+
+  return { displayText, setIsHovered };
+}
+
+// 🌟 지정된 5개 단어만 흘러가는 중에 볼드체로 바꿔주는 똑똑한 함수!
+const renderBoldMarquee = (text: string) => {
+  const boldWords = ['음성 검색', 'KOR(한글)', 'ENG(영어)', 'KOR (Korean)', 'ENG (English)'];
+  // 정규식을 사용해 타겟 단어들을 기준으로 텍스트를 정확하게 쪼갭니다.
+  const regex = new RegExp(`(${boldWords.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
+  const parts = text.split(regex);
+
+  return parts.map((part, i) => {
+    if (boldWords.includes(part)) {
+      return <span key={i} className="font-extrabold text-slate-800">{part}</span>;
+    }
+    return <span key={i}>{part}</span>;
+  });
+};
+
+
 export default function SearchInput({
   initialQuery = '',
   placeholder,
@@ -291,6 +320,10 @@ export default function SearchInput({
   const checkIsNative = () => {
     return typeof window !== 'undefined' && Capacitor.isNativePlatform();
   };
+
+  // 🌟 흐르는 플레이스홀더 텍스트 (선생님의 오리지널 버전)
+  const marqueeText = "음성 검색은 우측의 KOR(한글) 또는 ENG(영어) 마이크 아이콘 클릭! ★ ♪ ♥ For voice search, click the KOR (Korean) or ENG (English) microphone icon on the right! ▶ ♩ ♬ ♣";
+  const { displayText: marqueePlaceholder, setIsHovered } = useMarquee(marqueeText, 150);
 
   useEffect(() => {
     setQuery(initialQuery || '');
@@ -779,6 +812,10 @@ export default function SearchInput({
     <div className={`relative w-full ${className}`}>
       <form onSubmit={handleSearch} className="w-full">
         <div
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onTouchStart={() => setIsHovered(true)}
+          onTouchEnd={() => setIsHovered(false)}
           className={`relative flex items-center w-full h-12 md:h-14 rounded-full border-2 bg-white overflow-hidden shadow-sm transition-colors
             ${
               micLang === 'ko-KR'
@@ -788,27 +825,37 @@ export default function SearchInput({
                 : 'border-blue-500 focus-within:ring-2 focus-within:ring-blue-100'
             }`}
         >
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onFocus={(e) => e.target.select()} 
-            readOnly={isPending}
-            placeholder={
-              placeholder ||
-              (micLang === 'ko-KR'
-                ? '🎙️ 한국어 음성 검색 (대기 중)'
-                : micLang === 'en-US'
-                ? '🎙️ 영어 음성 검색 (대기 중)'
-                : '① KOR/ENG 선택 ② 단어 검색!')
-            }
-            className="flex-grow min-w-0 h-full px-3 md:px-6 text-sm md:text-base text-slate-700 placeholder:text-slate-400 outline-none bg-transparent"
-            autoComplete="off"
-          />
+          {/* 입력 중일 때는 기본 input 텍스트, 입력하지 않았을 때는 흐르는 텍스트 오버레이 */}
+          <div className="relative flex-grow h-full overflow-hidden">
+             <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onFocus={(e) => e.target.select()} 
+              readOnly={isPending}
+              className="absolute inset-0 w-full h-full px-3 md:px-6 text-[13px] md:text-base text-slate-700 bg-transparent outline-none z-10"
+              autoComplete="off"
+             />
+             
+             {!query && (
+               <div className="absolute inset-0 flex items-center px-3 md:px-6 pointer-events-none z-0 whitespace-nowrap overflow-hidden">
+                 {micLang === 'ko-KR' ? (
+                   <span className="text-[13px] md:text-base text-slate-400">🎙️ 한국어 음성 검색 (대기 중)</span>
+                 ) : micLang === 'en-US' ? (
+                   <span className="text-[13px] md:text-base text-slate-400">🎙️ 영어 음성 검색 (대기 중)</span>
+                 ) : (
+                   <div className="text-[13px] md:text-base text-slate-400 select-none">
+                     {/* 🌟 여기서 renderBoldMarquee를 통해 5개 단어만 볼드체 적용! */}
+                     {renderBoldMarquee(marqueePlaceholder)}
+                   </div>
+                 )}
+               </div>
+             )}
+          </div>
 
-          <div className="flex items-center gap-1 md:gap-2 pr-3 md:pr-2">
+          <div className="flex items-center gap-1 md:gap-2 pr-3 md:pr-2 bg-white z-20">
             {query && !isPending && (
               <button
                 type="button"
@@ -865,7 +912,7 @@ export default function SearchInput({
             <button
               type="submit"
               disabled={isPending}
-              className="h-8 md:h-10 px-3 md:px-5 rounded-full bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all flex items-center gap-1.5 ml-1"
+              className="h-8 md:h-10 px-3 md:px-5 rounded-full bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all flex items-center gap-1.5 ml-1 z-10 relative"
               title="검색"
             >
               <svg viewBox="0 0 24 24" className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="2">

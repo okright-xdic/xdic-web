@@ -172,16 +172,30 @@ export default function SearchPage({
 
   const UnifiedHeader = () => (
     <header className="w-full pt-8 pb-0 md:pt-12 md:pb-0">
-      <div className="flex flex-col items-center justify-center text-center gap-2 mb-6 px-1">
+      <div className="flex flex-col items-center justify-center text-center gap-2 mb-6 px-1 w-full">
         <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer mb-2">
           <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="X-DIC Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
         </a>
         <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer hover:opacity-80 transition-opacity">
-          {/* 🌟 수정된 메인 타이틀 1 */}
           <h1 className="text-[22px] md:text-[26px] font-extrabold text-slate-800 leading-tight">한영/영한사전 – 복합어(합성어) 전문 엑스딕!</h1>
         </a>
-        <p className="text-[12px] md:text-[14px] text-slate-500 font-medium leading-tight">Korean-English/English-Korean Dictionary – Compound Terminology</p>
+        
+        {/* 🌟 수프로 마법: 전기용어 삭제 및 최적화된 인포 박스 UI */}
+        <div className="flex flex-col items-center w-full mt-1 mb-2">
+          <p className="text-[11px] md:text-[13px] text-slate-400 font-semibold mb-3">Korean-English/English-Korean Dictionary – Compound Terminology</p>
+          
+          <div className="w-full max-w-[95%] md:max-w-3xl bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 md:py-3 shadow-sm">
+            <p className="text-[12px] md:text-[14px] text-slate-700 font-bold leading-snug break-keep text-center">
+              <span className="text-blue-600 mr-1">💡 전문용어 검색 특화:</span>
+              의학용어 · 교육용어 · 기계용어 · 무역경제용어 · 자동차용어 · 전자용어 · 컴퓨터용어 등
+            </p>
+            <p className="text-[10px] md:text-[11px] text-slate-400 font-medium leading-tight mt-1.5 px-2 break-keep text-center">
+              Specialized search for terminology such as medical, educational, mechanical, trade, economic, automobile, electronic, computer, etc.
+            </p>
+          </div>
+        </div>
       </div>
+
       <div className="w-full">
         <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
         
@@ -363,18 +377,25 @@ export default function SearchPage({
               </a>
             </div>
             
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 mb-5 text-center">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 mb-5 text-center w-full">
                 <div className="flex-shrink-0 mb-2 md:mb-0">
                     <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer">
                         <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="X-DIC Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
                     </a>
                 </div>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 w-full max-w-2xl items-center md:items-start">
                     <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer hover:opacity-80 transition-opacity">
-                        {/* 🌟 수정된 검색 후 타이틀 2 */}
                         <h1 className="text-xl md:text-[24px] font-extrabold text-slate-800 leading-tight">한영/영한사전 – 복합어(합성어) 전문 엑스딕!</h1>
                     </a>
-                    <p className="text-sm md:text-[16px] text-slate-500 font-medium leading-tight">Korean-English/English-Korean Dictionary – Compound Terminology</p>
+                    <p className="text-[11px] md:text-[13px] text-slate-400 font-semibold leading-tight hidden md:block mb-1">Korean-English/English-Korean Dictionary – Compound Terminology</p>
+                    
+                    {/* 🌟 수프로 마법: 검색 결과창에서도 슬림하게 유지되는 컴팩트 박스 UI */}
+                    <div className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 shadow-sm text-center md:text-left">
+                        <p className="text-[11px] md:text-[13px] text-slate-700 font-bold leading-tight break-keep">
+                            <span className="text-blue-600 mr-1">💡 전문용어 특화:</span>
+                            의학용어 · 교육용어 · 기계용어 · 무역경제용어 · 자동차용어 · 전자용어 · 컴퓨터용어 등
+                        </p>
+                    </div>
                 </div>
             </div>
 
