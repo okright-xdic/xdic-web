@@ -322,7 +322,7 @@ export default function SearchInput({
   };
 
   // 🌟 흐르는 플레이스홀더 텍스트 (선생님의 오리지널 버전)
-  const marqueeText = "음성 검색은 우측의 KOR(한글) 또는 ENG(영어) 마이크 아이콘 클릭! ★ ♪ ♥ For voice search, click the KOR (Korean) or ENG (English) microphone icon on the right! ▶ ♩ ♬ ♣";
+  const marqueeText = "음성 검색은 우측의 KOR(한글) 또는 ENG(영어) 마이크 아이콘 클릭! ★ ♪ ♥ For voice search, click the KOR (Korean) or ENG (English) microphone icon on the right! ▶ ♬ ♣ ♩ ";
   const { displayText: marqueePlaceholder, setIsHovered } = useMarquee(marqueeText, 150);
 
   useEffect(() => {
