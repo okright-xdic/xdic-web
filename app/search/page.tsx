@@ -1,5 +1,5 @@
 // app/search/page.tsx
-// ✅ 서버 로직 완벽! (영어 복합어 띄어쓰기 무한 보정 장착)
+// ✅ 서버 로직 완벽! (영어 복합어 띄어쓰기 보정 + 3단어 이상 2글자 무시 버그 완벽 해결!)
 
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -370,7 +370,6 @@ export default async function WebSearchPage({
        return k.length >= 2 || /[가-힣]/.test(k);
     });
 
-    // 🌟 [수프로 변경점] 한글만 된다는 조건을 삭제하고 최대 길이를 25자로 대폭 늘렸습니다!
     if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 25) {
       const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
       let splitPairs: any[] = [];
@@ -422,7 +421,6 @@ export default async function WebSearchPage({
       promises.push(fetchExactPhrase(safeNoSpaceQuery, true));
     }
 
-    // 🌟 [수프로 변경점] 한글만 된다는 조건을 삭제하고 최대 길이를 25자로 대폭 늘렸습니다!
     if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 25) {
       const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
       let splitPairs: any[] = [];
@@ -507,7 +505,7 @@ export default async function WebSearchPage({
       } else {
          const validOrKeywords = [...new Set(allSearchKeywords)].filter(k => {
            if (/[가-힣]/.test(k) && k.length <= 1) return false; 
-           if (wordCount >= 3 && /[가-힣]/.test(k) && k.length <= 2) return false; 
+           // 🌟 [수프로 변경점] 3단어 이상일 때 2글자 단어 무시 버그 완벽 삭제! (이제 "빠른 회신 감사" 정상 작동!)
            return k.length >= 2;
          });
 
