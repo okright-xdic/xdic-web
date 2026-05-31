@@ -791,3 +791,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: '서버 에러가 발생했습니다.' }, { status: 500 });
   }
 }
+// 강제 업데이트 테스트용 주석입니다.
