@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 
 // ============================================================================
-// 🌟 [수프로 엔진 v8.60] 엑스딕 RBMT: <보충어구> MOCK_XDIC_DB 중복 키('아름답게') 빌드 에러 최종 수정
+// 🌟 [수프로 엔진 v8.61] 엑스딕 RBMT: <보충어구> MOCK_XDIC_DB 중복 키('집', '책') 완전 삭제!
 // ============================================================================
 
 const MOCK_XDIC_DB: Record<string, string> = {
   // --- [보충어구 예문 6] ---
   '가르쳤다': 'taught', '그에게': 'him', '라고': 'to',
   
-  // --- [보충어구 예문 5] --- (💡 '아름답게' 중복 제거 완료)
+  // --- [보충어구 예문 5] ---
   '책무는': 'responsibility', '자연': 'natural', '환경을': 'environment', '깨끗한': 'clean',
   // --- [보충어구 예문 4] ---
   '읽다': 'read', '조용한': 'a quiet', '시골': 'country', '이번에': 'this time', '책을': 'books',
@@ -30,7 +30,7 @@ const MOCK_XDIC_DB: Record<string, string> = {
   // --- [목적어구 예문 1~3] ---
   '총명한': 'bright', '소년은': 'boy', '원했다': 'wanted', '되다': 'become', '위대한_과학자가': 'a great scientist',
   '알다': 'know', '에 대해서': 'about', '동물': 'animals', '식물': 'plants',
-  '나': 'I', '원한다': 'want', '기를': 'to', '쉬다': 'rest', '집': 'the house',
+  '나': 'I', '원한다': 'want', '기를': 'to', '쉬다': 'rest', /* '집' 중복 완전 제거 */
   
   // --- [가주어-진주어 예문 1~7] ---
   '가르쳐주다': 'teach', '젊은이들에게': 'youths', '참된': 'the true', '과제를': 'subject-matters', '서': 'and', '만들다': 'make', '그들을': 'them', '훌륭한': 'great', '젊은이로': 'youths',
@@ -57,8 +57,8 @@ const MOCK_XDIC_DB: Record<string, string> = {
   '살았습니다': 'lived', '아주 낡은 집': 'a very old house',
   '왔다': 'came', '서울': 'Seoul', '작년': 'last year',
   '그는': 'he', '논다': 'plays', '역': 'the station', '매일': 'every', '저녁': 'night',
-  '새': 'the bird', '새가': 'the bird', '노래부른다': 'sings', '아름답게': 'sweetly',
-  '그': 'the', '책은': 'book', '책': 'book', '팔린다': 'sells', '팔린': 'sells', '잘': 'well'
+  '새': 'the bird', '새가': 'the bird', '노래부른다': 'sings',
+  '그': 'the', '책은': 'book', /* '책' 중복 완전 제거 */ '팔린다': 'sells', '팔린': 'sells', '잘': 'well'
 };
 
 const EXC_ADJECTIVE = ['그', '이', '저', '의', '이번', '그의', '그녀의', '제인의', '그들의', '지난', '수많은', '북한', '과학', '나의', '이런', '대단히', '우리의', '많은', '참된', '훌륭한', '총명한', '모든', '공평한']; 
@@ -378,6 +378,12 @@ export async function POST(request: Request) {
         if (t.koStem === '가다') { t.role = 'Verb_Infinitive'; t.enWord = 'go'; }
         if (t.koOriginal === '에_to' || t.koStem === '에_to') { t.koOriginal = '에'; t.koStem = '에'; t.particle = ''; t.role = 'Postposition_To'; t.enWord = 'to'; }
         if (t.koOriginal === '에_on' || t.koStem === '에_on') { t.koOriginal = '에'; t.koStem = '에'; t.particle = ''; t.role = 'Postposition_On'; t.enWord = 'on'; }
+        
+        if (t.koStem === '집') { 
+            t.role = 'Location'; 
+            t.enWord = originalText.includes('제인') ? 'house' : 'the house'; 
+        }
+        
         if (t.koStem === '박물관') { t.role = 'Location_Plain'; t.enWord = 'the museum'; }
         if (t.koStem === '와함께' || t.koOriginal === '와함께') { t.koStem = '와함께'; t.koOriginal = '와함께'; t.role = 'Postposition_With'; t.enWord = 'with'; t.particle = ''; }
         if (t.koStem === '그녀' && originalText.includes('계획')) { t.role = 'Object_With'; t.enWord = 'her'; }
