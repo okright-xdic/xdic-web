@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 
 // ============================================================================
-// 🌟 [수프로 엔진 v8.59] 엑스딕 RBMT: <보충어구> MOCK_XDIC_DB 중복 키('집') 빌드 에러 최종 수정
+// 🌟 [수프로 엔진 v8.60] 엑스딕 RBMT: <보충어구> MOCK_XDIC_DB 중복 키('아름답게') 빌드 에러 최종 수정
 // ============================================================================
 
 const MOCK_XDIC_DB: Record<string, string> = {
   // --- [보충어구 예문 6] ---
   '가르쳤다': 'taught', '그에게': 'him', '라고': 'to',
   
-  // --- [보충어구 예문 5] ---
-  '책무는': 'responsibility', '자연': 'natural', '환경을': 'environment', '깨끗한': 'clean', '아름답게': 'beautiful',
+  // --- [보충어구 예문 5] --- (💡 '아름답게' 중복 제거 완료)
+  '책무는': 'responsibility', '자연': 'natural', '환경을': 'environment', '깨끗한': 'clean',
   // --- [보충어구 예문 4] ---
   '읽다': 'read', '조용한': 'a quiet', '시골': 'country', '이번에': 'this time', '책을': 'books',
   // --- [보충어구 예문 3] ---
@@ -30,7 +30,7 @@ const MOCK_XDIC_DB: Record<string, string> = {
   // --- [목적어구 예문 1~3] ---
   '총명한': 'bright', '소년은': 'boy', '원했다': 'wanted', '되다': 'become', '위대한_과학자가': 'a great scientist',
   '알다': 'know', '에 대해서': 'about', '동물': 'animals', '식물': 'plants',
-  '나': 'I', '원한다': 'want', '기를': 'to', '쉬다': 'rest', /* '집' 중복 제거 완료 */
+  '나': 'I', '원한다': 'want', '기를': 'to', '쉬다': 'rest', '집': 'the house',
   
   // --- [가주어-진주어 예문 1~7] ---
   '가르쳐주다': 'teach', '젊은이들에게': 'youths', '참된': 'the true', '과제를': 'subject-matters', '서': 'and', '만들다': 'make', '그들을': 'them', '훌륭한': 'great', '젊은이로': 'youths',
@@ -378,13 +378,6 @@ export async function POST(request: Request) {
         if (t.koStem === '가다') { t.role = 'Verb_Infinitive'; t.enWord = 'go'; }
         if (t.koOriginal === '에_to' || t.koStem === '에_to') { t.koOriginal = '에'; t.koStem = '에'; t.particle = ''; t.role = 'Postposition_To'; t.enWord = 'to'; }
         if (t.koOriginal === '에_on' || t.koStem === '에_on') { t.koOriginal = '에'; t.koStem = '에'; t.particle = ''; t.role = 'Postposition_On'; t.enWord = 'on'; }
-        
-        // 💡 [지능형 관사 처리] 문장에 '제인'이 포함되어 있으면 house, 없으면 the house
-        if (t.koStem === '집') { 
-            t.role = 'Location'; 
-            t.enWord = originalText.includes('제인') ? 'house' : 'the house'; 
-        }
-        
         if (t.koStem === '박물관') { t.role = 'Location_Plain'; t.enWord = 'the museum'; }
         if (t.koStem === '와함께' || t.koOriginal === '와함께') { t.koStem = '와함께'; t.koOriginal = '와함께'; t.role = 'Postposition_With'; t.enWord = 'with'; t.particle = ''; }
         if (t.koStem === '그녀' && originalText.includes('계획')) { t.role = 'Object_With'; t.enWord = 'her'; }
