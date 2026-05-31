@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 
 // ============================================================================
-// 🌟 [수프로 엔진 v8.57] 엑스딕 RBMT: <보충어구> '가르치었다' 본말/준말 하이브리드 방어
+// 🌟 [수프로 엔진 v8.58] 엑스딕 RBMT: <보충어구> MOCK_XDIC_DB 중복 키('유지하다') 빌드 에러 수정
 // ============================================================================
 
 const MOCK_XDIC_DB: Record<string, string> = {
   // --- [보충어구 예문 6] ---
   '가르쳤다': 'taught', '그에게': 'him', '라고': 'to',
   
-  // --- [보충어구 예문 5] ---
-  '책무는': 'responsibility', '유지하다': 'keep', '자연': 'natural', '환경을': 'environment', '깨끗한': 'clean', '아름답게': 'beautiful',
+  // --- [보충어구 예문 5] --- (💡 '유지하다' 중복 제거 완료)
+  '책무는': 'responsibility', '자연': 'natural', '환경을': 'environment', '깨끗한': 'clean', '아름답게': 'beautiful',
   // --- [보충어구 예문 4] ---
   '읽다': 'read', '조용한': 'a quiet', '시골': 'country', '이번에': 'this time', '책을': 'books',
   // --- [보충어구 예문 3] ---
@@ -42,7 +42,7 @@ const MOCK_XDIC_DB: Record<string, string> = {
   'It': 'It', '이다': 'is', '좋은': 'good', '건강': 'health', '것이': 'to', '일어나다': 'get up', '일찍': 'early', '아침': 'the morning',
 
   // --- [5형식 동사 모음 생략 보존] ---
-  '요구하다': 'ask', '요청하다': 'request', '허락하다': 'permit', '가능하다': 'enable', '설득하다': 'persuade', '기대하다': 'expect', '동기부여하다': 'motivate', '충동하다': 'urge', '이끌다': 'lead', '유도하다': 'induce', '하게 하다': 'cause', '야기하다': 'cause', '도전하게 하다': 'challenge', '예상하다': 'expect', '의도하다': 'intend', '작정하다': 'intend', '필요로 하다': 'need', '더 좋아하다': 'prefer', '유혹하다': 'tempt', '부추기다': 'incite', '경고하다': 'warn', '상기시키다': 'remind', '생각나게 하다': 'remind', '강요하다': 'force', '금지하다': 'forbid', '구걸하다': 'beg', '간청하다': 'beg', '부르다': 'call', '임명하다': 'appoint', '고려하다': 'consider', '여기다': 'consider', '생각하다': 'think', '유지하다': 'keep', '변화하다': 'change', '좋아하다': 'like', '선언하다': 'declare', '알리다': 'announce', '발표하다': 'announce', '상상하다': 'imagine', '증명하다': 'prove', '보여주다': 'show', '상태로 두다': 'leave', '하게 두다': 'let', '하게 허락하다': 'let', '시키다': 'have', '하도록 만들다': 'make', '도움을 주다': 'help', '명령하다': 'order', '지시하다': 'instruct', '말하다': 'tell', '하게 만들다': 'get', '보다': 'see', '듣다': 'hear', '느끼다': 'feel', '알게 되다': 'find', '발견하다': 'find', '간주하다': 'regard',
+  '요구하다': 'ask', '요청하다': 'request', '허락하다': 'permit', '가능하다': 'enable', '설득하다': 'persuade', '기대하다': 'expect', '동기부여하다': 'motivate', '충동하다': 'urge', '이끌다': 'lead', '유도하다': 'induce', '하게 하다': 'cause', '야기하다': 'cause', '도전하게 하다': 'challenge', '예상하다': 'expect', '의도하다': 'intend', '작정하다': 'intend', '필요로 하다': 'need', '더 좋아하다': 'prefer', '유혹하다': 'tempt', '부추기다': 'incite', '경고하다': 'warn', '상기시키다': 'remind', '생각나게 하다': 'remind', '강요하다': 'force', '금지하다': 'forbid', '구걸하다': 'beg', '간청하다': 'beg', '부르다': 'call', '임명하다': 'appoint', '고려하다': 'consider', '여기다': 'consider', '생각하다': 'think', '변화하다': 'change', '좋아하다': 'like', '선언하다': 'declare', '알리다': 'announce', '발표하다': 'announce', '상상하다': 'imagine', '증명하다': 'prove', '보여주다': 'show', '상태로 두다': 'leave', '하게 두다': 'let', '하게 허락하다': 'let', '시키다': 'have', '하도록 만들다': 'make', '도움을 주다': 'help', '명령하다': 'order', '지시하다': 'instruct', '말하다': 'tell', '하게 만들다': 'get', '보다': 'see', '듣다': 'hear', '느끼다': 'feel', '알게 되다': 'find', '발견하다': 'find', '간주하다': 'regard',
 
   // --- [1형식 예문 모음 생략 보존] ---
   '수많은': 'Many', '북한': 'North Korean', '밀정들이': 'spies', '밀정': 'spies', '기항했다': 'have landed', '몰래': 'clandestinely', '북방 일본': 'Northern Japan', '쾌속정': 'fast-boat', '과학': 'science', '전람회': 'exposition',
@@ -132,15 +132,15 @@ export async function POST(request: Request) {
 
     const originalText = q.trim()
         .replace(/[.?!]+$/, '') 
-        // 💡 [지능형 전처리] 가르쳤다/가르치었다 모두 방어!
+        // 💡 [지능형 전처리] 보충어구 예문 치환망
         .replace(/나는\s*그에게\s*책을\s*읽으라고\s*가르(?:쳤|치었)다/g, '나는 가르쳤다 그에게 라고 읽다 책을')
-
         .replace(/우리의\s*책무는\s*우리의\s*자연\s*?환경을\s*깨끗하고\s*아름답게\s*유지하는\s*것(?:이다|이었습니다)/g, '우리의 책무는 이다 것 유지하다 우리의 자연 환경을 깨끗한 고 아름답게')
         .replace(/나의\s*계획은\s*이번에\s*조용한\s*시골에서\s*많은\s*책을\s*읽으려는\s*것(?:이다|이었습니다)/g, '나의 계획은 이다 것 읽다 많은 책을 조용한 시골에서 이번에')
         .replace(/이번\s*교육\s*(?:계획의|개혁의)\s*목표는\s*모든\s*학생들에게\s*교육의\s*공평한\s*기회를\s*부여하려는\s*것(?:이다|이었습니다)/g, '목표는 의_subj 이번 교육_subj 개혁 이다 것 부여하다 모든 학생들에게 공평한 기회를 의_obj 교육_obj')
         .replace(/그의\s*꿈은\s*미래에\s*훌륭한\s*의사가\s*되는\s*것(?:이다|이었습니다)/g, '그의 꿈은 이다 것 되다 훌륭한_의사가 에_in 미래')
         .replace(/나의\s*계획은\s*이번\s*주말에\s*그녀와\s*함께\s*박물관에\s*가는\s*것(?:이다|이었습니다)/g, '나의 계획은 이다 것 가다 에_to 박물관 와함께 그녀 에_on 이번 주말')
 
+        // 기존 치환망 유지
         .replace(/고대\s*그리스인들은\s*그들의\s*몸을\s*연무장의\s*운동으로\s*튼튼하게\s*하기를\s*(?:좋아하|좋다하)(?:였다|했다)/g, '고대(의)_그리스인들은 좋아했다 기를 하다 그들의 몸을 튼튼하게 으로 운동 의 연무장')
         .replace(/너희들에게\s*많은\s*부를\s*남겨\s*주기를\s*바라는\s*것은\s*잘못(?:이다|이었다|입니다)/g, 'It 이다 잘못 것은 바라다 기를2 남겨주다 너희들에게 많은 부를')
         .replace(/그녀는\s*관광객들에게\s*그리스의\s*역사와\s*문화를\s*말해주기를\s*(?:좋아하|좋다하)(?:였다|했다)/g, '그녀는 좋아했다 기를 말해주다 관광객들에게 역사 와 문화를 의 그리스')
