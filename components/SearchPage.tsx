@@ -26,7 +26,7 @@ interface SearchPageProps {
   query: string;
   results?: SearchResult[];
   orangeKeys?: string[]; 
-  blueKeys?: string[];   
+  blueKeys?: string[];    
   isApp?: boolean;
   popularSearches?: string[];
   recentSearches?: { word: string; count: number }[];
@@ -53,7 +53,7 @@ const CATEGORY_NAMES: Record<number, string> = {
 export default function SearchPage({ 
   query, results = [], orangeKeys = [], blueKeys = [],
   isApp = false, popularSearches = [], recentSearches = [],
-  isPartialMatch = false, matchedKeywords = []   
+  isPartialMatch = false, matchedKeywords = []    
 }: SearchPageProps) {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
@@ -65,20 +65,19 @@ export default function SearchPage({
   const [copiedId, setCopiedId] = useState<string | number | null>(null);
 
   const [isMobileWeb, setIsMobileWeb] = useState(false);
-
   const [supabase] = useState(() => createClientComponentClient());
+
+  // 🌟 [수프로 마법] 1. 번역 결과 및 1:1 분석 상태 추가
+  const [aiTranslation, setAiTranslation] = useState<string | null>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<{ko: string, en: string}[] | null>(null);
 
   useEffect(() => {
     setMounted(true);
-    
     if (typeof window !== 'undefined') {
       const ua = navigator.userAgent || '';
       const isNativeEnv = Capacitor.isNativePlatform() || ua.includes('wv') || ua.includes('Capacitor');
-      if (isNativeEnv) {
-        setClientIsApp(true);
-      }
+      if (isNativeEnv) setClientIsApp(true);
     }
-    
     const fetchPreview = async () => {
       const { data } = await supabase.from('conversation_lines').select('*').order('created_at', { ascending: false }).limit(3);
       if (data) setPreviewData(data);
@@ -86,11 +85,38 @@ export default function SearchPage({
     fetchPreview();
   }, [supabase]);
 
+  // 🌟 [수프로 마법] 2. 번역 API 호출 및 데이터 세팅
+  useEffect(() => {
+    const displayQuery = (query || '').trim();
+    if (displayQuery.length >= 2) {
+      fetch('/api/translate-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q: displayQuery }),
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok && data.best) {
+          setAiTranslation(data.best.target_text);
+          setAiAnalysis(data.best.analysis || null); // 분석 데이터 상태에 저장
+        } else {
+          setAiTranslation(null);
+          setAiAnalysis(null);
+        }
+      })
+      .catch(() => {
+        setAiTranslation(null);
+        setAiAnalysis(null);
+      });
+    } else {
+      setAiTranslation(null);
+      setAiAnalysis(null);
+    }
+  }, [query]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const handleResize = () => {
-      setIsMobileWeb(window.innerWidth < 768);
-    };
+    const handleResize = () => setIsMobileWeb(window.innerWidth < 768);
     handleResize(); 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -102,67 +128,45 @@ export default function SearchPage({
 
   const handleBookmarkClick = () => {
     if (typeof window === 'undefined') return;
-    
     const userAgent = navigator.userAgent.toLowerCase();
     const isMac = userAgent.includes('mac');
     const isMobile = /iphone|ipad|ipod|android/.test(userAgent);
-
-    if (displayIsApp) {
-      alert('앱(App)에서는 이미 홈 화면에 설치되어 있습니다! 언제든 아이콘을 눌러 접속해주세요.');
-      return;
-    }
-
-    if (isMobile) {
-      alert('🌟 모바일 브라우저 환경입니다.\n화면 하단이나 상단 메뉴(⋮)에서 [⭐ 별 모양 아이콘]을 눌러 즐겨찾기에 추가해주세요!');
-    } else if (isMac) {
-      alert('🌟 Mac 환경입니다.\n키보드에서 [ Cmd + D ] 를 동시에 눌러 엑스딕을 즐겨찾기에 추가해주세요!');
-    } else {
-      alert('🌟 PC 환경입니다.\n키보드에서 [ Ctrl + D ] 를 동시에 눌러 엑스딕을 즐겨찾기에 추가해주세요!');
-    }
+    if (displayIsApp) { alert('앱(App)에서는 이미 홈 화면에 설치되어 있습니다! 언제든 아이콘을 눌러 접속해주세요.'); return; }
+    if (isMobile) alert('🌟 모바일 브라우저 환경입니다.\n화면 하단이나 상단 메뉴(⋮)에서 [⭐ 별 모양 아이콘]을 눌러 즐겨찾기에 추가해주세요!');
+    else if (isMac) alert('🌟 Mac 환경입니다.\n키보드에서 [ Cmd + D ] 를 동시에 눌러 엑스딕을 즐겨찾기에 추가해주세요!');
+    else alert('🌟 PC 환경입니다.\n키보드에서 [ Ctrl + D ] 를 동시에 눌러 엑스딕을 즐겨찾기에 추가해주세요!');
   };
 
   const derivedBlueKeys = useMemo(() => {
     const keys: string[] = [];
     const lowerQuery = displayQuery.toLowerCase().trim();
     if (!lowerQuery) return keys;
-
     const stopWords = new Set(['a', 'an', 'the', 'is', 'are', 'was', 'were', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by']);
     const queryTokens = lowerQuery.split(/\s+/).filter(t => t.length > 1 && !stopWords.has(t));
     const lowerQueryNoSpace = lowerQuery.replace(/\s+/g, '');
-
     results.forEach(item => {
       const text = item.line_text || '';
       const cleanText = text.replace(/[.,:;()\[\]?!"]/g, '');
       const words = cleanText.split(/\s+/).filter(Boolean);
-
       const engWords = words.filter(w => /^[a-zA-Z\-]+$/.test(w));
       const korWords = words.filter(w => /[가-힣]/.test(w));
-
       if (engWords.length > 0 && korWords.length > 0) {
           const engJoined = engWords.join('').toLowerCase();
           const korJoined = korWords.join('').toLowerCase();
-          
-          if (engJoined === lowerQueryNoSpace) {
-              korWords.forEach(kw => keys.push(kw));
-          } else if (korJoined === lowerQueryNoSpace) {
-              engWords.forEach(ew => keys.push(ew));
-          } else {
+          if (engJoined === lowerQueryNoSpace) korWords.forEach(kw => keys.push(kw));
+          else if (korJoined === lowerQueryNoSpace) engWords.forEach(ew => keys.push(ew));
+          else {
               if (engWords.length === 1) {
                   const ew = engWords[0].toLowerCase();
-                  if (queryTokens.includes(ew) || ew === lowerQueryNoSpace) {
-                      korWords.forEach(kw => keys.push(kw));
-                  }
+                  if (queryTokens.includes(ew) || ew === lowerQueryNoSpace) korWords.forEach(kw => keys.push(kw));
               }
               if (korWords.length === 1) {
                   const kw = korWords[0].toLowerCase();
-                  if (queryTokens.includes(kw) || kw === lowerQueryNoSpace) {
-                      engWords.forEach(ew => keys.push(ew));
-                  }
+                  if (queryTokens.includes(kw) || kw === lowerQueryNoSpace) engWords.forEach(ew => keys.push(ew));
               }
           }
       }
     });
-
     return [...new Set(keys)].filter(b => {
        const lowerB = b.toLowerCase();
        if (stopWords.has(lowerB)) return false; 
@@ -179,11 +183,8 @@ export default function SearchPage({
         <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer hover:opacity-80 transition-opacity">
           <h1 className="text-[22px] md:text-[26px] font-extrabold text-slate-800 leading-tight">한영/영한사전 – 복합어(합성어) 전문 엑스딕!</h1>
         </a>
-        
-        {/* 🌟 수프로 마법: 전기용어 삭제 및 최적화된 인포 박스 UI */}
         <div className="flex flex-col items-center w-full mt-1 mb-2">
           <p className="text-[11px] md:text-[13px] text-slate-400 font-semibold mb-3">Korean-English/English-Korean Dictionary – Compound Terminology</p>
-          
           <div className="w-full max-w-[95%] md:max-w-3xl bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 md:py-3 shadow-sm">
             <p className="text-[12px] md:text-[14px] text-slate-700 font-bold leading-snug break-keep text-center">
               <span className="text-blue-600 mr-1">💡 전문용어 검색 특화:</span>
@@ -195,21 +196,15 @@ export default function SearchPage({
           </div>
         </div>
       </div>
-
       <div className="w-full">
         <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
-        
         {displayIsApp && (
           <div className="flex justify-end max-w-2xl mx-auto mt-2 mb-6 px-4 animate-in fade-in duration-500">
-            <a 
-              href="/app/waggle" 
-              className="animate-bounce bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-6 py-2.5 rounded-full shadow-lg border-2 border-white text-sm flex items-center gap-2 hover:scale-105 transition-transform"
-            >
+            <a href="/app/waggle" className="animate-bounce bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-6 py-2.5 rounded-full shadow-lg border-2 border-white text-sm flex items-center gap-2 hover:scale-105 transition-transform">
               <span className="text-xl">💬</span> 평가단 와글와글 입장!
             </a>
           </div>
         )}
-
         {mounted && !displayIsApp && <TodaysConversation />}
         {mounted && displayIsApp && <AppTodaysConversation />}
       </div>
@@ -241,41 +236,24 @@ export default function SearchPage({
   const highlightMatch = (text: string) => {
     const allKeys = [...new Set([...orangeKeys, ...derivedBlueKeys])].filter(Boolean).sort((a, b) => b.length - a.length);
     if (allKeys.length === 0) return <span style={{ color: '#334155', fontWeight: 400 }}>{text}</span>;
-
     const escapedRegexParts = allKeys.map(k => {
       const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      if (!/[가-힣]/.test(k)) { 
-        return `\\b${escaped}\\b`; 
-      }
+      if (!/[가-힣]/.test(k)) return `\\b${escaped}\\b`; 
       return escaped; 
     });
-
     const regex = new RegExp(`(${escapedRegexParts.join('|')})`, 'gi');
     const parts = text.split(regex);
     const lowerQueryNoSpace = displayQuery.toLowerCase().replace(/\s+/g, '');
-
     return (
       <>
         {parts.map((part, idx) => {
           const lowerPart = part.toLowerCase();
           const lowerPartNoSpace = lowerPart.replace(/\s+/g, ''); 
-          
           let color = '#334155';
           let weight = 400; 
-
-          if (orangeKeys.some((k) => k.toLowerCase() === lowerPart)) {
-              color = '#ea580c';
-              weight = 400; 
-          } else if (derivedBlueKeys.some((k) => k.toLowerCase() === lowerPart)) {
-              color = '#2563eb';
-              weight = 400;
-          }
-          
-          if (lowerPartNoSpace === lowerQueryNoSpace && orangeKeys.length > 0) {
-              color = '#ea580c';
-              weight = 400;
-          }
-
+          if (orangeKeys.some((k) => k.toLowerCase() === lowerPart)) { color = '#ea580c'; weight = 400; }
+          else if (derivedBlueKeys.some((k) => k.toLowerCase() === lowerPart)) { color = '#2563eb'; weight = 400; }
+          if (lowerPartNoSpace === lowerQueryNoSpace && orangeKeys.length > 0) { color = '#ea580c'; weight = 400; }
           return <span key={idx} style={{ color, fontWeight: weight }}>{part}</span>;
         })}
       </>
@@ -298,49 +276,35 @@ export default function SearchPage({
       const voices = window.speechSynthesis.getVoices();
       const enVoices = voices.filter(v => v.lang.startsWith('en'));
       const koVoices = voices.filter(v => v.lang.startsWith('ko'));
-
       const enVoice = enVoices.find(v => v.name.includes('Google US English Male')) || enVoices.find(v => v.name.includes('Google US English')) || enVoices[0];
       const koVoice = koVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) || koVoices[0];
-
       const parts: { lang: string; text: string }[] = [];
       let currentLang = /[a-zA-Z]/.test(text.charAt(0)) ? 'en' : 'ko'; 
       let currentText = '';
-
       for (let i = 0; i < text.length; i++) {
         const char = text[i];
         if (/[a-zA-Z]/.test(char)) {
-          if (currentLang !== 'en' && currentText.trim().length > 0) {
-            parts.push({ lang: currentLang, text: currentText });
-            currentText = '';
-          }
+          if (currentLang !== 'en' && currentText.trim().length > 0) { parts.push({ lang: currentLang, text: currentText }); currentText = ''; }
           currentLang = 'en'; currentText += char;
         } else if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(char)) {
-          if (currentLang !== 'ko' && currentText.trim().length > 0) {
-            parts.push({ lang: currentLang, text: currentText });
-            currentText = '';
-          }
+          if (currentLang !== 'ko' && currentText.trim().length > 0) { parts.push({ lang: currentLang, text: currentText }); currentText = ''; }
           currentLang = 'ko'; currentText += char;
         } else {
           currentText += char;
         }
       }
       if (currentText.trim().length > 0) parts.push({ lang: currentLang, text: currentText });
-
       parts.forEach((part) => {
         if (!/[a-zA-Z가-힣0-9]/.test(part.text)) return; 
         const utterance = new SpeechSynthesisUtterance(part.text);
         if (part.lang === 'ko') {
           if (koVoice) utterance.voice = koVoice;
           utterance.lang = koVoice ? koVoice.lang : 'ko-KR';
-          utterance.pitch = 1.0; 
-          utterance.rate = 1.05; 
-          utterance.volume = 1.0; 
+          utterance.pitch = 1.0; utterance.rate = 1.05; utterance.volume = 1.0; 
         } else {
           if (enVoice) utterance.voice = enVoice;
           utterance.lang = enVoice ? enVoice.lang : 'en-US';
-          utterance.pitch = 0.9; 
-          utterance.rate = 0.85; 
-          utterance.volume = 0.75; 
+          utterance.pitch = 0.9; utterance.rate = 0.85; utterance.volume = 0.75; 
         }
         window.speechSynthesis.speak(utterance);
       });
@@ -363,7 +327,6 @@ export default function SearchPage({
     <div className="flex flex-col min-h-screen bg-white">
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
         {!displayQuery && <UnifiedHeader />}
-
         {displayQuery && (
           <header className={`w-full ${displayIsApp ? 'pt-8 pb-0' : 'pt-8 pb-0 md:pt-12 md:pb-0'}`}>
             <div className="flex items-center justify-between w-full mb-6 px-1">
@@ -389,7 +352,6 @@ export default function SearchPage({
                     </a>
                     <p className="text-[11px] md:text-[13px] text-slate-400 font-semibold leading-tight hidden md:block mb-1">Korean-English/English-Korean Dictionary – Compound Terminology</p>
                     
-                    {/* 🌟 수프로 마법: 검색 결과창에서도 슬림하게 유지되는 컴팩트 박스 UI */}
                     <div className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 shadow-sm text-center md:text-left">
                         <p className="text-[11px] md:text-[13px] text-slate-700 font-bold leading-tight break-keep">
                             <span className="text-blue-600 mr-1">💡 전문용어 특화:</span>
@@ -404,15 +366,11 @@ export default function SearchPage({
               
               {displayIsApp && (
                 <div className="flex justify-end max-w-2xl mx-auto mt-2 mb-2 px-4 animate-in fade-in duration-500">
-                  <a 
-                    href="/app/waggle" 
-                    className="animate-bounce bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-6 py-2.5 rounded-full shadow-lg border-2 border-white text-sm flex items-center gap-2 hover:scale-105 transition-transform"
-                  >
+                  <a href="/app/waggle" className="animate-bounce bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-6 py-2.5 rounded-full shadow-lg border-2 border-white text-sm flex items-center gap-2 hover:scale-105 transition-transform">
                     <span className="text-xl">💬</span> 평가단 와글와글 입장!
                   </a>
                 </div>
               )}
-
             </div>
           </header>
         )}
@@ -428,17 +386,43 @@ export default function SearchPage({
                 </div>
               ) : displayResults.length > 0 ? (
                 <div className="space-y-6">
+
+                  {/* 🌟 [수프로 마법] 3. 번역 박스 + 시각적 매칭 UI */}
+                  {aiTranslation && (
+                    <div className="bg-blue-50 border-2 border-blue-300 rounded-2xl p-5 mb-8 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-2xl drop-shadow-sm">✨</span>
+                        <h3 className="text-blue-800 font-extrabold text-[16px] md:text-lg tracking-tight"> 추천 문장 번역</h3>
+                      </div>
+                      <p className="text-xl md:text-2xl font-bold text-slate-900 leading-snug pl-1">"{aiTranslation}"</p>
+                      
+                      {/* 🌟 시각적 매칭 블록 (새로 추가된 부분) */}
+                      {aiAnalysis && aiAnalysis.length > 0 && (
+                        <div className="mt-5 pl-1">
+                          <p className="text-[12px] font-bold text-slate-500 mb-2">🔍 문장 구조 분석 (한글 ➔ 영어 매칭)</p>
+                          <div className="flex flex-wrap gap-2">
+                            {aiAnalysis.map((item, index) => (
+                              <div key={index} className="flex flex-col items-center justify-center bg-white border border-blue-200 rounded-lg px-3 py-1.5 shadow-sm transition-transform hover:scale-105">
+                                <span className="text-[13px] font-bold text-slate-600 mb-0.5">{item.ko}</span>
+                                <div className="w-full h-px bg-blue-100 mb-1"></div>
+                                <span className="text-[14px] font-black text-blue-600">{item.en}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <p className="text-[12px] md:text-[13px] text-blue-600/80 mt-4 pl-1 font-medium">230만 건의 전문가 번역 데이터 중 가장 자연스러운 문장입니다.</p>
+                    </div>
+                  )}
+
                   {isPartialMatch && matchedKeywords.length > 0 && (
                     <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl shadow-sm mb-4 animate-in fade-in slide-in-from-top-2">
                       <div className="flex items-start gap-3">
                         <span className="text-xl">💡</span>
                         <div>
-                          <p className="text-[14px] md:text-[15px] font-bold text-slate-800 mb-1 leading-snug">
-                            입력하신 문장 전체와 정확히 일치하는 용어가 없습니다.
-                          </p>
-                          <p className="text-[12px] md:text-[13px] text-slate-600">
-                            대신, 추출한 핵심 단어 <strong className="text-orange-600">"{matchedKeywords.join(', ')}"</strong> (이)가 포함된 결과를 찾아봤어요!
-                          </p>
+                          <p className="text-[14px] md:text-[15px] font-bold text-slate-800 mb-1 leading-snug">입력하신 문장 전체와 정확히 일치하는 용어가 없습니다.</p>
+                          <p className="text-[12px] md:text-[13px] text-slate-600">대신, 추출한 핵심 단어 <strong className="text-orange-600">"{matchedKeywords.join(', ')}"</strong> (이)가 포함된 결과를 찾아봤어요!</p>
                         </div>
                       </div>
                     </div>
@@ -457,20 +441,11 @@ export default function SearchPage({
                           <div className="flex items-start gap-2.5">
                             <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
                               {mounted && !displayIsApp && (
-                                <button
-                                  onClick={() => handleSpeak(item.line_text)}
-                                  className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
-                                  title="발음 듣기"
-                                >
+                                <button onClick={() => handleSpeak(item.line_text)} className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
                                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
                                 </button>
                               )}
-                              
-                              <button
-                                onClick={() => handleCopy(item.line_text, item.id || idx)}
-                                className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm"
-                                title="텍스트 복사"
-                              >
+                              <button onClick={() => handleCopy(item.line_text, item.id || idx)} className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm" title="텍스트 복사">
                                 {copiedId === (item.id || idx) ? (
                                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-emerald-500"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>
                                 ) : (
@@ -478,34 +453,25 @@ export default function SearchPage({
                                 )}
                               </button>
                             </div>
-
                             <div className="flex-1 text-[16px] md:text-[18px] leading-snug break-keep pb-4 md:pb-5">
                               {highlightMatch(item.line_text)}
                             </div>
                           </div>
-                          
                           <div className="absolute bottom-1.5 right-2 md:bottom-2 md:right-3">
                             <span className="inline-block px-2 py-0.5 rounded text-[11px] md:text-[12px] tracking-tight shadow-sm" style={{ backgroundColor: '#d4b08c', color: '#ffffff', fontWeight: '600' }}>
                               {getCategoryName(item.category_id)}
                             </span>
                           </div>
                         </li>
-                        
                         {!displayIsApp && idx === Math.min(6, currentItems.length - 1) && (
                           <div className="w-full flex justify-center my-6">
                             <div className={`relative flex items-center justify-center w-full max-w-[728px] ${isMobileWeb ? 'min-h-[100px]' : 'min-h-[90px]'} bg-transparent rounded-lg overflow-hidden`}>
                               <div className="relative z-10 flex justify-center w-full overflow-x-auto max-w-full">
-                                <KakaoAdFit 
-                                  key={isMobileWeb ? 'DAN-C5u8rkTg1BugPsOE' : 'DAN-Gui4SG5eMaraSbpv'} 
-                                  unit={isMobileWeb ? 'DAN-C5u8rkTg1BugPsOE' : 'DAN-Gui4SG5eMaraSbpv'} 
-                                  width={isMobileWeb ? '320' : '728'} 
-                                  height={isMobileWeb ? '100' : '90'} 
-                                />
+                                <KakaoAdFit key={isMobileWeb ? 'DAN-C5u8rkTg1BugPsOE' : 'DAN-Gui4SG5eMaraSbpv'} unit={isMobileWeb ? 'DAN-C5u8rkTg1BugPsOE' : 'DAN-Gui4SG5eMaraSbpv'} width={isMobileWeb ? '320' : '728'} height={isMobileWeb ? '100' : '90'} />
                               </div>
                             </div>
                           </div>
                         )}
-                        
                       </React.Fragment>
                     ))}
                   </ul>
@@ -533,12 +499,8 @@ export default function SearchPage({
                         '<span style={{ color: '#ea580c' }}>{displayQuery}</span>'에 대해 더 검색을 원하시면, 아래 버튼을 클릭하세요.
                       </p>
                       <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
-                        <button onClick={() => handleExternalSearch('naver')} className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-[#03C75A] hover:bg-[#02b351] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md">
-                          네이버 사전 검색
-                        </button>
-                        <button onClick={() => handleExternalSearch('google')} className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition-all shadow-sm hover:shadow-md">
-                          Google 검색
-                        </button>
+                        <button onClick={() => handleExternalSearch('naver')} className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-[#03C75A] hover:bg-[#02b351] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md">네이버 사전 검색</button>
+                        <button onClick={() => handleExternalSearch('google')} className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition-all shadow-sm hover:shadow-md">Google 검색</button>
                       </div>
                     </div>
                   )}
@@ -547,12 +509,7 @@ export default function SearchPage({
                     <div className="w-full flex justify-center mt-8 mb-2">
                       <div className={`relative flex items-center justify-center w-full max-w-[728px] ${isMobileWeb ? 'min-h-[100px]' : 'min-h-[90px]'} bg-transparent rounded-lg overflow-hidden`}>
                         <div className="relative z-10 flex justify-center w-full overflow-x-auto max-w-full">
-                          <KakaoAdFit 
-                            key={isMobileWeb ? 'Bottom-Mobile' : 'Bottom-PC'} 
-                            unit={isMobileWeb ? 'DAN-rTmeRojhcQi9r19X' : 'DAN-k31fweVZvecyVYdf'} 
-                            width={isMobileWeb ? '320' : '728'} 
-                            height={isMobileWeb ? '100' : '90'} 
-                          />
+                          <KakaoAdFit key={isMobileWeb ? 'Bottom-Mobile' : 'Bottom-PC'} unit={isMobileWeb ? 'DAN-rTmeRojhcQi9r19X' : 'DAN-k31fweVZvecyVYdf'} width={isMobileWeb ? '320' : '728'} height={isMobileWeb ? '100' : '90'} />
                         </div>
                       </div>
                     </div>
@@ -599,10 +556,7 @@ export default function SearchPage({
             <div className="mt-5 space-y-8 animate-in fade-in duration-500">
               
               <div className="flex flex-wrap items-center justify-end gap-2 -mb-3 md:-mb-5 pr-2 relative z-10">
-                <button 
-                  onClick={handleBookmarkClick} 
-                  className="group flex items-center gap-1.5 px-4 py-1.5 bg-white border border-orange-200 shadow-sm hover:border-orange-400 hover:shadow-md hover:bg-orange-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-orange-600 hover:text-orange-800 transition-all duration-300"
-                >
+                <button onClick={handleBookmarkClick} className="group flex items-center gap-1.5 px-4 py-1.5 bg-white border border-orange-200 shadow-sm hover:border-orange-400 hover:shadow-md hover:bg-orange-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-orange-600 hover:text-orange-800 transition-all duration-300">
                   <span className="text-[14px] group-hover:scale-110 transition-transform">⭐</span> 
                   <span>즐겨찾기 추가</span>
                 </button>
@@ -622,52 +576,31 @@ export default function SearchPage({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div className="relative bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-[300px]">
-                  <Link href="/recent" className="absolute top-5 right-5 text-[12px] font-bold text-slate-400 hover:text-slate-600 transition-colors z-10 bg-white/80 px-2 py-1 rounded backdrop-blur-sm">
-                    더보기 &gt;
-                  </Link>
-                  <div className="w-full h-full p-2">
-                    <RecentKeywords className="w-full h-full border-0 shadow-none bg-transparent" />
-                  </div>
+                  <Link href="/recent" className="absolute top-5 right-5 text-[12px] font-bold text-slate-400 hover:text-slate-600 transition-colors z-10 bg-white/80 px-2 py-1 rounded backdrop-blur-sm">더보기 &gt;</Link>
+                  <div className="w-full h-full p-2"><RecentKeywords className="w-full h-full border-0 shadow-none bg-transparent" /></div>
                 </div>
-
                 <div className="relative bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-[300px]">
-                  <Link href="/popular" className="absolute top-5 right-5 text-[12px] font-bold text-slate-400 hover:text-slate-600 transition-colors z-10 bg-white/80 px-2 py-1 rounded backdrop-blur-sm">
-                    더보기 &gt;
-                  </Link>
-                  <div className="w-full h-full p-2">
-                    <PopularKeywords className="w-full h-full border-0 shadow-none bg-transparent" />
-                  </div>
+                  <Link href="/popular" className="absolute top-5 right-5 text-[12px] font-bold text-slate-400 hover:text-slate-600 transition-colors z-10 bg-white/80 px-2 py-1 rounded backdrop-blur-sm">더보기 &gt;</Link>
+                  <div className="w-full h-full p-2"><PopularKeywords className="w-full h-full border-0 shadow-none bg-transparent" /></div>
                 </div>
               </div>
 
               <article className="bg-slate-50/80 rounded-2xl p-6 md:p-8 border border-slate-200 text-slate-700 shadow-sm mt-8">
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 border-b border-slate-200 pb-4 gap-4">
                   <div>
-                    <h2 className="text-lg md:text-xl font-extrabold text-slate-900 flex items-center gap-2">
-                      <span>📖</span> 엑스딕 필수 영어회화 & 번역가 해설
-                    </h2>
+                    <h2 className="text-lg md:text-xl font-extrabold text-slate-900 flex items-center gap-2"><span>📖</span> 엑스딕 필수 영어회화 & 번역가 해설</h2>
                     <p className="mt-2 text-sm text-slate-500">원어민들이 가장 자주 사용하는 핵심 문장과 뉘앙스를 확인하세요.</p>
                   </div>
-                  <Link href="/conversation" className="hidden md:flex items-center gap-1 text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors whitespace-nowrap">
-                    전체 보기 <span>&gt;</span>
-                  </Link>
+                  <Link href="/conversation" className="hidden md:flex items-center gap-1 text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors whitespace-nowrap">전체 보기 <span>&gt;</span></Link>
                 </div>
                 
                 <div className="grid grid-cols-1 gap-5">
                   {previewData.length > 0 ? previewData.map((item, idx) => (
                     <div key={idx} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                      
                       <div className="bg-slate-800 px-4 py-2 flex justify-between items-center">
                         <h3 className="text-sm font-bold text-white">{item.category}</h3>
-                        <Link href={`/conversation?type=${
-                          item.category?.includes('여행') ? 'travel' :
-                          item.category?.includes('일상') ? 'casual' :
-                          item.category?.includes('비즈니스') ? 'business' : ''
-                        }`} className="text-[11px] font-medium text-slate-300 hover:text-white transition-colors border border-slate-600 px-2 py-0.5 rounded-full">
-                          더보기 &gt;
-                        </Link>
+                        <Link href={`/conversation?type=${item.category?.includes('여행') ? 'travel' : item.category?.includes('일상') ? 'casual' : item.category?.includes('비즈니스') ? 'business' : ''}`} className="text-[11px] font-medium text-slate-300 hover:text-white transition-colors border border-slate-600 px-2 py-0.5 rounded-full">더보기 &gt;</Link>
                       </div>
-
                       <div className="p-4 hover:bg-slate-50 transition-colors">
                         <div className="flex items-start gap-3 mb-3">
                           <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
@@ -676,7 +609,6 @@ export default function SearchPage({
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
                               </button>
                             )}
-                            
                             <button onClick={() => handleCopy(`${item.en_text} - ${item.ko_text}`, item.id || idx)} className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm" title="문장 복사">
                               {copiedId === (item.id || idx) ? (
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-emerald-500"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>
@@ -685,16 +617,12 @@ export default function SearchPage({
                               )}
                             </button>
                           </div>
-
                           <div>
                             <h4 className="text-base md:text-lg font-extrabold text-blue-700 mb-0.5">{item.en_text}</h4>
                             <p className="text-sm md:text-base font-bold text-slate-800">{item.ko_text}</p>
                           </div>
                         </div>
-                        <div 
-                          className="ml-11 bg-slate-100 rounded-lg p-4 border border-slate-200 text-sm md:text-base text-slate-700 leading-relaxed whitespace-pre-wrap max-h-[160px] overflow-y-auto" 
-                          style={{ scrollbarWidth: 'thin' }}
-                        >
+                        <div className="ml-11 bg-slate-100 rounded-lg p-4 border border-slate-200 text-sm md:text-base text-slate-700 leading-relaxed whitespace-pre-wrap max-h-[160px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
                           <span className="font-extrabold text-blue-700 mr-1.5">💡 해설: </span>{item.description}
                         </div>
                       </div>
@@ -705,9 +633,7 @@ export default function SearchPage({
                 </div>
 
                 <div className="mt-6 md:hidden flex justify-center">
-                  <Link href="/conversation" className="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors border border-blue-200 bg-white px-6 py-2 rounded-full shadow-sm">
-                    전체 보기 &gt;
-                  </Link>
+                  <Link href="/conversation" className="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors border border-blue-200 bg-white px-6 py-2 rounded-full shadow-sm">전체 보기 &gt;</Link>
                 </div>
               </article>
 

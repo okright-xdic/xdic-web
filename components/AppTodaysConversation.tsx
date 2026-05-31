@@ -6,30 +6,40 @@ import React, { useState } from 'react';
 export default function AppTodaysConversation() {
 // 🌟 [수동 업데이트 영역] 매일매일 이곳의 글자만 바꿔주시면 됩니다!
   const todaysData = {
-    en_text: "Can I take a look at the presentation file?",
-    ko_text: "'프레젠테이션 자료 좀 볼 수 있을까요?",
-    description: `"비즈니스/업무요청"에 관한 영어회화 표현입니다.
-☞ "Take a look at"은 영어에서 "~을 (한번) 살펴보다/보다"라는 뜻으로, 무언가를 확인하거나 주의 깊게 관찰할 때 사용합니다.
+    en_text: "Could you cc my team leader on this email?",
+    ko_text: "참조에 저희 팀장님을 넣어주시겠어요?",
+    description: `"전화/이메일요청"에 관한 영어회화 표현입니다.
+☞
+(귀하: , 앞: ) 수신:  Attention Attn :  Attn:
+받는 사람, 수신인 recipient, addressee
+수신인 Atn (attention)
+참조 CC (carbon copy) FCC(first carbon copy)
+숨은참조 BCC (blind carbon copy) 
+수신 : Receiver
+발신 : Sender
+전달하다(이메일) forward
 
 다음은 다양한 예문입니다. 참고하세요. 
 
-이 문서를 내일까지 검토해 주시겠어요? Could you review this document by tomorrow?
-이 프로젝트의 담당자가 누구인지 알려주시겠어요? Could you tell me who is in charge of this project?
-회의 일정을 다음 주로 미룰 수 있을까요? Could we postpone the meeting to next week?
-일정을 30분 정도 앞당길 수 있을까요? Could we move the schedule up by 30 minutes?
-결재를 부탁드려도 될까요? Could I ask for your approval?
-사인 먼저 해주실 수 있나요? Could you sign this first?
-조금 더 자세한 자료를 보내주시겠어요? Could you send me more detailed materials?
-이 비용에 대한 견적서를 보내주세요. Please send me a quote for this cost.
-예산안을 다시 짜주실 수 있나요? Could you revise the budget plan?
-그 건에 대해 업데이트된 내용이 있나요? Could you give me an update on that?
-진행 상황을 메일로 공유해 주세요. Please share the progress via email.
-보고서 마감일을 연장해 주실 수 있나요? Could you extend the deadline for the report?
-최종 수정본을 첨부해 주시겠어요? Could you attach the final revised version?
-회의실 예약을 부탁해도 될까요? Could you book a meeting room for us?
-이번 주 금요일까지 답변을 부탁드립니다. I'd appreciate a reply by this Friday.
-제안서를 한 번 더 확인해 주시겠어요? Could you double-check the proposal?
-이 부분의 수치를 다시 계산해 주세요. Please recalculate the figures in this part.`
+여보세요, 김 매니저님 좀 바꿔주시겠어요? Hello, could you put me through to Manager Kim?
+그가 언제쯤 돌아오는지 알려주시겠어요? Could you tell me when he'll be back?
+메시지 좀 남겨도 될까요? Can I leave a message?
+제가 전화했었다고 전해주시겠어요? Could you tell him that I called?
+돌아오시면 제게 전화 달라고 부탁드려도 될까요? Could you ask him to call me back when he returns?
+제가 나중에 다시 전화해도 될까요? Can I call back later?
+잘 안 들리는데 크게 말씀해 주시겠어요? I can't hear you well. Could you speak up?
+전화 연결이 안 좋네요. 다시 걸어주시겠어요? The connection is bad. Could you call me back?
+이메일로 세부 사항을 보내주실 수 있나요? Could you email me the details?
+파일이 누락된 것 같은데 다시 첨부해 주시겠어요? The file seems to be missing. Could you attach it again?
+제 이메일 주소를 적어주시겠어요? Could you write down my email address?
+수신 확인 부탁드립니다. Please acknowledge receipt of this email.
+메일 스팸함을 한 번 확인해 주시겠어요? Could you check your spam folder?
+첨부 파일이 안 열리는데 PDF로 보내주실래요? The attachment won't open. Could you send it as a PDF?
+회신을 조금만 서둘러 주시면 감사하겠습니다. I'd appreciate a prompt reply.
+언제 통화가 편하신지 알려주시겠어요? Could you let me know when is a good time to call?
+휴대폰 번호로 전화드려도 될까요? May I call you on your cell phone?
+번호를 잘못 아신 것 같습니다. I think you have the wrong number.
+지금 통화하기 곤란한데, 이따 전화해도 될까요? I can't talk right now. Can I call you later?`
   };
 
   const [isExpanded, setIsExpanded] = useState(false);
