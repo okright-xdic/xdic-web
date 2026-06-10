@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 // ============================================================================
-// 🌟 [수프로 엔진 영한(En-Ko) v12.8] 엑스딕 RBMT: 1~5형식 통합 & 평서문 (해라체 + 해요체) 탑재
+// 🌟 [수프로 엔진 영한(En-Ko) v12.9] 엑스딕 RBMT: 1~5형식 통합 & 평서문 (해라체 + 해요체) 탑재
 // ============================================================================
 
 // 💡 [수프로 엣지] 한국어 평서문 해라체(한다체) 3단 활용 배열 (현재:과거:미래)
@@ -97,7 +97,7 @@ const KO_ENDINGS_ARRAY = [
   '말하다:말했다:말하겠다', '말한다:말했다:말하겠다', '맑다:맑았다:맑겠다', '맛본다:맛보았다:맛보겠다', '맛없다:맛없었다:맛없겠다',
   '맛있다:맛있었다:맛있겠다', '맞다:맞았다:맞겠다', '맞선다:맞섰다:맞서겠다', '맡긴다:맡겼다:맡기겠다', '매끄럽다:매끄러웠다:매끄럽겠다',
   '매다:맸다:매겠다', '매달린다:매달렸다:매달리겠다', '매섭다:매서웠다:매섭겠다', '맵다:매웠다:맵겠다', '맺힌다:맺혔다:맺히겠다',
-  '머무르다:머물렀다:머무르겠다', '머무른다:머물렀다:머무르겠다', '머문다:머물렀다:머물겠다', '먹는다:먹었다:가겠다', '먹다:먹었다:먹겠다',
+  '머무르다:머물렀다:머무르겠다', '머무른다:머물렀다:머무르겠다', '머문다:머물렀다:머물겠다', '먹는다:먹었다:먹겠다', '먹다:먹었다:먹겠다',
   '먹힌다:먹혔다:먹히겠다', '멀다:멀었다:멀겠다', '멈추다:멈췄다:멈추겠다', '멈춘다:멈췄다:멈추겠다', '멋지다:멋졌다:멋지겠다',
   '멍청하다:멍청했다:멍청하겠다', '메일 보낸다:메일 보냈다:메일 보내겠다', '면도한다:면도했다:면도하겠다', '명령하다:명령했다:명령하겠다', '모르다:몰랐다:모르겠다',
   '모른다:몰랐다:모르겠다', '모으다:모았다:모으겠다', '모인다:모였다:모이겠다', '모자라다:모자랐다:모자라겠다', '모자를 쓴다:모자를 썼다:모자를 쓰겠다',
@@ -354,7 +354,7 @@ const HAEYO_ENDINGS_ARRAY = [
   '환영해요:환영했어요:환영하겠어요', '흘러요:흘렀어요:흐를 거예요', '희어요:희었어요:흴 거예요'
 ];
 
-// 통합 3단 활용 변환기
+// 통합 3단 활용 변환기 (해라체 + 해요체 자동 감지 및 변환)
 const getKoreanConjugation = (baseWord: string, tense: 'past' | 'future' | 'present'): string => {
   let entry = KO_ENDINGS_ARRAY.find(e => e.startsWith(baseWord + ':'));
   if (!entry) {
@@ -370,22 +370,19 @@ const getKoreanConjugation = (baseWord: string, tense: 'past' | 'future' | 'pres
 };
 
 const MOCK_EN_KO_DB: Record<string, string> = {
-  // --- [🌟 4형식 수여동사 대규모 사전 (En-Ko) New!] ---
-  'give': '주다', 'award': '수여하다', 'grant': '승인하다', 'hand': '건네주다', 'lend': '빌려주다', 
-  'offer': '제안하다', 'pass': '전달하다', 'pay': '지불하다', 'promise': '약속하다', 'sell': '팔다', 
-  'send': '보내다', 'show': '보여주다', 'teach': '가르치다', 'tell': '말하다', 'write': '쓰다', 
-  'yield': '양보하다', 'assign': '할당하다', 'feed': '먹이를 주다', 'serve': '제공하다', 'forward': '전송하다', 
-  'leave': '남겨주다', 'buy': '사주다', 'make': '만들다', 'get': '얻다', 'cook': '요리해주다', 
-  'build': '지어주다', 'choose': '골라주다', 'do': '해주다', 'find': '발견하다', 'order': '주문해주다', 
-  'prepare': '준비해주다', 'save': '덜어주다', 'sing': '불러주다', 'art': '그려주다', 'bake': '구워주다', 
-  'book': '예약해주다', 'bring': '가져다주다', 'call': '부르다', 'catch': '잡다', 'draw': '그려주다', 
-  'fetch': '가져오다', 'fix': '고쳐주다', 'gather': '모으다', 'keep': '유지하다', 'pour': '따라주다', 
-  'prescribe': '처방해주다', 'print': '인쇄해주다', 'reserve': '예약해주다', 'ask': '묻다', 'inquire': '묻다', 
-  'beg': '부탁하다', 'demand': '요구하다', 'request': '요청하다', 'require': '요구하다', 'question': '질문하다', 
-  'beseech': '간청하다', 'entreat': '간청하다', 'implore': '애원하다', 'allow': '허락하다', 'cost': '비용이 들게 하다', 
-  'deny': '거절하다', 'envy': '부러워하다', 'forgive': '용서하다', 'strike': '인상을 주다', 'wish': '바라다',
-
-  // --- [기존 1,2,3,5형식 및 예문 데이터] ---
+  'give':'주다', 'award':'수여하다', 'grant':'승인하다', 'hand':'건네주다', 'lend':'빌려주다',
+  'offer':'제안하다', 'pass':'전달하다', 'pay':'지불하다', 'promise':'약속하다', 'sell':'팔다',
+  'send':'보내다', 'show':'보여주다', 'teach':'가르치다', 'tell':'말하다', 'write':'쓰다',
+  'yield':'양보하다', 'assign':'할당하다', 'feed':'먹이를 주다', 'serve':'제공하다', 'forward':'전송하다',
+  'leave':'남겨주다', 'buy':'사주다', 'make':'만들다', 'get':'얻다', 'cook':'요리해주다',
+  'build':'지어주다', 'choose':'골라주다', 'do':'해주다', 'find':'발견하다', 'order':'주문해주다',
+  'prepare':'준비해주다', 'save':'덜어주다', 'sing':'불러주다', 'art':'그려주다', 'bake':'구워주다',
+  'book':'예약해주다', 'bring':'가져다주다', 'call':'부르다', 'catch':'잡다', 'draw':'그려주다',
+  'fetch':'가져오다', 'fix':'고쳐주다', 'gather':'모으다', 'keep':'유지하다', 'pour':'따라주다',
+  'prescribe':'처방해주다', 'print':'인쇄해주다', 'reserve':'예약해주다', 'ask':'묻다', 'inquire':'묻다',
+  'beg':'부탁하다', 'demand':'요구하다', 'request':'요청하다', 'require':'요구하다', 'question':'질문하다',
+  'beseech':'간청하다', 'entreat':'간청하다', 'implore':'애원하다', 'allow':'허락하다', 'cost':'비용이 들게 하다',
+  'deny':'거절하다', 'envy':'부러워하다', 'forgive':'용서하다', 'strike':'인상을 주다', 'wish':'바라다',
   'accept':'받아들이다', 'advise':'조언하다', 'agree':'동의하다', 'alter':'변경하다', 'answer':'대답하다',
   'appreciate':'감사하다', 'assume':'추정하다', 'beat':'때리다', 'begin':'시작하다', 'believe':'믿다',
   'bite':'물다', 'breathe':'숨쉬다', 'care':'신경쓰다', 'carry':'운반하다', 'change':'바꾸다',
@@ -459,8 +456,6 @@ const MOCK_EN_KO_DB: Record<string, string> = {
   'twinkle':'반짝이다', 'undress':'옷을 벗다', 'vary':'달라지다', 'wait':'기다리다', 'wake':'깨다',
   'walk':'걷다', 'wander':'헤매다', 'wash':'세탁되다', 'wear':'닳다', 'weep':'흐느끼다',
   'whisper':'속삭이다', 'win':'이기다', 'work out':'운동하다', 'work':'효과가 있다', 'yell':'소리치다',
-
-  // --- [기존 예문 1~5 단어 (동사 외 유지)] ---
   'child':'아이는', 'be':'되다', 'a_fine_youth':'훌륭한 청년이', 'program':'프로그램을', 'students':'학생들에게',
   'culture,':'문화와', 'customs,':'관습과', 'art':'예술을', 'other':'다른', 'country':'나라',
   'during':'동안에', 'vacation':'방학', 'bought':'구입했다', 'old':'오래된', 'house':'집을',
@@ -568,47 +563,10 @@ export async function POST(request: Request) {
 
     let originalText = q.trim().replace(/[.?!]+$/, '');
     
-    // 💡 [지능형 전처리] 복합동사 묶기 로직 (세로 정렬)
-    const complexFourFormVerbs_KO = [
-      '먹이를 주다', '비용이 들게 하다', '시간을 덜어주다', '수고를 덜어주다', '인상을 주다'
-    ];
-    complexFourFormVerbs_KO.forEach(phrase => { 
-      const regex = new RegExp(phrase, 'g'); 
-      originalText = originalText.replace(regex, phrase.replace(/ /g, '_')); 
-    });
-
-    const complexTwoFormVerbs_KO = [
-      '단호히 서 있다', '가만히 있다', '냉정을 유지하다', '침착함을 유지하다', '조용히 있다', '침묵을 지키다', 
-      '깨어 있다', '살아남다', '신선함을 유지하다', '따뜻하게 있다', '마른 상태를 유지하다', '건강을 유지하다', 
-      '안전하게 있다', '독신으로 지내다', '집중된 상태를 유지하다', '강인함을 유지하다', '피하다', '남아있다', 
-      '안에 머물다', '밖에 머물다', '떨어져 있다', '조용히 하다', '침묵하다', '바쁘게 지내다', '따뜻하게 하다', 
-      '침착하게 있다', '시원하게 있다', '신선도를 유지하다', '건조하게 유지하다', '안전을 유지하다', '깨어있다', 
-      '숨겨진 상태이다', '몸을 낮추다', '깨끗하게 유지하다', '온전하게 유지하다', '단호하게 유지하다', '비밀로 유지하다', 
-      '일정하게 유지하다', '꽉 조여진 상태이다', '느슨한 상태이다', '열린 상태로 두다', '닫힌 상태로 두다', '나란히 하다', 
-      '보조를 맞추다', '통제력을 유지하다', '균형을 유지하다', '변함없다', '일정하다', '단호하다', '열려있다', 
-      '닫혀있다', '유효하다', '사실이다', '충성스럽다', '낙관적이다', '중립을 지키다', '서 있는 상태이다', '앉아있는 상태이다', 
-      '자유롭다', '가난한 상태이다', '부유한 상태이다', '알려지지 않다', '해결되지 않다', '손상되지 않다', '미완성이다', 
-      '필수적이다', '중요하다', '가능하다', '보이는 상태이다', '보이지 않는 상태이다', '계속 강하다', '계속 침묵하다', 
-      '계속 열려있다', '계속 유효하다', '계속 자라다', '계속 서있다', '계속 앉아있다', '계속 달리다', '계속 일하다', 
-      '계속 비가 오다', '계속 눈이 오다', '계속 바람이 불다', '계속 빛나다', '계속 흐르다', '계속 타오르다', 
-      '계속 향상되다', '계속 악화되다', '계속 감소하다', '계속 증가하다', '계속 퍼지다', '계속 존재하다', '계속 살아가다', 
-      '계속 싸우다', '계속 놀다', '연주하다', '계속 노래하다', '계속 말하다', '계속 듣다', '계속 생각하다', '계속 읽다', 
-      '계속 쓰다', '계속 배우다', '계속 공부하다', '계속 먹다', '계속 마시다', '계속 자다', '계속 숨쉬다', '계속 걷다', 
-      '계속 운전하다', '계속 날다', '계속 수영하다', '계속 노력하다', '계속 묻다', '계속 대답하다', '계속 설명하다', 
-      '계속 돕다', '계속 안내하다', '계속 보호하다', '계속 보여주다', '계속 믿다', '계속 희망하다', '계속 바라다', 
-      '계속 찾다', '누워 있다', '놓여 있다', '달라붙어 있다'
-    ];
-    complexTwoFormVerbs_KO.forEach(phrase => { 
-      const regex = new RegExp(phrase, 'g'); 
-      originalText = originalText.replace(regex, phrase.replace(/ /g, '_')); 
-    });
-
+    // 💡 [지능형 전처리] 영한 번역 덩어리(Chunk) 묶기
     let processedText = originalText.toLowerCase()
-      .replace(/흘끗\s*보다/g, '흘끗_보다')
-      .replace(/냄새\s*맡다/g, '냄새_맡다')
       .replace(/lived\s*here\s*to\s*see/g, 'lived here to see')
-      .replace(/살아서/g, '살았다 그래서')
-      .replace(/만났다/g, '만나다')
+      .replace(/살았다\s*그래서/g, '살았다 그래서')
       .replace(/만나다\s*그의/g, '만나다 그의')
       .replace(/a\s*fine\s*youth/gi, 'a_fine_youth')
       .replace(/훌륭한\s*청년이\s*되었다/g, '훌륭한_청년이 되다')
@@ -921,7 +879,7 @@ export async function POST(request: Request) {
       else if (twoFormVerbs.includes(word) || twoFormVerbs.includes(baseWord)) matchedRole = 'Verb';
       else if (oneFormVerbs.includes(word) || oneFormVerbs.includes(baseWord)) matchedRole = 'Verb_1'; 
 
-      // 과거형 동사 변환 로직
+      // 과거형 동사 변환 로직 - 여기서 getKoreanConjugation 함수에 원형을 넘깁니다
       if (word.endsWith('ed') || word === 'lived' || word === 'grew' || word === 'used' || word === 'bought' || word === 'gathered' || word === 'came' || word === 'got_up' || word === 'were') {
          if (matchedRole.startsWith('Verb')) matchedRole = 'Verb_Past';
       }
