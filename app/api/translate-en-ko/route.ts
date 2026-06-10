@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 
 // ============================================================================
-// 🌟 [수프로 엔진 v19.5] 엑스딕 RBMT: 1~5형식 통합 및 평서문(해라체+해요체) 종결어미 탑재
+// 🌟 [수프로 엔진 영한(En-Ko) v12.8] 엑스딕 RBMT: 1~5형식 통합 & 평서문 (해라체 + 해요체) 탑재
 // ============================================================================
 
-// 💡 [수프로 엣지] 한국어 평서문 해라체(한다체) 3단 활용 배열 (현재:과거:미래) - 줄바꿈 최적화
+// 💡 [수프로 엣지] 한국어 평서문 해라체(한다체) 3단 활용 배열 (현재:과거:미래)
 const KO_ENDINGS_ARRAY = [
   '가깝다:가까웠다:가깝겠다', '가꾼다:가꿨다:가꾸겠다', '가난하다:가난했다:가난하겠다', '가는다:가었다:가겠다', '가다:갔다:가겠다',
   '가둔다:가뒀다:가두겠다', '가득하다:가득했다:가득하겠다', '가렵다:가려웠다:가렵겠다', '가로챈다:가로챘다:가로채겠다', '가르치는다:가르치었다:가르치겠다',
@@ -97,7 +97,7 @@ const KO_ENDINGS_ARRAY = [
   '말하다:말했다:말하겠다', '말한다:말했다:말하겠다', '맑다:맑았다:맑겠다', '맛본다:맛보았다:맛보겠다', '맛없다:맛없었다:맛없겠다',
   '맛있다:맛있었다:맛있겠다', '맞다:맞았다:맞겠다', '맞선다:맞섰다:맞서겠다', '맡긴다:맡겼다:맡기겠다', '매끄럽다:매끄러웠다:매끄럽겠다',
   '매다:맸다:매겠다', '매달린다:매달렸다:매달리겠다', '매섭다:매서웠다:매섭겠다', '맵다:매웠다:맵겠다', '맺힌다:맺혔다:맺히겠다',
-  '머무르다:머물렀다:머무르겠다', '머무른다:머물렀다:머무르겠다', '머문다:머물렀다:머물겠다', '먹는다:먹었다:먹겠다', '먹다:먹었다:먹겠다',
+  '머무르다:머물렀다:머무르겠다', '머무른다:머물렀다:머무르겠다', '머문다:머물렀다:머물겠다', '먹는다:먹었다:가겠다', '먹다:먹었다:먹겠다',
   '먹힌다:먹혔다:먹히겠다', '멀다:멀었다:멀겠다', '멈추다:멈췄다:멈추겠다', '멈춘다:멈췄다:멈추겠다', '멋지다:멋졌다:멋지겠다',
   '멍청하다:멍청했다:멍청하겠다', '메일 보낸다:메일 보냈다:메일 보내겠다', '면도한다:면도했다:면도하겠다', '명령하다:명령했다:명령하겠다', '모르다:몰랐다:모르겠다',
   '모른다:몰랐다:모르겠다', '모으다:모았다:모으겠다', '모인다:모였다:모이겠다', '모자라다:모자랐다:모자라겠다', '모자를 쓴다:모자를 썼다:모자를 쓰겠다',
@@ -354,7 +354,7 @@ const HAEYO_ENDINGS_ARRAY = [
   '환영해요:환영했어요:환영하겠어요', '흘러요:흘렀어요:흐를 거예요', '희어요:희었어요:흴 거예요'
 ];
 
-// 💡 [수프로 엣지] 통합 3단 활용 변환기 (해라체 + 해요체 자동 감지 및 변환)
+// 통합 3단 활용 변환기
 const getKoreanConjugation = (baseWord: string, tense: 'past' | 'future' | 'present'): string => {
   let entry = KO_ENDINGS_ARRAY.find(e => e.startsWith(baseWord + ':'));
   if (!entry) {
@@ -533,29 +533,32 @@ const PARTICLES = [
 ].sort((a, b) => b.text.length - a.text.length);
 
 const FORM_RULES = [
-  { type: '가주어_진주어', requiredRoles: ['Dummy_SVC', 'To_Infinitive'], englishOrder: ['Dummy_SVC', 'Aux_Verb', 'Verb', 'Modifier_Comp', 'Complement', 'Postposition_For', 'Modifier_For', 'Modifier_For_2', 'Object_For', 'To_Infinitive', 'Verb_Infinitive_1', 'Infinitive_Object', 'Modifier_IO', 'IndirectObject', 'Modifier_Obj', 'Object', 'Conjunction_And_Inf', 'To_Infinitive_2', 'Verb_Infinitive_2', 'Object_2', 'Modifier_Comp_2', 'Object_Complement', 'Infinitive_Object_2', 'Object_And_1', 'Conjunction_And', 'Object_Of_2', 'Postposition_Of_2', 'Postposition_Of', 'Modifier', 'Object_Of', 'Adverb', 'Time_Prep', 'Modifier_Time', 'Time', 'Location_Prep', 'Location_Plain', 'Modifier_Loc', 'Modifier_Loc_2', 'Location', 'Postposition_Through', 'Modifier_Inst', 'Instrument', 'Adverb_Prep'] },
-  { type: '3형식_의지동사_To부정사_병렬', requiredRoles: ['To_Infinitive_Purpose', 'Verb_Infinitive_1', 'Conjunction_And_Inf', 'Verb_Infinitive_2', 'Object_For', 'To_Infinitive_Adj'], englishOrder: ['Subject', 'Verb', 'Modifier_Obj', 'Object', 'To_Infinitive_Purpose', 'Verb_Infinitive_1', 'Modifier_Inf_Obj_1', 'Infinitive_Object_1', 'Object_Complement_1', 'Conjunction_And_Inf', 'To_Infinitive_Purpose_2', 'Verb_Infinitive_2', 'Infinitive_Object_2', 'Postposition_For', 'Object_For', 'To_Infinitive_Adj', 'Verb_Infinitive_3', 'Infinitive_Object_3'] },
-  { type: '3형식_의지동사_To부정사', requiredRoles: ['To_Infinitive_Purpose', 'Object', 'Verb'], englishOrder: ['Modifier', 'Subject', 'Aux_Verb', 'Verb', 'Modifier_Obj_2', 'Modifier_Obj', 'Modifier_2', 'Object', 'To_Infinitive_Purpose', 'Verb_Infinitive', 'Modifier_IO', 'IndirectObject', 'Modifier_And_1', 'Object_And_1', 'Object_And_2', 'Conjunction_And', 'Infinitive_Object', 'Postposition_Of', 'Modifier_Of', 'Object_Of', 'Location_Prep', 'Modifier_Loc_2', 'Modifier_Loc', 'Location', 'Postposition_With', 'Modifier_With', 'Modifier_With_2', 'Object_With_1', 'Conjunction_And_With', 'Object_With_2', 'Time_Prep', 'Modifier_Time', 'Time'] },
-  { type: '1형식_무의지동사_결과_장소', requiredRoles: ['To_Infinitive_Result', 'Location', 'Verb_Infinitive', 'Infinitive_Object'], englishOrder: ['Subject', 'Verb', 'Location', 'To_Infinitive_Result', 'Verb_Infinitive', 'Infinitive_Object'] },
-  { type: '1형식_무의지동사_결과_목적어', requiredRoles: ['To_Infinitive_Result', 'Verb_Infinitive', 'Infinitive_Object', 'Adverb_End'], englishOrder: ['Subject', 'Aux_Verb', 'Verb', 'Adverb', 'To_Infinitive_Result', 'Verb_Infinitive', 'Modifier_Obj', 'Infinitive_Object', 'Adverb_End'] },
-  { type: '1형식_무의지동사_결과', requiredRoles: ['To_Infinitive_Result', 'Verb_Infinitive', 'Complement'], englishOrder: ['Modifier', 'Subject', 'Verb', 'To_Infinitive_Result', 'Verb_Infinitive', 'Complement'] },
-  { type: '1형식_의지동사_To부정사', requiredRoles: ['To_Infinitive_Purpose', 'Verb'], englishOrder: ['Modifier', 'Subject', 'Aux_Verb', 'Verb', 'Location_Prep', 'Location_Plain', 'Location', 'Time_Prep', 'Time', 'To_Infinitive_Purpose', 'Verb_Infinitive', 'Postposition_About', 'Object_About_1', 'Conjunction_And_About', 'Object_About_2', 'Modifier_IO', 'IndirectObject', 'Modifier_Obj', 'Object', 'Infinitive_Object'] },
-  { type: '2형식_부사구_결과', requiredRoles: ['To_Infinitive_Result', 'Complement', 'Verb'], englishOrder: ['Modifier', 'Subject', 'Aux_Verb', 'Verb', 'Modifier_Adverb', 'Modifier_Comp', 'Complement', 'Adverb', 'To_Infinitive_Result', 'Verb_Infinitive', 'Modifier_IO', 'IndirectObject', 'Modifier_Obj', 'Object', 'Infinitive_Object'] },
-  { type: '1형식_부사구_결과', requiredRoles: ['To_Infinitive_Result', 'Verb_Infinitive', 'Infinitive_Object'], englishOrder: ['Subject', 'Verb', 'Modifier_Adverb', 'Adverb', 'To_Infinitive_Result', 'Verb_Infinitive', 'Infinitive_Object'] },
-  { type: '2형식_부사구_To부정사', requiredRoles: ['To_Infinitive_Adv', 'Complement', 'Verb'], englishOrder: ['Modifier', 'Subject', 'Aux_Verb', 'Verb', 'Modifier_Comp', 'Complement', 'Not_Infinitive', 'To_Infinitive_Adv', 'Verb_Infinitive', 'Modifier_IO', 'IndirectObject', 'Modifier_Obj', 'Object', 'Infinitive_Object', 'Adverb', 'Location_Prep', 'Location_Plain', 'Location', 'Postposition_Of', 'Modifier_Of', 'Object_Of', 'Time_Prep', 'Time', 'Adverb_End'] },
-  { type: '3형식_To부정사_형용사구_다중중첩', requiredRoles: ['To_Infinitive_Adj_2', 'Object_To', 'Postposition_To'], englishOrder: ['Modifier', 'Subject', 'Aux_Verb', 'Verb', 'Object', 'Postposition_To', 'Object_To', 'To_Infinitive_Adj', 'Verb_Infinitive', 'IndirectObject', 'Modifier_Obj_2', 'Infinitive_Object', 'To_Infinitive_Adj_2', 'Verb_Infinitive_2', 'Infinitive_Object_2'] },
-  { type: '2형식_주어수식_형용사구_To부정사', requiredRoles: ['To_Infinitive_Adj_Subj', 'Complement', 'Verb'], englishOrder: ['Modifier', 'Subject', 'To_Infinitive_Adj_Subj', 'Verb_Infinitive', 'Modifier_IO', 'IndirectObject', 'Modifier_Obj', 'Object', 'Infinitive_Object', 'Postposition_Along', 'Object_Along', 'Location_Prep', 'Modifier_Loc', 'Location', 'Time_Prep', 'Modifier_Time', 'Time', 'Aux_Verb', 'Verb', 'Modifier_Comp', 'Complement'] },
-  { type: '3형식_To부정사_형용사구_전명구수식', requiredRoles: ['To_Infinitive_Adj', 'Object_To', 'Postposition_To', 'Verb'], englishOrder: ['Modifier', 'Subject', 'Aux_Verb', 'Verb', 'Modifier_Obj', 'Object', 'Postposition_To', 'Modifier_To', 'Object_To', 'To_Infinitive_Adj', 'Verb_Infinitive', 'Modifier_IO', 'IndirectObject', 'Infinitive_Object', 'Location_Prep', 'Location_Plain', 'Location', 'Time_Prep', 'Time', 'Adverb'] },
-  { type: '2형식_To부정사_형용사구', requiredRoles: ['To_Infinitive_Adj', 'Complement', 'Verb'], englishOrder: ['Modifier', 'Subject', 'Aux_Verb', 'Verb', 'Modifier_Comp', 'Complement', 'To_Infinitive_Adj', 'Verb_Infinitive', 'Object', 'Modifier_Comp_2', 'Object_Complement', 'Postposition_For', 'Modifier_For', 'Object_For', 'Postposition_About', 'Object_About_1'] },
-  { type: '3형식_To부정사_형용사구', requiredRoles: ['To_Infinitive_Adj', 'Verb_Infinitive', 'Verb', 'Object'], englishOrder: ['Modifier', 'Subject', 'Aux_Verb', 'Verb', 'Modifier_Obj', 'Object', 'To_Infinitive_Adj', 'Verb_Infinitive', 'Location_Prep', 'Location_Plain', 'Location', 'Time_Prep', 'Time', 'Adverb'] },
-  { type: '5형식_To부정사', requiredRoles: ['To_Infinitive_OC', 'Verb_Infinitive', 'Object', 'Verb'], englishOrder: ['Modifier', 'Modifier_2', 'Subject', 'Aux_Verb', 'Verb', 'Modifier_Obj', 'Object', 'To_Infinitive_OC', 'Verb_Infinitive', 'Infinitive_Object', 'Location_Prep', 'Location_Plain', 'Location', 'Time_Prep', 'Time', 'Adverb'] },
-  { type: '2형식_To부정사', requiredRoles: ['To_Infinitive_Comp', 'Verb_Infinitive', 'Verb'], englishOrder: ['Modifier_Of_Subj_1', 'Modifier_Of_Subj_2', 'Object_Of_Subj', 'Postposition_Of_Subj', 'Modifier', 'Modifier_2', 'Subject', 'Time_Modifier', 'Modifier_Time', 'Time', 'Time_Prep', 'Modifier_Loc', 'Location_Plain', 'Location', 'Location_Prep', 'Adverb', 'Adverb_Prep', 'Modifier_With', 'Object_With', 'Postposition_With', 'Modifier_IO', 'IndirectObject', 'Object_Of', 'Postposition_Of', 'Modifier_Obj', 'Modifier_Obj_2', 'Object', 'Infinitive_Object', 'Modifier_Comp_2', 'Object_Complement', 'Conjunction_And_Comp', 'Object_Complement_2', 'Verb_Infinitive', 'To_Infinitive_Comp', 'Verb'] },
-  { type: '3형식_To부정사', requiredRoles: ['To_Infinitive', 'Verb_Infinitive', 'Verb'], englishOrder: ['Modifier', 'Modifier_2', 'Subject', 'Aux_Verb', 'Verb', 'To_Infinitive', 'Verb_Infinitive', 'Modifier_IO', 'IndirectObject', 'Modifier_Obj', 'Infinitive_Object', 'Modifier_Comp_2', 'Object_Complement', 'Postposition_Through', 'Modifier_Inst', 'Instrument', 'Postposition_Of', 'Object_Of', 'Object_And_1', 'Conjunction_And', 'Object', 'Postposition_About', 'Object_About_1', 'Conjunction_And_About', 'Object_About_2', 'Location_Prep', 'Location_Plain', 'Location', 'Time_Prep', 'Time', 'Adverb'] },
-  { type: '5형식', requiredRoles: ['Object_Complement', 'Verb'], englishOrder: ['Modifier', 'Modifier_2', 'Subject', 'Aux_Verb', 'Verb', 'Modifier_Obj', 'Object_And_1', 'Conjunction_And', 'Object', 'Postposition_Without', 'Object_Without', 'Modifier_Comp', 'Object_Complement', 'Conjunction_And_Comp', 'Modifier_Comp_2', 'Object_Complement_2', 'Adverb_Prep', 'Adverb', 'Postposition_For', 'Modifier_For', 'Modifier_For_2', 'Object_For'] },
-  { type: '4형식', requiredRoles: ['IndirectObject', 'Object', 'Verb'], englishOrder: ['Modifier', 'Modifier_2', 'Subject', 'Postposition_In_Subj', 'Object_In_Subj', 'Aux_Verb', 'Verb', 'Modifier_IO', 'IndirectObject', 'Postposition_Without', 'Object_Without', 'Modifier_Obj', 'Modifier_Obj_2', 'Object', 'Location_Prep', 'Location_Plain', 'Modifier_Loc', 'Modifier_Loc_2', 'Location', 'Time_Prep', 'Modifier_Time', 'Time_Plain', 'Time', 'Adverb_Prep', 'Adverb'] },
-  { type: '3형식_최종_간디', requiredRoles: ['Subject_That_Main', 'Subject_When'], englishOrder: ['Subject', 'Adverb_Time_Main', 'Verb', 'Dummy_That_Main', 'Subject_That_Main', 'Verb_That_Main', 'Modifier_Indep', 'Object_Indep', 'Conjunction_When', 'Subject_When', 'Verb_When', 'Subject_That1', 'Verb_That1', 'Modifier_Lot', 'Object_Lot', 'Postposition_Effort', 'Modifier_Effort1', 'Modifier_Effort2', 'Object_Effort', 'Conjunction_And', 'Dummy_That2', 'Subject_That2', 'Verb_That2', 'Modifier_Destiny', 'Object_Destiny', 'Object_Way', 'Subject_Like', 'Verb_Like'] },
-  { type: '3형식', requiredRoles: ['Object', 'Verb'], englishOrder: ['Modifier', 'Modifier_2', 'Subject', 'Aux_Verb', 'Postposition_In', 'Verb', 'Modifier_Obj', 'Modifier_Obj_2', 'Object', 'Postposition_For', 'Modifier_For', 'Modifier_For_2', 'Object_For', 'Location_Prep', 'Postposition_In_Plain', 'Location_Plain', 'Modifier_Loc', 'Modifier_Loc_2', 'Location', 'Postposition_Of', 'Object_Of', 'Postposition_To', 'Purpose', 'Object_To', 'To_Infinitive', 'Verb_Infinitive', 'Infinitive_Object', 'Postposition_With', 'Modifier_With', 'Object_With', 'Postposition_Through', 'Modifier_Inst', 'Modifier_Inst_2', 'Instrument', 'Time_Prep', 'Modifier_Time', 'Time_Plain', 'Time', 'Adverb_Prep', 'Adverb'] },
-  { type: '1형식', requiredRoles: ['Verb'], englishOrder: ['Modifier', 'Subject_And_1', 'Conjunction_And', 'Modifier_2', 'Subject', 'Aux_Verb', 'Postposition_In', 'Verb', 'Modifier_Adverb', 'Adverb', 'Postposition_For', 'Object_For', 'Location_Prep', 'Location_Plain', 'Location', 'Postposition_Near', 'Modifier_Near', 'Object_Near', 'Postposition_With', 'Modifier_With', 'Object_With', 'Postposition_Through', 'Instrument', 'Time_Prep', 'Modifier_Time', 'Time_Plain', 'Time', 'Time_Prep_2', 'Time_2', 'Adverb_Prep', 'To_Infinitive_Result', 'To_Infinitive', 'Verb_Infinitive', 'Infinitive_Object', 'Postposition_About', 'Object_About_1', 'Object_About_2', 'Adverb_End'] }
+  { type: '가주어_진주어', requiredRoles: ['Dummy_SVC', 'To_Infinitive'], koreanOrder: ['Dummy_SVC', 'Time_Modifier', 'Modifier_Time', 'Time', 'Time_Prep', 'Modifier_Loc', 'Location_Plain', 'Location', 'Location_Prep', 'Adverb', 'Adverb_Prep', 'Modifier_IO', 'IndirectObject', 'Modifier', 'Modifier_Obj', 'Object', 'Infinitive_Object', 'To_Infinitive_1', 'Verb_Infinitive_1', 'Conjunction_And_Inf', 'Object_2', 'Modifier_Comp_2', 'Object_Complement', 'Infinitive_Object_2', 'Verb_Infinitive_2', 'To_Infinitive_2', 'Verb_Infinitive', 'To_Infinitive_3', 'Verb_Infinitive_3', 'To_Infinitive', 'Object_For', 'Postposition_For', 'Modifier_Comp', 'Complement', 'Verb'] },
+  { type: '3형식_의지동사_To부정사_병렬', requiredRoles: ['To_Infinitive_Purpose', 'Verb_Infinitive_1', 'Conjunction_And_Inf', 'Verb_Infinitive_2', 'Object_For', 'To_Infinitive_Adj'], koreanOrder: ['Subject', 'Infinitive_Object_1', 'Object_Complement_1', 'Verb_Infinitive_1', 'Conjunction_And_Inf', 'Infinitive_Object_3', 'Verb_Infinitive_3', 'To_Infinitive_Adj', 'Object_For', 'Postposition_For', 'Infinitive_Object_2', 'Verb_Infinitive_2', 'To_Infinitive_Purpose_2', 'To_Infinitive_Purpose', 'Modifier_Obj', 'Object', 'Verb'] },
+  { type: '3형식_의지동사_To부정사', requiredRoles: ['To_Infinitive_Purpose', 'Object', 'Verb'], koreanOrder: ['Modifier', 'Subject', 'Time_Modifier', 'Modifier_Time', 'Time', 'Time_Prep', 'Modifier_With', 'Modifier_With_2', 'Object_With_1', 'Conjunction_And_With', 'Object_With_2', 'Postposition_With', 'Modifier_Loc', 'Modifier_Loc_2', 'Location_Plain', 'Location', 'Location_Prep', 'Modifier_IO', 'IndirectObject', 'Modifier_Of', 'Object_Of', 'Postposition_Of', 'Modifier_And_1', 'Object_And_1', 'Object_And_2', 'Conjunction_And', 'Infinitive_Object', 'Verb_Infinitive', 'To_Infinitive_Purpose', 'Modifier_Obj_2', 'Modifier_Obj', 'Modifier_2', 'Object', 'Verb'] },
+  { type: '1형식_무의지동사_결과_장소', requiredRoles: ['To_Infinitive_Result', 'Location', 'Verb_Infinitive', 'Infinitive_Object'], koreanOrder: ['Subject', 'Location', 'Verb', 'To_Infinitive_Result', 'Infinitive_Object', 'Verb_Infinitive'] },
+  { type: '1형식_무의지동사_결과_목적어', requiredRoles: ['To_Infinitive_Result', 'Verb_Infinitive', 'Infinitive_Object', 'Adverb_End'], koreanOrder: ['Modifier', 'Subject', 'Adverb', 'Verb', 'To_Infinitive_Result', 'Modifier_Obj', 'Infinitive_Object', 'Adverb_End', 'Verb_Infinitive'] },
+  { type: '1형식_무의지동사_결과', requiredRoles: ['To_Infinitive_Result', 'Verb_Infinitive', 'Complement'], koreanOrder: ['Modifier', 'Subject', 'Verb', 'To_Infinitive_Result', 'Complement', 'Verb_Infinitive'] },
+  { type: '1형식_의지동사_To부정사', requiredRoles: ['To_Infinitive_Purpose', 'Verb'], koreanOrder: ['Modifier', 'Subject', 'Object_About_1', 'Conjunction_And_About', 'Object_About_2', 'Postposition_About', 'Infinitive_Object', 'Verb_Infinitive', 'To_Infinitive_Purpose', 'Time_Modifier', 'Modifier_Time', 'Time', 'Time_Prep', 'Modifier_Loc', 'Location_Plain', 'Location', 'Location_Prep', 'Verb'] },
+  { type: '2형식_부사구_결과', requiredRoles: ['To_Infinitive_Result', 'Complement', 'Verb'], koreanOrder: ['Modifier', 'Subject', 'Modifier_Adverb', 'Adverb', 'Modifier_Comp', 'Complement', 'Verb', 'To_Infinitive_Result', 'Modifier_Obj', 'Object', 'Infinitive_Object', 'Verb_Infinitive'] },
+  { type: '1형식_부사구_결과', requiredRoles: ['To_Infinitive_Result', 'Verb_Infinitive', 'Infinitive_Object'], koreanOrder: ['Subject', 'Modifier_Adverb', 'Adverb', 'Verb', 'To_Infinitive_Result', 'Infinitive_Object', 'Verb_Infinitive'] },
+  { type: '2형식_부사구_To부정사', requiredRoles: ['To_Infinitive_Adv', 'Complement', 'Verb'], koreanOrder: ['Modifier', 'Subject', 'Time_Modifier', 'Modifier_Time', 'Time', 'Time_Prep', 'Modifier_Loc', 'Location_Plain', 'Location', 'Location_Prep', 'Adverb_Prep', 'Modifier_IO', 'IndirectObject', 'Modifier_Of', 'Object_Of', 'Postposition_Of', 'Modifier_Obj', 'Object', 'Infinitive_Object', 'Adverb', 'Verb_Infinitive', 'Not_Infinitive', 'To_Infinitive_Adv', 'Modifier_Comp', 'Complement', 'Verb'] },
+  { type: '3형식_To부정사_형용사구_다중중첩', requiredRoles: ['To_Infinitive_Adj_2', 'Object_To', 'Postposition_To'], koreanOrder: ['Modifier', 'Subject', 'Infinitive_Object_2', 'Verb_Infinitive_2', 'To_Infinitive_Adj_2', 'Modifier_Obj_2', 'Infinitive_Object', 'IndirectObject', 'Verb_Infinitive', 'To_Infinitive_Adj', 'Object_To', 'Postposition_To', 'Object', 'Verb'] },
+  { type: '2형식_주어수식_형용사구_To부정사', requiredRoles: ['To_Infinitive_Adj_Subj', 'Complement', 'Verb'], koreanOrder: ['Modifier_Time', 'Time', 'Time_Prep', 'Modifier_Loc', 'Location_Plain', 'Location', 'Location_Prep', 'Object_Along', 'Postposition_Along', 'Modifier_IO', 'IndirectObject', 'Modifier_Obj', 'Object', 'Infinitive_Object', 'Verb_Infinitive', 'To_Infinitive_Adj_Subj', 'Modifier', 'Subject', 'Complement', 'Verb'] },
+  { type: '3형식_To부정사_형용사구_전명구수식', requiredRoles: ['To_Infinitive_Adj', 'Object_To', 'Postposition_To', 'Verb'], koreanOrder: ['Modifier', 'Subject', 'Time_Modifier', 'Modifier_Time', 'Time', 'Time_Prep', 'Modifier_Loc', 'Location_Plain', 'Location', 'Location_Prep', 'Adverb', 'Adverb_Prep', 'Infinitive_Object', 'Verb_Infinitive', 'To_Infinitive_Adj', 'Modifier_To', 'Object_To', 'Postposition_To', 'Modifier_Obj', 'Object', 'Verb'] },
+  { type: '2형식_To부정사_형용사구', requiredRoles: ['To_Infinitive_Adj', 'Complement', 'Verb'], koreanOrder: ['Subject', 'Object_About_1', 'Postposition_About', 'Modifier_For', 'Object_For', 'Postposition_For', 'Modifier_Comp_2', 'Object_Complement', 'Verb_Infinitive', 'To_Infinitive_Adj', 'Modifier_Comp', 'Complement', 'Verb'] },
+  { type: '3형식_To부정사_형용사구', requiredRoles: ['To_Infinitive_Adj', 'Verb_Infinitive', 'Verb', 'Object'], koreanOrder: ['Subject', 'Time_Modifier', 'Modifier_Time', 'Time', 'Time_Prep', 'Modifier_Loc', 'Location_Plain', 'Location', 'Location_Prep', 'Adverb', 'Adverb_Prep', 'Modifier_IO', 'IndirectObject', 'Verb_Infinitive', 'To_Infinitive_Adj', 'Modifier_Obj', 'Object', 'Verb'] },
+  { type: '5형식_To부정사', requiredRoles: ['To_Infinitive_OC', 'Verb_Infinitive', 'Object', 'Verb'], koreanOrder: ['Modifier', 'Modifier_2', 'Subject', 'Time_Modifier', 'Modifier_Time', 'Time', 'Time_Prep', 'Modifier_Loc', 'Location_Plain', 'Location', 'Location_Prep', 'Adverb', 'Adverb_Prep', 'Modifier_IO', 'IndirectObject', 'Modifier_Obj', 'Object', 'Infinitive_Object', 'Verb_Infinitive', 'To_Infinitive_OC', 'Verb'] },
+  { type: '2형식_To부정사', requiredRoles: ['To_Infinitive_Comp', 'Verb_Infinitive', 'Verb'], koreanOrder: ['Modifier_Of_Subj_1', 'Modifier_Of_Subj_2', 'Object_Of_Subj', 'Postposition_Of_Subj', 'Modifier', 'Modifier_2', 'Subject', 'Time_Modifier', 'Modifier_Time', 'Time', 'Time_Prep', 'Modifier_Loc', 'Location_Plain', 'Location', 'Location_Prep', 'Adverb', 'Adverb_Prep', 'Modifier_With', 'Object_With', 'Postposition_With', 'Modifier_IO', 'IndirectObject', 'Object_Of', 'Postposition_Of', 'Modifier_Obj', 'Modifier_Obj_2', 'Object', 'Infinitive_Object', 'Modifier_Comp_2', 'Object_Complement', 'Conjunction_And_Comp', 'Object_Complement_2', 'Verb_Infinitive', 'To_Infinitive_Comp', 'Verb'] },
+  { type: '3형식_To부정사', requiredRoles: ['To_Infinitive', 'Verb_Infinitive', 'Verb'], koreanOrder: ['Modifier', 'Modifier_2', 'Subject', 'Time', 'Time_Prep', 'Location_Plain', 'Location', 'Location_Prep', 'Adverb', 'Adverb_Prep', 'Modifier_Inst', 'Instrument', 'Postposition_Through', 'Object_About_1', 'Conjunction_And_About', 'Object_About_2', 'Postposition_About', 'Modifier_IO', 'IndirectObject', 'Modifier_Obj', 'Infinitive_Object', 'Object_Of', 'Postposition_Of', 'Object_And_1', 'Conjunction_And', 'Object', 'Modifier_Comp_2', 'Object_Complement', 'Verb_Infinitive', 'To_Infinitive', 'Verb'] },
+  { type: '5형식', requiredRoles: ['Object_Complement', 'Verb'], koreanOrder: ['Subject', 'Object_Without', 'Postposition_Without', 'Modifier', 'Modifier_2', 'Object_And_1', 'Conjunction_And', 'Object', 'Modifier_Comp', 'Modifier_Comp_2', 'Object_Complement', 'Conjunction_And_Comp', 'Object_Complement_2', 'Adverb_Prep', 'Adverb', 'Verb'] },
+  { type: '4형식', requiredRoles: ['IndirectObject', 'Object', 'Verb'], koreanOrder: ['Object_In_Subj', 'Postposition_In_Subj', 'Modifier', 'Modifier_2', 'Subject', 'Time_Modifier', 'Modifier_Time', 'Time', 'Time_Prep', 'Object_Without', 'Postposition_Without', 'Modifier_IO', 'IndirectObject', 'Location_Plain', 'Location', 'Location_Prep', 'Modifier_Obj', 'Object', 'Adverb', 'Verb'] },
+  { type: '3형식_최종_간디', requiredRoles: ['Subject_That_Main', 'Subject_When'], koreanOrder: ['Subject', 'Subject_When', 'Subject_That1', 'Modifier_Effort1', 'Modifier_Effort2', 'Object_Effort', 'Postposition_Effort', 'Modifier_Lot', 'Object_Lot', 'Verb_That1', 'Conjunction_And', 'Subject_That2', 'Subject_Like', 'Verb_Like', 'Object_Way', 'Modifier_Way_Prep', 'Modifier_Destiny', 'Object_Destiny', 'Verb_That2', 'Verb_When', 'Conjunction_When', 'Subject_That_Main', 'Modifier_Indep', 'Object_Indep', 'Verb_That_Main', 'Adverb_Time_Main', 'Verb'] },
+  { type: '3형식', requiredRoles: ['Object', 'Verb'], koreanOrder: ['Modifier', 'Modifier_2', 'Subject', 'Time_Modifier', 'Modifier_Time', 'Time', 'Time_Prep', 'Modifier_With', 'Object_With', 'Postposition_With', 'Modifier_For', 'Modifier_For_2', 'Object_For', 'Postposition_For', 'Modifier_Inst', 'Modifier_Inst_2', 'Instrument', 'Postposition_Through', 'Object_Of', 'Postposition_Of', 'Modifier_Loc', 'Modifier_Loc_2', 'Location_Plain', 'Location', 'Location_Prep', 'Object_To', 'Purpose', 'Modifier_Obj', 'Modifier_Obj_2', 'Object', 'Adverb', 'Verb'] },
+  { type: '2형식_병렬보어', requiredRoles: ['Complement_1', 'Conjunction_Or', 'Complement_2', 'Verb'], koreanOrder: ['Subject', 'Modifier_Against', 'Object_Against', 'Postposition_Against', 'Complement_1', 'Conjunction_Or', 'Object_To', 'Postposition_To', 'Complement_2', 'Aux_Verb', 'Verb'] },
+  { type: '2형식_비교', requiredRoles: ['Complement', 'Verb', 'Postposition_Than'], koreanOrder: ['Object_Of_Subj', 'Postposition_Of_Subj', 'Subject', 'Object_Than', 'Postposition_Of_Than', 'Postposition_Than', 'Complement', 'Verb'] },
+  { type: '2형식', requiredRoles: ['Complement', 'Verb'], koreanOrder: ['Object_In_Subj', 'Postposition_In_Subj', 'Modifier', 'Subject', 'Time_Modifier', 'Modifier_Time', 'Time', 'Time_Prep', 'Object_For', 'Postposition_For', 'Location', 'Location_Prep', 'Object_Of', 'Postposition_Of', 'Modifier_Comp', 'Complement', 'Verb'] },
+  { type: '1형식', requiredRoles: ['Verb'], koreanOrder: ['Modifier', 'Subject_And_1', 'Conjunction_And', 'Modifier_2', 'Subject', 'Time_Modifier', 'Modifier_Time', 'Time', 'Time_Prep', 'Time_2', 'Time_Prep_2', 'Modifier_With', 'Object_With', 'Postposition_With', 'Object_For', 'Postposition_For', 'Modifier_Near', 'Object_Near', 'Postposition_Near', 'Modifier_Loc', 'Location', 'Location_Prep', 'Instrument', 'Postposition_Through', 'Adverb_Prep', 'Adverb', 'Verb'] }
 ];
 
 export async function POST(request: Request) {
@@ -566,13 +569,14 @@ export async function POST(request: Request) {
     let originalText = q.trim().replace(/[.?!]+$/, '');
     
     // 💡 [지능형 전처리] 복합동사 묶기 로직 (세로 정렬)
-    const complexFiveFormVerbs_KO = [
-      '필요로 하다', '더 좋아하다', '생각나게 하다', '상태로 두다', '하게 두다', 
-      '하게 허락하다', '하도록 만들다', '하게 만들다', '도움을 주다', '알게 되다'
-    ];
     const complexFourFormVerbs_KO = [
       '먹이를 주다', '비용이 들게 하다', '시간을 덜어주다', '수고를 덜어주다', '인상을 주다'
     ];
+    complexFourFormVerbs_KO.forEach(phrase => { 
+      const regex = new RegExp(phrase, 'g'); 
+      originalText = originalText.replace(regex, phrase.replace(/ /g, '_')); 
+    });
+
     const complexTwoFormVerbs_KO = [
       '단호히 서 있다', '가만히 있다', '냉정을 유지하다', '침착함을 유지하다', '조용히 있다', '침묵을 지키다', 
       '깨어 있다', '살아남다', '신선함을 유지하다', '따뜻하게 있다', '마른 상태를 유지하다', '건강을 유지하다', 
@@ -594,8 +598,7 @@ export async function POST(request: Request) {
       '계속 돕다', '계속 안내하다', '계속 보호하다', '계속 보여주다', '계속 믿다', '계속 희망하다', '계속 바라다', 
       '계속 찾다', '누워 있다', '놓여 있다', '달라붙어 있다'
     ];
-    
-    [...complexFiveFormVerbs_KO, ...complexFourFormVerbs_KO, ...complexTwoFormVerbs_KO].forEach(phrase => { 
+    complexTwoFormVerbs_KO.forEach(phrase => { 
       const regex = new RegExp(phrase, 'g'); 
       originalText = originalText.replace(regex, phrase.replace(/ /g, '_')); 
     });
@@ -918,12 +921,12 @@ export async function POST(request: Request) {
       else if (twoFormVerbs.includes(word) || twoFormVerbs.includes(baseWord)) matchedRole = 'Verb';
       else if (oneFormVerbs.includes(word) || oneFormVerbs.includes(baseWord)) matchedRole = 'Verb_1'; 
 
-      // 과거형 동사 변환 로직 - 여기서 getKoreanConjugation 함수에 원형을 넘깁니다
+      // 과거형 동사 변환 로직
       if (word.endsWith('ed') || word === 'lived' || word === 'grew' || word === 'used' || word === 'bought' || word === 'gathered' || word === 'came' || word === 'got_up' || word === 'were') {
          if (matchedRole.startsWith('Verb')) matchedRole = 'Verb_Past';
       }
 
-      if (word === 'lived') { matchedRole = 'Verb_Past'; MOCK_EN_KO_DB[word] = getKoreanConjugation('살다', 'past'); } 
+      if (word === 'lived') { matchedRole = 'Verb_Past'; MOCK_EN_KO_DB[word] = getKoreanConjugation('살다', 'past') || '살았다'; } 
       if (word === 'here') { 
           if (originalText.toLowerCase().includes('lived') || originalText.toLowerCase().includes('gathered')) { matchedRole = 'Location'; MOCK_EN_KO_DB[word] = originalText.toLowerCase().includes('gathered') ? '여기에' : '이곳에'; } 
           else { matchedRole = 'Location'; MOCK_EN_KO_DB[word] = '이곳에'; }
@@ -933,11 +936,11 @@ export async function POST(request: Request) {
       if (word === 'grandson') { matchedRole = 'Infinitive_Object'; MOCK_EN_KO_DB[word] = '손자를'; }
       if (word === 'again') { matchedRole = 'Adverb_End'; MOCK_EN_KO_DB[word] = '다시'; }
       if (word === 'child') { matchedRole = 'Subject'; MOCK_EN_KO_DB[word] = '아이는'; }
-      if (word === 'grew') { matchedRole = 'Verb_Past'; MOCK_EN_KO_DB[word] = getKoreanConjugation('자라다', 'past'); } 
+      if (word === 'grew') { matchedRole = 'Verb_Past'; MOCK_EN_KO_DB[word] = getKoreanConjugation('자라다', 'past') || '자랐다'; } 
       if (word === 'be') { matchedRole = 'Verb_Infinitive'; MOCK_EN_KO_DB[word] = '되다'; }
       if (word === 'a_fine_youth') { matchedRole = 'Complement'; MOCK_EN_KO_DB[word] = '훌륭한 청년이'; }
       if (word === 'albert_schweitzer') { matchedRole = 'Subject'; MOCK_EN_KO_DB[word] = '알버트 슈바이처는'; }
-      if (word === 'used') { matchedRole = 'Verb_Past'; MOCK_EN_KO_DB[word] = getKoreanConjugation('사용하다', 'past'); } 
+      if (word === 'used') { matchedRole = 'Verb_Past'; MOCK_EN_KO_DB[word] = getKoreanConjugation('사용하다', 'past') || '사용했다'; } 
       if (word === 'the_prize_money') { matchedRole = 'Object'; MOCK_EN_KO_DB[word] = '그 상금을'; }
       if (word === 'make') { 
           matchedRole = (words[i+1] === 'the_hospital') ? 'Verb_Infinitive_1' : (words[i+1] === 'a_place') ? 'Verb_Infinitive_2' : 'Verb_Infinitive';
@@ -962,7 +965,7 @@ export async function POST(request: Request) {
       if (word === 'country') { matchedRole = 'Object_Of'; MOCK_EN_KO_DB[word] = '나라'; }
       if (word === 'during') { matchedRole = 'Time_Prep'; MOCK_EN_KO_DB[word] = '동안에'; }
       if (word === 'vacation') { matchedRole = 'Time'; MOCK_EN_KO_DB[word] = '방학'; }
-      if (word === 'bought') { matchedRole = 'Verb_Past'; MOCK_EN_KO_DB[word] = getKoreanConjugation('구입하다', 'past'); }
+      if (word === 'bought') { matchedRole = 'Verb_Past'; MOCK_EN_KO_DB[word] = getKoreanConjugation('구입하다', 'past') || '구입했다'; }
       if (word === 'old') { matchedRole = 'Modifier_2'; MOCK_EN_KO_DB[word] = '오래된'; }
       if (word === 'house' || word === '집을') { matchedRole = 'Object'; MOCK_EN_KO_DB[word] = '집을'; }
       if (word === 'live') { matchedRole = 'Verb_Infinitive'; MOCK_EN_KO_DB[word] = '살다'; }
@@ -971,12 +974,12 @@ export async function POST(request: Request) {
       if (word === 'wife') { matchedRole = 'Object_With_1'; MOCK_EN_KO_DB[word] = '아내'; }
       if (word === '와') { matchedRole = 'Conjunction_And_With'; MOCK_EN_KO_DB[word] = 'and'; }
       if (word === '우리는') { matchedRole = 'Subject'; MOCK_EN_KO_DB[word] = 'we'; } 
-      if (word === 'gathered') { matchedRole = 'Verb_Past'; MOCK_EN_KO_DB[word] = getKoreanConjugation('모이다', 'past'); } 
+      if (word === 'gathered') { matchedRole = 'Verb_Past'; MOCK_EN_KO_DB[word] = getKoreanConjugation('모이다', 'past') || '모였다'; } 
       if (word === 'today') { matchedRole = 'Time'; MOCK_EN_KO_DB[word] = '오늘'; }
       if (word === 'talk') { matchedRole = 'Verb_Infinitive'; MOCK_EN_KO_DB[word] = '의논하다'; }
       if (word === 'about') { matchedRole = 'Postposition_About'; MOCK_EN_KO_DB[word] = '에대해'; }
       if (word === 'an_important_thing') { matchedRole = 'Object_About_1'; MOCK_EN_KO_DB[word] = '중요한 일'; }
-      if (word === 'came') { matchedRole = 'Verb_Past'; MOCK_EN_KO_DB[word] = getKoreanConjugation('오다', 'past'); } 
+      if (word === 'came') { matchedRole = 'Verb_Past'; MOCK_EN_KO_DB[word] = getKoreanConjugation('오다', 'past') || '왔다'; } 
       if (word === 'you') { 
           if (words[i-1] === '만날' || words[i-1] === 'see' || words[i-1] === '만나다') { matchedRole = 'Infinitive_Object'; MOCK_EN_KO_DB[word] = '너를'; } 
           else if (words[i-1] === 'meet') { matchedRole = 'Object'; MOCK_EN_KO_DB[word] = '너를'; } 
@@ -991,7 +994,7 @@ export async function POST(request: Request) {
       if (word === 'understand') { matchedRole = 'Verb_Infinitive'; MOCK_EN_KO_DB[word] = '이해할 수 있다'; }
       if (word === 'it') { matchedRole = 'Infinitive_Object'; MOCK_EN_KO_DB[word] = '그것을'; }
       if (word === 'he') { matchedRole = 'Subject'; MOCK_EN_KO_DB[word] = '그는'; }
-      if (word === 'got_up') { matchedRole = 'Verb_Past'; MOCK_EN_KO_DB[word] = getKoreanConjugation('일어나다', 'past'); }
+      if (word === 'got_up') { matchedRole = 'Verb_Past'; MOCK_EN_KO_DB[word] = getKoreanConjugation('일어나다', 'past') || '일어났다'; }
       if (word === 'so') { matchedRole = 'Modifier_Adverb'; MOCK_EN_KO_DB[word] = '아주'; }
       if (word === 'late') { matchedRole = 'Adverb'; MOCK_EN_KO_DB[word] = '늦게'; }
       if (word === 'as_to') { matchedRole = 'To_Infinitive_Result'; MOCK_EN_KO_DB[word] = '그래서'; } 
@@ -1130,24 +1133,95 @@ export async function POST(request: Request) {
       mapped_analysis.push({ en: token.enOriginal, ko: token.koWord });
     }
 
-    const finalEnglishWords = [];
-    for (const role of selectedForm.englishOrder) {
+    const finalKoreanWords = [];
+    for (const role of selectedForm.koreanOrder) {
       if (phrases[role]) {
         const cleaned = phrases[role].filter(w => w.trim() !== '').join(' ');
-        if (cleaned) finalEnglishWords.push(cleaned);
+        if (cleaned) finalKoreanWords.push(cleaned);
       }
     }
 
-    let finalTranslation = finalEnglishWords.join(' ')
-      .replace(/special\s*program/i, 'a special program')
-      .replace(/culture,\s*customs,\s*art/i, 'the culture, customs, and art')
-      .replace(/fine\s*youth/i, 'a fine youth');
-    finalTranslation = finalTranslation.charAt(0).toUpperCase() + finalTranslation.slice(1);
+    let finalTranslation = finalKoreanWords.join(' ')
+      .replace(/^It\s*/i, '')
+      .replace(/\s+(으로|에|를|을|가|이|은|는|에게|도|만|까지|부터|에서|라고|이라고|입니다|기를|과|와|로|의)(\s|$)/g, '$1$2')
+      .replace(/살았다\.\s*그래서/g, '살아서')
+      .replace(/살았다\s*그래서/g, '살아서')
+      .replace(/살았다\s*서/g, '살아서')
+      .replace(/너를\s*만나다/g, '너를 만났다')
+      .replace(/다시\s*만나다/g, '다시 만났다')
+      .replace(/만났다\./g, '만났다')
+      .replace(/자랐다\s*서/g, '자라서')
+      .replace(/청년이\s*되다/g, '청년이 되었다')
+      .replace(/고통받다\s*ㄴ/g, '고통받는')
+      .replace(/만들다\s*고/g, '만들고 ')
+      .replace(/만들다\s*위해서/g, '만들기 위해서')
+      .replace(/가르쳐주다\s*위해서/g, '가르쳐주기 위해서')
+      .replace(/나라\s*의/g, '나라의')
+      .replace(/아내\s*와\s*귀여운\s*딸\s*과함께/g, '아내와 귀여운 딸과 함께')
+      .replace(/시골\s*에서/g, '시골에서')
+      .replace(/살다\s*위해서/g, '살기 위해서')
+      .replace(/\s*에대해/g, '에 대해')
+      .replace(/의논하다\s*~하기위해/g, '의논하기 위해')
+      .replace(/여기에\s*모였다/g, '여기 모였다')
+      .replace(/만날\s*목적으로/g, '만날 목적으로')
+      .replace(/게으른\s*이다\s*그래서/g, '게으르다. 그래서')
+      .replace(/영리한\s*이다\s*그래서/g, '영리하다. 그래서')
+      .replace(/일어났다\s*그래서/g, '일어났다. 그래서')
+      .replace(/기차를\s*놓치다/g, '기차를 놓쳤다')
+      .replace(/마시다\s*~하기에/g, '마시기에')
+      .replace(/좋은\s*이다/g, '좋다')
+      .replace(/강의하다\s*~하기에/g, '강의하기에')
+      .replace(/편리한\s*이다/g, '편리하다')
+      .replace(/듣지\s*못하다\s*~하기때문에/g, '듣지 못했기 때문에')
+      .replace(/슬픈\s*이었다/g, '슬펐다')
+      .replace(/자기\s*가족\s*의/g, '자기 가족의')
+      .replace(/만나다\s*~하니/g, '만나니')
+      .replace(/기쁜\s*이다/g, '기쁘다')
+      .replace(/시작하다\s*ㄹ/g, '시작할')
+      .replace(/가르쳐주다\s*ㄴ/g, '가르쳐주는')
+      .replace(/사람\s*에게/g, '사람에게')
+      .replace(/생각하다\s*ㄴ/g, '생각하는')
+      .replace(/독재자\s*이다/g, '독재자이다')
+      .replace(/사주다\s*ㄴ/g, '사준')
+      .replace(/생일\s*에/g, '생일에')
+      .replace(/베티\s*였다/g, '베티였다')
+      .replace(/그의\s*생일에/g, '그의 생일에')
+      .replace(/이집트\s*에서/g, '이집트에서')
+      .replace(/짓다\s*ㄴ/g, '지은')
+      .replace(/농부들\s*이었다/g, '농부들이었다')
+      .replace(/되다\s*ㄴ/g, '된')
+      .replace(/아들\s*에게/g, '아들에게')
+      .replace(/유명한\s*되다\s*ㄴ/g, '유명하게 된')
+      .replace(/진화\s*에대한/g, '진화에 대한')
+      .replace(/이론\s*으로/g, '이론으로')
+      .replace(/생물학자\s*였다/g, '생물학자였다')
+      .replace(/사시는/g, '사시다 ㄴ')
+      .replace(/캘리포니아\s*에/g, '캘리포니아에')
+      .replace(/읽다\s*라고/g, '읽으라고')
+      .replace(/자연\s*환경을/gi, '자연 환경을')
+      .replace(/자연환경을/gi, '자연 환경을')
+      .replace(/깨끗한\s*고/g, '깨끗하고')
+      .replace(/유지하다\s*것\s*이다/g, '유지하는 것이다')
+      .replace(/읽다\s*것\s*이다/g, '읽으려는 것이다')
+      .replace(/조용한\s*시골\s*에서/g, '조용한 시골에서')
+      .replace(/이번\s*에/g, '이번에')
+      .replace(/부여하다\s*것\s*이다/g, '부여하려는 것이다')
+      .replace(/교육\s*개혁\s*의/g, '교육 계획의')
+      .replace(/교육\s*의/g, '교육의')
+      .replace(/되는\s*것이다/g, '되다 것 이다')
+      .replace(/훌륭한\s*의사가/g, 'a_great_doctor')
+      .replace(/미래\s*에/g, '미래 에')
+      .replace(/가는\s*것이다/g, '가다 것 이다')
+      .replace(/주말\s*에/g, '주말에')
+      .replace(/박물관\s*에/g, '박물관에')
+      .replace(/\s*\./g, '.')
+      .replace(/\s{2,}/g, ' ');
+
     if (!finalTranslation.endsWith('.')) finalTranslation += '.';
 
     return NextResponse.json({ ok: true, best: { source_text: originalText, target_text: finalTranslation, analysis: mapped_analysis } });
   } catch (error) {
-    console.error('RBMT 엔진 에러:', error);
+    console.error('영한 RBMT 엔진 에러:', error);
     return NextResponse.json({ ok: false, error: '서버 에러가 발생했습니다.' }, { status: 500 });
   }
 }

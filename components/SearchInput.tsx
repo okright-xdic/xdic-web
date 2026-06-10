@@ -424,7 +424,8 @@ export default function SearchInput({
 
   const validate = (trimmed: string) => {
     if (!trimmed) return { ok: false, msg: '' };
-    if (trimmed.length > 150) return { ok: false, msg: '검색어는 150자 이내로 입력해주세요.' };
+    // 💡 [수프로 방어막 해제!] 제한 글자수를 150자에서 500자로 대폭 확대! 
+    if (trimmed.length > 500) return { ok: false, msg: '검색어는 500자 이내로 입력해주세요.' };
     if (BANNED_WORDS.some((w) => trimmed.includes(w))) return { ok: false, msg: '부적절한 단어가 포함되어 있습니다.' };
     return { ok: true, msg: '' };
   };

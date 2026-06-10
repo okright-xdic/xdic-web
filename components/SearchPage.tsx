@@ -67,7 +67,6 @@ export default function SearchPage({
   const [isMobileWeb, setIsMobileWeb] = useState(false);
   const [supabase] = useState(() => createClientComponentClient());
 
-  // 🌟 [수프로 마법] 1. 번역 결과 및 1:1 분석 상태 추가
   const [aiTranslation, setAiTranslation] = useState<string | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<{ko: string, en: string}[] | null>(null);
 
@@ -85,11 +84,16 @@ export default function SearchPage({
     fetchPreview();
   }, [supabase]);
 
-  // 🌟 [수프로 마법] 2. 번역 API 호출 및 데이터 세팅
+  // 🌟 [수프로 마법] 2. 번역 API 지능형 라우팅 (한영 vs 영한)
   useEffect(() => {
     const displayQuery = (query || '').trim();
     if (displayQuery.length >= 2) {
-      fetch('/api/translate-search', {
+      
+      // 💡 한국어가 하나라도 있으면 한영 번역기로, 순수 영어면 영한 번역기로 요청을 보냅니다!
+      const hasKorean = /[가-힣]/.test(displayQuery);
+      const endpoint = hasKorean ? '/api/translate-search' : '/api/translate-en-ko';
+
+      fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ q: displayQuery }),
@@ -98,7 +102,7 @@ export default function SearchPage({
       .then(data => {
         if (data.ok && data.best) {
           setAiTranslation(data.best.target_text);
-          setAiAnalysis(data.best.analysis || null); // 분석 데이터 상태에 저장
+          setAiAnalysis(data.best.analysis || null);
         } else {
           setAiTranslation(null);
           setAiAnalysis(null);
@@ -215,9 +219,13 @@ export default function SearchPage({
 
   useEffect(() => setCurrentPage(1), [results, query]);
 
+  // 🌟 [수프로 마법] 3. 화면 렌더링 단계에서 0번(기초영어) 완벽 차단!
   const displayResults = React.useMemo(() => {
     const categoryCount: Record<number, number> = {};
     return results.filter(item => {
+      // 💡 여기서 필터링하여 프론트엔드 리스트에 절대 노출되지 않도록 만듭니다!
+      if (item.category_id === 0) return false; 
+      
       const catId = item.category_id != null ? item.category_id : 12;
       categoryCount[catId] = (categoryCount[catId] || 0) + 1;
       return categoryCount[catId] <= 5;
@@ -387,7 +395,7 @@ export default function SearchPage({
               ) : displayResults.length > 0 ? (
                 <div className="space-y-6">
 
-                  {/* 🌟 [수프로 마법] 3. 번역 박스 + 시각적 매칭 UI */}
+                  {/* 🌟 [수프로 마법] 번역 박스 + 시각적 매칭 UI */}
                   {aiTranslation && (
                     <div className="bg-blue-50 border-2 border-blue-300 rounded-2xl p-5 mb-8 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
                       <div className="flex items-center gap-2 mb-3">
@@ -396,7 +404,6 @@ export default function SearchPage({
                       </div>
                       <p className="text-xl md:text-2xl font-bold text-slate-900 leading-snug pl-1">"{aiTranslation}"</p>
                       
-                      {/* 🌟 시각적 매칭 블록 (새로 추가된 부분) */}
                       {aiAnalysis && aiAnalysis.length > 0 && (
                         <div className="mt-5 pl-1">
                           <p className="text-[12px] font-bold text-slate-500 mb-2">🔍 문장 구조 분석 (한글 ➔ 영어 매칭)</p>
