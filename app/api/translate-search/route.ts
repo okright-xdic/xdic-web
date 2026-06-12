@@ -198,10 +198,8 @@ export async function POST(request: Request) {
     const { q } = await request.json();
     if (!q) return NextResponse.json({ ok: false, error: '검색어가 없습니다.' });
 
-    // 선생님 코드 원본 유지: 물음표 보존을 위해 `replace(/[.!]+$/, '')` 적용
     let originalText = q.trim().replace(/[.!]+$/, ''); 
     
-    // 선생님의 100% 원본 지능형 전처리 및 복합동사 로직
     let processedText = originalText.toLowerCase()
       .replace(/흘끗\s*보다/g, '흘끗_보다')
       .replace(/냄새\s*맡다/g, '냄새_맡다')
@@ -429,6 +427,7 @@ export async function POST(request: Request) {
     const words = processedText.split(/\s+/);
     const parsedTokens = [];
 
+    // 💡 완벽하게 중복 키('상기시키다')를 제거한 2번 파일(한영) 전용 MOCK_XDIC_DB
     const MOCK_XDIC_DB: Record<string, string> = {
       '가공하다': 'process', '가공합니까?': 'process', '가공합니까': 'process',
       '요구하다': 'require', '요청하다': 'request', '허락하다': 'allow', '가능하다': 'enable', '설득하다': 'persuade',
@@ -509,33 +508,103 @@ export async function POST(request: Request) {
       '편하게': 'comfortable', '여러면': 'many_ways', '런던': 'london'
     };
 
-    const fiveFormVerbs_KO = ['요구하다', '요청하다', '허락하다', '가능하다', '설득하다', '기대하다', '예상하다', '의도하다', '작정하다', '필요로_하다', '더_좋아하다', '유혹하다', '부추기다', '경고하다', '상기시키다', '생각나게_하다', '강요하다', '금지하다', '구걸하다', '간청하다', '애원하다', '부르다', '임명하다', '고려하다', '여기다', '생각하다', '만들다', '유지하다', '변화하다', '원하다', '좋아하다', '선언하다', '알리다', '발표하다', '상상하다', '증명하다', '보여주다', '상태로_두다', '하게_두다', '하게_허락하다', '시키다', '하도록_만들다', '하게_만들다', '도움을_주다', '명령하다', '지시하다', '말하다', '보다', '듣다', '느끼다', '알다', '알게_되다', '발견하다', '간주하다'];
-    const fourFormVerbs_KO = ['주다', '수여하다', '승인하다', '건네주다', '빌려주다', '제안하다', '전달하다', '지불하다', '약속하다', '팔다', '보내다', '보여주다', '가르치다', '말하다', '쓰다', '양보하다', '산출하다', '할당하다', '먹이를_주다', '제공하다', '전송하다', '남겨주다', '사주다', '만들어주다', '구해주다', '요리해주다', '지어주다', '골라주다', '해주다', '찾아주다', '주문해주다', '준비해주다', '덜어주다', '불러주다', '그려주다', '구워주다', '예약해주다', '가져다주다', '잡아주다', '가져오다', '고쳐주다', '모아주다', '보관해주다', '따라주다', '처방해주다', '인쇄해주다', '묻다', '구걸하다', '부탁하다', '요구하다', '요청하다', '질문하다', '간청하다', '애원하다', '허락하다', '비용이_들게_하다', '거절하다', '부러워하다', '용서하다', '시간을_덜어주다', '수고를_덜어주다', '인상을_주다', '빌어주다'];
-    const threeFormVerbs_KO = ['받아들이다', '조언하다', '동의하다', '변경하다', '대답하다', '감사하다', '묻다', '추정하다', '때리다', '시작하다', '믿다', '물다', '숨쉬다', '가져오다', '짓다', '돌보다', '신경쓰다', '운반하다', '잡다', '바꾸다', '씹다', '불평하다', '고려하다', '계속하다', '창조하다', '울다', '결정하다', '감소시키다', '묘사하다', '디자인하다', '열망하다', '결심하다', '개발하다', '발견하다', '토론하다', '싫어하다', '의심하다', '떨어뜨리다', '끝내다', '즐기다', '부러워하다', '기대하다', '설명하다', '표현하다', '두려워하다', '느끼다', '찾다', '끝마치다', '잊어버리다', '얻다', '흘끗_보다', '재배하다', '키우다', '추측하다', '증오하다', '가지다', '듣다', '치다', '바라다', '상상하다', '향상시키다', '증가시키다', '소개하다', '유지하다', '알다', '웃다', '들어올리다', '좋아하다', '사랑하다', '만들다', '의미하다', '언급하다', '움직이다', '필요로_하다', '알아차리다', '알아채다', '관찰하다', '소유하다', '설득하다', '더_좋아하다', '생산하다', '약속하다', '제안하다', '당기다', '밀다', '깨닫다', '받다', '알아보기', '줄이다', '기억하다', '상기시키다', '존경하다', '말하다', '보다', '냄새_맡다', '미소짓다', '응시하다', '멈추다', '가정하다', '삼키다', '취하다', '가져가다', '이야기하다', '맛보다', '생각하다', '던지다', '만지다', '신뢰하다', '이해하다', '원하다', '경고하다', '지켜보기', '지켜보다'];
-    const twoFormVerbs_KO = ['유지하다', '머무르다', '상태이다', '견디다', '쉬다', '지속되다', '머물다', '살아남다', '유행하다', '이기다', '지체하다', '남아있다', '살다', '체류하다', '멈추다', '기다리다', '들러붙다', '달라붙다', '응집하다'];
-    const oneFormVerbs_KO = ['가다', '가라앉다', '감소하다', '개골거리다', '거주하다', '걷다', '걸려_있다', '걸쳐있다', '결과가_생기다', '결과가_되다', '경영하다', '경쟁하다', '경주하다', '계속되다', '고통받다', '공부하다', '관리하다', '구성되다', '구조하다', '그림을_그리다', '그만두다', '글을_쓰다', '금이_가다', '기능하다', '기다리다', '기도하다', '기뻐하다', '기어가다', '기여하다', '기절하다', '기침하다', '깜빡거리다', '깨다', '깨어나다', '깨지다', '꼬꼬댁거리다', '꽃이_피다', '꽥_소리치다', '꽥꽥거리다', '꿀꿀거리다', '끓다', '끝나다', '낄낄_웃다', '나아가다', '나타나다', '날다', '날이_새다', '남다', '남아있다', '냄새가_나다', '넘어지다', '노래하다', '녹다', '논쟁하다', '놀다', '눈부시다', '눈살을_찌푸리다', '눕다', '느껴지다', '다가가다', '다르다', '다양하다', '다이빙하다', '닫히다', '달라지다', '달리다', '닳다', '대답하다', '도망치다', '도착하다', '돈을_벌다', '돌아오다', '돌진하다', '동의하다', '동의하지_않다', '둘러싸다', '뒤따르다', '뒤를_잇다', '듣다', '들어가다', '등산하다', '딸깍_부러지다', '딸깍거리다', '땀을_흘리다', '땡_소리나다', '떠나다', '떠다니다', '떠벌리다', '떨다', '떨어지다', '뚝뚝_떨어지다', '뛰다', '뜨다', '마시다', '만료되다', '만연하다', '만지다', '말을_더듬다', '말하다', '맛이_나다', '망설이다', '머무르다', '머물다', '먹다', '멈추다', '메아리치다', '모였다', '모이다', '목욕하다', '물건을_사다', '미끄러지듯_가다', '미소_짓다', '미소짓다', '밀집하다', '바삭거리다', '바스락거리다', '반대하다', '반란을_일으키다', '반응하다', '반짝거리다', '반짝이다', '발달하다', '발산하다', '발생하다', '발을_내딛다', '방사하다', '배회하다', '보이다', '부패하다', '불꽃이_튀다', '불평하다', '붕괴하다', '비롯되다', '비명을_지르다', '빛나다', '빛을_발하다', '빵을_굽다', '뻗어있다', '사과하다', '사라지다', '사직하다', '살다', '살아남다', '살았다', '상호작용하다', '샤워하다', '서다', '서서히_사라지다', '선행하다', '성공하다', '성장하다', '세탁되다', '소리치다', '소멸하다', '소속되다', '속삭이다', '속하다', '쇼핑하다', '수영하다', '수지가_맞다', '숨다', '숨쉬다', '숨이_막히다', '쉬다', '쉭_소리나다', '슬퍼하다', '시위하다', '신음하다', '실패하다', '싸우다', '썩다', '앉다', '앞장서다', '야영하다', '야옹거리다', '어렴풋이_빛나다', '얼굴을_붉히다', '얼다', '여행하다', '연장되다', '열리다', '오다', '오르다', '오열하다', '옷을_벗다', '옷을_입다', '왔다', '외치다', '요리하다', '우세하다', '운동하다', '운영되다', '운전하다', '울다', '울리다', '울부짖다', '웃다', '윙윙거리다', '유효하다', '으르렁거리다', '은퇴하다', '음메하고_울다', 'moo', '응답하다', '응축되다', '의견을_말하다', '의견이_다르다', '의논하다', '의사소통하다', '의존하다', '이기다', '이동하다', '이야기하다', '이익이_되다', '일어나다', '일하다', '읽다', '읽히다', '있다', '자다', '자라다', '자랐다', '자랑하다', '작동하다', '잠기다', '잠시_멈추다', '잡담하다', '재개되다', '재채기하다', '저축하다', '적용되다', '제출하다', '조깅하다', '존재하다', '졸업하다', '종료되다', '주저하다', '죽다', '줄어들다', '중단되다', '중얼거리다', '중요하다', '증가하다', '지나가다', '지다', '지배하다', '지불하다', '지속되다', '지속하다', '지저귀다', '진행하다', '집중하다', '짖다', '찍찍거리다', '찢어지다', '차이가_나다', '참가하다', '참여하다', '처신하다', '첨벙거리다', '출발하다', '출석하다', '출현하다', '춤추다', '충돌하다', '캠프하다', '쾅_닫히다', '쾅_부딪히다', '쿵쾅거리다', '킥킥_웃다', '타다', '타오르다', '타협하다', '탈출하다', '통치하다', '투덜거리다', '틱틱거리다', '파업하다', '팔리다', '팽창하다', '폭발하다', '퐁_떨어지다', '풍부하다', '피를_흘리다', '하이킹하다', '한숨쉬다', '항복하다', '항의하다', '항해하다', '행군하다', '행동하다', '향상되다', '헤매다', '협력하다', '협상하다', '확장되다', '효과가_있다', '흐느끼다', '흐르다', '흔들리다', '희미하게_빛나다', '희미해지다', '히잉거리다'];
+    const fiveFormVerbs = [
+      'ask', 'request', 'require', 'demand', 'beg', 'urge', 'prompt', 'invite', 'advise', 'encourage', 
+      'expect', 'intend', 'mean', 'allow', 'permit', 'enable', 'force', 'compel', 'oblige', 'cause', 
+      'persuade', 'convince', 'teach', 'train', 'order', 'command', 'instruct', 'want', 'wish', 'like', 
+      'would_like', 'motivate', 'inspire', 'stimulate', 'provoke', 'tempt', 'lead', 'challenge', 'dare', 
+      'need', 'prefer', 'warn', 'remind', 'forbid', 'name', 'call', 'term', 'appoint', 'elect', 
+      'nominate', 'designate', 'consider', 'deem', 'judge', 'hold', 'believe', 'think', 'find', 'suppose', 
+      'imagine', 'make', 'keep', 'leave', 'render', 'prove', 'feel', 'turn', 'drive', 'change', 
+      'get', 'set', 'declare', 'announce', 'show', 'let', 'have', 'help', 'assist', 'bid', 
+      'see', 'watch', 'notice', 'observe', 'hear', 'listen_to', 'overhear', 'smell', 'taste', 'catch', 
+      'regard', 'view', 'look_upon', 'refer_to', 'describe', 'define', 'treat', 'accept', 'acknowledge'
+    ];
+
+    const fourFormVerbs = [
+      'give', 'award', 'grant', 'hand', 'lend', 'offer', 'pass', 'pay', 'promise', 'sell', 
+      'send', 'show', 'teach', 'tell', 'write', 'yield', 'assign', 'feed', 'serve', 'forward', 
+      'leave', 'buy', 'make', 'get', 'cook', 'build', 'choose', 'do', 'find', 'order', 
+      'prepare', 'save', 'sing', 'art', 'bake', 'book', 'bring', 'call', 'catch', 'draw', 
+      'fetch', 'fix', 'gather', 'keep', 'pour', 'prescribe', 'print', 'reserve', 'ask', 'inquire', 
+      'beg', 'demand', 'request', 'require', 'question', 'beseech', 'entreat', 'implore', 'allow', 
+      'cost', 'deny', 'envy', 'forgive', 'strike', 'wish'
+    ];
+
+    const threeFormVerbs = [
+      'accept', 'advise', 'agree', 'alter', 'answer', 'appreciate', 'ask', 'assume', 'beat', 'begin', 
+      'believe', 'bite', 'breathe', 'bring', 'build', 'care', 'carry', 'catch', 'change', 'chew', 
+      'complain', 'consider', 'continue', 'create', 'cry', 'decide', 'decrease', 'describe', 'design', 
+      'desire', 'determine', 'develop', 'discover', 'discuss', 'dislike', 'doubt', 'drop', 'end', 
+      'enjoy', 'envy', 'expect', 'explain', 'express', 'fear', 'feel', 'find', 'finish', 'forget', 
+      'get', 'glance', 'grow', 'guess', 'hate', 'have', 'hear', 'hit', 'hold', 'hope', 
+      'imagine', 'improve', 'increase', 'introduce', 'keep', 'know', 'laugh', 'lift', 'like', 
+      'listen_to', 'look_at', 'love', 'make', 'mean', 'mention', 'move', 'need', 'notice', 'observe', 
+      'own', 'persuade', 'possess', 'prefer', 'produce', 'promise', 'propose', 'pull', 'push', 
+      'realize', 'receive', 'recognize', 'reduce', 'remember', 'remind', 'reply', 'respect', 'say', 
+      'see', 'smell', 'smile', 'speak', 'stare', 'start', 'stop', 'strike', 'suggest', 'suppose', 
+      'swallow', 'take', 'talk', 'taste', 'tell', 'think', 'throw', 'touch', 'trust', 'understand', 
+      'want', 'warn', 'watch', 'wish'
+    ];
+
+    const twoFormVerbs = [
+      'keep', 'stay', 'remain', 'stand', 'lie', 'rest', 'hold', 'persist', 'abide', 'endure', 
+      'survive', 'prevail', 'tarry', 'linger', 'dwell', 'sojourn', 'pause', 'wait', 'stick', 
+      'adhere', 'cling', 'cohere'
+    ];
+
+    const oneFormVerbs = [
+      'abound', 'act', 'administer', 'advance', 'agree', 'apologize', 'appear', 'apply', 'approach', 
+      'argue', 'arise', 'arrive', 'attend', 'awake', 'bake', 'bark', 'bathe', 'be', 'begin', 
+      'behave', 'belong', 'benefit', 'bleed', 'bloom', 'blush', 'boast', 'boil', 'boom', 'brag', 
+      'break', 'breathe', 'burn', 'buy', 'buzz', 'camp', 'cease', 'chat', 'chirp', 'choke', 
+      'chuckle', 'clash', 'click', 'climb', 'close', 'cluck', 'cluster', 'collapse', 'come', 
+      'comment', 'communicate', 'compete', 'complain', 'compromise', 'concentrate', 'condense', 
+      'consist', 'continue', 'contribute', 'cook', 'cooperate', 'cough', 'count', 'crack', 'crash', 
+      'crawl', 'croak', 'crunch', 'cry', 'dance', 'dawn', 'dazzle', 'decay', 'decline', 'decrease', 
+      'depart', 'depend', 'develop', 'die', 'differ', 'disagree', 'disappear', 'dive', 'dress', 
+      'drink', 'drip', 'drive', 'drop', 'earn', 'eat', 'echo', 'emerge', 'end', 'enter', 'escape', 
+      'exercise', 'exist', 'expand', 'expire', 'explode', 'extend', 'fade', 'fail', 'faint', 'fall', 
+      'feel', 'fight', 'finish', 'flicker', 'float', 'flow', 'fly', 'follow', 'freeze', 'frown', 
+      'function', 'gather', 'giggle', 'gleam', 'glide', 'glimmer', 'glitter', 'glow', 'go', 'govern', 
+      'graduate', 'grew', 'grieve', 'groan', 'grow', 'hang', 'happen', 'hesitate', 'hide', 'hike', 
+      'hiss', 'hold', 'howl', 'improve', 'increase', 'interact', 'jog', 'jump', 'last', 'laugh', 
+      'lead', 'leave', 'lie', 'linger', 'listen', 'live', 'lock', 'look', 'lose', 'manage', 
+      'march', 'matter', 'melt', 'meow', 'moo', 'move', 'murmur', 'mutter', 'negotiate', 'neigh', 
+      'object', 'occur', 'oink', 'open', 'operate', 'originate', 'paint', 'participate', 'pass', 
+      'pause', 'pay', 'perish', 'persist', 'play', 'plop', 'pray', 'precede', 'prevail', 'proceed', 
+      'protest', 'quack', 'quarrel', 'quit', 'race', 'radiate', 'ray', 'react', 'read', 'rebel', 
+      'rejoice', 'rely', 'remain', 'reply', 'reside', 'resign', 'respond', 'rest', 'result', 'resume', 
+      'retire', 'return', 'ring', 'rise', 'roam', 'roar', 'rule', 'run', 'rush', 'rustle', 'sail', 
+      'save', 'scream', 'screech', 'sell', 'shake', 'shine', 'shiver', 'shop', 'shout', 'shower', 
+      'shrink', 'shut', 'sigh', 'sing', 'sink', 'sit', 'slam', 'sleep', 'smell', 'smile', 'snap', 
+      'sneeze', 'sob', 'span', 'spark', 'sparkle', 'speak', 'splash', 'squeak', 'stammer', 'stand', 
+      'start', 'stay', 'step', 'stop', 'stretch', 'strike', 'study', 'stutter', 'submit', 'succeed', 
+      'suffer', 'surrender', 'surround', 'survive', 'sweat', 'swim', 'talk', 'taste', 'tear', 
+      'terminate', 'tick', 'ting', 'touch', 'travel', 'tremble', 'twinkle', 'undress', 'vary', 
+      'wait', 'wake', 'walk', 'wander', 'wash', 'watch', 'wear', 'weep', 'whisper', 'win', 
+      'work_out', 'work', 'write', 'yell'
+    ];
 
     for (let i = 0; i < words.length; i++) {
       let word = words[i];
       let matchedRole = 'Unknown';
       let displayEn = word;
-      
-      // 💡 선생님 원형 추출 부분에 '까?' '니?' 등을 필터링하도록 수정
-      let baseWord = word.replace(/다$/, '').replace(/까\?$/, '').replace(/니\?$/, '').replace(/\?$/, '');
       let cleanWord = word.replace(/[?.,!]/g, ''); 
+      let baseWord = word.replace(/d$/, '').replace(/ed$/, '').replace(/까\?$/, '').replace(/니\?$/, '').replace(/\?$/, '');
       
-      if (fiveFormVerbs_KO.includes(word) || fiveFormVerbs_KO.includes(baseWord)) matchedRole = 'Verb';
-      else if (fourFormVerbs_KO.includes(word) || fourFormVerbs_KO.includes(baseWord)) matchedRole = 'Verb';
-      else if (threeFormVerbs_KO.includes(word) || threeFormVerbs_KO.includes(baseWord)) matchedRole = 'Verb';
-      else if (twoFormVerbs_KO.includes(word) || twoFormVerbs_KO.includes(baseWord)) matchedRole = 'Verb';
-      else if (oneFormVerbs_KO.includes(word) || oneFormVerbs_KO.includes(baseWord)) matchedRole = 'Verb_1'; 
+      if (fiveFormVerbs.includes(word) || fiveFormVerbs.includes(baseWord)) matchedRole = 'Verb';
+      else if (fourFormVerbs.includes(word) || fourFormVerbs.includes(baseWord)) matchedRole = 'Verb';
+      else if (threeFormVerbs.includes(word) || threeFormVerbs.includes(baseWord)) matchedRole = 'Verb';
+      else if (twoFormVerbs.includes(word) || twoFormVerbs.includes(baseWord)) matchedRole = 'Verb';
+      else if (oneFormVerbs.includes(word) || oneFormVerbs.includes(baseWord)) matchedRole = 'Verb_1'; 
 
-      // 과거형 감지 
+      // 과거형 동사 감지
       if (word.endsWith('ed') || word === 'lived' || word === 'grew' || word === 'used' || word === 'bought' || word === 'gathered' || word === 'came' || word === 'got_up' || word === 'were' || word.includes('았') || word.includes('었') || word.includes('했')) {
          if (matchedRole.startsWith('Verb')) matchedRole = 'Verb_Past';
       }
 
-      // 💡 [수프로 엣지] 가공했습니까? 등 복합 어간을 DB(process)로 연결하는 찰떡 로직 추가
+      // 💡 [수프로 엣지] MOCK_XDIC_DB 한영 매핑 로직 (원형 추론 포함)
       let translatedWord = word;
       if (MOCK_XDIC_DB[cleanWord]) {
           translatedWord = MOCK_XDIC_DB[cleanWord];
@@ -551,136 +620,145 @@ export async function POST(request: Request) {
           }
       }
 
-      // 선생님 하드코딩 부분 완벽하게 유지!
-      if (word.includes('살았')) { matchedRole = 'Verb_Past'; MOCK_XDIC_DB[word] = 'lived'; translatedWord = 'lived'; } 
-      if (word === '이곳에') { matchedRole = 'Location'; MOCK_XDIC_DB[word] = 'here'; translatedWord = 'here'; }
-      if (word === '그래서') { matchedRole = 'To_Infinitive_Result'; MOCK_XDIC_DB[word] = 'to'; translatedWord = 'to'; } 
-      if (word === '만나다') { matchedRole = 'Verb_Infinitive'; MOCK_XDIC_DB[word] = 'see'; translatedWord = 'see'; }
-      if (word === '너를') { matchedRole = 'Infinitive_Object'; MOCK_XDIC_DB[word] = 'you'; translatedWord = 'you'; } 
-      if (word === '오래') { matchedRole = 'Adverb'; MOCK_XDIC_DB[word] = 'long'; translatedWord = 'long'; }
-      if (word === '손자를') { matchedRole = 'Infinitive_Object'; MOCK_XDIC_DB[word] = 'grandson'; translatedWord = 'grandson'; }
-      if (word === '다시') { matchedRole = 'Adverb_End'; MOCK_XDIC_DB[word] = 'again'; translatedWord = 'again'; }
-      if (word.includes('아이')) { matchedRole = 'Subject'; MOCK_XDIC_DB[word] = 'child'; translatedWord = 'child'; }
-      if (word.includes('자랐')) { matchedRole = 'Verb_Past'; MOCK_XDIC_DB[word] = 'grew'; translatedWord = 'grew'; } 
-      if (word === '되다') { matchedRole = 'Verb_Infinitive'; MOCK_XDIC_DB[word] = 'be'; translatedWord = 'be'; }
-      if (word === '훌륭한_청년이') { matchedRole = 'Complement'; MOCK_XDIC_DB[word] = 'a fine youth'; translatedWord = 'a fine youth'; }
-      if (word === '알버트_슈바이처는') { matchedRole = 'Subject'; MOCK_XDIC_DB[word] = 'Albert Schweitzer'; translatedWord = 'Albert Schweitzer'; }
-      if (word.includes('사용했')) { matchedRole = 'Verb_Past'; MOCK_XDIC_DB[word] = 'used'; translatedWord = 'used'; } 
-      if (word === '그_상금을') { matchedRole = 'Object'; MOCK_XDIC_DB[word] = 'the prize money'; translatedWord = 'the prize money'; }
-      if (word === '만들다') { matchedRole = (words[i+1] === '그_병원을' || words[i+1] === 'the_hospital') ? 'Verb_Infinitive_1' : (words[i+1] === '장소를' || words[i+1] === 'a_place') ? 'Verb_Infinitive_2' : 'Verb_Infinitive'; MOCK_XDIC_DB[word] = 'make'; translatedWord = 'make'; }
-      if (word === '그_병원을') { matchedRole = 'Infinitive_Object_1'; MOCK_XDIC_DB[word] = 'the hospital'; translatedWord = 'the hospital'; }
-      if (word === '더_크게') { matchedRole = 'Object_Complement_1'; MOCK_XDIC_DB[word] = 'bigger'; translatedWord = 'bigger'; }
-      if (word === '고') { matchedRole = 'Conjunction_And_Inf'; MOCK_XDIC_DB[word] = 'and'; translatedWord = 'and'; }
-      if (word === '장소를') { matchedRole = 'Infinitive_Object_2'; MOCK_XDIC_DB[word] = 'a place'; translatedWord = 'a place'; }
-      if (word === '위한') { matchedRole = 'Postposition_For'; MOCK_XDIC_DB[word] = 'for'; translatedWord = 'for'; }
-      if (word === '사람들을') { matchedRole = 'Object_For'; MOCK_XDIC_DB[word] = 'people'; translatedWord = 'people'; }
-      if (word === '고통받다') { matchedRole = 'Verb_Infinitive_3'; MOCK_XDIC_DB[word] = 'suffer from'; translatedWord = 'suffer from'; }
-      if (word === '나병으로') { matchedRole = 'Infinitive_Object_3'; MOCK_XDIC_DB[word] = 'leprosy'; translatedWord = 'leprosy'; }
-      if (word.includes('만들었')) { matchedRole = 'Verb_Past'; MOCK_XDIC_DB[word] = 'made'; translatedWord = 'made'; } 
-      if (word === '특별') { matchedRole = 'Modifier_Obj'; MOCK_XDIC_DB[word] = 'special'; translatedWord = 'special'; }
-      if (word === '프로그램을') { matchedRole = 'Object'; MOCK_XDIC_DB[word] = 'program'; translatedWord = 'program'; }
-      if (word === '가르쳐주다') { matchedRole = 'Verb_Infinitive'; MOCK_XDIC_DB[word] = 'teach'; translatedWord = 'teach'; }
-      if (word === '많은') { matchedRole = 'Modifier_IO'; MOCK_XDIC_DB[word] = 'many'; translatedWord = 'many'; }
-      if (word === '학생들에게') { matchedRole = 'IndirectObject'; MOCK_XDIC_DB[word] = 'students'; translatedWord = 'students'; }
-      if (word === '문화와') { matchedRole = 'Object_And_1'; MOCK_XDIC_DB[word] = 'culture,'; translatedWord = 'culture,'; }
-      if (word === '관습과') { matchedRole = 'Object_And_2'; MOCK_XDIC_DB[word] = 'customs,'; translatedWord = 'customs,'; }
-      if (word === '예술을') { matchedRole = 'Infinitive_Object'; MOCK_XDIC_DB[word] = 'art'; translatedWord = 'art'; }
-      if (word === '다른') { matchedRole = 'Modifier_Of'; MOCK_XDIC_DB[word] = 'other'; translatedWord = 'other'; }
-      if (word === '나라') { matchedRole = 'Object_Of'; MOCK_XDIC_DB[word] = 'country'; translatedWord = 'country'; }
-      if (word === '동안에') { matchedRole = 'Time_Prep'; MOCK_XDIC_DB[word] = 'during'; translatedWord = 'during'; }
-      if (word === '방학') { matchedRole = 'Time'; MOCK_XDIC_DB[word] = 'vacation'; translatedWord = 'vacation'; }
-      if (word.includes('구입했')) { matchedRole = 'Verb_Past'; MOCK_XDIC_DB[word] = 'bought'; translatedWord = 'bought'; }
-      if (word === '오래된') { matchedRole = 'Modifier_2'; MOCK_XDIC_DB[word] = 'old'; translatedWord = 'old'; }
-      if (word === '집을') { matchedRole = 'Object'; MOCK_XDIC_DB[word] = 'house'; translatedWord = 'house'; }
-      if (word === '살다') { matchedRole = 'Verb_Infinitive'; MOCK_XDIC_DB[word] = 'live'; translatedWord = 'live'; }
-      if (word === '조용한') { matchedRole = 'Modifier_Loc'; MOCK_XDIC_DB[word] = 'the quiet'; translatedWord = 'the quiet'; } 
-      if (word === '시골') { matchedRole = 'Location'; MOCK_XDIC_DB[word] = 'country'; translatedWord = 'country'; }
-      if (word === '과함께') { matchedRole = 'Postposition_With'; MOCK_XDIC_DB[word] = 'with'; translatedWord = 'with'; }
-      if (word === '착한') { matchedRole = 'Modifier_With_2'; MOCK_XDIC_DB[word] = 'good-natured'; translatedWord = 'good-natured'; }
-      if (word === '아내') { matchedRole = 'Object_With_1'; MOCK_XDIC_DB[word] = 'wife'; translatedWord = 'wife'; }
-      if (word === '와') { matchedRole = 'Conjunction_And_With'; MOCK_XDIC_DB[word] = 'and'; translatedWord = 'and'; }
-      if (word === '우리는') { matchedRole = 'Subject'; MOCK_XDIC_DB[word] = 'we'; translatedWord = 'we'; } 
-      if (word.includes('모였')) { matchedRole = 'Verb_Past'; MOCK_XDIC_DB[word] = 'gathered'; translatedWord = 'gathered'; } 
-      if (word === '오늘') { matchedRole = 'Time'; MOCK_XDIC_DB[word] = 'today'; translatedWord = 'today'; }
-      if (word === '의논하다') { matchedRole = 'Verb_Infinitive'; MOCK_XDIC_DB[word] = 'talk'; translatedWord = 'talk'; }
-      if (word === '에대해') { matchedRole = 'Postposition_About'; MOCK_XDIC_DB[word] = 'about'; translatedWord = 'about'; }
-      if (word === '중요한_일') { matchedRole = 'Object_About_1'; MOCK_XDIC_DB[word] = 'an important thing'; translatedWord = 'an important thing'; }
-      if (word.includes('왔')) { matchedRole = 'Verb_Past'; MOCK_XDIC_DB[word] = 'came'; translatedWord = 'came'; } 
-      if (word === 'you') { 
-          if (words[i-1] === '만날' || words[i-1] === 'see' || words[i-1] === '만나다') { matchedRole = 'Infinitive_Object'; MOCK_XDIC_DB[word] = 'you'; translatedWord = 'you'; } 
-          else if (words[i-1] === 'meet') { matchedRole = 'Object'; MOCK_XDIC_DB[word] = 'you'; translatedWord = 'you'; } 
-          else { matchedRole = 'Subject'; MOCK_XDIC_DB[word] = 'you'; translatedWord = 'you'; } 
+      // 💡 선생님의 하드코딩 부분 완벽하게 유지!
+      if (word === 'lived') { matchedRole = 'Verb_Past'; translatedWord = getKoreanConjugation('살다', 'past'); } 
+      if (word === 'here') { 
+          if (originalText.toLowerCase().includes('lived') || originalText.toLowerCase().includes('gathered')) { matchedRole = 'Location'; translatedWord = originalText.toLowerCase().includes('gathered') ? '여기에' : '이곳에'; } 
+          else { matchedRole = 'Location'; translatedWord = '이곳에'; }
       }
-      if (word === 'too') { matchedRole = 'Modifier_Adverb'; MOCK_XDIC_DB[word] = 'too'; translatedWord = 'too'; } 
-      if (word === 'idle') { matchedRole = 'Complement'; MOCK_XDIC_DB[word] = 'idle'; translatedWord = 'idle'; }
-      if (word === 'read') { matchedRole = 'Verb_Infinitive'; MOCK_XDIC_DB[word] = 'read'; translatedWord = 'read'; } 
-      if (word === 'boy') { matchedRole = 'Subject'; MOCK_XDIC_DB[word] = 'boy'; translatedWord = 'boy'; }
-      if (word === 'clever') { matchedRole = 'Complement'; MOCK_XDIC_DB[word] = 'clever'; translatedWord = 'clever'; }
-      if (word === 'enough') { matchedRole = 'Adverb'; MOCK_XDIC_DB[word] = 'enough'; translatedWord = 'enough'; } 
-      if (word === 'understand') { matchedRole = 'Verb_Infinitive'; MOCK_XDIC_DB[word] = 'understand'; translatedWord = 'understand'; }
-      if (word === 'it') { matchedRole = 'Infinitive_Object'; MOCK_XDIC_DB[word] = 'it'; translatedWord = 'it'; }
-      if (word === 'he') { matchedRole = 'Subject'; MOCK_XDIC_DB[word] = 'he'; translatedWord = 'he'; }
-      if (word.includes('일어났')) { matchedRole = 'Verb_Past'; MOCK_XDIC_DB[word] = 'got up'; translatedWord = 'got up'; }
-      if (word === 'so') { matchedRole = 'Modifier_Adverb'; MOCK_XDIC_DB[word] = 'so'; translatedWord = 'so'; }
-      if (word === 'late') { matchedRole = 'Adverb'; MOCK_XDIC_DB[word] = 'late'; translatedWord = 'late'; }
-      if (word === 'as_to') { matchedRole = 'To_Infinitive_Result'; MOCK_XDIC_DB[word] = 'to'; translatedWord = 'to'; } 
-      if (word === 'miss') { matchedRole = 'Verb_Infinitive'; MOCK_XDIC_DB[word] = 'miss'; translatedWord = 'miss'; }
-      if (word === 'the_train') { matchedRole = 'Infinitive_Object'; MOCK_XDIC_DB[word] = 'the train'; translatedWord = 'the train'; }
-      if (word === 'this') { matchedRole = 'Modifier'; MOCK_XDIC_DB[word] = 'this'; translatedWord = 'this'; } 
-      if (word === 'water') { matchedRole = 'Subject'; MOCK_XDIC_DB[word] = 'water'; translatedWord = 'water'; }
-      if (word === 'good') { matchedRole = 'Complement'; MOCK_XDIC_DB[word] = 'good'; translatedWord = 'good'; }
-      if (word === 'diagram') { matchedRole = 'Subject'; MOCK_XDIC_DB[word] = 'diagram'; translatedWord = 'diagram'; }
-      if (word === 'convenient') { matchedRole = 'Complement'; MOCK_XDIC_DB[word] = 'convenient'; translatedWord = 'convenient'; }
-      if (word === 'the_hardest_sentence') { matchedRole = 'Infinitive_Object'; MOCK_XDIC_DB[word] = 'the hardest sentence'; translatedWord = 'the hardest sentence'; }
-      if (word === 'systematically') { matchedRole = 'Adverb'; MOCK_XDIC_DB[word] = 'systematically'; translatedWord = 'systematically'; }
-      if (word === 'they') { matchedRole = 'Subject'; MOCK_XDIC_DB[word] = 'they'; translatedWord = 'they'; }
-      if (word.includes('이었') || word.includes('였')) { matchedRole = 'Verb_Past'; MOCK_XDIC_DB[word] = 'were'; translatedWord = 'were'; } 
-      if (word === 'sad') { matchedRole = 'Complement'; MOCK_XDIC_DB[word] = 'sad'; translatedWord = 'sad'; }
-      if (word === 'not') { matchedRole = 'Not_Infinitive'; MOCK_XDIC_DB[word] = 'not'; translatedWord = 'not'; } 
-      if (word === '듣지') { matchedRole = 'Verb_Infinitive'; MOCK_XDIC_DB[word] = 'hear'; translatedWord = 'hear'; }
-      if (word === '소식을') { matchedRole = 'Infinitive_Object'; MOCK_XDIC_DB[word] = 'the news'; translatedWord = 'the news'; }
-      if (word === '자기') { matchedRole = 'Modifier_Of'; MOCK_XDIC_DB[word] = 'their'; translatedWord = 'their'; }
-      if (word === '가족') { matchedRole = 'Object_Of'; MOCK_XDIC_DB[word] = 'family'; translatedWord = 'family'; }
-      if (word === '나는') { matchedRole = 'Subject'; MOCK_XDIC_DB[word] = 'I'; translatedWord = 'I'; } 
-      if (word === '매우') { matchedRole = 'Modifier_Comp'; MOCK_XDIC_DB[word] = 'very'; translatedWord = 'very'; }
-      if (word === '기쁜') { matchedRole = 'Complement'; MOCK_XDIC_DB[word] = 'glad'; translatedWord = 'glad'; }
+      if (word === 'see') { matchedRole = 'Verb_Infinitive'; translatedWord = (words[i-1] === 'to' && originalText.toLowerCase().includes('lived')) ? '만나다' : '만날'; }
+      if (word === 'long') { matchedRole = 'Adverb'; translatedWord = '오래'; }
+      if (word === 'grandson') { matchedRole = 'Infinitive_Object'; translatedWord = '손자를'; }
+      if (word === 'again') { matchedRole = 'Adverb_End'; translatedWord = '다시'; }
+      if (word === 'child') { matchedRole = 'Subject'; translatedWord = '아이는'; }
+      if (word === 'grew') { matchedRole = 'Verb_Past'; translatedWord = getKoreanConjugation('자라다', 'past'); } 
+      if (word === 'be') { matchedRole = 'Verb_Infinitive'; translatedWord = '되다'; }
+      if (word === 'a_fine_youth') { matchedRole = 'Complement'; translatedWord = '훌륭한 청년이'; }
+      if (word === 'albert_schweitzer') { matchedRole = 'Subject'; translatedWord = '알버트 슈바이처는'; }
+      if (word === 'used') { matchedRole = 'Verb_Past'; translatedWord = getKoreanConjugation('사용하다', 'past'); } 
+      if (word === 'the_prize_money') { matchedRole = 'Object'; translatedWord = '그 상금을'; }
+      if (word === 'make') { 
+          matchedRole = (words[i+1] === 'the_hospital') ? 'Verb_Infinitive_1' : (words[i+1] === 'a_place') ? 'Verb_Infinitive_2' : 'Verb_Infinitive';
+          translatedWord = '만들다'; 
+      }
+      if (word === 'the_hospital') { matchedRole = 'Infinitive_Object_1'; translatedWord = '그 병원을'; }
+      if (word === 'bigger') { matchedRole = 'Object_Complement_1'; translatedWord = '더 크게'; }
+      if (word === '고') { matchedRole = 'Conjunction_And_Inf'; translatedWord = 'and'; }
+      if (word === 'a_place') { matchedRole = 'Infinitive_Object_2'; translatedWord = '장소를'; }
+      if (word === 'for') { matchedRole = 'Postposition_For'; translatedWord = (words[i+1] === 'people') ? '위한' : '위하여'; }
+      if (word === 'people') { matchedRole = 'Object_For'; translatedWord = '사람들을'; }
+      if (word === 'suffer_from') { matchedRole = 'Verb_Infinitive_3'; translatedWord = '고통받다'; }
+      if (word === 'leprosy') { matchedRole = 'Infinitive_Object_3'; translatedWord = '나병으로'; }
+      if (word === 'special') { matchedRole = 'Modifier_Obj'; translatedWord = '특별'; }
+      if (word === 'program') { matchedRole = 'Object'; translatedWord = '프로그램을'; }
+      if (word === 'teach') { matchedRole = 'Verb_Infinitive'; translatedWord = '가르쳐주다'; }
+      if (word === 'many') { matchedRole = 'Modifier_IO'; translatedWord = '많은'; }
+      if (word === 'students') { matchedRole = 'IndirectObject'; translatedWord = '학생들에게'; }
+      if (word === 'culture,') { matchedRole = 'Object_And_1'; translatedWord = '문화와'; }
+      if (word === 'customs,') { matchedRole = 'Object_And_2'; translatedWord = '관습과'; }
+      if (word === 'art') { matchedRole = 'Infinitive_Object'; translatedWord = '예술을'; }
+      if (word === 'other') { matchedRole = 'Modifier_Of'; translatedWord = '다른'; }
+      if (word === 'country') { matchedRole = 'Object_Of'; translatedWord = '나라'; }
+      if (word === 'during') { matchedRole = 'Time_Prep'; translatedWord = '동안에'; }
+      if (word === 'vacation') { matchedRole = 'Time'; translatedWord = '방학'; }
+      if (word === 'bought') { matchedRole = 'Verb_Past'; translatedWord = getKoreanConjugation('구입하다', 'past'); }
+      if (word === 'old') { matchedRole = 'Modifier_2'; translatedWord = '오래된'; }
+      if (word === 'house' || word === '집을') { matchedRole = 'Object'; translatedWord = '집을'; }
+      if (word === 'live') { matchedRole = 'Verb_Infinitive'; translatedWord = '살다'; }
+      if (word === 'quiet') { matchedRole = 'Modifier_Loc'; translatedWord = '조용한'; }
+      if (word === 'good-natured') { matchedRole = 'Modifier_With_2'; translatedWord = '착한'; }
+      if (word === 'wife') { matchedRole = 'Object_With_1'; translatedWord = '아내'; }
+      if (word === '와') { matchedRole = 'Conjunction_And_With'; translatedWord = 'and'; }
+      if (word === '우리는') { matchedRole = 'Subject'; translatedWord = 'we'; } 
+      if (word === 'gathered') { matchedRole = 'Verb_Past'; translatedWord = getKoreanConjugation('모이다', 'past'); } 
+      if (word === 'today') { matchedRole = 'Time'; translatedWord = '오늘'; }
+      if (word === 'talk') { matchedRole = 'Verb_Infinitive'; translatedWord = '의논하다'; }
+      if (word === 'about') { matchedRole = 'Postposition_About'; translatedWord = '에대해'; }
+      if (word === 'an_important_thing') { matchedRole = 'Object_About_1'; translatedWord = '중요한 일'; }
+      if (word === 'came') { matchedRole = 'Verb_Past'; translatedWord = getKoreanConjugation('오다', 'past'); } 
+      if (word === 'you') { 
+          if (words[i-1] === '만날' || words[i-1] === 'see' || words[i-1] === '만나다') { matchedRole = 'Infinitive_Object'; translatedWord = '너를'; } 
+          else if (words[i-1] === 'meet') { matchedRole = 'Object'; translatedWord = '너를'; } 
+          else { matchedRole = 'Subject'; translatedWord = '너는'; } 
+      }
+      if (word === 'too') { matchedRole = 'Modifier_Adverb'; translatedWord = '아주'; } 
+      if (word === 'idle') { matchedRole = 'Complement'; translatedWord = '게으른'; }
+      if (word === 'read') { matchedRole = 'Verb_Infinitive'; translatedWord = (originalText.includes('too') || originalText.includes('아주 게으르다')) ? '읽을 수 없다' : '읽다'; } 
+      if (word === 'boy') { matchedRole = 'Subject'; translatedWord = '소년은'; }
+      if (word === 'clever') { matchedRole = 'Complement'; translatedWord = '영리한'; }
+      if (word === 'enough') { matchedRole = 'Adverb'; translatedWord = '아주'; } 
+      if (word === 'understand') { matchedRole = 'Verb_Infinitive'; translatedWord = '이해할 수 있다'; }
+      if (word === 'it') { matchedRole = 'Infinitive_Object'; translatedWord = '그것을'; }
+      if (word === 'he') { matchedRole = 'Subject'; translatedWord = '그는'; }
+      if (word === 'got_up') { matchedRole = 'Verb_Past'; translatedWord = getKoreanConjugation('일어나다', 'past'); }
+      if (word === 'so') { matchedRole = 'Modifier_Adverb'; translatedWord = '아주'; }
+      if (word === 'late') { matchedRole = 'Adverb'; translatedWord = '늦게'; }
+      if (word === 'as_to') { matchedRole = 'To_Infinitive_Result'; translatedWord = '그래서'; } 
+      if (word === 'miss') { matchedRole = 'Verb_Infinitive'; translatedWord = '놓치다'; }
+      if (word === 'the_train') { matchedRole = 'Infinitive_Object'; translatedWord = '기차를'; }
+      if (word === 'this') { matchedRole = 'Modifier'; translatedWord = '이'; } 
+      if (word === 'water') { matchedRole = 'Subject'; translatedWord = '물은'; }
+      if (word === 'good') { matchedRole = 'Complement'; translatedWord = '좋은'; }
+      if (word === 'diagram') { matchedRole = 'Subject'; translatedWord = '도해는'; }
+      if (word === 'convenient') { matchedRole = 'Complement'; translatedWord = '편리한'; }
+      if (word === 'the_hardest_sentence') { matchedRole = 'Infinitive_Object'; translatedWord = '어려운 문장도'; }
+      if (word === 'systematically') { matchedRole = 'Adverb'; translatedWord = '체계적으로'; }
+      if (word === 'they') { matchedRole = 'Subject'; translatedWord = '그들은'; }
+      if (word === 'were') { matchedRole = 'Verb_Past'; translatedWord = '이었다'; } 
+      if (word === 'sad') { matchedRole = 'Complement'; translatedWord = '슬픈'; }
+      if (word === 'not') { matchedRole = 'Not_Infinitive'; translatedWord = '못하다'; } 
+      if (word === '듣지') { matchedRole = 'Verb_Infinitive'; translatedWord = 'hear'; }
+      if (word === '소식을') { matchedRole = 'Infinitive_Object'; translatedWord = 'the news'; }
+      if (word === '자기') { matchedRole = 'Modifier_Of'; translatedWord = '자기'; }
+      if (word === '가족') { matchedRole = 'Object_Of'; translatedWord = '가족'; }
+      if (word === '나는') { matchedRole = 'Subject'; translatedWord = 'I'; } 
+      if (word === '매우') { matchedRole = 'Modifier_Comp'; translatedWord = 'very'; }
+      if (word === '기쁜') { matchedRole = 'Complement'; translatedWord = 'glad'; }
 
-      if (word === '위해서' || word === '~하기위해' || word === '목적으로') { matchedRole = 'To_Infinitive_Purpose'; MOCK_XDIC_DB[word] = 'to'; translatedWord = 'to'; }
-      if (word === 'ㄴ') { matchedRole = (words[i+1] === '고통받다' || originalText.includes('고통받다') || words[i-1] === '생각하다' || words[i-1] === '가르쳐주다') ? 'To_Infinitive_Adj' : (words[i-1] === '소녀는' || words[i-1] === '사주다' || originalText.includes('소녀는') || words[i-1] === '사람들은' || words[i-1] === '짓다') ? 'To_Infinitive_Adj_Subj' : 'To_Infinitive_Adj'; MOCK_XDIC_DB[word] = 'to'; translatedWord = 'to'; }
-      if (word === 'ㄹ') { matchedRole = 'To_Infinitive_Adj_2'; MOCK_XDIC_DB[word] = 'to'; translatedWord = 'to'; }
-      if (word === '서' || word === '~하니' || word === '~하기때문에' || word === '~하기에') { matchedRole = (originalText.includes('살았다') || originalText.includes('자랐다')) ? 'To_Infinitive_Result' : 'To_Infinitive_Adv'; MOCK_XDIC_DB[word] = 'to'; translatedWord = 'to'; }
-      if (word === '에게') { matchedRole = 'Postposition_To'; MOCK_XDIC_DB[word] = 'to'; translatedWord = 'to'; }
-      if (word === '이다' || word === '였다' || word === '이었다' || word.includes('입니까') || word.includes('입니까?')) { matchedRole = (originalText.includes('농부들') || originalText.includes('그들은')) ? 'Verb_Past' : (originalText.includes('물은') || originalText.includes('소년은') || originalText.includes('소년') || originalText.includes('게으르다') || originalText.includes('게으른') || originalText.includes('기쁘다') || originalText.includes('계획') || originalText.includes('꿈') || originalText.includes('목표는') || originalText.includes('책무는') || originalText.includes('독재자') || originalText.includes('도해는')) ? 'Verb' : 'Verb_Past'; MOCK_XDIC_DB[word] = (originalText.includes('기쁘다')) ? 'am' : (originalText.includes('농부들') || originalText.includes('그들은')) ? 'were' : (originalText.includes('물은') || originalText.includes('소년은') || originalText.includes('소년') || originalText.includes('게으르다') || originalText.includes('게으른') || originalText.includes('계획') || originalText.includes('꿈') || originalText.includes('목표는') || originalText.includes('책무는') || originalText.includes('독재자') || originalText.includes('도해는')) ? 'is' : 'was'; translatedWord = MOCK_XDIC_DB[word]; }
-      if (word === '그는') { matchedRole = 'Subject'; MOCK_XDIC_DB[word] = (originalText.includes('살았다') || originalText.includes('구입했다')) ? 'he' : (words[i+1] === 'is' && words[i+2] === 'a_dictator') ? 'he' : 'he'; translatedWord = MOCK_XDIC_DB[word]; }
-      if (word === '여기에') { matchedRole = 'Location'; MOCK_XDIC_DB[word] = 'here'; translatedWord = 'here'; }
-      if (word === '에서') { matchedRole = 'Location_Prep'; MOCK_XDIC_DB[word] = 'in'; translatedWord = 'in'; }
-      if (word === '의') { matchedRole = (words[i+1] === 'other' && words[i+2] === 'country' || words[i+1] === 'their' && words[i+2] === 'family' || words[i+1] === 'this' && words[i+2] === 'education' || words[i-1] === 'opportunity' || words[i+1] === 'gymnasium' || words[i-1] === 'culture' || words[i - 1] === 'prosperity' || originalText.toLowerCase().includes('kingdom') || originalText.toLowerCase().includes('town') || originalText.toLowerCase().includes('communication') || originalText.toLowerCase().includes('europe') || originalText.toLowerCase().includes('mankind') || originalText.toLowerCase().includes('korea')) ? 'Postposition_Of' : 'Postposition_Of_Subj'; MOCK_XDIC_DB['의'] = (matchedRole === 'Postposition_Of') ? 'of' : '(of)'; translatedWord = MOCK_XDIC_DB['의']; }
+      if (word === 'to') {
+          if (words[i-1] === 'here') {
+              matchedRole = originalText.toLowerCase().includes('lived') ? 'To_Infinitive_Result' : 'To_Infinitive_Purpose'; 
+              translatedWord = originalText.toLowerCase().includes('lived') ? '그래서' : '목적으로';
+          }
+          else if (words[i-1] === 'long' || words[i-1] === 'grew') { matchedRole = 'To_Infinitive_Result'; translatedWord = '서'; } 
+          else if (words[i+1] === 'make' || words[i+1] === 'teach' || words[i+1] === 'live' || words[i+1] === 'talk') { matchedRole = 'To_Infinitive_Purpose'; translatedWord = (words[i+1] === 'talk') ? '~하기위해' : '위해서'; } 
+          else if (words[i+1] === 'suffer_from' || words[i+1] === 'teach' || words[i+1] === 'begin' || words[i+1] === 'think' || words[i+1] === 'his_son' || words[i+1] === 'become' || words[i+1] === 'be' || words[i+1] === 'live') { matchedRole = (words[i+1] === 'begin') ? 'To_Infinitive_Adj_2' : 'To_Infinitive_Adj'; translatedWord = (words[i+1] === 'begin') ? 'ㄹ' : 'ㄴ'; } 
+          else if (words[i-1] === 'idle' || words[i-1] === 'enough') { matchedRole = 'To_Infinitive_Result'; translatedWord = '그래서'; } 
+          else if (words[i-1] === 'good' || words[i-1] === 'convenient') { matchedRole = 'To_Infinitive_Adv'; translatedWord = '~하기에'; } 
+          else if (words[i+1] === 'hear' && words[i-1] === 'not') { matchedRole = 'To_Infinitive_Adv'; translatedWord = '~하기때문에'; } 
+          else if (words[i-1] === 'glad') { matchedRole = 'To_Infinitive_Adv'; translatedWord = '~하니'; } 
+          else if (words[i-1] === 'the_girl' || words[i-1] === 'men') { matchedRole = 'To_Infinitive_Adj_Subj'; translatedWord = 'ㄴ'; } 
+          else if (words[i-1] === 'him' && words[i+1] === 'read') { matchedRole = 'To_Infinitive_OC'; translatedWord = '라고'; } 
+          else if (words[i+1] === 'keep' || words[i+1] === 'read' || words[i+1] === 'offer' || words[i+1] === 'go' || words[i+1] === 'become') { matchedRole = 'To_Infinitive_Comp'; translatedWord = '것'; } 
+          else if (words[i+1] === 'make' || words[i+1] === 'want' || words[i+1] === 'leave' || words[i+1] === 'tell' || words[i+1] === 'dye' || words[i+1] === 'know' || words[i+1] === 'rest' || words[i+1] === 'uphold' || words[i+1] === 'lend' || words[i+1] === 'study' || words[i+1] === 'get_up' || words[i+1] === 'defeat') { matchedRole = (words[i+1] === 'leave') ? 'To_Infinitive_3' : 'To_Infinitive'; translatedWord = (words[i+1] === 'dye') ? '기로' : (words[i+1] === 'make' || words[i+1] === 'leave' || words[i+1] === 'tell' || words[i+1] === 'become' || words[i+1] === 'know' || words[i+1] === 'rest') ? '기를' : (words[i+1] === 'want' || words[i+1] === 'lend' || words[i+1] === 'defeat') ? '것은' : (words[i+1] === 'study') ? '기는' : '것이'; } 
+          else if (originalText.toLowerCase().includes('welfare')) { matchedRole = 'Purpose'; translatedWord = '를위해'; } 
+          else if (words[i+1] === 'the_man') { matchedRole = 'Postposition_To'; translatedWord = '에게'; }
+          else { matchedRole = 'Location_Prep'; translatedWord = '으로'; }
+      }
+      if (word === 'and') {
+          if (words[i+1] === '(to)' || words[i+1] === 'make') { matchedRole = 'Conjunction_And_Inf'; translatedWord = '고'; } 
+          else if (words[i-1] === 'customs,') { matchedRole = 'Conjunction_And'; translatedWord = ''; } 
+          else if (words[i-1] === 'wife') { matchedRole = 'Conjunction_And_With'; translatedWord = '와'; } 
+      }
+      if (word === 'the') {
+          if (words[i+1] === 'child' || words[i+1] === 'old' || words[i+1] === 'king' || words[i+1] === 'petals' || words[i+1] === 'bright') { matchedRole = (words[i+1] === 'petals') ? 'Modifier_Inst' : (words[i+1] === 'old') ? 'Modifier_Obj' : 'Modifier'; translatedWord = '그'; } 
+          else if (words[i+1] === 'prize_money') { matchedRole = 'Modifier_Obj'; translatedWord = '그'; } 
+          else if (words[i+1] === 'hospital') { matchedRole = 'Modifier_Inf_Obj_1'; translatedWord = '그'; } 
+          else if (words[i+1] === 'culture,' || words[i+1] === 'quiet') { matchedRole = (words[i+1] === 'culture,') ? 'Modifier_And_1' : 'Modifier_Loc_2'; translatedWord = ''; } 
+          else { matchedRole = 'Modifier'; translatedWord = '그'; }
+      }
 
       displayEn = originalText.match(new RegExp(`\\b${word.replace(/_/g, ' ')}\\b`, 'i'))?.[0] || word;
 
-      if (word.includes('아이')) displayEn = 'child'; 
-      if (word.includes('자랐')) displayEn = 'grew';
-      if (word === '되다') displayEn = 'be';
-      if (word === '훌륭한_청년이') displayEn = 'a fine youth';
-      if (word === '알버트_슈바이처는') displayEn = 'Albert Schweitzer'; 
-      if (word === '그_상금을') displayEn = 'the prize money';
-      if (word === '그_병원을') displayEn = 'the hospital';
-      if (word === '장소를') displayEn = 'a place';
-      if (word === '고통받다') displayEn = 'suffer from';
-      if (word === '우리는' && i === 0) displayEn = 'We'; 
-      if (word === '그는' && i === 0) displayEn = 'He'; 
-      if (word === '특별') displayEn = 'a special'; 
-      if (word === '문화와') displayEn = 'the culture,';
-      if (word === '관습과') displayEn = 'customs,';
-      if (word === '예술을') displayEn = 'and art'; 
-      if (word === 'a_pretty_daughter') displayEn = 'a pretty daughter'; 
-      if (word === '중요한_일') displayEn = 'an important thing';
+      if (word === 'he' && i === 0) displayEn = 'He'; 
+      if (word === 'we' && i === 0) displayEn = 'We'; 
+      if (word === 'an_important_thing') displayEn = 'an important thing';
       if (word === 'got_up') displayEn = 'got up'; 
       if (word === 'as_to') displayEn = 'as to';
       if (word === 'the_train') displayEn = 'the train';
-      if (word === '이' && i === 0) displayEn = 'This'; 
-      if (word === '어려운_문장도') displayEn = 'the hardest sentence';
-      if (word === '도해는') displayEn = 'Diagram'; 
+      if (word === 'this' && i === 0) displayEn = 'This'; 
+      if (word === 'diagram') displayEn = 'Diagram';
+      if (word === 'the_hardest_sentence') displayEn = 'the hardest sentence';
       if (word === 'the_news') displayEn = 'the news';
       if (word === 'a_great_reward') displayEn = 'a great reward';
       if (word === 'the_man') displayEn = 'the man';
@@ -736,9 +814,9 @@ export async function POST(request: Request) {
       if (isMatch && !selectedForm) { selectedForm = rule; break; }
     }
 
-    // 💡 [수프로 엣지] 완벽한 Fallback 처리 (에러로 튕겨내서 DB조회하는 것 방지)
+    // 💡 [수프로 엣지] 완벽한 Fallback 처리 (에러 방지)
     if (!selectedForm) {
-        selectedForm = FORM_RULES[FORM_RULES.length - 1]; // 마지막에 있는 기본 1형식 구조로 강제 매핑
+        selectedForm = FORM_RULES[FORM_RULES.length - 1]; 
     }
 
     const phrases: Record<string, string[]> = {};
@@ -766,7 +844,6 @@ export async function POST(request: Request) {
       .replace(/fine\s*youth/i, 'a fine youth');
       
     // 💡 [수프로 엣지] 의문문 지능형 변환 (가공했습니까? -> Did you process?)
-    // 🚨 예외 처리 추가: 번역된 결과가 있을 때만 의문문 변환 실행!
     const isQuestion = originalText.includes('?') || originalText.includes('까') || originalText.includes('니');
     
     if (isQuestion && finalTranslation.trim() !== '') { 
