@@ -56,7 +56,7 @@ const MOCK_EN_KO_DB: Record<string, string> = {
   'yield':'양보하다', 'assign':'할당하다', 'feed':'먹이를 주다', 'serve':'제공하다', 'forward':'전송하다',
   'leave':'남겨주다', 'buy':'사주다', 'make':'만들다', 'get':'얻다', 'cook':'요리해주다',
   'build':'지어주다', 'choose':'골라주다', 'do':'해주다', 'find':'발견하다', 'order':'주문해주다',
-  'prepare':'준비해주다', 'save':'덜어주다', 'sing':'불러주다', 'art':'그려주다', 'bake':'구워주다',
+  'prepare':'준비해주다', 'save':'덜어주다', 'sing':'불러주다', 'bake':'구워주다',
   'book':'예약해주다', 'bring':'가져다주다', 'call':'부르다', 'catch':'잡다', 'draw':'그려주다',
   'fetch':'가져오다', 'fix':'고쳐주다', 'gather':'모으다', 'keep':'유지하다', 'pour':'따라주다',
   'prescribe':'처방해주다', 'print':'인쇄해주다', 'reserve':'예약해주다', 'ask':'묻다', 'inquire':'묻다',
