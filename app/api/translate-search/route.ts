@@ -429,7 +429,86 @@ export async function POST(request: Request) {
     const words = processedText.split(/\s+/);
     const parsedTokens = [];
 
-    // 선생님 원본 그대로 배열 유지!
+    const MOCK_XDIC_DB: Record<string, string> = {
+      '가공하다': 'process', '가공합니까?': 'process', '가공합니까': 'process',
+      '요구하다': 'require', '요청하다': 'request', '허락하다': 'allow', '가능하다': 'enable', '설득하다': 'persuade',
+      '기대하다': 'expect', '원하다': 'want', '바라다': 'wish', '동기부여하다': 'motivate', '충동하다': 'inspire',
+      '이끌다': 'lead', '유도하다': 'lead', '하게_하다': 'cause', '야기하다': 'cause', '도전하게_하다': 'challenge',
+      '예상하다': 'expect', '의도하다': 'intend', '작정하다': 'intend', '필요로_하다': 'need', '더_좋아하다': 'prefer',
+      '유혹하다': 'tempt', '부추기다': 'tempt', '경고하다': 'warn', '상기시키다': 'remind', '생각나게_하다': 'remind',
+      '강요하다': 'force', '금지하다': 'forbid', '구걸하다': 'beg', '간청하다': 'beg', '부르다': 'call',
+      '임명하다': 'appoint', '고려하다': 'consider', '여기다': 'consider', '생각하다': 'think', '만들다': 'make',
+      '유지하다': 'keep', '변화하다': 'change', '좋아하다': 'like', '선언하다': 'declare', '알리다': 'announce',
+      '발표하다': 'announce', '상상하다': 'imagine', '증명하다': 'prove', '보여주다': 'show', '상태로_두다': 'leave',
+      '하게_두다': 'let', '하게_허락하다': 'let', '시키다': 'have', '하도록_만들다': 'make', '하게_만들다': 'get', '도움을_주다': 'help',
+      '명령하다': 'bid', '지시하다': 'bid', '말하다': 'tell', '보다': 'see',
+      '듣다': 'hear', '느끼다': 'feel', '알다': 'know', '알게_되다': 'find', '발견하다': 'find',
+      '간주하다': 'regard', '주다': 'give', '수여하다': 'award', '승인하다': 'grant', '건네주다': 'hand',
+      '빌려주다': 'lend', '제안하다': 'offer', '전달하다': 'pass', '지불하다': 'pay', '약속하다': 'promise',
+      '팔다': 'sell', '보내다': 'send', '가르치다': 'teach', '쓰다': 'write', '양보하다': 'yield',
+      '산출하다': 'yield', '할당하다': 'assign', '먹이를_주다': 'feed', '제공하다': 'serve', '전송하다': 'forward',
+      '남겨주다': 'leave', '사주다': 'buy', '만들어주다': 'make', '구해주다': 'get', '요리해주다': 'cook',
+      '지어주다': 'build', '골라주다': 'choose', '해주다': 'do', '찾아주다': 'find', '주문해주다': 'order',
+      '준비해주다': 'prepare', '덜어주다': 'save', '불러주다': 'call', '그려주다': 'draw', '구워주다': 'bake',
+      '예약해주다': 'reserve', '가져다주다': 'bring', '잡아주다': 'catch', '가져오다': 'fetch', '고쳐주다': 'fix',
+      '모아주다': 'gather', '보관해주다': 'keep', '따라주다': 'pour', '처방해주다': 'prescribe', '인쇄해주다': 'print',
+      '묻다': 'ask', '부탁하다': 'beg', '질문하다': 'question', '애원하다': 'implore', '비용이_들게_하다': 'cost',
+      '거절하다': 'deny', '부러워하다': 'envy', '용서하다': 'forgive', '시간을_덜어주다': 'save', '수고를_덜어주다': 'save',
+      '인상을_주다': 'strike', '빌어주다': 'wish', '받아들이다': 'accept', '조언하다': 'advise', '동의하다': 'agree',
+      '변경하다': 'alter', '대답하다': 'reply', '감사하다': 'appreciate', '추정하다': 'assume', '때리다': 'beat',
+      '시작하다': 'start', '믿다': 'believe', '물다': 'bite', '숨쉬다': 'breathe', '돌보다': 'care',
+      '신경쓰다': 'care', '운반하다': 'carry', '바꾸다': 'change', '씹다': 'chew', '불평하다': 'complain',
+      '계속하다': 'continue', '창조하다': 'create', '울다': 'cry', '결정하다': 'decide', '감소시키다': 'decrease',
+      '묘사하다': 'describe', '디자인하다': 'design', '열망하다': 'desire', '결심하다': 'determine', '개발하다': 'develop',
+      '토론하다': 'discuss', '싫어하다': 'dislike', '의심하다': 'doubt', 'drop': 'drop', '끝내다': 'end',
+      '즐기다': 'enjoy', '설명하다': 'explain', '표현하다': 'express', 'fear': 'fear', '끝마치다': 'finish',
+      '잊어버리다': 'forget', '얻다': 'get', '흘끗_보다': 'glance', '재배하다': 'grow', '키우다': 'grow',
+      '추측하다': 'guess', '증오하다': 'hate', '가지다': 'have', '치다': 'strike', '향상시키다': 'improve',
+      '증가시키다': 'increase', '소개하다': 'introduce', '웃다': 'laugh', '들어올리다': 'lift', '사랑하다': 'love',
+      '의미하다': 'mean', '언급하다': 'mention', 'move': 'move', '알아차리다': 'notice', '알아채다': 'notice',
+      '관찰하다': 'observe', '소유하다': 'own', '생산하다': 'produce', '당기다': 'pull', '밀다': 'push',
+      '깨닫다': 'realize', '받다': 'receive', '알아보기': 'recognize', '줄이다': 'reduce', '기억하다': 'remember',
+      '존경하다': 'respect', '냄새_맡다': 'smell', '미소짓다': 'smile',
+      '응시하다': 'stare', '멈추다': 'stop', '가정하다': 'suppose', '삼키다': 'swallow', '취하다': 'take',
+      '가져가다': 'take', '이야기하다': 'talk', '맛보다': 'taste', '던지다': 'throw', '만지다': 'touch',
+      '신뢰하다': 'trust', '이해하다': 'understand', '머무르다': 'stay', '상태이다': 'remain',
+      '서_있다': 'stand', '견디다': 'endure', '누워_있다': 'lie', '쉬다': 'rest', '놓여_있다': 'rest',
+      '지속되다': 'persist', '머물다': 'abide', '살아남다': 'survive', '유행하다': 'prevail', '이기다': 'prevail',
+      '지체하다': 'tarry', '남아있다': 'linger', '살다': 'dwell', '체류하다': 'sojourn', '기다리다': 'wait',
+      '달라붙어_있다': 'stick', '들러붙다': 'adhere', '달라붙다': 'cling', '응집하다': 'cohere', '아이는': 'child',
+      '되다': 'be', '훌륭한 청년이': 'a_fine_youth', '프로그램을': 'program', '학생들에게': 'students', '문화와': 'culture,',
+      '관습과': 'customs,', '예술을': 'art', '다른': 'other', '나라': 'country', '동안에': 'during', '방학': 'vacation',
+      '구입했다': 'bought', '오래된': 'old', '집을': 'house', '조용한': 'quiet', '아내': 'wife',
+      '귀여운 딸': 'a_pretty_daughter', '오늘': 'today', '중요한 일': 'an_important_thing', '이곳에': 'here', '아주': 'too',
+      '게으른': 'idle', '책을': 'books', '소년은': 'boy', '영리한': 'clever', '그것을': 'it', '그는': 'he',
+      '일어났다': 'got_up', '늦게': 'late', '그래서': 'as_to', '놓치다': 'miss', '기차를': 'the_train',
+      '이': 'this', '물은': 'water', '좋은': 'good', '도해는': 'diagram', '편리한': 'convenient',
+      '어려운 문장도': 'the_hardest_sentence', '체계적으로': 'systematically', '그들은': 'them', '이었다': 'were',
+      '슬픈': 'sad', '못하다': 'not', '소식을': 'the_news', '자기': 'their', '가족': 'family',
+      '이다': 'am', '매우': 'very', '기쁜': 'glad', '너를': 'you', '적절한': 'the_right', '시기를': 'time',
+      '어떤 일을': 'anything', '그': 'the', '독재자': 'a_dictator', '자기자신을': 'himself',
+      '위대한 지도자라고': 'a_great_leader', '소녀는': 'the_girl', '멋진 선물을': 'a_nice_present', '에': 'on', '그의': 'his',
+      '생일': 'birthday', '였다': 'was', '베티': 'betty', '최초의': 'the_first', '사람들은': 'men',
+      '따라': 'along_with', 'the_nile_river': 'the Nile River', '고대': 'ancient', '이집트': 'egypt', '농부들': 'farmers',
+      '그 책을': 'the_book', '아들': 'his_son', '의사가': 'a_doctor', '다윈은': 'darwin', '영국의 생물학자': 'a_british_biologist',
+      '유명한': 'famous', '이론': 'theories', '진화': 'evolution', '나는': 'i', '아저씨를': 'uncle',
+      '캘리포니아': 'california', '우리의': 'our', '책무는': 'responsibility', '자연': 'natural', '환경을': 'environment',
+      '깨끗한': 'clean', '아름답게': 'beautiful', '나의': 'my', '조용한 시골': 'the_silent_country', '이번': 'this_time',
+      '목표는': 'the_aim', '개혁': 'reform', '모든': 'all', '기회를': 'opportunity', '교육': 'education',
+      '계획은': 'plan', '박물관': 'the_museum', '주말': 'weekend', '고대(의) 그리스인들은': 'the_ancient_greeks', '몸을': 'bodies',
+      '튼튼하게': 'strong', '운동': 'exercises', '연무장': 'gymnasium', '잘못': 'wrong', '부를': 'wealth',
+      '말해주다': 'tell', '관광객들에게': 'tourists', '역사': 'the_history', '그리스': 'greece', '그녀는': 'she',
+      '결심했다': 'decided', '물들이다': 'dye', '손톱을': 'fingernails', '꽃잎들': 'petals', '총명한': 'bright',
+      '위대한 과학자가': 'a_great_scientist', '에 대해서': 'about', '동물': 'animals', '식물': 'plants', '참된': 'the_true',
+      '과제를': 'subject-matters', '그들을': 'them', '훌륭한': 'great', '의무': 'duty', '입헌정치를': 'consitutional_government',
+      '행복': 'the_happiness', '번영을': 'prosperity', '신민들': 'peoples', 'task': 'task', '쉬운': 'easy',
+      '영어를': 'english', '방법': 'way', 'It': 'It', '건강': 'health', '일찍': 'early',
+      '아침': 'morning', '일해야만 했다': 'had_to_work', '열심히': 'hard', '생계를': 'a_living', '아버지는': 'father',
+      'works': 'works', '부터': 'from', '까지': 'till', '저녁': 'evening', '현대(의)': 'modern',
+      '과학은': 'science', '했다': 'has_made', '삶을': 'life', '더 쉬운': 'easier', '더': 'more',
+      '편하게': 'comfortable', '여러면': 'many_ways', '런던': 'london'
+    };
+
     const fiveFormVerbs_KO = ['요구하다', '요청하다', '허락하다', '가능하다', '설득하다', '기대하다', '예상하다', '의도하다', '작정하다', '필요로_하다', '더_좋아하다', '유혹하다', '부추기다', '경고하다', '상기시키다', '생각나게_하다', '강요하다', '금지하다', '구걸하다', '간청하다', '애원하다', '부르다', '임명하다', '고려하다', '여기다', '생각하다', '만들다', '유지하다', '변화하다', '원하다', '좋아하다', '선언하다', '알리다', '발표하다', '상상하다', '증명하다', '보여주다', '상태로_두다', '하게_두다', '하게_허락하다', '시키다', '하도록_만들다', '하게_만들다', '도움을_주다', '명령하다', '지시하다', '말하다', '보다', '듣다', '느끼다', '알다', '알게_되다', '발견하다', '간주하다'];
     const fourFormVerbs_KO = ['주다', '수여하다', '승인하다', '건네주다', '빌려주다', '제안하다', '전달하다', '지불하다', '약속하다', '팔다', '보내다', '보여주다', '가르치다', '말하다', '쓰다', '양보하다', '산출하다', '할당하다', '먹이를_주다', '제공하다', '전송하다', '남겨주다', '사주다', '만들어주다', '구해주다', '요리해주다', '지어주다', '골라주다', '해주다', '찾아주다', '주문해주다', '준비해주다', '덜어주다', '불러주다', '그려주다', '구워주다', '예약해주다', '가져다주다', '잡아주다', '가져오다', '고쳐주다', '모아주다', '보관해주다', '따라주다', '처방해주다', '인쇄해주다', '묻다', '구걸하다', '부탁하다', '요구하다', '요청하다', '질문하다', '간청하다', '애원하다', '허락하다', '비용이_들게_하다', '거절하다', '부러워하다', '용서하다', '시간을_덜어주다', '수고를_덜어주다', '인상을_주다', '빌어주다'];
     const threeFormVerbs_KO = ['받아들이다', '조언하다', '동의하다', '변경하다', '대답하다', '감사하다', '묻다', '추정하다', '때리다', '시작하다', '믿다', '물다', '숨쉬다', '가져오다', '짓다', '돌보다', '신경쓰다', '운반하다', '잡다', '바꾸다', '씹다', '불평하다', '고려하다', '계속하다', '창조하다', '울다', '결정하다', '감소시키다', '묘사하다', '디자인하다', '열망하다', '결심하다', '개발하다', '발견하다', '토론하다', '싫어하다', '의심하다', '떨어뜨리다', '끝내다', '즐기다', '부러워하다', '기대하다', '설명하다', '표현하다', '두려워하다', '느끼다', '찾다', '끝마치다', '잊어버리다', '얻다', '흘끗_보다', '재배하다', '키우다', '추측하다', '증오하다', '가지다', '듣다', '치다', '바라다', '상상하다', '향상시키다', '증가시키다', '소개하다', '유지하다', '알다', '웃다', '들어올리다', '좋아하다', '사랑하다', '만들다', '의미하다', '언급하다', '움직이다', '필요로_하다', '알아차리다', '알아채다', '관찰하다', '소유하다', '설득하다', '더_좋아하다', '생산하다', '약속하다', '제안하다', '당기다', '밀다', '깨닫다', '받다', '알아보기', '줄이다', '기억하다', '상기시키다', '존경하다', '말하다', '보다', '냄새_맡다', '미소짓다', '응시하다', '멈추다', '가정하다', '삼키다', '취하다', '가져가다', '이야기하다', '맛보다', '생각하다', '던지다', '만지다', '신뢰하다', '이해하다', '원하다', '경고하다', '지켜보기', '지켜보다'];
@@ -720,7 +799,7 @@ export async function POST(request: Request) {
             if (!finalTranslation.endsWith('.')) finalTranslation += '.';
         }
     } else {
-        // 번역 결과가 없으면 Fallbaㅊk 처리를 위해 에러 반환
+        // 번역 결과가 없으면 Fallback 처리를 위해 에러 반환
         return NextResponse.json({ ok: false, error: '분석할 수 없는 문장 구조입니다.' });
     }
 
