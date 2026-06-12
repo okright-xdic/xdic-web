@@ -143,7 +143,7 @@ const MOCK_EN_KO_DB: Record<string, string> = {
   'as_to':'그래서', 'miss':'놓치다', 'the_train':'기차를', 'this':'이', 'water':'물은',
   'good':'좋은', 'diagram':'도해는', 'convenient':'편리한', 'the_hardest_sentence':'어려운 문장도', 'systematically':'체계적으로',
   'they':'그들은', 'were':'이었다', 'sad':'슬픈', 'not':'못하다', 'the_news':'소식을',
-  'their':'자기', 'familyㅁ:'가족', 'am':'이다', 'very':'매우', 'glad':'기쁜',
+  'their':'자기', 'family':'가족', 'am':'이다', 'very':'매우', 'glad':'기쁜',
   'you':'너를', 'the_right':'적절한', 'time':'시기를', 'anything':'어떤 일을', 'the':'그',
   'a_dictator':'독재자', 'himself':'자기자신을', 'a_great_leader':'위대한 지도자라고', 'the_girl':'소녀는', 'a_nice_present':'멋진 선물을',
   'on':'에', 'his':'그의', 'birthday':'생일', 'was':'였다', 'betty':'베티',
