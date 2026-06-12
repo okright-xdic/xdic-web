@@ -90,7 +90,7 @@ const MOCK_XDIC_DB: Record<string, string> = {
   '의미하다': 'mean', '언급하다': 'mention', 'move': 'move', '알아차리다': 'notice', '알아채다': 'notice',
   '관찰하다': 'observe', '소유하다': 'own', '생산하다': 'produce', '당기다': 'pull', '밀다': 'push',
   '깨닫다': 'realize', '받다': 'receive', '알아보기': 'recognize', '줄이다': 'reduce', '기억하다': 'remember',
-  '상기시키다': 'remind', '존경하다': 'respect', '냄새_맡다': 'smell', '미소짓다': 'smile',
+  '존경하다': 'respect', '냄새_맡다': 'smell', '미소짓다': 'smile',
   '응시하다': 'stare', '멈추다': 'stop', '가정하다': 'suppose', '삼키다': 'swallow', '취하다': 'take',
   '가져가다': 'take', '이야기하다': 'talk', '맛보다': 'taste', '던지다': 'throw', '만지다': 'touch',
   '신뢰하다': 'trust', '이해하다': 'understand', '머무르다': 'stay', '상태이다': 'remain',
