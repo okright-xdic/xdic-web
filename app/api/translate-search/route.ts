@@ -844,7 +844,9 @@ export async function POST(request: Request) {
       .replace(/fine\s*youth/i, 'a fine youth');
       
     // 💡 [수프로 엣지] 의문문 지능형 변환 (가공했습니까? -> Did you process?)
-    const isQuestion = originalText.includes('?') || originalText.includes('까') || originalText.includes('니');
+    // 🚨 물음표가 없어도 문장 끝말임(어미)을 감지하여 의문문으로 자동 인식하는 정밀 레이더망!
+    const questionEndings = /(니까|나요|까요|습니까|니|냐|대요|인가요|건가요|합니까|하시겠습니까|되겠니|한지요|하겠니)[.\s]*$/;
+    const isQuestion = originalText.includes('?') || questionEndings.test(originalText);
     
     if (isQuestion && finalTranslation.trim() !== '') { 
        let aux = 'Do';
