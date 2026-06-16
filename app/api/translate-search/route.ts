@@ -1935,14 +1935,6 @@ function matchTokenRolesAndTranslations(word: string, MOCK_XDIC_DB: Record<strin
       if (word === '그' && i === 0) displayEn = 'The'; 
       if (word === '조용한_시골') displayEn = 'the silent country';
 
-      parsedTokens.push({ enOriginal: displayEn, koWord: translatedWord, role: matchedRole });
-    }
-
-    const detectedRoles = parsedTokens.map(t => {
-        if (t.role.startsWith('Verb_Infinitive') || t.role === 'To_Infinitive_Comp' || t.role === 'To_Infinitive_OC' || t.role === 'To_Infinitive_Adj' || t.role === 'To_Infinitive_Adj_Subj' || t.role === 'To_Infinitive_Adj_2' || t.role === 'To_Infinitive_Adv' || t.role === 'Not_Infinitive' || t.role === 'To_Infinitive_Result' || t.role === 'To_Infinitive_Purpose') return t.role; 
-        return (t.role === 'Verb_Past' || t.role === 'Verb_Present') ? 'Verb' : t.role;
-    });
-
   return { matchedRole, translatedWord, displayEn };
 }
 
