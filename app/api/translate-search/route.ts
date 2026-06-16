@@ -1905,36 +1905,6 @@ function matchTokenRolesAndTranslations(word: string, MOCK_XDIC_DB: Record<strin
           else if (words[i+1] === 'culture,' || words[i+1] === 'quiet') { matchedRole = (words[i+1] === 'culture,') ? 'Modifier_And_1' : 'Modifier_Loc_2'; translatedWord = ''; } 
           else { matchedRole = 'Modifier'; translatedWord = '그'; }
       }
-
-      displayEn = originalText.match(new RegExp(`\\b${word.replace(/_/g, ' ')}\\b`, 'i'))?.[0] || word;
-
-      if (word === 'he' && i === 0) displayEn = 'He'; 
-      if (word === 'we' && i === 0) displayEn = 'We'; 
-      if (word === 'an_important_thing') displayEn = 'an important thing';
-      if (word === 'got_up') displayEn = 'got up'; 
-      if (word === 'as_to') displayEn = 'as to';
-      if (word === 'the_train') displayEn = 'the train';
-      if (word === 'this' && i === 0) displayEn = 'This'; 
-      if (word === 'diagram') displayEn = 'Diagram';
-      if (word === 'the_hardest_sentence') displayEn = 'the hardest sentence';
-      if (word === 'the_news') displayEn = 'the news';
-      if (word === 'a_great_reward') displayEn = 'a great reward';
-      if (word === 'the_man') displayEn = 'the man';
-      if (word === 'the_right') displayEn = 'the right';
-      if (word === 'anything') displayEn = 'anything';
-      if (word === '독재자') displayEn = 'a dictator';
-      if (word === '위대한_지도자라고') displayEn = 'a great leader';
-      if (word === '훌륭한_의사가') displayEn = 'a great doctor';
-      if (word === '영국의_생물학자') displayEn = 'a British biologist';
-      if (word === '목표는') displayEn = 'The aim'; 
-      if (word === '최초의') displayEn = 'The first'; 
-      if (word === '나일강을') displayEn = 'the Nile River'; 
-      if (word === '따라') displayEn = 'along with'; 
-      if (word === '나는') displayEn = 'I'; 
-      if (word === '그들은' && i === 0) displayEn = 'They'; 
-      if (word === '그' && i === 0) displayEn = 'The'; 
-      if (word === '조용한_시골') displayEn = 'the silent country';
-
   return { matchedRole, translatedWord, displayEn };
 }
 
