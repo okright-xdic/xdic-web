@@ -1024,9 +1024,9 @@ function applyTranslationReplaceRules(text: string): string {
 // =========================================================================
 
 function matchTokenRolesAndTranslations(word: string, MOCK_XDIC_DB: Record<string, string>, originalText: string, words: string[], i: number) {
-  let matchedRole = 'Unknown';  let matchedRole = 'Unknown';
-  let translatedWord = word;
-  let displayEn = word;
+   let matchedRole = 'Unknown'; // 👈 깔끔하게 하나만 남깁니다.
+   let translatedWord = word;
+   let displayEn = word;
 
       // if (word == 여기 아래에 paste 후 Enter
 
