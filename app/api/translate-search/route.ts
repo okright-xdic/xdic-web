@@ -1872,39 +1872,6 @@ function matchTokenRolesAndTranslations(word: string, MOCK_XDIC_DB: Record<strin
       if (word === '나는') { matchedRole = 'Subject'; translatedWord = 'I'; } 
       if (word === '매우') { matchedRole = 'Modifier_Comp'; translatedWord = 'very'; }
       if (word === '기쁜') { matchedRole = 'Complement'; translatedWord = 'glad'; }
-
-      if (word === 'to') {
-          if (words[i-1] === 'here') {
-              matchedRole = originalText.toLowerCase().includes('lived') ? 'To_Infinitive_Result' : 'To_Infinitive_Purpose'; 
-              translatedWord = originalText.toLowerCase().includes('lived') ? '그래서' : '목적으로';
-          }
-          else if (words[i-1] === 'long' || words[i-1] === 'grew') { matchedRole = 'To_Infinitive_Result'; translatedWord = '서'; } 
-          else if (words[i+1] === 'make' || words[i+1] === 'teach' || words[i+1] === 'live' || words[i+1] === 'talk') { matchedRole = 'To_Infinitive_Purpose'; translatedWord = (words[i+1] === 'talk') ? '~하기위해' : '위해서'; } 
-          else if (words[i+1] === 'suffer_from' || words[i+1] === 'teach' || words[i+1] === 'begin' || words[i+1] === 'think' || words[i+1] === 'his_son' || words[i+1] === 'become' || words[i+1] === 'be' || words[i+1] === 'live') { matchedRole = (words[i+1] === 'begin') ? 'To_Infinitive_Adj_2' : 'To_Infinitive_Adj'; translatedWord = (words[i+1] === 'begin') ? 'ㄹ' : 'ㄴ'; } 
-          else if (words[i-1] === 'idle' || words[i-1] === 'enough') { matchedRole = 'To_Infinitive_Result'; translatedWord = '그래서'; } 
-          else if (words[i-1] === 'good' || words[i-1] === 'convenient') { matchedRole = 'To_Infinitive_Adv'; translatedWord = '~하기에'; } 
-          else if (words[i+1] === 'hear' && words[i-1] === 'not') { matchedRole = 'To_Infinitive_Adv'; translatedWord = '~하기때문에'; } 
-          else if (words[i-1] === 'glad') { matchedRole = 'To_Infinitive_Adv'; translatedWord = '~하니'; } 
-          else if (words[i-1] === 'the_girl' || words[i-1] === 'men') { matchedRole = 'To_Infinitive_Adj_Subj'; translatedWord = 'ㄴ'; } 
-          else if (words[i-1] === 'him' && words[i+1] === 'read') { matchedRole = 'To_Infinitive_OC'; translatedWord = '라고'; } 
-          else if (words[i+1] === 'keep' || words[i+1] === 'read' || words[i+1] === 'offer' || words[i+1] === 'go' || words[i+1] === 'become') { matchedRole = 'To_Infinitive_Comp'; translatedWord = '것'; } 
-          else if (words[i+1] === 'make' || words[i+1] === 'want' || words[i+1] === 'leave' || words[i+1] === 'tell' || words[i+1] === 'dye' || words[i+1] === 'know' || words[i+1] === 'rest' || words[i+1] === 'uphold' || words[i+1] === 'lend' || words[i+1] === 'study' || words[i+1] === 'get_up' || words[i+1] === 'defeat') { matchedRole = (words[i+1] === 'leave') ? 'To_Infinitive_3' : 'To_Infinitive'; translatedWord = (words[i+1] === 'dye') ? '기로' : (words[i+1] === 'make' || words[i+1] === 'leave' || words[i+1] === 'tell' || words[i+1] === 'become' || words[i+1] === 'know' || words[i+1] === 'rest') ? '기를' : (words[i+1] === 'want' || words[i+1] === 'lend' || words[i+1] === 'defeat') ? '것은' : (words[i+1] === 'study') ? '기는' : '것이'; } 
-          else if (originalText.toLowerCase().includes('welfare')) { matchedRole = 'Purpose'; translatedWord = '를위해'; } 
-          else if (words[i+1] === 'the_man') { matchedRole = 'Postposition_To'; translatedWord = '에게'; }
-          else { matchedRole = 'Location_Prep'; translatedWord = '으로'; }
-      }
-      if (word === 'and') {
-          if (words[i+1] === '(to)' || words[i+1] === 'make') { matchedRole = 'Conjunction_And_Inf'; translatedWord = '고'; } 
-          else if (words[i-1] === 'customs,') { matchedRole = 'Conjunction_And'; translatedWord = ''; } 
-          else if (words[i-1] === 'wife') { matchedRole = 'Conjunction_And_With'; translatedWord = '와'; } 
-      }
-      if (word === 'the') {
-          if (words[i+1] === 'child' || words[i+1] === 'old' || words[i+1] === 'king' || words[i+1] === 'petals' || words[i+1] === 'bright') { matchedRole = (words[i+1] === 'petals') ? 'Modifier_Inst' : (words[i+1] === 'old') ? 'Modifier_Obj' : 'Modifier'; translatedWord = '그'; } 
-          else if (words[i+1] === 'prize_money') { matchedRole = 'Modifier_Obj'; translatedWord = '그'; } 
-          else if (words[i+1] === 'hospital') { matchedRole = 'Modifier_Inf_Obj_1'; translatedWord = '그'; } 
-          else if (words[i+1] === 'culture,' || words[i+1] === 'quiet') { matchedRole = (words[i+1] === 'culture,') ? 'Modifier_And_1' : 'Modifier_Loc_2'; translatedWord = ''; } 
-          else { matchedRole = 'Modifier'; translatedWord = '그'; }
-      }
   return { matchedRole, translatedWord, displayEn };
 }
 
@@ -2047,6 +2014,76 @@ export async function POST(request: Request) {
           displayEn = tokenResult.displayEn;
       }
       // 👆👆 ---------------------------------------------------- 👆👆
+
+      if (word === 'to') {
+          if (words[i-1] === 'here') {
+              matchedRole = originalText.toLowerCase().includes('lived') ? 'To_Infinitive_Result' : 'To_Infinitive_Purpose'; 
+              translatedWord = originalText.toLowerCase().includes('lived') ? '그래서' : '목적으로';
+          }
+          else if (words[i-1] === 'long' || words[i-1] === 'grew') { matchedRole = 'To_Infinitive_Result'; translatedWord = '서'; } 
+          else if (words[i+1] === 'make' || words[i+1] === 'teach' || words[i+1] === 'live' || words[i+1] === 'talk') { matchedRole = 'To_Infinitive_Purpose'; translatedWord = (words[i+1] === 'talk') ? '~하기위해' : '위해서'; } 
+          else if (words[i+1] === 'suffer_from' || words[i+1] === 'teach' || words[i+1] === 'begin' || words[i+1] === 'think' || words[i+1] === 'his_son' || words[i+1] === 'become' || words[i+1] === 'be' || words[i+1] === 'live') { matchedRole = (words[i+1] === 'begin') ? 'To_Infinitive_Adj_2' : 'To_Infinitive_Adj'; translatedWord = (words[i+1] === 'begin') ? 'ㄹ' : 'ㄴ'; } 
+          else if (words[i-1] === 'idle' || words[i-1] === 'enough') { matchedRole = 'To_Infinitive_Result'; translatedWord = '그래서'; } 
+          else if (words[i-1] === 'good' || words[i-1] === 'convenient') { matchedRole = 'To_Infinitive_Adv'; translatedWord = '~하기에'; } 
+          else if (words[i+1] === 'hear' && words[i-1] === 'not') { matchedRole = 'To_Infinitive_Adv'; translatedWord = '~하기때문에'; } 
+          else if (words[i-1] === 'glad') { matchedRole = 'To_Infinitive_Adv'; translatedWord = '~하니'; } 
+          else if (words[i-1] === 'the_girl' || words[i-1] === 'men') { matchedRole = 'To_Infinitive_Adj_Subj'; translatedWord = 'ㄴ'; } 
+          else if (words[i-1] === 'him' && words[i+1] === 'read') { matchedRole = 'To_Infinitive_OC'; translatedWord = '라고'; } 
+          else if (words[i+1] === 'keep' || words[i+1] === 'read' || words[i+1] === 'offer' || words[i+1] === 'go' || words[i+1] === 'become') { matchedRole = 'To_Infinitive_Comp'; translatedWord = '것'; } 
+          else if (words[i+1] === 'make' || words[i+1] === 'want' || words[i+1] === 'leave' || words[i+1] === 'tell' || words[i+1] === 'dye' || words[i+1] === 'know' || words[i+1] === 'rest' || words[i+1] === 'uphold' || words[i+1] === 'lend' || words[i+1] === 'study' || words[i+1] === 'get_up' || words[i+1] === 'defeat') { matchedRole = (words[i+1] === 'leave') ? 'To_Infinitive_3' : 'To_Infinitive'; translatedWord = (words[i+1] === 'dye') ? '기로' : (words[i+1] === 'make' || words[i+1] === 'leave' || words[i+1] === 'tell' || words[i+1] === 'become' || words[i+1] === 'know' || words[i+1] === 'rest') ? '기를' : (words[i+1] === 'want' || words[i+1] === 'lend' || words[i+1] === 'defeat') ? '것은' : (words[i+1] === 'study') ? '기는' : '것이'; } 
+          else if (originalText.toLowerCase().includes('welfare')) { matchedRole = 'Purpose'; translatedWord = '를위해'; } 
+          else if (words[i+1] === 'the_man') { matchedRole = 'Postposition_To'; translatedWord = '에게'; }
+          else { matchedRole = 'Location_Prep'; translatedWord = '으로'; }
+      }
+      if (word === 'and') {
+          if (words[i+1] === '(to)' || words[i+1] === 'make') { matchedRole = 'Conjunction_And_Inf'; translatedWord = '고'; } 
+          else if (words[i-1] === 'customs,') { matchedRole = 'Conjunction_And'; translatedWord = ''; } 
+          else if (words[i-1] === 'wife') { matchedRole = 'Conjunction_And_With'; translatedWord = '와'; } 
+      }
+      if (word === 'the') {
+          if (words[i+1] === 'child' || words[i+1] === 'old' || words[i+1] === 'king' || words[i+1] === 'petals' || words[i+1] === 'bright') { matchedRole = (words[i+1] === 'petals') ? 'Modifier_Inst' : (words[i+1] === 'old') ? 'Modifier_Obj' : 'Modifier'; translatedWord = '그'; } 
+          else if (words[i+1] === 'prize_money') { matchedRole = 'Modifier_Obj'; translatedWord = '그'; } 
+          else if (words[i+1] === 'hospital') { matchedRole = 'Modifier_Inf_Obj_1'; translatedWord = '그'; } 
+          else if (words[i+1] === 'culture,' || words[i+1] === 'quiet') { matchedRole = (words[i+1] === 'culture,') ? 'Modifier_And_1' : 'Modifier_Loc_2'; translatedWord = ''; } 
+          else { matchedRole = 'Modifier'; translatedWord = '그'; }
+      }
+
+      displayEn = originalText.match(new RegExp(`\\b${word.replace(/_/g, ' ')}\\b`, 'i'))?.[0] || word;
+
+      if (word === 'he' && i === 0) displayEn = 'He'; 
+      if (word === 'we' && i === 0) displayEn = 'We'; 
+      if (word === 'an_important_thing') displayEn = 'an important thing';
+      if (word === 'got_up') displayEn = 'got up'; 
+      if (word === 'as_to') displayEn = 'as to';
+      if (word === 'the_train') displayEn = 'the train';
+      if (word === 'this' && i === 0) displayEn = 'This'; 
+      if (word === 'diagram') displayEn = 'Diagram';
+      if (word === 'the_hardest_sentence') displayEn = 'the hardest sentence';
+      if (word === 'the_news') displayEn = 'the news';
+      if (word === 'a_great_reward') displayEn = 'a great reward';
+      if (word === 'the_man') displayEn = 'the man';
+      if (word === 'the_right') displayEn = 'the right';
+      if (word === 'anything') displayEn = 'anything';
+      if (word === '독재자') displayEn = 'a dictator';
+      if (word === '위대한_지도자라고') displayEn = 'a great leader';
+      if (word === '훌륭한_의사가') displayEn = 'a great doctor';
+      if (word === '영국의_생물학자') displayEn = 'a British biologist';
+      if (word === '목표는') displayEn = 'The aim'; 
+      if (word === '최초의') displayEn = 'The first'; 
+      if (word === '나일강을') displayEn = 'the Nile River'; 
+      if (word === '따라') displayEn = 'along with'; 
+      if (word === '나는') displayEn = 'I'; 
+      if (word === '그들은' && i === 0) displayEn = 'They'; 
+      if (word === '그' && i === 0) displayEn = 'The'; 
+      if (word === '조용한_시골') displayEn = 'the silent country';
+
+      parsedTokens.push({ enOriginal: displayEn, koWord: translatedWord, role: matchedRole });
+    } // 👈 for 루프 정상 종료
+
+    const detectedRoles = parsedTokens.map(t => {
+        if (t.role.startsWith('Verb_Infinitive') || t.role === 'To_Infinitive_Comp' || t.role === 'To_Infinitive_OC' || t.role === 'To_Infinitive_Adj' || t.role === 'To_Infinitive_Adj_Subj' || t.role === 'To_Infinitive_Adj_2' || t.role === 'To_Infinitive_Adv' || t.role === 'Not_Infinitive' || t.role === 'To_Infinitive_Result' || t.role === 'To_Infinitive_Purpose') return t.role; 
+        return (t.role === 'Verb_Past' || t.role === 'Verb_Present') ? 'Verb' : t.role;
+    });
 
     let selectedForm = null;
 
