@@ -1022,7 +1022,7 @@ function applyTranslationReplaceRules(text: string): string {
 // =========================================================================
 // 💡 [수프로 엣지] 대용량 토큰 매칭 전용 2차 공장 (POST 함수 바깥에 위치!)
 // =========================================================================
-function matchTokenRolesAndTranslations(word: string, MOCK_XDIC_DB: Record<string, string>) {
+function matchTokenRolesAndTranslations(word: string, MOCK_XDIC_DB: Record<string, string>, originalText: string) {
   let matchedRole = 'Unknown';
   let translatedWord = word;
   let displayEn = word;
@@ -2007,7 +2007,7 @@ export async function POST(request: Request) {
       if (word.toLowerCase() === 'it') { matchedRole = 'Dummy_SVC'; translatedWord = 'It'; displayEn = 'It'; }
       
       // 👇👇 💡 스위치 달기 성공! 바깥 공장으로 부품을 보냅니다! 👇👇
-      const tokenResult = matchTokenRolesAndTranslations(word, MOCK_XDIC_DB);
+      const tokenResult = matchTokenRolesAndTranslations(word, MOCK_XDIC_DB, originalText);
       if (tokenResult.matchedRole !== 'Unknown') {
           matchedRole = tokenResult.matchedRole;
           translatedWord = tokenResult.translatedWord;
