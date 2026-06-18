@@ -688,12 +688,12 @@ export async function POST(request: Request) {
 
       // if (word == 여기 아래에 Enter 두번 후 paste
 
-      // 💡 영한 <2형식> 보충어구 예문 1 (표시 오류 원천 차단)
+      // 💡 영한 <2형식> 보충어구 예문 1 (표시 오류 원천 차단 - 아예 '가는 것이다'로 부품 자체 조립!)
       if (word.includes('EK2C1_My_Tk')) { matchedRole = 'EK2C1_My'; translatedWord = '나의'; displayEn = 'My'; }
       if (word.includes('EK2C1_Plan_Tk')) { matchedRole = 'EK2C1_Plan'; translatedWord = '계획은'; displayEn = 'plan'; }
-      if (word.includes('EK2C1_Is_Tk')) { matchedRole = 'EK2C1_Is'; translatedWord = '이다'; displayEn = 'is'; }
-      if (word.includes('EK2C1_To1_Tk')) { matchedRole = 'EK2C1_To1'; translatedWord = '것'; displayEn = 'to'; }
-      if (word.includes('EK2C1_Go_Tk')) { matchedRole = 'EK2C1_Go'; translatedWord = '가다'; displayEn = 'go'; }
+      if (word.includes('EK2C1_Is_Tk')) { matchedRole = 'EK2C1_Is'; translatedWord = ''; displayEn = 'is'; } // 👈 해석을 아예 비워버림
+      if (word.includes('EK2C1_To1_Tk')) { matchedRole = 'EK2C1_To1'; translatedWord = '것이다'; displayEn = 'to'; } // 👈 '것이다'로 다이렉트 할당!
+      if (word.includes('EK2C1_Go_Tk')) { matchedRole = 'EK2C1_Go'; translatedWord = '가는'; displayEn = 'go'; } // 👈 '가는'으로 다이렉트 할당!
       if (word.includes('EK2C1_To2_Tk')) { matchedRole = 'EK2C1_To2'; translatedWord = '에'; displayEn = 'to'; }
       if (word.includes('EK2C1_Museum_Tk')) { matchedRole = 'EK2C1_Museum'; translatedWord = '박물관'; displayEn = 'the museum'; }
       if (word.includes('EK2C1_With_Tk')) { matchedRole = 'EK2C1_With'; translatedWord = '와함께'; displayEn = 'with'; }
@@ -1172,12 +1172,13 @@ export async function POST(request: Request) {
     }
     let finalTranslation = finalKoreanWords.join(' ')
 // 여기 아래에 Enter 후 paste
-      // 👇👇 💡 [수프로 엣지] 영한 2형식 보충어구 예문 1 띄어쓰기 및 어미 완벽 보정 (수정) 👇👇
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 보충어구 예문 1 띄어쓰기 및 어미 완벽 보정 (초강력 버전) 👇👇
       .replace(/주말\s*에/g, '주말에')
       .replace(/그녀\s*와함께/g, '그녀와 함께')
       .replace(/박물관\s*에/g, '박물관에')
-      .replace(/가다\s*것/g, '가는 것')
-      .replace(/것\s*이다/g, '것이다')
+      .replace(/가다\s*것\s*이다/g, '가는 것이다')
+      .replace('가다 것 이다', '가는 것이다') // 💡 정규식을 우회하는 원초적 텍스트 직접 타격!
+      .replace('것 이다', '것이다') // 💡 혹시나 남아있을 찌꺼기까지 완벽 압사!
       // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 7 띄어쓰기 및 어미 완벽 보정 👇👇
       .replace(/연무장\s*의/g, '연무장의')
       .replace(/운동\s*으로/g, '운동으로')
