@@ -231,8 +231,16 @@ const FORM_RULES = [
   { type: '2형식_병렬보어', requiredRoles: ['Complement_1', 'Conjunction_Or', 'Complement_2', 'Verb'], koreanOrder: ['Subject', 'Modifier_Against', 'Object_Against', 'Postposition_Against', 'Complement_1', 'Conjunction_Or', 'Object_To', 'Postposition_To', 'Complement_2', 'Aux_Verb', 'Verb'] },
   { type: '2형식_비교', requiredRoles: ['Complement', 'Verb', 'Postposition_Than'], koreanOrder: ['Object_Of_Subj', 'Postposition_Of_Subj', 'Subject', 'Object_Than', 'Postposition_Of_Than', 'Postposition_Than', 'Complement', 'Verb'] },
   { type: '2형식', requiredRoles: ['Complement', 'Verb'], koreanOrder: ['Object_In_Subj', 'Postposition_In_Subj', 'Modifier', 'Subject', 'Time_Modifier', 'Modifier_Time', 'Time', 'Time_Prep', 'Object_For', 'Postposition_For', 'Location', 'Location_Prep', 'Object_Of', 'Postposition_Of', 'Modifier_Comp', 'Complement', 'Verb'] },
-  { type: '1형식', requiredRoles: ['Verb'], koreanOrder: ['Modifier', 'Subject_And_1', 'Conjunction_And', 'Modifier_2', 'Subject', 'Time_Modifier', 'Modifier_Time', 'Time', 'Time_Prep', 'Time_2', 'Time_Prep_2', 'Modifier_With', 'Object_With', 'Postposition_With', 'Object_For', 'Postposition_For', 'Modifier_Near', 'Object_Near', 'Postposition_Near', 'Modifier_Loc', 'Location', 'Location_Prep', 'Instrument', 'Postposition_Through', 'Adverb_Prep', 'Adverb', 'Verb'] }
+  { type: '1형식', requiredRoles: ['Verb'], koreanOrder: ['Modifier', 'Subject_And_1', 'Conjunction_And', 'Modifier_2', 'Subject', 'Time_Modifier', 'Modifier_Time', 'Time', 'Time_Prep', 'Time_2', 'Time_Prep_2', 'Modifier_With', 'Object_With', 'Postposition_With', 'Object_For', 'Postposition_For', 'Modifier_Near', 'Object_Near', 'Postposition_Near', 'Modifier_Loc', 'Location', 'Location_Prep', 'Instrument', 'Postposition_Through', 'Adverb_Prep', 'Adverb', 'Verb'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 예문 1 전용 완벽 조립 레일
+  { type: '1형식_영한_예문1', requiredRoles: ['EK1E1_My', 'EK1E1_Father', 'EK1E1_Works'], koreanOrder: ['EK1E1_My', 'EK1E1_Father', 'EK1E1_Morning', 'EK1E1_From', 'EK1E1_Evening', 'EK1E1_Till', 'EK1E1_Works'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 예문 2 전용 완벽 조립 레일
+  { type: '1형식_영한_예문2', requiredRoles: ['EK1E2_He', 'EK1E2_HadToWork', 'EK1E2_Living'], koreanOrder: ['EK1E2_He', 'EK1E2_Living', 'EK1E2_For', 'EK1E2_Hard', 'EK1E2_HadToWork'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 1 전용 완벽 조립 레일
+  { type: '2형식_영한_가주어진주어_예문1', requiredRoles: ['EK2E1_Is', 'EK2E1_Good', 'EK2E1_GetUp'], koreanOrder: ['EK2E1_Morning', 'EK2E1_In', 'EK2E1_Early', 'EK2E1_GetUp', 'EK2E1_To', 'EK2E1_Health', 'EK2E1_For', 'EK2E1_Good', 'EK2E1_Is'] },
 ];
+
+// const FORM_RULES = [ 여기 위에 Enter 후에 paste
 
 export async function POST(request: Request) {
   try {
@@ -276,7 +284,14 @@ export async function POST(request: Request) {
       originalText = originalText.replace(regex, phrase.replace(/ /g, '_')); 
     });
 
+// 여기 아래에 Enter 후 paste
     let processedText = originalText.toLowerCase()
+      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 1 (대소문자 무시) 👇👇
+      .replace(/(^|\s)it\s*is\s*good\s*for\s*health\s*to\s*get\s*up\s*early\s*in\s*the\s*morning\.?(?!\w)/gi, '$1EK2E1_It_Tk EK2E1_Is_Tk EK2E1_Good_Tk EK2E1_For_Tk EK2E1_Health_Tk EK2E1_To_Tk EK2E1_GetUp_Tk EK2E1_Early_Tk EK2E1_In_Tk EK2E1_Morning_Tk ')      
+      // 👇👇 💡 [수프로 엣지] 영한 <1형식> 예문 2 (대소문자 무시 방어망) 👇👇
+      .replace(/(^|\s)he\s*had\s*to\s*work\s*hard\s*for\s*a\s*living\.?(?!\w)/gi, '$1EK1E2_He_Tk EK1E2_HadToWork_Tk EK1E2_Hard_Tk EK1E2_For_Tk EK1E2_Living_Tk ')      
+      // 👇👇 💡 [수프로 엣지] 영한 <1형식> 예문 1 (대소문자 무시 방어망) 👇👇
+      .replace(/(^|\s)my\s*father\s*works\s*from\s*morning\s*till\s*evening\.?(?!\w)/gi, '$1EK1E1_My_Tk EK1E1_Father_Tk EK1E1_Works_Tk EK1E1_From_Tk EK1E1_Morning_Tk EK1E1_Till_Tk EK1E1_Evening_Tk ')
       .replace(/흘끗\s*보다/g, '흘끗_보다')
       .replace(/냄새\s*맡다/g, '냄새_맡다')
       .replace(/lived\s*here\s*to\s*see/g, 'lived here to see')
@@ -615,6 +630,45 @@ export async function POST(request: Request) {
           }
       }
 
+      // if (word == 여기 아래에 Enter 두번 후 paste
+
+      // 💡 영한 <2형식> 가주어-진주어 예문 1 (표시 오류 원천 차단)
+      if (word.includes('EK2E1_It_Tk')) { matchedRole = 'EK2E1_It'; translatedWord = ''; displayEn = 'It'; } // 해석하지 않음
+      if (word.includes('EK2E1_Is_Tk')) { matchedRole = 'EK2E1_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('EK2E1_Good_Tk')) { matchedRole = 'EK2E1_Good'; translatedWord = '좋은'; displayEn = 'good'; }
+      if (word.includes('EK2E1_For_Tk')) { matchedRole = 'EK2E1_For'; translatedWord = '에'; displayEn = 'for'; }
+      if (word.includes('EK2E1_Health_Tk')) { matchedRole = 'EK2E1_Health'; translatedWord = '건강'; displayEn = 'health'; }
+      if (word.includes('EK2E1_To_Tk')) { matchedRole = 'EK2E1_To'; translatedWord = '것이'; displayEn = 'to'; }
+      if (word.includes('EK2E1_GetUp_Tk')) { matchedRole = 'EK2E1_GetUp'; translatedWord = '일어나는'; displayEn = 'get up'; }
+      if (word.includes('EK2E1_Early_Tk')) { matchedRole = 'EK2E1_Early'; translatedWord = '일찍'; displayEn = 'early'; }
+      if (word.includes('EK2E1_In_Tk')) { matchedRole = 'EK2E1_In'; translatedWord = '에'; displayEn = 'in'; }
+      if (word.includes('EK2E1_Morning_Tk')) { matchedRole = 'EK2E1_Morning'; translatedWord = '아침'; displayEn = 'the morning'; }
+      
+      // 💡 영한 <1형식> 예문 1 (표시 오류 완벽 수정본)
+      if (word.includes('EK1E1_My_Tk')) { matchedRole = 'EK1E1_My'; translatedWord = '나의 '; displayEn = 'My'; }
+      if (word.includes('EK1E1_Father_Tk')) { matchedRole = 'EK1E1_Father'; translatedWord = '아버지는 '; displayEn = 'father'; }
+      if (word.includes('EK1E1_Works_Tk')) { matchedRole = 'EK1E1_Works'; translatedWord = '일하신다'; displayEn = 'works'; }
+      if (word.includes('EK1E1_From_Tk')) { matchedRole = 'EK1E1_From'; translatedWord = '부터 '; displayEn = 'from'; }
+      if (word.includes('EK1E1_Morning_Tk')) { matchedRole = 'EK1E1_Morning'; translatedWord = '아침 '; displayEn = 'morning'; }
+      if (word.includes('EK1E1_Till_Tk')) { matchedRole = 'EK1E1_Till'; translatedWord = '까지 '; displayEn = 'till'; }
+      if (word.includes('EK1E1_Evening_Tk')) { matchedRole = 'EK1E1_Evening'; translatedWord = '저녁 '; displayEn = 'evening'; }
+
+      // 💡 영한 <1형식> 예문 2
+      if (word.includes('EK1E2_He_Tk')) { matchedRole = 'EK1E2_He'; translatedWord = '그는 '; displayEn = 'He'; }
+      if (word.includes('EK1E2_HadToWork_Tk')) { matchedRole = 'EK1E2_HadToWork'; translatedWord = '일해야만 했다'; displayEn = 'had to work'; }
+      if (word.includes('EK1E2_Hard_Tk')) { matchedRole = 'EK1E2_Hard'; translatedWord = '열심히 '; displayEn = 'hard'; }
+      if (word.includes('EK1E2_For_Tk')) { matchedRole = 'EK1E2_For'; translatedWord = '위하여 '; displayEn = 'for'; }
+      if (word.includes('EK1E2_Living_Tk')) { matchedRole = 'EK1E2_Living'; translatedWord = '생계를 '; displayEn = 'a living'; }
+      
+      // 영한 <1형식> 예문 1
+      if (word.includes('EK1E1_My_Tk')) { matchedRole = 'EK1E1_My'; translatedWord = '나의'; displayEn = 'My'; }
+      if (word.includes('EK1E1_Father_Tk')) { matchedRole = 'EK1E1_Father'; translatedWord = '아버지는'; displayEn = 'father'; }
+      if (word.includes('EK1E1_Works_Tk')) { matchedRole = 'EK1E1_Works'; translatedWord = '일하신다'; displayEn = 'works'; }
+      if (word.includes('EK1E1_From_Tk')) { matchedRole = 'EK1E1_From'; translatedWord = '부터'; displayEn = 'from'; }
+      if (word.includes('EK1E1_Morning_Tk')) { matchedRole = 'EK1E1_Morning'; translatedWord = '아침'; displayEn = 'morning'; }
+      if (word.includes('EK1E1_Till_Tk')) { matchedRole = 'EK1E1_Till'; translatedWord = '까지'; displayEn = 'till'; }
+      if (word.includes('EK1E1_Evening_Tk')) { matchedRole = 'EK1E1_Evening'; translatedWord = '저녁'; displayEn = 'evening'; }
+      
       // 선생님 하드코딩 부분 완벽하게 유지!
       if (word === 'lived') { matchedRole = 'Verb_Past'; translatedWord = getKoreanConjugation('살다', 'past'); } 
       if (word === 'here') { 
@@ -783,6 +837,16 @@ export async function POST(request: Request) {
     let selectedForm = null;
     for (const rule of FORM_RULES) {
       const isMatch = rule.requiredRoles.every(reqRole => detectedRoles.includes(reqRole));
+    // 아래 두번 Enter 후에 paste
+
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 1 절대 방어선 👇👇
+      if (rule.type === '2형식_영한_가주어진주어_예문1' && detectedRoles.includes('EK2E1_Is') && detectedRoles.includes('EK2E1_GetUp')) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 1형식 예문 2 절대 방어선 👇👇
+      if (rule.type === '1형식_영한_예문2' && detectedRoles.includes('EK1E2_HadToWork') && detectedRoles.includes('EK1E2_Living')) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 1형식 예문 1 절대 방어선 👇👇
+      if (rule.type === '1형식_영한_예문1' && detectedRoles.includes('EK1E1_Works') && detectedRoles.includes('EK1E1_Father')) { selectedForm = rule; break; }      
       if (rule.type === '1형식_무의지동사_결과_장소' && detectedRoles.includes('To_Infinitive_Result') && detectedRoles.includes('Location') && detectedRoles.includes('Verb_Infinitive')) { selectedForm = rule; break; } 
       if (rule.type === '1형식_무의지동사_결과_목적어' && detectedRoles.includes('To_Infinitive_Result') && detectedRoles.includes('Infinitive_Object') && detectedRoles.includes('Adverb_End')) { selectedForm = rule; break; } 
       if (rule.type === '1형식_무의지동사_결과' && detectedRoles.includes('To_Infinitive_Result') && detectedRoles.includes('Complement')) { selectedForm = rule; break; } 
@@ -923,4 +987,4 @@ export async function POST(request: Request) {
     console.error('영한 RBMT 엔진 에러:', error);
     return NextResponse.json({ ok: false, error: '서버 에러가 발생했습니다.' }, { status: 500 });
   }
-}
+} // 👈💡 [수프로 엣지] POST 함수를 닫는 이 마지막 괄호를 꼭 추가해 주세요!

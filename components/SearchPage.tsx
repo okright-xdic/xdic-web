@@ -404,7 +404,7 @@ export default function SearchPage({
                       </div>
                       <p className="text-xl md:text-2xl font-bold text-slate-900 leading-snug pl-1">"{aiTranslation}"</p>
                       
-                      {aiAnalysis && aiAnalysis.length > 0 && (
+                      {/*aiAnalysis && aiAnalysis.length > 0 && (
                         <div className="mt-5 pl-1">
                           <p className="text-[12px] font-bold text-slate-500 mb-2">🔍 문장 구조 분석 (한글 ➔ 영어 매칭)</p>
                           <div className="flex flex-wrap gap-2">
@@ -418,6 +418,7 @@ export default function SearchPage({
                           </div>
                         </div>
                       )}
+		      */}
 
                       <p className="text-[12px] md:text-[13px] text-blue-600/80 mt-4 pl-1 font-medium">엑스딕이 추천하는 전문가 번역 데이터 중 가장 자연스러운 문장입니다.</p>
                     </div>
