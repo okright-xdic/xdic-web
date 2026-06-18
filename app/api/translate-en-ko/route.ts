@@ -252,6 +252,20 @@ const FORM_RULES = [
   { type: '2형식_영한_가주어진주어_예문7', requiredRoles: ['EK2E7_Is', 'EK2E7_Teach', 'EK2E7_Make'], koreanOrder: ['EK2E7_Many1', 'EK2E7_Youths1', 'EK2E7_True', 'EK2E7_Subjects', 'EK2E7_Teach', 'EK2E7_And', 'EK2E7_Them', 'EK2E7_Great', 'EK2E7_Youths2', 'EK2E7_Make', 'EK2E7_To2', 'EK2E7_Our', 'EK2E7_Task', 'EK2E7_Is'] },
   // 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 1 전용 완벽 조립 레일
   { type: '3형식_영한_목적어구_예문1', requiredRoles: ['EK3E1_I', 'EK3E1_Want', 'EK3E1_Rest'], koreanOrder: ['EK3E1_I', 'EK3E1_House', 'EK3E1_In', 'EK3E1_Rest', 'EK3E1_To', 'EK3E1_Want'] },
+  // 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 2 전용 완벽 조립 레일
+  { type: '3형식_영한_목적어구_예문2', requiredRoles: ['EK3E2_I', 'EK3E2_Want', 'EK3E2_Know'], koreanOrder: ['EK3E2_I', 'EK3E2_Animals', 'EK3E2_And', 'EK3E2_Plants', 'EK3E2_About', 'EK3E2_Know', 'EK3E2_To', 'EK3E2_Want'] },
+  // 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 3 전용 완벽 조립 레일
+  { type: '3형식_영한_목적어구_예문3', requiredRoles: ['EK3E3_Boy', 'EK3E3_Wanted', 'EK3E3_Become'], koreanOrder: ['EK3E3_The', 'EK3E3_Bright', 'EK3E3_Boy', 'EK3E3_Future', 'EK3E3_In', 'EK3E3_Scientist', 'EK3E3_Become', 'EK3E3_To', 'EK3E3_Wanted'] },
+  // 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 4 전용 완벽 조립 레일
+  { type: '3형식_영한_목적어구_예문4', requiredRoles: ['EK3E4_She', 'EK3E4_Decided', 'EK3E4_Dye'], koreanOrder: ['EK3E4_She', 'EK3E4_The', 'EK3E4_Petals', 'EK3E4_With', 'EK3E4_Fingernails', 'EK3E4_Dye', 'EK3E4_To', 'EK3E4_Decided'] },
+  // 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 5 전용 완벽 조립 레일
+  { type: '3형식_영한_목적어구_예문5', requiredRoles: ['EK3E5_She', 'EK3E5_Liked', 'EK3E5_Tell'], koreanOrder: ['EK3E5_She', 'EK3E5_Tourists', 'EK3E5_Greece', 'EK3E5_Of', 'EK3E5_History', 'EK3E5_And', 'EK3E5_Culture', 'EK3E5_Tell', 'EK3E5_To', 'EK3E5_Liked'] },
+  // 💡 [수프로 엣지] 영한 <목적어구/2형식> 예문 6 전용 완벽 조립 레일
+  { type: '3형식_영한_목적어구_예문6', requiredRoles: ['EK3E6_Wrong', 'EK3E6_Want', 'EK3E6_Leave'], koreanOrder: ['EK3E6_You', 'EK3E6_Much', 'EK3E6_Wealth', 'EK3E6_Leave', 'EK3E6_To2', 'EK3E6_Want', 'EK3E6_To1', 'EK3E6_Wrong', 'EK3E6_Is'] },
+  // 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 7 전용 완벽 조립 레일
+  { type: '3형식_영한_목적어구_예문7', requiredRoles: ['EK3E7_Greeks', 'EK3E7_Liked', 'EK3E7_Make'], koreanOrder: ['EK3E7_Greeks', 'EK3E7_Their', 'EK3E7_Bodies', 'EK3E7_Gymnasium', 'EK3E7_Of', 'EK3E7_Exercises', 'EK3E7_With', 'EK3E7_Strong', 'EK3E7_Make', 'EK3E7_To', 'EK3E7_Liked'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 보충어구 예문 1 전용 완벽 조립 레일
+  { type: '2형식_영한_보충어구_예문1', requiredRoles: ['EK2C1_Plan', 'EK2C1_Is', 'EK2C1_Go'], koreanOrder: ['EK2C1_My', 'EK2C1_Plan', 'EK2C1_This', 'EK2C1_Weekend', 'EK2C1_On', 'EK2C1_Her', 'EK2C1_With', 'EK2C1_Museum', 'EK2C1_To2', 'EK2C1_Go', 'EK2C1_To1', 'EK2C1_Is'] },
 ];
 
 // const FORM_RULES = [ 여기 위에 Enter 후에 paste
@@ -301,6 +315,20 @@ export async function POST(request: Request) {
 // 여기 아래에 Enter 후 paste
     let processedText = originalText.toLowerCase()
       
+      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 보충어구 예문 1 (대소문자 무시 방어망) 👇👇
+      .replace(/(^|\s)my\s*plan\s*is\s*to\s*go\s*to\s*the\s*museum\s*with\s*her\s*on\s*this\s*weekend\.?(?!\w)/gi, '$1EK2C1_My_Tk EK2C1_Plan_Tk EK2C1_Is_Tk EK2C1_To1_Tk EK2C1_Go_Tk EK2C1_To2_Tk EK2C1_Museum_Tk EK2C1_With_Tk EK2C1_Her_Tk EK2C1_On_Tk EK2C1_This_Tk EK2C1_Weekend_Tk ')
+      // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 7 (대소문자 무시 방어망) 👇👇
+      .replace(/(^|\s)the\s*ancient\s*greeks\s*liked\s*to\s*make\s*their\s*bodies\s*strong\s*with\s*exercises\s*of\s*gymnasium\.?(?!\w)/gi, '$1EK3E7_Greeks_Tk EK3E7_Liked_Tk EK3E7_To_Tk EK3E7_Make_Tk EK3E7_Their_Tk EK3E7_Bodies_Tk EK3E7_Strong_Tk EK3E7_With_Tk EK3E7_Exercises_Tk EK3E7_Of_Tk EK3E7_Gymnasium_Tk ')
+      // 👇👇 💡 [수프로 엣지] 영한 <목적어구/2형식> 예문 6 (대소문자 무시 방어망) 👇👇
+      .replace(/(^|\s)it\s*is\s*wrong\s*to\s*want\s*to\s*leave\s*you\s*much\s*wealth\.?(?!\w)/gi, '$1EK3E6_It_Tk EK3E6_Is_Tk EK3E6_Wrong_Tk EK3E6_To1_Tk EK3E6_Want_Tk EK3E6_To2_Tk EK3E6_Leave_Tk EK3E6_You_Tk EK3E6_Much_Tk EK3E6_Wealth_Tk ')
+      // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 5 (대소문자 무시 방어망) 👇👇
+      .replace(/(^|\s)she\s*liked\s*to\s*tell\s*tourists\s*the\s*history\s*and\s*culture\s*of\s*greece\.?(?!\w)/gi, '$1EK3E5_She_Tk EK3E5_Liked_Tk EK3E5_To_Tk EK3E5_Tell_Tk EK3E5_Tourists_Tk EK3E5_History_Tk EK3E5_And_Tk EK3E5_Culture_Tk EK3E5_Of_Tk EK3E5_Greece_Tk ')
+      // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 4 (대소문자 무시 방어망) 👇👇
+      .replace(/(^|\s)she\s*decided\s*to\s*dye\s*her\s*fingernails\s*with\s*the\s*petals\.?(?!\w)/gi, '$1EK3E4_She_Tk EK3E4_Decided_Tk EK3E4_To_Tk EK3E4_Dye_Tk EK3E4_Fingernails_Tk EK3E4_With_Tk EK3E4_The_Tk EK3E4_Petals_Tk ')
+      // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 3 (대소문자 무시 방어망) 👇👇
+      .replace(/(^|\s)the\s*bright\s*boy\s*wanted\s*to\s*become\s*a\s*great\s*scientist\s*in\s*the\s*future\.?(?!\w)/gi, '$1EK3E3_The_Tk EK3E3_Bright_Tk EK3E3_Boy_Tk EK3E3_Wanted_Tk EK3E3_To_Tk EK3E3_Become_Tk EK3E3_Scientist_Tk EK3E3_In_Tk EK3E3_Future_Tk ')
+      // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 2 (대소문자 무시 방어망) 👇👇
+      .replace(/(^|\s)i\s*want\s*to\s*know\s*about\s*animals\s*and\s*plants\.?(?!\w)/gi, '$1EK3E2_I_Tk EK3E2_Want_Tk EK3E2_To_Tk EK3E2_Know_Tk EK3E2_About_Tk EK3E2_Animals_Tk EK3E2_And_Tk EK3E2_Plants_Tk ')
       // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 1 (대소문자 무시 방어망) 👇👇
       .replace(/(^|\s)i\s*want\s*to\s*rest\s*in\s*the\s*house\.?(?!\w)/gi, '$1EK3E1_I_Tk EK3E1_Want_Tk EK3E1_To_Tk EK3E1_Rest_Tk EK3E1_In_Tk EK3E1_House_Tk ')
       // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 7 (하이픈 및 괄호 완벽 방어망) 👇👇
@@ -660,6 +688,88 @@ export async function POST(request: Request) {
 
       // if (word == 여기 아래에 Enter 두번 후 paste
 
+      // 💡 영한 <2형식> 보충어구 예문 1 (표시 오류 원천 차단)
+      if (word.includes('EK2C1_My_Tk')) { matchedRole = 'EK2C1_My'; translatedWord = '나의'; displayEn = 'My'; }
+      if (word.includes('EK2C1_Plan_Tk')) { matchedRole = 'EK2C1_Plan'; translatedWord = '계획은'; displayEn = 'plan'; }
+      if (word.includes('EK2C1_Is_Tk')) { matchedRole = 'EK2C1_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('EK2C1_To1_Tk')) { matchedRole = 'EK2C1_To1'; translatedWord = '것'; displayEn = 'to'; }
+      if (word.includes('EK2C1_Go_Tk')) { matchedRole = 'EK2C1_Go'; translatedWord = '가다'; displayEn = 'go'; }
+      if (word.includes('EK2C1_To2_Tk')) { matchedRole = 'EK2C1_To2'; translatedWord = '에'; displayEn = 'to'; }
+      if (word.includes('EK2C1_Museum_Tk')) { matchedRole = 'EK2C1_Museum'; translatedWord = '박물관'; displayEn = 'the museum'; }
+      if (word.includes('EK2C1_With_Tk')) { matchedRole = 'EK2C1_With'; translatedWord = '와함께'; displayEn = 'with'; }
+      if (word.includes('EK2C1_Her_Tk')) { matchedRole = 'EK2C1_Her'; translatedWord = '그녀'; displayEn = 'her'; }
+      if (word.includes('EK2C1_On_Tk')) { matchedRole = 'EK2C1_On'; translatedWord = '에'; displayEn = 'on'; }
+      if (word.includes('EK2C1_This_Tk')) { matchedRole = 'EK2C1_This'; translatedWord = '이번'; displayEn = 'this'; }
+      if (word.includes('EK2C1_Weekend_Tk')) { matchedRole = 'EK2C1_Weekend'; translatedWord = '주말'; displayEn = 'weekend'; }
+      
+      // 💡 영한 <3형식> 목적어구 예문 7 (표시 오류 원천 차단)
+      if (word.includes('EK3E7_Greeks_Tk')) { matchedRole = 'EK3E7_Greeks'; translatedWord = '고대 그리스인들은'; displayEn = 'The ancient Greeks'; }
+      if (word.includes('EK3E7_Liked_Tk')) { matchedRole = 'EK3E7_Liked'; translatedWord = '좋아했다'; displayEn = 'liked'; }
+      if (word.includes('EK3E7_To_Tk')) { matchedRole = 'EK3E7_To'; translatedWord = '기를'; displayEn = 'to'; }
+      if (word.includes('EK3E7_Make_Tk')) { matchedRole = 'EK3E7_Make'; translatedWord = '하다'; displayEn = 'make'; }
+      if (word.includes('EK3E7_Their_Tk')) { matchedRole = 'EK3E7_Their'; translatedWord = '그들의'; displayEn = 'their'; }
+      if (word.includes('EK3E7_Bodies_Tk')) { matchedRole = 'EK3E7_Bodies'; translatedWord = '몸을'; displayEn = 'bodies'; }
+      if (word.includes('EK3E7_Strong_Tk')) { matchedRole = 'EK3E7_Strong'; translatedWord = '튼튼하게'; displayEn = 'strong'; }
+      if (word.includes('EK3E7_With_Tk')) { matchedRole = 'EK3E7_With'; translatedWord = '으로'; displayEn = 'with'; }
+      if (word.includes('EK3E7_Exercises_Tk')) { matchedRole = 'EK3E7_Exercises'; translatedWord = '운동'; displayEn = 'exercises'; }
+      if (word.includes('EK3E7_Of_Tk')) { matchedRole = 'EK3E7_Of'; translatedWord = '의'; displayEn = 'of'; }
+      if (word.includes('EK3E7_Gymnasium_Tk')) { matchedRole = 'EK3E7_Gymnasium'; translatedWord = '연무장'; displayEn = 'gymnasium'; }
+      
+      // 💡 영한 <목적어구/2형식> 예문 6 (표시 오류 원천 차단)
+      if (word.includes('EK3E6_It_Tk')) { matchedRole = 'EK3E6_It'; translatedWord = ''; displayEn = 'It'; } // 가주어 해석 안 함
+      if (word.includes('EK3E6_Is_Tk')) { matchedRole = 'EK3E6_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('EK3E6_Wrong_Tk')) { matchedRole = 'EK3E6_Wrong'; translatedWord = '잘못'; displayEn = 'wrong'; }
+      if (word.includes('EK3E6_To1_Tk')) { matchedRole = 'EK3E6_To1'; translatedWord = '것은'; displayEn = 'to'; }
+      if (word.includes('EK3E6_Want_Tk')) { matchedRole = 'EK3E6_Want'; translatedWord = '바라다'; displayEn = 'want'; }
+      if (word.includes('EK3E6_To2_Tk')) { matchedRole = 'EK3E6_To2'; translatedWord = '기를'; displayEn = 'to'; }
+      if (word.includes('EK3E6_Leave_Tk')) { matchedRole = 'EK3E6_Leave'; translatedWord = '남겨주다'; displayEn = 'leave'; }
+      if (word.includes('EK3E6_You_Tk')) { matchedRole = 'EK3E6_You'; translatedWord = '너희들에게'; displayEn = 'you'; }
+      if (word.includes('EK3E6_Much_Tk')) { matchedRole = 'EK3E6_Much'; translatedWord = '많은'; displayEn = 'much'; }
+      if (word.includes('EK3E6_Wealth_Tk')) { matchedRole = 'EK3E6_Wealth'; translatedWord = '부를'; displayEn = 'wealth'; }
+      
+      // 💡 영한 <3형식> 목적어구 예문 5 (표시 오류 원천 차단)
+      if (word.includes('EK3E5_She_Tk')) { matchedRole = 'EK3E5_She'; translatedWord = '그녀는'; displayEn = 'She'; }
+      if (word.includes('EK3E5_Liked_Tk')) { matchedRole = 'EK3E5_Liked'; translatedWord = '좋아했다'; displayEn = 'liked'; }
+      if (word.includes('EK3E5_To_Tk')) { matchedRole = 'EK3E5_To'; translatedWord = '기를'; displayEn = 'to'; }
+      if (word.includes('EK3E5_Tell_Tk')) { matchedRole = 'EK3E5_Tell'; translatedWord = '말해주다'; displayEn = 'tell'; }
+      if (word.includes('EK3E5_Tourists_Tk')) { matchedRole = 'EK3E5_Tourists'; translatedWord = '관광객들에게'; displayEn = 'tourists'; }
+      if (word.includes('EK3E5_History_Tk')) { matchedRole = 'EK3E5_History'; translatedWord = '역사'; displayEn = 'the history'; }
+      if (word.includes('EK3E5_And_Tk')) { matchedRole = 'EK3E5_And'; translatedWord = '와'; displayEn = 'and'; }
+      if (word.includes('EK3E5_Culture_Tk')) { matchedRole = 'EK3E5_Culture'; translatedWord = '문화를'; displayEn = 'culture'; }
+      if (word.includes('EK3E5_Of_Tk')) { matchedRole = 'EK3E5_Of'; translatedWord = '의'; displayEn = 'of'; }
+      if (word.includes('EK3E5_Greece_Tk')) { matchedRole = 'EK3E5_Greece'; translatedWord = '그리스'; displayEn = 'Greece'; }
+      
+      // 💡 영한 <3형식> 목적어구 예문 4 (표시 오류 원천 차단 + '그녀의' 복원 완료)
+      if (word.includes('EK3E4_She_Tk')) { matchedRole = 'EK3E4_She'; translatedWord = '그녀는'; displayEn = 'She'; }
+      if (word.includes('EK3E4_Decided_Tk')) { matchedRole = 'EK3E4_Decided'; translatedWord = '결심했다'; displayEn = 'decided'; }
+      if (word.includes('EK3E4_To_Tk')) { matchedRole = 'EK3E4_To'; translatedWord = '기로'; displayEn = 'to'; }
+      if (word.includes('EK3E4_Dye_Tk')) { matchedRole = 'EK3E4_Dye'; translatedWord = '물들이다'; displayEn = 'dye'; }
+      if (word.includes('EK3E4_Fingernails_Tk')) { matchedRole = 'EK3E4_Fingernails'; translatedWord = '그녀의 손톱을'; displayEn = 'her fingernails'; } // 👈💡 '그녀의' 완벽 복구!
+      if (word.includes('EK3E4_With_Tk')) { matchedRole = 'EK3E4_With'; translatedWord = '로'; displayEn = 'with'; }
+      if (word.includes('EK3E4_The_Tk')) { matchedRole = 'EK3E4_The'; translatedWord = '그'; displayEn = 'the'; }
+      if (word.includes('EK3E4_Petals_Tk')) { matchedRole = 'EK3E4_Petals'; translatedWord = '꽃잎들'; displayEn = 'petals'; }
+      
+      // 💡 영한 <3형식> 목적어구 예문 3 (표시 오류 원천 차단)
+      if (word.includes('EK3E3_The_Tk')) { matchedRole = 'EK3E3_The'; translatedWord = '그'; displayEn = 'The'; }
+      if (word.includes('EK3E3_Bright_Tk')) { matchedRole = 'EK3E3_Bright'; translatedWord = '총명한'; displayEn = 'bright'; }
+      if (word.includes('EK3E3_Boy_Tk')) { matchedRole = 'EK3E3_Boy'; translatedWord = '소년은'; displayEn = 'boy'; }
+      if (word.includes('EK3E3_Wanted_Tk')) { matchedRole = 'EK3E3_Wanted'; translatedWord = '원했다'; displayEn = 'wanted'; }
+      if (word.includes('EK3E3_To_Tk')) { matchedRole = 'EK3E3_To'; translatedWord = '기를'; displayEn = 'to'; }
+      if (word.includes('EK3E3_Become_Tk')) { matchedRole = 'EK3E3_Become'; translatedWord = '되다'; displayEn = 'become'; }
+      if (word.includes('EK3E3_Scientist_Tk')) { matchedRole = 'EK3E3_Scientist'; translatedWord = '위대한 과학자가'; displayEn = 'a great scientist'; }
+      if (word.includes('EK3E3_In_Tk')) { matchedRole = 'EK3E3_In'; translatedWord = '에'; displayEn = 'in'; }
+      if (word.includes('EK3E3_Future_Tk')) { matchedRole = 'EK3E3_Future'; translatedWord = '미래'; displayEn = 'the future'; }
+      
+      // 💡 영한 <3형식> 목적어구 예문 2 (표시 오류 원천 차단)
+      if (word.includes('EK3E2_I_Tk')) { matchedRole = 'EK3E2_I'; translatedWord = '나는'; displayEn = 'I'; }
+      if (word.includes('EK3E2_Want_Tk')) { matchedRole = 'EK3E2_Want'; translatedWord = '원한다'; displayEn = 'want'; }
+      if (word.includes('EK3E2_To_Tk')) { matchedRole = 'EK3E2_To'; translatedWord = '기를'; displayEn = 'to'; }
+      if (word.includes('EK3E2_Know_Tk')) { matchedRole = 'EK3E2_Know'; translatedWord = '알다'; displayEn = 'know'; }
+      if (word.includes('EK3E2_About_Tk')) { matchedRole = 'EK3E2_About'; translatedWord = '에 대해서'; displayEn = 'about'; }
+      if (word.includes('EK3E2_Animals_Tk')) { matchedRole = 'EK3E2_Animals'; translatedWord = '동물'; displayEn = 'animals'; }
+      if (word.includes('EK3E2_And_Tk')) { matchedRole = 'EK3E2_And'; translatedWord = '과'; displayEn = 'and'; }
+      if (word.includes('EK3E2_Plants_Tk')) { matchedRole = 'EK3E2_Plants'; translatedWord = '식물'; displayEn = 'plants'; }
+      
       // 💡 영한 <3형식> 목적어구 예문 1 (표시 오류 원천 차단)
       if (word.includes('EK3E1_I_Tk')) { matchedRole = 'EK3E1_I'; translatedWord = '나는'; displayEn = 'I'; }
       if (word.includes('EK3E1_Want_Tk')) { matchedRole = 'EK3E1_Want'; translatedWord = '원한다'; displayEn = 'want'; }
@@ -961,6 +1071,27 @@ export async function POST(request: Request) {
       const isMatch = rule.requiredRoles.every(reqRole => detectedRoles.includes(reqRole));
     // 아래 두번 Enter 후에 paste
 
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 보충어구 예문 1 절대 방어선 👇👇
+      if (rule.type === '2형식_영한_보충어구_예문1' && detectedRoles.includes('EK2C1_Plan') && detectedRoles.includes('EK2C1_Go')) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 7 절대 방어선 👇👇
+      if (rule.type === '3형식_영한_목적어구_예문7' && detectedRoles.includes('EK3E7_Liked') && detectedRoles.includes('EK3E7_Make')) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 목적어구 예문 6 절대 방어선 👇👇
+      if (rule.type === '3형식_영한_목적어구_예문6' && detectedRoles.includes('EK3E6_Want') && detectedRoles.includes('EK3E6_Leave')) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 5 절대 방어선 👇👇
+      if (rule.type === '3형식_영한_목적어구_예문5' && detectedRoles.includes('EK3E5_Liked') && detectedRoles.includes('EK3E5_Tell')) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 4 절대 방어선 👇👇
+      if (rule.type === '3형식_영한_목적어구_예문4' && detectedRoles.includes('EK3E4_Decided') && detectedRoles.includes('EK3E4_Dye')) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 3 절대 방어선 👇👇
+      if (rule.type === '3형식_영한_목적어구_예문3' && detectedRoles.includes('EK3E3_Wanted') && detectedRoles.includes('EK3E3_Become')) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 2 절대 방어선 👇👇
+      if (rule.type === '3형식_영한_목적어구_예문2' && detectedRoles.includes('EK3E2_Want') && detectedRoles.includes('EK3E2_Know')) { selectedForm = rule; break; }
+      
       // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 1 절대 방어선 👇👇
       if (rule.type === '3형식_영한_목적어구_예문1' && detectedRoles.includes('EK3E1_Want') && detectedRoles.includes('EK3E1_Rest')) { selectedForm = rule; break; }
       
@@ -1041,6 +1172,34 @@ export async function POST(request: Request) {
     }
     let finalTranslation = finalKoreanWords.join(' ')
 // 여기 아래에 Enter 후 paste
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 보충어구 예문 1 띄어쓰기 및 어미 완벽 보정 (수정) 👇👇
+      .replace(/주말\s*에/g, '주말에')
+      .replace(/그녀\s*와함께/g, '그녀와 함께')
+      .replace(/박물관\s*에/g, '박물관에')
+      .replace(/가다\s*것/g, '가는 것')
+      .replace(/것\s*이다/g, '것이다')
+      // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 7 띄어쓰기 및 어미 완벽 보정 👇👇
+      .replace(/연무장\s*의/g, '연무장의')
+      .replace(/운동\s*으로/g, '운동으로')
+      .replace(/튼튼하게\s*하다\s*기를/g, '튼튼하게 하기를')
+      // 👇👇 💡 [수프로 엣지] 영한 목적어구 예문 6 띄어쓰기 및 어미 완벽 보정 👇👇
+      .replace(/남겨주다\s*기를/g, '남겨 주기를')
+      .replace(/바라다\s*것은/g, '바라는 것은')
+      .replace(/잘못\s*이다/g, '잘못이다')
+      // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 5 띄어쓰기 및 어미 완벽 보정 👇👇
+      .replace(/역사\s*와/g, '역사와')
+      .replace(/그리스\s*의/g, '그리스의')
+      .replace(/말해주다\s*기를/g, '말해주기를')
+      // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 4 띄어쓰기 및 어미 완벽 보정 👇👇
+      .replace(/꽃잎들\s*로/g, '꽃잎들로')
+      .replace(/물들이다\s*기로/g, '물들이기로')
+      // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 3 띄어쓰기 및 어미 완벽 보정 👇👇
+      .replace(/미래\s*에/g, '미래에')
+      .replace(/되다\s*기를/g, '되기를')
+      // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 2 띄어쓰기 및 어미 완벽 보정 👇👇
+      .replace(/동물\s*과/g, '동물과')
+      .replace(/식물\s*에\s*대해서/g, '식물에 대해서')
+      .replace(/알다\s*기를/g, '알기를')
       // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 1 띄어쓰기 및 어미 완벽 보정 👇👇
       .replace(/집\s*에서/g, '집에서')
       .replace(/쉬다\s*기를/g, '쉬기를')
