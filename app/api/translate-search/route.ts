@@ -312,16 +312,179 @@ const FORM_RULES = [
   // 💡 [수프로 엣지] <3형식> 예문 4 전용 조립 레일 (4단 콤보 부사 생략 및 관사 스위칭 호환)
   { type: '3형식_예문4_전용', requiredRoles: ['Subj_OldMan_F3E4', 'Verb_Planted_F3E4'], englishOrder: ['Art_An_F3E4', 'Subj_OldMan_F3E4', 'Verb_Planted_F3E4', 'Obj_ALittleTree_F3E4', 'Obj_ATree_F3E4', 'Adv_Once_F3E4'] },
 // 💡 [수프로 엣지] <3형식> 예문 5 전용 조립 레일 (5단 콤보 전치사 스위칭 호환)
-  { type: '3형식_예문5_파크_전용', requiredRoles: ['Subj_I_F3E5', 'Verb_Met_F3E5', 'Obj_Her_F3E5'], englishOrder: ['Subj_I_F3E5', 'Verb_Met_F3E5', 'Obj_Her_F3E5', 'Prep_In_F3E5', 'Noun_Park_F3E5', 'Prep_On_F3E5', 'Art_A_F3E5', 'Adj_Fine_F3E5', 'Noun_Morning_F3E5', 'Adv_InTheMorning_F3E5'] }
+  { type: '3형식_예문5_파크_전용', requiredRoles: ['Subj_I_F3E5', 'Verb_Met_F3E5', 'Obj_Her_F3E5'], englishOrder: ['Subj_I_F3E5', 'Verb_Met_F3E5', 'Obj_Her_F3E5', 'Prep_In_F3E5', 'Noun_Park_F3E5', 'Prep_On_F3E5', 'Art_A_F3E5', 'Adj_Fine_F3E5', 'Noun_Morning_F3E5', 'Adv_InTheMorning_F3E5'] },
+  // 💡 [수프로 엣지] <3형식> 예문 6 전용 완벽 조립 레일 (devote A to B 구조)
+  { type: '3형식_예문6_전용', requiredRoles: ['Subj_He_F3E6', 'Verb_Devoted_F3E6', 'Obj_Life_F3E6'], englishOrder: ['Subj_He_F3E6', 'Verb_Devoted_F3E6', 'Mod_His_F3E6', 'Obj_Life_F3E6', 'Prep_To_F3E6', 'Obj_Welfare_F3E6', 'Prep_Of_F3E6', 'Obj_Mankind_F3E6'] },
+  // 💡 [수프로 엣지] <3형식> 예문 7 전용 완벽 조립 레일
+  { type: '3형식_예문7_전용', requiredRoles: ['Subj_He_F3E7', 'Verb_CannotHear_F3E7', 'Obj_Cries_F3E7'], englishOrder: ['Subj_He_F3E7', 'Verb_CannotHear_F3E7', 'Mod_Animals_F3E7', 'Obj_Cries_F3E7', 'Prep_In_F3E7', 'Mod_His_F3E7', 'Noun_House_F3E7'] },
+    // 💡 [수프로 엣지] <3형식> 예문 8 전용 완벽 조립 레일 (이순신 장군 철갑선)
+  { type: '3형식_예문8_전용', requiredRoles: ['Subj_Adm_F3E8', 'Verb_Defeated_F3E8', 'Obj_Invaders_F3E8'], englishOrder: ['Subj_Adm_F3E8', 'Verb_Defeated_F3E8', 'Mod_Powerful_F3E8', 'Obj_Invaders_F3E8', 'Prep_In_F3E8', 'Noun_SouthShore_F3E8', 'Prep_Of_F3E8', 'Noun_Korea_F3E8', 'Prep_With_F3E8', 'Mod_First_F3E8', 'Noun_Ships_F3E8'] },
+  // 💡 [수프로 엣지] <가주어_진주어> 예문 9 전용 완벽 조립 레일
+  { type: '가주어_예문9_전용', requiredRoles: ['Dummy_It_F3E9', 'Verb_Is_F3E9', 'Comp_True_F3E9', 'To_Inf_F3E9', 'Verb_Defeat_F3E9', 'Obj_Invaders_F3E9'], englishOrder: ['Dummy_It_F3E9', 'Verb_Is_F3E9', 'Comp_True_F3E9', 'To_Inf_F3E9', 'Verb_Defeat_F3E9', 'Mod_Powerful_F3E9', 'Obj_Invaders_F3E9', 'Prep_In_F3E9', 'Noun_SouthShore_F3E9', 'Prep_Of_F3E9', 'Noun_Korea_F3E9', 'Prep_With_F3E9', 'Mod_First_F3E9', 'Noun_Ships_F3E9', 'Prep_InHistory_F3E9', 'Noun_History_F3E9'] },
+  // 💡 [수프로 엣지] <3형식> 예문 10 전용 완벽 조립 레일
+  { type: '3형식_예문10_전용', requiredRoles: ['Subj_Woman_F3E10', 'Verb_Felt_F3E10', 'Obj_Hair_F3E10'], englishOrder: ['Art_The_F3E10', 'Mod_Stern_F3E10', 'Subj_Woman_F3E10', 'Verb_Felt_F3E10', 'Mod_Girls_F3E10', 'Mod_Brown_F3E10', 'Obj_Hair_F3E10', 'Prep_With_F3E10', 'Mod_Her_F3E10', 'Mod_Experienced_F3E10', 'Noun_Hand_F3E10'] },
+  // 💡 [수프로 엣지] <3형식> 예문 11 전용 완벽 조립 레일
+  { type: '3형식_예문11_전용', requiredRoles: ['Subj_OldMan_F3E11', 'Verb_Lived_F3E11', 'Obj_HappyLife_F3E11'], englishOrder: ['Art_The_F3E11', 'Subj_OldMan_F3E11', 'Verb_Lived_F3E11', 'Obj_HappyLife_F3E11', 'Prep_In_F3E11', 'Noun_QuietCountry_F3E11', 'Prep_With_F3E11', 'Mod_His_F3E11', 'Noun_Family_F3E11'] },
+  // 💡 [수프로 엣지] <3형식> 예문 12 전용 완벽 조립 레일
+  { type: '3형식_예문12_전용', requiredRoles: ['Subj_Boys_F3E12', 'Verb_Play_F3E12', 'Obj_Games_F3E12'], englishOrder: ['Mod_Many_F3E12', 'Subj_Boys_F3E12', 'Verb_Play_F3E12', 'Obj_Games_F3E12', 'Prep_In_F3E12', 'Noun_Field_F3E12', 'Prep_Near_F3E12', 'Noun_Stadium_F3E12', 'Prep_On_F3E12', 'Mod_Sunday_F3E12', 'Noun_Morning_F3E12'] },
+  // 💡 [수프로 엣지] <3형식> 예문 13 전용 완벽 조립 레일
+  { type: '3형식_예문13_전용', requiredRoles: ['Subj_They_F3E13', 'Verb_Discussed_F3E13', 'Obj_Plan_F3E13'], englishOrder: ['Subj_They_F3E13', 'Verb_Discussed_F3E13', 'Obj_Plan_F3E13', 'Prep_For_F3E13', 'Mod_Their1_F3E13', 'Noun_Winter_F3E13', 'Noun_Vacation_F3E13', 'Prep_With_F3E13', 'Mod_Their2_F3E13', 'Noun_Friends_F3E13'] },
+  // 💡 [수프로 엣지] <3형식> 예문 14 전용 완벽 조립 레일
+  { type: '3형식_예문14_전용', requiredRoles: ['Subj_Einstein_F3E14', 'Verb_Developed_F3E14', 'Obj_Theory_F3E14'], englishOrder: ['Subj_Einstein_F3E14', 'Verb_Developed_F3E14', 'Mod_His_F3E14', 'Obj_Theory_F3E14', 'Prep_Through_F3E14', 'Mod_Deep_F3E14', 'Noun_Thought_F3E14', 'Conj_And_F3E14', 'Mod_Complex_F3E14', 'Mod_Mathematical_F3E14', 'Noun_Reasoning_F3E14'] },
+  // 💡 [수프로 엣지] <3형식> 예문 15 전용 완벽 조립 레일 (간디 초대형 명언)
+  { type: '3형식_예문15_전용', requiredRoles: ['Subj_Gandhi_F3E15', 'Verb_Said_F3E15', 'Subj_India_F3E15'], englishOrder: ['Subj_Gandhi_F3E15', 'Adv_Once_F3E15', 'Verb_Said_F3E15', 'Conj_That1_F3E15', 'Subj_India_F3E15', 'Verb_WouldAttain_F3E15', 'Mod_Complete_F3E15', 'Obj_Independence_F3E15', 'Conj_When_F3E15', 'Subj_Masses_F3E15', 'Verb_Feel_F3E15', 'Conj_ThatThey1_F3E15', 'Verb_CanImprove_F3E15', 'Mod_Their1_F3E15', 'Obj_Lot_F3E15', 'Prep_By_F3E15', 'Mod_TheirOwn_F3E15', 'Noun_Effort_F3E15', 'Conj_And_F3E15', 'Conj_ThatThey2_F3E15', 'Verb_CanShape_F3E15', 'Mod_Their3_F3E15', 'Obj_Destiny_F3E15', 'Noun_TheWay_F3E15', 'Pron_TheyLike_F3E15'] },
+  // 💡 [수프로 엣지] <4형식> 예문 1 전용 완벽 조립 레일
+  { type: '4형식_예문1_전용', requiredRoles: ['Subj_Girl_F4E1', 'Verb_Bought_F4E1', 'IO_Friend_F4E1', 'DO_Doll_F4E1'], englishOrder: ['Art_The_F4E1', 'Mod_GoodNatured_F4E1', 'Subj_Girl_F4E1', 'Verb_Bought_F4E1', 'Mod_Her_F4E1', 'IO_Friend_F4E1', 'DO_Doll_F4E1'] },
+  // 💡 [수프로 엣지] <4형식> 예문 2 전용 완벽 조립 레일
+  { type: '4형식_예문2_전용', requiredRoles: ['Subj_Uncle_F4E2', 'Verb_Made_F4E2', 'DO_ToyShip_F4E2'], englishOrder: ['Mod_My_F4E2', 'Subj_Uncle_F4E2', 'Verb_Made_F4E2', 'IO_Me_F4E2', 'DO_ToyShip_F4E2'] },
+  // 💡 [수프로 엣지] <4형식> 예문 3 전용 완벽 조립 레일
+  { type: '4형식_예문3_전용', requiredRoles: ['Subj_We_F4E3', 'Verb_Lent_F4E3', 'IO_Citizens_F4E3', 'DO_Books_F4E3'], englishOrder: ['Subj_We_F4E3', 'Verb_Lent_F4E3', 'IO_Citizens_F4E3', 'Mod_Many_F4E3', 'DO_Books_F4E3', 'Prep_During_F4E3', 'Mod_This_F4E3', 'Noun_ReadingWeek_F4E3'] },
+  // 💡 [수프로 엣지] <4형식> 예문 4 전용 완벽 조립 레일
+  { type: '4형식_예문4_전용', requiredRoles: ['Subj_Friend_F4E4', 'Verb_Sent_F4E4', 'IO_Me_F4E4', 'DO_Postcard_F4E4'], englishOrder: ['Mod_My_F4E4', 'Subj_Friend_F4E4', 'Prep_In_F4E4', 'Noun_London_F4E4', 'Verb_Sent_F4E4', 'IO_Me_F4E4', 'DO_Postcard_F4E4'] },
+  // 💡 [수프로 엣지] <4형식> 예문 5 전용 완벽 조립 레일
+  { type: '4형식_예문5_전용', requiredRoles: ['Subj_Carpenter_F4E5', 'Verb_Built_F4E5', 'IO_Citizens_F4E5'], englishOrder: ['Art_The_F4E5', 'Mod_Charitable_F4E5', 'Subj_Carpenter_F4E5', 'Verb_Built_F4E5', 'Mod_Poor_F4E5', 'IO_Citizens_F4E5', 'Prep_Without_F4E5', 'Mod_TheHouses_F4E5', 'DO_GrandHouses_F4E5', 'Prep_In_F4E5', 'Noun_Valley_F4E5'] },
+  // 💡 [수프로 엣지] <5형식> 예문 1 전용 완벽 조립 레일
+  { type: '5형식_예문1_전용', requiredRoles: ['Subj_I_F5E1', 'Verb_Think_F5E1', 'Obj_Him_F5E1', 'OC_Boy_F5E1'], englishOrder: ['Subj_I_F5E1', 'Verb_Think_F5E1', 'Obj_Him_F5E1', 'OC_Boy_F5E1'] },
+  // 💡 [수프로 엣지] <5형식> 예문 2 전용 완벽 조립 레일
+  { type: '5형식_예문2_전용', requiredRoles: ['Subj_Romans_F5E2', 'Verb_Called_F5E2', 'Obj_Gov_F5E2', 'OC_Republic_F5E2'], englishOrder: ['Subj_Romans_F5E2', 'Verb_Called_F5E2', 'Mod_This_F5E2', 'Mod_New_F5E2', 'Obj_Gov_F5E2', 'Prep_Without_F5E2', 'Noun_King_F5E2', 'OC_Republic_F5E2'] },
+  // 💡 [수프로 엣지] <5형식> 예문 3 전용 완벽 조립 레일
+  { type: '5형식_예문3_전용', requiredRoles: ['Subj_We_F5E3', 'Verb_Keep_F5E3', 'Obj_Lakes_F5E3', 'OC_Clean_F5E3'], englishOrder: ['Subj_We_F5E3', 'Verb_Keep_F5E3', 'Obj_Rivers_F5E3', 'Conj_And_F5E3', 'Obj_Lakes_F5E3', 'OC_Clean_F5E3', 'Prep_For_F5E3', 'Mod_All_F5E3', 'Noun_Creatures_F5E3'] },
+  // 💡 [수프로 엣지] <5형식> 예문 4 전용 완벽 조립 레일
+  { type: '5형식_예문4_전용', requiredRoles: ['Subj_People_F5E4', 'Verb_Consider_F5E4', 'Obj_Sejong_F5E4', 'OC_King_F5E4'], englishOrder: ['Mod_Many_F5E4', 'Subj_People_F5E4', 'Verb_Consider_F5E4', 'Obj_Sejong_F5E4', 'Mod_Our_F5E4', 'Mod_Greatest_F5E4', 'OC_King_F5E4'] },
+  // 💡 [수프로 엣지] <5형식> 예문 5 전용 완벽 조립 레일 (한영 RBMT 최종판!)
+  { type: '5형식_예문5_전용', requiredRoles: ['Subj_Science_F5E5', 'Verb_Made_F5E5', 'Obj_Life_F5E5'], englishOrder: ['Mod_Modern_F5E5', 'Subj_Science_F5E5', 'Verb_Made_F5E5', 'Obj_Life_F5E5', 'OC_Easier_F5E5', 'Conj_And_F5E5', 'OC_MoreComfortable_F5E5', 'Prep_In_F5E5', 'Noun_ManyWays_F5E5'] },
   ];
 
-// const FORM_RULES = [ 여기 위에 이전 콤마(,) 삽입 후 Enter 두번 후에 paste
+// const FORM_RULES = [ 여기 위에 Enter 후에 paste
 
 // =========================================================================
 // 💡 [수프로 엣지] 대용량 조립 분석 전용 1차 공장 (POST 함수 바깥에 위치!)
 // =========================================================================
 function applyTranslationReplaceRules(text: string): string {
   return text
+
+// 여기 아래에 Enter 두번 후 paste
+
+      // 👇👇 💡 [수프로 엣지] <5형식> 예문 5 (다중 생략 및 '하였다' 완벽 방어망) 👇👇
+      .replace(/(^|\s)(현대|현대의)\s*과학은\s*삶을\s*여러\s*면에서\s*더\s*쉽고\s*더\s*편하게\s*(했다|하였다)\.?(?!\w)/g, '$1F5E5_Modern_Tk F5E5_Science_Tk F5E5_Life_Tk F5E5_In_Tk F5E5_ManyWays_Tk F5E5_Easier_Tk F5E5_And_Tk F5E5_MoreComfortable_Tk F5E5_Made_Tk ')
+      .replace(/(^|\s)(현대|현대의)\s*과학은\s*삶을\s*여러\s*면에서\s*더\s*편하게\s*(했다|하였다)\.?(?!\w)/g, '$1F5E5_Modern_Tk F5E5_Science_Tk F5E5_Life_Tk F5E5_In_Tk F5E5_ManyWays_Tk F5E5_MoreComfortable_Tk F5E5_Made_Tk ')
+      .replace(/(^|\s)(현대|현대의)\s*과학은\s*삶을\s*더\s*쉽고\s*더\s*편하게\s*(했다|하였다)\.?(?!\w)/g, '$1F5E5_Modern_Tk F5E5_Science_Tk F5E5_Life_Tk F5E5_Easier_Tk F5E5_And_Tk F5E5_MoreComfortable_Tk F5E5_Made_Tk ')
+      .replace(/(^|\s)(현대|현대의)\s*과학은\s*삶을\s*더\s*편하게\s*(했다|하였다)\.?(?!\w)/g, '$1F5E5_Modern_Tk F5E5_Science_Tk F5E5_Life_Tk F5E5_MoreComfortable_Tk F5E5_Made_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] <5형식> 예문 4 (다중 생략 완벽 방어망) 👇👇
+      .replace(/(^|\s)많은\s*사람들이\s*세종대왕을\s*우리의\s*가장\s*위대한\s*왕이라고\s*생각한다\.?(?!\w)/g, '$1F5E4_Many_Tk F5E4_People_Tk F5E4_Sejong_Tk F5E4_Our_Tk F5E4_Greatest_Tk F5E4_King_Tk F5E4_Consider_Tk ')
+      .replace(/(^|\s)사람들이\s*세종대왕을\s*우리의\s*가장\s*위대한\s*왕이라고\s*생각한다\.?(?!\w)/g, '$1F5E4_People_Tk F5E4_Sejong_Tk F5E4_Our_Tk F5E4_Greatest_Tk F5E4_King_Tk F5E4_Consider_Tk ')
+      .replace(/(^|\s)사람들이\s*세종대왕을\s*우리의\s*위대한\s*왕이라고\s*생각한다\.?(?!\w)/g, '$1F5E4_People_Tk F5E4_Sejong_Tk F5E4_Our_Tk F5E4_Great_Tk F5E4_King_Tk F5E4_Consider_Tk ')
+      .replace(/(^|\s)많은\s*사람들이\s*세종대왕을\s*가장\s*위대한\s*왕이라고\s*생각한다\.?(?!\w)/g, '$1F5E4_Many_Tk F5E4_People_Tk F5E4_Sejong_Tk F5E4_Greatest_Tk F5E4_King_Tk F5E4_Consider_Tk ')
+      .replace(/(^|\s)사람들이\s*세종대왕을\s*왕이라고\s*생각한다\.?(?!\w)/g, '$1F5E4_People_Tk F5E4_Sejong_Tk F5E4_AKing_Tk F5E4_Consider_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] <5형식> 예문 3 (다중 생략 완벽 방어망) 👇👇
+      .replace(/(^|\s)우리는\s*모든\s*생물들을\s*위해\s*강과\s*호수를\s*깨끗하게\s*해야\s*한다\.?(?!\w)/g, '$1F5E3_We_Tk F5E3_All_Tk F5E3_Creatures_Tk F5E3_For_Tk F5E3_Rivers_Tk F5E3_And_Tk F5E3_Lakes_Tk F5E3_Clean_Tk F5E3_Keep_Tk ')
+      .replace(/(^|\s)우리는\s*생물들을\s*위해\s*강과\s*호수를\s*깨끗하게\s*해야\s*한다\.?(?!\w)/g, '$1F5E3_We_Tk F5E3_Creatures_Tk F5E3_For_Tk F5E3_Rivers_Tk F5E3_And_Tk F5E3_Lakes_Tk F5E3_Clean_Tk F5E3_Keep_Tk ')
+      .replace(/(^|\s)우리는\s*강과\s*호수를\s*깨끗하게\s*해야\s*한다\.?(?!\w)/g, '$1F5E3_We_Tk F5E3_Rivers_Tk F5E3_And_Tk F5E3_Lakes_Tk F5E3_Clean_Tk F5E3_Keep_Tk ')
+      .replace(/(^|\s)우리는\s*모든\s*생물들을\s*위해\s*호수를\s*깨끗하게\s*해야\s*한다\.?(?!\w)/g, '$1F5E3_We_Tk F5E3_All_Tk F5E3_Creatures_Tk F5E3_For_Tk F5E3_Lakes_Tk F5E3_Clean_Tk F5E3_Keep_Tk ')
+      .replace(/(^|\s)우리는\s*호수를\s*깨끗하게\s*해야\s*한다\.?(?!\w)/g, '$1F5E3_We_Tk F5E3_Lakes_Tk F5E3_Clean_Tk F5E3_Keep_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] <5형식> 예문 2 (다중 생략 및 '부르었다' 완벽 방어망) 👇👇
+      .replace(/(^|\s)로마인들은\s*왕이\s*없는\s*이\s*새로운\s*정부를\s*공화국이라고\s*(불렀다|부르었다)\.?(?!\w)/g, '$1F5E2_Romans_Tk F5E2_King_Tk F5E2_Without_Tk F5E2_This_Tk F5E2_New_Tk F5E2_Gov_Tk F5E2_Republic_Tk F5E2_Called_Tk ')
+      .replace(/(^|\s)로마인들은\s*이\s*새로운\s*정부를\s*공화국이라고\s*(불렀다|부르었다)\.?(?!\w)/g, '$1F5E2_Romans_Tk F5E2_This_Tk F5E2_New_Tk F5E2_Gov_Tk F5E2_Republic_Tk F5E2_Called_Tk ')
+      .replace(/(^|\s)로마인들은\s*왕이\s*없는\s*이\s*정부를\s*공화국이라고\s*(불렀다|부르었다)\.?(?!\w)/g, '$1F5E2_Romans_Tk F5E2_King_Tk F5E2_Without_Tk F5E2_This_Tk F5E2_Gov_Tk F5E2_Republic_Tk F5E2_Called_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] <5형식> 예문 1 (생략 완벽 방어망) 👇👇
+      .replace(/(^|\s)나는\s*그를\s*정직한\s*소년으로\s*생각한다\.?(?!\w)/g, '$1F5E1_I_Tk F5E1_Think_Tk F5E1_Him_Tk F5E1_HonestBoy_Tk ')
+      .replace(/(^|\s)나는\s*그를\s*소년으로\s*생각한다\.?(?!\w)/g, '$1F5E1_I_Tk F5E1_Think_Tk F5E1_Him_Tk F5E1_ABoy_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] <4형식> 예문 5 (다중 생략 완벽 방어망) 👇👇
+      .replace(/(^|\s)그\s*인자한\s*목수는\s*집\s*없는\s*가련한\s*시민들에게\s*조용한\s*계곡에다\s*큰\s*집을\s*(지어주었다|지어\s*주었다)\.?(?!\w)/g, '$1F4E5_The_Tk F4E5_Charitable_Tk F4E5_Carpenter_Tk F4E5_Without_Tk F4E5_TheHouses_Tk F4E5_Poor_Tk F4E5_Citizens_Tk F4E5_In_Tk F4E5_SilentValley_Tk F4E5_GrandHouses_Tk F4E5_Built_Tk ')
+      .replace(/(^|\s)그\s*인자한\s*목수는\s*가련한\s*시민들에게\s*조용한\s*계곡에다\s*큰\s*집을\s*(지어주었다|지어\s*주었다)\.?(?!\w)/g, '$1F4E5_The_Tk F4E5_Charitable_Tk F4E5_Carpenter_Tk F4E5_Poor_Tk F4E5_Citizens_Tk F4E5_In_Tk F4E5_SilentValley_Tk F4E5_GrandHouses_Tk F4E5_Built_Tk ')
+      .replace(/(^|\s)그\s*인자한\s*목수는\s*집\s*없는\s*가련한\s*시민들에게\s*계곡에다\s*집을\s*(지어주었다|지어\s*주었다)\.?(?!\w)/g, '$1F4E5_The_Tk F4E5_Charitable_Tk F4E5_Carpenter_Tk F4E5_Without_Tk F4E5_TheHouses_Tk F4E5_Poor_Tk F4E5_Citizens_Tk F4E5_In_Tk F4E5_Valley_Tk F4E5_Houses_Tk F4E5_Built_Tk ')
+      .replace(/(^|\s)그\s*목수는\s*집\s*없는\s*시민들에게\s*조용한\s*계곡에다\s*집을\s*(지어주었다|지어\s*주었다)\.?(?!\w)/g, '$1F4E5_The_Tk F4E5_Carpenter_Tk F4E5_Without_Tk F4E5_TheHouses_Tk F4E5_The_IO_Tk F4E5_Citizens_Tk F4E5_In_Tk F4E5_SilentValley_Tk F4E5_Houses_Tk F4E5_Built_Tk ')
+      .replace(/(^|\s)그\s*목수는\s*가련한\s*시민들에게\s*계곡에다\s*집을\s*(지어주었다|지어\s*주었다)\.?(?!\w)/g, '$1F4E5_The_Tk F4E5_Carpenter_Tk F4E5_Poor_Tk F4E5_Citizens_Tk F4E5_In_Tk F4E5_Valley_Tk F4E5_Houses_Tk F4E5_Built_Tk ')
+      .replace(/(^|\s)그\s*목수는\s*시민들에게\s*집을\s*(지어주었다|지어\s*주었다)\.?(?!\w)/g, '$1F4E5_The_Tk F4E5_Carpenter_Tk F4E5_The_IO_Tk F4E5_Citizens_Tk F4E5_Houses_Tk F4E5_Built_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] <4형식> 예문 4 (다중 생략 및 "보낸다주었다" 오타 완벽 방어망) 👇👇
+      .replace(/(^|\s)런던에\s*있는\s*내\s*친구가\s*나에게\s*예쁜\s*그림\s*엽서를\s*(보내주었다|보내\s*주었다|보낸다주었다)\.?(?!\w)/g, '$1F4E4_My_Tk F4E4_Friend_Tk F4E4_In_Tk F4E4_London_Tk F4E4_Me_Tk F4E4_PrettyPostcard_Tk F4E4_Sent_Tk ')
+      .replace(/(^|\s)런던에\s*있는\s*내\s*친구가\s*나에게\s*그림\s*엽서를\s*(보내주었다|보내\s*주었다|보낸다주었다)\.?(?!\w)/g, '$1F4E4_My_Tk F4E4_Friend_Tk F4E4_In_Tk F4E4_London_Tk F4E4_Me_Tk F4E4_APostcard_Tk F4E4_Sent_Tk ')
+      .replace(/(^|\s)내\s*친구가\s*나에게\s*예쁜\s*그림\s*엽서를\s*(보내주었다|보내\s*주었다|보낸다주었다)\.?(?!\w)/g, '$1F4E4_My_Tk F4E4_Friend_Tk F4E4_Me_Tk F4E4_PrettyPostcard_Tk F4E4_Sent_Tk ')
+      .replace(/(^|\s)내\s*친구가\s*나에게\s*그림\s*엽서를\s*(보내주었다|보내\s*주었다|보낸다주었다)\.?(?!\w)/g, '$1F4E4_My_Tk F4E4_Friend_Tk F4E4_Me_Tk F4E4_APostcard_Tk F4E4_Sent_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] <4형식> 예문 3 (다중 생략 및 "빌린다주었다" 오타 완벽 방어망) 👇👇
+      .replace(/(^|\s)우리는\s*이번\s*독서\s*주간에\s*시민들에게\s*많은\s*책을\s*(빌려주었다|빌려\s*주었다|빌린다주었다)\.?(?!\w)/g, '$1F4E3_We_Tk F4E3_During_Tk F4E3_This_Tk F4E3_ReadingWeek_Tk F4E3_Citizens_Tk F4E3_Many_Tk F4E3_Books_Tk F4E3_Lent_Tk ')
+      .replace(/(^|\s)우리는\s*독서\s*주간에\s*시민들에게\s*많은\s*책을\s*(빌려주었다|빌려\s*주었다|빌린다주었다)\.?(?!\w)/g, '$1F4E3_We_Tk F4E3_During_Tk F4E3_ReadingWeek_Tk F4E3_Citizens_Tk F4E3_Many_Tk F4E3_Books_Tk F4E3_Lent_Tk ')
+      .replace(/(^|\s)우리는\s*이번\s*독서\s*주간에\s*시민들에게\s*책을\s*(빌려주었다|빌려\s*주었다|빌린다주었다)\.?(?!\w)/g, '$1F4E3_We_Tk F4E3_During_Tk F4E3_This_Tk F4E3_ReadingWeek_Tk F4E3_Citizens_Tk F4E3_Books_Tk F4E3_Lent_Tk ')
+      .replace(/(^|\s)우리는\s*시민들에게\s*많은\s*책을\s*(빌려주었다|빌려\s*주었다|빌린다주었다)\.?(?!\w)/g, '$1F4E3_We_Tk F4E3_Citizens_Tk F4E3_Many_Tk F4E3_Books_Tk F4E3_Lent_Tk ')
+      .replace(/(^|\s)우리는\s*시민들에게\s*책을\s*(빌려주었다|빌려\s*주었다|빌린다주었다)\.?(?!\w)/g, '$1F4E3_We_Tk F4E3_Citizens_Tk F4E3_Books_Tk F4E3_Lent_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] <4형식> 예문 2 (다중 생략 및 "주시었다" 완벽 방어망) 👇👇
+      .replace(/(^|\s)나의\s*아저씨가\s*나에게\s*예쁜\s*장난감-배를\s*(만들어\s*주셨다|만들어\s*주시었다)\.?(?!\w)/g, '$1F4E2_My_Tk F4E2_Uncle_Tk F4E2_Me_Tk F4E2_PrettyToyShip_Tk F4E2_Made_Tk ')
+      .replace(/(^|\s)나의\s*아저씨가\s*나에게\s*장난감-배를\s*(만들어\s*주셨다|만들어\s*주시었다)\.?(?!\w)/g, '$1F4E2_My_Tk F4E2_Uncle_Tk F4E2_Me_Tk F4E2_AToyShip_Tk F4E2_Made_Tk ')
+      .replace(/(^|\s)나의\s*아저씨가\s*예쁜\s*장난감-배를\s*(만들어\s*주셨다|만들어\s*주시었다)\.?(?!\w)/g, '$1F4E2_My_Tk F4E2_Uncle_Tk F4E2_PrettyToyShip_Tk F4E2_Made_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] <4형식> 예문 1 (다중 생략 및 띄어쓰기 방어망) 👇👇
+      .replace(/(^|\s)그\s*착한\s*소녀는\s*그녀의\s*친구에게\s*예쁜\s*인형을\s*사\s*주었다\.?(?!\w)/g, '$1F4E1_The_Tk F4E1_GoodNatured_Tk F4E1_Girl_Tk F4E1_Her_Tk F4E1_Friend_Tk F4E1_PrettyDoll_Tk F4E1_Bought_Tk ')
+      .replace(/(^|\s)그\s*소녀는\s*그녀의\s*친구에게\s*예쁜\s*인형을\s*사\s*주었다\.?(?!\w)/g, '$1F4E1_The_Tk F4E1_Girl_Tk F4E1_Her_Tk F4E1_Friend_Tk F4E1_PrettyDoll_Tk F4E1_Bought_Tk ')
+      .replace(/(^|\s)그\s*소녀는\s*그녀의\s*친구에게\s*인형을\s*사\s*주었다\.?(?!\w)/g, '$1F4E1_The_Tk F4E1_Girl_Tk F4E1_Her_Tk F4E1_Friend_Tk F4E1_ADoll_Tk F4E1_Bought_Tk ')
+      .replace(/(^|\s)그\s*착한\s*소녀는\s*그녀의\s*친구에게\s*예쁜\s*인형을\s*사주었다\.?(?!\w)/g, '$1F4E1_The_Tk F4E1_GoodNatured_Tk F4E1_Girl_Tk F4E1_Her_Tk F4E1_Friend_Tk F4E1_PrettyDoll_Tk F4E1_Bought_Tk ')
+      .replace(/(^|\s)그\s*소녀는\s*그녀의\s*친구에게\s*예쁜\s*인형을\s*사주었다\.?(?!\w)/g, '$1F4E1_The_Tk F4E1_Girl_Tk F4E1_Her_Tk F4E1_Friend_Tk F4E1_PrettyDoll_Tk F4E1_Bought_Tk ')
+      .replace(/(^|\s)그\s*소녀는\s*그녀의\s*친구에게\s*인형을\s*사주었다\.?(?!\w)/g, '$1F4E1_The_Tk F4E1_Girl_Tk F4E1_Her_Tk F4E1_Friend_Tk F4E1_ADoll_Tk F4E1_Bought_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] <3형식> 예문 15 (마하트마 간디 초대형 문장 방어망) 👇👇
+      .replace(/(^|\s)마하트마\s*간디는\s*일반\s*대중들이\s*그들은\s*자기들\s*자신이\s*노력으로\s*자기의\s*운명을\s*향상시킬\s*수\s*있고\s*그들은\s*자기들이\s*좋아하는\s*방법으로\s*자기의\s*운명을\s*형성할\s*수\s*있다고\s*느낄\s*때\s*인도는\s*완전한\s*독립을\s*달성할\s*수\s*있을\s*것이라고\s*옛날에\s*(말했다|말하였다)\.?(?!\w)/g, '$1F3E15_Gandhi_Tk F3E15_Once_Tk F3E15_Said_Tk F3E15_That1_Tk F3E15_India_Tk F3E15_WouldAttain_Tk F3E15_Complete_Tk F3E15_Independence_Tk F3E15_When_Tk F3E15_Masses_Tk F3E15_Feel_Tk F3E15_ThatThey1_Tk F3E15_CanImprove_Tk F3E15_Their1_Tk F3E15_Lot_Tk F3E15_By_Tk F3E15_TheirOwn_Tk F3E15_Effort_Tk F3E15_And_Tk F3E15_ThatThey2_Tk F3E15_CanShape_Tk F3E15_Their3_Tk F3E15_Destiny_Tk F3E15_TheWay_Tk F3E15_TheyLike_Tk ')
+      .replace(/(^|\s)마하트마\s*간디는\s*일반\s*대중들이\s*그들은\s*자기들\s*자신이\s*노력으로\s*자기의\s*운명을\s*향상시킬\s*수\s*있고\s*그들은\s*자기들이\s*좋아하는\s*방법으로\s*자기의\s*운명을\s*형성할\s*수\s*있다고\s*느낄\s*때\s*인도는\s*독립을\s*달성할\s*수\s*있을\s*것이라고\s*(말했다|말하였다)\.?(?!\w)/g, '$1F3E15_Gandhi_Tk F3E15_Said_Tk F3E15_That1_Tk F3E15_India_Tk F3E15_WouldAttain_Tk F3E15_Independence_Tk F3E15_When_Tk F3E15_Masses_Tk F3E15_Feel_Tk F3E15_ThatThey1_Tk F3E15_CanImprove_Tk F3E15_Their1_Tk F3E15_Lot_Tk F3E15_By_Tk F3E15_TheirOwn_Tk F3E15_Effort_Tk F3E15_And_Tk F3E15_ThatThey2_Tk F3E15_CanShape_Tk F3E15_Their3_Tk F3E15_Destiny_Tk F3E15_TheWay_Tk F3E15_TheyLike_Tk ')
+      .replace(/(^|\s)마하트마\s*간디는\s*대중들이\s*그들은\s*자기들\s*자신이\s*노력으로\s*자기의\s*운명을\s*향상시킬\s*수\s*있고\s*그들은\s*자기들이\s*좋아하는\s*방법으로\s*자기의\s*운명을\s*형성할\s*수\s*있다고\s*느낄\s*때\s*인도는\s*완전한\s*독립을\s*달성할\s*수\s*있을\s*것이라고\s*옛날에\s*(말했다|말하였다)\.?(?!\w)/g, '$1F3E15_Gandhi_Tk F3E15_Once_Tk F3E15_Said_Tk F3E15_That1_Tk F3E15_India_Tk F3E15_WouldAttain_Tk F3E15_Complete_Tk F3E15_Independence_Tk F3E15_When_Tk F3E15_Masses_Tk F3E15_Feel_Tk F3E15_ThatThey1_Tk F3E15_CanImprove_Tk F3E15_Their1_Tk F3E15_Lot_Tk F3E15_By_Tk F3E15_TheirOwn_Tk F3E15_Effort_Tk F3E15_And_Tk F3E15_ThatThey2_Tk F3E15_CanShape_Tk F3E15_Their3_Tk F3E15_Destiny_Tk F3E15_TheWay_Tk F3E15_TheyLike_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] <3형식> 예문 14 (다중 생략 및 띄어쓰기 오류 방어망) 👇👇
+      .replace(/(^|\s)아인슈타인은\s*깊은\s*사고와\s*복잡한\s*수학적\s*추리를\s*통해(서)?\s*그의\s*이론을\s*(발전시켰다|발전시키었다)\.?(?!\w)/g, '$1F3E14_Einstein_Tk F3E14_Deep_Tk F3E14_Thought_Tk F3E14_And_Tk F3E14_Complex_Tk F3E14_Math_Tk F3E14_Reasoning_Tk F3E14_Through_Tk F3E14_His_Tk F3E14_Theory_Tk F3E14_Developed_Tk ')
+      .replace(/(^|\s)아인슈타인은\s*사고와\s*수학적\s*추리를\s*통해(서)?\s*그의\s*이론을\s*(발전시켰다|발전시키었다)\.?(?!\w)/g, '$1F3E14_Einstein_Tk F3E14_Thought_Tk F3E14_And_Tk F3E14_Math_Tk F3E14_Reasoning_Tk F3E14_Through_Tk F3E14_His_Tk F3E14_Theory_Tk F3E14_Developed_Tk ')
+      .replace(/(^|\s)아인슈타인은\s*깊은\s*사고와\s*추리를\s*통해(서)?\s*그의\s*이론을\s*(발전시켰다|발전시키었다)\.?(?!\w)/g, '$1F3E14_Einstein_Tk F3E14_Deep_Tk F3E14_Thought_Tk F3E14_And_Tk F3E14_Reasoning_Tk F3E14_Through_Tk F3E14_His_Tk F3E14_Theory_Tk F3E14_Developed_Tk ')
+      .replace(/(^|\s)아인슈타인은\s*수학적\s*추리를\s*통해(서)?\s*그의\s*이론을\s*(발전시켰다|발전시키었다)\.?(?!\w)/g, '$1F3E14_Einstein_Tk F3E14_Math_Tk F3E14_Reasoning_Tk F3E14_Through_Tk F3E14_His_Tk F3E14_Theory_Tk F3E14_Developed_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] <3형식> 예문 13 (다중 생략 방어망) 👇👇
+      .replace(/(^|\s)그들은\s*자기\s*친구들과\s*함께\s*그들의\s*겨울\s*방학에\s*대한\s*계획을\s*(의논했다|의논하였다)\.?(?!\w)/g, '$1F3E13_They_Tk F3E13_Their2_Tk F3E13_Friends_Tk F3E13_With_Tk F3E13_Their1_Tk F3E13_Winter_Tk F3E13_Vacation_Tk F3E13_For_Tk F3E13_Plan_Tk F3E13_Discussed_Tk ')
+      .replace(/(^|\s)그들은\s*자기\s*친구들과\s*함께\s*그들의\s*계획을\s*(의논했다|의논하였다)\.?(?!\w)/g, '$1F3E13_They_Tk F3E13_Their2_Tk F3E13_Friends_Tk F3E13_With_Tk F3E13_TheirPlan_Tk F3E13_Discussed_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] <3형식> 예문 12 (다중 생략 방어망) 👇👇
+      .replace(/(^|\s)많은\s*소년들이\s*일요일\s*아침에\s*학교\s*근처에\s*있는\s*운동장에서\s*경기를\s*한다\.?(?!\w)/g, '$1F3E12_Many_Tk F3E12_Boys_Tk F3E12_On_Tk F3E12_Sunday_Tk F3E12_Morning_Tk F3E12_Near_Tk F3E12_Stadium_Tk F3E12_In_Tk F3E12_Field_Tk F3E12_Play_Tk F3E12_Games_Tk ')
+      .replace(/(^|\s)소년들이\s*일요일\s*아침에\s*학교\s*근처에\s*있는\s*운동장에서\s*경기를\s*한다\.?(?!\w)/g, '$1F3E12_Boys_Tk F3E12_On_Tk F3E12_Sunday_Tk F3E12_Morning_Tk F3E12_Near_Tk F3E12_Stadium_Tk F3E12_In_Tk F3E12_Field_Tk F3E12_Play_Tk F3E12_Games_Tk ')
+      .replace(/(^|\s)소년들이\s*아침에\s*학교\s*근처에\s*있는\s*운동장에서\s*경기를\s*한다\.?(?!\w)/g, '$1F3E12_Boys_Tk F3E12_In_Morning_Tk F3E12_Morning_Tk F3E12_Near_Tk F3E12_Stadium_Tk F3E12_In_Tk F3E12_Field_Tk F3E12_Play_Tk F3E12_Games_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] <3형식> 예문 11 (다중 생략 방어망) 👇👇
+      .replace(/(^|\s)그\s*노인은\s*조용한\s*시골에서\s*그의\s*가족과\s*함께\s*행복한\s*삶을\s*(살았다|살았습니다)\.?(?!\w)/g, '$1F3E11_The_Tk F3E11_OldMan_Tk F3E11_In_Tk F3E11_QuietCountry_Tk F3E11_With_Tk F3E11_His_Tk F3E11_Family_Tk F3E11_HappyLife_Tk F3E11_Lived_Tk ')
+      .replace(/(^|\s)그\s*노인은\s*시골에서\s*그의\s*가족과\s*함께\s*행복한\s*삶을\s*(살았다|살았습니다)\.?(?!\w)/g, '$1F3E11_The_Tk F3E11_OldMan_Tk F3E11_In_Tk F3E11_Country_Tk F3E11_With_Tk F3E11_His_Tk F3E11_Family_Tk F3E11_HappyLife_Tk F3E11_Lived_Tk ')
+      .replace(/(^|\s)그\s*노인은\s*그의\s*가족과\s*함께\s*행복한\s*삶을\s*(살았다|살았습니다)\.?(?!\w)/g, '$1F3E11_The_Tk F3E11_OldMan_Tk F3E11_With_Tk F3E11_His_Tk F3E11_Family_Tk F3E11_HappyLife_Tk F3E11_Lived_Tk ')
+      .replace(/(^|\s)그\s*노인은\s*조용한\s*시골에서\s*삶을\s*(살았다|살았습니다)\.?(?!\w)/g, '$1F3E11_The_Tk F3E11_OldMan_Tk F3E11_In_Tk F3E11_QuietCountry_Tk F3E11_Life_Tk F3E11_Lived_Tk ')
+      .replace(/(^|\s)그\s*노인은\s*그의\s*가족과\s*함께\s*삶을\s*(살았다|살았습니다)\.?(?!\w)/g, '$1F3E11_The_Tk F3E11_OldMan_Tk F3E11_With_Tk F3E11_His_Tk F3E11_Family_Tk F3E11_Life_Tk F3E11_Lived_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] <3형식> 예문 10 (다중 생략 방어망) 👇👇
+      .replace(/(^|\s)그\s*근엄한\s*부인은\s*그녀의\s*능숙한\s*손으로\s*소녀의\s*갈색\s*머리를\s*(만지었다|만졌다)\.?(?!\w)/g, '$1F3E10_The_Tk F3E10_Stern_Tk F3E10_Woman_Tk F3E10_With_Tk F3E10_Her_Tk F3E10_Experienced_Tk F3E10_Hand_Tk F3E10_Girls_Tk F3E10_Brown_Tk F3E10_Hair_Tk F3E10_Felt_Tk ')
+      .replace(/(^|\s)그\s*부인은\s*그녀의\s*능숙한\s*손으로\s*소녀의\s*갈색\s*머리를\s*(만지었다|만졌다)\.?(?!\w)/g, '$1F3E10_The_Tk F3E10_Woman_Tk F3E10_With_Tk F3E10_Her_Tk F3E10_Experienced_Tk F3E10_Hand_Tk F3E10_Girls_Tk F3E10_Brown_Tk F3E10_Hair_Tk F3E10_Felt_Tk ')
+      .replace(/(^|\s)그\s*근엄한\s*부인은\s*그녀의\s*손으로\s*소녀의\s*갈색\s*머리를\s*(만지었다|만졌다)\.?(?!\w)/g, '$1F3E10_The_Tk F3E10_Stern_Tk F3E10_Woman_Tk F3E10_With_Tk F3E10_Her_Tk F3E10_Hand_Tk F3E10_Girls_Tk F3E10_Brown_Tk F3E10_Hair_Tk F3E10_Felt_Tk ')
+      .replace(/(^|\s)그\s*부인은\s*그녀의\s*손으로\s*소녀의\s*머리를\s*(만지었다|만졌다)\.?(?!\w)/g, '$1F3E10_The_Tk F3E10_Woman_Tk F3E10_With_Tk F3E10_Her_Tk F3E10_Hand_Tk F3E10_Girls_Tk F3E10_Hair_Tk F3E10_Felt_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] <가주어_진주어> 예문 9 (다중 생략 방어망) 👇👇
+      .replace(/(^|\s)역사상으로\s*최초의\s*철갑선으로\s*한국의\s*남해안에서\s*강력한\s*침략자를\s*물리친\s*것은\s*사실이다\.?(?!\w)/g, '$1F3E9_It_Tk F3E9_Is_Tk F3E9_True_Tk F3E9_To_Tk F3E9_Defeat_Tk F3E9_Powerful_Tk F3E9_Invaders_Tk F3E9_In_Tk F3E9_SouthShore_Tk F3E9_Of_Tk F3E9_Korea_Tk F3E9_With_Tk F3E9_First_Tk F3E9_Ships_Tk F3E9_InHistory_Tk F3E9_History_Tk ')
+      .replace(/(^|\s)최초의\s*철갑선으로\s*한국의\s*남해안에서\s*침략자를\s*물리친\s*것은\s*사실이다\.?(?!\w)/g, '$1F3E9_It_Tk F3E9_Is_Tk F3E9_True_Tk F3E9_To_Tk F3E9_Defeat_Tk F3E9_The_Tk F3E9_Invaders_Tk F3E9_In_Tk F3E9_SouthShore_Tk F3E9_Of_Tk F3E9_Korea_Tk F3E9_With_Tk F3E9_First_Tk F3E9_Ships_Tk ')
+      .replace(/(^|\s)역사상으로\s*철갑선으로\s*남해안에서\s*강력한\s*침략자를\s*물리친\s*것은\s*사실이다\.?(?!\w)/g, '$1F3E9_It_Tk F3E9_Is_Tk F3E9_True_Tk F3E9_To_Tk F3E9_Defeat_Tk F3E9_Powerful_Tk F3E9_Invaders_Tk F3E9_In_Tk F3E9_SouthShore_Tk F3E9_With_Tk F3E9_Ships_Tk F3E9_InHistory_Tk F3E9_History_Tk ')
+      .replace(/(^|\s)철갑선으로\s*남해안에서\s*침략자를\s*물리친\s*것은\s*사실이다\.?(?!\w)/g, '$1F3E9_It_Tk F3E9_Is_Tk F3E9_True_Tk F3E9_To_Tk F3E9_Defeat_Tk F3E9_The_Tk F3E9_Invaders_Tk F3E9_In_Tk F3E9_SouthShore_Tk F3E9_With_Tk F3E9_Ships_Tk ')
+      .replace(/(^|\s)철갑선으로\s*침략자를\s*물리친\s*것은\s*사실이다\.?(?!\w)/g, '$1F3E9_It_Tk F3E9_Is_Tk F3E9_True_Tk F3E9_To_Tk F3E9_Defeat_Tk F3E9_The_Tk F3E9_Invaders_Tk F3E9_With_Tk F3E9_Ships_Tk ')
+
+      // 👇👇 💡 [수프로 엣지] <3형식> 예문 8 (이순신 장군 철갑선 다중 생략 방어망) 👇👇
+      .replace(/(^|\s)이순신\s*장군은\s*최초의\s*철갑선으로\s*한국의\s*남해안에서\s*강력한\s*침략자를\s*(물리쳤다|물리치었다)\.?(?!\w)/g, '$1F3E8_Adm_Tk F3E8_With_Tk F3E8_First_Tk F3E8_Ships_Tk F3E8_In_Tk F3E8_SouthShore_Tk F3E8_Of_Tk F3E8_Korea_Tk F3E8_Powerful_Tk F3E8_Invaders_Tk F3E8_Defeated_Tk ')
+      .replace(/(^|\s)이순신\s*장군은\s*철갑선으로\s*남해안에서\s*강력한\s*침략자를\s*(물리쳤다|물리치었다)\.?(?!\w)/g, '$1F3E8_Adm_Tk F3E8_With_Tk F3E8_Ships_Tk F3E8_In_Tk F3E8_SouthShore_Tk F3E8_Powerful_Tk F3E8_Invaders_Tk F3E8_Defeated_Tk ')
+      .replace(/(^|\s)장군은\s*철갑선으로\s*남해안에서\s*침략자를\s*(물리쳤다|물리치었다)\.?(?!\w)/g, '$1F3E8_Gen_Tk F3E8_With_Tk F3E8_Ships_Tk F3E8_In_Tk F3E8_SouthShore_Tk F3E8_The_Tk F3E8_Invaders_Tk F3E8_Defeated_Tk ')
+      .replace(/(^|\s)장군은\s*남해안에서\s*침략자를\s*(물리쳤다|물리치었다)\.?(?!\w)/g, '$1F3E8_Gen_Tk F3E8_In_Tk F3E8_SouthShore_Tk F3E8_The_Tk F3E8_Invaders_Tk F3E8_Defeated_Tk ')
+      .replace(/(^|\s)장군은\s*침략자를\s*(물리쳤다|물리치었다)\.?(?!\w)/g, '$1F3E8_Gen_Tk F3E8_The_Tk F3E8_Invaders_Tk F3E8_Defeated_Tk ')
+
+      // 👇👇 💡 [수프로 엣지] <3형식> 예문 7 (다중 생략 완벽 방어망) 👇👇
+      .replace(/(^|\s)그는\s*(그의\s*)?집에서\s*동물의\s*울음소리를\s*들을\s*수\s*없었다\.?(?!\w)/g, '$1F3E7_He_Tk F3E7_In_Tk F3E7_His_Tk F3E7_House_Tk F3E7_Animals_Tk F3E7_Cries_Tk F3E7_CannotHear_Tk ')
+      .replace(/(^|\s)그는\s*(그의\s*)?집에서\s*울음소리를\s*들을\s*수\s*없었다\.?(?!\w)/g, '$1F3E7_He_Tk F3E7_In_Tk F3E7_His_Tk F3E7_House_Tk F3E7_Cries_Tk F3E7_CannotHear_Tk ')
+      // 👆👆 ======================================================= 👆👆
+      // 👇👇 💡 [수프로 엣지] <3형식> 예문 6 (devote A to B 완벽 분해 및 다중 생략 방어망) 👇👇
+      .replace(/(^|\s)그는\s*인류의\s*복지를\s*위해\s*그의\s*일생을\s*(바치었다|바쳤다)\.?(?!\w)/g, '$1F3E6_He_Tk F3E6_Mankind_Tk F3E6_Of_Tk F3E6_TheWelfare_Tk F3E6_To_Tk F3E6_His_Tk F3E6_Life_Tk F3E6_Devoted_Tk ')
+      .replace(/(^|\s)그는\s*복지를\s*위해\s*그의\s*일생을\s*(바치었다|바쳤다)\.?(?!\w)/g, '$1F3E6_He_Tk F3E6_TheWelfare_Tk F3E6_To_Tk F3E6_His_Tk F3E6_Life_Tk F3E6_Devoted_Tk ')
+      .replace(/(^|\s)그는\s*그의\s*일생을\s*(바치었다|바쳤다)\.?(?!\w)/g, '$1F3E6_He_Tk F3E6_His_Tk F3E6_Life_Tk F3E6_Devoted_Tk ')
+      .replace(/(^|\s)그는\s*일생을\s*(바치었다|바쳤다)\.?(?!\w)/g, '$1F3E6_He_Tk F3E6_Life_Tk F3E6_Devoted_Tk ')
+      // 👆👆 ======================================================= 👆👆
       // 👇 잘라내신 수백 줄의 .replace 체인을 여기에 통째로 붙여넣습니다!
       // 👇👇 💡 [수프로 엣지] <3형식> 예문 5 ('그' 증발 방어 + '어느' 스위칭 완벽 방어망!) 👇👇
       .replace(/나는\s*(그\s*)?여자를\s*(어느\s*)?맑은\s*아침에\s*공원에서\s*만났다\.?/g, ' F3E5_I_Tk F3E5_Met_Tk F3E5_Her_Tk F3E5_In_Tk F3E5_ThePark_Tk F3E5_On_Tk F3E5_A_Tk F3E5_Fine_Tk F3E5_Morning_Tk ')
@@ -1028,7 +1191,257 @@ function matchTokenRolesAndTranslations(word: string, MOCK_XDIC_DB: Record<strin
    let translatedWord = word;
    let displayEn = word;
 
-      // if (word == 여기 아래에 paste 후 Enter
+      // if (word == 여기 아래에 Enter 두번 후 paste
+
+      // <5형식> 예문 5
+      if (word.includes('F5E5_Modern_Tk')) { matchedRole = 'Mod_Modern_F5E5'; translatedWord = 'Modern '; MOCK_XDIC_DB[word] = 'Modern '; displayEn = 'Modern '; }
+      if (word.includes('F5E5_Science_Tk')) { matchedRole = 'Subj_Science_F5E5'; translatedWord = 'science '; MOCK_XDIC_DB[word] = 'science '; displayEn = 'science '; }
+      if (word.includes('F5E5_Made_Tk')) { matchedRole = 'Verb_Made_F5E5'; translatedWord = 'has made '; MOCK_XDIC_DB[word] = 'has made '; displayEn = 'has made '; }
+      if (word.includes('F5E5_Life_Tk')) { matchedRole = 'Obj_Life_F5E5'; translatedWord = 'life '; MOCK_XDIC_DB[word] = 'life '; displayEn = 'life '; }
+      if (word.includes('F5E5_Easier_Tk')) { matchedRole = 'OC_Easier_F5E5'; translatedWord = 'easier '; MOCK_XDIC_DB[word] = 'easier '; displayEn = 'easier '; }
+      if (word.includes('F5E5_And_Tk')) { matchedRole = 'Conj_And_F5E5'; translatedWord = 'and '; MOCK_XDIC_DB[word] = 'and '; displayEn = 'and '; }
+      if (word.includes('F5E5_MoreComfortable_Tk')) { matchedRole = 'OC_MoreComfortable_F5E5'; translatedWord = 'more comfortable '; MOCK_XDIC_DB[word] = 'more comfortable '; displayEn = 'more comfortable '; }
+      if (word.includes('F5E5_In_Tk')) { matchedRole = 'Prep_In_F5E5'; translatedWord = 'in '; MOCK_XDIC_DB[word] = 'in '; displayEn = 'in '; }
+      if (word.includes('F5E5_ManyWays_Tk')) { matchedRole = 'Noun_ManyWays_F5E5'; translatedWord = 'many ways'; MOCK_XDIC_DB[word] = 'many ways'; displayEn = 'many ways'; }
+      
+      // <5형식> 예문 4
+      if (word.includes('F5E4_Many_Tk')) { matchedRole = 'Mod_Many_F5E4'; translatedWord = 'Many '; MOCK_XDIC_DB[word] = 'Many '; displayEn = 'Many '; }
+      if (word.includes('F5E4_People_Tk')) { matchedRole = 'Subj_People_F5E4'; translatedWord = 'people '; MOCK_XDIC_DB[word] = 'people '; displayEn = 'people '; }
+      if (word.includes('F5E4_Consider_Tk')) { matchedRole = 'Verb_Consider_F5E4'; translatedWord = 'consider '; MOCK_XDIC_DB[word] = 'consider '; displayEn = 'consider '; }
+      if (word.includes('F5E4_Sejong_Tk')) { matchedRole = 'Obj_Sejong_F5E4'; translatedWord = 'King Sejong '; MOCK_XDIC_DB[word] = 'King Sejong '; displayEn = 'King Sejong '; }
+      if (word.includes('F5E4_Our_Tk')) { matchedRole = 'Mod_Our_F5E4'; translatedWord = 'our '; MOCK_XDIC_DB[word] = 'our '; displayEn = 'our '; }
+      if (word.includes('F5E4_Greatest_Tk')) { matchedRole = 'Mod_Greatest_F5E4'; translatedWord = 'greatest '; MOCK_XDIC_DB[word] = 'greatest '; displayEn = 'greatest '; }
+      if (word.includes('F5E4_Great_Tk')) { matchedRole = 'Mod_Greatest_F5E4'; translatedWord = 'great '; MOCK_XDIC_DB[word] = 'great '; displayEn = 'great '; } // '가장'이 생략되고 '위대한'만 있을 때 자동 변환
+      if (word.includes('F5E4_King_Tk')) { matchedRole = 'OC_King_F5E4'; translatedWord = 'king'; MOCK_XDIC_DB[word] = 'king'; displayEn = 'king'; }
+      if (word.includes('F5E4_AKing_Tk')) { matchedRole = 'OC_King_F5E4'; translatedWord = 'a king'; MOCK_XDIC_DB[word] = 'a king'; displayEn = 'a king'; } // 모든 수식어가 생략되고 '왕이라고'만 있을 때 자동 변환
+      
+      // <5형식> 예문 3
+      if (word.includes('F5E3_We_Tk')) { matchedRole = 'Subj_We_F5E3'; translatedWord = 'We '; MOCK_XDIC_DB[word] = 'We '; displayEn = 'We '; }
+      if (word.includes('F5E3_Keep_Tk')) { matchedRole = 'Verb_Keep_F5E3'; translatedWord = 'must keep '; MOCK_XDIC_DB[word] = 'must keep '; displayEn = 'must keep '; }
+      if (word.includes('F5E3_Rivers_Tk')) { matchedRole = 'Obj_Rivers_F5E3'; translatedWord = 'rivers '; MOCK_XDIC_DB[word] = 'rivers '; displayEn = 'rivers '; }
+      if (word.includes('F5E3_And_Tk')) { matchedRole = 'Conj_And_F5E3'; translatedWord = 'and '; MOCK_XDIC_DB[word] = 'and '; displayEn = 'and '; }
+      if (word.includes('F5E3_Lakes_Tk')) { matchedRole = 'Obj_Lakes_F5E3'; translatedWord = 'lakes '; MOCK_XDIC_DB[word] = 'lakes '; displayEn = 'lakes '; }
+      if (word.includes('F5E3_Clean_Tk')) { matchedRole = 'OC_Clean_F5E3'; translatedWord = 'clean '; MOCK_XDIC_DB[word] = 'clean '; displayEn = 'clean '; }
+      if (word.includes('F5E3_For_Tk')) { matchedRole = 'Prep_For_F5E3'; translatedWord = 'for '; MOCK_XDIC_DB[word] = 'for '; displayEn = 'for '; }
+      if (word.includes('F5E3_All_Tk')) { matchedRole = 'Mod_All_F5E3'; translatedWord = 'all '; MOCK_XDIC_DB[word] = 'all '; displayEn = 'all '; }
+      if (word.includes('F5E3_Creatures_Tk')) { matchedRole = 'Noun_Creatures_F5E3'; translatedWord = 'living creatures'; MOCK_XDIC_DB[word] = 'living creatures'; displayEn = 'living creatures'; }
+      
+      // <5형식> 예문 2
+      if (word.includes('F5E2_Romans_Tk')) { matchedRole = 'Subj_Romans_F5E2'; translatedWord = 'The Romans '; MOCK_XDIC_DB[word] = 'The Romans '; displayEn = 'The Romans '; }
+      if (word.includes('F5E2_Called_Tk')) { matchedRole = 'Verb_Called_F5E2'; translatedWord = 'called '; MOCK_XDIC_DB[word] = 'called '; displayEn = 'called '; }
+      if (word.includes('F5E2_This_Tk')) { matchedRole = 'Mod_This_F5E2'; translatedWord = 'this '; MOCK_XDIC_DB[word] = 'this '; displayEn = 'this '; }
+      if (word.includes('F5E2_New_Tk')) { matchedRole = 'Mod_New_F5E2'; translatedWord = 'new '; MOCK_XDIC_DB[word] = 'new '; displayEn = 'new '; }
+      if (word.includes('F5E2_Gov_Tk')) { matchedRole = 'Obj_Gov_F5E2'; translatedWord = 'government '; MOCK_XDIC_DB[word] = 'government '; displayEn = 'government '; }
+      if (word.includes('F5E2_Without_Tk')) { matchedRole = 'Prep_Without_F5E2'; translatedWord = 'without '; MOCK_XDIC_DB[word] = 'without '; displayEn = 'without '; }
+      if (word.includes('F5E2_King_Tk')) { matchedRole = 'Noun_King_F5E2'; translatedWord = 'a king '; MOCK_XDIC_DB[word] = 'a king '; displayEn = 'a king '; }
+      if (word.includes('F5E2_Republic_Tk')) { matchedRole = 'OC_Republic_F5E2'; translatedWord = 'a republic'; MOCK_XDIC_DB[word] = 'a republic'; displayEn = 'a republic'; }
+      
+      // <5형식> 예문 1
+      if (word.includes('F5E1_I_Tk')) { matchedRole = 'Subj_I_F5E1'; translatedWord = 'I '; MOCK_XDIC_DB[word] = 'I '; displayEn = 'I '; }
+      if (word.includes('F5E1_Think_Tk')) { matchedRole = 'Verb_Think_F5E1'; translatedWord = 'think '; MOCK_XDIC_DB[word] = 'think '; displayEn = 'think '; }
+      if (word.includes('F5E1_Him_Tk')) { matchedRole = 'Obj_Him_F5E1'; translatedWord = 'him '; MOCK_XDIC_DB[word] = 'him '; displayEn = 'him '; }
+      if (word.includes('F5E1_HonestBoy_Tk')) { matchedRole = 'OC_Boy_F5E1'; translatedWord = 'an honest boy'; MOCK_XDIC_DB[word] = 'an honest boy'; displayEn = 'an honest boy'; }
+      if (word.includes('F5E1_ABoy_Tk')) { matchedRole = 'OC_Boy_F5E1'; translatedWord = 'a boy'; MOCK_XDIC_DB[word] = 'a boy'; displayEn = 'a boy'; }
+      
+      // <4형식> 예문 5
+      if (word.includes('F4E5_The_Tk')) { matchedRole = 'Art_The_F4E5'; translatedWord = 'The '; MOCK_XDIC_DB[word] = 'The '; displayEn = 'The '; }
+      if (word.includes('F4E5_Charitable_Tk')) { matchedRole = 'Mod_Charitable_F4E5'; translatedWord = 'charitable '; MOCK_XDIC_DB[word] = 'charitable '; displayEn = 'charitable '; }
+      if (word.includes('F4E5_Carpenter_Tk')) { matchedRole = 'Subj_Carpenter_F4E5'; translatedWord = 'carpenter '; MOCK_XDIC_DB[word] = 'carpenter '; displayEn = 'carpenter '; }
+      if (word.includes('F4E5_Built_Tk')) { matchedRole = 'Verb_Built_F4E5'; translatedWord = 'built '; MOCK_XDIC_DB[word] = 'built '; displayEn = 'built '; }
+      if (word.includes('F4E5_Poor_Tk')) { matchedRole = 'Mod_Poor_F4E5'; translatedWord = 'the poor '; MOCK_XDIC_DB[word] = 'the poor '; displayEn = 'the poor '; }
+      if (word.includes('F4E5_The_IO_Tk')) { matchedRole = 'Mod_Poor_F4E5'; translatedWord = 'the '; MOCK_XDIC_DB[word] = 'the '; displayEn = 'the '; } // 💡 가련한이 생략될 경우 'the citizens'로 자동 보정
+      if (word.includes('F4E5_Citizens_Tk')) { matchedRole = 'IO_Citizens_F4E5'; translatedWord = 'citizens '; MOCK_XDIC_DB[word] = 'citizens '; displayEn = 'citizens '; }
+      if (word.includes('F4E5_Without_Tk')) { matchedRole = 'Prep_Without_F4E5'; translatedWord = 'without '; MOCK_XDIC_DB[word] = 'without '; displayEn = 'without '; }
+      if (word.includes('F4E5_TheHouses_Tk')) { matchedRole = 'Mod_TheHouses_F4E5'; translatedWord = 'the houses '; MOCK_XDIC_DB[word] = 'the houses '; displayEn = 'the houses '; }
+      if (word.includes('F4E5_GrandHouses_Tk')) { matchedRole = 'DO_GrandHouses_F4E5'; translatedWord = 'the grand houses '; MOCK_XDIC_DB[word] = 'the grand houses '; displayEn = 'the grand houses '; }
+      if (word.includes('F4E5_Houses_Tk')) { matchedRole = 'DO_GrandHouses_F4E5'; translatedWord = 'the houses '; MOCK_XDIC_DB[word] = 'the houses '; displayEn = 'the houses '; }
+      if (word.includes('F4E5_In_Tk')) { matchedRole = 'Prep_In_F4E5'; translatedWord = 'in '; MOCK_XDIC_DB[word] = 'in '; displayEn = 'in '; }
+      if (word.includes('F4E5_SilentValley_Tk')) { matchedRole = 'Noun_Valley_F4E5'; translatedWord = 'the silent valley'; MOCK_XDIC_DB[word] = 'the silent valley'; displayEn = 'the silent valley'; }
+      if (word.includes('F4E5_Valley_Tk')) { matchedRole = 'Noun_Valley_F4E5'; translatedWord = 'the valley'; MOCK_XDIC_DB[word] = 'the valley'; displayEn = 'the valley'; }
+      
+      // <4형식> 예문 4
+      if (word.includes('F4E4_My_Tk')) { matchedRole = 'Mod_My_F4E4'; translatedWord = 'My '; MOCK_XDIC_DB[word] = 'My '; displayEn = 'My '; }
+      if (word.includes('F4E4_Friend_Tk')) { matchedRole = 'Subj_Friend_F4E4'; translatedWord = 'friend '; MOCK_XDIC_DB[word] = 'friend '; displayEn = 'friend '; }
+      if (word.includes('F4E4_In_Tk')) { matchedRole = 'Prep_In_F4E4'; translatedWord = 'in '; MOCK_XDIC_DB[word] = 'in '; displayEn = 'in '; }
+      if (word.includes('F4E4_London_Tk')) { matchedRole = 'Noun_London_F4E4'; translatedWord = 'London '; MOCK_XDIC_DB[word] = 'London '; displayEn = 'London '; }
+      if (word.includes('F4E4_Sent_Tk')) { matchedRole = 'Verb_Sent_F4E4'; translatedWord = 'sent '; MOCK_XDIC_DB[word] = 'sent '; displayEn = 'sent '; }
+      if (word.includes('F4E4_Me_Tk')) { matchedRole = 'IO_Me_F4E4'; translatedWord = 'me '; MOCK_XDIC_DB[word] = 'me '; displayEn = 'me '; }
+      if (word.includes('F4E4_PrettyPostcard_Tk')) { matchedRole = 'DO_Postcard_F4E4'; translatedWord = 'a pretty picture postcard'; MOCK_XDIC_DB[word] = 'a pretty picture postcard'; displayEn = 'a pretty picture postcard'; }
+      if (word.includes('F4E4_APostcard_Tk')) { matchedRole = 'DO_Postcard_F4E4'; translatedWord = 'a picture postcard'; MOCK_XDIC_DB[word] = 'a picture postcard'; displayEn = 'a picture postcard'; }
+      
+      // <4형식> 예문 3
+      if (word.includes('F4E3_We_Tk')) { matchedRole = 'Subj_We_F4E3'; translatedWord = 'We '; MOCK_XDIC_DB[word] = 'We '; displayEn = 'We '; }
+      if (word.includes('F4E3_Lent_Tk')) { matchedRole = 'Verb_Lent_F4E3'; translatedWord = 'lent '; MOCK_XDIC_DB[word] = 'lent '; displayEn = 'lent '; }
+      if (word.includes('F4E3_Citizens_Tk')) { matchedRole = 'IO_Citizens_F4E3'; translatedWord = 'citizens '; MOCK_XDIC_DB[word] = 'citizens '; displayEn = 'citizens '; }
+      if (word.includes('F4E3_Many_Tk')) { matchedRole = 'Mod_Many_F4E3'; translatedWord = 'many '; MOCK_XDIC_DB[word] = 'many '; displayEn = 'many '; }
+      if (word.includes('F4E3_Books_Tk')) { matchedRole = 'DO_Books_F4E3'; translatedWord = 'books '; MOCK_XDIC_DB[word] = 'books '; displayEn = 'books '; }
+      if (word.includes('F4E3_During_Tk')) { matchedRole = 'Prep_During_F4E3'; translatedWord = 'during '; MOCK_XDIC_DB[word] = 'during '; displayEn = 'during '; }
+      if (word.includes('F4E3_This_Tk')) { matchedRole = 'Mod_This_F4E3'; translatedWord = 'this '; MOCK_XDIC_DB[word] = 'this '; displayEn = 'this '; }
+      if (word.includes('F4E3_ReadingWeek_Tk')) { matchedRole = 'Noun_ReadingWeek_F4E3'; translatedWord = 'reading week'; MOCK_XDIC_DB[word] = 'reading week'; displayEn = 'reading week'; }
+      
+      // <4형식> 예문 2
+      if (word.includes('F4E2_My_Tk')) { matchedRole = 'Mod_My_F4E2'; translatedWord = 'My '; MOCK_XDIC_DB[word] = 'My '; displayEn = 'My '; }
+      if (word.includes('F4E2_Uncle_Tk')) { matchedRole = 'Subj_Uncle_F4E2'; translatedWord = 'uncle '; MOCK_XDIC_DB[word] = 'uncle '; displayEn = 'uncle '; }
+      if (word.includes('F4E2_Made_Tk')) { matchedRole = 'Verb_Made_F4E2'; translatedWord = 'made '; MOCK_XDIC_DB[word] = 'made '; displayEn = 'made '; }
+      if (word.includes('F4E2_Me_Tk')) { matchedRole = 'IO_Me_F4E2'; translatedWord = 'me '; MOCK_XDIC_DB[word] = 'me '; displayEn = 'me '; }
+      if (word.includes('F4E2_PrettyToyShip_Tk')) { matchedRole = 'DO_ToyShip_F4E2'; translatedWord = 'a pretty toy-ship'; MOCK_XDIC_DB[word] = 'a pretty toy-ship'; displayEn = 'a pretty toy-ship'; }
+      if (word.includes('F4E2_AToyShip_Tk')) { matchedRole = 'DO_ToyShip_F4E2'; translatedWord = 'a toy-ship'; MOCK_XDIC_DB[word] = 'a toy-ship'; displayEn = 'a toy-ship'; }
+      
+      // <4형식> 예문 1
+      if (word.includes('F4E1_The_Tk')) { matchedRole = 'Art_The_F4E1'; translatedWord = 'The '; MOCK_XDIC_DB[word] = 'The '; displayEn = 'The '; }
+      if (word.includes('F4E1_GoodNatured_Tk')) { matchedRole = 'Mod_GoodNatured_F4E1'; translatedWord = 'good-natured '; MOCK_XDIC_DB[word] = 'good-natured '; displayEn = 'good-natured '; }
+      if (word.includes('F4E1_Girl_Tk')) { matchedRole = 'Subj_Girl_F4E1'; translatedWord = 'girl '; MOCK_XDIC_DB[word] = 'girl '; displayEn = 'girl '; }
+      if (word.includes('F4E1_Bought_Tk')) { matchedRole = 'Verb_Bought_F4E1'; translatedWord = 'bought '; MOCK_XDIC_DB[word] = 'bought '; displayEn = 'bought '; }
+      if (word.includes('F4E1_Her_Tk')) { matchedRole = 'Mod_Her_F4E1'; translatedWord = 'her '; MOCK_XDIC_DB[word] = 'her '; displayEn = 'her '; }
+      if (word.includes('F4E1_Friend_Tk')) { matchedRole = 'IO_Friend_F4E1'; translatedWord = 'friend '; MOCK_XDIC_DB[word] = 'friend '; displayEn = 'friend '; }
+      if (word.includes('F4E1_PrettyDoll_Tk')) { matchedRole = 'DO_Doll_F4E1'; translatedWord = 'a pretty doll'; MOCK_XDIC_DB[word] = 'a pretty doll'; displayEn = 'a pretty doll'; }
+      if (word.includes('F4E1_ADoll_Tk')) { matchedRole = 'DO_Doll_F4E1'; translatedWord = 'a doll'; MOCK_XDIC_DB[word] = 'a doll'; displayEn = 'a doll'; }
+      
+      // <3형식> 예문 15
+      if (word.includes('F3E15_Gandhi_Tk')) { matchedRole = 'Subj_Gandhi_F3E15'; translatedWord = 'Mahatma Gandi '; MOCK_XDIC_DB[word] = 'Mahatma Gandi '; displayEn = 'Mahatma Gandi '; }
+      if (word.includes('F3E15_Once_Tk')) { matchedRole = 'Adv_Once_F3E15'; translatedWord = 'once '; MOCK_XDIC_DB[word] = 'once '; displayEn = 'once '; }
+      if (word.includes('F3E15_Said_Tk')) { matchedRole = 'Verb_Said_F3E15'; translatedWord = 'said '; MOCK_XDIC_DB[word] = 'said '; displayEn = 'said '; }
+      if (word.includes('F3E15_That1_Tk')) { matchedRole = 'Conj_That1_F3E15'; translatedWord = 'that '; MOCK_XDIC_DB[word] = 'that '; displayEn = 'that '; }
+      if (word.includes('F3E15_India_Tk')) { matchedRole = 'Subj_India_F3E15'; translatedWord = 'India '; MOCK_XDIC_DB[word] = 'India '; displayEn = 'India '; }
+      if (word.includes('F3E15_WouldAttain_Tk')) { matchedRole = 'Verb_WouldAttain_F3E15'; translatedWord = 'would attain '; MOCK_XDIC_DB[word] = 'would attain '; displayEn = 'would attain '; }
+      if (word.includes('F3E15_Complete_Tk')) { matchedRole = 'Mod_Complete_F3E15'; translatedWord = 'complete '; MOCK_XDIC_DB[word] = 'complete '; displayEn = 'complete '; }
+      if (word.includes('F3E15_Independence_Tk')) { matchedRole = 'Obj_Independence_F3E15'; translatedWord = 'independence '; MOCK_XDIC_DB[word] = 'independence '; displayEn = 'independence '; }
+      if (word.includes('F3E15_When_Tk')) { matchedRole = 'Conj_When_F3E15'; translatedWord = 'when '; MOCK_XDIC_DB[word] = 'when '; displayEn = 'when '; }
+      if (word.includes('F3E15_Masses_Tk')) { matchedRole = 'Subj_Masses_F3E15'; translatedWord = 'the masses '; MOCK_XDIC_DB[word] = 'the masses '; displayEn = 'the masses '; }
+      if (word.includes('F3E15_Feel_Tk')) { matchedRole = 'Verb_Feel_F3E15'; translatedWord = 'feel '; MOCK_XDIC_DB[word] = 'feel '; displayEn = 'feel '; }
+      if (word.includes('F3E15_ThatThey1_Tk')) { matchedRole = 'Conj_ThatThey1_F3E15'; translatedWord = '(that) they '; MOCK_XDIC_DB[word] = '(that) they '; displayEn = '(that) they '; }
+      if (word.includes('F3E15_CanImprove_Tk')) { matchedRole = 'Verb_CanImprove_F3E15'; translatedWord = 'can improve '; MOCK_XDIC_DB[word] = 'can improve '; displayEn = 'can improve '; }
+      if (word.includes('F3E15_Their1_Tk')) { matchedRole = 'Mod_Their1_F3E15'; translatedWord = 'their '; MOCK_XDIC_DB[word] = 'their '; displayEn = 'their '; }
+      if (word.includes('F3E15_Lot_Tk')) { matchedRole = 'Obj_Lot_F3E15'; translatedWord = 'lot '; MOCK_XDIC_DB[word] = 'lot '; displayEn = 'lot '; }
+      if (word.includes('F3E15_By_Tk')) { matchedRole = 'Prep_By_F3E15'; translatedWord = 'by '; MOCK_XDIC_DB[word] = 'by '; displayEn = 'by '; }
+      if (word.includes('F3E15_TheirOwn_Tk')) { matchedRole = 'Mod_TheirOwn_F3E15'; translatedWord = 'their own '; MOCK_XDIC_DB[word] = 'their own '; displayEn = 'their own '; }
+      if (word.includes('F3E15_Effort_Tk')) { matchedRole = 'Noun_Effort_F3E15'; translatedWord = 'effort '; MOCK_XDIC_DB[word] = 'effort '; displayEn = 'effort '; }
+      if (word.includes('F3E15_And_Tk')) { matchedRole = 'Conj_And_F3E15'; translatedWord = 'and '; MOCK_XDIC_DB[word] = 'and '; displayEn = 'and '; }
+      if (word.includes('F3E15_ThatThey2_Tk')) { matchedRole = 'Conj_ThatThey2_F3E15'; translatedWord = 'that they '; MOCK_XDIC_DB[word] = 'that they '; displayEn = 'that they '; }
+      if (word.includes('F3E15_CanShape_Tk')) { matchedRole = 'Verb_CanShape_F3E15'; translatedWord = 'can shape '; MOCK_XDIC_DB[word] = 'can shape '; displayEn = 'can shape '; }
+      if (word.includes('F3E15_Their3_Tk')) { matchedRole = 'Mod_Their3_F3E15'; translatedWord = 'their '; MOCK_XDIC_DB[word] = 'their '; displayEn = 'their '; }
+      if (word.includes('F3E15_Destiny_Tk')) { matchedRole = 'Obj_Destiny_F3E15'; translatedWord = 'destiny '; MOCK_XDIC_DB[word] = 'destiny '; displayEn = 'destiny '; }
+      if (word.includes('F3E15_TheWay_Tk')) { matchedRole = 'Noun_TheWay_F3E15'; translatedWord = 'the way '; MOCK_XDIC_DB[word] = 'the way '; displayEn = 'the way '; }
+      if (word.includes('F3E15_TheyLike_Tk')) { matchedRole = 'Pron_TheyLike_F3E15'; translatedWord = 'they like'; MOCK_XDIC_DB[word] = 'they like'; displayEn = 'they like'; }
+
+      // <3형식> 예문 14
+      if (word.includes('F3E14_Einstein_Tk')) { matchedRole = 'Subj_Einstein_F3E14'; translatedWord = 'Einstein '; MOCK_XDIC_DB[word] = 'Einstein '; displayEn = 'Einstein '; }
+      if (word.includes('F3E14_Developed_Tk')) { matchedRole = 'Verb_Developed_F3E14'; translatedWord = 'developed '; MOCK_XDIC_DB[word] = 'developed '; displayEn = 'developed '; }
+      if (word.includes('F3E14_His_Tk')) { matchedRole = 'Mod_His_F3E14'; translatedWord = 'his '; MOCK_XDIC_DB[word] = 'his '; displayEn = 'his '; }
+      if (word.includes('F3E14_Theory_Tk')) { matchedRole = 'Obj_Theory_F3E14'; translatedWord = 'theory '; MOCK_XDIC_DB[word] = 'theory '; displayEn = 'theory '; }
+      if (word.includes('F3E14_Through_Tk')) { matchedRole = 'Prep_Through_F3E14'; translatedWord = 'through '; MOCK_XDIC_DB[word] = 'through '; displayEn = 'through '; }
+      if (word.includes('F3E14_Deep_Tk')) { matchedRole = 'Mod_Deep_F3E14'; translatedWord = 'deep '; MOCK_XDIC_DB[word] = 'deep '; displayEn = 'deep '; }
+      if (word.includes('F3E14_Thought_Tk')) { matchedRole = 'Noun_Thought_F3E14'; translatedWord = 'thought '; MOCK_XDIC_DB[word] = 'thought '; displayEn = 'thought '; }
+      if (word.includes('F3E14_And_Tk')) { matchedRole = 'Conj_And_F3E14'; translatedWord = 'and '; MOCK_XDIC_DB[word] = 'and '; displayEn = 'and '; }
+      if (word.includes('F3E14_Complex_Tk')) { matchedRole = 'Mod_Complex_F3E14'; translatedWord = 'complex '; MOCK_XDIC_DB[word] = 'complex '; displayEn = 'complex '; }
+      if (word.includes('F3E14_Math_Tk')) { matchedRole = 'Mod_Mathematical_F3E14'; translatedWord = 'mathematical '; MOCK_XDIC_DB[word] = 'mathematical '; displayEn = 'mathematical '; }
+      if (word.includes('F3E14_Reasoning_Tk')) { matchedRole = 'Noun_Reasoning_F3E14'; translatedWord = 'reasoning'; MOCK_XDIC_DB[word] = 'reasoning'; displayEn = 'reasoning'; }
+      
+      // <3형식> 예문 13
+      if (word.includes('F3E13_They_Tk')) { matchedRole = 'Subj_They_F3E13'; translatedWord = 'They '; MOCK_XDIC_DB[word] = 'They '; displayEn = 'They '; }
+      if (word.includes('F3E13_Discussed_Tk')) { matchedRole = 'Verb_Discussed_F3E13'; translatedWord = 'discussed '; MOCK_XDIC_DB[word] = 'discussed '; displayEn = 'discussed '; }
+      if (word.includes('F3E13_Plan_Tk')) { matchedRole = 'Obj_Plan_F3E13'; translatedWord = 'the plan '; MOCK_XDIC_DB[word] = 'the plan '; displayEn = 'the plan '; }
+      if (word.includes('F3E13_TheirPlan_Tk')) { matchedRole = 'Obj_Plan_F3E13'; translatedWord = 'their plan '; MOCK_XDIC_DB[word] = 'their plan '; displayEn = 'their plan '; } // 💡 방학이 생략될 경우 '그들의 계획'으로 자동 스위칭!
+      if (word.includes('F3E13_For_Tk')) { matchedRole = 'Prep_For_F3E13'; translatedWord = 'for '; MOCK_XDIC_DB[word] = 'for '; displayEn = 'for '; }
+      if (word.includes('F3E13_Their1_Tk')) { matchedRole = 'Mod_Their1_F3E13'; translatedWord = 'their '; MOCK_XDIC_DB[word] = 'their '; displayEn = 'their '; }
+      if (word.includes('F3E13_Winter_Tk')) { matchedRole = 'Noun_Winter_F3E13'; translatedWord = 'winter '; MOCK_XDIC_DB[word] = 'winter '; displayEn = 'winter '; }
+      if (word.includes('F3E13_Vacation_Tk')) { matchedRole = 'Noun_Vacation_F3E13'; translatedWord = 'vacation '; MOCK_XDIC_DB[word] = 'vacation '; displayEn = 'vacation '; }
+      if (word.includes('F3E13_With_Tk')) { matchedRole = 'Prep_With_F3E13'; translatedWord = 'with '; MOCK_XDIC_DB[word] = 'with '; displayEn = 'with '; }
+      if (word.includes('F3E13_Their2_Tk')) { matchedRole = 'Mod_Their2_F3E13'; translatedWord = 'their '; MOCK_XDIC_DB[word] = 'their '; displayEn = 'their '; }
+      if (word.includes('F3E13_Friends_Tk')) { matchedRole = 'Noun_Friends_F3E13'; translatedWord = 'friends'; MOCK_XDIC_DB[word] = 'friends'; displayEn = 'friends'; }
+      
+      // <3형식> 예문 12
+      if (word.includes('F3E12_Many_Tk')) { matchedRole = 'Mod_Many_F3E12'; translatedWord = 'Many '; MOCK_XDIC_DB[word] = 'Many '; displayEn = 'Many '; }
+      if (word.includes('F3E12_Boys_Tk')) { matchedRole = 'Subj_Boys_F3E12'; translatedWord = 'boys '; MOCK_XDIC_DB[word] = 'boys '; displayEn = 'boys '; }
+      if (word.includes('F3E12_Play_Tk')) { matchedRole = 'Verb_Play_F3E12'; translatedWord = 'play '; MOCK_XDIC_DB[word] = 'play '; displayEn = 'play '; }
+      if (word.includes('F3E12_Games_Tk')) { matchedRole = 'Obj_Games_F3E12'; translatedWord = 'games '; MOCK_XDIC_DB[word] = 'games '; displayEn = 'games '; }
+      if (word.includes('F3E12_In_Tk')) { matchedRole = 'Prep_In_F3E12'; translatedWord = 'in '; MOCK_XDIC_DB[word] = 'in '; displayEn = 'in '; }
+      if (word.includes('F3E12_Field_Tk')) { matchedRole = 'Noun_Field_F3E12'; translatedWord = 'the field '; MOCK_XDIC_DB[word] = 'the field '; displayEn = 'the field '; }
+      if (word.includes('F3E12_Near_Tk')) { matchedRole = 'Prep_Near_F3E12'; translatedWord = 'near '; MOCK_XDIC_DB[word] = 'near '; displayEn = 'near '; }
+      if (word.includes('F3E12_Stadium_Tk')) { matchedRole = 'Noun_Stadium_F3E12'; translatedWord = 'the stadium '; MOCK_XDIC_DB[word] = 'the stadium '; displayEn = 'the stadium '; }
+      if (word.includes('F3E12_On_Tk')) { matchedRole = 'Prep_On_F3E12'; translatedWord = 'on '; MOCK_XDIC_DB[word] = 'on '; displayEn = 'on '; }
+      if (word.includes('F3E12_Sunday_Tk')) { matchedRole = 'Mod_Sunday_F3E12'; translatedWord = 'Sunday '; MOCK_XDIC_DB[word] = 'Sunday '; displayEn = 'Sunday '; }
+      if (word.includes('F3E12_In_Morning_Tk')) { matchedRole = 'Prep_On_F3E12'; translatedWord = 'in the '; MOCK_XDIC_DB[word] = 'in the '; displayEn = 'in the '; } // 💡 일요일이 빠진 '아침에'는 in the morning 처리
+      if (word.includes('F3E12_Morning_Tk')) { matchedRole = 'Noun_Morning_F3E12'; translatedWord = 'morning'; MOCK_XDIC_DB[word] = 'morning'; displayEn = 'morning'; }
+      
+      // <3형식> 예문 11
+      if (word.includes('F3E11_The_Tk')) { matchedRole = 'Art_The_F3E11'; translatedWord = 'The '; MOCK_XDIC_DB[word] = 'The '; displayEn = 'The '; }
+      if (word.includes('F3E11_OldMan_Tk')) { matchedRole = 'Subj_OldMan_F3E11'; translatedWord = 'old man '; MOCK_XDIC_DB[word] = 'old man '; displayEn = 'old man '; }
+      if (word.includes('F3E11_Lived_Tk')) { matchedRole = 'Verb_Lived_F3E11'; translatedWord = 'lived '; MOCK_XDIC_DB[word] = 'lived '; displayEn = 'lived '; }
+      if (word.includes('F3E11_HappyLife_Tk')) { matchedRole = 'Obj_HappyLife_F3E11'; translatedWord = 'a happy life '; MOCK_XDIC_DB[word] = 'a happy life '; displayEn = 'a happy life '; }
+      if (word.includes('F3E11_Life_Tk')) { matchedRole = 'Obj_HappyLife_F3E11'; translatedWord = 'a life '; MOCK_XDIC_DB[word] = 'a life '; displayEn = 'a life '; }
+      if (word.includes('F3E11_In_Tk')) { matchedRole = 'Prep_In_F3E11'; translatedWord = 'in '; MOCK_XDIC_DB[word] = 'in '; displayEn = 'in '; }
+      if (word.includes('F3E11_QuietCountry_Tk')) { matchedRole = 'Noun_QuietCountry_F3E11'; translatedWord = 'the quiet country '; MOCK_XDIC_DB[word] = 'the quiet country '; displayEn = 'the quiet country '; }
+      if (word.includes('F3E11_Country_Tk')) { matchedRole = 'Noun_QuietCountry_F3E11'; translatedWord = 'the country '; MOCK_XDIC_DB[word] = 'the country '; displayEn = 'the country '; }
+      if (word.includes('F3E11_With_Tk')) { matchedRole = 'Prep_With_F3E11'; translatedWord = 'with '; MOCK_XDIC_DB[word] = 'with '; displayEn = 'with '; }
+      if (word.includes('F3E11_His_Tk')) { matchedRole = 'Mod_His_F3E11'; translatedWord = 'his '; MOCK_XDIC_DB[word] = 'his '; displayEn = 'his '; }
+      if (word.includes('F3E11_Family_Tk')) { matchedRole = 'Noun_Family_F3E11'; translatedWord = 'family'; MOCK_XDIC_DB[word] = 'family'; displayEn = 'family'; }
+      
+      // <3형식> 예문 10
+      if (word.includes('F3E10_The_Tk')) { matchedRole = 'Art_The_F3E10'; translatedWord = 'The '; MOCK_XDIC_DB[word] = 'The '; displayEn = 'The '; }
+      if (word.includes('F3E10_Stern_Tk')) { matchedRole = 'Mod_Stern_F3E10'; translatedWord = 'stern '; MOCK_XDIC_DB[word] = 'stern '; displayEn = 'stern '; }
+      if (word.includes('F3E10_Woman_Tk')) { matchedRole = 'Subj_Woman_F3E10'; translatedWord = 'woman '; MOCK_XDIC_DB[word] = 'woman '; displayEn = 'woman '; }
+      if (word.includes('F3E10_Felt_Tk')) { matchedRole = 'Verb_Felt_F3E10'; translatedWord = 'felt '; MOCK_XDIC_DB[word] = 'felt '; displayEn = 'felt '; }
+      if (word.includes('F3E10_Girls_Tk')) { matchedRole = 'Mod_Girls_F3E10'; translatedWord = "the girl's "; MOCK_XDIC_DB[word] = "the girl's "; displayEn = "the girl's "; }
+      if (word.includes('F3E10_Brown_Tk')) { matchedRole = 'Mod_Brown_F3E10'; translatedWord = 'brown '; MOCK_XDIC_DB[word] = 'brown '; displayEn = 'brown '; }
+      if (word.includes('F3E10_Hair_Tk')) { matchedRole = 'Obj_Hair_F3E10'; translatedWord = 'hair '; MOCK_XDIC_DB[word] = 'hair '; displayEn = 'hair '; }
+      if (word.includes('F3E10_With_Tk')) { matchedRole = 'Prep_With_F3E10'; translatedWord = 'with '; MOCK_XDIC_DB[word] = 'with '; displayEn = 'with '; }
+      if (word.includes('F3E10_Her_Tk')) { matchedRole = 'Mod_Her_F3E10'; translatedWord = 'her '; MOCK_XDIC_DB[word] = 'her '; displayEn = 'her '; }
+      if (word.includes('F3E10_Experienced_Tk')) { matchedRole = 'Mod_Experienced_F3E10'; translatedWord = 'experienced '; MOCK_XDIC_DB[word] = 'experienced '; displayEn = 'experienced '; }
+      if (word.includes('F3E10_Hand_Tk')) { matchedRole = 'Noun_Hand_F3E10'; translatedWord = 'hand'; MOCK_XDIC_DB[word] = 'hand'; displayEn = 'hand'; }
+      
+      // <가주어_진주어> 예문 9
+      if (word.includes('F3E9_It_Tk')) { matchedRole = 'Dummy_It_F3E9'; translatedWord = 'It '; MOCK_XDIC_DB[word] = 'It '; displayEn = 'It '; }
+      if (word.includes('F3E9_Is_Tk')) { matchedRole = 'Verb_Is_F3E9'; translatedWord = 'is '; MOCK_XDIC_DB[word] = 'is '; displayEn = 'is '; }
+      if (word.includes('F3E9_True_Tk')) { matchedRole = 'Comp_True_F3E9'; translatedWord = 'true '; MOCK_XDIC_DB[word] = 'true '; displayEn = 'true '; }
+      if (word.includes('F3E9_To_Tk')) { matchedRole = 'To_Inf_F3E9'; translatedWord = 'to '; MOCK_XDIC_DB[word] = 'to '; displayEn = 'to '; }
+      if (word.includes('F3E9_Defeat_Tk')) { matchedRole = 'Verb_Defeat_F3E9'; translatedWord = 'defeat '; MOCK_XDIC_DB[word] = 'defeat '; displayEn = 'defeat '; }
+      if (word.includes('F3E9_Powerful_Tk')) { matchedRole = 'Mod_Powerful_F3E9'; translatedWord = 'the powerful '; MOCK_XDIC_DB[word] = 'the powerful '; displayEn = 'the powerful '; }
+      if (word.includes('F3E9_The_Tk')) { matchedRole = 'Mod_Powerful_F3E9'; translatedWord = 'the '; MOCK_XDIC_DB[word] = 'the '; displayEn = 'the '; }
+      if (word.includes('F3E9_Invaders_Tk')) { matchedRole = 'Obj_Invaders_F3E9'; translatedWord = 'invaders '; MOCK_XDIC_DB[word] = 'invaders '; displayEn = 'invaders '; }
+      if (word.includes('F3E9_In_Tk')) { matchedRole = 'Prep_In_F3E9'; translatedWord = 'in '; MOCK_XDIC_DB[word] = 'in '; displayEn = 'in '; }
+      if (word.includes('F3E9_SouthShore_Tk')) { matchedRole = 'Noun_SouthShore_F3E9'; translatedWord = 'the South Shore '; MOCK_XDIC_DB[word] = 'the South Shore '; displayEn = 'the South Shore '; }
+      if (word.includes('F3E9_Of_Tk')) { matchedRole = 'Prep_Of_F3E9'; translatedWord = 'of '; MOCK_XDIC_DB[word] = 'of '; displayEn = 'of '; }
+      if (word.includes('F3E9_Korea_Tk')) { matchedRole = 'Noun_Korea_F3E9'; translatedWord = 'Korea '; MOCK_XDIC_DB[word] = 'Korea '; displayEn = 'Korea '; }
+      if (word.includes('F3E9_With_Tk')) { matchedRole = 'Prep_With_F3E9'; translatedWord = 'with '; MOCK_XDIC_DB[word] = 'with '; displayEn = 'with '; }
+      if (word.includes('F3E9_First_Tk')) { matchedRole = 'Mod_First_F3E9'; translatedWord = 'the first '; MOCK_XDIC_DB[word] = 'the first '; displayEn = 'the first '; }
+      if (word.includes('F3E9_Ships_Tk')) { matchedRole = 'Noun_Ships_F3E9'; translatedWord = 'iron-clad ships '; MOCK_XDIC_DB[word] = 'iron-clad ships '; displayEn = 'iron-clad ships '; }
+      if (word.includes('F3E9_InHistory_Tk')) { matchedRole = 'Prep_InHistory_F3E9'; translatedWord = 'in '; MOCK_XDIC_DB[word] = 'in '; displayEn = 'in '; }
+      if (word.includes('F3E9_History_Tk')) { matchedRole = 'Noun_History_F3E9'; translatedWord = 'history'; MOCK_XDIC_DB[word] = 'history'; displayEn = 'history'; }
+      
+      // <3형식> 예문 8
+      if (word.includes('F3E8_Adm_Tk')) { matchedRole = 'Subj_Adm_F3E8'; translatedWord = 'Adm. Lee Soon Shin '; MOCK_XDIC_DB[word] = 'Adm. Lee Soon Shin '; displayEn = 'Adm. Lee Soon Shin '; }
+      if (word.includes('F3E8_Gen_Tk')) { matchedRole = 'Subj_Adm_F3E8'; translatedWord = 'The general '; MOCK_XDIC_DB[word] = 'The general '; displayEn = 'The general '; }
+      if (word.includes('F3E8_Defeated_Tk')) { matchedRole = 'Verb_Defeated_F3E8'; translatedWord = 'defeated '; MOCK_XDIC_DB[word] = 'defeated '; displayEn = 'defeated '; }
+      if (word.includes('F3E8_Powerful_Tk')) { matchedRole = 'Mod_Powerful_F3E8'; translatedWord = 'the powerful '; MOCK_XDIC_DB[word] = 'the powerful '; displayEn = 'the powerful '; }
+      if (word.includes('F3E8_The_Tk')) { matchedRole = 'Mod_Powerful_F3E8'; translatedWord = 'the '; MOCK_XDIC_DB[word] = 'the '; displayEn = 'the '; }
+      if (word.includes('F3E8_Invaders_Tk')) { matchedRole = 'Obj_Invaders_F3E8'; translatedWord = 'invaders '; MOCK_XDIC_DB[word] = 'invaders '; displayEn = 'invaders '; }
+      if (word.includes('F3E8_In_Tk')) { matchedRole = 'Prep_In_F3E8'; translatedWord = 'in '; MOCK_XDIC_DB[word] = 'in '; displayEn = 'in '; }
+      if (word.includes('F3E8_SouthShore_Tk')) { matchedRole = 'Noun_SouthShore_F3E8'; translatedWord = 'the South Shore '; MOCK_XDIC_DB[word] = 'the South Shore '; displayEn = 'the South Shore '; }
+      if (word.includes('F3E8_Of_Tk')) { matchedRole = 'Prep_Of_F3E8'; translatedWord = 'of '; MOCK_XDIC_DB[word] = 'of '; displayEn = 'of '; }
+      if (word.includes('F3E8_Korea_Tk')) { matchedRole = 'Noun_Korea_F3E8'; translatedWord = 'Korea '; MOCK_XDIC_DB[word] = 'Korea '; displayEn = 'Korea '; }
+      if (word.includes('F3E8_With_Tk')) { matchedRole = 'Prep_With_F3E8'; translatedWord = 'with '; MOCK_XDIC_DB[word] = 'with '; displayEn = 'with '; }
+      if (word.includes('F3E8_First_Tk')) { matchedRole = 'Mod_First_F3E8'; translatedWord = 'the first '; MOCK_XDIC_DB[word] = 'the first '; displayEn = 'the first '; }
+      if (word.includes('F3E8_Ships_Tk')) { matchedRole = 'Noun_Ships_F3E8'; translatedWord = 'iron-clad ships'; MOCK_XDIC_DB[word] = 'iron-clad ships'; displayEn = 'iron-clad ships'; }
+      
+      // <3형식> 예문 7
+      if (word.includes('F3E7_He_Tk')) { matchedRole = 'Subj_He_F3E7'; translatedWord = 'He '; MOCK_XDIC_DB[word] = 'He '; displayEn = 'He '; }
+      if (word.includes('F3E7_CannotHear_Tk')) { matchedRole = 'Verb_CannotHear_F3E7'; translatedWord = 'can not hear '; MOCK_XDIC_DB[word] = 'can not hear '; displayEn = 'can not hear '; }
+      if (word.includes('F3E7_Animals_Tk')) { matchedRole = 'Mod_Animals_F3E7'; translatedWord = "the animals' "; MOCK_XDIC_DB[word] = "the animals' "; displayEn = "the animals' "; }
+      if (word.includes('F3E7_Cries_Tk')) { matchedRole = 'Obj_Cries_F3E7'; translatedWord = 'cries '; MOCK_XDIC_DB[word] = 'cries '; displayEn = 'cries '; }
+      if (word.includes('F3E7_In_Tk')) { matchedRole = 'Prep_In_F3E7'; translatedWord = 'in '; MOCK_XDIC_DB[word] = 'in '; displayEn = 'in '; }
+      if (word.includes('F3E7_His_Tk')) { matchedRole = 'Mod_His_F3E7'; translatedWord = 'his '; MOCK_XDIC_DB[word] = 'his '; displayEn = 'his '; }
+      if (word.includes('F3E7_House_Tk')) { matchedRole = 'Noun_House_F3E7'; translatedWord = 'house'; MOCK_XDIC_DB[word] = 'house'; displayEn = 'house'; }
+
+      // <3형식> 예문 6
+      if (word.includes('F3E6_He_Tk')) { matchedRole = 'Subj_He_F3E6'; translatedWord = 'He '; MOCK_XDIC_DB[word] = 'He '; displayEn = 'He '; }
+      if (word.includes('F3E6_Devoted_Tk')) { matchedRole = 'Verb_Devoted_F3E6'; translatedWord = 'devoted '; MOCK_XDIC_DB[word] = 'devoted '; displayEn = 'devoted '; }
+      if (word.includes('F3E6_His_Tk')) { matchedRole = 'Mod_His_F3E6'; translatedWord = 'his '; MOCK_XDIC_DB[word] = 'his '; displayEn = 'his '; }
+      if (word.includes('F3E6_Life_Tk')) { matchedRole = 'Obj_Life_F3E6'; translatedWord = 'life '; MOCK_XDIC_DB[word] = 'life '; displayEn = 'life '; }
+      if (word.includes('F3E6_To_Tk')) { matchedRole = 'Prep_To_F3E6'; translatedWord = 'to '; MOCK_XDIC_DB[word] = 'to '; displayEn = 'to '; }
+      if (word.includes('F3E6_TheWelfare_Tk')) { matchedRole = 'Obj_Welfare_F3E6'; translatedWord = 'the welfare '; MOCK_XDIC_DB[word] = 'the welfare '; displayEn = 'the welfare '; }
+      if (word.includes('F3E6_Of_Tk')) { matchedRole = 'Prep_Of_F3E6'; translatedWord = 'of '; MOCK_XDIC_DB[word] = 'of '; displayEn = 'of '; }
+      if (word.includes('F3E6_Mankind_Tk')) { matchedRole = 'Obj_Mankind_F3E6'; translatedWord = 'mankind'; MOCK_XDIC_DB[word] = 'mankind'; displayEn = 'mankind'; }
 
       // <3형식> 예문 5
       if (word.includes('F3E5_I_Tk')) { matchedRole = 'Subj_I_F3E5'; translatedWord = 'I '; MOCK_XDIC_DB[word] = 'I '; displayEn = 'I '; }
@@ -2015,7 +2428,7 @@ export async function POST(request: Request) {
       }
       // 👆👆 ---------------------------------------------------- 👆👆
 
-      if (word === 'to') {
+if (word === 'to') {
           if (words[i-1] === 'here') {
               matchedRole = originalText.toLowerCase().includes('lived') ? 'To_Infinitive_Result' : 'To_Infinitive_Purpose'; 
               translatedWord = originalText.toLowerCase().includes('lived') ? '그래서' : '목적으로';
@@ -2078,7 +2491,7 @@ export async function POST(request: Request) {
       if (word === '조용한_시골') displayEn = 'the silent country';
 
       parsedTokens.push({ enOriginal: displayEn, koWord: translatedWord, role: matchedRole });
-    } // 👈 for 루프 정상 종료
+    } // 👈 💡 여기서 잃어버렸던 for 루프가 완벽하게 닫힙니다!!!
 
     const detectedRoles = parsedTokens.map(t => {
         if (t.role.startsWith('Verb_Infinitive') || t.role === 'To_Infinitive_Comp' || t.role === 'To_Infinitive_OC' || t.role === 'To_Infinitive_Adj' || t.role === 'To_Infinitive_Adj_Subj' || t.role === 'To_Infinitive_Adj_2' || t.role === 'To_Infinitive_Adv' || t.role === 'Not_Infinitive' || t.role === 'To_Infinitive_Result' || t.role === 'To_Infinitive_Purpose') return t.role; 
@@ -2086,6 +2499,21 @@ export async function POST(request: Request) {
     });
 
     let selectedForm = null;
+
+    // 👇👇 💡 [수프로 엣지] 3형식 예문 7 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_CannotHear_F3E7') || detectedRoles.includes('Obj_Cries_F3E7')) {
+        selectedForm = FORM_RULES.find(r => r.type === '3형식_예문7_전용') || null;
+    }
+
+    // 👇👇 💡 [수프로 엣지] 3형식 예문 6 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Devoted_F3E6') || detectedRoles.includes('Obj_Life_F3E6') || detectedRoles.includes('Obj_Mankind_F3E6')) {
+        selectedForm = FORM_RULES.find(r => r.type === '3형식_예문6_전용') || null;
+    }
+
+    // 👇👇 💡 [수프로 엣지] 의지동사 예문 6 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Devoted_Vol6') || detectedRoles.includes('Obj_Life_Vol6') || detectedRoles.includes('Obj_Mankind_Vol6')) {
+        selectedForm = FORM_RULES.find(r => r.type === '3형식_의지동사_예문6_전용') || null;
+    }
 
     if (detectedRoles.includes('Subj_Aim') || detectedRoles.includes('Verb_Inf_Offer') || detectedRoles.includes('IO_Students') || detectedRoles.includes('Obj_Opp')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_보충어구_예문3_전용') || null;
@@ -2326,12 +2754,89 @@ export async function POST(request: Request) {
     if (detectedRoles.includes('Subj_OldMan_F3E4') || detectedRoles.includes('Verb_Planted_F3E4')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문4_전용') || null;
     }
-// 👇👇 💡 [수프로 엣지] 3형식 예문 5 절대 방어선 👇👇
+    // 👇👇 💡 [수프로 엣지] 3형식 예문 5 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_I_F3E5') || detectedRoles.includes('Verb_Met_F3E5') || detectedRoles.includes('Obj_Her_F3E5')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문5_파크_전용') || null;
     }
+    // 👇👇 💡 [수프로 엣지] 3형식 예문 6 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Devoted_F3E6') || detectedRoles.includes('Obj_Life_F3E6') || detectedRoles.includes('Obj_Mankind_F3E6')) {
+        selectedForm = FORM_RULES.find(r => r.type === '3형식_예문6_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 3형식 예문 8 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Defeated_F3E8') || detectedRoles.includes('Obj_Invaders_F3E8')) {
+        selectedForm = FORM_RULES.find(r => r.type === '3형식_예문8_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 가주어_진주어 예문 9 절대 방어선 👇👇
+    if (detectedRoles.includes('Dummy_It_F3E9') || detectedRoles.includes('Verb_Defeat_F3E9') || detectedRoles.includes('Obj_Invaders_F3E9')) {
+        selectedForm = FORM_RULES.find(r => r.type === '가주어_예문9_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 3형식 예문 10 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Felt_F3E10') || detectedRoles.includes('Obj_Hair_F3E10')) {
+        selectedForm = FORM_RULES.find(r => r.type === '3형식_예문10_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 3형식 예문 11 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Lived_F3E11') || detectedRoles.includes('Obj_HappyLife_F3E11')) {
+        selectedForm = FORM_RULES.find(r => r.type === '3형식_예문11_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 3형식 예문 12 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Play_F3E12') || detectedRoles.includes('Obj_Games_F3E12')) {
+        selectedForm = FORM_RULES.find(r => r.type === '3형식_예문12_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 3형식 예문 13 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Discussed_F3E13') || detectedRoles.includes('Obj_Plan_F3E13')) {
+        selectedForm = FORM_RULES.find(r => r.type === '3형식_예문13_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 3형식 예문 14 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Developed_F3E14') || detectedRoles.includes('Obj_Theory_F3E14')) {
+        selectedForm = FORM_RULES.find(r => r.type === '3형식_예문14_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 3형식 예문 15 (간디 명언) 절대 방어선 👇👇
+    if (detectedRoles.includes('Subj_Gandhi_F3E15') || detectedRoles.includes('Verb_Said_F3E15')) {
+        selectedForm = FORM_RULES.find(r => r.type === '3형식_예문15_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 4형식 예문 1 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Bought_F4E1') || detectedRoles.includes('IO_Friend_F4E1')) {
+        selectedForm = FORM_RULES.find(r => r.type === '4형식_예문1_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 4형식 예문 2 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Made_F4E2') || detectedRoles.includes('DO_ToyShip_F4E2')) {
+        selectedForm = FORM_RULES.find(r => r.type === '4형식_예문2_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 4형식 예문 3 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Lent_F4E3') || detectedRoles.includes('IO_Citizens_F4E3')) {
+        selectedForm = FORM_RULES.find(r => r.type === '4형식_예문3_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 4형식 예문 4 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Sent_F4E4') || detectedRoles.includes('DO_Postcard_F4E4')) {
+        selectedForm = FORM_RULES.find(r => r.type === '4형식_예문4_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 4형식 예문 5 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Built_F4E5') || detectedRoles.includes('Subj_Carpenter_F4E5')) {
+        selectedForm = FORM_RULES.find(r => r.type === '4형식_예문5_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 5형식 예문 1 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Think_F5E1') || detectedRoles.includes('OC_Boy_F5E1')) {
+        selectedForm = FORM_RULES.find(r => r.type === '5형식_예문1_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 5형식 예문 2 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Called_F5E2') || detectedRoles.includes('OC_Republic_F5E2')) {
+        selectedForm = FORM_RULES.find(r => r.type === '5형식_예문2_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 5형식 예문 3 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Keep_F5E3') || detectedRoles.includes('OC_Clean_F5E3')) {
+        selectedForm = FORM_RULES.find(r => r.type === '5형식_예문3_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 5형식 예문 4 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Consider_F5E4') || detectedRoles.includes('Obj_Sejong_F5E4')) {
+        selectedForm = FORM_RULES.find(r => r.type === '5형식_예문4_전용') || null;
+    }
+    // 👇👇 💡 [수프로 엣지] 5형식 예문 5 절대 방어선 👇👇
+    if (detectedRoles.includes('Verb_Made_F5E5') || detectedRoles.includes('Subj_Science_F5E5')) {
+        selectedForm = FORM_RULES.find(r => r.type === '5형식_예문5_전용') || null;
+    }
 
-    // } 뒤에서 Enter 후에 paste
+    // 위의 } 뒤에서 Enter 후에 paste
+
     // 💡 위에서 맞춤형 설계도를 찾지 못했을 때만 일반 규칙 루프를 실행합니다.
     if (!selectedForm) {
         for (const rule of FORM_RULES) {
@@ -2403,10 +2908,10 @@ export async function POST(request: Request) {
 
        if (finalTranslation.match(/^(You|He|They|I|We)\b/i)) {
            finalTranslation = finalTranslation.replace(/^You\b/i, aux + ' you')
-                                            .replace(/^He\b/i, (aux === 'Do' ? 'Does' : aux) + ' he')
-                                            .replace(/^They\b/i, aux + ' they')
-                                            .replace(/^I\b/i, aux + ' I')
-                                            .replace(/^We\b/i, aux + ' we');
+                                           .replace(/^He\b/i, (aux === 'Do' ? 'Does' : aux) + ' he')
+                                           .replace(/^They\b/i, aux + ' they')
+                                           .replace(/^I\b/i, aux + ' I')
+                                           .replace(/^We\b/i, aux + ' we');
        } else {
            finalTranslation = aux + ' you ' + finalTranslation.charAt(0).toLowerCase() + finalTranslation.slice(1);
        }
@@ -2432,4 +2937,4 @@ export async function POST(request: Request) {
     console.error('한영 RBMT 엔진 에러:', error);
     return NextResponse.json({ ok: false, error: '서버 에러가 발생했습니다.' }, { status: 500 });
   }
-}
+} // 👈 💡 여기서 POST 함수가 100% 완벽하게 닫힙니다!!!

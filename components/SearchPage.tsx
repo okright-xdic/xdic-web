@@ -419,7 +419,7 @@ export default function SearchPage({
                         </div>
                       )}
 
-                      <p className="text-[12px] md:text-[13px] text-blue-600/80 mt-4 pl-1 font-medium">230만 건의 전문가 번역 데이터 중 가장 자연스러운 문장입니다.</p>
+                      <p className="text-[12px] md:text-[13px] text-blue-600/80 mt-4 pl-1 font-medium">엑스딕이 추천하는 전문가 번역 데이터 중 가장 자연스러운 문장입니다.</p>
                     </div>
                   )}
 
