@@ -381,6 +381,10 @@ export async function POST(request: Request) {
       // 👇👇 💡 [수프로 엣지] 보충어구 2형식 예문 5 (새치기 방지 6단 방어망! 무조건 최상단 배치!) 👇👇
       // 1. 완전체
       .replace(/(^|\s)our\s+responsibility\s+is\s+to\s+keep\s+our\s+natural\s+environment\s+clean\s+and\s+beautiful\.?(?!\w)/gi, '$1RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Natural_Tk RES_Env_Tk RES_Clean_Tk RES_And_Tk RES_Beau_Tk ')
+            ; // 👈 1. 중간에 세미콜론(;)을 찍어서 기차를 한 번 멈춥니다! (컴퓨터 숨쉬기)
+   
+      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
+
       // 2. beautiful 생략
       .replace(/(^|\s)our\s+responsibility\s+is\s+to\s+keep\s+our\s+natural\s+environment\s+clean\.?(?!\w)/gi, '$1RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Natural_Tk RES_Env_Tk RES_Clean_Tk ')
       // 3. clean and 생략 (beautiful만 남음)
@@ -1791,7 +1795,10 @@ export async function POST(request: Request) {
             .replace(/캘리포니아\s*에/g, '캘리포니아에')
             .replace(/사시다\s*ㄴ/g, '사시는') 
             .replace(/읽다\s*라고/g, '읽으라고')
-      
+            ; // 👈 1. 다림질 기차도 중간에 세미콜론(;)으로 한 번 멈춰줍니다!
+   
+      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
+
       // 👇👇 💡 [수프로 엣지] 보충어구 2형식 예문 5 띄어쓰기 및 어미 스마트 보정 👇👇
       .replace(/자연\s*환경을/g, '자연환경을')
       .replace(/깨끗한\s*고/g, '깨끗하고')
