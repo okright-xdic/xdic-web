@@ -1790,8 +1790,8 @@ export async function POST(request: Request) {
     if (finalTranslation) {
         finalTranslation = finalTranslation
             .replace(/캘리포니아\s*에/g, '캘리포니아에')
-            .replace(/사시다\s*ㄴ/g, '사시는') // 👈 드디어 정상적으로 작동할 다림질 코드!
-            .replace(/읽다\s*라고/g, '읽으라고'); 
+            .replace(/사시다\s*ㄴ/g, '사시는') 
+            .replace(/읽다\s*라고/g, '읽으라고') // 👈 세미콜론을 지워서 아래 기차와 매끄럽게 연결!
       
       // 👇👇 💡 [수프로 엣지] 보충어구 2형식 예문 5 띄어쓰기 및 어미 스마트 보정 👇👇
       .replace(/자연\s*환경을/g, '자연환경을')
