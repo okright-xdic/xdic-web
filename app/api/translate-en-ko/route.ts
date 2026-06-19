@@ -391,8 +391,12 @@ export async function POST(request: Request) {
       .replace(/(^|\s)our\s+responsibility\s+is\s+to\s+keep\s+our\s+environment\s+clean\.?(?!\w)/gi, '$1RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Env_Tk RES_Clean_Tk ')
       // 6. natural 생략 + clean and 생략 (beautiful만 남음)
       .replace(/(^|\s)our\s+responsibility\s+is\s+to\s+keep\s+our\s+environment\s+beautiful\.?(?!\w)/gi, '$1RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Env_Tk RES_Beau_Tk ')
+      ;
       
-      ; // 👇👇 💡 [수프로 엣지] 보충어구 2형식 예문 4 (새치기 방지 6단 방어망! 무조건 최상단 배치!) 👇👇
+      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
+      processedText = processedText
+
+      // 👇👇 💡 [수프로 엣지] 보충어구 2형식 예문 4 (새치기 방지 6단 방어망! 무조건 최상단 배치!) 👇👇
       // 1. 완전체
       .replace(/(^|\s)my\s+plan\s+is\s+to\s+read\s+many\s+books\s+in\s+the\s+silent\s+country\s+at\s+this\s+time\.?(?!\w)/gi, '$1RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Many_Tk RDB_Books_Tk RDB_In_Tk RDB_SilentCountry_Tk RDB_At_Tk RDB_ThisTime_Tk ')
       // 2. many 생략 + at this time 생략
@@ -405,7 +409,7 @@ export async function POST(request: Request) {
       .replace(/(^|\s)my\s+plan\s+is\s+to\s+read\s+many\s+books\.?(?!\w)/gi, '$1RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Many_Tk RDB_Books_Tk ')
       // 6. 💡[NEW 추가] many & in the silent country & at this time 모두 생략 (초압축 뼈대)
       .replace(/(^|\s)my\s+plan\s+is\s+to\s+read\s+books\.?(?!\w)/gi, '$1RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Books_Tk ')
-      
+
       // 👇👇 💡 [수프로 엣지] 보충어구 2형식 예문 3 (새치기 방지 6단 방어망! 무조건 최상단 배치!) 👇👇
       // 1. 완전체
       .replace(/(^|\s)the\s+aim\s+of\s+this\s+education\s+reform\s+is\s+to\s+offer\s+all\s+the\s+students\s+equal\s+opportunity\s+of\s+education\.?(?!\w)/gi, '$1REF_Aim_Tk REF_Of1_Tk REF_This_Tk REF_Edu1_Tk REF_Reform_Tk REF_Is_Tk REF_To_Tk REF_Offer_Tk REF_All_Tk REF_Students_Tk REF_Equal_Tk REF_Opp_Tk REF_Of2_Tk REF_Edu2_Tk ')
@@ -429,8 +433,12 @@ export async function POST(request: Request) {
       .replace(/(^|\s)his\s+hope\s+is\s+to\s+become\s+a\s+great\s+doctor\.?(?!\w)/gi, '$1HPD_His_Tk HPD_Hope_Tk HPD_Is_Tk HPD_To_Tk HPD_Become_Tk HPD_GreatDoc_Tk ')
       // 4. great & in the future 둘 다 생략
       .replace(/(^|\s)his\s+hope\s+is\s+to\s+become\s+a\s+doctor\.?(?!\w)/gi, '$1HPD_His_Tk HPD_Hope_Tk HPD_Is_Tk HPD_To_Tk HPD_Become_Tk HPD_Doc_Tk ')
+      ;
       
-      ; // 👇👇 💡 [수프로 엣지] 보충어구 예문 1 (새치기 방지 4단 방어망! 무조건 최상단 배치!) 👇👇
+      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
+      processedText = processedText
+
+      // 👇👇 💡 [수프로 엣지] 보충어구 예문 1 (새치기 방지 4단 방어망! 무조건 최상단 배치!) 👇👇
       // 1. 완전체
       .replace(/(^|\s)my\s+plan\s+is\s+to\s+go\s+to\s+the\s+museum\s+with\s+her\s+on\s+this\s+weekend\.?(?!\w)/gi, '$1PLN_My_Tk PLN_Plan_Tk PLN_Is_Tk PLN_To1_Tk PLN_Go_Tk PLN_To2_Tk PLN_Museum_Tk PLN_With_Tk PLN_Her_Tk PLN_On_Tk PLN_This_Tk PLN_Weekend_Tk ')
       // 2. on this weekend 생략
@@ -439,7 +447,7 @@ export async function POST(request: Request) {
       .replace(/(^|\s)my\s+plan\s+is\s+to\s+go\s+to\s+the\s+museum\s+on\s+this\s+weekend\.?(?!\w)/gi, '$1PLN_My_Tk PLN_Plan_Tk PLN_Is_Tk PLN_To1_Tk PLN_Go_Tk PLN_To2_Tk PLN_Museum_Tk PLN_On_Tk PLN_This_Tk PLN_Weekend_Tk ')
       // 4. with her & on this weekend 둘 다 생략
       .replace(/(^|\s)my\s+plan\s+is\s+to\s+go\s+to\s+the\s+museum\.?(?!\w)/gi, '$1PLN_My_Tk PLN_Plan_Tk PLN_Is_Tk PLN_To1_Tk PLN_Go_Tk PLN_To2_Tk PLN_Museum_Tk ')
-      
+
       // 👇👇 💡 [수프로 엣지] 목적어구 예문 7 (새치기 방지 6단 방어망! 무조건 최상단 배치!) 👇👇
       // 1. The ancient Greeks (완전체)
       .replace(/(^|\s)the\s+ancient\s+greeks\s+liked\s+to\s+make\s+their\s+bodies\s+strong\s+with\s+exercises\s+of\s+gymnasiu[m]?\.?(?!\w)/gi, '$1GRK_AncGreeks_Tk GRK_Liked_Tk GRK_To_Tk GRK_Make_Tk GRK_Their_Tk GRK_Bodies_Tk GRK_Strong_Tk GRK_With_Tk GRK_Exercises_Tk GRK_Of_Tk GRK_Gym_Tk ')
@@ -493,9 +501,15 @@ export async function POST(request: Request) {
       .replace(/(^|\s)i\s*want\s*to\s*know\s*about\s*animals\s*and\s*plants\.?(?!\w)/gi, '$1KNW_I_Tk KNW_Want_Tk KNW_To_Tk KNW_Know_Tk KNW_About_Tk KNW_Animals_Tk KNW_And_Tk KNW_Plants_Tk ')
       .replace(/(^|\s)i\s*want\s*to\s*know\s*about\s*animals\.?(?!\w)/gi, '$1KNW_I_Tk KNW_Want_Tk KNW_To_Tk KNW_Know_Tk KNW_About_Tk KNW_Animals_Tk ')
       .replace(/(^|\s)i\s*want\s*to\s*know\s*about\s*plants\.?(?!\w)/gi, '$1KNW_I_Tk KNW_Want_Tk KNW_To_Tk KNW_Know_Tk KNW_About_Tk KNW_Plants_Tk ')
-      ; // 👇👇 💡 [수프로 엣지] 3형식 예문 1 (새치기 방지를 위해 무조건 1순위 최상단 배치!) 👇👇
+      ;
+      
+      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
+      processedText = processedText
+
+      // 👇👇 💡 [수프로 엣지] 3형식 예문 1 (새치기 방지를 위해 무조건 1순위 최상단 배치!) 👇👇
       .replace(/i\s*want\s*to\s*rest\s*in\s*the\s*house/gi, ' RST_I_Tk RST_Want_Tk RST_To_Tk RST_Rest_Tk RST_In_Tk RST_House_Tk ')
       .replace(/i\s*want\s*to\s*rest/gi, ' RST_I_Tk RST_Want_Tk RST_To_Tk RST_Rest_Tk ')
+
       // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 14 (병렬 구조 및 부분 잘림 7단 방어망) 👇👇
       // 1. 완전체
       .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*teach\s*many\s*youths\s*the\s*true\s*subject-matters\s*and\s*(?:\(to\)|to)?\s*make\s*them\s*great\s*youths\.?(?!\w)/gi, '$1EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To1_Tk EK2G14_Teach_Tk EK2G14_Many1_Tk EK2G14_Youths1_Tk EK2G14_True_Tk EK2G14_Subjects_Tk EK2G14_And_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Great_Tk EK2G14_Youths2_Tk ')
@@ -539,7 +553,12 @@ export async function POST(request: Request) {
       .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*lend\s*many\s*citizens\s*books\.?(?!\w)/gi, '$1EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Many1_Tk EK2G11_Citizens_Tk EK2G11_Books_Tk ')
       // 5. many 두 개 모두 생략 + during 생략
       .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*lend\s*citizens\s*books\.?(?!\w)/gi, '$1EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Citizens_Tk EK2G11_Books_Tk ')
-      ; // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 10 (very 유무 & 부분 잘림 4단 방어망) 👇👇
+      ;
+      
+      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
+      processedText = processedText
+
+      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 10 (very 유무 & 부분 잘림 4단 방어망) 👇👇
       .replace(/(^|\s)it\s*is\s*very\s*easy\s*to\s*study\s*english\s*in\s*this\s*way\.?(?!\w)/gi, '$1EK2G10_It_Tk EK2G10_Is_Tk EK2G10_Very_Tk EK2G10_Easy_Tk EK2G10_To_Tk EK2G10_Study_Tk EK2G10_English_Tk EK2G10_In_Tk EK2G10_This_Tk EK2G10_Way_Tk ')
       .replace(/(^|\s)it\s*is\s*easy\s*to\s*study\s*english\s*in\s*this\s*way\.?(?!\w)/gi, '$1EK2G10_It_Tk EK2G10_Is_Tk EK2G10_Easy_Tk EK2G10_To_Tk EK2G10_Study_Tk EK2G10_English_Tk EK2G10_In_Tk EK2G10_This_Tk EK2G10_Way_Tk ')
       .replace(/(^|\s)it\s*is\s*very\s*easy\s*to\s*study\s*english\.?(?!\w)/gi, '$1EK2G10_It_Tk EK2G10_Is_Tk EK2G10_Very_Tk EK2G10_Easy_Tk EK2G10_To_Tk EK2G10_Study_Tk EK2G10_English_Tk ')
@@ -571,8 +590,14 @@ export async function POST(request: Request) {
       .replace(/(^|\s)it\s*is\s*wrong\s*to\s*want\s*to\s*leave\s*you\s*much\s*wealth\.?(?!\w)/gi, '$1EK3E6_It_Tk EK3E6_Is_Tk EK3E6_Wrong_Tk EK3E6_To1_Tk EK3E6_Want_Tk EK3E6_To2_Tk EK3E6_Leave_Tk EK3E6_You_Tk EK3E6_Much_Tk EK3E6_Wealth_Tk ')
       // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 5 (대소문자 무시 방어망) 👇👇
       .replace(/(^|\s)she\s*liked\s*to\s*tell\s*tourists\s*the\s*history\s*and\s*culture\s*of\s*greece\.?(?!\w)/gi, '$1EK3E5_She_Tk EK3E5_Liked_Tk EK3E5_To_Tk EK3E5_Tell_Tk EK3E5_Tourists_Tk EK3E5_History_Tk EK3E5_And_Tk EK3E5_Culture_Tk EK3E5_Of_Tk EK3E5_Greece_Tk ')
-      ; // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 4 (대소문자 무시 방어망) 👇👇
+      ;
+      
+      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
+      processedText = processedText
+
+      // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 4 (대소문자 무시 방어망) 👇👇
       .replace(/(^|\s)she\s*decided\s*to\s*dye\s*her\s*fingernails\s*with\s*the\s*petals\.?(?!\w)/gi, '$1EK3E4_She_Tk EK3E4_Decided_Tk EK3E4_To_Tk EK3E4_Dye_Tk EK3E4_Fingernails_Tk EK3E4_With_Tk EK3E4_The_Tk EK3E4_Petals_Tk ')
+
       // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 3 (대소문자 무시 방어망) 👇👇
       .replace(/(^|\s)the\s*bright\s*boy\s*wanted\s*to\s*become\s*a\s*great\s*scientist\s*in\s*the\s*future\.?(?!\w)/gi, '$1EK3E3_The_Tk EK3E3_Bright_Tk EK3E3_Boy_Tk EK3E3_Wanted_Tk EK3E3_To_Tk EK3E3_Become_Tk EK3E3_Scientist_Tk EK3E3_In_Tk EK3E3_Future_Tk ')
       // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 2 (대소문자 무시 방어망) 👇👇
@@ -646,6 +671,10 @@ export async function POST(request: Request) {
       .replace(/자기\s*가족의/g, '자기 가족 의')
       .replace(/기쁘다/g, '기쁘다')
       ;
+      
+      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
+      processedText = processedText
+      
       .replace(/만나니/g, '만나다 ~하니')
       .replace(/큰\s*상을/g, 'a_great_reward')
       .replace(/적절한\s*시기를/g, 'the_right time')
@@ -780,6 +809,10 @@ export async function POST(request: Request) {
       .replace(/the\s*first/g, 'the_first')
       .replace(/good\s*conduct/g, 'good_conduct')
       ;
+
+      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
+      processedText = processedText
+
       .replace(/the\s*most\s*important/g, 'the_most_important')
       .replace(/detective\s*story/g, 'detective_story')
       .replace(/a\s*small\s*town/g, 'a_small_town')
@@ -1801,8 +1834,12 @@ const finalKoreanWords = [];
       .replace(/깨끗한\s*유지하다/g, '깨끗하게 유지하다') 
       .replace(/유지하다\s*것\s*이다/g, '유지하는 것이다')
       // (선생님 파일에 있는 다른 .replace 들을 계속 점(.)으로 이어서 놔두시면 됩니다!)
-      
-      ; // 👇👇 💡 [수프로 엣지] 보충어구 2형식 예문 4 띄어쓰기 및 어미 스마트 보정 👇👇
+;
+
+// 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
+      processedText = processedText
+
+      // 👇👇 💡 [수프로 엣지] 보충어구 2형식 예문 4 띄어쓰기 및 어미 스마트 보정 👇👇
       .replace(/이번\s*에/g, '이번에')
       .replace(/시골\s*에서/g, '시골에서')
       .replace(/읽다\s*것\s*이다/g, '읽으려는 것이다')
@@ -1854,12 +1891,18 @@ const finalKoreanWords = [];
       // 👇👇 💡 [수프로 엣지] 영한 3형식 예문 1 띄어쓰기 스마트 보정 👇👇
       .replace(/집\s*에서/g, '집에서')
       .replace(/쉬다\s*기를/g, '쉬기를')
+      ;
+      
+      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
+      processedText = processedText
+
       // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 14 띄어쓰기 및 병렬 구조 스마트 보정 👇👇
       .replace(/가르쳐주다\s*것이\s*서/g, '가르쳐 주어서') // teach ~ and (to) make가 모두 있을 때
       .replace(/가르쳐주다\s*서/g, '가르쳐 주어서')
       .replace(/가르쳐주다\s*것이(?!\s*서)/g, '가르쳐 주는 것이') // make 파트가 날아가서 teach만 남았을 때
       .replace(/만들다\s*것이/g, '만드는 것이') // make 파트 보정
       // (💡 "일 이다 -> 일이다" 규칙은 이전 예문 11번에서 이미 추가되었으므로 완벽히 동작합니다!)
+
       // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 13 띄어쓰기 및 부분 생략 스마트 보정 👇👇
       .replace(/유지하다\s*것이\s*고/g, '유지하고')
       .replace(/유지하다\s*고/g, '유지하고')
@@ -1908,10 +1951,16 @@ const finalKoreanWords = [];
        .replace(/가다\s*것\s*이다/g, '가는 것이다')
       .replace(/가다\s*것이다/g, '가는 것이다')
       .replace(/가는\s*것\s*이다/g, '가는 것이다')
+      ;
+      
+      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
+      processedText = processedText
+
       // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 7 띄어쓰기 및 어미 완벽 보정 👇👇
       .replace(/연무장\s*의/g, '연무장의')
       .replace(/운동\s*으로/g, '운동으로')
       .replace(/튼튼하게\s*하다\s*기를/g, '튼튼하게 하기를')
+
       // 👇👇 💡 [수프로 엣지] 영한 목적어구 예문 6 띄어쓰기 및 어미 완벽 보정 👇👇
       .replace(/남겨주다\s*기를/g, '남겨 주기를')
       .replace(/바라다\s*것은/g, '바라는 것은')
@@ -1933,7 +1982,12 @@ const finalKoreanWords = [];
       // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 1 띄어쓰기 및 어미 완벽 보정 👇👇
       .replace(/집\s*에서/g, '집에서')
       .replace(/쉬다\s*기를/g, '쉬기를')
-      ; // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 7 띄어쓰기 및 어미 완벽 보정 👇👇
+      ;
+      
+      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
+      processedText = processedText
+
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 7 띄어쓰기 및 어미 완벽 보정 👇👇
       .replace(/가르쳐주다\s*서/g, '가르쳐 주어서')
       .replace(/만들다\s*것이/g, '만드는 것이')
       // (💡 "일 이다" -> "일이다" 보정은 이전 예문 4번에서 이미 추가했으므로 그대로 두셔도 완벽하게 적용됩니다!)
@@ -1947,9 +2001,15 @@ const finalKoreanWords = [];
       .replace(/일하다\s*고\s*놀다\s*것은/g, '일하고 노는 것이')
       .replace(/건강\s*에/g, '건강에')
       .replace(/좋은\s*이다/g, '좋다')
+      ;
+      
+      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
+      processedText = processedText
+
       // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 4 띄어쓰기 완벽 보정 👇👇
       .replace(/독서주간\s*에/g, '독서주간에')
       .replace(/일\s*이다/g, '일이다')
+
       // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 3 띄어쓰기 완벽 보정 👇👇
       .replace(/방법\s*으로/g, '방법으로')
       .replace(/공부하다\s*기는/g, '공부하기는')
@@ -1985,6 +2045,11 @@ const finalKoreanWords = [];
       .replace(/강의하다\s*~하기에/g, '강의하기에')
       .replace(/편리한\s*이다/g, '편리하다')
       .replace(/듣지\s*못하다\s*~하기때문에/g, '듣지 못했기 때문에')
+ ;
+   
+      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
+      processedText = processedText
+
       .replace(/슬픈\s*이었다/g, '슬펐다')
       .replace(/자기\s*가족\s*의/g, '자기 가족의')
       .replace(/만나다\s*~하니/g, '만나니')
