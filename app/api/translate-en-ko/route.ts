@@ -266,6 +266,28 @@ const FORM_RULES = [
   { type: '3형식_영한_목적어구_예문7', requiredRoles: ['EK3E7_Greeks', 'EK3E7_Liked', 'EK3E7_Make'], koreanOrder: ['EK3E7_Greeks', 'EK3E7_Their', 'EK3E7_Bodies', 'EK3E7_Gymnasium', 'EK3E7_Of', 'EK3E7_Exercises', 'EK3E7_With', 'EK3E7_Strong', 'EK3E7_Make', 'EK3E7_To', 'EK3E7_Liked'] },
   // 💡 [수프로 엣지] 영한 <2형식> 보충어구 예문 1 전용 완벽 조립 레일
   { type: '2형식_영한_보충어구_예문1', requiredRoles: ['EK2C1_Plan', 'EK2C1_Is', 'EK2C1_Go'], koreanOrder: ['EK2C1_My', 'EK2C1_Plan', 'EK2C1_This', 'EK2C1_Weekend', 'EK2C1_On', 'EK2C1_Her', 'EK2C1_With', 'EK2C1_Museum', 'EK2C1_To2', 'EK2C1_Go', 'EK2C1_To1', 'EK2C1_Is'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 보충어구 예문 2 전용 완벽 조립 레일
+  { type: '2형식_영한_보충어구_예문2', requiredRoles: ['EK2C2_Hope', 'EK2C2_Become'], koreanOrder: ['EK2C2_His', 'EK2C2_Hope', 'EK2C2_Future', 'EK2C2_In', 'EK2C2_Doctor', 'EK2C2_Become', 'EK2C2_To'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 기본 문형 예문 1 (문장 자르기 완벽 대응 레일)
+  { type: '1형식_영한_기본문형_예문1', requiredRoles: ['EK1B1_Father', 'EK1B1_Works'], koreanOrder: ['EK1B1_My', 'EK1B1_Father', 'EK1B1_Morning', 'EK1B1_From', 'EK1B1_Evening', 'EK1B1_Till', 'EK1B1_Works'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 기본 문형 예문 2 (문장 자르기 완벽 대응 레일)
+  { type: '1형식_영한_기본문형_예문2', requiredRoles: ['EK1B2_He', 'EK1B2_HadWork'], koreanOrder: ['EK1B2_He', 'EK1B2_Living', 'EK1B2_For', 'EK1B2_Hard', 'EK1B2_HadWork'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 8 (문장 자르기 완벽 대응 3단 레일)
+  { type: '2형식_영한_가주어진주어_예문8', requiredRoles: ['EK2G8_Health', 'EK2G8_GetUp'], koreanOrder: ['EK2G8_Morning', 'EK2G8_In', 'EK2G8_Early', 'EK2G8_GetUp', 'EK2G8_To', 'EK2G8_Health', 'EK2G8_For', 'EK2G8_Good', 'EK2G8_Is'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 9 (great 생략 및 문장 자르기 완벽 대응 레일)
+  { type: '2형식_영한_가주어진주어_예문9', requiredRoles: ['EK2G9_Hope', 'EK2G9_Be'], koreanOrder: ['EK2G9_Future', 'EK2G9_In', 'EK2G9_Poet', 'EK2G9_Be', 'EK2G9_To', 'EK2G9_My', 'EK2G9_Hope', 'EK2G9_Is'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 10 (very 생략 및 문장 자르기 완벽 대응 레일)
+  { type: '2형식_영한_가주어진주어_예문10', requiredRoles: ['EK2G10_Easy', 'EK2G10_Study'], koreanOrder: ['EK2G10_This', 'EK2G10_Way', 'EK2G10_In', 'EK2G10_English', 'EK2G10_Study', 'EK2G10_To', 'EK2G10_Very', 'EK2G10_Easy', 'EK2G10_Is'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 11 (many 중복/생략 및 문장 자르기 완벽 대응 레일)
+  { type: '2형식_영한_가주어진주어_예문11', requiredRoles: ['EK2G11_Task', 'EK2G11_Lend'], koreanOrder: ['EK2G11_This', 'EK2G11_ReadingWeek', 'EK2G11_During', 'EK2G11_Many1', 'EK2G11_Citizens', 'EK2G11_Many2', 'EK2G11_Books', 'EK2G11_Lend', 'EK2G11_To', 'EK2G11_Our', 'EK2G11_Task', 'EK2G11_Is'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 12 (to 생략 및 문장 자르기 완벽 대응 레일)
+  { type: '2형식_영한_가주어진주어_예문12', requiredRoles: ['EK2G12_Health', 'EK2G12_Work'], koreanOrder: ['EK2G12_Work', 'EK2G12_And', 'EK2G12_To2', 'EK2G12_Play', 'EK2G12_To1', 'EK2G12_Health', 'EK2G12_For', 'EK2G12_Good', 'EK2G12_Is'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 13 (복합 명사/동사 생략 완벽 대응 레일)
+  { type: '2형식_영한_가주어진주어_예문13', requiredRoles: ['EK2G13_Duty', 'EK2G13_Advance'], koreanOrder: ['EK2G13_Gov', 'EK2G13_Uphold', 'EK2G13_To1', 'EK2G13_And1', 'EK2G13_My2', 'EK2G13_Peoples', 'EK2G13_Of', 'EK2G13_Happiness', 'EK2G13_And2', 'EK2G13_Prosperity', 'EK2G13_Advance', 'EK2G13_To2', 'EK2G13_My1', 'EK2G13_Duty', 'EK2G13_Is'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 14 (4형식+5형식 병렬 및 중복 단어 완벽 대응 레일)
+  { type: '2형식_영한_가주어진주어_예문14', requiredRoles: ['EK2G14_Task'], koreanOrder: ['EK2G14_Many1', 'EK2G14_Youths1', 'EK2G14_True', 'EK2G14_Subjects', 'EK2G14_Teach', 'EK2G14_To1', 'EK2G14_And', 'EK2G14_Them', 'EK2G14_Great', 'EK2G14_Youths2', 'EK2G14_Make', 'EK2G14_To2', 'EK2G14_Our', 'EK2G14_Task', 'EK2G14_Is'] },
+  // 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 1 (클린 버전)
+  { type: '3형식_목적어구_예문1', requiredRoles: ['EK3_1_I', 'EK3_1_Want'], koreanOrder: ['EK3_1_I', 'EK3_1_House', 'EK3_1_In', 'EK3_1_Rest', 'EK3_1_To', 'EK3_1_Want'] },
 ];
 
 // const FORM_RULES = [ 여기 위에 Enter 후에 paste
@@ -314,7 +336,76 @@ export async function POST(request: Request) {
 
 // 여기 아래에 Enter 후 paste
     let processedText = originalText.toLowerCase()
-      
+      // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 1 (간섭 방지 최상단 배치) 👇👇
+      .replace(/(^|\s)i\s+want\s+to\s+rest\s+in\s+the\s+house\.?(?!\w)/gi, '$1EK3_1_I_Tk EK3_1_Want_Tk EK3_1_To_Tk EK3_1_Rest_Tk EK3_1_In_Tk EK3_1_House_Tk ')
+      .replace(/(^|\s)i\s+want\s+to\s+rest\.?(?!\w)/gi, '$1EK3_1_I_Tk EK3_1_Want_Tk EK3_1_To_Tk EK3_1_Rest_Tk ')
+      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 14 (병렬 구조 및 부분 잘림 7단 방어망) 👇👇
+      // 1. 완전체
+      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*teach\s*many\s*youths\s*the\s*true\s*subject-matters\s*and\s*(?:\(to\)|to)?\s*make\s*them\s*great\s*youths\.?(?!\w)/gi, '$1EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To1_Tk EK2G14_Teach_Tk EK2G14_Many1_Tk EK2G14_Youths1_Tk EK2G14_True_Tk EK2G14_Subjects_Tk EK2G14_And_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Great_Tk EK2G14_Youths2_Tk ')
+      // 2. many 생략 + great 생략
+      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*teach\s*youths\s*the\s*true\s*subject-matters\s*and\s*(?:\(to\)|to)?\s*make\s*them\s*youths\.?(?!\w)/gi, '$1EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To1_Tk EK2G14_Teach_Tk EK2G14_Youths1_Tk EK2G14_True_Tk EK2G14_Subjects_Tk EK2G14_And_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Youths2_Tk ')
+      // 3. true 생략 + great 생략
+      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*teach\s*many\s*youths\s*the\s*subject-matters\s*and\s*(?:\(to\)|to)?\s*make\s*them\s*youths\.?(?!\w)/gi, '$1EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To1_Tk EK2G14_Teach_Tk EK2G14_Many1_Tk EK2G14_Youths1_Tk EK2G14_Subjects_Tk EK2G14_And_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Youths2_Tk ')
+      // 4. teach make them great youths (목적어들 생략된 압축 쿼리)
+      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*teach\s*make\s*them\s*great\s*youths\.?(?!\w)/gi, '$1EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To1_Tk EK2G14_Teach_Tk EK2G14_And_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Great_Tk EK2G14_Youths2_Tk ')
+      // 5. make them youths (teach 파트 통째로 생략)
+      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*make\s*them\s*youths\.?(?!\w)/gi, '$1EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Youths2_Tk ')
+      // 6. teach 파트 통째로 날아가고 make them great youths 붙은 경우 (만약을 대비한 추가)
+      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*make\s*them\s*great\s*youths\.?(?!\w)/gi, '$1EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Great_Tk EK2G14_Youths2_Tk ')
+      // 7. 앞부분만 남음 (teach many youths the true subject-matters)
+      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*teach\s*many\s*youths\s*the\s*true\s*subject-matters\.?(?!\w)/gi, '$1EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To1_Tk EK2G14_Teach_Tk EK2G14_Many1_Tk EK2G14_Youths1_Tk EK2G14_True_Tk EK2G14_Subjects_Tk ')
+      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 13 (복합 생략 6단 방어망) 👇👇
+      // 1. 완전체
+      .replace(/(^|\s)it\s*is\s*my\s*duty\s*to\s*uphold\s*consitutional\s*government\s*and\s*(?:\(to\)|to)?\s*advance\s*the\s*happiness\s*and\s*prosperity\s*of\s*my\s*peoples\.?(?!\w)/gi, '$1EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To1_Tk EK2G13_Uphold_Tk EK2G13_Gov_Tk EK2G13_And1_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Happiness_Tk EK2G13_And2_Tk EK2G13_Prosperity_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk ')
+      // 2. happiness 생략
+      .replace(/(^|\s)it\s*is\s*my\s*duty\s*to\s*uphold\s*consitutional\s*government\s*and\s*(?:\(to\)|to)?\s*advance\s*the\s*prosperity\s*of\s*my\s*peoples\.?(?!\w)/gi, '$1EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To1_Tk EK2G13_Uphold_Tk EK2G13_Gov_Tk EK2G13_And1_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Prosperity_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk ')
+      // 3. prosperity 생략
+      .replace(/(^|\s)it\s*is\s*my\s*duty\s*to\s*uphold\s*consitutional\s*government\s*and\s*(?:\(to\)|to)?\s*advance\s*the\s*happiness\s*of\s*my\s*peoples\.?(?!\w)/gi, '$1EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To1_Tk EK2G13_Uphold_Tk EK2G13_Gov_Tk EK2G13_And1_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Happiness_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk ')
+      // 4. uphold 앞부분 통째로 생략 + 완전체
+      .replace(/(^|\s)it\s*is\s*my\s*duty\s*to\s*advance\s*the\s*happiness\s*and\s*prosperity\s*of\s*my\s*peoples\.?(?!\w)/gi, '$1EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Happiness_Tk EK2G13_And2_Tk EK2G13_Prosperity_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk ')
+      // 5. uphold 통째로 생략 + happiness 생략
+      .replace(/(^|\s)it\s*is\s*my\s*duty\s*to\s*advance\s*the\s*prosperity\s*of\s*my\s*peoples\.?(?!\w)/gi, '$1EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Prosperity_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk ')
+      // 6. uphold 통째로 생략 + prosperity 생략
+      .replace(/(^|\s)it\s*is\s*my\s*duty\s*to\s*advance\s*the\s*happiness\s*of\s*my\s*peoples\.?(?!\w)/gi, '$1EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Happiness_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk ')
+      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 12 (to 유무 & 부분 잘림 3단 방어망) 👇👇
+      .replace(/(^|\s)it\s*is\s*good\s*for\s*health\s*to\s*work\s*and\s*to\s*play\.?(?!\w)/gi, '$1EK2G12_It_Tk EK2G12_Is_Tk EK2G12_Good_Tk EK2G12_For_Tk EK2G12_Health_Tk EK2G12_To1_Tk EK2G12_Work_Tk EK2G12_And_Tk EK2G12_To2_Tk EK2G12_Play_Tk ')
+      .replace(/(^|\s)it\s*is\s*good\s*for\s*health\s*to\s*work\s*and\s*play\.?(?!\w)/gi, '$1EK2G12_It_Tk EK2G12_Is_Tk EK2G12_Good_Tk EK2G12_For_Tk EK2G12_Health_Tk EK2G12_To1_Tk EK2G12_Work_Tk EK2G12_And_Tk EK2G12_Play_Tk ')
+      .replace(/(^|\s)it\s*is\s*good\s*for\s*health\s*to\s*work\.?(?!\w)/gi, '$1EK2G12_It_Tk EK2G12_Is_Tk EK2G12_Good_Tk EK2G12_For_Tk EK2G12_Health_Tk EK2G12_To1_Tk EK2G12_Work_Tk ')
+      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 11 (many 유무 & 부분 잘림 5단 방어망) 👇👇
+      // 1. 완전체
+      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*lend\s*many\s*citizens\s*many\s*books\s*during\s*this\s*reading\s*week\.?(?!\w)/gi, '$1EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Many1_Tk EK2G11_Citizens_Tk EK2G11_Many2_Tk EK2G11_Books_Tk EK2G11_During_Tk EK2G11_This_Tk EK2G11_ReadingWeek_Tk ')
+      // 2. during this reading week 생략
+      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*lend\s*many\s*citizens\s*many\s*books\.?(?!\w)/gi, '$1EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Many1_Tk EK2G11_Citizens_Tk EK2G11_Many2_Tk EK2G11_Books_Tk ')
+      // 3. 첫 번째 many 생략 + during 포함
+      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*lend\s*citizens\s*many\s*books\s*during\s*this\s*reading\s*week\.?(?!\w)/gi, '$1EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Citizens_Tk EK2G11_Many2_Tk EK2G11_Books_Tk EK2G11_During_Tk EK2G11_This_Tk EK2G11_ReadingWeek_Tk ')
+      // 4. 두 번째 many 생략 + during 생략
+      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*lend\s*many\s*citizens\s*books\.?(?!\w)/gi, '$1EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Many1_Tk EK2G11_Citizens_Tk EK2G11_Books_Tk ')
+      // 5. many 두 개 모두 생략 + during 생략
+      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*lend\s*citizens\s*books\.?(?!\w)/gi, '$1EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Citizens_Tk EK2G11_Books_Tk ')
+      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 10 (very 유무 & 부분 잘림 4단 방어망) 👇👇
+      .replace(/(^|\s)it\s*is\s*very\s*easy\s*to\s*study\s*english\s*in\s*this\s*way\.?(?!\w)/gi, '$1EK2G10_It_Tk EK2G10_Is_Tk EK2G10_Very_Tk EK2G10_Easy_Tk EK2G10_To_Tk EK2G10_Study_Tk EK2G10_English_Tk EK2G10_In_Tk EK2G10_This_Tk EK2G10_Way_Tk ')
+      .replace(/(^|\s)it\s*is\s*easy\s*to\s*study\s*english\s*in\s*this\s*way\.?(?!\w)/gi, '$1EK2G10_It_Tk EK2G10_Is_Tk EK2G10_Easy_Tk EK2G10_To_Tk EK2G10_Study_Tk EK2G10_English_Tk EK2G10_In_Tk EK2G10_This_Tk EK2G10_Way_Tk ')
+      .replace(/(^|\s)it\s*is\s*very\s*easy\s*to\s*study\s*english\.?(?!\w)/gi, '$1EK2G10_It_Tk EK2G10_Is_Tk EK2G10_Very_Tk EK2G10_Easy_Tk EK2G10_To_Tk EK2G10_Study_Tk EK2G10_English_Tk ')
+      .replace(/(^|\s)it\s*is\s*easy\s*to\s*study\s*english\.?(?!\w)/gi, '$1EK2G10_It_Tk EK2G10_Is_Tk EK2G10_Easy_Tk EK2G10_To_Tk EK2G10_Study_Tk EK2G10_English_Tk ')
+      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 9 (great 유무 & 부분 잘림 4단 방어망) 👇👇
+      .replace(/(^|\s)it\s*is\s*my\s*hope\s*to\s*be\s*a\s*great\s*poet\s*in\s*the\s*future\.?(?!\w)/gi, '$1EK2G9_It_Tk EK2G9_Is_Tk EK2G9_My_Tk EK2G9_Hope_Tk EK2G9_To_Tk EK2G9_Be_Tk EK2G9_GreatPoet_Tk EK2G9_In_Tk EK2G9_Future_Tk ')
+      .replace(/(^|\s)it\s*is\s*my\s*hope\s*to\s*be\s*a\s*poet\s*in\s*the\s*future\.?(?!\w)/gi, '$1EK2G9_It_Tk EK2G9_Is_Tk EK2G9_My_Tk EK2G9_Hope_Tk EK2G9_To_Tk EK2G9_Be_Tk EK2G9_Poet_Tk EK2G9_In_Tk EK2G9_Future_Tk ')
+      .replace(/(^|\s)it\s*is\s*my\s*hope\s*to\s*be\s*a\s*great\s*poet\.?(?!\w)/gi, '$1EK2G9_It_Tk EK2G9_Is_Tk EK2G9_My_Tk EK2G9_Hope_Tk EK2G9_To_Tk EK2G9_Be_Tk EK2G9_GreatPoet_Tk ')
+      .replace(/(^|\s)it\s*is\s*my\s*hope\s*to\s*be\s*a\s*poet\.?(?!\w)/gi, '$1EK2G9_It_Tk EK2G9_Is_Tk EK2G9_My_Tk EK2G9_Hope_Tk EK2G9_To_Tk EK2G9_Be_Tk EK2G9_Poet_Tk ')
+      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 8 (전체 및 부분 잘림 3단 방어망) 👇👇
+      .replace(/(^|\s)it\s*is\s*good\s*for\s*health\s*to\s*get\s*up\s*early\s*in\s*the\s*morning\.?(?!\w)/gi, '$1EK2G8_It_Tk EK2G8_Is_Tk EK2G8_Good_Tk EK2G8_For_Tk EK2G8_Health_Tk EK2G8_To_Tk EK2G8_GetUp_Tk EK2G8_Early_Tk EK2G8_In_Tk EK2G8_Morning_Tk ')
+      .replace(/(^|\s)it\s*is\s*good\s*for\s*health\s*to\s*get\s*up\s*early\.?(?!\w)/gi, '$1EK2G8_It_Tk EK2G8_Is_Tk EK2G8_Good_Tk EK2G8_For_Tk EK2G8_Health_Tk EK2G8_To_Tk EK2G8_GetUp_Tk EK2G8_Early_Tk ')
+      .replace(/(^|\s)it\s*is\s*good\s*for\s*health\s*to\s*get\s*up\.?(?!\w)/gi, '$1EK2G8_It_Tk EK2G8_Is_Tk EK2G8_Good_Tk EK2G8_For_Tk EK2G8_Health_Tk EK2G8_To_Tk EK2G8_GetUp_Tk ')
+      // 👇👇 💡 [수프로 엣지] 영한 <1형식> 기본 문형 예문 2 (전체 및 부분 잘림 3단 방어망) 👇👇
+      .replace(/(^|\s)he\s*had\s*to\s*work\s*hard\s*for\s*a\s*living\.?(?!\w)/gi, '$1EK1B2_He_Tk EK1B2_HadWork_Tk EK1B2_Hard_Tk EK1B2_For_Tk EK1B2_Living_Tk ')
+      .replace(/(^|\s)he\s*had\s*to\s*work\s*for\s*a\s*living\.?(?!\w)/gi, '$1EK1B2_He_Tk EK1B2_HadWork_Tk EK1B2_For_Tk EK1B2_Living_Tk ')
+      .replace(/(^|\s)he\s*had\s*to\s*work\s*hard\.?(?!\w)/gi, '$1EK1B2_He_Tk EK1B2_HadWork_Tk EK1B2_Hard_Tk ')
+      // 👇👇 💡 [수프로 엣지] 영한 <1형식> 기본 문형 예문 1 (전체 및 부분 잘림 3단 방어망) 👇👇
+      .replace(/(^|\s)my\s*father\s*works\s*from\s*morning\s*till\s*evening\.?(?!\w)/gi, '$1EK1B1_My_Tk EK1B1_Father_Tk EK1B1_Works_Tk EK1B1_From_Tk EK1B1_Morning_Tk EK1B1_Till_Tk EK1B1_Evening_Tk ')
+      .replace(/(^|\s)my\s*father\s*works\s*from\s*morning\.?(?!\w)/gi, '$1EK1B1_My_Tk EK1B1_Father_Tk EK1B1_Works_Tk EK1B1_From_Tk EK1B1_Morning_Tk ')
+      .replace(/(^|\s)my\s*father\s*works\s*till\s*evening\.?(?!\w)/gi, '$1EK1B1_My_Tk EK1B1_Father_Tk EK1B1_Works_Tk EK1B1_Till_Tk EK1B1_Evening_Tk ')
+      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 보충어구 예문 2 (대소문자 무시 방어망) 👇👇
+      .replace(/(^|\s)his\s*hope\s*is\s*to\s*become\s*a\s*great\s*doctor\s*in\s*the\s*future\.?(?!\w)/gi, '$1EK2C2_His_Tk EK2C2_Hope_Tk EK2C2_Is_Tk EK2C2_To_Tk EK2C2_Become_Tk EK2C2_Doctor_Tk EK2C2_In_Tk EK2C2_Future_Tk ')
       // 👇👇 💡 [수프로 엣지] 영한 <2형식> 보충어구 예문 1 (대소문자 무시 방어망) 👇👇
       .replace(/(^|\s)my\s*plan\s*is\s*to\s*go\s*to\s*the\s*museum\s*with\s*her\s*on\s*this\s*weekend\.?(?!\w)/gi, '$1EK2C1_My_Tk EK2C1_Plan_Tk EK2C1_Is_Tk EK2C1_To1_Tk EK2C1_Go_Tk EK2C1_To2_Tk EK2C1_Museum_Tk EK2C1_With_Tk EK2C1_Her_Tk EK2C1_On_Tk EK2C1_This_Tk EK2C1_Weekend_Tk ')
       // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 7 (대소문자 무시 방어망) 👇👇
@@ -427,55 +518,20 @@ export async function POST(request: Request) {
       .replace(/사시는/g, '사시다 ㄴ')
       .replace(/캘리포니아에/g, '캘리포니아 에')
       .replace(/읽으라고/g, '읽다 라고')
-      .replace(/유지하는\s*것이다/g, '유지하다 것 이다')
       .replace(/자연\s*환경을/gi, '자연 환경을')
       .replace(/자연환경을/gi, '자연 환경을')
       .replace(/깨끗하고/g, '깨끗한 고')
-      .replace(/읽으려는\s*것이다/g, '읽다 것 이다')
-      .replace(/조용한\s*시골에서/g, '조용한_시골 에서')
-      .replace(/이번에/g, '이번 에')
-      .replace(/부여하려는\s*것이다/g, '부여하다 것 이다')
       .replace(/교육\s*계획의/g, '교육 개혁 의')
       .replace(/교육의/g, '교육 의')
-      .replace(/되는\s*것이다/g, '되다 것 이다')
-      .replace(/훌륭한\s*의사가/g, 'a_great_doctor')
-      .replace(/가는\s*것이다/g, '가다 것 이다')
-      .replace(/주말에/g, '주말 에')
-      .replace(/박물관에/g, '박물관 에')
-      .replace(/그녀와\s*함께/g, '그녀 와함께')
       .replace(/고대\s*그리스인들은/g, '고대(의)_그리스인들은')
-      .replace(/하기를/g, '하다 기를')
-      .replace(/물들이기로/g, '물들이다 기로')
-      .replace(/물들일\s*것을/g, '물들이다 것을')
-      .replace(/꽃잎들로/g, '꽃잎들 로')
       .replace(/위대한\s*과학자가/g, '위대한_과학자가')
       .replace(/에\s*대해서/g, '에_대해서')
-      .replace(/동물과/g, '동물 과')
-      .replace(/집에서/g, '집 에서')
-      .replace(/쉬기를/g, '쉬다 기를')
-      .replace(/가르쳐\s*주어서/g, '것이 가르쳐주다 서')
-      .replace(/만드는\s*것이/g, '만들다 것이')
       .replace(/참된\s*과제를/g, '참된 과제를')
       .replace(/훌륭한\s*젊은이로/g, '훌륭한 젊은이로')
       .replace(/입헌정치를/g, '입헌정치를')
-      .replace(/유지하고/g, '유지하다 고')
-      .replace(/신민들의/g, '신민들 의')
-      .replace(/행복과/g, '행복 과')
       .replace(/번영을/g, '번영을')
-      .replace(/증진시키는\s*것이/g, '증진시키다 것이 것이')
-      .replace(/의무입니다/g, '의무 이다')
-      .replace(/일하고\s*노는\s*것이/g, '일하다 고 것은 놀다 것은')
-      .replace(/빌려주는\s*것이/g, '빌려주다 것이')
-      .replace(/빌려주는\s*것은/g, '빌려주다 것은')
-      .replace(/일이다/g, '일 이다')
-      .replace(/이러한\s*방법으로/g, '이러한 방법 으로')
-      .replace(/공부하기는/g, '공부하다 기는')
-      .replace(/대단히\s*쉽다/g, '대단히 쉬운 이다')
-      .replace(/일어나는\s*것이/g, '일어나다 것이')
       .replace(/위대한\s*시인이/g, '위대한_시인이')
       .replace(/일해야만\s*했다/g, '일해야만_했다')
-      .replace(/아침\s*부터/g, '아침 부터')
-      .replace(/저녁\s*까지/g, '저녁 까지')
       .replace(/현대과학은/g, '현대(의) 과학은')
       .replace(/더\s*쉽고/g, '더_쉬운 고')
       .replace(/여러면에서/g, '여러면 에서')
@@ -503,6 +559,40 @@ export async function POST(request: Request) {
       .replace(/예쁜\s*장난감-배를/g, '예쁜_장난감-배를')
       .replace(/사\s*주었다/g, '사주었다')
       .replace(/예쁜\s*인형을/g, '예쁜_인형을')
+      // 👇👇 💡 [수프로 엣지] 방향이 잘못되어 에러를 일으키던 규칙들을 올바르게 뒤집은 최종 방어망 👇👇
+      .replace(/유지하다\s*것\s*이다/g, '유지하는 것이다')
+      .replace(/읽다\s*것\s*이다/g, '읽으려는 것이다')
+      .replace(/부여하다\s*것\s*이다/g, '부여하려는 것이다')
+      .replace(/되다\s*것\s*이다/g, '되는 것이다')
+      .replace(/가다\s*것\s*이다/g, '가는 것이다')
+      .replace(/이번\s*에/g, '이번에')
+      .replace(/주말\s*에/g, '주말에')
+      .replace(/박물관\s*에/g, '박물관에')
+      .replace(/그녀\s*와함께/g, '그녀와 함께')
+      .replace(/하다\s*기를/g, '하기를')
+      .replace(/물들이다\s*기로/g, '물들이기로')
+      .replace(/물들이다\s*것을/g, '물들일 것을')
+      .replace(/꽃잎들\s*로/g, '꽃잎들로')
+      .replace(/동물\s*과/g, '동물과')
+      .replace(/집\s*에서/g, '집에서')
+      .replace(/쉬다\s*기를/g, '쉬기를')
+      .replace(/것이\s*가르쳐주다\s*서/g, '가르쳐 주어서')
+      .replace(/만들다\s*것이/g, '만드는 것이')
+      .replace(/유지하다\s*고/g, '유지하고')
+      .replace(/신민들\s*의/g, '신민들의')
+      .replace(/행복\s*과/g, '행복과')
+      .replace(/증진시키다\s*것이\s*것이/g, '증진시키는 것이')
+      .replace(/의무\s*이다/g, '의무입니다')
+      .replace(/일하다\s*고\s*것은\s*놀다\s*것은/g, '일하고 노는 것이')
+      .replace(/빌려주다\s*것이/g, '빌려주는 것이')
+      .replace(/빌려주다\s*것은/g, '빌려주는 것은')
+      .replace(/일\s*이다/g, '일이다')
+      .replace(/이러한\s*방법\s*으로/g, '이러한 방법으로')
+      .replace(/공부하다\s*기는/g, '공부하기는')
+      .replace(/대단히\s*쉬운\s*이다/g, '대단히 쉽다')
+      .replace(/일어나다\s*것이/g, '일어나는 것이')
+      .replace(/아침\s*부터/g, '아침부터')
+      .replace(/저녁\s*까지/g, '저녁까지')
       .replace(/mahatma\s*gandi/g, 'mahatma_gandi')
       .replace(/would\s*attain/g, 'would_attain')
       .replace(/the\s*masses/g, 'the_masses')
@@ -688,6 +778,139 @@ export async function POST(request: Request) {
 
       // if (word == 여기 아래에 Enter 두번 후 paste
 
+      // 💡 영한 <3형식> 목적어구 예문 1 (표시 오류 원천 차단)
+      if (word.includes('EK3O1_I_Tk')) { matchedRole = 'EK3O1_I'; translatedWord = '나는'; displayEn = 'I'; }
+      if (word.includes('EK3O1_Want_Tk')) { matchedRole = 'EK3O1_Want'; translatedWord = '원한다'; displayEn = 'want'; }
+      if (word.includes('EK3O1_To_Tk')) { matchedRole = 'EK3O1_To'; translatedWord = '기를'; displayEn = 'to'; }
+      if (word.includes('EK3O1_Rest_Tk')) { matchedRole = 'EK3O1_Rest'; translatedWord = '쉬다'; displayEn = 'rest'; }
+      if (word.includes('EK3O1_In_Tk')) { matchedRole = 'EK3O1_In'; translatedWord = '에서'; displayEn = 'in'; }
+      if (word.includes('EK3O1_House_Tk')) { matchedRole = 'EK3O1_House'; translatedWord = '집'; displayEn = 'the house'; }
+      
+      // 💡 영한 <2형식> 가주어-진주어 예문 14 (표시 오류 원천 차단 및 중복 단어 철저 분리)
+      if (word.includes('EK2G14_It_Tk')) { matchedRole = 'EK2G14_It'; translatedWord = ''; displayEn = 'It'; }
+      if (word.includes('EK2G14_Is_Tk')) { matchedRole = 'EK2G14_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('EK2G14_Our_Tk')) { matchedRole = 'EK2G14_Our'; translatedWord = '우리의'; displayEn = 'our'; }
+      if (word.includes('EK2G14_Task_Tk')) { matchedRole = 'EK2G14_Task'; translatedWord = '일'; displayEn = 'task'; }
+      if (word.includes('EK2G14_To1_Tk')) { matchedRole = 'EK2G14_To1'; translatedWord = '것이'; displayEn = 'to'; }
+      if (word.includes('EK2G14_Teach_Tk')) { matchedRole = 'EK2G14_Teach'; translatedWord = '가르쳐주다'; displayEn = 'teach'; }
+      if (word.includes('EK2G14_Many1_Tk')) { matchedRole = 'EK2G14_Many1'; translatedWord = '많은'; displayEn = 'many'; }
+      if (word.includes('EK2G14_Youths1_Tk')) { matchedRole = 'EK2G14_Youths1'; translatedWord = '젊은이들에게'; displayEn = 'youths'; } // 👈 4형식 간접목적어
+      if (word.includes('EK2G14_True_Tk')) { matchedRole = 'EK2G14_True'; translatedWord = '참된'; displayEn = 'the true'; }
+      if (word.includes('EK2G14_Subjects_Tk')) { matchedRole = 'EK2G14_Subjects'; translatedWord = '과제를'; displayEn = 'subject-matters'; }
+      if (word.includes('EK2G14_And_Tk')) { matchedRole = 'EK2G14_And'; translatedWord = '서'; displayEn = 'and'; }
+      if (word.includes('EK2G14_To2_Tk')) { matchedRole = 'EK2G14_To2'; translatedWord = '것이'; displayEn = '(to)'; }
+      if (word.includes('EK2G14_Make_Tk')) { matchedRole = 'EK2G14_Make'; translatedWord = '만들다'; displayEn = 'make'; }
+      if (word.includes('EK2G14_Them_Tk')) { matchedRole = 'EK2G14_Them'; translatedWord = '그들을'; displayEn = 'them'; }
+      if (word.includes('EK2G14_Great_Tk')) { matchedRole = 'EK2G14_Great'; translatedWord = '훌륭한'; displayEn = 'great'; }
+      if (word.includes('EK2G14_Youths2_Tk')) { matchedRole = 'EK2G14_Youths2'; translatedWord = '젊은이로'; displayEn = 'youths'; } // 👈 5형식 목적격 보어
+
+      // 💡 영한 <2형식> 가주어-진주어 예문 13 (표시 오류 원천 차단)
+      if (word.includes('EK2G13_It_Tk')) { matchedRole = 'EK2G13_It'; translatedWord = ''; displayEn = 'It'; }
+      if (word.includes('EK2G13_Is_Tk')) { matchedRole = 'EK2G13_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('EK2G13_My1_Tk')) { matchedRole = 'EK2G13_My1'; translatedWord = '나의'; displayEn = 'my'; }
+      if (word.includes('EK2G13_Duty_Tk')) { matchedRole = 'EK2G13_Duty'; translatedWord = '의무'; displayEn = 'duty'; }
+      if (word.includes('EK2G13_To1_Tk')) { matchedRole = 'EK2G13_To1'; translatedWord = '것이'; displayEn = 'to'; }
+      if (word.includes('EK2G13_Uphold_Tk')) { matchedRole = 'EK2G13_Uphold'; translatedWord = '유지하다'; displayEn = 'uphold'; }
+      if (word.includes('EK2G13_Gov_Tk')) { matchedRole = 'EK2G13_Gov'; translatedWord = '입헌정치를'; displayEn = 'consitutional government'; }
+      if (word.includes('EK2G13_And1_Tk')) { matchedRole = 'EK2G13_And1'; translatedWord = '고'; displayEn = 'and'; }
+      if (word.includes('EK2G13_To2_Tk')) { matchedRole = 'EK2G13_To2'; translatedWord = '것이'; displayEn = '(to)'; }
+      if (word.includes('EK2G13_Advance_Tk')) { matchedRole = 'EK2G13_Advance'; translatedWord = '증진시키다'; displayEn = 'advance'; }
+      if (word.includes('EK2G13_Happiness_Tk')) { matchedRole = 'EK2G13_Happiness'; translatedWord = '행복'; displayEn = 'the happiness'; }
+      if (word.includes('EK2G13_And2_Tk')) { matchedRole = 'EK2G13_And2'; translatedWord = '과'; displayEn = 'and'; }
+      if (word.includes('EK2G13_Prosperity_Tk')) { matchedRole = 'EK2G13_Prosperity'; translatedWord = '번영을'; displayEn = 'prosperity'; }
+      if (word.includes('EK2G13_Of_Tk')) { matchedRole = 'EK2G13_Of'; translatedWord = '의'; displayEn = 'of'; }
+      if (word.includes('EK2G13_My2_Tk')) { matchedRole = 'EK2G13_My2'; translatedWord = '나의'; displayEn = 'my'; }
+      if (word.includes('EK2G13_Peoples_Tk')) { matchedRole = 'EK2G13_Peoples'; translatedWord = '신민들'; displayEn = 'peoples'; }
+      
+      // 💡 영한 <2형식> 가주어-진주어 예문 12 (표시 오류 원천 차단)
+      if (word.includes('EK2G12_It_Tk')) { matchedRole = 'EK2G12_It'; translatedWord = ''; displayEn = 'It'; }
+      if (word.includes('EK2G12_Is_Tk')) { matchedRole = 'EK2G12_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('EK2G12_Good_Tk')) { matchedRole = 'EK2G12_Good'; translatedWord = '좋은'; displayEn = 'good'; }
+      if (word.includes('EK2G12_For_Tk')) { matchedRole = 'EK2G12_For'; translatedWord = '에'; displayEn = 'for'; }
+      if (word.includes('EK2G12_Health_Tk')) { matchedRole = 'EK2G12_Health'; translatedWord = '건강'; displayEn = 'health'; }
+      if (word.includes('EK2G12_To1_Tk')) { matchedRole = 'EK2G12_To1'; translatedWord = '것은'; displayEn = 'to'; }
+      if (word.includes('EK2G12_Work_Tk')) { matchedRole = 'EK2G12_Work'; translatedWord = '일하다'; displayEn = 'work'; }
+      if (word.includes('EK2G12_And_Tk')) { matchedRole = 'EK2G12_And'; translatedWord = '고'; displayEn = 'and'; }
+      if (word.includes('EK2G12_To2_Tk')) { matchedRole = 'EK2G12_To2'; translatedWord = '것은'; displayEn = 'to'; }
+      if (word.includes('EK2G12_Play_Tk')) { matchedRole = 'EK2G12_Play'; translatedWord = '놀다'; displayEn = 'play'; }
+      
+      // 💡 영한 <2형식> 가주어-진주어 예문 11 (표시 오류 원천 차단 및 중복 토큰 완벽 처리)
+      if (word.includes('EK2G11_It_Tk')) { matchedRole = 'EK2G11_It'; translatedWord = ''; displayEn = 'It'; }
+      if (word.includes('EK2G11_Is_Tk')) { matchedRole = 'EK2G11_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('EK2G11_Our_Tk')) { matchedRole = 'EK2G11_Our'; translatedWord = '우리의'; displayEn = 'our'; }
+      if (word.includes('EK2G11_Task_Tk')) { matchedRole = 'EK2G11_Task'; translatedWord = '일'; displayEn = 'task'; }
+      if (word.includes('EK2G11_To_Tk')) { matchedRole = 'EK2G11_To'; translatedWord = '것은'; displayEn = 'to'; }
+      if (word.includes('EK2G11_Lend_Tk')) { matchedRole = 'EK2G11_Lend'; translatedWord = '빌려주다'; displayEn = 'lend'; }
+      if (word.includes('EK2G11_Many1_Tk')) { matchedRole = 'EK2G11_Many1'; translatedWord = '많은'; displayEn = 'many'; }
+      if (word.includes('EK2G11_Citizens_Tk')) { matchedRole = 'EK2G11_Citizens'; translatedWord = '시민들에게'; displayEn = 'citizens'; }
+      if (word.includes('EK2G11_Many2_Tk')) { matchedRole = 'EK2G11_Many2'; translatedWord = '많은'; displayEn = 'many'; }
+      if (word.includes('EK2G11_Books_Tk')) { matchedRole = 'EK2G11_Books'; translatedWord = '책을'; displayEn = 'books'; }
+      if (word.includes('EK2G11_During_Tk')) { matchedRole = 'EK2G11_During'; translatedWord = '에'; displayEn = 'during'; }
+      if (word.includes('EK2G11_This_Tk')) { matchedRole = 'EK2G11_This'; translatedWord = '이번'; displayEn = 'this'; }
+      if (word.includes('EK2G11_ReadingWeek_Tk')) { matchedRole = 'EK2G11_ReadingWeek'; translatedWord = '독서주간'; displayEn = 'reading week'; }
+      
+      // 💡 영한 <2형식> 가주어-진주어 예문 10 (표시 오류 원천 차단 및 다중 토큰 스마트 매핑)
+      if (word.includes('EK2G10_It_Tk')) { matchedRole = 'EK2G10_It'; translatedWord = ''; displayEn = 'It'; }
+      if (word.includes('EK2G10_Is_Tk')) { matchedRole = 'EK2G10_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('EK2G10_Very_Tk')) { matchedRole = 'EK2G10_Very'; translatedWord = '대단히'; displayEn = 'very'; }
+      if (word.includes('EK2G10_Easy_Tk')) { matchedRole = 'EK2G10_Easy'; translatedWord = '쉬운'; displayEn = 'easy'; }
+      if (word.includes('EK2G10_To_Tk')) { matchedRole = 'EK2G10_To'; translatedWord = '기는'; displayEn = 'to'; }
+      if (word.includes('EK2G10_Study_Tk')) { matchedRole = 'EK2G10_Study'; translatedWord = '공부하다'; displayEn = 'study'; }
+      if (word.includes('EK2G10_English_Tk')) { matchedRole = 'EK2G10_English'; translatedWord = '영어를'; displayEn = 'English'; }
+      if (word.includes('EK2G10_In_Tk')) { matchedRole = 'EK2G10_In'; translatedWord = '으로'; displayEn = 'in'; }
+      if (word.includes('EK2G10_This_Tk')) { matchedRole = 'EK2G10_This'; translatedWord = '이러한'; displayEn = 'this'; }
+      if (word.includes('EK2G10_Way_Tk')) { matchedRole = 'EK2G10_Way'; translatedWord = '방법'; displayEn = 'way'; }
+      
+      // 💡 영한 <2형식> 가주어-진주어 예문 9 (표시 오류 원천 차단 및 다중 토큰 스마트 매핑)
+      if (word.includes('EK2G9_It_Tk')) { matchedRole = 'EK2G9_It'; translatedWord = ''; displayEn = 'It'; }
+      if (word.includes('EK2G9_Is_Tk')) { matchedRole = 'EK2G9_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('EK2G9_My_Tk')) { matchedRole = 'EK2G9_My'; translatedWord = '나의'; displayEn = 'my'; }
+      if (word.includes('EK2G9_Hope_Tk')) { matchedRole = 'EK2G9_Hope'; translatedWord = '꿈'; displayEn = 'hope'; }
+      if (word.includes('EK2G9_To_Tk')) { matchedRole = 'EK2G9_To'; translatedWord = '것이'; displayEn = 'to'; }
+      if (word.includes('EK2G9_Be_Tk')) { matchedRole = 'EK2G9_Be'; translatedWord = '되다'; displayEn = 'be'; }
+      if (word.includes('EK2G9_GreatPoet_Tk')) { matchedRole = 'EK2G9_Poet'; translatedWord = '위대한 시인이'; displayEn = 'a great poet'; } // 👈 great 포함 시
+      if (word.includes('EK2G9_Poet_Tk')) { matchedRole = 'EK2G9_Poet'; translatedWord = '시인이'; displayEn = 'a poet'; } // 👈 great 미포함 시
+      if (word.includes('EK2G9_In_Tk')) { matchedRole = 'EK2G9_In'; translatedWord = '에'; displayEn = 'in'; }
+      if (word.includes('EK2G9_Future_Tk')) { matchedRole = 'EK2G9_Future'; translatedWord = '미래'; displayEn = 'the future'; }
+      
+      // 💡 영한 <2형식> 가주어-진주어 예문 8 (표시 오류 원천 차단)
+      if (word.includes('EK2G8_It_Tk')) { matchedRole = 'EK2G8_It'; translatedWord = ''; displayEn = 'It'; } // 가주어 해석 안 함
+      if (word.includes('EK2G8_Is_Tk')) { matchedRole = 'EK2G8_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('EK2G8_Good_Tk')) { matchedRole = 'EK2G8_Good'; translatedWord = '좋은'; displayEn = 'good'; }
+      if (word.includes('EK2G8_For_Tk')) { matchedRole = 'EK2G8_For'; translatedWord = '에'; displayEn = 'for'; }
+      if (word.includes('EK2G8_Health_Tk')) { matchedRole = 'EK2G8_Health'; translatedWord = '건강'; displayEn = 'health'; }
+      if (word.includes('EK2G8_To_Tk')) { matchedRole = 'EK2G8_To'; translatedWord = '것이'; displayEn = 'to'; }
+      if (word.includes('EK2G8_GetUp_Tk')) { matchedRole = 'EK2G8_GetUp'; translatedWord = '일어나다'; displayEn = 'get up'; }
+      if (word.includes('EK2G8_Early_Tk')) { matchedRole = 'EK2G8_Early'; translatedWord = '일찍'; displayEn = 'early'; }
+      if (word.includes('EK2G8_In_Tk')) { matchedRole = 'EK2G8_In'; translatedWord = '에'; displayEn = 'in'; }
+      if (word.includes('EK2G8_Morning_Tk')) { matchedRole = 'EK2G8_Morning'; translatedWord = '아침'; displayEn = 'the morning'; }
+      
+      // 💡 영한 <1형식> 기본 문형 예문 2 (표시 오류 원천 차단)
+      if (word.includes('EK1B2_He_Tk')) { matchedRole = 'EK1B2_He'; translatedWord = '그는'; displayEn = 'He'; }
+      if (word.includes('EK1B2_HadWork_Tk')) { matchedRole = 'EK1B2_HadWork'; translatedWord = '일해야만 했다'; displayEn = 'had to work'; }
+      if (word.includes('EK1B2_Hard_Tk')) { matchedRole = 'EK1B2_Hard'; translatedWord = '열심히'; displayEn = 'hard'; }
+      if (word.includes('EK1B2_For_Tk')) { matchedRole = 'EK1B2_For'; translatedWord = '위하여'; displayEn = 'for'; }
+      if (word.includes('EK1B2_Living_Tk')) { matchedRole = 'EK1B2_Living'; translatedWord = '생계를'; displayEn = 'a living'; }
+      
+      // 💡 영한 <1형식> 기본 문형 예문 1 (표시 오류 원천 차단)
+      if (word.includes('EK1B1_My_Tk')) { matchedRole = 'EK1B1_My'; translatedWord = '나의'; displayEn = 'My'; }
+      if (word.includes('EK1B1_Father_Tk')) { matchedRole = 'EK1B1_Father'; translatedWord = '아버지는'; displayEn = 'father'; }
+      if (word.includes('EK1B1_Works_Tk')) { matchedRole = 'EK1B1_Works'; translatedWord = '일하신다'; displayEn = 'works'; }
+      if (word.includes('EK1B1_From_Tk')) { matchedRole = 'EK1B1_From'; translatedWord = '부터'; displayEn = 'from'; }
+      if (word.includes('EK1B1_Morning_Tk')) { matchedRole = 'EK1B1_Morning'; translatedWord = '아침'; displayEn = 'morning'; }
+      if (word.includes('EK1B1_Till_Tk')) { matchedRole = 'EK1B1_Till'; translatedWord = '까지'; displayEn = 'till'; }
+      if (word.includes('EK1B1_Evening_Tk')) { matchedRole = 'EK1B1_Evening'; translatedWord = '저녁'; displayEn = 'evening'; }
+      
+      // 💡 영한 <2형식> 보충어구 예문 2 (어미 꼬임 원천 차단 다이렉트 할당!)
+      if (word.includes('EK2C2_His_Tk')) { matchedRole = 'EK2C2_His'; translatedWord = '그의'; displayEn = 'His'; }
+      if (word.includes('EK2C2_Hope_Tk')) { matchedRole = 'EK2C2_Hope'; translatedWord = '꿈은'; displayEn = 'hope'; }
+      if (word.includes('EK2C2_Is_Tk')) { matchedRole = 'EK2C2_Is'; translatedWord = ''; displayEn = 'is'; } // 해석 생략
+      if (word.includes('EK2C2_To_Tk')) { matchedRole = 'EK2C2_To'; translatedWord = '것이다'; displayEn = 'to'; } // '것이다' 다이렉트 할당
+      if (word.includes('EK2C2_Become_Tk')) { matchedRole = 'EK2C2_Become'; translatedWord = '되는'; displayEn = 'become'; } // '되는' 다이렉트 할당
+      if (word.includes('EK2C2_Doctor_Tk')) { matchedRole = 'EK2C2_Doctor'; translatedWord = '훌륭한 의사가'; displayEn = 'a great doctor'; }
+      if (word.includes('EK2C2_In_Tk')) { matchedRole = 'EK2C2_In'; translatedWord = '에'; displayEn = 'in'; }
+      if (word.includes('EK2C2_Future_Tk')) { matchedRole = 'EK2C2_Future'; translatedWord = '미래'; displayEn = 'the future'; }
+      
       // 💡 영한 <2형식> 보충어구 예문 1 (표시 오류 원천 차단 - 아예 '가는 것이다'로 부품 자체 조립!)
       if (word.includes('EK2C1_My_Tk')) { matchedRole = 'EK2C1_My'; translatedWord = '나의'; displayEn = 'My'; }
       if (word.includes('EK2C1_Plan_Tk')) { matchedRole = 'EK2C1_Plan'; translatedWord = '계획은'; displayEn = 'plan'; }
@@ -1071,6 +1294,40 @@ export async function POST(request: Request) {
       const isMatch = rule.requiredRoles.every(reqRole => detectedRoles.includes(reqRole));
     // 아래 두번 Enter 후에 paste
 
+      // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 1 절대 방어선 👇👇
+      if (rule.type === '3형식_목적어구_예문1' && detectedRoles.includes('EK3_1_I') && detectedRoles.includes('EK3_1_Want')) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 14 절대 방어선 👇👇
+      // (task가 있고, teach나 make 둘 중 하나라도 살아있으면 정상 조립되도록 유연하게 설계!)
+      if (rule.type === '2형식_영한_가주어진주어_예문14' && detectedRoles.includes('EK2G14_Task') && (detectedRoles.includes('EK2G14_Teach') || detectedRoles.includes('EK2G14_Make'))) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 13 절대 방어선 👇👇
+      if (rule.type === '2형식_영한_가주어진주어_예문13' && detectedRoles.includes('EK2G13_Duty') && detectedRoles.includes('EK2G13_Advance')) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 12 절대 방어선 👇👇
+      if (rule.type === '2형식_영한_가주어진주어_예문12' && detectedRoles.includes('EK2G12_Health') && detectedRoles.includes('EK2G12_Work')) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 11 절대 방어선 👇👇
+      if (rule.type === '2형식_영한_가주어진주어_예문11' && detectedRoles.includes('EK2G11_Task') && detectedRoles.includes('EK2G11_Lend')) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 10 절대 방어선 👇👇
+      if (rule.type === '2형식_영한_가주어진주어_예문10' && detectedRoles.includes('EK2G10_Easy') && detectedRoles.includes('EK2G10_Study')) { selectedForm = rule; break; }
+
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 9 절대 방어선 👇👇
+      if (rule.type === '2형식_영한_가주어진주어_예문9' && detectedRoles.includes('EK2G9_Hope') && detectedRoles.includes('EK2G9_Be')) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 8 절대 방어선 👇👇
+      if (rule.type === '2형식_영한_가주어진주어_예문8' && detectedRoles.includes('EK2G8_Health') && detectedRoles.includes('EK2G8_GetUp')) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 1형식 기본 문형 예문 2 절대 방어선 👇👇
+      if (rule.type === '1형식_영한_기본문형_예문2' && detectedRoles.includes('EK1B2_He') && detectedRoles.includes('EK1B2_HadWork')) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 1형식 기본 문형 예문 1 절대 방어선 👇👇
+      if (rule.type === '1형식_영한_기본문형_예문1' && detectedRoles.includes('EK1B1_Father') && detectedRoles.includes('EK1B1_Works')) { selectedForm = rule; break; }
+      
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 보충어구 예문 2 절대 방어선 👇👇
+      if (rule.type === '2형식_영한_보충어구_예문2' && detectedRoles.includes('EK2C2_Hope') && detectedRoles.includes('EK2C2_Become')) { selectedForm = rule; break; }
+      
       // 👇👇 💡 [수프로 엣지] 영한 2형식 보충어구 예문 1 절대 방어선 👇👇
       if (rule.type === '2형식_영한_보충어구_예문1' && detectedRoles.includes('EK2C1_Plan') && detectedRoles.includes('EK2C1_Go')) { selectedForm = rule; break; }
       
@@ -1172,13 +1429,63 @@ export async function POST(request: Request) {
     }
     let finalTranslation = finalKoreanWords.join(' ')
 // 여기 아래에 Enter 후 paste
-      // 👇👇 💡 [수프로 엣지] 영한 2형식 보충어구 예문 1 띄어쓰기 및 어미 완벽 보정 (초강력 버전) 👇👇
+      // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 1 띄어쓰기 스마트 보정 👇👇
+      .replace(/집\s*에서/g, '집에서')
+      .replace(/쉬다\s*기를/g, '쉬기를')
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 14 띄어쓰기 및 병렬 구조 스마트 보정 👇👇
+      .replace(/가르쳐주다\s*것이\s*서/g, '가르쳐 주어서') // teach ~ and (to) make가 모두 있을 때
+      .replace(/가르쳐주다\s*서/g, '가르쳐 주어서')
+      .replace(/가르쳐주다\s*것이(?!\s*서)/g, '가르쳐 주는 것이') // make 파트가 날아가서 teach만 남았을 때
+      .replace(/만들다\s*것이/g, '만드는 것이') // make 파트 보정
+      // (💡 "일 이다 -> 일이다" 규칙은 이전 예문 11번에서 이미 추가되었으므로 완벽히 동작합니다!)
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 13 띄어쓰기 및 부분 생략 스마트 보정 👇👇
+      .replace(/유지하다\s*것이\s*고/g, '유지하고')
+      .replace(/유지하다\s*고/g, '유지하고')
+      .replace(/신민들\s*의/g, '신민들의')
+      .replace(/행복\s*과/g, '행복과')
+      .replace(/행복\s*증진시키다/g, '행복을 증진시키다') // 💡 번영이 빠졌을 때 '행복'에 목적격 조사 부여!
+      .replace(/증진시키다\s*것이/g, '증진시키는 것이')
+      .replace(/의무\s*이다/g, '의무입니다')
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 12 띄어쓰기 및 병렬 구조 다림질 👇👇
+      .replace(/일하다\s*고\s*것은\s*놀다\s*것은/g, '일하고 노는 것이')
+      .replace(/일하다\s*고\s*놀다\s*것은/g, '일하고 노는 것이')
+      .replace(/일하다\s*것은/g, '일하는 것이')
+      // (💡 "건강 에 -> 건강에", "좋은 이다 -> 좋다" 규칙은 이전 예문 8번 등에서 이미 추가되었으므로 완벽히 동작합니다!)
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 11 띄어쓰기 및 어미 보정 👇👇
+      .replace(/독서주간\s*에/g, '독서주간에')
+      .replace(/빌려주다\s*것은/g, '빌려주는 것은')
+      .replace(/일\s*이다/g, '일이다')
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 10 띄어쓰기 및 부분 검색 보정 👇👇
+      .replace(/방법\s*으로/g, '방법으로')
+      .replace(/공부하다\s*기는/g, '공부하기는')
+      .replace(/쉬운\s*이다/g, '쉽다')
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 9 띄어쓰기 및 부분 검색 보정 👇👇
+      .replace(/되다\s*것이/g, '되는 것이')
+      .replace(/꿈\s*이다/g, '꿈이다')
+      // (💡 "미래 에 -> 미래에" 규칙은 이전 예문에서 이미 완벽하게 동작 중입니다!)
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 8 띄어쓰기 및 부분 검색 보정 👇👇
+      .replace(/아침\s*에/g, '아침에')
+      .replace(/일찍\s*일어나다\s*것이/g, '일찍 일어나는 것이')
+      .replace(/일어나다\s*것이/g, '일어나는 것이')
+      .replace(/건강\s*에/g, '건강에')
+      .replace(/좋은\s*이다/g, '좋다')
+      // 👇👇 💡 [수프로 엣지] 영한 1형식 기본 문형 예문 2 띄어쓰기 및 부분 검색 보정 👇👇
+      .replace(/생계를\s*위하여/g, '생계를 위하여')
+      .replace(/위하여\s*열심히/g, '위하여 열심히')
+      .replace(/위하여\s*일해야만\s*했다/g, '위하여 일해야만 했다')
+      .replace(/열심히\s*일해야만\s*했다/g, '열심히 일해야만 했다')
+      // 👇👇 💡 [수프로 엣지] 영한 1형식 기본 문형 예문 1 띄어쓰기 보정 👇👇
+      .replace(/아침\s*부터/g, '아침부터')
+      .replace(/저녁\s*까지/g, '저녁까지')
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 보충어구 예문 2 띄어쓰기 완벽 보정 👇👇
+      .replace(/미래\s*에/g, '미래에')
+      // 👇👇 💡 [수프로 엣지] 영한 2형식 보충어구 예문 1 (가장 강력한 최종 종결판) 👇👇
       .replace(/주말\s*에/g, '주말에')
       .replace(/그녀\s*와함께/g, '그녀와 함께')
       .replace(/박물관\s*에/g, '박물관에')
-      .replace(/가다\s*것\s*이다/g, '가는 것이다')
-      .replace('가다 것 이다', '가는 것이다') // 💡 정규식을 우회하는 원초적 텍스트 직접 타격!
-      .replace('것 이다', '것이다') // 💡 혹시나 남아있을 찌꺼기까지 완벽 압사!
+       .replace(/가다\s*것\s*이다/g, '가는 것이다')
+      .replace(/가다\s*것이다/g, '가는 것이다')
+      .replace(/가는\s*것\s*이다/g, '가는 것이다')
       // 👇👇 💡 [수프로 엣지] 영한 3형식 목적어구 예문 7 띄어쓰기 및 어미 완벽 보정 👇👇
       .replace(/연무장\s*의/g, '연무장의')
       .replace(/운동\s*으로/g, '운동으로')
@@ -1291,11 +1598,14 @@ export async function POST(request: Request) {
       .replace(/부여하다\s*것\s*이다/g, '부여하려는 것이다')
       .replace(/교육\s*개혁\s*의/g, '교육 계획의')
       .replace(/교육\s*의/g, '교육의')
-      .replace(/되는\s*것이다/g, '되다 것 이다')
-      .replace(/훌륭한\s*의사가/g, 'a_great_doctor')
+      // 👇👇 💡 [수프로 엣지] 거꾸로 뒤집혀 있던 범인들을 올바른 방향으로 수정! 👇👇
+      .replace(/되다\s*것\s*이다/g, '되는 것이다') 
+      // .replace(/훌륭한\s*의사가/g, 'a_great_doctor')
       .replace(/미래\s*에/g, '미래에')
       .replace(/꿈\s*이다/g, '꿈이다')
-      .replace(/가는\s*것이다/g, '가다 것 이다')
+      .replace(/가다\s*것\s*이다/g, '가는 것이다') 
+      .replace(/가다\s*것이다/g, '가는 것이다') 
+      // 👆👆 ======================================================= 👆👆
       .replace(/주말\s*에/g, '주말에')
       .replace(/박물관\s*에/g, '박물관에')
       .replace(/\s*\./g, '.')
