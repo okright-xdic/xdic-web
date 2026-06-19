@@ -313,6 +313,8 @@ const FORM_RULES = [
   { type: '2형식_보충어구_예문5', requiredRoles: ['RES_Resp', 'RES_Keep', 'RES_Env'], koreanOrder: ['RES_Our1', 'RES_Resp', 'RES_Our2', 'RES_Natural', 'RES_Env', 'RES_Clean', 'RES_And', 'RES_Beau', 'RES_Keep', 'RES_To', 'RES_Is'] },
   // 💡 [수프로 엣지] 영한 <5형식> 보충어구 예문 6 (목적어 생략 완벽 대응 레일)
   { type: '5형식_보충어구_예문6', requiredRoles: ['TCH_I', 'TCH_Taught', 'TCH_Read'], koreanOrder: ['TCH_I', 'TCH_Him', 'TCH_Book', 'TCH_Read', 'TCH_To', 'TCH_Taught'] },
+  // 💡 [수프로 엣지] 영한 <3형식> 형용사구 예문 1 (수식어구 생략 완벽 대응 레일)
+  { type: '3형식_형용사구_예문1', requiredRoles: ['ADJ_I', 'ADJ_Visited', 'ADJ_Uncle'], koreanOrder: ['ADJ_I', 'ADJ_Cali', 'ADJ_In', 'ADJ_Live', 'ADJ_To', 'ADJ_My', 'ADJ_Uncle', 'ADJ_Visited'] },
 ];
 
 // const FORM_RULES = [ 여기 위에 Enter 후에 paste
@@ -361,6 +363,14 @@ export async function POST(request: Request) {
 
 // 여기 아래에 두번 Enter 후 paste
     let processedText = originalText.toLowerCase()
+      
+      // 👇👇 💡 [수프로 엣지] 형용사구 3형식 예문 1 (새치기 방지 3단 방어망! 무조건 최상단 배치!) 👇👇
+      // 1. 완전체
+      .replace(/(^|\s)i\s+visited\s+my\s+uncle\s+to\s+live\s+in\s+california\.?(?!\w)/gi, '$1ADJ_I_Tk ADJ_Visited_Tk ADJ_My_Tk ADJ_Uncle_Tk ADJ_To_Tk ADJ_Live_Tk ADJ_In_Tk ADJ_Cali_Tk ')
+      // 2. in California 생략
+      .replace(/(^|\s)i\s+visited\s+my\s+uncle\s+to\s+live\.?(?!\w)/gi, '$1ADJ_I_Tk ADJ_Visited_Tk ADJ_My_Tk ADJ_Uncle_Tk ADJ_To_Tk ADJ_Live_Tk ')
+      // 3. to live in California 전체 생략
+      .replace(/(^|\s)i\s+visited\s+my\s+uncle\.?(?!\w)/gi, '$1ADJ_I_Tk ADJ_Visited_Tk ADJ_My_Tk ADJ_Uncle_Tk ')
       
       // 👇👇 💡 [수프로 엣지] 5형식 보충어구 예문 6 (새치기 방지! 무조건 최상단 배치!) 👇👇
       // 1. 완전체
@@ -925,6 +935,16 @@ export async function POST(request: Request) {
 
       // if (word == 여기 아래에 Enter 두번 후 paste
 
+      // 💡 영한 <형용사구> 3형식 예문 1 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('ADJ_I_Tk')) { matchedRole = 'ADJ_I'; translatedWord = '나는'; displayEn = 'I'; }
+      if (word.includes('ADJ_Visited_Tk')) { matchedRole = 'ADJ_Visited'; translatedWord = '방문했다'; displayEn = 'visited'; }
+      if (word.includes('ADJ_My_Tk')) { matchedRole = 'ADJ_My'; translatedWord = '나의'; displayEn = 'my'; }
+      if (word.includes('ADJ_Uncle_Tk')) { matchedRole = 'ADJ_Uncle'; translatedWord = '아저씨를'; displayEn = 'uncle'; }
+      if (word.includes('ADJ_To_Tk')) { matchedRole = 'ADJ_To'; translatedWord = 'ㄴ'; displayEn = 'to'; }
+      if (word.includes('ADJ_Live_Tk')) { matchedRole = 'ADJ_Live'; translatedWord = '사시다'; displayEn = 'live'; }
+      if (word.includes('ADJ_In_Tk')) { matchedRole = 'ADJ_In'; translatedWord = '에'; displayEn = 'in'; }
+      if (word.includes('ADJ_Cali_Tk')) { matchedRole = 'ADJ_Cali'; translatedWord = '캘리포니아'; displayEn = 'California'; }
+      
       // 💡 영한 <5형식> 보충어구 예문 6 (표시 오류 차단 및 토큰 매핑)
       if (word.includes('TCH_I_Tk')) { matchedRole = 'TCH_I'; translatedWord = '나는'; displayEn = 'I'; }
       if (word.includes('TCH_Taught_Tk')) { matchedRole = 'TCH_Taught'; translatedWord = '가르쳤다'; displayEn = 'taught'; }
@@ -1588,6 +1608,9 @@ export async function POST(request: Request) {
       const isMatch = rule.requiredRoles.every(reqRole => detectedRoles.includes(reqRole));
     // 아래 두번 Enter 후에 paste
 
+     // 👇👇 💡 [수프로 엣지] 형용사구 3형식 예문 1 절대 방어선 👇👇
+      if (rule.type === '3형식_형용사구_예문1' && detectedRoles.includes('ADJ_I') && detectedRoles.includes('ADJ_Visited') && detectedRoles.includes('ADJ_Uncle')) { selectedForm = rule; break; }
+     
      // 👇👇 💡 [수프로 엣지] 5형식 보충어구 예문 6 절대 방어선 👇👇
       if (rule.type === '5형식_보충어구_예문6' && detectedRoles.includes('TCH_I') && detectedRoles.includes('TCH_Taught') && detectedRoles.includes('TCH_Read')) { selectedForm = rule; break; }
      
@@ -1759,6 +1782,10 @@ export async function POST(request: Request) {
     }
     let finalTranslation = finalKoreanWords.join(' ')
 // 여기 아래에 두번 Enter 후 paste
+      
+      // 👇👇 💡 [수프로 엣지] 형용사구 3형식 예문 1 띄어쓰기 및 어미 스마트 보정 👇👇
+      .replace(/캘리포니아\s*에/g, '캘리포니아에')
+      .replace(/사시다\s*ㄴ/g, '사시는') // 👈 뒤쪽 공백 조건을 지우고 가장 직관적이고 확실하게 덮어쓰도록 수정!
       
       // 👇👇 💡 [수프로 엣지] 5형식 보충어구 예문 6 띄어쓰기 및 어미 스마트 보정 👇👇
       .replace(/읽다\s*라고/g, '읽으라고') // '읽다' + '라고'를 '읽으라고'로 자연스럽게 변환
