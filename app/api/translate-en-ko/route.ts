@@ -366,7 +366,8 @@ export async function POST(request: Request) {
 let lowerQuery = originalText.toLowerCase().trim();
     let processedText = lowerQuery;
 
-    // 👇👇 💡 [수프로 엣지] 정규식 엔진 발작 원천 차단을 위한 독립식 매핑 구역 👇👇
+    // 👇👇 💡 [수프로 엣지] Vercel 스택 초과(RangeError) 원천 차단을 위한 배열(Array) 매핑 구역 👇👇
+    // 정규식(/.../g)을 쓰지 않고 일반 텍스트 매칭을 사용하여 컴파일러 과부하를 0%로 만듭니다!
 
     // 1. [예문 7] Greeks 시리즈
     if (lowerQuery.includes("the ancient greeks liked to make their bodies strong with exercises of gymnasium") || lowerQuery.includes("the ancient greeks liked to make their bodies strong with exercises of gymnasiu")) {
@@ -512,94 +513,100 @@ let lowerQuery = originalText.toLowerCase().trim();
     } else if (lowerQuery.includes("i taught to read the book")) {
       processedText = "TCH_I_Tk TCH_Taught_Tk TCH_To_Tk TCH_Read_Tk TCH_Book_Tk";
 
-    // 15. 기타 일반 단어 처리 (정규식 제거 버전!)
+    // 15. 기타 일반 단어 처리 (🔥 대용량 연쇄 기차 끊기! Vercel 에러 완벽 방지 배열 루프!)
     } else {
-      processedText = processedText
-        .split('흘끗 보다').join('흘끗_보다')
-        .split('냄새 맡다').join('냄새_맡다')
-        .split('lived here to see').join('lived here to see')
-        .split('a fine youth').join('a_fine_youth')
-        .split('albert schweitzer').join('albert_schweitzer')
-        .split('the prize money').join('the_prize_money')
-        .split('the hospital').join('the_hospital')
-        .split('a place').join('a_place')
-        .split('suffer from').join('suffer_from')
-        .split('a special program').join('a special program')
-        .split('the culture, customs, and art').join('the culture, customs, and art')
-        .split('culture,').join('culture,')
-        .split('customs,').join('customs,')
-        .split('a pretty daughter').join('a_pretty_daughter')
-        .split('old house').join('old house')
-        .split('an important thing').join('an_important_thing')
-        .split('the hardest sentence').join('the_hardest_sentence')
-        .split('the news').join('the_news')
-        .split('mahatma gandi').join('mahatma_gandi')
-        .split('would attain').join('would_attain')
-        .split('the masses').join('the_masses')
-        .split('(that) they').join('(that)_they')
-        .split('can improve').join('can_improve')
-        .split('can shape').join('can_shape')
-        .split('the way').join('the_way')
-        .split('the plan').join('the_plan')
-        .split('play games').join('play_games')
-        .split('the field').join('the_field')
-        .split('the stadium').join('the_stadium')
-        .split('old man').join('old_man')
-        .split("the girl's").join("the_girl's")
-        .split('the powerful').join('the_powerful')
-        .split('iron-clad ships').join('iron-clad_ships')
-        .split('the south shore').join('the_south_shore')
-        .split('adm. lee soon shin').join('adm_lee_soon_shin')
-        .split('the powerful invaders').join('the_powerful_invaders')
-        .split('can not hear').join('can_not_hear')
-        .split("the animals'").join("the_animals'")
-        .split('the welfare').join('the_welfare')
-        .split('the park').join('the_park')
-        .split('a little tree').join('a_little_tree')
-        .split('once upon a time').join('once_upon_a_time')
-        .split('must take care of').join('must_take_care_of')
-        .split('laughed at').join('laughed_at')
-        .split('the first').join('the_first')
-        .split('good conduct').join('good_conduct')
-        .split('the most important').join('the_most_important')
-        .split('detective story').join('detective_story')
-        .split('a small town').join('a_small_town')
-        .split('a small kingdom').join('a_small_kingdom')
-        .split('the beginning').join('the_beginning')
-        .split('the law').join('the_law')
-        .split('the cold').join('the_cold')
-        .split('this year').join('this_year')
-        .split('that of').join('that_of')
-        .split('the most popular').join('the_most_popular')
-        .split('the school').join('the_school')
-        .split('north korean').join('north_korean')
-        .split('have landed').join('have_landed')
-        .split('northern japan').join('northern_japan')
-        .split('fast-boat').join('fast_boat')
-        .split('fast boat').join('fast_boat')
-        .split('is hung').join('is_hung')
-        .split('the gloomy wall').join('the_gloomy_wall')
-        .split('a big fire').join('a_big_fire')
-        .split('broke out').join('broke_out')
-        .split('the building').join('the_building')
-        .split('the bird').join('the_bird')
-        .split('the station').join('the_station')
-        .split('last year').join('last_year')
-        .split('a very old house').join('a_very_old_house')
-        .split('a small village').join('a_small_village')
-        .split('the small cabin').join('the_small_cabin')
-        .split('the department store').join('the_department_store')
-        .split('the elegant ferry-boat').join('the_elegant_ferry_boat')
-        .split('the elegant ferry boat').join('the_elegant_ferry_boat')
-        .split('has lived').join('has_lived')
-        .split('20 years').join('20_years')
-        .split('will stay').join('will_stay');
+        const wordReplacements = [
+            ['흘끗 보다', '흘끗_보다'],
+            ['냄새 맡다', '냄새_맡다'],
+            ['lived here to see', 'lived here to see'],
+            ['a fine youth', 'a_fine_youth'],
+            ['albert schweitzer', 'albert_schweitzer'],
+            ['the prize money', 'the_prize_money'],
+            ['the hospital', 'the_hospital'],
+            ['a place', 'a_place'],
+            ['suffer from', 'suffer_from'],
+            ['a special program', 'a special program'],
+            ['the culture, customs, and art', 'the culture, customs, and art'],
+            ['culture,', 'culture,'],
+            ['customs,', 'customs,'],
+            ['a pretty daughter', 'a_pretty_daughter'],
+            ['old house', 'old house'],
+            ['an important thing', 'an_important_thing'],
+            ['the hardest sentence', 'the_hardest_sentence'],
+            ['the news', 'the_news'],
+            ['mahatma gandi', 'mahatma_gandi'],
+            ['would attain', 'would_attain'],
+            ['the masses', 'the_masses'],
+            ['(that) they', '(that)_they'],
+            ['can improve', 'can_improve'],
+            ['can shape', 'can_shape'],
+            ['the way', 'the_way'],
+            ['the plan', 'the_plan'],
+            ['play games', 'play_games'],
+            ['the field', 'the_field'],
+            ['the stadium', 'the_stadium'],
+            ['old man', 'old_man'],
+            ["the girl's", "the_girl's"],
+            ['the powerful', 'the_powerful'],
+            ['iron-clad ships', 'iron-clad_ships'],
+            ['the south shore', 'the_south_shore'],
+            ['adm. lee soon shin', 'adm_lee_soon_shin'],
+            ['the powerful invaders', 'the_powerful_invaders'],
+            ['can not hear', 'can_not_hear'],
+            ["the animals'", "the_animals'"],
+            ['the welfare', 'the_welfare'],
+            ['the park', 'the_park'],
+            ['a little tree', 'a_little_tree'],
+            ['once upon a time', 'once_upon_a_time'],
+            ['must take care of', 'must_take_care_of'],
+            ['laughed at', 'laughed_at'],
+            ['the first', 'the_first'],
+            ['good conduct', 'good_conduct'],
+            ['the most important', 'the_most_important'],
+            ['detective story', 'detective_story'],
+            ['a small town', 'a_small_town'],
+            ['a small kingdom', 'a_small_kingdom'],
+            ['the beginning', 'the_beginning'],
+            ['the law', 'the_law'],
+            ['the cold', 'the_cold'],
+            ['this year', 'this_year'],
+            ['that of', 'that_of'],
+            ['the most popular', 'the_most_popular'],
+            ['the school', 'the_school'],
+            ['north korean', 'north_korean'],
+            ['have landed', 'have_landed'],
+            ['northern japan', 'northern_japan'],
+            ['fast-boat', 'fast_boat'],
+            ['fast boat', 'fast_boat'],
+            ['is hung', 'is_hung'],
+            ['the gloomy wall', 'the_gloomy_wall'],
+            ['a big fire', 'a_big_fire'],
+            ['broke out', 'broke_out'],
+            ['the building', 'the_building'],
+            ['the bird', 'the_bird'],
+            ['the station', 'the_station'],
+            ['last year', 'last_year'],
+            ['a very old house', 'a_very_old_house'],
+            ['a small village', 'a_small_village'],
+            ['the small cabin', 'the_small_cabin'],
+            ['the department store', 'the_department_store'],
+            ['the elegant ferry-boat', 'the_elegant_ferry_boat'],
+            ['the elegant ferry boat', 'the_elegant_ferry_boat'],
+            ['has lived', 'has_lived'],
+            ['20 years', '20_years'],
+            ['will stay', 'will_stay']
+        ];
+
+        // 💡 단 3줄의 코드로 수백 개의 규칙을 안전하게 처리합니다!
+        for (const [from, to] of wordReplacements) {
+            processedText = processedText.split(from).join(to);
+        }
 
         // powerful invaders 조건 처리
-        if (originalText.toLowerCase().includes('defeated')) { 
-          processedText = processedText.split('the powerful invaders').join('the_powerful_invaders'); 
-        } else { 
-          processedText = processedText.split('the powerful').join('the_powerful'); 
+        if (originalText.toLowerCase().includes('defeated')) {
+            processedText = processedText.split('the powerful invaders').join('the_powerful_invaders');
+        } else {
+            processedText = processedText.split('the powerful').join('the_powerful');
         }
     }
 
