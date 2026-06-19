@@ -1791,7 +1791,8 @@ export async function POST(request: Request) {
         finalTranslation = finalTranslation
             .replace(/캘리포니아\s*에/g, '캘리포니아에')
             .replace(/사시다\s*ㄴ/g, '사시는') 
-            .replace(/읽다\s*라고/g, '읽으라고') // 👈 세미콜론을 지워서 아래 기차와 매끄럽게 연결!
+            .replace(/읽다\s*라고/g, '읽으라고'); 
+    } // 👈 🚨 에러의 진짜 범인! 이 닫는 괄호(})가 반드시 있어야 합니다!!!
       
       // 👇👇 💡 [수프로 엣지] 보충어구 2형식 예문 5 띄어쓰기 및 어미 스마트 보정 👇👇
       .replace(/자연\s*환경을/g, '자연환경을')
