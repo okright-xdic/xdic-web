@@ -1780,15 +1780,18 @@ export async function POST(request: Request) {
         if (cleaned) finalKoreanWords.push(cleaned);
       }
     }
-    let finalTranslation = finalKoreanWords.join(' ')
-// 여기 아래에 두번 Enter 후 paste
       
-      // 👇👇 💡 [수프로 엣지] 형용사구 3형식 예문 1 띄어쓰기 및 어미 스마트 보정 👇👇
-      .replace(/캘리포니아\s*에/g, '캘리포니아에')
-      .replace(/사시다\s*ㄴ/g, '사시는') // 👈 뒤쪽 공백 조건을 지우고 가장 직관적이고 확실하게 덮어쓰도록 수정!
+// 1. 여기서 상자를 확실하게 만들고 세미콜론(;)으로 닫아줍니다.
+    let finalTranslation = finalKoreanWords.join(' '); 
       
-      // 👇👇 💡 [수프로 엣지] 5형식 보충어구 예문 6 띄어쓰기 및 어미 스마트 보정 👇👇
-      .replace(/읽다\s*라고/g, '읽으라고') // '읽다' + '라고'를 '읽으라고'로 자연스럽게 변환
+      // 여기 아래에 두번 Enter 후 paste
+
+    // 2. 👇👇 💡 [수프로 엣지] 최종 다림질 구역 (안전한 덮어쓰기) 👇👇
+    if (finalTranslation) {
+        finalTranslation = finalTranslation
+            .replace(/캘리포니아\s*에/g, '캘리포니아에')
+            .replace(/사시다\s*ㄴ/g, '사시는') // 👈 드디어 정상적으로 작동할 다림질 코드!
+            .replace(/읽다\s*라고/g, '읽으라고'); 
       
       // 👇👇 💡 [수프로 엣지] 보충어구 2형식 예문 5 띄어쓰기 및 어미 스마트 보정 👇👇
       .replace(/자연\s*환경을/g, '자연환경을')
@@ -2001,7 +2004,6 @@ export async function POST(request: Request) {
       .replace(/진화\s*에대한/g, '진화에 대한')
       .replace(/이론\s*으로/g, '이론으로')
       .replace(/생물학자\s*였다/g, '생물학자였다')
-      .replace(/사시는/g, '사시다 ㄴ')
       .replace(/캘리포니아\s*에/g, '캘리포니아에')
       .replace(/읽다\s*라고/g, '읽으라고')
       .replace(/자연\s*환경을/gi, '자연 환경을')
