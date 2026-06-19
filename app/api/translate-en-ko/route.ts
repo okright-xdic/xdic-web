@@ -362,495 +362,245 @@ export async function POST(request: Request) {
     });
 
 // 여기 아래에 두번 Enter 후 paste
-    let processedText = originalText.toLowerCase()
-      
-      // 👇👇 💡 [수프로 엣지] 형용사구 3형식 예문 1 (새치기 방지 3단 방어망! 무조건 최상단 배치!) 👇👇
-      // 1. 완전체
-      .replace(/(^|\s)i\s+visited\s+my\s+uncle\s+to\s+live\s+in\s+california\.?(?!\w)/gi, '$1ADJ_I_Tk ADJ_Visited_Tk ADJ_My_Tk ADJ_Uncle_Tk ADJ_To_Tk ADJ_Live_Tk ADJ_In_Tk ADJ_Cali_Tk ')
-      // 2. in California 생략
-      .replace(/(^|\s)i\s+visited\s+my\s+uncle\s+to\s+live\.?(?!\w)/gi, '$1ADJ_I_Tk ADJ_Visited_Tk ADJ_My_Tk ADJ_Uncle_Tk ADJ_To_Tk ADJ_Live_Tk ')
-      // 3. to live in California 전체 생략
-      .replace(/(^|\s)i\s+visited\s+my\s+uncle\.?(?!\w)/gi, '$1ADJ_I_Tk ADJ_Visited_Tk ADJ_My_Tk ADJ_Uncle_Tk ')
-      
-      // 👇👇 💡 [수프로 엣지] 5형식 보충어구 예문 6 (새치기 방지! 무조건 최상단 배치!) 👇👇
-      // 1. 완전체
-      .replace(/(^|\s)i\s+taught\s+him\s+to\s+read\s+the\s+book\.?(?!\w)/gi, '$1TCH_I_Tk TCH_Taught_Tk TCH_Him_Tk TCH_To_Tk TCH_Read_Tk TCH_Book_Tk ')
-      // 2. him 생략 (I taught to read the book)
-      .replace(/(^|\s)i\s+taught\s+to\s+read\s+the\s+book\.?(?!\w)/gi, '$1TCH_I_Tk TCH_Taught_Tk TCH_To_Tk TCH_Read_Tk TCH_Book_Tk ')
-      
-      // 👇👇 💡 [수프로 엣지] 보충어구 2형식 예문 5 (새치기 방지 6단 방어망! 무조건 최상단 배치!) 👇👇
-      // 1. 완전체
-      .replace(/(^|\s)our\s+responsibility\s+is\s+to\s+keep\s+our\s+natural\s+environment\s+clean\s+and\s+beautiful\.?(?!\w)/gi, '$1RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Natural_Tk RES_Env_Tk RES_Clean_Tk RES_And_Tk RES_Beau_Tk ')
-      // 2. beautiful 생략
-      .replace(/(^|\s)our\s+responsibility\s+is\s+to\s+keep\s+our\s+natural\s+environment\s+clean\.?(?!\w)/gi, '$1RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Natural_Tk RES_Env_Tk RES_Clean_Tk ')
-      // 3. clean and 생략 (beautiful만 남음)
-      .replace(/(^|\s)our\s+responsibility\s+is\s+to\s+keep\s+our\s+natural\s+environment\s+beautiful\.?(?!\w)/gi, '$1RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Natural_Tk RES_Env_Tk RES_Beau_Tk ')
-      // 4. natural 생략 (clean and beautiful)
-      .replace(/(^|\s)our\s+responsibility\s+is\s+to\s+keep\s+our\s+environment\s+clean\s+and\s+beautiful\.?(?!\w)/gi, '$1RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Env_Tk RES_Clean_Tk RES_And_Tk RES_Beau_Tk ')
-      // 5. natural 생략 + beautiful 생략 (clean만 남음)
-      .replace(/(^|\s)our\s+responsibility\s+is\s+to\s+keep\s+our\s+environment\s+clean\.?(?!\w)/gi, '$1RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Env_Tk RES_Clean_Tk ')
-      // 6. natural 생략 + clean and 생략 (beautiful만 남음)
-      .replace(/(^|\s)our\s+responsibility\s+is\s+to\s+keep\s+our\s+environment\s+beautiful\.?(?!\w)/gi, '$1RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Env_Tk RES_Beau_Tk ')
-      ;
-      
-      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
+
+let lowerQuery = originalText.toLowerCase().trim();
+    let processedText = lowerQuery;
+
+    // 👇👇 💡 [수프로 엣지] 정규식 엔진 발작 원천 차단을 위한 독립식 매핑 구역 👇👇
+
+    // 1. [예문 7] Greeks 시리즈
+    if (lowerQuery.includes("the ancient greeks liked to make their bodies strong with exercises of gymnasium") || lowerQuery.includes("the ancient greeks liked to make their bodies strong with exercises of gymnasiu")) {
+      processedText = "GRK_AncGreeks_Tk GRK_Liked_Tk GRK_To_Tk GRK_Make_Tk GRK_Their_Tk GRK_Bodies_Tk GRK_Strong_Tk GRK_With_Tk GRK_Exercises_Tk GRK_Of_Tk GRK_Gym_Tk";
+    } else if (lowerQuery.includes("the greeks liked to make their bodies strong with exercises of gymnasium") || lowerQuery.includes("the greeks liked to make their bodies strong with exercises of gymnasiu")) {
+      processedText = "GRK_Greeks_Tk GRK_Liked_Tk GRK_To_Tk GRK_Make_Tk GRK_Their_Tk GRK_Bodies_Tk GRK_Strong_Tk GRK_With_Tk GRK_Exercises_Tk GRK_Of_Tk GRK_Gym_Tk";
+    } else if (lowerQuery.includes("the ancient greeks liked to make their bodies strong with exercises")) {
+      processedText = "GRK_AncGreeks_Tk GRK_Liked_Tk GRK_To_Tk GRK_Make_Tk GRK_Their_Tk GRK_Bodies_Tk GRK_Strong_Tk GRK_With_Tk GRK_Exercises_Tk";
+    } else if (lowerQuery.includes("the greeks liked to make their bodies strong with exercises")) {
+      processedText = "GRK_Greeks_Tk GRK_Liked_Tk GRK_To_Tk GRK_Make_Tk GRK_Their_Tk GRK_Bodies_Tk GRK_Strong_Tk GRK_With_Tk GRK_Exercises_Tk";
+    } else if (lowerQuery.includes("the ancient greeks liked to make their bodies strong")) {
+      processedText = "GRK_AncGreeks_Tk GRK_Liked_Tk GRK_To_Tk GRK_Make_Tk GRK_Their_Tk GRK_Bodies_Tk GRK_Strong_Tk";
+    } else if (lowerQuery.includes("the greeks liked to make their bodies strong")) {
+      processedText = "GRK_Greeks_Tk GRK_Liked_Tk GRK_To_Tk GRK_Make_Tk GRK_Their_Tk GRK_Bodies_Tk GRK_Strong_Tk";
+
+    // 2. [목적어구 2형식 예문 6] wrong want leave 시리즈
+    } else if (lowerQuery.includes("it is wrong to want to leave you much wealth")) {
+      processedText = "WRG_It_Tk WRG_Is_Tk WRG_Wrong_Tk WRG_To1_Tk WRG_Want_Tk WRG_To2_Tk WRG_Leave_Tk WRG_You_Tk WRG_Much_Tk WRG_Wealth_Tk";
+    } else if (lowerQuery.includes("it is wrong to want to leave you wealth")) {
+      processedText = "WRG_It_Tk WRG_Is_Tk WRG_Wrong_Tk WRG_To1_Tk WRG_Want_Tk WRG_To2_Tk WRG_Leave_Tk WRG_You_Tk WRG_Wealth_Tk";
+
+    // 3. [예문 5] she liked to tell 시리즈
+    } else if (lowerQuery.includes("she liked to tell tourists the history and culture of greece")) {
+      processedText = "TEL_She_Tk TEL_Liked_Tk TEL_To_Tk TEL_Tell_Tk TEL_Tourists_Tk TEL_History_Tk TEL_And_Tk TEL_Culture_Tk TEL_Of_Tk TEL_Greece_Tk";
+    } else if (lowerQuery.includes("she liked to tell tourists the history and culture")) {
+      processedText = "TEL_She_Tk TEL_Liked_Tk TEL_To_Tk TEL_Tell_Tk TEL_Tourists_Tk TEL_History_Tk TEL_And_Tk TEL_Culture_Tk";
+    } else if (lowerQuery.includes("she liked to tell tourists the history")) {
+      processedText = "TEL_She_Tk TEL_Liked_Tk TEL_To_Tk TEL_Tell_Tk TEL_Tourists_Tk TEL_History_Tk";
+    } else if (lowerQuery.includes("she liked to tell tourists the culture of greece")) {
+      processedText = "TEL_She_Tk TEL_Liked_Tk TEL_To_Tk TEL_Tell_Tk TEL_Tourists_Tk TEL_Culture_Tk TEL_Of_Tk TEL_Greece_Tk";
+    } else if (lowerQuery.includes("she liked to tell tourists the culture")) {
+      processedText = "TEL_She_Tk TEL_Liked_Tk TEL_To_Tk TEL_Tell_Tk TEL_Tourists_Tk TEL_Culture_Tk";
+
+    // 4. [예문 4] she decided to dye 시리즈
+    } else if (lowerQuery.includes("she decided to dye her fingernails with the petals")) {
+      processedText = "DYE_She_Tk DYE_Decided_Tk DYE_To_Tk DYE_Dye_Tk DYE_Her_Tk DYE_Fingernails_Tk DYE_With_Tk DYE_The_Tk DYE_Petals_Tk";
+    } else if (lowerQuery.includes("she decided to dye fingernails with the petals")) {
+      processedText = "DYE_She_Tk DYE_Decided_Tk DYE_To_Tk DYE_Dye_Tk DYE_Fingernails_Tk DYE_With_Tk DYE_The_Tk DYE_Petals_Tk";
+    } else if (lowerQuery.includes("she decided to dye her fingernails")) {
+      processedText = "DYE_She_Tk DYE_Decided_Tk DYE_To_Tk DYE_Dye_Tk DYE_Her_Tk DYE_Fingernails_Tk";
+    } else if (lowerQuery.includes("she decided to dye fingernails")) {
+      processedText = "DYE_She_Tk DYE_Decided_Tk DYE_To_Tk DYE_Dye_Tk DYE_Fingernails_Tk";
+
+    // 5. [예문 3] bright boy 시리즈
+    } else if (lowerQuery.includes("the bright boy wanted to become a great scientist in the future")) {
+      processedText = "BS2_The_Tk BS2_Bright_Tk BS2_Boy_Tk BS2_Wanted_Tk BS2_To_Tk BS2_Become_Tk BS2_GreatSci_Tk BS2_In_Tk BS2_Future_Tk";
+    } else if (lowerQuery.includes("the bright boy wanted to become a scientist in the future")) {
+      processedText = "BS2_The_Tk BS2_Bright_Tk BS2_Boy_Tk BS2_Wanted_Tk BS2_To_Tk BS2_Become_Tk BS2_Sci_Tk BS2_In_Tk BS2_Future_Tk";
+    } else if (lowerQuery.includes("the bright boy wanted to become a great scientist")) {
+      processedText = "BS2_The_Tk BS2_Bright_Tk BS2_Boy_Tk BS2_Wanted_Tk BS2_To_Tk BS2_Become_Tk BS2_GreatSci_Tk";
+    } else if (lowerQuery.includes("the bright boy wanted to become a scientist")) {
+      processedText = "BS2_The_Tk BS2_Bright_Tk BS2_Boy_Tk BS2_Wanted_Tk BS2_To_Tk BS2_Become_Tk BS2_Sci_Tk";
+    } else if (lowerQuery.includes("the boy wanted to become a scientist")) {
+      processedText = "BS2_The_Tk BS2_Boy_Tk BS2_Wanted_Tk BS2_To_Tk BS2_Become_Tk BS2_Sci_Tk";
+
+    // 6. [예문 2] want to know animals 시리즈
+    } else if (lowerQuery.includes("i want to know about animals and plants")) {
+      processedText = "KNW_I_Tk KNW_Want_Tk KNW_To_Tk KNW_Know_Tk KNW_About_Tk KNW_Animals_Tk KNW_And_Tk KNW_Plants_Tk";
+    } else if (lowerQuery.includes("i want to know about animals")) {
+      processedText = "KNW_I_Tk KNW_Want_Tk KNW_To_Tk KNW_Know_Tk KNW_About_Tk KNW_Animals_Tk";
+    } else if (lowerQuery.includes("i want to know about plants")) {
+      processedText = "KNW_I_Tk KNW_Want_Tk KNW_To_Tk KNW_Know_Tk KNW_About_Tk KNW_Plants_Tk";
+
+    // 7. [예문 1] rest in the house 시리즈
+    } else if (lowerQuery.includes("i want to rest in the house")) {
+      processedText = "RST_I_Tk RST_Want_Tk RST_To_Tk RST_Rest_Tk RST_In_Tk RST_House_Tk";
+    } else if (lowerQuery.includes("i want to rest")) {
+      processedText = "RST_I_Tk RST_Want_Tk RST_To_Tk RST_Rest_Tk";
+
+    // 8. [보충어구 예문 5] responsibility 시리즈
+    } else if (lowerQuery.includes("our responsibility is to keep our natural environment clean and beautiful")) {
+      processedText = "RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Natural_Tk RES_Env_Tk RES_Clean_Tk RES_And_Tk RES_Beau_Tk";
+    } else if (lowerQuery.includes("our responsibility is to keep our natural environment clean")) {
+      processedText = "RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Natural_Tk RES_Env_Tk RES_Clean_Tk";
+    } else if (lowerQuery.includes("our responsibility is to keep our natural environment beautiful")) {
+      processedText = "RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Natural_Tk RES_Env_Tk RES_Beau_Tk";
+    } else if (lowerQuery.includes("our responsibility is to keep our environment clean and beautiful")) {
+      processedText = "RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Env_Tk RES_Clean_Tk RES_And_Tk RES_Beau_Tk";
+    } else if (lowerQuery.includes("our responsibility is to keep our environment clean")) {
+      processedText = "RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Env_Tk RES_Clean_Tk";
+    } else if (lowerQuery.includes("our responsibility is to keep our environment beautiful")) {
+      processedText = "RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Env_Tk RES_Beau_Tk";
+
+    // 9. [보충어구 예문 4] plan to read books 시리즈
+    } else if (lowerQuery.includes("my plan is to read many books in the silent country at this time")) {
+      processedText = "RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Many_Tk RDB_Books_Tk RDB_In_Tk RDB_SilentCountry_Tk RDB_At_Tk RDB_ThisTime_Tk";
+    } else if (lowerQuery.includes("my plan is to read books in the silent country")) {
+      processedText = "RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Books_Tk RDB_In_Tk RDB_SilentCountry_Tk";
+    } else if (lowerQuery.includes("my plan is to read many books in the country")) {
+      processedText = "RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Many_Tk RDB_Books_Tk RDB_In_Tk RDB_Country_Tk";
+    } else if (lowerQuery.includes("my plan is to read many books at this time")) {
+      processedText = "RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Many_Tk RDB_Books_Tk RDB_At_Tk RDB_ThisTime_Tk";
+    } else if (lowerQuery.includes("my plan is to read many books")) {
+      processedText = "RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Many_Tk RDB_Books_Tk";
+    } else if (lowerQuery.includes("my plan is to read books")) {
+      processedText = "RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Books_Tk";
+
+    // 10. [보충어구 예문 3] education reform 시리즈
+    } else if (lowerQuery.includes("the aim of this education reform is to offer all the students equal opportunity of education")) {
+      processedText = "REF_Aim_Tk REF_Of1_Tk REF_This_Tk REF_Edu1_Tk REF_Reform_Tk REF_Is_Tk REF_To_Tk REF_Offer_Tk REF_All_Tk REF_Students_Tk REF_Equal_Tk REF_Opp_Tk REF_Of2_Tk REF_Edu2_Tk";
+    } else if (lowerQuery.includes("the aim of this education is to offer the students equal opportunity of education")) {
+      processedText = "REF_Aim_Tk REF_Of1_Tk REF_This_Tk REF_Edu1_Tk REF_Is_Tk REF_To_Tk REF_Offer_Tk REF_Students_Tk REF_Equal_Tk REF_Opp_Tk REF_Of2_Tk REF_Edu2_Tk";
+    } else if (lowerQuery.includes("the aim of this reform is to offer all the students opportunity of education")) {
+      processedText = "REF_Aim_Tk REF_Of1_Tk REF_This_Tk REF_Reform_Tk REF_Is_Tk REF_To_Tk REF_Offer_Tk REF_All_Tk REF_Students_Tk REF_Opp_Tk REF_Of2_Tk REF_Edu2_Tk";
+    } else if (lowerQuery.includes("the aim of this education reform is to offer the students equal opportunity")) {
+      processedText = "REF_Aim_Tk REF_Of1_Tk REF_This_Tk REF_Edu1_Tk REF_Reform_Tk REF_Is_Tk REF_To_Tk REF_Offer_Tk REF_Students_Tk REF_Equal_Tk REF_Opp_Tk";
+    } else if (lowerQuery.includes("the aim of this education reform is to offer the students opportunity")) {
+      processedText = "REF_Aim_Tk REF_Of1_Tk REF_This_Tk REF_Edu1_Tk REF_Reform_Tk REF_Is_Tk REF_To_Tk REF_Offer_Tk REF_Students_Tk REF_Opp_Tk";
+    } else if (lowerQuery.includes("the aim of this reform is to offer the students opportunity")) {
+      processedText = "REF_Aim_Tk REF_Of1_Tk REF_This_Tk REF_Reform_Tk REF_Is_Tk REF_To_Tk REF_Offer_Tk REF_Students_Tk REF_Opp_Tk";
+
+    // 11. [보충어구 예문 2] his hope 시리즈
+    } else if (lowerQuery.includes("his hope is to become a great doctor in the future")) {
+      processedText = "HPD_His_Tk HPD_Hope_Tk HPD_Is_Tk HPD_To_Tk HPD_Become_Tk HPD_GreatDoc_Tk HPD_In_Tk HPD_Future_Tk";
+    } else if (lowerQuery.includes("his hope is to become a doctor in the future")) {
+      processedText = "HPD_His_Tk HPD_Hope_Tk HPD_Is_Tk HPD_To_Tk HPD_Become_Tk HPD_Doc_Tk HPD_In_Tk HPD_Future_Tk";
+    } else if (lowerQuery.includes("his hope is to become a great doctor")) {
+      processedText = "HPD_His_Tk HPD_Hope_Tk HPD_Is_Tk HPD_To_Tk HPD_Become_Tk HPD_GreatDoc_Tk";
+    } else if (lowerQuery.includes("his hope is to become a doctor")) {
+      processedText = "HPD_His_Tk HPD_Hope_Tk HPD_Is_Tk HPD_To_Tk HPD_Become_Tk HPD_Doc_Tk";
+
+    // 12. [보충어구 예문 1] my plan is to go 시리즈
+    } else if (lowerQuery.includes("my plan is to go to the museum with her on this weekend")) {
+      processedText = "PLN_My_Tk PLN_Plan_Tk PLN_Is_Tk PLN_To1_Tk PLN_Go_Tk PLN_To2_Tk PLN_Museum_Tk PLN_With_Tk PLN_Her_Tk PLN_On_Tk PLN_This_Tk PLN_Weekend_Tk";
+    } else if (lowerQuery.includes("my plan is to go to the museum with her")) {
+      processedText = "PLN_My_Tk PLN_Plan_Tk PLN_Is_Tk PLN_To1_Tk PLN_Go_Tk PLN_To2_Tk PLN_Museum_Tk PLN_With_Tk PLN_Her_Tk";
+    } else if (lowerQuery.includes("my plan is to go to the museum on this weekend")) {
+      processedText = "PLN_My_Tk PLN_Plan_Tk PLN_Is_Tk PLN_To1_Tk PLN_Go_Tk PLN_To2_Tk PLN_Museum_Tk PLN_On_Tk PLN_This_Tk PLN_Weekend_Tk";
+    } else if (lowerQuery.includes("my plan is to go to the museum")) {
+      processedText = "PLN_My_Tk PLN_Plan_Tk PLN_Is_Tk PLN_To1_Tk PLN_Go_Tk PLN_To2_Tk PLN_Museum_Tk";
+
+    // 13. [형용사구 예문 1] i visited my uncle 시리즈
+    } else if (lowerQuery.includes("i visited my uncle to live in california")) {
+      processedText = "ADJ_I_Tk ADJ_Visited_Tk ADJ_My_Tk ADJ_Uncle_Tk ADJ_To_Tk ADJ_Live_Tk ADJ_In_Tk ADJ_Cali_Tk";
+    } else if (lowerQuery.includes("i visited my uncle to live")) {
+      processedText = "ADJ_I_Tk ADJ_Visited_Tk ADJ_My_Tk ADJ_Uncle_Tk ADJ_To_Tk ADJ_Live_Tk";
+    } else if (lowerQuery.includes("i visited my uncle")) {
+      processedText = "ADJ_I_Tk ADJ_Visited_Tk ADJ_My_Tk ADJ_Uncle_Tk";
+
+    // 14. [5형식 보충어구 예문 6] i taught him 시리즈
+    } else if (lowerQuery.includes("i taught him to read the book")) {
+      processedText = "TCH_I_Tk TCH_Taught_Tk TCH_Him_Tk TCH_To_Tk TCH_Read_Tk TCH_Book_Tk";
+    } else if (lowerQuery.includes("i taught to read the book")) {
+      processedText = "TCH_I_Tk TCH_Taught_Tk TCH_To_Tk TCH_Read_Tk TCH_Book_Tk";
+
+    // 15. 기타 일반 단어 처리 (정규식 제거 버전!)
+    } else {
       processedText = processedText
+        .split('흘끗 보다').join('흘끗_보다')
+        .split('냄새 맡다').join('냄새_맡다')
+        .split('lived here to see').join('lived here to see')
+        .split('a fine youth').join('a_fine_youth')
+        .split('albert schweitzer').join('albert_schweitzer')
+        .split('the prize money').join('the_prize_money')
+        .split('the hospital').join('the_hospital')
+        .split('a place').join('a_place')
+        .split('suffer from').join('suffer_from')
+        .split('a special program').join('a special program')
+        .split('the culture, customs, and art').join('the culture, customs, and art')
+        .split('culture,').join('culture,')
+        .split('customs,').join('customs,')
+        .split('a pretty daughter').join('a_pretty_daughter')
+        .split('old house').join('old house')
+        .split('an important thing').join('an_important_thing')
+        .split('the hardest sentence').join('the_hardest_sentence')
+        .split('the news').join('the_news')
+        .split('mahatma gandi').join('mahatma_gandi')
+        .split('would attain').join('would_attain')
+        .split('the masses').join('the_masses')
+        .split('(that) they').join('(that)_they')
+        .split('can improve').join('can_improve')
+        .split('can shape').join('can_shape')
+        .split('the way').join('the_way')
+        .split('the plan').join('the_plan')
+        .split('play games').join('play_games')
+        .split('the field').join('the_field')
+        .split('the stadium').join('the_stadium')
+        .split('old man').join('old_man')
+        .split("the girl's").join("the_girl's")
+        .split('the powerful').join('the_powerful')
+        .split('iron-clad ships').join('iron-clad_ships')
+        .split('the south shore').join('the_south_shore')
+        .split('adm. lee soon shin').join('adm_lee_soon_shin')
+        .split('the powerful invaders').join('the_powerful_invaders')
+        .split('can not hear').join('can_not_hear')
+        .split("the animals'").join("the_animals'")
+        .split('the welfare').join('the_welfare')
+        .split('the park').join('the_park')
+        .split('a little tree').join('a_little_tree')
+        .split('once upon a time').join('once_upon_a_time')
+        .split('must take care of').join('must_take_care_of')
+        .split('laughed at').join('laughed_at')
+        .split('the first').join('the_first')
+        .split('good conduct').join('good_conduct')
+        .split('the most important').join('the_most_important')
+        .split('detective story').join('detective_story')
+        .split('a small town').join('a_small_town')
+        .split('a small kingdom').join('a_small_kingdom')
+        .split('the beginning').join('the_beginning')
+        .split('the law').join('the_law')
+        .split('the cold').join('the_cold')
+        .split('this year').join('this_year')
+        .split('that of').join('that_of')
+        .split('the most popular').join('the_most_popular')
+        .split('the school').join('the_school')
+        .split('north korean').join('north_korean')
+        .split('have landed').join('have_landed')
+        .split('northern japan').join('northern_japan')
+        .split('fast-boat').join('fast_boat')
+        .split('fast boat').join('fast_boat')
+        .split('is hung').join('is_hung')
+        .split('the gloomy wall').join('the_gloomy_wall')
+        .split('a big fire').join('a_big_fire')
+        .split('broke out').join('broke_out')
+        .split('the building').join('the_building')
+        .split('the bird').join('the_bird')
+        .split('the station').join('the_station')
+        .split('last year').join('last_year')
+        .split('a very old house').join('a_very_old_house')
+        .split('a small village').join('a_small_village')
+        .split('the small cabin').join('the_small_cabin')
+        .split('the department store').join('the_department_store')
+        .split('the elegant ferry-boat').join('the_elegant_ferry_boat')
+        .split('the elegant ferry boat').join('the_elegant_ferry_boat')
+        .split('has lived').join('has_lived')
+        .split('20 years').join('20_years')
+        .split('will stay').join('will_stay');
 
-      // 👇👇 💡 [수프로 엣지] 보충어구 2형식 예문 4 (새치기 방지 6단 방어망! 무조건 최상단 배치!) 👇👇
-      // 1. 완전체
-      .replace(/(^|\s)my\s+plan\s+is\s+to\s+read\s+many\s+books\s+in\s+the\s+silent\s+country\s+at\s+this\s+time\.?(?!\w)/gi, '$1RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Many_Tk RDB_Books_Tk RDB_In_Tk RDB_SilentCountry_Tk RDB_At_Tk RDB_ThisTime_Tk ')
-      // 2. many 생략 + at this time 생략
-      .replace(/(^|\s)my\s+plan\s+is\s+to\s+read\s+books\s+in\s+the\s+silent\s+country\.?(?!\w)/gi, '$1RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Books_Tk RDB_In_Tk RDB_SilentCountry_Tk ')
-      // 3. silent 생략 + at this time 생략
-      .replace(/(^|\s)my\s+plan\s+is\s+to\s+read\s+many\s+books\s+in\s+the\s+country\.?(?!\w)/gi, '$1RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Many_Tk RDB_Books_Tk RDB_In_Tk RDB_Country_Tk ')
-      // 4. in the silent country 생략
-      .replace(/(^|\s)my\s+plan\s+is\s+to\s+read\s+many\s+books\s+at\s+this\s+time\.?(?!\w)/gi, '$1RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Many_Tk RDB_Books_Tk RDB_At_Tk RDB_ThisTime_Tk ')
-      // 5. in the silent country & at this time 모두 생략 (many는 있음)
-      .replace(/(^|\s)my\s+plan\s+is\s+to\s+read\s+many\s+books\.?(?!\w)/gi, '$1RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Many_Tk RDB_Books_Tk ')
-      // 6. 💡[NEW 추가] many & in the silent country & at this time 모두 생략 (초압축 뼈대)
-      .replace(/(^|\s)my\s+plan\s+is\s+to\s+read\s+books\.?(?!\w)/gi, '$1RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Books_Tk ')
-
-      // 👇👇 💡 [수프로 엣지] 보충어구 2형식 예문 3 (새치기 방지 6단 방어망! 무조건 최상단 배치!) 👇👇
-      // 1. 완전체
-      .replace(/(^|\s)the\s+aim\s+of\s+this\s+education\s+reform\s+is\s+to\s+offer\s+all\s+the\s+students\s+equal\s+opportunity\s+of\s+education\.?(?!\w)/gi, '$1REF_Aim_Tk REF_Of1_Tk REF_This_Tk REF_Edu1_Tk REF_Reform_Tk REF_Is_Tk REF_To_Tk REF_Offer_Tk REF_All_Tk REF_Students_Tk REF_Equal_Tk REF_Opp_Tk REF_Of2_Tk REF_Edu2_Tk ')
-      // 2. reform 생략, all 생략
-      .replace(/(^|\s)the\s+aim\s+of\s+this\s+education\s+is\s+to\s+offer\s+the\s+students\s+equal\s+opportunity\s+of\s+education\.?(?!\w)/gi, '$1REF_Aim_Tk REF_Of1_Tk REF_This_Tk REF_Edu1_Tk REF_Is_Tk REF_To_Tk REF_Offer_Tk REF_Students_Tk REF_Equal_Tk REF_Opp_Tk REF_Of2_Tk REF_Edu2_Tk ')
-      // 3. education 생략, equal 생략
-      .replace(/(^|\s)the\s+aim\s+of\s+this\s+reform\s+is\s+to\s+offer\s+all\s+the\s+students\s+opportunity\s+of\s+education\.?(?!\w)/gi, '$1REF_Aim_Tk REF_Of1_Tk REF_This_Tk REF_Reform_Tk REF_Is_Tk REF_To_Tk REF_Offer_Tk REF_All_Tk REF_Students_Tk REF_Opp_Tk REF_Of2_Tk REF_Edu2_Tk ')
-      // 4. all 생략, of education 생략
-      .replace(/(^|\s)the\s+aim\s+of\s+this\s+education\s+reform\s+is\s+to\s+offer\s+the\s+students\s+equal\s+opportunity\.?(?!\w)/gi, '$1REF_Aim_Tk REF_Of1_Tk REF_This_Tk REF_Edu1_Tk REF_Reform_Tk REF_Is_Tk REF_To_Tk REF_Offer_Tk REF_Students_Tk REF_Equal_Tk REF_Opp_Tk ')
-      // 5. all, equal, of education 통째로 생략
-      .replace(/(^|\s)the\s+aim\s+of\s+this\s+education\s+reform\s+is\s+to\s+offer\s+the\s+students\s+opportunity\.?(?!\w)/gi, '$1REF_Aim_Tk REF_Of1_Tk REF_This_Tk REF_Edu1_Tk REF_Reform_Tk REF_Is_Tk REF_To_Tk REF_Offer_Tk REF_Students_Tk REF_Opp_Tk ')
-      // 6. 만약을 대비한 최소 뼈대 (education, all, equal, of education 모두 생략)
-      .replace(/(^|\s)the\s+aim\s+of\s+this\s+reform\s+is\s+to\s+offer\s+the\s+students\s+opportunity\.?(?!\w)/gi, '$1REF_Aim_Tk REF_Of1_Tk REF_This_Tk REF_Reform_Tk REF_Is_Tk REF_To_Tk REF_Offer_Tk REF_Students_Tk REF_Opp_Tk ')
-      
-      // 👇👇 💡 [수프로 엣지] 보충어구 2형식 예문 2 (새치기 방지 4단 방어망! 무조건 최상단 배치!) 👇👇
-      // 1. 완전체
-      .replace(/(^|\s)his\s+hope\s+is\s+to\s+become\s+a\s+great\s+doctor\s+in\s+the\s+future\.?(?!\w)/gi, '$1HPD_His_Tk HPD_Hope_Tk HPD_Is_Tk HPD_To_Tk HPD_Become_Tk HPD_GreatDoc_Tk HPD_In_Tk HPD_Future_Tk ')
-      // 2. great 생략
-      .replace(/(^|\s)his\s+hope\s+is\s+to\s+become\s+a\s+doctor\s+in\s+the\s+future\.?(?!\w)/gi, '$1HPD_His_Tk HPD_Hope_Tk HPD_Is_Tk HPD_To_Tk HPD_Become_Tk HPD_Doc_Tk HPD_In_Tk HPD_Future_Tk ')
-      // 3. in the future 생략
-      .replace(/(^|\s)his\s+hope\s+is\s+to\s+become\s+a\s+great\s+doctor\.?(?!\w)/gi, '$1HPD_His_Tk HPD_Hope_Tk HPD_Is_Tk HPD_To_Tk HPD_Become_Tk HPD_GreatDoc_Tk ')
-      // 4. great & in the future 둘 다 생략
-      .replace(/(^|\s)his\s+hope\s+is\s+to\s+become\s+a\s+doctor\.?(?!\w)/gi, '$1HPD_His_Tk HPD_Hope_Tk HPD_Is_Tk HPD_To_Tk HPD_Become_Tk HPD_Doc_Tk ')
-      ;
-      
-      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
-      processedText = processedText
-
-      // 👇👇 💡 [수프로 엣지] 보충어구 예문 1 (새치기 방지 4단 방어망! 무조건 최상단 배치!) 👇👇
-      // 1. 완전체
-      .replace(/(^|\s)my\s+plan\s+is\s+to\s+go\s+to\s+the\s+museum\s+with\s+her\s+on\s+this\s+weekend\.?(?!\w)/gi, '$1PLN_My_Tk PLN_Plan_Tk PLN_Is_Tk PLN_To1_Tk PLN_Go_Tk PLN_To2_Tk PLN_Museum_Tk PLN_With_Tk PLN_Her_Tk PLN_On_Tk PLN_This_Tk PLN_Weekend_Tk ')
-      // 2. on this weekend 생략
-      .replace(/(^|\s)my\s+plan\s+is\s+to\s+go\s+to\s+the\s+museum\s+with\s+her\.?(?!\w)/gi, '$1PLN_My_Tk PLN_Plan_Tk PLN_Is_Tk PLN_To1_Tk PLN_Go_Tk PLN_To2_Tk PLN_Museum_Tk PLN_With_Tk PLN_Her_Tk ')
-      // 3. with her 생략 (on this weekend는 있음)
-      .replace(/(^|\s)my\s+plan\s+is\s+to\s+go\s+to\s+the\s+museum\s+on\s+this\s+weekend\.?(?!\w)/gi, '$1PLN_My_Tk PLN_Plan_Tk PLN_Is_Tk PLN_To1_Tk PLN_Go_Tk PLN_To2_Tk PLN_Museum_Tk PLN_On_Tk PLN_This_Tk PLN_Weekend_Tk ')
-      // 4. with her & on this weekend 둘 다 생략
-      .replace(/(^|\s)my\s+plan\s+is\s+to\s+go\s+to\s+the\s+museum\.?(?!\w)/gi, '$1PLN_My_Tk PLN_Plan_Tk PLN_Is_Tk PLN_To1_Tk PLN_Go_Tk PLN_To2_Tk PLN_Museum_Tk ')
-
-      // 👇👇 💡 [수프로 엣지] 목적어구 예문 7 (새치기 방지 6단 방어망! 무조건 최상단 배치!) 👇👇
-      // 1. The ancient Greeks (완전체)
-      .replace(/(^|\s)the\s+ancient\s+greeks\s+liked\s+to\s+make\s+their\s+bodies\s+strong\s+with\s+exercises\s+of\s+gymnasiu[m]?\.?(?!\w)/gi, '$1GRK_AncGreeks_Tk GRK_Liked_Tk GRK_To_Tk GRK_Make_Tk GRK_Their_Tk GRK_Bodies_Tk GRK_Strong_Tk GRK_With_Tk GRK_Exercises_Tk GRK_Of_Tk GRK_Gym_Tk ')
-      // 2. The Greeks (ancient 생략 + gymnasium 완전체/오타)
-      .replace(/(^|\s)the\s+greeks\s+liked\s+to\s+make\s+their\s+bodies\s+strong\s+with\s+exercises\s+of\s+gymnasiu[m]?\.?(?!\w)/gi, '$1GRK_Greeks_Tk GRK_Liked_Tk GRK_To_Tk GRK_Make_Tk GRK_Their_Tk GRK_Bodies_Tk GRK_Strong_Tk GRK_With_Tk GRK_Exercises_Tk GRK_Of_Tk GRK_Gym_Tk ')
-      // 3. The ancient Greeks (of gymnasium 생략)
-      .replace(/(^|\s)the\s+ancient\s+greeks\s+liked\s+to\s+make\s+their\s+bodies\s+strong\s+with\s+exercises\.?(?!\w)/gi, '$1GRK_AncGreeks_Tk GRK_Liked_Tk GRK_To_Tk GRK_Make_Tk GRK_Their_Tk GRK_Bodies_Tk GRK_Strong_Tk GRK_With_Tk GRK_Exercises_Tk ')
-      // 4. The Greeks (of gymnasium 생략)
-      .replace(/(^|\s)the\s+greeks\s+liked\s+to\s+make\s+their\s+bodies\s+strong\s+with\s+exercises\.?(?!\w)/gi, '$1GRK_Greeks_Tk GRK_Liked_Tk GRK_To_Tk GRK_Make_Tk GRK_Their_Tk GRK_Bodies_Tk GRK_Strong_Tk GRK_With_Tk GRK_Exercises_Tk ')
-      // 5. The ancient Greeks (with 이하 통째로 생략)
-      .replace(/(^|\s)the\s+ancient\s+greeks\s+liked\s+to\s+make\s+their\s+bodies\s+strong\.?(?!\w)/gi, '$1GRK_AncGreeks_Tk GRK_Liked_Tk GRK_To_Tk GRK_Make_Tk GRK_Their_Tk GRK_Bodies_Tk GRK_Strong_Tk ')
-      // 6. The Greeks (with 이하 통째로 생략)
-      .replace(/(^|\s)the\s+greeks\s+liked\s+to\s+make\s+their\s+bodies\s+strong\.?(?!\w)/gi, '$1GRK_Greeks_Tk GRK_Liked_Tk GRK_To_Tk GRK_Make_Tk GRK_Their_Tk GRK_Bodies_Tk GRK_Strong_Tk ')
-      
-      // 👇👇 💡 [수프로 엣지] 목적어구 예문 6 (새치기 방지 2단 방어망! 무조건 최상단 배치!) 👇👇
-      // 1. 완전체
-      .replace(/(^|\s)it\s+is\s+wrong\s+to\s+want\s+to\s+leave\s+you\s+much\s+wealth\.?(?!\w)/gi, '$1WRG_It_Tk WRG_Is_Tk WRG_Wrong_Tk WRG_To1_Tk WRG_Want_Tk WRG_To2_Tk WRG_Leave_Tk WRG_You_Tk WRG_Much_Tk WRG_Wealth_Tk ')
-      // 2. much 생략 패턴
-      .replace(/(^|\s)it\s+is\s+wrong\s+to\s+want\s+to\s+leave\s+you\s+wealth\.?(?!\w)/gi, '$1WRG_It_Tk WRG_Is_Tk WRG_Wrong_Tk WRG_To1_Tk WRG_Want_Tk WRG_To2_Tk WRG_Leave_Tk WRG_You_Tk WRG_Wealth_Tk ')
-      
-      // 👇👇 💡 [수프로 엣지] 3형식 예문 5 (새치기 방지 5단 방어망! 무조건 최상단 배치!) 👇👇
-      // 1. 완전체
-      .replace(/(^|\s)she\s+liked\s+to\s+tell\s+tourists\s+the\s+history\s+and\s+culture\s+of\s+greece\.?(?!\w)/gi, '$1TEL_She_Tk TEL_Liked_Tk TEL_To_Tk TEL_Tell_Tk TEL_Tourists_Tk TEL_History_Tk TEL_And_Tk TEL_Culture_Tk TEL_Of_Tk TEL_Greece_Tk ')
-      // 2. of Greece 생략 (history and culture)
-      .replace(/(^|\s)she\s+liked\s+to\s+tell\s+tourists\s+the\s+history\s+and\s+culture\.?(?!\w)/gi, '$1TEL_She_Tk TEL_Liked_Tk TEL_To_Tk TEL_Tell_Tk TEL_Tourists_Tk TEL_History_Tk TEL_And_Tk TEL_Culture_Tk ')
-      // 3. and culture of Greece 생략 (the history만 남음)
-      .replace(/(^|\s)she\s+liked\s+to\s+tell\s+tourists\s+the\s+history\.?(?!\w)/gi, '$1TEL_She_Tk TEL_Liked_Tk TEL_To_Tk TEL_Tell_Tk TEL_Tourists_Tk TEL_History_Tk ')
-      // 4. the history and 생략 (the culture of Greece만 남음 - 검색어 대응)
-      .replace(/(^|\s)she\s+liked\s+to\s+tell\s+tourists\s+the\s+culture\s+of\s+greece\.?(?!\w)/gi, '$1TEL_She_Tk TEL_Liked_Tk TEL_To_Tk TEL_Tell_Tk TEL_Tourists_Tk TEL_Culture_Tk TEL_Of_Tk TEL_Greece_Tk ')
-      // 5. the history and & of Greece 모두 생략 (the culture만 남음)
-      .replace(/(^|\s)she\s+liked\s+to\s+tell\s+tourists\s+the\s+culture\.?(?!\w)/gi, '$1TEL_She_Tk TEL_Liked_Tk TEL_To_Tk TEL_Tell_Tk TEL_Tourists_Tk TEL_Culture_Tk ')
-      
-      // 👇👇 💡 [수프로 엣지] 3형식 예문 4 (새치기 방지 4단 방어망! 무조건 최상단 배치!) 👇👇
-      // 1. 완전체
-      .replace(/(^|\s)she\s+decided\s+to\s+dye\s+her\s+fingernails\s+with\s+the\s+petals\.?(?!\w)/gi, '$1DYE_She_Tk DYE_Decided_Tk DYE_To_Tk DYE_Dye_Tk DYE_Her_Tk DYE_Fingernails_Tk DYE_With_Tk DYE_The_Tk DYE_Petals_Tk ')
-      // 2. her 생략 (She decided to dye fingernails with the petals)
-      .replace(/(^|\s)she\s+decided\s+to\s+dye\s+fingernails\s+with\s+the\s+petals\.?(?!\w)/gi, '$1DYE_She_Tk DYE_Decided_Tk DYE_To_Tk DYE_Dye_Tk DYE_Fingernails_Tk DYE_With_Tk DYE_The_Tk DYE_Petals_Tk ')
-      // 3. with the petals 생략 (She decided to dye her fingernails)
-      .replace(/(^|\s)she\s+decided\s+to\s+dye\s+her\s+fingernails\.?(?!\w)/gi, '$1DYE_She_Tk DYE_Decided_Tk DYE_To_Tk DYE_Dye_Tk DYE_Her_Tk DYE_Fingernails_Tk ')
-      // 4. her & with the petals 모두 생략 (She decided to dye fingernails)
-      .replace(/(^|\s)she\s+decided\s+to\s+dye\s+fingernails\.?(?!\w)/gi, '$1DYE_She_Tk DYE_Decided_Tk DYE_To_Tk DYE_Dye_Tk DYE_Fingernails_Tk ')
-      
-      // 👇👇 💡 [수프로 엣지] 3형식 예문 3 (새치기 방지 무조건 최상단 배치!) 👇👇
-      .replace(/(^|\s)the\s+bright\s+boy\s+wanted\s+to\s+become\s+a\s+great\s+scientist\s+in\s+the\s+future\.?(?!\w)/gi, '$1BS2_The_Tk BS2_Bright_Tk BS2_Boy_Tk BS2_Wanted_Tk BS2_To_Tk BS2_Become_Tk BS2_GreatSci_Tk BS2_In_Tk BS2_Future_Tk ')
-      .replace(/(^|\s)the\s+bright\s+boy\s+wanted\s+to\s+become\s+a\s+scientist\s+in\s+the\s+future\.?(?!\w)/gi, '$1BS2_The_Tk BS2_Bright_Tk BS2_Boy_Tk BS2_Wanted_Tk BS2_To_Tk BS2_Become_Tk BS2_Sci_Tk BS2_In_Tk BS2_Future_Tk ')
-      .replace(/(^|\s)the\s+bright\s+boy\s+wanted\s+to\s+become\s+a\s+great\s+scientist\.?(?!\w)/gi, '$1BS2_The_Tk BS2_Bright_Tk BS2_Boy_Tk BS2_Wanted_Tk BS2_To_Tk BS2_Become_Tk BS2_GreatSci_Tk ')
-      .replace(/(^|\s)the\s+bright\s+boy\s+wanted\s+to\s+become\s+a\s+scientist\.?(?!\w)/gi, '$1BS2_The_Tk BS2_Bright_Tk BS2_Boy_Tk BS2_Wanted_Tk BS2_To_Tk BS2_Become_Tk BS2_Sci_Tk ')
-      .replace(/(^|\s)the\s+boy\s+wanted\s+to\s+become\s+a\s+scientist\.?(?!\w)/gi, '$1BS2_The_Tk BS2_Boy_Tk BS2_Wanted_Tk BS2_To_Tk BS2_Become_Tk BS2_Sci_Tk ')
-
-      // 👇👇 💡 [수프로 엣지] 3형식 예문 2 (새치기 방지를 위해 무조건 1순위 최상단 배치!) 👇👇
-      .replace(/(^|\s)i\s*want\s*to\s*know\s*about\s*animals\s*and\s*plants\.?(?!\w)/gi, '$1KNW_I_Tk KNW_Want_Tk KNW_To_Tk KNW_Know_Tk KNW_About_Tk KNW_Animals_Tk KNW_And_Tk KNW_Plants_Tk ')
-      .replace(/(^|\s)i\s*want\s*to\s*know\s*about\s*animals\.?(?!\w)/gi, '$1KNW_I_Tk KNW_Want_Tk KNW_To_Tk KNW_Know_Tk KNW_About_Tk KNW_Animals_Tk ')
-      .replace(/(^|\s)i\s*want\s*to\s*know\s*about\s*plants\.?(?!\w)/gi, '$1KNW_I_Tk KNW_Want_Tk KNW_To_Tk KNW_Know_Tk KNW_About_Tk KNW_Plants_Tk ')
-      ;
-      
-      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
-      processedText = processedText
-
-      // 👇👇 💡 [수프로 엣지] 3형식 예문 1 (새치기 방지를 위해 무조건 1순위 최상단 배치!) 👇👇
-      .replace(/i\s*want\s*to\s*rest\s*in\s*the\s*house/gi, ' RST_I_Tk RST_Want_Tk RST_To_Tk RST_Rest_Tk RST_In_Tk RST_House_Tk ')
-      .replace(/i\s*want\s*to\s*rest/gi, ' RST_I_Tk RST_Want_Tk RST_To_Tk RST_Rest_Tk ')
-
-      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 14 (병렬 구조 및 부분 잘림 7단 방어망) 👇👇
-      // 1. 완전체
-      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*teach\s*many\s*youths\s*the\s*true\s*subject-matters\s*and\s*(?:\(to\)|to)?\s*make\s*them\s*great\s*youths\.?(?!\w)/gi, '$1EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To1_Tk EK2G14_Teach_Tk EK2G14_Many1_Tk EK2G14_Youths1_Tk EK2G14_True_Tk EK2G14_Subjects_Tk EK2G14_And_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Great_Tk EK2G14_Youths2_Tk ')
-      // 2. many 생략 + great 생략
-      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*teach\s*youths\s*the\s*true\s*subject-matters\s*and\s*(?:\(to\)|to)?\s*make\s*them\s*youths\.?(?!\w)/gi, '$1EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To1_Tk EK2G14_Teach_Tk EK2G14_Youths1_Tk EK2G14_True_Tk EK2G14_Subjects_Tk EK2G14_And_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Youths2_Tk ')
-      // 3. true 생략 + great 생략
-      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*teach\s*many\s*youths\s*the\s*subject-matters\s*and\s*(?:\(to\)|to)?\s*make\s*them\s*youths\.?(?!\w)/gi, '$1EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To1_Tk EK2G14_Teach_Tk EK2G14_Many1_Tk EK2G14_Youths1_Tk EK2G14_Subjects_Tk EK2G14_And_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Youths2_Tk ')
-      // 4. teach make them great youths (목적어들 생략된 압축 쿼리)
-      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*teach\s*make\s*them\s*great\s*youths\.?(?!\w)/gi, '$1EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To1_Tk EK2G14_Teach_Tk EK2G14_And_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Great_Tk EK2G14_Youths2_Tk ')
-      // 5. make them youths (teach 파트 통째로 생략)
-      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*make\s*them\s*youths\.?(?!\w)/gi, '$1EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Youths2_Tk ')
-      // 6. teach 파트 통째로 날아가고 make them great youths 붙은 경우 (만약을 대비한 추가)
-      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*make\s*them\s*great\s*youths\.?(?!\w)/gi, '$1EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Great_Tk EK2G14_Youths2_Tk ')
-      // 7. 앞부분만 남음 (teach many youths the true subject-matters)
-      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*teach\s*many\s*youths\s*the\s*true\s*subject-matters\.?(?!\w)/gi, '$1EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To1_Tk EK2G14_Teach_Tk EK2G14_Many1_Tk EK2G14_Youths1_Tk EK2G14_True_Tk EK2G14_Subjects_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 13 (복합 생략 6단 방어망) 👇👇
-      // 1. 완전체
-      .replace(/(^|\s)it\s*is\s*my\s*duty\s*to\s*uphold\s*consitutional\s*government\s*and\s*(?:\(to\)|to)?\s*advance\s*the\s*happiness\s*and\s*prosperity\s*of\s*my\s*peoples\.?(?!\w)/gi, '$1EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To1_Tk EK2G13_Uphold_Tk EK2G13_Gov_Tk EK2G13_And1_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Happiness_Tk EK2G13_And2_Tk EK2G13_Prosperity_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk ')
-      // 2. happiness 생략
-      .replace(/(^|\s)it\s*is\s*my\s*duty\s*to\s*uphold\s*consitutional\s*government\s*and\s*(?:\(to\)|to)?\s*advance\s*the\s*prosperity\s*of\s*my\s*peoples\.?(?!\w)/gi, '$1EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To1_Tk EK2G13_Uphold_Tk EK2G13_Gov_Tk EK2G13_And1_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Prosperity_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk ')
-      // 3. prosperity 생략
-      .replace(/(^|\s)it\s*is\s*my\s*duty\s*to\s*uphold\s*consitutional\s*government\s*and\s*(?:\(to\)|to)?\s*advance\s*the\s*happiness\s*of\s*my\s*peoples\.?(?!\w)/gi, '$1EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To1_Tk EK2G13_Uphold_Tk EK2G13_Gov_Tk EK2G13_And1_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Happiness_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk ')
-      // 4. uphold 앞부분 통째로 생략 + 완전체
-      .replace(/(^|\s)it\s*is\s*my\s*duty\s*to\s*advance\s*the\s*happiness\s*and\s*prosperity\s*of\s*my\s*peoples\.?(?!\w)/gi, '$1EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Happiness_Tk EK2G13_And2_Tk EK2G13_Prosperity_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk ')
-      // 5. uphold 통째로 생략 + happiness 생략
-      .replace(/(^|\s)it\s*is\s*my\s*duty\s*to\s*advance\s*the\s*prosperity\s*of\s*my\s*peoples\.?(?!\w)/gi, '$1EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Prosperity_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk ')
-      // 6. uphold 통째로 생략 + prosperity 생략
-      .replace(/(^|\s)it\s*is\s*my\s*duty\s*to\s*advance\s*the\s*happiness\s*of\s*my\s*peoples\.?(?!\w)/gi, '$1EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Happiness_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 12 (to 유무 & 부분 잘림 3단 방어망) 👇👇
-      .replace(/(^|\s)it\s*is\s*good\s*for\s*health\s*to\s*work\s*and\s*to\s*play\.?(?!\w)/gi, '$1EK2G12_It_Tk EK2G12_Is_Tk EK2G12_Good_Tk EK2G12_For_Tk EK2G12_Health_Tk EK2G12_To1_Tk EK2G12_Work_Tk EK2G12_And_Tk EK2G12_To2_Tk EK2G12_Play_Tk ')
-      .replace(/(^|\s)it\s*is\s*good\s*for\s*health\s*to\s*work\s*and\s*play\.?(?!\w)/gi, '$1EK2G12_It_Tk EK2G12_Is_Tk EK2G12_Good_Tk EK2G12_For_Tk EK2G12_Health_Tk EK2G12_To1_Tk EK2G12_Work_Tk EK2G12_And_Tk EK2G12_Play_Tk ')
-      .replace(/(^|\s)it\s*is\s*good\s*for\s*health\s*to\s*work\.?(?!\w)/gi, '$1EK2G12_It_Tk EK2G12_Is_Tk EK2G12_Good_Tk EK2G12_For_Tk EK2G12_Health_Tk EK2G12_To1_Tk EK2G12_Work_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 11 (many 유무 & 부분 잘림 5단 방어망) 👇👇
-      // 1. 완전체
-      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*lend\s*many\s*citizens\s*many\s*books\s*during\s*this\s*reading\s*week\.?(?!\w)/gi, '$1EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Many1_Tk EK2G11_Citizens_Tk EK2G11_Many2_Tk EK2G11_Books_Tk EK2G11_During_Tk EK2G11_This_Tk EK2G11_ReadingWeek_Tk ')
-      // 2. during this reading week 생략
-      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*lend\s*many\s*citizens\s*many\s*books\.?(?!\w)/gi, '$1EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Many1_Tk EK2G11_Citizens_Tk EK2G11_Many2_Tk EK2G11_Books_Tk ')
-      // 3. 첫 번째 many 생략 + during 포함
-      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*lend\s*citizens\s*many\s*books\s*during\s*this\s*reading\s*week\.?(?!\w)/gi, '$1EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Citizens_Tk EK2G11_Many2_Tk EK2G11_Books_Tk EK2G11_During_Tk EK2G11_This_Tk EK2G11_ReadingWeek_Tk ')
-      // 4. 두 번째 many 생략 + during 생략
-      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*lend\s*many\s*citizens\s*books\.?(?!\w)/gi, '$1EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Many1_Tk EK2G11_Citizens_Tk EK2G11_Books_Tk ')
-      // 5. many 두 개 모두 생략 + during 생략
-      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*lend\s*citizens\s*books\.?(?!\w)/gi, '$1EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Citizens_Tk EK2G11_Books_Tk ')
-      ;
-      
-      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
-      processedText = processedText
-
-      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 10 (very 유무 & 부분 잘림 4단 방어망) 👇👇
-      .replace(/(^|\s)it\s*is\s*very\s*easy\s*to\s*study\s*english\s*in\s*this\s*way\.?(?!\w)/gi, '$1EK2G10_It_Tk EK2G10_Is_Tk EK2G10_Very_Tk EK2G10_Easy_Tk EK2G10_To_Tk EK2G10_Study_Tk EK2G10_English_Tk EK2G10_In_Tk EK2G10_This_Tk EK2G10_Way_Tk ')
-      .replace(/(^|\s)it\s*is\s*easy\s*to\s*study\s*english\s*in\s*this\s*way\.?(?!\w)/gi, '$1EK2G10_It_Tk EK2G10_Is_Tk EK2G10_Easy_Tk EK2G10_To_Tk EK2G10_Study_Tk EK2G10_English_Tk EK2G10_In_Tk EK2G10_This_Tk EK2G10_Way_Tk ')
-      .replace(/(^|\s)it\s*is\s*very\s*easy\s*to\s*study\s*english\.?(?!\w)/gi, '$1EK2G10_It_Tk EK2G10_Is_Tk EK2G10_Very_Tk EK2G10_Easy_Tk EK2G10_To_Tk EK2G10_Study_Tk EK2G10_English_Tk ')
-      .replace(/(^|\s)it\s*is\s*easy\s*to\s*study\s*english\.?(?!\w)/gi, '$1EK2G10_It_Tk EK2G10_Is_Tk EK2G10_Easy_Tk EK2G10_To_Tk EK2G10_Study_Tk EK2G10_English_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 9 (great 유무 & 부분 잘림 4단 방어망) 👇👇
-      .replace(/(^|\s)it\s*is\s*my\s*hope\s*to\s*be\s*a\s*great\s*poet\s*in\s*the\s*future\.?(?!\w)/gi, '$1EK2G9_It_Tk EK2G9_Is_Tk EK2G9_My_Tk EK2G9_Hope_Tk EK2G9_To_Tk EK2G9_Be_Tk EK2G9_GreatPoet_Tk EK2G9_In_Tk EK2G9_Future_Tk ')
-      .replace(/(^|\s)it\s*is\s*my\s*hope\s*to\s*be\s*a\s*poet\s*in\s*the\s*future\.?(?!\w)/gi, '$1EK2G9_It_Tk EK2G9_Is_Tk EK2G9_My_Tk EK2G9_Hope_Tk EK2G9_To_Tk EK2G9_Be_Tk EK2G9_Poet_Tk EK2G9_In_Tk EK2G9_Future_Tk ')
-      .replace(/(^|\s)it\s*is\s*my\s*hope\s*to\s*be\s*a\s*great\s*poet\.?(?!\w)/gi, '$1EK2G9_It_Tk EK2G9_Is_Tk EK2G9_My_Tk EK2G9_Hope_Tk EK2G9_To_Tk EK2G9_Be_Tk EK2G9_GreatPoet_Tk ')
-      .replace(/(^|\s)it\s*is\s*my\s*hope\s*to\s*be\s*a\s*poet\.?(?!\w)/gi, '$1EK2G9_It_Tk EK2G9_Is_Tk EK2G9_My_Tk EK2G9_Hope_Tk EK2G9_To_Tk EK2G9_Be_Tk EK2G9_Poet_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 8 (전체 및 부분 잘림 3단 방어망) 👇👇
-      .replace(/(^|\s)it\s*is\s*good\s*for\s*health\s*to\s*get\s*up\s*early\s*in\s*the\s*morning\.?(?!\w)/gi, '$1EK2G8_It_Tk EK2G8_Is_Tk EK2G8_Good_Tk EK2G8_For_Tk EK2G8_Health_Tk EK2G8_To_Tk EK2G8_GetUp_Tk EK2G8_Early_Tk EK2G8_In_Tk EK2G8_Morning_Tk ')
-      .replace(/(^|\s)it\s*is\s*good\s*for\s*health\s*to\s*get\s*up\s*early\.?(?!\w)/gi, '$1EK2G8_It_Tk EK2G8_Is_Tk EK2G8_Good_Tk EK2G8_For_Tk EK2G8_Health_Tk EK2G8_To_Tk EK2G8_GetUp_Tk EK2G8_Early_Tk ')
-      .replace(/(^|\s)it\s*is\s*good\s*for\s*health\s*to\s*get\s*up\.?(?!\w)/gi, '$1EK2G8_It_Tk EK2G8_Is_Tk EK2G8_Good_Tk EK2G8_For_Tk EK2G8_Health_Tk EK2G8_To_Tk EK2G8_GetUp_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <1형식> 기본 문형 예문 2 (전체 및 부분 잘림 3단 방어망) 👇👇
-      .replace(/(^|\s)he\s*had\s*to\s*work\s*hard\s*for\s*a\s*living\.?(?!\w)/gi, '$1EK1B2_He_Tk EK1B2_HadWork_Tk EK1B2_Hard_Tk EK1B2_For_Tk EK1B2_Living_Tk ')
-      .replace(/(^|\s)he\s*had\s*to\s*work\s*for\s*a\s*living\.?(?!\w)/gi, '$1EK1B2_He_Tk EK1B2_HadWork_Tk EK1B2_For_Tk EK1B2_Living_Tk ')
-      .replace(/(^|\s)he\s*had\s*to\s*work\s*hard\.?(?!\w)/gi, '$1EK1B2_He_Tk EK1B2_HadWork_Tk EK1B2_Hard_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <1형식> 기본 문형 예문 1 (전체 및 부분 잘림 3단 방어망) 👇👇
-      .replace(/(^|\s)my\s*father\s*works\s*from\s*morning\s*till\s*evening\.?(?!\w)/gi, '$1EK1B1_My_Tk EK1B1_Father_Tk EK1B1_Works_Tk EK1B1_From_Tk EK1B1_Morning_Tk EK1B1_Till_Tk EK1B1_Evening_Tk ')
-      .replace(/(^|\s)my\s*father\s*works\s*from\s*morning\.?(?!\w)/gi, '$1EK1B1_My_Tk EK1B1_Father_Tk EK1B1_Works_Tk EK1B1_From_Tk EK1B1_Morning_Tk ')
-      .replace(/(^|\s)my\s*father\s*works\s*till\s*evening\.?(?!\w)/gi, '$1EK1B1_My_Tk EK1B1_Father_Tk EK1B1_Works_Tk EK1B1_Till_Tk EK1B1_Evening_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 보충어구 예문 2 (대소문자 무시 방어망) 👇👇
-      .replace(/(^|\s)his\s*hope\s*is\s*to\s*become\s*a\s*great\s*doctor\s*in\s*the\s*future\.?(?!\w)/gi, '$1EK2C2_His_Tk EK2C2_Hope_Tk EK2C2_Is_Tk EK2C2_To_Tk EK2C2_Become_Tk EK2C2_Doctor_Tk EK2C2_In_Tk EK2C2_Future_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 보충어구 예문 1 (대소문자 무시 방어망) 👇👇
-      .replace(/(^|\s)my\s*plan\s*is\s*to\s*go\s*to\s*the\s*museum\s*with\s*her\s*on\s*this\s*weekend\.?(?!\w)/gi, '$1EK2C1_My_Tk EK2C1_Plan_Tk EK2C1_Is_Tk EK2C1_To1_Tk EK2C1_Go_Tk EK2C1_To2_Tk EK2C1_Museum_Tk EK2C1_With_Tk EK2C1_Her_Tk EK2C1_On_Tk EK2C1_This_Tk EK2C1_Weekend_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 7 (대소문자 무시 방어망) 👇👇
-      .replace(/(^|\s)the\s*ancient\s*greeks\s*liked\s*to\s*make\s*their\s*bodies\s*strong\s*with\s*exercises\s*of\s*gymnasium\.?(?!\w)/gi, '$1EK3E7_Greeks_Tk EK3E7_Liked_Tk EK3E7_To_Tk EK3E7_Make_Tk EK3E7_Their_Tk EK3E7_Bodies_Tk EK3E7_Strong_Tk EK3E7_With_Tk EK3E7_Exercises_Tk EK3E7_Of_Tk EK3E7_Gymnasium_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <목적어구/2형식> 예문 6 (대소문자 무시 방어망) 👇👇
-      .replace(/(^|\s)it\s*is\s*wrong\s*to\s*want\s*to\s*leave\s*you\s*much\s*wealth\.?(?!\w)/gi, '$1EK3E6_It_Tk EK3E6_Is_Tk EK3E6_Wrong_Tk EK3E6_To1_Tk EK3E6_Want_Tk EK3E6_To2_Tk EK3E6_Leave_Tk EK3E6_You_Tk EK3E6_Much_Tk EK3E6_Wealth_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 5 (대소문자 무시 방어망) 👇👇
-      .replace(/(^|\s)she\s*liked\s*to\s*tell\s*tourists\s*the\s*history\s*and\s*culture\s*of\s*greece\.?(?!\w)/gi, '$1EK3E5_She_Tk EK3E5_Liked_Tk EK3E5_To_Tk EK3E5_Tell_Tk EK3E5_Tourists_Tk EK3E5_History_Tk EK3E5_And_Tk EK3E5_Culture_Tk EK3E5_Of_Tk EK3E5_Greece_Tk ')
-      ;
-      
-      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
-      processedText = processedText
-
-      // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 4 (대소문자 무시 방어망) 👇👇
-      .replace(/(^|\s)she\s*decided\s*to\s*dye\s*her\s*fingernails\s*with\s*the\s*petals\.?(?!\w)/gi, '$1EK3E4_She_Tk EK3E4_Decided_Tk EK3E4_To_Tk EK3E4_Dye_Tk EK3E4_Fingernails_Tk EK3E4_With_Tk EK3E4_The_Tk EK3E4_Petals_Tk ')
-
-      // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 3 (대소문자 무시 방어망) 👇👇
-      .replace(/(^|\s)the\s*bright\s*boy\s*wanted\s*to\s*become\s*a\s*great\s*scientist\s*in\s*the\s*future\.?(?!\w)/gi, '$1EK3E3_The_Tk EK3E3_Bright_Tk EK3E3_Boy_Tk EK3E3_Wanted_Tk EK3E3_To_Tk EK3E3_Become_Tk EK3E3_Scientist_Tk EK3E3_In_Tk EK3E3_Future_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 2 (대소문자 무시 방어망) 👇👇
-      .replace(/(^|\s)i\s*want\s*to\s*know\s*about\s*animals\s*and\s*plants\.?(?!\w)/gi, '$1EK3E2_I_Tk EK3E2_Want_Tk EK3E2_To_Tk EK3E2_Know_Tk EK3E2_About_Tk EK3E2_Animals_Tk EK3E2_And_Tk EK3E2_Plants_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <3형식> 목적어구 예문 1 (대소문자 무시 방어망) 👇👇
-      .replace(/(^|\s)i\s*want\s*to\s*rest\s*in\s*the\s*house\.?(?!\w)/gi, '$1EK3E1_I_Tk EK3E1_Want_Tk EK3E1_To_Tk EK3E1_Rest_Tk EK3E1_In_Tk EK3E1_House_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 7 (하이픈 및 괄호 완벽 방어망) 👇👇
-      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*teach\s*many\s*youths\s*the\s*true\s*subject-matters\s*and\s*\(?to\)?\s*make\s*them\s*great\s*youths\.?(?!\w)/gi, '$1EK2E7_It_Tk EK2E7_Is_Tk EK2E7_Our_Tk EK2E7_Task_Tk EK2E7_To1_Tk EK2E7_Teach_Tk EK2E7_Many1_Tk EK2E7_Youths1_Tk EK2E7_True_Tk EK2E7_Subjects_Tk EK2E7_And_Tk EK2E7_To2_Tk EK2E7_Make_Tk EK2E7_Them_Tk EK2E7_Great_Tk EK2E7_Youths2_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 6 (오타 및 괄호 완벽 방어망) 👇👇
-      .replace(/(^|\s)it\s*is\s*my\s*duty\s*to\s*uphold\s*(consitutional|constitutional)\s*government\s*and\s*\(?to\)?\s*advance\s*the\s*happiness\s*and\s*prosperity\s*of\s*my\s*peoples\.?(?!\w)/gi, '$1EK2E6_It_Tk EK2E6_Is_Tk EK2E6_My1_Tk EK2E6_Duty_Tk EK2E6_To1_Tk EK2E6_Uphold_Tk EK2E6_Gov_Tk EK2E6_And1_Tk EK2E6_To2_Tk EK2E6_Advance_Tk EK2E6_Happiness_Tk EK2E6_And2_Tk EK2E6_Prosperity_Tk EK2E6_Of_Tk EK2E6_My2_Tk EK2E6_Peoples_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 5 (괄호 (to) 및 대소문자 무시 방어망) 👇👇
-      .replace(/(^|\s)it\s*is\s*good\s*for\s*health\s*to\s*work\s*and\s*\(?to\)?\s*play\.?(?!\w)/gi, '$1EK2E5_It_Tk EK2E5_Is_Tk EK2E5_Good_Tk EK2E5_For_Tk EK2E5_Health_Tk EK2E5_To1_Tk EK2E5_Work_Tk EK2E5_And_Tk EK2E5_To2_Tk EK2E5_Play_Tk ')      
-      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 예문 4 (weel 오타까지 완벽 커버 방어망) 👇👇
-      .replace(/(^|\s)it\s*is\s*our\s*task\s*to\s*lend\s*many\s*citizens\s*many\s*books\s*during\s*this\s*reading\s*wee[kl]\.?(?!\w)/gi, '$1EK2E4_It_Tk EK2E4_Is_Tk EK2E4_Our_Tk EK2E4_Task_Tk EK2E4_To_Tk EK2E4_Lend_Tk EK2E4_Many1_Tk EK2E4_Citizens_Tk EK2E4_Many2_Tk EK2E4_Books_Tk EK2E4_During_Tk EK2E4_This_Tk EK2E4_ReadingWeek_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 3 (대소문자 무시) 👇👇
-      .replace(/(^|\s)it\s*is\s*very\s*easy\s*to\s*study\s*english\s*in\s*this\s*way\.?(?!\w)/gi, '$1EK2E3_It_Tk EK2E3_Is_Tk EK2E3_Very_Tk EK2E3_Easy_Tk EK2E3_To_Tk EK2E3_Study_Tk EK2E3_English_Tk EK2E3_In_Tk EK2E3_This_Tk EK2E3_Way_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 2 (대소문자 무시) 👇👇
-      .replace(/(^|\s)it\s*is\s*my\s*hope\s*to\s*be\s*a\s*great\s*poet\s*in\s*the\s*future\.?(?!\w)/gi, '$1EK2E2_It_Tk EK2E2_Is_Tk EK2E2_My_Tk EK2E2_Hope_Tk EK2E2_To_Tk EK2E2_Be_Tk EK2E2_Poet_Tk EK2E2_In_Tk EK2E2_Future_Tk ')
-      // 👇👇 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 1 (대소문자 무시) 👇👇
-      .replace(/(^|\s)it\s*is\s*good\s*for\s*health\s*to\s*get\s*up\s*early\s*in\s*the\s*morning\.?(?!\w)/gi, '$1EK2E1_It_Tk EK2E1_Is_Tk EK2E1_Good_Tk EK2E1_For_Tk EK2E1_Health_Tk EK2E1_To_Tk EK2E1_GetUp_Tk EK2E1_Early_Tk EK2E1_In_Tk EK2E1_Morning_Tk ')      
-      // 👇👇 💡 [수프로 엣지] 영한 <1형식> 예문 2 (대소문자 무시 방어망) 👇👇
-      .replace(/(^|\s)he\s*had\s*to\s*work\s*hard\s*for\s*a\s*living\.?(?!\w)/gi, '$1EK1E2_He_Tk EK1E2_HadToWork_Tk EK1E2_Hard_Tk EK1E2_For_Tk EK1E2_Living_Tk ')      
-      // 👇👇 💡 [수프로 엣지] 영한 <1형식> 예문 1 (대소문자 무시 방어망) 👇👇
-      .replace(/(^|\s)my\s*father\s*works\s*from\s*morning\s*till\s*evening\.?(?!\w)/gi, '$1EK1E1_My_Tk EK1E1_Father_Tk EK1E1_Works_Tk EK1E1_From_Tk EK1E1_Morning_Tk EK1E1_Till_Tk EK1E1_Evening_Tk ')
-      .replace(/흘끗\s*보다/g, '흘끗_보다')
-      .replace(/냄새\s*맡다/g, '냄새_맡다')
-      .replace(/lived\s*here\s*to\s*see/g, 'lived here to see')
-      .replace(/살아서/g, '살았다 그래서')
-      .replace(/만났다/g, '만나다')
-      .replace(/만나다\s*그의/g, '만나다 그의')
-      .replace(/a\s*fine\s*youth/gi, 'a_fine_youth')
-      .replace(/훌륭한\s*청년이\s*되었다/g, '훌륭한_청년이 되다')
-      .replace(/자라서/g, '자랐다 서')
-      .replace(/albert\s*schweitzer/g, 'albert_schweitzer')
-      .replace(/the\s*prize\s*money/g, 'the_prize_money')
-      .replace(/the\s*hospital/g, 'the_hospital')
-      .replace(/a\s*place/g, 'a_place')
-      .replace(/suffer\s*from/g, 'suffer_from')
-      .replace(/a\s*special\s*program/g, 'a special program')
-      .replace(/the\s*culture,\s*customs,\s*and\s*art/gi, 'the culture, customs, and art')
-      .replace(/culture,/gi, 'culture,')
-      .replace(/customs,/gi, 'customs,')
-      .replace(/a\s*pretty\s*daughter/g, 'a_pretty_daughter')
-      .replace(/귀여운\s*딸과\s*함께/g, 'a_pretty_daughter 과함께')
-      .replace(/아내와/g, '아내 와')
-      .replace(/살기\s*위해서/g, '살다 위해서')
-      .replace(/시골에서/g, '시골 에서')
-      .replace(/오래된\s*집을/g, 'old house')
-      .replace(/an\s*important\s*thing/gi, 'an_important_thing')
-      .replace(/중요한\s*일에\s*대해/g, '중요한_일 에대해')
-      .replace(/의논하기\s*위해/g, '의논하다 ~하기위해')
-      .replace(/오늘\s*여기\s*모였다/g, '오늘 여기에 모였다')
-      .replace(/만날\s*목적으로/g, '만날 목적으로')
-      .replace(/영리하다\.\s*그래서/g, '영리한 이다 그래서')
-      .replace(/영리하다\s*그래서/g, '영리한 이다 그래서')
-      .replace(/게으르다\.\s*그래서/g, '게으른 이다 그래서')
-      .replace(/게으르다\s*그래서/g, '게으른 이다 그래서')
-      .replace(/읽을\s*수\s*없다/g, '읽을_수_없다')
-      .replace(/이해할\s*수\s*있다/g, '이해할_수_있다')
-      .replace(/일어났다.\s*그래서/g, '일어났다 그래서')
-      .replace(/일어났다\s*그래서/g, '일어났다 그래서')
-      .replace(/기차를\s*놓쳤다/g, '기차를 놓치다')
-      .replace(/마시기에/g, '마시다 ~하기에')
-      .replace(/좋다/g, '좋은 이다')
-      .replace(/the\s*hardest\s*sentence/gi, 'the_hardest_sentence')
-      .replace(/강의하기에/g, '강의하다 ~하기에')
-      .replace(/편리하다/g, '편리한 이다')
-      .replace(/the\s*news/g, 'the_news')
-      .replace(/듣지\s*못했기\s*때문에/g, '듣지 못하다 ~하기때문에')
-      .replace(/슬펐다/g, '슬픈 이었다')
-      .replace(/자기\s*가족의/g, '자기 가족 의')
-      .replace(/기쁘다/g, '기쁘다')
-      ;
-      
-      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
-      processedText = processedText
-      
-      .replace(/만나니/g, '만나다 ~하니')
-      .replace(/큰\s*상을/g, 'a_great_reward')
-      .replace(/적절한\s*시기를/g, 'the_right time')
-      .replace(/어떤\s*일을/g, 'anything')
-      .replace(/가르쳐주는/g, '가르쳐주다 ㄴ')
-      .replace(/시작할/g, '시작하다 ㄹ')
-      .replace(/사람에게/g, '사람 에게')
-      .replace(/위대한\s*지도자라고/g, 'a_great_leader')
-      .replace(/생각하는/g, '생각하다 ㄴ')
-      .replace(/독재자이다/g, '독재자 이다')
-      .replace(/사준\s*소녀는/g, '사주다 ㄴ 소녀는')
-      .replace(/생일에/g, '생일 에')
-      .replace(/베티였다/g, '베티 였다')
-      .replace(/멋진\s*선물을/g, 'a_nice_present')
-      .replace(/나일강을\s*따라/g, '나일강을 따라')
-      .replace(/고대\s*이집트에서/g, '고대 이집트 에서')
-      .replace(/지은/g, '짓다 ㄴ')
-      .replace(/최초의\s*사람들은/g, '최초의 사람들은')
-      .replace(/농부들이었다/g, '농부들 이었다')
-      .replace(/의사가\s*된/g, '의사가 되다 ㄴ')
-      .replace(/아들에게/g, '아들 에게')
-      .replace(/그\s*책을/g, 'the_book')
-      .replace(/유명하게\s*된/g, '유명한 되다 ㄴ')
-      .replace(/진화에\s*대한/g, '진화 에대한')
-      .replace(/이론으로/g, '이론 으로')
-      .replace(/영국의\s*생물학자였다/g, '영국의_생물학자 였다')
-      .replace(/영국의\s*생물학자/g, '영국의_생물학자')
-      .replace(/사시는/g, '사시다 ㄴ')
-      .replace(/캘리포니아에/g, '캘리포니아 에')
-      .replace(/읽으라고/g, '읽다 라고')
-      .replace(/자연\s*환경을/gi, '자연 환경을')
-      .replace(/자연환경을/gi, '자연 환경을')
-      .replace(/깨끗하고/g, '깨끗한 고')
-      .replace(/교육\s*계획의/g, '교육 개혁 의')
-      .replace(/교육의/g, '교육 의')
-      .replace(/고대\s*그리스인들은/g, '고대(의)_그리스인들은')
-      .replace(/위대한\s*과학자가/g, '위대한_과학자가')
-      .replace(/에\s*대해서/g, '에_대해서')
-      .replace(/참된\s*과제를/g, '참된 과제를')
-      .replace(/훌륭한\s*젊은이로/g, '훌륭한 젊은이로')
-      .replace(/입헌정치를/g, '입헌정치를')
-      .replace(/번영을/g, '번영을')
-      .replace(/위대한\s*시인이/g, '위대한_시인이')
-      .replace(/일해야만\s*했다/g, '일해야만_했다')
-      .replace(/현대과학은/g, '현대(의) 과학은')
-      .replace(/더\s*쉽고/g, '더_쉬운 고')
-      .replace(/여러면에서/g, '여러면 에서')
-      .replace(/king\s*sejong/gi, 'king_sejong')
-      .replace(/가장\s*위대한/g, '가장_위대한')
-      .replace(/강과\s*호수를/g, '강 과 호수를')
-      .replace(/해야\s*한다/g, '해야한다')
-      .replace(/왕이\s*없는/g, '왕 이없는')
-      .replace(/공화국이라고/g, '공화국이라고')
-      .replace(/정직한\s*소년으로/g, '정직한_소년으로')
-      .replace(/조용한\s*계곡\s*에다/g, '조용한_계곡 에다')
-      .replace(/조용한\s*계곡에다/g, '조용한_계곡 에다')
-      .replace(/집\s*없는/g, '집 없는')
-      .replace(/큰\s*집을/g, '큰_집을')
-      .replace(/런던에\s*있는/g, '런던 에있는')
-      .replace(/예쁜\s*그림엽서를/g, '예쁜_그림_엽서를')
-      .replace(/예쁜\s*그림\s*엽서를/g, '예쁜_그림_엽서를')
-      .replace(/겨울\s*방학에\s*대한/g, '겨울 방학 에대한')
-      .replace(/겨울방학에\s*대한/g, '겨울 방학 에대한')
-      .replace(/자기\s*친구들과\s*함께/g, '자기(의) 친구들 과함께')
-      .replace(/경기를\s*한다/g, '경기를_한다')
-      .replace(/조용한\s*시골/g, '그 조용한 시골')
-      .replace(/행복한\s*삶/g, '한 행복한 삶')
-      .replace(/만들어\s*주셨다/g, '만들어주셨다')
-      .replace(/예쁜\s*장난감-배를/g, '예쁜_장난감-배를')
-      .replace(/사\s*주었다/g, '사주었다')
-      .replace(/예쁜\s*인형을/g, '예쁜_인형을')
-      // 👇👇 💡 [수프로 엣지] 방향이 잘못되어 에러를 일으키던 규칙들을 올바르게 뒤집은 최종 방어망 👇👇
-      .replace(/유지하다\s*것\s*이다/g, '유지하는 것이다')
-      .replace(/읽다\s*것\s*이다/g, '읽으려는 것이다')
-      .replace(/부여하다\s*것\s*이다/g, '부여하려는 것이다')
-      .replace(/되다\s*것\s*이다/g, '되는 것이다')
-      .replace(/가다\s*것\s*이다/g, '가는 것이다')
-      .replace(/이번\s*에/g, '이번에')
-      .replace(/주말\s*에/g, '주말에')
-      .replace(/박물관\s*에/g, '박물관에')
-      .replace(/그녀\s*와함께/g, '그녀와 함께')
-      .replace(/하다\s*기를/g, '하기를')
-      .replace(/물들이다\s*기로/g, '물들이기로')
-      .replace(/물들이다\s*것을/g, '물들일 것을')
-      .replace(/꽃잎들\s*로/g, '꽃잎들로')
-      .replace(/동물\s*과/g, '동물과')
-      .replace(/집\s*에서/g, '집에서')
-      .replace(/쉬다\s*기를/g, '쉬기를')
-      .replace(/것이\s*가르쳐주다\s*서/g, '가르쳐 주어서')
-      .replace(/만들다\s*것이/g, '만드는 것이')
-      .replace(/유지하다\s*고/g, '유지하고')
-      .replace(/신민들\s*의/g, '신민들의')
-      .replace(/행복\s*과/g, '행복과')
-      .replace(/증진시키다\s*것이\s*것이/g, '증진시키는 것이')
-      .replace(/의무\s*이다/g, '의무입니다')
-      .replace(/일하다\s*고\s*것은\s*놀다\s*것은/g, '일하고 노는 것이')
-      .replace(/빌려주다\s*것이/g, '빌려주는 것이')
-      .replace(/빌려주다\s*것은/g, '빌려주는 것은')
-      .replace(/일\s*이다/g, '일이다')
-      .replace(/이러한\s*방법\s*으로/g, '이러한 방법으로')
-      .replace(/공부하다\s*기는/g, '공부하기는')
-      .replace(/대단히\s*쉬운\s*이다/g, '대단히 쉽다')
-      .replace(/일어나다\s*것이/g, '일어나는 것이')
-      .replace(/아침\s*부터/g, '아침부터')
-      .replace(/저녁\s*까지/g, '저녁까지')
-      .replace(/mahatma\s*gandi/g, 'mahatma_gandi')
-      .replace(/would\s*attain/g, 'would_attain')
-      .replace(/the\s*masses/g, 'the_masses')
-      .replace(/\(that\)\s*they/g, '(that)_they')
-      .replace(/can\s*improve/g, 'can_improve')
-      .replace(/can\s*shape/g, 'can_shape')
-      .replace(/the\s*way/g, 'the_way')
-      .replace(/the\s*plan/g, 'the_plan')
-      .replace(/play\s*games/g, 'play_games')
-      .replace(/the\s*field/g, 'the_field')
-      .replace(/the\s*stadium/g, 'the_stadium')
-      .replace(/old\s*man/g, 'old_man')
-      .replace(/the\s*girl's/g, "the_girl's")
-      .replace(/the\s*powerful/g, 'the_powerful')
-      .replace(/iron-clad\s*ships/g, 'iron-clad_ships')
-      .replace(/the\s*south\s*shore/g, 'the_south_shore')
-      .replace(/adm\.\s*lee\s*soon\s*shin/g, 'adm_lee_soon_shin')
-      .replace(/the\s*powerful\s*invaders/g, 'the_powerful_invaders')
-      .replace(/can\s*not\s*hear/g, 'can_not_hear')
-      .replace(/the\s*animals'/g, "the_animals'")
-      .replace(/the\s*welfare/g, 'the_welfare')
-      .replace(/the\s*park/g, 'the_park')
-      .replace(/a\s*little\s*tree/g, 'a_little_tree')
-      .replace(/once\s*upon\s*a\s*time/g, 'once_upon_a_time')
-      .replace(/must\s*take\s*care\s*of/g, 'must_take_care_of')
-      .replace(/laughed\s*at/g, 'laughed_at')
-      .replace(/the\s*first/g, 'the_first')
-      .replace(/good\s*conduct/g, 'good_conduct')
-      ;
-
-      // 👇 🌟 2. 그리고 바로 밑에서 새로운 기차 머리를 달아 다시 출발시킵니다! 👇
-      processedText = processedText
-
-      .replace(/the\s*most\s*important/g, 'the_most_important')
-      .replace(/detective\s*story/g, 'detective_story')
-      .replace(/a\s*small\s*town/g, 'a_small_town')
-      .replace(/a\s*small\s*kingdom/g, 'a_small_kingdom')
-      .replace(/the\s*beginning/g, 'the_beginning')
-      .replace(/the\s*law/g, 'the_law')
-      .replace(/the\s*cold/g, 'the_cold')
-      .replace(/this\s*year/g, 'this_year')
-      .replace(/that\s*of/g, 'that_of')
-      .replace(/the\s*most\s*popular/g, 'the_most_popular')
-      .replace(/the\s*school/g, 'the_school')
-      .replace(/north\s*korean/g, 'north_korean')
-      .replace(/have\s*landed/g, 'have_landed')
-      .replace(/northern\s*japan/g, 'northern_japan')
-      .replace(/fast-boat/g, 'fast_boat')
-      .replace(/fast\s*boat/g, 'fast_boat')
-      .replace(/is\s*hung/g, 'is_hung')
-      .replace(/the\s*gloomy\s*wall/g, 'the_gloomy_wall')
-      .replace(/a\s*big\s*fire/g, 'a_big_fire')
-      .replace(/broke\s*out/g, 'broke_out')
-      .replace(/the\s*building/g, 'the_building')
-      .replace(/the\s*bird/g, 'the_bird')
-      .replace(/the\s*station/g, 'the_station')
-      .replace(/last\s*year/g, 'last_year')
-      .replace(/a\s*very\s*old\s*house/g, 'a_very_old_house')
-      .replace(/a\s*small\s*village/g, 'a_small_village')
-      .replace(/the\s*small\s*cabin/g, 'the_small_cabin')
-      .replace(/the\s*department\s*store/g, 'the_department_store')
-      .replace(/the\s*elegant\s*ferry-boat/g, 'the_elegant_ferry_boat')
-      .replace(/the\s*elegant\s*ferry\s*boat/g, 'the_elegant_ferry_boat')
-      .replace(/has\s*lived/g, 'has_lived')
-      .replace(/20\s*years/g, '20_years')
-      .replace(/will\s*stay/g, 'will_stay');
-
-    if (originalText.toLowerCase().includes('defeated')) { 
-      processedText = processedText.replace(/the\s*powerful\s*invaders/g, 'the_powerful_invaders'); 
-    } else { 
-      processedText = processedText.replace(/the\s*powerful/g, 'the_powerful'); 
+        // powerful invaders 조건 처리
+        if (originalText.toLowerCase().includes('defeated')) { 
+          processedText = processedText.split('the powerful invaders').join('the_powerful_invaders'); 
+        } else { 
+          processedText = processedText.split('the powerful').join('the_powerful'); 
+        }
     }
 
     const words = processedText.split(/\s+/);
