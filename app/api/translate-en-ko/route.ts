@@ -1837,7 +1837,11 @@ export async function POST(request: Request) {
       .replace(/남겨주다\s*기를/g, '남겨 주기를')
       .replace(/바라다\s*것은/g, '바라는 것은')
       .replace(/잘못\s*이다/g, '잘못이다')
-      
+      ; // 👈 1. [가위질] 여기서 또 한 번 멈춤!
+
+      // 👈 2. [새 출발] 다시 다림질 기차 머리 달기!
+      finalTranslation = finalTranslation
+
       // 👇👇 💡 [수프로 엣지] 영한 3형식 예문 5 띄어쓰기 및 생략 스마트 보정 👇👇
       .replace(/그리스\s*의/g, '그리스의')
       .replace(/역사\s*와/g, '역사와')
@@ -1873,6 +1877,11 @@ export async function POST(request: Request) {
       .replace(/행복\s*증진시키다/g, '행복을 증진시키다') // 💡 번영이 빠졌을 때 '행복'에 목적격 조사 부여!
       .replace(/증진시키다\s*것이/g, '증진시키는 것이')
       .replace(/의무\s*이다/g, '의무입니다')
+      ; // 👈 1. [가위질] 여기서 또 한 번 멈춤!
+
+      // 👈 2. [새 출발] 다시 다림질 기차 머리 달기!
+      finalTranslation = finalTranslation
+
       // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 12 띄어쓰기 및 병렬 구조 다림질 👇👇
       .replace(/일하다\s*고\s*것은\s*놀다\s*것은/g, '일하고 노는 것이')
       .replace(/일하다\s*고\s*놀다\s*것은/g, '일하고 노는 것이')
@@ -1904,6 +1913,11 @@ export async function POST(request: Request) {
       // 👇👇 💡 [수프로 엣지] 영한 1형식 기본 문형 예문 1 띄어쓰기 보정 👇👇
       .replace(/아침\s*부터/g, '아침부터')
       .replace(/저녁\s*까지/g, '저녁까지')
+      ; // 👈 1. [가위질] 여기서 또 한 번 멈춤!
+
+      // 👈 2. [새 출발] 다시 다림질 기차 머리 달기!
+      finalTranslation = finalTranslation
+
       // 👇👇 💡 [수프로 엣지] 영한 2형식 보충어구 예문 2 띄어쓰기 완벽 보정 👇👇
       .replace(/미래\s*에/g, '미래에')
       // 👇👇 💡 [수프로 엣지] 영한 2형식 보충어구 예문 1 (가장 강력한 최종 종결판) 👇👇
@@ -1948,6 +1962,11 @@ export async function POST(request: Request) {
       .replace(/행복\s*과/g, '행복과')
       .replace(/증진시키다\s*것이/g, '증진시키는 것이')
       .replace(/의무\s*이다/g, '의무입니다')
+      ; // 👈 1. [가위질] 여기서 또 한 번 멈춤!
+
+      // 👈 2. [새 출발] 다시 다림질 기차 머리 달기!
+      finalTranslation = finalTranslation
+
       // 👇👇 💡 [수프로 엣지] 영한 2형식 예문 5 띄어쓰기 및 어미 완벽 보정 👇👇
       .replace(/일하다\s*고\s*놀다\s*것은/g, '일하고 노는 것이')
       .replace(/건강\s*에/g, '건강에')
@@ -1992,6 +2011,11 @@ export async function POST(request: Request) {
       .replace(/듣지\s*못하다\s*~하기때문에/g, '듣지 못했기 때문에')
       .replace(/슬픈\s*이었다/g, '슬펐다')
       .replace(/자기\s*가족\s*의/g, '자기 가족의')
+      ; // 👈 1. [가위질] 여기서 또 한 번 멈춤!
+
+      // 👈 2. [새 출발] 다시 다림질 기차 머리 달기!
+      finalTranslation = finalTranslation
+
       .replace(/만나다\s*~하니/g, '만나니')
       .replace(/기쁜\s*이다/g, '기쁘다')
       .replace(/시작하다\s*ㄹ/g, '시작할')
