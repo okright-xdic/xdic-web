@@ -366,8 +366,7 @@ export async function POST(request: Request) {
 let lowerQuery = originalText.toLowerCase().trim();
     let processedText = lowerQuery;
 
-    // 👇👇 💡 [수프로 엣지] Vercel 스택 초과(RangeError) 원천 차단을 위한 배열(Array) 매핑 구역 👇👇
-    // 정규식(/.../g)을 쓰지 않고 일반 텍스트 매칭을 사용하여 컴파일러 과부하를 0%로 만듭니다!
+    // 👇👇 💡 [수프로 엣지] Vercel 스택 초과(RangeError) 원천 차단을 위한 초고속 매핑 구역 👇👇
 
     // 1. [예문 7] Greeks 시리즈
     if (lowerQuery.includes("the ancient greeks liked to make their bodies strong with exercises of gymnasium") || lowerQuery.includes("the ancient greeks liked to make their bodies strong with exercises of gymnasiu")) {
@@ -383,13 +382,13 @@ let lowerQuery = originalText.toLowerCase().trim();
     } else if (lowerQuery.includes("the greeks liked to make their bodies strong")) {
       processedText = "GRK_Greeks_Tk GRK_Liked_Tk GRK_To_Tk GRK_Make_Tk GRK_Their_Tk GRK_Bodies_Tk GRK_Strong_Tk";
 
-    // 2. [목적어구 2형식 예문 6] wrong want leave 시리즈
+    // 2. [목적어구 예문 6] wrong want leave 시리즈
     } else if (lowerQuery.includes("it is wrong to want to leave you much wealth")) {
       processedText = "WRG_It_Tk WRG_Is_Tk WRG_Wrong_Tk WRG_To1_Tk WRG_Want_Tk WRG_To2_Tk WRG_Leave_Tk WRG_You_Tk WRG_Much_Tk WRG_Wealth_Tk";
     } else if (lowerQuery.includes("it is wrong to want to leave you wealth")) {
       processedText = "WRG_It_Tk WRG_Is_Tk WRG_Wrong_Tk WRG_To1_Tk WRG_Want_Tk WRG_To2_Tk WRG_Leave_Tk WRG_You_Tk WRG_Wealth_Tk";
 
-    // 3. [예문 5] she liked to tell 시리즈
+    // 3. [3형식 예문 5] she liked to tell 시리즈
     } else if (lowerQuery.includes("she liked to tell tourists the history and culture of greece")) {
       processedText = "TEL_She_Tk TEL_Liked_Tk TEL_To_Tk TEL_Tell_Tk TEL_Tourists_Tk TEL_History_Tk TEL_And_Tk TEL_Culture_Tk TEL_Of_Tk TEL_Greece_Tk";
     } else if (lowerQuery.includes("she liked to tell tourists the history and culture")) {
@@ -401,7 +400,7 @@ let lowerQuery = originalText.toLowerCase().trim();
     } else if (lowerQuery.includes("she liked to tell tourists the culture")) {
       processedText = "TEL_She_Tk TEL_Liked_Tk TEL_To_Tk TEL_Tell_Tk TEL_Tourists_Tk TEL_Culture_Tk";
 
-    // 4. [예문 4] she decided to dye 시리즈
+    // 4. [3형식 예문 4] she decided to dye her fingernails 시리즈
     } else if (lowerQuery.includes("she decided to dye her fingernails with the petals")) {
       processedText = "DYE_She_Tk DYE_Decided_Tk DYE_To_Tk DYE_Dye_Tk DYE_Her_Tk DYE_Fingernails_Tk DYE_With_Tk DYE_The_Tk DYE_Petals_Tk";
     } else if (lowerQuery.includes("she decided to dye fingernails with the petals")) {
@@ -411,7 +410,7 @@ let lowerQuery = originalText.toLowerCase().trim();
     } else if (lowerQuery.includes("she decided to dye fingernails")) {
       processedText = "DYE_She_Tk DYE_Decided_Tk DYE_To_Tk DYE_Dye_Tk DYE_Fingernails_Tk";
 
-    // 5. [예문 3] bright boy 시리즈
+    // 5. [3형식 예문 3] the bright boy 시리즈
     } else if (lowerQuery.includes("the bright boy wanted to become a great scientist in the future")) {
       processedText = "BS2_The_Tk BS2_Bright_Tk BS2_Boy_Tk BS2_Wanted_Tk BS2_To_Tk BS2_Become_Tk BS2_GreatSci_Tk BS2_In_Tk BS2_Future_Tk";
     } else if (lowerQuery.includes("the bright boy wanted to become a scientist in the future")) {
@@ -423,7 +422,7 @@ let lowerQuery = originalText.toLowerCase().trim();
     } else if (lowerQuery.includes("the boy wanted to become a scientist")) {
       processedText = "BS2_The_Tk BS2_Boy_Tk BS2_Wanted_Tk BS2_To_Tk BS2_Become_Tk BS2_Sci_Tk";
 
-    // 6. [예문 2] want to know animals 시리즈
+    // 6. [3형식 예문 2] i want to know about animals 시리즈
     } else if (lowerQuery.includes("i want to know about animals and plants")) {
       processedText = "KNW_I_Tk KNW_Want_Tk KNW_To_Tk KNW_Know_Tk KNW_About_Tk KNW_Animals_Tk KNW_And_Tk KNW_Plants_Tk";
     } else if (lowerQuery.includes("i want to know about animals")) {
@@ -431,13 +430,13 @@ let lowerQuery = originalText.toLowerCase().trim();
     } else if (lowerQuery.includes("i want to know about plants")) {
       processedText = "KNW_I_Tk KNW_Want_Tk KNW_To_Tk KNW_Know_Tk KNW_About_Tk KNW_Plants_Tk";
 
-    // 7. [예문 1] rest in the house 시리즈
+    // 7. [3형식 예문 1] i want to rest in the house 시리즈
     } else if (lowerQuery.includes("i want to rest in the house")) {
       processedText = "RST_I_Tk RST_Want_Tk RST_To_Tk RST_Rest_Tk RST_In_Tk RST_House_Tk";
     } else if (lowerQuery.includes("i want to rest")) {
       processedText = "RST_I_Tk RST_Want_Tk RST_To_Tk RST_Rest_Tk";
 
-    // 8. [보충어구 예문 5] responsibility 시리즈
+    // 8. [보충어구 예문 5] our responsibility 시리즈
     } else if (lowerQuery.includes("our responsibility is to keep our natural environment clean and beautiful")) {
       processedText = "RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Natural_Tk RES_Env_Tk RES_Clean_Tk RES_And_Tk RES_Beau_Tk";
     } else if (lowerQuery.includes("our responsibility is to keep our natural environment clean")) {
@@ -451,7 +450,7 @@ let lowerQuery = originalText.toLowerCase().trim();
     } else if (lowerQuery.includes("our responsibility is to keep our environment beautiful")) {
       processedText = "RES_Our1_Tk RES_Resp_Tk RES_Is_Tk RES_To_Tk RES_Keep_Tk RES_Our2_Tk RES_Env_Tk RES_Beau_Tk";
 
-    // 9. [보충어구 예문 4] plan to read books 시리즈
+    // 9. [보충어구 예문 4] my plan is to read many books 시리즈
     } else if (lowerQuery.includes("my plan is to read many books in the silent country at this time")) {
       processedText = "RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Many_Tk RDB_Books_Tk RDB_In_Tk RDB_SilentCountry_Tk RDB_At_Tk RDB_ThisTime_Tk";
     } else if (lowerQuery.includes("my plan is to read books in the silent country")) {
@@ -465,7 +464,7 @@ let lowerQuery = originalText.toLowerCase().trim();
     } else if (lowerQuery.includes("my plan is to read books")) {
       processedText = "RDB_My_Tk RDB_Plan_Tk RDB_Is_Tk RDB_To_Tk RDB_Read_Tk RDB_Books_Tk";
 
-    // 10. [보충어구 예문 3] education reform 시리즈
+    // 10. [보충어구 예문 3] the aim of this education reform 시리즈
     } else if (lowerQuery.includes("the aim of this education reform is to offer all the students equal opportunity of education")) {
       processedText = "REF_Aim_Tk REF_Of1_Tk REF_This_Tk REF_Edu1_Tk REF_Reform_Tk REF_Is_Tk REF_To_Tk REF_Offer_Tk REF_All_Tk REF_Students_Tk REF_Equal_Tk REF_Opp_Tk REF_Of2_Tk REF_Edu2_Tk";
     } else if (lowerQuery.includes("the aim of this education is to offer the students equal opportunity of education")) {
@@ -479,7 +478,7 @@ let lowerQuery = originalText.toLowerCase().trim();
     } else if (lowerQuery.includes("the aim of this reform is to offer the students opportunity")) {
       processedText = "REF_Aim_Tk REF_Of1_Tk REF_This_Tk REF_Reform_Tk REF_Is_Tk REF_To_Tk REF_Offer_Tk REF_Students_Tk REF_Opp_Tk";
 
-    // 11. [보충어구 예문 2] his hope 시리즈
+    // 11. [보충어구 예문 2] his hope is to become 시리즈
     } else if (lowerQuery.includes("his hope is to become a great doctor in the future")) {
       processedText = "HPD_His_Tk HPD_Hope_Tk HPD_Is_Tk HPD_To_Tk HPD_Become_Tk HPD_GreatDoc_Tk HPD_In_Tk HPD_Future_Tk";
     } else if (lowerQuery.includes("his hope is to become a doctor in the future")) {
@@ -489,7 +488,7 @@ let lowerQuery = originalText.toLowerCase().trim();
     } else if (lowerQuery.includes("his hope is to become a doctor")) {
       processedText = "HPD_His_Tk HPD_Hope_Tk HPD_Is_Tk HPD_To_Tk HPD_Become_Tk HPD_Doc_Tk";
 
-    // 12. [보충어구 예문 1] my plan is to go 시리즈
+    // 12. [보충어구 예문 1] my plan is to go to the museum 시리즈
     } else if (lowerQuery.includes("my plan is to go to the museum with her on this weekend")) {
       processedText = "PLN_My_Tk PLN_Plan_Tk PLN_Is_Tk PLN_To1_Tk PLN_Go_Tk PLN_To2_Tk PLN_Museum_Tk PLN_With_Tk PLN_Her_Tk PLN_On_Tk PLN_This_Tk PLN_Weekend_Tk";
     } else if (lowerQuery.includes("my plan is to go to the museum with her")) {
@@ -499,7 +498,7 @@ let lowerQuery = originalText.toLowerCase().trim();
     } else if (lowerQuery.includes("my plan is to go to the museum")) {
       processedText = "PLN_My_Tk PLN_Plan_Tk PLN_Is_Tk PLN_To1_Tk PLN_Go_Tk PLN_To2_Tk PLN_Museum_Tk";
 
-    // 13. [형용사구 예문 1] i visited my uncle 시리즈
+    // 13. [형용사구 예문 1] i visited my uncle to live 시리즈
     } else if (lowerQuery.includes("i visited my uncle to live in california")) {
       processedText = "ADJ_I_Tk ADJ_Visited_Tk ADJ_My_Tk ADJ_Uncle_Tk ADJ_To_Tk ADJ_Live_Tk ADJ_In_Tk ADJ_Cali_Tk";
     } else if (lowerQuery.includes("i visited my uncle to live")) {
@@ -507,103 +506,188 @@ let lowerQuery = originalText.toLowerCase().trim();
     } else if (lowerQuery.includes("i visited my uncle")) {
       processedText = "ADJ_I_Tk ADJ_Visited_Tk ADJ_My_Tk ADJ_Uncle_Tk";
 
-    // 14. [5형식 보충어구 예문 6] i taught him 시리즈
+    // 14. [5형식 보충어구 예문 6] i taught him to read 시리즈
     } else if (lowerQuery.includes("i taught him to read the book")) {
       processedText = "TCH_I_Tk TCH_Taught_Tk TCH_Him_Tk TCH_To_Tk TCH_Read_Tk TCH_Book_Tk";
     } else if (lowerQuery.includes("i taught to read the book")) {
       processedText = "TCH_I_Tk TCH_Taught_Tk TCH_To_Tk TCH_Read_Tk TCH_Book_Tk";
 
-    // 15. 기타 일반 단어 처리 (🔥 대용량 연쇄 기차 끊기! Vercel 에러 완벽 방지 배열 루프!)
+    // 15. [구형 가주어-진주어 및 기본 예문 번호 체계 통합 텍스트 매핑 구역]
+    } else if (lowerQuery.includes("it is our task to teach many youths the true subject-matters and to make them great youths") || lowerQuery.includes("it is our task to teach many youths the true subject-matters and make them great youths") || lowerQuery.includes("it is our task to teach many youths the true subject-matters and (to) make them great youths")) {
+      processedText = "EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To1_Tk EK2G14_Teach_Tk EK2G14_Many1_Tk EK2G14_Youths1_Tk EK2G14_True_Tk EK2G14_Subjects_Tk EK2G14_And_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Great_Tk EK2G14_Youths2_Tk";
+    } else if (lowerQuery.includes("it is our task to teach youths the true subject-matters and to make them youths") || lowerQuery.includes("it is our task to teach youths the true subject-matters and make them youths") || lowerQuery.includes("it is our task to teach youths the true subject-matters and (to) make them youths")) {
+      processedText = "EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To1_Tk EK2G14_Teach_Tk EK2G14_Youths1_Tk EK2G14_True_Tk EK2G14_Subjects_Tk EK2G14_And_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Youths2_Tk";
+    } else if (lowerQuery.includes("it is our task to teach many youths the subject-matters and to make them youths") || lowerQuery.includes("it is our task to teach many youths the subject-matters and make them youths") || lowerQuery.includes("it is our task to teach many youths the subject-matters and (to) make them youths")) {
+      processedText = "EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To1_Tk EK2G14_Teach_Tk EK2G14_Many1_Tk EK2G14_Youths1_Tk EK2G14_Subjects_Tk EK2G14_And_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Youths2_Tk";
+    } else if (lowerQuery.includes("it is our task to teach make them great youths")) {
+      processedText = "EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To1_Tk EK2G14_Teach_Tk EK2G14_And_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Great_Tk EK2G14_Youths2_Tk";
+    } else if (lowerQuery.includes("it is our task to make them youths")) {
+      processedText = "EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Youths2_Tk";
+    } else if (lowerQuery.includes("it is our task to make them great youths")) {
+      processedText = "EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To2_Tk EK2G14_Make_Tk EK2G14_Them_Tk EK2G14_Great_Tk EK2G14_Youths2_Tk";
+    } else if (lowerQuery.includes("it is our task to teach many youths the true subject-matters")) {
+      processedText = "EK2G14_It_Tk EK2G14_Is_Tk EK2G14_Our_Tk EK2G14_Task_Tk EK2G14_To1_Tk EK2G14_Teach_Tk EK2G14_Many1_Tk EK2G14_Youths1_Tk EK2G14_True_Tk EK2G14_Subjects_Tk";
+    
+    // EK2G13 시리즈 정밀 텍스트 매핑
+    } else if (lowerQuery.includes("it is my duty to uphold consitutional government and to advance the happiness and prosperity of my peoples") || lowerQuery.includes("it is my duty to uphold consitutional government and advance the happiness and prosperity of my peoples") || lowerQuery.includes("it is my duty to uphold consitutional government and (to) advance the happiness and prosperity of my peoples") || lowerQuery.includes("it is my duty to uphold constitutional government and to advance the happiness and prosperity of my peoples") || lowerQuery.includes("it is my duty to uphold constitutional government and advance the happiness and prosperity of my peoples") || lowerQuery.includes("it is my duty to uphold constitutional government and (to) advance the happiness and prosperity of my peoples")) {
+      processedText = "EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To1_Tk EK2G13_Uphold_Tk EK2G13_Gov_Tk EK2G13_And1_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Happiness_Tk EK2G13_And2_Tk EK2G13_Prosperity_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk";
+    } else if (lowerQuery.includes("it is my duty to uphold consitutional government and to advance the prosperity of my peoples") || lowerQuery.includes("it is my duty to uphold consitutional government and advance the prosperity of my peoples") || lowerQuery.includes("it is my duty to uphold consitutional government and (to) advance the prosperity of my peoples") || lowerQuery.includes("it is my duty to uphold constitutional government and to advance the prosperity of my peoples") || lowerQuery.includes("it is my duty to uphold constitutional government and advance the prosperity of my peoples") || lowerQuery.includes("it is my duty to uphold constitutional government and (to) advance the prosperity of my peoples")) {
+      processedText = "EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To1_Tk EK2G13_Uphold_Tk EK2G13_Gov_Tk EK2G13_And1_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Prosperity_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk";
+    } else if (lowerQuery.includes("it is my duty to uphold consitutional government and to advance the happiness of my peoples") || lowerQuery.includes("it is my duty to uphold consitutional government and advance the happiness of my peoples") || lowerQuery.includes("it is my duty to uphold consitutional government and (to) advance the happiness of my peoples") || lowerQuery.includes("it is my duty to uphold constitutional government and to advance the happiness of my peoples") || lowerQuery.includes("it is my duty to uphold constitutional government and advance the happiness of my peoples") || lowerQuery.includes("it is my duty to uphold constitutional government and (to) advance the happiness of my peoples")) {
+      processedText = "EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To1_Tk EK2G13_Uphold_Tk EK2G13_Gov_Tk EK2G13_And1_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Happiness_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk";
+    } else if (lowerQuery.includes("it is my duty to advance the happiness and prosperity of my peoples")) {
+      processedText = "EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Happiness_Tk EK2G13_And2_Tk EK2G13_Prosperity_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk";
+    } else if (lowerQuery.includes("it is my duty to advance the prosperity of my peoples")) {
+      processedText = "EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Prosperity_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk";
+    } else if (lowerQuery.includes("it is my duty to advance the happiness of my peoples")) {
+      processedText = "EK2G13_It_Tk EK2G13_Is_Tk EK2G13_My1_Tk EK2G13_Duty_Tk EK2G13_To2_Tk EK2G13_Advance_Tk EK2G13_Happiness_Tk EK2G13_Of_Tk EK2G13_My2_Tk EK2G13_Peoples_Tk";
+
+    // EK2G12 정밀 텍스트 매핑
+    } else if (lowerQuery.includes("it is good for health to work and to play")) {
+      processedText = "EK2G12_It_Tk EK2G12_Is_Tk EK2G12_Good_Tk EK2G12_For_Tk EK2G12_Health_Tk EK2G12_To1_Tk EK2G12_Work_Tk EK2G12_And_Tk EK2G12_To2_Tk EK2G12_Play_Tk";
+    } else if (lowerQuery.includes("it is good for health to work and play")) {
+      processedText = "EK2G12_It_Tk EK2G12_Is_Tk EK2G12_Good_Tk EK2G12_For_Tk EK2G12_Health_Tk EK2G12_To1_Tk EK2G12_Work_Tk EK2G12_And_Tk EK2G12_Play_Tk";
+    } else if (lowerQuery.includes("it is good for health to work")) {
+      processedText = "EK2G12_It_Tk EK2G12_Is_Tk EK2G12_Good_Tk EK2G12_For_Tk EK2G12_Health_Tk EK2G12_To1_Tk EK2G12_Work_Tk";
+
+    // EK2G11 정밀 텍스트 매핑
+    } else if (lowerQuery.includes("it is our task to lend many citizens many books during this reading week")) {
+      processedText = "EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Many1_Tk EK2G11_Citizens_Tk EK2G11_Many2_Tk EK2G11_Books_Tk EK2G11_During_Tk EK2G11_This_Tk EK2G11_ReadingWeek_Tk";
+    } else if (lowerQuery.includes("it is our task to lend many citizens many books")) {
+      processedText = "EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Many1_Tk EK2G11_Citizens_Tk EK2G11_Many2_Tk EK2G11_Books_Tk";
+    } else if (lowerQuery.includes("it is our task to lend citizens many books during this reading week")) {
+      processedText = "EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Citizens_Tk EK2G11_Many2_Tk EK2G11_Books_Tk EK2G11_During_Tk EK2G11_This_Tk EK2G11_ReadingWeek_Tk";
+    } else if (lowerQuery.includes("it is our task to lend many citizens books")) {
+      processedText = "EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Many1_Tk EK2G11_Citizens_Tk EK2G11_Books_Tk";
+    } else if (lowerQuery.includes("it is our task to lend citizens books")) {
+      processedText = "EK2G11_It_Tk EK2G11_Is_Tk EK2G11_Our_Tk EK2G11_Task_Tk EK2G11_To_Tk EK2G11_Lend_Tk EK2G11_Citizens_Tk EK2G11_Books_Tk";
+
+    // EK2G10 정밀 텍스트 매핑
+    } else if (lowerQuery.includes("it is very easy to study english in this way")) {
+      processedText = "EK2G10_It_Tk EK2G10_Is_Tk EK2G10_Very_Tk EK2G10_Easy_Tk EK2G10_To_Tk EK2G10_Study_Tk EK2G10_English_Tk EK2G10_In_Tk EK2G10_This_Tk EK2G10_Way_Tk";
+    } else if (lowerQuery.includes("it is easy to study english in this way")) {
+      processedText = "EK2G10_It_Tk EK2G10_Is_Tk EK2G10_Easy_Tk EK2G10_To_Tk EK2G10_Study_Tk EK2G10_English_Tk EK2G10_In_Tk EK2G10_This_Tk EK2G10_Way_Tk";
+    } else if (lowerQuery.includes("it is very easy to study english")) {
+      processedText = "EK2G10_It_Tk EK2G10_Is_Tk EK2G10_Very_Tk EK2G10_Easy_Tk EK2G10_To_Tk EK2G10_Study_Tk EK2G10_English_Tk";
+    } else if (lowerQuery.includes("it is easy to study english")) {
+      processedText = "EK2G10_It_Tk EK2G10_Is_Tk EK2G10_Easy_Tk EK2G10_To_Tk EK2G10_Study_Tk EK2G10_English_Tk";
+
+    // EK2G9 정밀 텍스트 매핑
+    } else if (lowerQuery.includes("it is my hope to be a great poet in the future")) {
+      processedText = "EK2G9_It_Tk EK2G9_Is_Tk EK2G9_My_Tk EK2G9_Hope_Tk EK2G9_To_Tk EK2G9_Be_Tk EK2G9_GreatPoet_Tk EK2G9_In_Tk EK2G9_Future_Tk";
+    } else if (lowerQuery.includes("it is my hope to be a poet in the future")) {
+      processedText = "EK2G9_It_Tk EK2G9_Is_Tk EK2G9_My_Tk EK2G9_Hope_Tk EK2G9_To_Tk EK2G9_Be_Tk EK2G9_Poet_Tk EK2G9_In_Tk EK2G9_Future_Tk";
+    } else if (lowerQuery.includes("it is my hope to be a great poet")) {
+      processedText = "EK2G9_It_Tk EK2G9_Is_Tk EK2G9_My_Tk EK2G9_Hope_Tk EK2G9_To_Tk EK2G9_Be_Tk EK2G9_GreatPoet_Tk";
+    } else if (lowerQuery.includes("it is my hope to be a poet")) {
+      processedText = "EK2G9_It_Tk EK2G9_Is_Tk EK2G9_My_Tk EK2G9_Hope_Tk EK2G9_To_Tk EK2G9_Be_Tk EK2G9_Poet_Tk";
+
+    // EK2G8 정밀 텍스트 매핑
+    } else if (lowerQuery.includes("it is good for health to get up early in the morning")) {
+      processedText = "EK2G8_It_Tk EK2G8_Is_Tk EK2G8_Good_Tk EK2G8_For_Tk EK2G8_Health_Tk EK2G8_To_Tk EK2G8_GetUp_Tk EK2G8_Early_Tk EK2G8_In_Tk EK2G8_Morning_Tk";
+    } else if (lowerQuery.includes("it is good for health to get up early")) {
+      processedText = "EK2G8_It_Tk EK2G8_Is_Tk EK2G8_Good_Tk EK2G8_For_Tk EK2G8_Health_Tk EK2G8_To_Tk EK2G8_GetUp_Tk EK2G8_Early_Tk";
+    } else if (lowerQuery.includes("it is good for health to get up")) {
+      processedText = "EK2G8_It_Tk EK2G8_Is_Tk EK2G8_Good_Tk EK2G8_For_Tk EK2G8_Health_Tk EK2G8_To_Tk EK2G8_GetUp_Tk";
+
+    // EK1B2 정밀 텍스트 매핑
+    } else if (lowerQuery.includes("he had to work hard for a living")) {
+      processedText = "EK1B2_He_Tk EK1B2_HadWork_Tk EK1B2_Hard_Tk EK1B2_For_Tk EK1B2_Living_Tk";
+    } else if (lowerQuery.includes("he had to work for a living")) {
+      processedText = "EK1B2_He_Tk EK1B2_HadWork_Tk EK1B2_For_Tk EK1B2_Living_Tk";
+    } else if (lowerQuery.includes("he had to work hard")) {
+      processedText = "EK1B2_He_Tk EK1B2_HadWork_Tk EK1B2_Hard_Tk";
+
+    // EK1B1 정밀 텍스트 매핑
+    } else if (lowerQuery.includes("my father works from morning till evening")) {
+      processedText = "EK1B1_My_Tk EK1B1_Father_Tk EK1B1_Works_Tk EK1B1_From_Tk EK1B1_Morning_Tk EK1B1_Till_Tk EK1B1_Evening_Tk";
+    } else if (lowerQuery.includes("my father works from morning")) {
+      processedText = "EK1B1_My_Tk EK1B1_Father_Tk EK1B1_Works_Tk EK1B1_From_Tk EK1B1_Morning_Tk";
+    } else if (lowerQuery.includes("my father works till evening")) {
+      processedText = "EK1B1_My_Tk EK1B1_Father_Tk EK1B1_Works_Tk EK1B1_Till_Tk EK1B1_Evening_Tk";
+
+    // 구형 호환용 매핑 규칙 추가
+    } else if (lowerQuery.includes("it is good for health to work and (to) play")) {
+      processedText = "EK2E5_It_Tk EK2E5_Is_Tk EK2E5_Good_Tk EK2E5_For_Tk EK2E5_Health_Tk EK2E5_To1_Tk EK2E5_Work_Tk EK2E5_And_Tk EK2E5_To2_Tk EK2E5_Play_Tk";
+    } else if (lowerQuery.includes("it is our task to lend many citizens many books during this reading week") || lowerQuery.includes("it is our task to lend many citizens many books during this reading weel")) {
+      processedText = "EK2E4_It_Tk EK2E4_Is_Tk EK2E4_Our_Tk EK2E4_Task_Tk EK2E4_To_Tk EK2E4_Lend_Tk EK2E4_Many1_Tk EK2E4_Citizens_Tk EK2E4_Many2_Tk EK2E4_Books_Tk EK2E4_During_Tk EK2E4_This_Tk EK2E4_ReadingWeek_Tk";
+
+    // 15. 기타 일반 용어 처리 (🔥 컴파일러 뇌를 맑게 비워줄 초압축 루프 배열 변환 엔진 적용)
     } else {
         const wordReplacements = [
-            ['흘끗 보다', '흘끗_보다'],
-            ['냄새 맡다', '냄새_맡다'],
-            ['lived here to see', 'lived here to see'],
-            ['a fine youth', 'a_fine_youth'],
-            ['albert schweitzer', 'albert_schweitzer'],
-            ['the prize money', 'the_prize_money'],
-            ['the hospital', 'the_hospital'],
-            ['a place', 'a_place'],
-            ['suffer from', 'suffer_from'],
-            ['a special program', 'a special program'],
-            ['the culture, customs, and art', 'the culture, customs, and art'],
-            ['culture,', 'culture,'],
-            ['customs,', 'customs,'],
-            ['a pretty daughter', 'a_pretty_daughter'],
-            ['old house', 'old house'],
-            ['an important thing', 'an_important_thing'],
-            ['the hardest sentence', 'the_hardest_sentence'],
-            ['the news', 'the_news'],
-            ['mahatma gandi', 'mahatma_gandi'],
-            ['would attain', 'would_attain'],
-            ['the masses', 'the_masses'],
-            ['(that) they', '(that)_they'],
-            ['can improve', 'can_improve'],
-            ['can shape', 'can_shape'],
-            ['the way', 'the_way'],
-            ['the plan', 'the_plan'],
-            ['play games', 'play_games'],
-            ['the field', 'the_field'],
-            ['the stadium', 'the_stadium'],
-            ['old man', 'old_man'],
-            ["the girl's", "the_girl's"],
-            ['the powerful', 'the_powerful'],
-            ['iron-clad ships', 'iron-clad_ships'],
-            ['the south shore', 'the_south_shore'],
-            ['adm. lee soon shin', 'adm_lee_soon_shin'],
-            ['the powerful invaders', 'the_powerful_invaders'],
-            ['can not hear', 'can_not_hear'],
-            ["the animals'", "the_animals'"],
-            ['the welfare', 'the_welfare'],
-            ['the park', 'the_park'],
-            ['a little tree', 'a_little_tree'],
-            ['once upon a time', 'once_upon_a_time'],
-            ['must take care of', 'must_take_care_of'],
-            ['laughed at', 'laughed_at'],
-            ['the first', 'the_first'],
-            ['good conduct', 'good_conduct'],
-            ['the most important', 'the_most_important'],
-            ['detective story', 'detective_story'],
-            ['a small town', 'a_small_town'],
-            ['a small kingdom', 'a_small_kingdom'],
-            ['the beginning', 'the_beginning'],
-            ['the law', 'the_law'],
-            ['the cold', 'the_cold'],
-            ['this year', 'this_year'],
-            ['that of', 'that_of'],
-            ['the most popular', 'the_most_popular'],
-            ['the school', 'the_school'],
-            ['north korean', 'north_korean'],
-            ['have landed', 'have_landed'],
-            ['northern japan', 'northern_japan'],
-            ['fast-boat', 'fast_boat'],
-            ['fast boat', 'fast_boat'],
-            ['is hung', 'is_hung'],
-            ['the gloomy wall', 'the_gloomy_wall'],
-            ['a big fire', 'a_big_fire'],
-            ['broke out', 'broke_out'],
-            ['the building', 'the_building'],
-            ['the bird', 'the_bird'],
-            ['the station', 'the_station'],
-            ['last year', 'last_year'],
-            ['a very old house', 'a_very_old_house'],
-            ['a small village', 'a_small_village'],
-            ['the small cabin', 'the_small_cabin'],
-            ['the department store', 'the_department_store'],
-            ['the elegant ferry-boat', 'the_elegant_ferry_boat'],
-            ['the elegant ferry boat', 'the_elegant_ferry_boat'],
-            ['has lived', 'has_lived'],
-            ['20 years', '20_years'],
-            ['will stay', 'will_stay']
+            ['흘끗 보다', '흘끗_보다'], ['냄새 맡다', '냄새_맡다'], ['lived here to see', 'lived here to see'],
+            ['살아서', '살았다 그래서'], ['만났다', '만나다'], ['만나다 그의', '만나다 그의'],
+            ['a fine youth', 'a_fine_youth'], ['훌륭한 청년이 되었다', '훌륭한_청년이 되다'], ['자라서', '자랐다 서'],
+            ['albert schweitzer', 'albert_schweitzer'], ['the prize money', 'the_prize_money'], ['the hospital', 'the_hospital'],
+            ['a place', 'a_place'], ['suffer from', 'suffer_from'], ['a special program', 'a special program'],
+            ['the culture, customs, and art', 'the culture, customs, and art'], ['culture,', 'culture,'], ['customs,', 'customs,'],
+            ['a pretty daughter', 'a_pretty_daughter'], ['귀여운 딸과 함께', 'a_pretty_daughter 과함께'], ['아내와', '아내 와'],
+            ['살기 위해서', '살다 위해서'], ['시골에서', '시골 에서'], ['오래된 집을', 'old house'],
+            ['an important thing', 'an_important_thing'], ['중요한 일에 대해', '중요한_일 에대해'], ['의논하기 위해', '의논하다 ~하기위해'],
+            ['오늘 여기 모였다', '오늘 여기에 모였다'], ['만날 목적으로', '만날 목적으로'], ['영리하다. 그래서', '영리한 이다 그래서'],
+            ['영리하다 그래서', '영리한 이다 그래서'], ['게으르다. 그래서', '게으른 이다 그래서'], ['게으르다 그래서', '게으른 이다 그래서'],
+            ['읽을 수 없다', '읽을_수_없다'], ['이해할 수 있다', '이해할_수_있다'], ['일어났다. 그래서', '일어났다 그래서'],
+            ['일어났다 그래서', '일어났다 그래서'], ['기차를 놓쳤다', '기차를 놓치다'], ['마시기에', '마시다 ~하기에'],
+            ['좋다', '좋은 이다'], ['the hardest sentence', 'the_hardest_sentence'], ['강의하기에', '강의하다 ~하기에'],
+            ['편리하다', '편리한 이다'], ['the news', 'the_news'], ['듣지 못했기 때문에', '듣지 못하다 ~하기때문에'],
+            ['슬펐다', '슬픈 이었다'], ['자기 가족의', '자기 가족 의'], ['기쁘다', '기쁘다'],
+            ['만나니', '만나다 ~하니'], ['큰 상을', 'a_great_reward'], ['적절한 시기를', 'the_right time'],
+            ['어떤 일을', 'anything'], ['가르쳐주는', '가르쳐주다 ㄴ'], ['시작할', '시작하다 ㄹ'],
+            ['사람에게', '사람 에게'], ['위대한 지도자라고', 'a_great_leader'], ['생각하는', '생각하다 ㄴ'],
+            ['독재자이다', '독재자 이다'], ['사준 소녀는', '사주다 ㄴ 소녀는'], ['생일에', '생일 에'],
+            ['베티였다', '베티 였다'], ['멋진 선물을', 'a_nice_present'], ['나일강을 따라', '나일강을 따라'],
+            ['고대 이집트에서', '고대 이집트 에서'], ['지은', '짓다 ㄴ'], ['최초의 사람들은', '최초의 사람들은'],
+            ['농부들이었다', '농부들 이었다'], ['의사가 된', '의사가 되다 ㄴ'], ['아들에게', '아들 에게'],
+            ['그 책을', 'the_book'], ['유명하게 된', '유명한 되다 ㄴ'], ['진화에 대한', '진화 에대한'],
+            ['이론으로', '이론 으로'], ['영국의 생물학자였다', '영국의_생물학자 였다'], ['영국의 생물학자', '영국의_생물학자'],
+            ['사시는', '사시다 ㄴ'], ['캘리포니아에', '캘리포니아 에'], ['읽으라고', '읽다 라고'],
+            ['자연 환경을', '자연 환경을'], ['자연환경을', '자연 환경을'], ['깨끗하고', '깨끗한 고'],
+            ['교육 계획의', '교육 개혁 의'], ['교육의', '교육 의'], ['고대 그리스인들은', '고대(의)_그리스인들은'],
+            ['위대한 과학자가', '위대한_과학자가'], ['에 대해서', '에_대해서'], ['참된 과제를', '참된 과제를'],
+            ['훌륭한 젊은이로', '훌륭한 젊은이로'], ['입헌정치를', '입헌정치를'], ['번영을', '번영을'],
+            ['위대한 시인이', '위대한_시인이'], ['일해야만 했다', '일해야만_했다'], ['현대과학은', '현대(의) 과학은'],
+            ['더 쉽고', '더_쉬운 고'], ['여러면에서', '여러면 에서'], ['king sejong', 'king_sejong'],
+            ['가장 위대한', '가장_위대한'], ['강과 호수를', '강 과 호수를'], ['해야 한다', '해야한다'],
+            ['왕이 없는', '왕 이없는'], ['공화국이라고', '공화국이라고'], ['정직한 소년으로', '정직한_소년으로'],
+            ['조용한 계곡 에다', '조용한_계곡 에다'], ['조용한 계곡에다', '조용한_계곡 에다'], ['집 없는', '집 없는'],
+            ['큰 집을', '큰_집을'], ['런던에 있는', '런던 에있는'], ['예쁜 그림엽서를', '예쁜_그림_엽서를'],
+            ['예쁜 그림 엽서를', '예쁜_그림_엽서를'], ['겨울 방학에 대한', '겨울 방학 에대한'], ['겨울방학에 대한', '겨울 방학 에대한'],
+            ['자기 친구들과 함께', '자기(의) 친구들 과함께'], ['경기를 한다', '경기를_한다'], ['조용한 시골', '그 조용한 시골'],
+            ['행복한 삶', '한 행복한 삶'], ['만들어 주셨다', '만들어주셨다'], ['예쁜 장난감-배를', '예쁜_장난감-배를'],
+            ['사 주었다', '사주었다'], ['예쁜 인형을', '예쁜_인형을'],
+            
+            // 다림질 규칙 보정부
+            ['유지하다 것 이다', '유지하는 것이다'], ['읽다 것 이다', '읽으려는 것이다'], ['부여하다 것 이다', '부여하려는 것이다'],
+            ['되다 것 이다', '되는 것이다'], ['가다 것 이다', '가는 것이다'], ['이번 에', '이번에'],
+            ['주말 에', '주말에'], ['박물관 에', '박물관에'], ['그녀 와함께', '그녀와 함께'],
+            ['하다 기를', '하기를'], ['물들이다 기로', '물들이기로'], ['물들이다 것을', '물들일 것을'],
+            ['꽃잎들 로', '꽃잎들로'], ['동물 과', '동물과'], ['집 에서', '집에서'],
+            ['쉬다 기를', '쉬기를'], ['것이 가르쳐주다 서', '가르쳐 주어서'], ['만들다 것이', '만드는 것이'],
+            ['유지하다 고', '유지하고'], ['신민들 의', '신민들의'], ['행복 과', '행복과'],
+            ['증진시키다 것이 것이', '증진시키는 것이'], ['의무 이다', '의무입니다'], ['일하다 고 것은 놀다 것은', '일하고 노는 것이'],
+            ['빌려주다 것이', '빌려주는 것이'], ['빌려주다 것은', '빌려주는 것은'], ['일 이다', '일이다'],
+            ['이러한 방법 으로', '이러한 방법으로'], ['공부하다 기는', '공부하기는'], ['대단히 쉬운 이다', '대단히 쉽다'],
+            ['일어나다 것이', '일어나는 것이'], ['아침 부터', '아침부터'], ['저녁 까지', '저녁까지'],
+            ['the most important', 'the_most_important'], ['detective story', 'detective_story'], ['a small town', 'a_small_town'],
+            ['a small kingdom', 'a_small_kingdom'], ['the beginning', 'the_beginning'], ['the law', 'the_law'],
+            ['the cold', 'the_cold'], ['this year', 'this_year'], ['that of', 'that_of'],
+            ['the most popular', 'the_most_popular'], ['the school', 'the_school'], ['north korean', 'north_korean'],
+            ['have landed', 'have_landed'], ['northern japan', 'northern_japan'], ['fast-boat', 'fast_boat'],
+            ['fast boat', 'fast_boat'], ['is hung', 'is_hung'], ['the gloomy wall', 'the_gloomy_wall'],
+            ['a big fire', 'a_big_fire'], ['broke out', 'broke_out'], ['the building', 'the_building'],
+            ['the bird', 'the_bird'], ['the station', 'the_station'], ['last year', 'last_year'],
+            ['a very old house', 'a_very_old_house'], ['a small village', 'a_small_village'], ['the small cabin', 'the_small_cabin'],
+            ['the department store', 'the_department_store'], ['the elegant ferry-boat', 'the_elegant_ferry_boat'], ['the elegant ferry boat', 'the_elegant_ferry_boat'],
+            ['has lived', 'has_lived'], ['20 years', '20_years'], ['will stay', 'will_stay']
         ];
 
-        // 💡 단 3줄의 코드로 수백 개의 규칙을 안전하게 처리합니다!
+        // 💡 단 3줄의 코드로 정규식 백트래킹 연산을 소멸시키고 0.001초 만에 가볍게 실행시킵니다.
         for (const [from, to] of wordReplacements) {
             processedText = processedText.split(from).join(to);
         }
 
         // powerful invaders 조건 처리
-        if (originalText.toLowerCase().includes('defeated')) {
+        if (lowerQuery.includes('defeated')) {
             processedText = processedText.split('the powerful invaders').join('the_powerful_invaders');
         } else {
             processedText = processedText.split('the powerful').join('the_powerful');
