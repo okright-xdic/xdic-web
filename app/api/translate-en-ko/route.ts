@@ -245,8 +245,8 @@ const FORM_RULES = [
   { type: '2형식_영한_가주어진주어_예문3', requiredRoles: ['EK2E3_Is', 'EK2E3_Easy', 'EK2E3_Study'], koreanOrder: ['EK2E3_This', 'EK2E3_Way', 'EK2E3_In', 'EK2E3_English', 'EK2E3_Study', 'EK2E3_To', 'EK2E3_Very', 'EK2E3_Easy', 'EK2E3_Is'] },
   // 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 4 전용 완벽 조립 레일
   { type: '2형식_영한_가주어진주어_예문4', requiredRoles: ['EK2E4_Is', 'EK2E4_Task', 'EK2E4_Lend'], koreanOrder: ['EK2E4_This', 'EK2E4_ReadingWeek', 'EK2E4_During', 'EK2E4_Many1', 'EK2E4_Citizens', 'EK2E4_Many2', 'EK2E4_Books', 'EK2E4_Lend', 'EK2E4_To', 'EK2E4_Our', 'EK2E4_Task', 'EK2E4_Is'] },
-  // 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 5 (병렬구조) 전용 완벽 조립 레일
-  { type: '2형식_영한_가주어진주어_예문5', requiredRoles: ['EK2E5_Is', 'EK2E5_Work', 'EK2E5_Play'], koreanOrder: ['EK2E5_Work', 'EK2E5_And', 'EK2E5_Play', 'EK2E5_To2', 'EK2E5_Health', 'EK2E5_For', 'EK2E5_Good', 'EK2E5_Is'] },
+// 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 5 (to play 괄호 완벽 커버 레일)
+  { type: '2형식_가주어진주어_예문5', requiredRoles: ['EK2E5_Good', 'EK2E5_Health', 'EK2E5_Work'], koreanOrder: ['EK2E5_Work', 'EK2E5_And', 'EK2E5_To2', 'EK2E5_Play', 'EK2E5_To1', 'EK2E5_Health', 'EK2E5_For', 'EK2E5_Good', 'EK2E5_Is'] },
   // 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 6 (장문 병렬구조) 전용 완벽 조립 레일
   { type: '2형식_영한_가주어진주어_예문6', requiredRoles: ['EK2E6_Is', 'EK2E6_Duty', 'EK2E6_Advance'], koreanOrder: ['EK2E6_Gov', 'EK2E6_Uphold', 'EK2E6_And1', 'EK2E6_My2', 'EK2E6_Peoples', 'EK2E6_Of', 'EK2E6_Happiness', 'EK2E6_And2', 'EK2E6_Prosperity', 'EK2E6_Advance', 'EK2E6_To2', 'EK2E6_My1', 'EK2E6_Duty', 'EK2E6_Is'] },
   // 💡 [수프로 엣지] 영한 <2형식> 가주어-진주어 예문 7 (4형식+5형식 병렬) 전용 완벽 조립 레일
