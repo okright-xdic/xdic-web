@@ -327,6 +327,36 @@ const FORM_RULES = [
   { type: '2형식_형용사구_예문6', requiredRoles: ['DIC_He', 'DIC_Is', 'DIC_Dictator'], koreanOrder: ['DIC_He', 'DIC_Himself', 'DIC_GreatLeader', 'DIC_Leader', 'DIC_Think', 'DIC_To', 'DIC_Dictator', 'DIC_Is'] },
   // 💡 [수프로 엣지] 영한 <3형식> 형용사구 예문 7 (왕과 큰 상 완벽 대응 레일)
   { type: '3형식_형용사구_예문7', requiredRoles: ['KNG_King', 'KNG_Gave', 'KNG_Man'], koreanOrder: ['KNG_The', 'KNG_King', 'KNG_Anything', 'KNG_Begin', 'KNG_To3', 'KNG_Right', 'KNG_Time', 'KNG_Him', 'KNG_Teach', 'KNG_To2', 'KNG_Man', 'KNG_To1', 'KNG_GreatReward', 'KNG_Reward', 'KNG_Gave'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 부사구 예문 1 (기쁨 완벽 대응 레일)
+  { type: '2형식_부사구_예문1', requiredRoles: ['GLD_I', 'GLD_Am', 'GLD_Glad', 'GLD_Meet'], koreanOrder: ['GLD_I', 'GLD_Here', 'GLD_You', 'GLD_Meet', 'GLD_To', 'GLD_Very', 'GLD_Glad', 'GLD_Am'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 부사구 예문 2 (슬픔/감정의 원인 완벽 대응 레일)
+  { type: '2형식_부사구_예문2', requiredRoles: ['SAD_They', 'SAD_Were', 'SAD_Sad', 'SAD_Not', 'SAD_Hear', 'SAD_News'], koreanOrder: ['SAD_They', 'SAD_Their', 'SAD_Family', 'SAD_Of', 'SAD_News', 'SAD_Hear', 'SAD_Not', 'SAD_To', 'SAD_Sad', 'SAD_Were'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 부사구 예문 3 (도해/편리 완벽 대응 레일)
+  { type: '2형식_부사구_예문3', requiredRoles: ['DIA_Diagram', 'DIA_Is', 'DIA_Convenient', 'DIA_Teach'], koreanOrder: ['DIA_Diagram', 'DIA_HardestSentence', 'DIA_TheSentence', 'DIA_Systematically', 'DIA_Teach', 'DIA_To', 'DIA_Convenient', 'DIA_Is'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 부사구 예문 4 (마실 물 완벽 대응 레일)
+  { type: '2형식_부사구_예문4', requiredRoles: ['WTR_Water', 'WTR_Is', 'WTR_Good', 'WTR_Drink'], koreanOrder: ['WTR_This', 'WTR_Water', 'WTR_Drink', 'WTR_To', 'WTR_Good', 'WTR_Is'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 부사의 결과 표시 예문 1 (기차 놓침 완벽 대응 레일)
+  { type: '1형식_부사결과_예문1', requiredRoles: ['TRN_He', 'TRN_GotUp', 'TRN_So', 'TRN_Late', 'TRN_AsTo', 'TRN_Miss', 'TRN_Train'], koreanOrder: ['TRN_He', 'TRN_So', 'TRN_Late', 'TRN_GotUp', 'TRN_AsTo', 'TRN_Train', 'TRN_Miss'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 부사의 결과 표시 예문 2 (영리한 소년 완벽 대응 레일)
+  { type: '2형식_부사결과_예문2', requiredRoles: ['CLV_Boy', 'CLV_Is', 'CLV_Clever', 'CLV_Enough'], koreanOrder: ['CLV_The', 'CLV_Boy', 'CLV_Enough', 'CLV_Clever', 'CLV_Is', 'CLV_To', 'CLV_It', 'CLV_Understand'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 부사의 결과 표시 예문 3 (게으른 소년 완벽 대응 레일)
+  { type: '2형식_부사결과_예문3', requiredRoles: ['IDL_He', 'IDL_Is', 'IDL_Too', 'IDL_Idle', 'IDL_To', 'IDL_Read', 'IDL_Books'], koreanOrder: ['IDL_He', 'IDL_Too', 'IDL_Idle', 'IDL_Is', 'IDL_To', 'IDL_Many', 'IDL_Books', 'IDL_Read'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 의지동사 예문 1 (목적 완벽 대응 레일)
+  { type: '1형식_의지동사_예문1', requiredRoles: ['VOL_He', 'VOL_Came', 'VOL_To', 'VOL_See', 'VOL_You'], koreanOrder: ['VOL_He', 'VOL_You', 'VOL_See', 'VOL_To', 'VOL_Here', 'VOL_Came'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 의지동사 예문 2 (모임 완벽 대응 레일)
+  { type: '1형식_의지동사_예문2', requiredRoles: ['GAT_We', 'GAT_Gathered', 'GAT_Talk', 'GAT_Thing'], koreanOrder: ['GAT_We', 'GAT_Thing', 'GAT_About', 'GAT_Talk', 'GAT_To', 'GAT_Today', 'GAT_Here', 'GAT_Gathered'] },
+  // 💡 [수프로 엣지] 영한 <3형식> 의지동사 예문 3 (시골 집 구입 완벽 대응 레일)
+  { type: '3형식_의지동사_예문3', requiredRoles: ['BOU_He', 'BOU_Bought', 'BOU_House', 'BOU_Live'], koreanOrder: ['BOU_He', 'BOU_His', 'BOU_GoodWife', 'BOU_And', 'BOU_PrettyDaughter', 'BOU_ADaughter', 'BOU_With', 'BOU_Quiet', 'BOU_Country', 'BOU_In', 'BOU_Live', 'BOU_To', 'BOU_The1', 'BOU_Old', 'BOU_House', 'BOU_Bought'] },
+  // 💡 [수프로 엣지] 영한 <3형식> 의지동사 예문 4 (특별 프로그램 완벽 대응 레일)
+  { type: '3형식_의지동사_예문4', requiredRoles: ['PRG_We', 'PRG_Made', 'PRG_Program', 'PRG_Teach'], koreanOrder: ['PRG_We', 'PRG_This', 'PRG_Vacation', 'PRG_During', 'PRG_Many', 'PRG_Students', 'PRG_Other', 'PRG_Country', 'PRG_Of', 'PRG_The', 'PRG_Culture', 'PRG_Customs', 'PRG_And', 'PRG_Art', 'PRG_Teach', 'PRG_To', 'PRG_A', 'PRG_Special', 'PRG_Program', 'PRG_Made'] },
+  // 💡 [수프로 엣지] 영한 <3형식> 의지동사 예문 5 (슈바이처 병원 완벽 대응 레일)
+  { type: '3형식_의지동사_예문5', requiredRoles: ['ALB_Albert', 'ALB_Used'], koreanOrder: ['ALB_Albert', 'ALB_Hospital', 'ALB_Bigger', 'ALB_Make1', 'ALB_And', 'ALB_Leprosy', 'ALB_Suffer', 'ALB_To3', 'ALB_People', 'ALB_For', 'ALB_Place', 'ALB_Make2', 'ALB_To2', 'ALB_To1', 'ALB_The', 'ALB_PrizeMoney', 'ALB_Prize', 'ALB_Money', 'ALB_Used'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 무의지동사 예문 1 (성장 완벽 대응 레일)
+  { type: '1형식_무의지동사_예문1', requiredRoles: ['NVO_Child', 'NVO_Grew', 'NVO_To', 'NVO_Be'], koreanOrder: ['NVO_The', 'NVO_Child', 'NVO_Grew', 'NVO_To', 'NVO_FineYouth', 'NVO_Youth', 'NVO_Be'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 무의지동사 예문 2 (장수와 손자 완벽 대응 레일)
+  { type: '1형식_무의지동사_예문2', requiredRoles: ['LIV_He', 'LIV_Lived', 'LIV_To', 'LIV_Meet', 'LIV_Grandson'], koreanOrder: ['LIV_He', 'LIV_Long', 'LIV_Lived', 'LIV_To', 'LIV_His', 'LIV_Grandson', 'LIV_Again', 'LIV_Meet'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 무의지동사 예문 3 (이곳에 살아서 완벽 대응 레일)
+  { type: '1형식_무의지동사_예문3', requiredRoles: ['LIV2_He', 'LIV2_Lived', 'LIV2_To', 'LIV2_See', 'LIV2_You'], koreanOrder: ['LIV2_He', 'LIV2_Here', 'LIV2_Lived', 'LIV2_To', 'LIV2_You', 'LIV2_See'] },
 ];
 
 // const FORM_RULES = [ 여기 위에 Enter 후에 paste
@@ -375,6 +405,121 @@ export async function POST(request: Request) {
 
 // 여기 아래에 두번 Enter 후 paste
     let processedText = originalText.toLowerCase()
+      
+      // 👇👇 💡 [수프로 엣지] 무의지동사 1형식 예문 3 (오역 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (here 포함)
+      .replace(/(^|\s)he\s+lived\s+here\s+to\s+see\s+you\.?(?!\w)/gi, '$1LIV2_He_Tk LIV2_Lived_Tk LIV2_Here_Tk LIV2_To_Tk LIV2_See_Tk LIV2_You_Tk ')
+      // 2. here 생략
+      .replace(/(^|\s)he\s+lived\s+to\s+see\s+you\.?(?!\w)/gi, '$1LIV2_He_Tk LIV2_Lived_Tk LIV2_To_Tk LIV2_See_Tk LIV2_You_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 무의지동사 1형식 예문 2 (오역 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (again 포함)
+      .replace(/(^|\s)he\s+lived\s+long\s+to\s+meet\s+his\s+grandson\s+again\.?(?!\w)/gi, '$1LIV_He_Tk LIV_Lived_Tk LIV_Long_Tk LIV_To_Tk LIV_Meet_Tk LIV_His_Tk LIV_Grandson_Tk LIV_Again_Tk ')
+      // 2. again 생략
+      .replace(/(^|\s)he\s+lived\s+long\s+to\s+meet\s+his\s+grandson\.?(?!\w)/gi, '$1LIV_He_Tk LIV_Lived_Tk LIV_Long_Tk LIV_To_Tk LIV_Meet_Tk LIV_His_Tk LIV_Grandson_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 무의지동사 1형식 예문 1 (오역 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (fine 포함)
+      .replace(/(^|\s)the\s+child\s+grew\s+to\s+be\s+a\s+fine\s+youth\.?(?!\w)/gi, '$1NVO_The_Tk NVO_Child_Tk NVO_Grew_Tk NVO_To_Tk NVO_Be_Tk NVO_FineYouth_Tk ')
+      // 2. fine 생략
+      .replace(/(^|\s)the\s+child\s+grew\s+to\s+be\s+a\s+youth\.?(?!\w)/gi, '$1NVO_The_Tk NVO_Child_Tk NVO_Grew_Tk NVO_To_Tk NVO_Be_Tk NVO_Youth_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 의지동사 3형식 예문 5 (5가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (prize money ... and (to) make ... to suffer from leprosy)
+      .replace(/(^|\s)albert\s+schweitzer\s+used\s+the\s+prize\s+money\s+to\s+make\s+the\s+hospital\s+bigger\s+and\s+\(?to\)?\s+make\s+a\s+place\s+for\s+people\s+to\s+suffer\s+from\s+leprosy\.?(?!\w)/gi, '$1ALB_Albert_Tk ALB_Used_Tk ALB_The_Tk ALB_PrizeMoney_Tk ALB_To1_Tk ALB_Make1_Tk ALB_Hospital_Tk ALB_Bigger_Tk ALB_And_Tk ALB_To2_Tk ALB_Make2_Tk ALB_Place_Tk ALB_For_Tk ALB_People_Tk ALB_To3_Tk ALB_Suffer_Tk ALB_Leprosy_Tk ')
+      // 2. to suffer from leprosy 생략
+      .replace(/(^|\s)albert\s+schweitzer\s+used\s+the\s+prize\s+money\s+to\s+make\s+the\s+hospital\s+bigger\s+and\s+\(?to\)?\s+make\s+a\s+place\s+for\s+people\.?(?!\w)/gi, '$1ALB_Albert_Tk ALB_Used_Tk ALB_The_Tk ALB_PrizeMoney_Tk ALB_To1_Tk ALB_Make1_Tk ALB_Hospital_Tk ALB_Bigger_Tk ALB_And_Tk ALB_To2_Tk ALB_Make2_Tk ALB_Place_Tk ALB_For_Tk ALB_People_Tk ')
+      // 3. for people to suffer from leprosy 생략
+      .replace(/(^|\s)albert\s+schweitzer\s+used\s+the\s+prize\s+money\s+to\s+make\s+the\s+hospital\s+bigger\s+and\s+\(?to\)?\s+make\s+a\s+place\.?(?!\w)/gi, '$1ALB_Albert_Tk ALB_Used_Tk ALB_The_Tk ALB_PrizeMoney_Tk ALB_To1_Tk ALB_Make1_Tk ALB_Hospital_Tk ALB_Bigger_Tk ALB_And_Tk ALB_To2_Tk ALB_Make2_Tk ALB_Place_Tk ')
+      // 4. money 단독 사용 및 to make the hospital bigger and (to) 생략
+      .replace(/(^|\s)albert\s+schweitzer\s+used\s+the\s+money\s+to\s+make\s+a\s+place\s+for\s+people\s+to\s+suffer\s+from\s+leprosy\.?(?!\w)/gi, '$1ALB_Albert_Tk ALB_Used_Tk ALB_The_Tk ALB_Money_Tk ALB_To2_Tk ALB_Make2_Tk ALB_Place_Tk ALB_For_Tk ALB_People_Tk ALB_To3_Tk ALB_Suffer_Tk ALB_Leprosy_Tk ')
+      // 5. prize 단독 사용 및 and (to) make a place... 생략
+      .replace(/(^|\s)albert\s+schweitzer\s+used\s+the\s+prize\s+to\s+make\s+the\s+hospital\s+bigger\.?(?!\w)/gi, '$1ALB_Albert_Tk ALB_Used_Tk ALB_The_Tk ALB_Prize_Tk ALB_To1_Tk ALB_Make1_Tk ALB_Hospital_Tk ALB_Bigger_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 의지동사 3형식 예문 4 (6가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체
+      .replace(/(^|\s)we\s+made\s+a\s+special\s+program\s+to\s+teach\s+many\s+students\s+the\s+culture,?\s+customs,?\s+and\s+art\s+of\s+other\s+country\s+during\s+this\s+vacation\.?(?!\w)/gi, '$1PRG_We_Tk PRG_Made_Tk PRG_A_Tk PRG_Special_Tk PRG_Program_Tk PRG_To_Tk PRG_Teach_Tk PRG_Many_Tk PRG_Students_Tk PRG_The_Tk PRG_Culture_Tk PRG_Customs_Tk PRG_And_Tk PRG_Art_Tk PRG_Of_Tk PRG_Other_Tk PRG_Country_Tk PRG_During_Tk PRG_This_Tk PRG_Vacation_Tk ')
+      // 2. many 생략
+      .replace(/(^|\s)we\s+made\s+a\s+special\s+program\s+to\s+teach\s+students\s+the\s+culture,?\s+customs,?\s+and\s+art\s+of\s+other\s+country\s+during\s+this\s+vacation\.?(?!\w)/gi, '$1PRG_We_Tk PRG_Made_Tk PRG_A_Tk PRG_Special_Tk PRG_Program_Tk PRG_To_Tk PRG_Teach_Tk PRG_Students_Tk PRG_The_Tk PRG_Culture_Tk PRG_Customs_Tk PRG_And_Tk PRG_Art_Tk PRG_Of_Tk PRG_Other_Tk PRG_Country_Tk PRG_During_Tk PRG_This_Tk PRG_Vacation_Tk ')
+      // 3. special, during this vacation 생략
+      .replace(/(^|\s)we\s+made\s+a\s+program\s+to\s+teach\s+many\s+students\s+the\s+culture,?\s+customs,?\s+and\s+art\s+of\s+other\s+country\.?(?!\w)/gi, '$1PRG_We_Tk PRG_Made_Tk PRG_A_Tk PRG_Program_Tk PRG_To_Tk PRG_Teach_Tk PRG_Many_Tk PRG_Students_Tk PRG_The_Tk PRG_Culture_Tk PRG_Customs_Tk PRG_And_Tk PRG_Art_Tk PRG_Of_Tk PRG_Other_Tk PRG_Country_Tk ')
+      // 4. special, many, of other country during this vacation 생략
+      .replace(/(^|\s)we\s+made\s+a\s+program\s+to\s+teach\s+students\s+the\s+culture,?\s+customs,?\s+and\s+art\.?(?!\w)/gi, '$1PRG_We_Tk PRG_Made_Tk PRG_A_Tk PRG_Program_Tk PRG_To_Tk PRG_Teach_Tk PRG_Students_Tk PRG_The_Tk PRG_Culture_Tk PRG_Customs_Tk PRG_And_Tk PRG_Art_Tk ')
+      // 5. customs 생략 (the culture and art)
+      .replace(/(^|\s)we\s+made\s+a\s+program\s+to\s+teach\s+students\s+the\s+culture\s+and\s+art\.?(?!\w)/gi, '$1PRG_We_Tk PRG_Made_Tk PRG_A_Tk PRG_Program_Tk PRG_To_Tk PRG_Teach_Tk PRG_Students_Tk PRG_The_Tk PRG_Culture_Tk PRG_And_Tk PRG_Art_Tk ')
+      // 6. and art 생략 (the culture)
+      .replace(/(^|\s)we\s+made\s+a\s+program\s+to\s+teach\s+students\s+the\s+culture\.?(?!\w)/gi, '$1PRG_We_Tk PRG_Made_Tk PRG_A_Tk PRG_Program_Tk PRG_To_Tk PRG_Teach_Tk PRG_Students_Tk PRG_The_Tk PRG_Culture_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 의지동사 3형식 예문 3 (4가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (old, quiet, wife and a pretty daughter 모두 포함)
+      .replace(/(^|\s)he\s+bought\s+the\s+old\s+house\s+to\s+live\s+in\s+the\s+quiet\s+country\s+with\s+his\s+good-natured\s+wife\s+and\s+a\s+pretty\s+daughter\.?(?!\w)/gi, '$1BOU_He_Tk BOU_Bought_Tk BOU_The1_Tk BOU_Old_Tk BOU_House_Tk BOU_To_Tk BOU_Live_Tk BOU_In_Tk BOU_Quiet_Tk BOU_Country_Tk BOU_With_Tk BOU_His_Tk BOU_GoodWife_Tk BOU_And_Tk BOU_PrettyDaughter_Tk ')
+      // 2. wife만 (old, quiet 유지, 딸 생략)
+      .replace(/(^|\s)he\s+bought\s+the\s+house\s+to\s+live\s+in\s+the\s+quiet\s+country\s+with\s+his\s+good-natured\s+wife\.?(?!\w)/gi, '$1BOU_He_Tk BOU_Bought_Tk BOU_The1_Tk BOU_House_Tk BOU_To_Tk BOU_Live_Tk BOU_In_Tk BOU_Quiet_Tk BOU_Country_Tk BOU_With_Tk BOU_His_Tk BOU_GoodWife_Tk ')
+      // 3. pretty daughter만 (old 유지, 아내 및 quiet 생략)
+      .replace(/(^|\s)he\s+bought\s+the\s+old\s+house\s+to\s+live\s+in\s+the\s+country\s+with\s+a\s+pretty\s+daughter\.?(?!\w)/gi, '$1BOU_He_Tk BOU_Bought_Tk BOU_The1_Tk BOU_Old_Tk BOU_House_Tk BOU_To_Tk BOU_Live_Tk BOU_In_Tk BOU_Country_Tk BOU_With_Tk BOU_PrettyDaughter_Tk ')
+      // 4. a daughter만 (old, quiet, 아내 모두 생략)
+      .replace(/(^|\s)he\s+bought\s+the\s+house\s+to\s+live\s+in\s+the\s+country\s+with\s+a\s+daughter\.?(?!\w)/gi, '$1BOU_He_Tk BOU_Bought_Tk BOU_The1_Tk BOU_House_Tk BOU_To_Tk BOU_Live_Tk BOU_In_Tk BOU_Country_Tk BOU_With_Tk BOU_ADaughter_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 의지동사 1형식 예문 2 (4가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (here, today 모두 포함)
+      .replace(/(^|\s)we\s+gathered\s+here\s+today\s+to\s+talk\s+about\s+an\s+important\s+thing\.?(?!\w)/gi, '$1GAT_We_Tk GAT_Gathered_Tk GAT_Here_Tk GAT_Today_Tk GAT_To_Tk GAT_Talk_Tk GAT_About_Tk GAT_Thing_Tk ')
+      // 2. here 생략 (today 포함)
+      .replace(/(^|\s)we\s+gathered\s+today\s+to\s+talk\s+about\s+an\s+important\s+thing\.?(?!\w)/gi, '$1GAT_We_Tk GAT_Gathered_Tk GAT_Today_Tk GAT_To_Tk GAT_Talk_Tk GAT_About_Tk GAT_Thing_Tk ')
+      // 3. today 생략 (here 포함)
+      .replace(/(^|\s)we\s+gathered\s+here\s+to\s+talk\s+about\s+an\s+important\s+thing\.?(?!\w)/gi, '$1GAT_We_Tk GAT_Gathered_Tk GAT_Here_Tk GAT_To_Tk GAT_Talk_Tk GAT_About_Tk GAT_Thing_Tk ')
+      // 4. here, today 모두 생략
+      .replace(/(^|\s)we\s+gathered\s+to\s+talk\s+about\s+an\s+important\s+thing\.?(?!\w)/gi, '$1GAT_We_Tk GAT_Gathered_Tk GAT_To_Tk GAT_Talk_Tk GAT_About_Tk GAT_Thing_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 의지동사 1형식 예문 1 (오역 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (here 포함)
+      .replace(/(^|\s)he\s+came\s+here\s+to\s+see\s+you\.?(?!\w)/gi, '$1VOL_He_Tk VOL_Came_Tk VOL_Here_Tk VOL_To_Tk VOL_See_Tk VOL_You_Tk ')
+      // 2. here 생략
+      .replace(/(^|\s)he\s+came\s+to\s+see\s+you\.?(?!\w)/gi, '$1VOL_He_Tk VOL_Came_Tk VOL_To_Tk VOL_See_Tk VOL_You_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 부사의 결과 표시 2형식 예문 3 (오역 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (many 포함)
+      .replace(/(^|\s)he\s+is\s+too\s+idle\s+to\s+read\s+many\s+books\.?(?!\w)/gi, '$1IDL_He_Tk IDL_Is_Tk IDL_Too_Tk IDL_Idle_Tk IDL_To_Tk IDL_Read_Tk IDL_Many_Tk IDL_Books_Tk ')
+      // 2. many 생략
+      .replace(/(^|\s)he\s+is\s+too\s+idle\s+to\s+read\s+books\.?(?!\w)/gi, '$1IDL_He_Tk IDL_Is_Tk IDL_Too_Tk IDL_Idle_Tk IDL_To_Tk IDL_Read_Tk IDL_Books_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 부사의 결과 표시 2형식 예문 2 (오역 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (it 포함)
+      .replace(/(^|\s)the\s+boy\s+is\s+clever\s+enough\s+to\s+understand\s+it\.?(?!\w)/gi, '$1CLV_The_Tk CLV_Boy_Tk CLV_Is_Tk CLV_Clever_Tk CLV_Enough_Tk CLV_To_Tk CLV_Understand_Tk CLV_It_Tk ')
+      // 2. it 생략
+      .replace(/(^|\s)the\s+boy\s+is\s+clever\s+enough\s+to\s+understand\.?(?!\w)/gi, '$1CLV_The_Tk CLV_Boy_Tk CLV_Is_Tk CLV_Clever_Tk CLV_Enough_Tk CLV_To_Tk CLV_Understand_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 부사의 결과 표시 1형식 예문 1 (오역 철벽 방어! 최상단 배치!) 👇👇
+      .replace(/(^|\s)he\s+got\s+up\s+so\s+late\s+as\s+to\s+miss\s+the\s+train\.?(?!\w)/gi, '$1TRN_He_Tk TRN_GotUp_Tk TRN_So_Tk TRN_Late_Tk TRN_AsTo_Tk TRN_Miss_Tk TRN_Train_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 부사구 2형식 예문 4 (무조건 최상단 배치!) 👇👇
+      // 1. 완전체 (This water 포함)
+      .replace(/(^|\s)this\s+water\s+is\s+good\s+to\s+drink\.?(?!\w)/gi, '$1WTR_This_Tk WTR_Water_Tk WTR_Is_Tk WTR_Good_Tk WTR_To_Tk WTR_Drink_Tk ')
+      // 2. This 생략 (Water is good to drink)
+      .replace(/(^|\s)water\s+is\s+good\s+to\s+drink\.?(?!\w)/gi, '$1WTR_Water_Tk WTR_Is_Tk WTR_Good_Tk WTR_To_Tk WTR_Drink_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 부사구 2형식 예문 3 (오역 철벽 방어! 무조건 최상단 배치!) 👇👇
+      // 1. 완전체 (the hardest sentence systematically 포함)
+      .replace(/(^|\s)diagram\s+is\s+convenient\s+to\s+teach\s+the\s+hardest\s+sentence\s+systematically\.?(?!\w)/gi, '$1DIA_Diagram_Tk DIA_Is_Tk DIA_Convenient_Tk DIA_To_Tk DIA_Teach_Tk DIA_HardestSentence_Tk DIA_Systematically_Tk ')
+      // 2. systematically 생략 (the hardest sentence만 남음)
+      .replace(/(^|\s)diagram\s+is\s+convenient\s+to\s+teach\s+the\s+hardest\s+sentence\.?(?!\w)/gi, '$1DIA_Diagram_Tk DIA_Is_Tk DIA_Convenient_Tk DIA_To_Tk DIA_Teach_Tk DIA_HardestSentence_Tk ')
+      // 3. hardest, systematically 동시 생략 (the sentence만 남음)
+      .replace(/(^|\s)diagram\s+is\s+convenient\s+to\s+teach\s+the\s+sentence\.?(?!\w)/gi, '$1DIA_Diagram_Tk DIA_Is_Tk DIA_Convenient_Tk DIA_To_Tk DIA_Teach_Tk DIA_TheSentence_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 부사구 2형식 예문 2 (오역 차단! 무조건 최상단 배치!) 👇👇
+      // 1. 완전체 (of their family 포함)
+      .replace(/(^|\s)they\s+were\s+sad\s+not\s+to\s+hear\s+the\s+news\s+of\s+their\s+family\.?(?!\w)/gi, '$1SAD_They_Tk SAD_Were_Tk SAD_Sad_Tk SAD_Not_Tk SAD_To_Tk SAD_Hear_Tk SAD_News_Tk SAD_Of_Tk SAD_Their_Tk SAD_Family_Tk ')
+      // 2. of their family 생략
+      .replace(/(^|\s)they\s+were\s+sad\s+not\s+to\s+hear\s+the\s+news\.?(?!\w)/gi, '$1SAD_They_Tk SAD_Were_Tk SAD_Sad_Tk SAD_Not_Tk SAD_To_Tk SAD_Hear_Tk SAD_News_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 부사구 2형식 예문 1 (4가지 변형 철벽 방어! 무조건 최상단 배치!) 👇👇
+      // 1. 완전체 (very, here 모두 포함)
+      .replace(/(^|\s)i\s+am\s+very\s+glad\s+to\s+meet\s+you\s+here\.?(?!\w)/gi, '$1GLD_I_Tk GLD_Am_Tk GLD_Very_Tk GLD_Glad_Tk GLD_To_Tk GLD_Meet_Tk GLD_You_Tk GLD_Here_Tk ')
+      // 2. here 생략 (I am very glad to meet you)
+      .replace(/(^|\s)i\s+am\s+very\s+glad\s+to\s+meet\s+you\.?(?!\w)/gi, '$1GLD_I_Tk GLD_Am_Tk GLD_Very_Tk GLD_Glad_Tk GLD_To_Tk GLD_Meet_Tk GLD_You_Tk ')
+      // 3. very 생략 (I am glad to meet you here)
+      .replace(/(^|\s)i\s+am\s+glad\s+to\s+meet\s+you\s+here\.?(?!\w)/gi, '$1GLD_I_Tk GLD_Am_Tk GLD_Glad_Tk GLD_To_Tk GLD_Meet_Tk GLD_You_Tk GLD_Here_Tk ')
+      // 4. very, here 모두 생략 (I am glad to meet you)
+      .replace(/(^|\s)i\s+am\s+glad\s+to\s+meet\s+you\.?(?!\w)/gi, '$1GLD_I_Tk GLD_Am_Tk GLD_Glad_Tk GLD_To_Tk GLD_Meet_Tk GLD_You_Tk ')
       
       // 👇👇 💡 [수프로 엣지] 형용사구 3형식 예문 7 (외계어 차단! 무조건 최상단 배치!) 👇👇
       // 1. 완전체 (a great reward ... to begin anything)
@@ -1002,6 +1147,181 @@ export async function POST(request: Request) {
 
       // if (word == 여기 아래에 Enter 두번 후 paste
 
+      // 💡 영한 <무의지동사> 1형식 예문 3 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('LIV2_He_Tk')) { matchedRole = 'LIV2_He'; translatedWord = '그는'; displayEn = 'He'; }
+      if (word.includes('LIV2_Lived_Tk')) { matchedRole = 'LIV2_Lived'; translatedWord = '살았다'; displayEn = 'lived'; }
+      if (word.includes('LIV2_Here_Tk')) { matchedRole = 'LIV2_Here'; translatedWord = '이곳에'; displayEn = 'here'; }
+      if (word.includes('LIV2_To_Tk')) { matchedRole = 'LIV2_To'; translatedWord = '그래서'; displayEn = 'to'; }
+      if (word.includes('LIV2_See_Tk')) { matchedRole = 'LIV2_See'; translatedWord = '만났다'; displayEn = 'see'; }
+      if (word.includes('LIV2_You_Tk')) { matchedRole = 'LIV2_You'; translatedWord = '너를'; displayEn = 'you'; }
+      
+      // 💡 영한 <무의지동사> 1형식 예문 2 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('LIV_He_Tk')) { matchedRole = 'LIV_He'; translatedWord = '그는'; displayEn = 'He'; }
+      if (word.includes('LIV_Lived_Tk')) { matchedRole = 'LIV_Lived'; translatedWord = '살았다'; displayEn = 'lived'; }
+      if (word.includes('LIV_Long_Tk')) { matchedRole = 'LIV_Long'; translatedWord = '오래'; displayEn = 'long'; }
+      if (word.includes('LIV_To_Tk')) { matchedRole = 'LIV_To'; translatedWord = '서'; displayEn = 'to'; }
+      if (word.includes('LIV_Meet_Tk')) { matchedRole = 'LIV_Meet'; translatedWord = '만나다'; displayEn = 'meet'; }
+      if (word.includes('LIV_His_Tk')) { matchedRole = 'LIV_His'; translatedWord = '그의'; displayEn = 'his'; }
+      if (word.includes('LIV_Grandson_Tk')) { matchedRole = 'LIV_Grandson'; translatedWord = '손자를'; displayEn = 'grandson'; }
+      if (word.includes('LIV_Again_Tk')) { matchedRole = 'LIV_Again'; translatedWord = '다시'; displayEn = 'again'; }
+      
+      // 💡 영한 <무의지동사> 1형식 예문 1 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('NVO_The_Tk')) { matchedRole = 'NVO_The'; translatedWord = '그'; displayEn = 'The'; }
+      if (word.includes('NVO_Child_Tk')) { matchedRole = 'NVO_Child'; translatedWord = '아이는'; displayEn = 'child'; }
+      if (word.includes('NVO_Grew_Tk')) { matchedRole = 'NVO_Grew'; translatedWord = '자랐다'; displayEn = 'grew'; }
+      if (word.includes('NVO_To_Tk')) { matchedRole = 'NVO_To'; translatedWord = '서'; displayEn = 'to'; }
+      if (word.includes('NVO_Be_Tk')) { matchedRole = 'NVO_Be'; translatedWord = '되다'; displayEn = 'be'; }
+      if (word.includes('NVO_FineYouth_Tk')) { matchedRole = 'NVO_FineYouth'; translatedWord = '훌륭한 청년이'; displayEn = 'a fine youth'; }
+      if (word.includes('NVO_Youth_Tk')) { matchedRole = 'NVO_Youth'; translatedWord = '청년이'; displayEn = 'a youth'; }
+      
+      // 💡 영한 <의지동사> 3형식 예문 5 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('ALB_Albert_Tk')) { matchedRole = 'ALB_Albert'; translatedWord = '알베르트 슈바이처는'; displayEn = 'Albert Schweitzer'; }
+      if (word.includes('ALB_Used_Tk')) { matchedRole = 'ALB_Used'; translatedWord = '이용했다'; displayEn = 'used'; }
+      if (word.includes('ALB_The_Tk')) { matchedRole = 'ALB_The'; translatedWord = '그'; displayEn = 'the'; }
+      if (word.includes('ALB_PrizeMoney_Tk')) { matchedRole = 'ALB_PrizeMoney'; translatedWord = '상금을'; displayEn = 'prize money'; }
+      if (word.includes('ALB_Prize_Tk')) { matchedRole = 'ALB_Prize'; translatedWord = '상을'; displayEn = 'prize'; } 
+      if (word.includes('ALB_Money_Tk')) { matchedRole = 'ALB_Money'; translatedWord = '돈을'; displayEn = 'money'; } 
+      if (word.includes('ALB_To1_Tk')) { matchedRole = 'ALB_To1'; translatedWord = '하기위해'; displayEn = 'to'; }
+      if (word.includes('ALB_Make1_Tk')) { matchedRole = 'ALB_Make1'; translatedWord = '짓다'; displayEn = 'make'; }
+      if (word.includes('ALB_Hospital_Tk')) { matchedRole = 'ALB_Hospital'; translatedWord = '병원을'; displayEn = 'the hospital'; }
+      if (word.includes('ALB_Bigger_Tk')) { matchedRole = 'ALB_Bigger'; translatedWord = '더 크게'; displayEn = 'bigger'; }
+      if (word.includes('ALB_And_Tk')) { matchedRole = 'ALB_And'; translatedWord = '고'; displayEn = 'and'; }
+      if (word.includes('ALB_To2_Tk')) { matchedRole = 'ALB_To2'; translatedWord = '하기 위해'; displayEn = '(to)'; } 
+      if (word.includes('ALB_Make2_Tk')) { matchedRole = 'ALB_Make2'; translatedWord = '마련하다'; displayEn = 'make'; }
+      if (word.includes('ALB_Place_Tk')) { matchedRole = 'ALB_Place'; translatedWord = '장소를'; displayEn = 'a place'; }
+      if (word.includes('ALB_For_Tk')) { matchedRole = 'ALB_For'; translatedWord = '위한'; displayEn = 'for'; }
+      if (word.includes('ALB_People_Tk')) { matchedRole = 'ALB_People'; translatedWord = '사람들을'; displayEn = 'people'; }
+      if (word.includes('ALB_To3_Tk')) { matchedRole = 'ALB_To3'; translatedWord = 'ㄴ'; displayEn = 'to'; }
+      if (word.includes('ALB_Suffer_Tk')) { matchedRole = 'ALB_Suffer'; translatedWord = '앓다'; displayEn = 'suffer from'; }
+      if (word.includes('ALB_Leprosy_Tk')) { matchedRole = 'ALB_Leprosy'; translatedWord = '나병을'; displayEn = 'leprosy'; }
+      
+      // 💡 영한 <의지동사> 3형식 예문 4 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('PRG_We_Tk')) { matchedRole = 'PRG_We'; translatedWord = '우리는'; displayEn = 'We'; }
+      if (word.includes('PRG_Made_Tk')) { matchedRole = 'PRG_Made'; translatedWord = '만들었다'; displayEn = 'made'; }
+      if (word.includes('PRG_A_Tk')) { matchedRole = 'PRG_A'; translatedWord = ''; displayEn = 'a'; }
+      if (word.includes('PRG_Special_Tk')) { matchedRole = 'PRG_Special'; translatedWord = '특별'; displayEn = 'special'; }
+      if (word.includes('PRG_Program_Tk')) { matchedRole = 'PRG_Program'; translatedWord = '프로그램을'; displayEn = 'program'; }
+      if (word.includes('PRG_To_Tk')) { matchedRole = 'PRG_To'; translatedWord = '위해서'; displayEn = 'to'; }
+      if (word.includes('PRG_Teach_Tk')) { matchedRole = 'PRG_Teach'; translatedWord = '가르쳐주다'; displayEn = 'teach'; }
+      if (word.includes('PRG_Many_Tk')) { matchedRole = 'PRG_Many'; translatedWord = '많은'; displayEn = 'many'; }
+      if (word.includes('PRG_Students_Tk')) { matchedRole = 'PRG_Students'; translatedWord = '학생들에게'; displayEn = 'students'; }
+      if (word.includes('PRG_The_Tk')) { matchedRole = 'PRG_The'; translatedWord = ''; displayEn = 'the'; }
+      if (word.includes('PRG_Culture_Tk')) { matchedRole = 'PRG_Culture'; translatedWord = '문화'; displayEn = 'culture'; }
+      if (word.includes('PRG_Customs_Tk')) { matchedRole = 'PRG_Customs'; translatedWord = '관습'; displayEn = 'customs'; }
+      if (word.includes('PRG_And_Tk')) { matchedRole = 'PRG_And'; translatedWord = '과'; displayEn = 'and'; }
+      if (word.includes('PRG_Art_Tk')) { matchedRole = 'PRG_Art'; translatedWord = '예술을'; displayEn = 'art'; }
+      if (word.includes('PRG_Of_Tk')) { matchedRole = 'PRG_Of'; translatedWord = '의'; displayEn = 'of'; }
+      if (word.includes('PRG_Other_Tk')) { matchedRole = 'PRG_Other'; translatedWord = '다른'; displayEn = 'other'; }
+      if (word.includes('PRG_Country_Tk')) { matchedRole = 'PRG_Country'; translatedWord = '나라'; displayEn = 'country'; }
+      if (word.includes('PRG_During_Tk')) { matchedRole = 'PRG_During'; translatedWord = '동안에'; displayEn = 'during'; }
+      if (word.includes('PRG_This_Tk')) { matchedRole = 'PRG_This'; translatedWord = '이번'; displayEn = 'this'; }
+      if (word.includes('PRG_Vacation_Tk')) { matchedRole = 'PRG_Vacation'; translatedWord = '방학'; displayEn = 'vacation'; }
+      
+      // 💡 영한 <의지동사> 3형식 예문 3 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('BOU_He_Tk')) { matchedRole = 'BOU_He'; translatedWord = '그는'; displayEn = 'He'; }
+      if (word.includes('BOU_Bought_Tk')) { matchedRole = 'BOU_Bought'; translatedWord = '구입했다'; displayEn = 'bought'; }
+      if (word.includes('BOU_The1_Tk')) { matchedRole = 'BOU_The1'; translatedWord = '그'; displayEn = 'the'; }
+      if (word.includes('BOU_Old_Tk')) { matchedRole = 'BOU_Old'; translatedWord = '오래된'; displayEn = 'old'; }
+      if (word.includes('BOU_House_Tk')) { matchedRole = 'BOU_House'; translatedWord = '집을'; displayEn = 'house'; }
+      if (word.includes('BOU_To_Tk')) { matchedRole = 'BOU_To'; translatedWord = '위해서'; displayEn = 'to'; }
+      if (word.includes('BOU_Live_Tk')) { matchedRole = 'BOU_Live'; translatedWord = '살다'; displayEn = 'live'; }
+      if (word.includes('BOU_In_Tk')) { matchedRole = 'BOU_In'; translatedWord = '에서'; displayEn = 'in the'; }
+      if (word.includes('BOU_Quiet_Tk')) { matchedRole = 'BOU_Quiet'; translatedWord = '조용한'; displayEn = 'quiet'; }
+      if (word.includes('BOU_Country_Tk')) { matchedRole = 'BOU_Country'; translatedWord = '시골'; displayEn = 'country'; }
+      if (word.includes('BOU_With_Tk')) { matchedRole = 'BOU_With'; translatedWord = '과함께'; displayEn = 'with'; }
+      if (word.includes('BOU_His_Tk')) { matchedRole = 'BOU_His'; translatedWord = '그의'; displayEn = 'his'; }
+      if (word.includes('BOU_GoodWife_Tk')) { matchedRole = 'BOU_GoodWife'; translatedWord = '착한 아내'; displayEn = 'good-natured wife'; }
+      if (word.includes('BOU_And_Tk')) { matchedRole = 'BOU_And'; translatedWord = '와'; displayEn = 'and'; }
+      if (word.includes('BOU_PrettyDaughter_Tk')) { matchedRole = 'BOU_PrettyDaughter'; translatedWord = '귀여운 딸'; displayEn = 'a pretty daughter'; }
+      if (word.includes('BOU_ADaughter_Tk')) { matchedRole = 'BOU_ADaughter'; translatedWord = '딸'; displayEn = 'a daughter'; }
+      
+      // 💡 영한 <의지동사> 1형식 예문 2 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('GAT_We_Tk')) { matchedRole = 'GAT_We'; translatedWord = '우리는'; displayEn = 'We'; }
+      if (word.includes('GAT_Gathered_Tk')) { matchedRole = 'GAT_Gathered'; translatedWord = '모였다'; displayEn = 'gathered'; }
+      if (word.includes('GAT_Here_Tk')) { matchedRole = 'GAT_Here'; translatedWord = '여기에'; displayEn = 'here'; }
+      if (word.includes('GAT_Today_Tk')) { matchedRole = 'GAT_Today'; translatedWord = '오늘'; displayEn = 'today'; }
+      if (word.includes('GAT_To_Tk')) { matchedRole = 'GAT_To'; translatedWord = '~하기위해'; displayEn = 'to'; }
+      if (word.includes('GAT_Talk_Tk')) { matchedRole = 'GAT_Talk'; translatedWord = '의논하다'; displayEn = 'talk'; }
+      if (word.includes('GAT_About_Tk')) { matchedRole = 'GAT_About'; translatedWord = '에대해'; displayEn = 'about'; }
+      if (word.includes('GAT_Thing_Tk')) { matchedRole = 'GAT_Thing'; translatedWord = '중요한 일'; displayEn = 'an important thing'; }
+      
+      // 💡 영한 <의지동사> 1형식 예문 1 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('VOL_He_Tk')) { matchedRole = 'VOL_He'; translatedWord = '그는'; displayEn = 'He'; }
+      if (word.includes('VOL_Came_Tk')) { matchedRole = 'VOL_Came'; translatedWord = '왔다'; displayEn = 'came'; }
+      if (word.includes('VOL_Here_Tk')) { matchedRole = 'VOL_Here'; translatedWord = '이곳에'; displayEn = 'here'; }
+      if (word.includes('VOL_To_Tk')) { matchedRole = 'VOL_To'; translatedWord = '목적으로'; displayEn = 'to'; }
+      if (word.includes('VOL_See_Tk')) { matchedRole = 'VOL_See'; translatedWord = '만날'; displayEn = 'see'; }
+      if (word.includes('VOL_You_Tk')) { matchedRole = 'VOL_You'; translatedWord = '너를'; displayEn = 'you'; }
+      
+      // 💡 영한 <부사의 결과 표시> 2형식 예문 3 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('IDL_He_Tk')) { matchedRole = 'IDL_He'; translatedWord = '그는'; displayEn = 'He'; }
+      if (word.includes('IDL_Is_Tk')) { matchedRole = 'IDL_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('IDL_Too_Tk')) { matchedRole = 'IDL_Too'; translatedWord = '아주'; displayEn = 'too'; }
+      if (word.includes('IDL_Idle_Tk')) { matchedRole = 'IDL_Idle'; translatedWord = '게으른'; displayEn = 'idle'; }
+      if (word.includes('IDL_To_Tk')) { matchedRole = 'IDL_To'; translatedWord = '그래서'; displayEn = 'to'; }
+      if (word.includes('IDL_Read_Tk')) { matchedRole = 'IDL_Read'; translatedWord = '읽을 수 없다'; displayEn = 'read'; }
+      if (word.includes('IDL_Many_Tk')) { matchedRole = 'IDL_Many'; translatedWord = '많은'; displayEn = 'many'; }
+      if (word.includes('IDL_Books_Tk')) { matchedRole = 'IDL_Books'; translatedWord = '책을'; displayEn = 'books'; }
+
+      // 💡 영한 <부사의 결과 표시> 2형식 예문 2 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('CLV_The_Tk')) { matchedRole = 'CLV_The'; translatedWord = '그'; displayEn = 'The'; }
+      if (word.includes('CLV_Boy_Tk')) { matchedRole = 'CLV_Boy'; translatedWord = '소년은'; displayEn = 'boy'; }
+      if (word.includes('CLV_Is_Tk')) { matchedRole = 'CLV_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('CLV_Clever_Tk')) { matchedRole = 'CLV_Clever'; translatedWord = '영리한'; displayEn = 'clever'; }
+      if (word.includes('CLV_Enough_Tk')) { matchedRole = 'CLV_Enough'; translatedWord = '아주'; displayEn = 'enough'; }
+      if (word.includes('CLV_To_Tk')) { matchedRole = 'CLV_To'; translatedWord = '그래서'; displayEn = 'to'; }
+      if (word.includes('CLV_Understand_Tk')) { matchedRole = 'CLV_Understand'; translatedWord = '이해할 수 있다'; displayEn = 'understand'; }
+      if (word.includes('CLV_It_Tk')) { matchedRole = 'CLV_It'; translatedWord = '그것을'; displayEn = 'it'; }
+      
+      // 💡 영한 <부사의 결과 표시> 1형식 예문 1 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('TRN_He_Tk')) { matchedRole = 'TRN_He'; translatedWord = '그는'; displayEn = 'He'; }
+      if (word.includes('TRN_GotUp_Tk')) { matchedRole = 'TRN_GotUp'; translatedWord = '일어났다'; displayEn = 'got up'; }
+      if (word.includes('TRN_So_Tk')) { matchedRole = 'TRN_So'; translatedWord = '아주'; displayEn = 'so'; }
+      if (word.includes('TRN_Late_Tk')) { matchedRole = 'TRN_Late'; translatedWord = '늦게'; displayEn = 'late'; }
+      if (word.includes('TRN_AsTo_Tk')) { matchedRole = 'TRN_AsTo'; translatedWord = '그래서'; displayEn = 'as to'; }
+      if (word.includes('TRN_Miss_Tk')) { matchedRole = 'TRN_Miss'; translatedWord = '놓치다'; displayEn = 'miss'; }
+      if (word.includes('TRN_Train_Tk')) { matchedRole = 'TRN_Train'; translatedWord = '기차를'; displayEn = 'the train'; }
+      
+      // 💡 영한 <부사구> 2형식 예문 4 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('WTR_This_Tk')) { matchedRole = 'WTR_This'; translatedWord = '이'; displayEn = 'This'; }
+      if (word.includes('WTR_Water_Tk')) { matchedRole = 'WTR_Water'; translatedWord = '물은'; displayEn = 'water'; }
+      if (word.includes('WTR_Is_Tk')) { matchedRole = 'WTR_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('WTR_Good_Tk')) { matchedRole = 'WTR_Good'; translatedWord = '좋은'; displayEn = 'good'; }
+      if (word.includes('WTR_To_Tk')) { matchedRole = 'WTR_To'; translatedWord = '~하기에'; displayEn = 'to'; }
+      if (word.includes('WTR_Drink_Tk')) { matchedRole = 'WTR_Drink'; translatedWord = '마시다'; displayEn = 'drink'; }
+      
+      // 💡 영한 <부사구> 2형식 예문 3 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('DIA_Diagram_Tk')) { matchedRole = 'DIA_Diagram'; translatedWord = '도해는'; displayEn = 'Diagram'; }
+      if (word.includes('DIA_Is_Tk')) { matchedRole = 'DIA_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('DIA_Convenient_Tk')) { matchedRole = 'DIA_Convenient'; translatedWord = '편리한'; displayEn = 'convenient'; }
+      if (word.includes('DIA_To_Tk')) { matchedRole = 'DIA_To'; translatedWord = '~하기에'; displayEn = 'to'; }
+      if (word.includes('DIA_Teach_Tk')) { matchedRole = 'DIA_Teach'; translatedWord = '강의하다'; displayEn = 'teach'; }
+      if (word.includes('DIA_HardestSentence_Tk')) { matchedRole = 'DIA_HardestSentence'; translatedWord = '어려운 문장도'; displayEn = 'the hardest sentence'; }
+      if (word.includes('DIA_TheSentence_Tk')) { matchedRole = 'DIA_TheSentence'; translatedWord = '문장도'; displayEn = 'the sentence'; }
+      if (word.includes('DIA_Systematically_Tk')) { matchedRole = 'DIA_Systematically'; translatedWord = '체계적으로'; displayEn = 'systematically'; }
+      
+      // 💡 영한 <부사구> 2형식 예문 2 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('SAD_They_Tk')) { matchedRole = 'SAD_They'; translatedWord = '그들은'; displayEn = 'They'; }
+      if (word.includes('SAD_Were_Tk')) { matchedRole = 'SAD_Were'; translatedWord = '이었다'; displayEn = 'were'; }
+      if (word.includes('SAD_Sad_Tk')) { matchedRole = 'SAD_Sad'; translatedWord = '슬픈'; displayEn = 'sad'; }
+      if (word.includes('SAD_Not_Tk')) { matchedRole = 'SAD_Not'; translatedWord = '못하다'; displayEn = 'not'; }
+      if (word.includes('SAD_To_Tk')) { matchedRole = 'SAD_To'; translatedWord = '~하기때문에'; displayEn = 'to'; }
+      if (word.includes('SAD_Hear_Tk')) { matchedRole = 'SAD_Hear'; translatedWord = '듣지'; displayEn = 'hear'; }
+      if (word.includes('SAD_News_Tk')) { matchedRole = 'SAD_News'; translatedWord = '소식을'; displayEn = 'the news'; }
+      if (word.includes('SAD_Of_Tk')) { matchedRole = 'SAD_Of'; translatedWord = '의'; displayEn = 'of'; }
+      if (word.includes('SAD_Their_Tk')) { matchedRole = 'SAD_Their'; translatedWord = '자기'; displayEn = 'their'; }
+      if (word.includes('SAD_Family_Tk')) { matchedRole = 'SAD_Family'; translatedWord = '가족'; displayEn = 'family'; }
+      
+      // 💡 영한 <부사구> 2형식 예문 1 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('GLD_I_Tk')) { matchedRole = 'GLD_I'; translatedWord = '나는'; displayEn = 'I'; }
+      if (word.includes('GLD_Am_Tk')) { matchedRole = 'GLD_Am'; translatedWord = '이다'; displayEn = 'am'; }
+      if (word.includes('GLD_Very_Tk')) { matchedRole = 'GLD_Very'; translatedWord = '매우'; displayEn = 'very'; }
+      if (word.includes('GLD_Glad_Tk')) { matchedRole = 'GLD_Glad'; translatedWord = '기쁜'; displayEn = 'glad'; }
+      if (word.includes('GLD_To_Tk')) { matchedRole = 'GLD_To'; translatedWord = '~하니'; displayEn = 'to'; }
+      if (word.includes('GLD_Meet_Tk')) { matchedRole = 'GLD_Meet'; translatedWord = '만나다'; displayEn = 'meet'; }
+      if (word.includes('GLD_You_Tk')) { matchedRole = 'GLD_You'; translatedWord = '너를'; displayEn = 'you'; }
+      if (word.includes('GLD_Here_Tk')) { matchedRole = 'GLD_Here'; translatedWord = '여기에서'; displayEn = 'here'; }
+      
       // 💡 영한 <형용사구> 3형식 예문 7 (표시 오류 차단 및 토큰 매핑)
       if (word.includes('KNG_The_Tk')) { matchedRole = 'KNG_The'; translatedWord = '그'; displayEn = 'The'; }
       if (word.includes('KNG_King_Tk')) { matchedRole = 'KNG_King'; translatedWord = '왕은'; displayEn = 'king'; }
@@ -1754,6 +2074,51 @@ export async function POST(request: Request) {
       const isMatch = rule.requiredRoles.every(reqRole => detectedRoles.includes(reqRole));
     // 아래 두번 Enter 후에 paste
 
+     // 👇👇 💡 [수프로 엣지] 무의지동사 1형식 예문 3 절대 방어선 👇👇
+      if (rule.type === '1형식_무의지동사_예문3' && detectedRoles.includes('LIV2_He') && detectedRoles.includes('LIV2_Lived') && detectedRoles.includes('LIV2_See')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 무의지동사 1형식 예문 2 절대 방어선 👇👇
+      if (rule.type === '1형식_무의지동사_예문2' && detectedRoles.includes('LIV_He') && detectedRoles.includes('LIV_Lived') && detectedRoles.includes('LIV_Meet')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 무의지동사 1형식 예문 1 절대 방어선 👇👇
+      if (rule.type === '1형식_무의지동사_예문1' && detectedRoles.includes('NVO_Child') && detectedRoles.includes('NVO_Grew') && detectedRoles.includes('NVO_Be')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 의지동사 3형식 예문 5 절대 방어선 👇👇
+      if (rule.type === '3형식_의지동사_예문5' && detectedRoles.includes('ALB_Albert') && detectedRoles.includes('ALB_Used') && (detectedRoles.includes('ALB_Make1') || detectedRoles.includes('ALB_Make2'))) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 의지동사 3형식 예문 4 절대 방어선 👇👇
+      if (rule.type === '3형식_의지동사_예문4' && detectedRoles.includes('PRG_We') && detectedRoles.includes('PRG_Made') && detectedRoles.includes('PRG_Program') && detectedRoles.includes('PRG_Teach')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 의지동사 3형식 예문 3 절대 방어선 👇👇
+      if (rule.type === '3형식_의지동사_예문3' && detectedRoles.includes('BOU_He') && detectedRoles.includes('BOU_Bought') && detectedRoles.includes('BOU_House')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 의지동사 1형식 예문 2 절대 방어선 👇👇
+      if (rule.type === '1형식_의지동사_예문2' && detectedRoles.includes('GAT_We') && detectedRoles.includes('GAT_Gathered') && detectedRoles.includes('GAT_Thing')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 의지동사 1형식 예문 1 절대 방어선 👇👇
+      if (rule.type === '1형식_의지동사_예문1' && detectedRoles.includes('VOL_He') && detectedRoles.includes('VOL_Came') && detectedRoles.includes('VOL_See')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 부사의 결과 표시 2형식 예문 3 절대 방어선 👇👇
+      if (rule.type === '2형식_부사결과_예문3' && detectedRoles.includes('IDL_He') && detectedRoles.includes('IDL_Idle') && detectedRoles.includes('IDL_Too')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 부사의 결과 표시 2형식 예문 2 절대 방어선 👇👇
+      if (rule.type === '2형식_부사결과_예문2' && detectedRoles.includes('CLV_Boy') && detectedRoles.includes('CLV_Clever') && detectedRoles.includes('CLV_Enough')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 부사의 결과 표시 1형식 예문 1 절대 방어선 👇👇
+      if (rule.type === '1형식_부사결과_예문1' && detectedRoles.includes('TRN_He') && detectedRoles.includes('TRN_GotUp') && detectedRoles.includes('TRN_AsTo')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 부사구 2형식 예문 4 절대 방어선 👇👇
+      if (rule.type === '2형식_부사구_예문4' && detectedRoles.includes('WTR_Water') && detectedRoles.includes('WTR_Is') && detectedRoles.includes('WTR_Good') && detectedRoles.includes('WTR_Drink')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 부사구 2형식 예문 3 절대 방어선 👇👇
+      if (rule.type === '2형식_부사구_예문3' && detectedRoles.includes('DIA_Diagram') && detectedRoles.includes('DIA_Is') && detectedRoles.includes('DIA_Convenient') && detectedRoles.includes('DIA_Teach')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 부사구 2형식 예문 2 절대 방어선 👇👇
+      if (rule.type === '2형식_부사구_예문2' && detectedRoles.includes('SAD_They') && detectedRoles.includes('SAD_Were') && detectedRoles.includes('SAD_Sad') && detectedRoles.includes('SAD_Not')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 부사구 2형식 예문 1 절대 방어선 👇👇
+      if (rule.type === '2형식_부사구_예문1' && detectedRoles.includes('GLD_I') && detectedRoles.includes('GLD_Am') && detectedRoles.includes('GLD_Glad') && detectedRoles.includes('GLD_Meet')) { selectedForm = rule; break; }
+     
      // 👇👇 💡 [수프로 엣지] 형용사구 3형식 예문 7 절대 방어선 👇👇
       if (rule.type === '3형식_형용사구_예문7' && detectedRoles.includes('KNG_King') && detectedRoles.includes('KNG_Gave') && detectedRoles.includes('KNG_Man')) { selectedForm = rule; break; }
      
@@ -1946,6 +2311,77 @@ export async function POST(request: Request) {
     }
     let finalTranslation = finalKoreanWords.join(' ')
 // 여기 아래에 두번 Enter 후 paste
+      
+      // 👇👇 💡 [수프로 엣지] 무의지동사 1형식 예문 3 스마트 보정 👇👇
+      .replace(/살았다\s*그래서/g, '살아서')
+      .replace(/너를\s*만났다/g, '너를 만났다.')
+      
+      // 👇👇 💡 [수프로 엣지] 무의지동사 1형식 예문 2 스마트 보정 👇👇
+      .replace(/살았다\s*서/g, '살아서')
+      .replace(/손자를\s*다시\s*만나다/g, '손자를 다시 만났다')
+      .replace(/손자를\s*만나다/g, '손자를 만났다') // again이 생략되었을 때 대응
+      
+      // 👇👇 💡 [수프로 엣지] 무의지동사 1형식 예문 1 스마트 보정 👇👇
+      .replace(/자랐다\s*서/g, '자라서')
+      .replace(/청년이\s*되다/g, '청년이 되었다')
+      
+      // 👇👇 💡 [수프로 엣지] 의지동사 3형식 예문 5 스마트 보정 👇👇
+      .replace(/짓다\s*고/g, '짓고')
+      .replace(/앓다\s*ㄴ/g, '앓는')
+      .replace(/마련하다\s*하기\s*위해\s*하기위해/g, '마련하기 위해') // 👈 중복 충돌 완벽 해결!
+      .replace(/마련하다\s*하기\s*위해/g, '마련하기 위해')
+      .replace(/마련하다\s*하기위해/g, '마련하기 위해')
+      .replace(/짓다\s*하기위해/g, '짓기 위해') // (and 이하가 생략되었을 때 대응)
+      .replace(/이용했다/g, '사용했다')
+      
+      // 👇👇 💡 [수프로 엣지] 의지동사 3형식 예문 4 스마트 보정 👇👇
+      .replace(/나라\s*의/g, '나라의')
+      .replace(/문화\s*관습\s*과\s*예술을/g, '문화와 관습과 예술을') // Variation 1~4 보정
+      .replace(/문화\s*과\s*예술을/g, '문화와 예술을') // Variation 5 보정
+      .replace(/문화\s*가르쳐주다/g, '문화를 가르쳐주다') // Variation 6 보정 (예술이 생략되었을 때 문화를 목적어로)
+      .replace(/가르쳐주다\s*위해서/g, '가르쳐주기 위해서')
+      
+      // 👇👇 💡 [수프로 엣지] 의지동사 3형식 예문 3 스마트 보정 👇👇
+      .replace(/아내\s*와\s*귀여운/g, '아내와 귀여운')
+      .replace(/딸\s*과함께/g, '딸과 함께')
+      .replace(/아내\s*과함께/g, '아내와 함께') // 아내만 남았을 때의 보정
+      .replace(/시골\s*에서/g, '시골에서')
+      .replace(/살다\s*위해서/g, '살기 위해서')
+      
+      // 👇👇 💡 [수프로 엣지] 의지동사 1형식 예문 2 스마트 보정 👇👇
+      .replace(/중요한 일\s*에대해/g, '중요한 일에 대해')
+      .replace(/의논하다\s*~하기위해/g, '의논하기 위해')
+      .replace(/여기에\s*모였다/g, '여기 모였다')
+      
+      // 👇👇 💡 [수프로 엣지] 의지동사 1형식 예문 1 스마트 보정 👇👇
+      .replace(/만날\s*목적으로/g, '만날 목적으로')
+      
+      // 👇👇 💡 [수프로 엣지] 부사의 결과 표시 2형식 예문 3 스마트 보정 👇👇
+      .replace(/게으른\s*이다\s*그래서/g, '게으르다. 그래서')
+      
+      // 👇👇 💡 [수프로 엣지] 부사의 결과 표시 2형식 예문 2 스마트 보정 👇👇
+      .replace(/영리한\s*이다\s*그래서/g, '영리하다. 그래서')
+      
+      // 👇👇 💡 [수프로 엣지] 부사의 결과 표시 1형식 예문 1 스마트 보정 👇👇
+      .replace(/일어났다\s*그래서/g, '일어났다. 그래서')
+      .replace(/기차를\s*놓치다/g, '기차를 놓쳤다')
+      
+      // 👇👇 💡 [수프로 엣지] 부사구 2형식 예문 4 스마트 보정 👇👇
+      .replace(/마시다\s*~하기에/g, '마시기에')
+      .replace(/좋은\s*이다/g, '좋다')
+      
+      // 👇👇 💡 [수프로 엣지] 부사구 2형식 예문 3 스마트 보정 👇👇
+      .replace(/강의하다\s*~하기에/g, '강의하기에')
+      .replace(/편리한\s*이다/g, '편리하다')
+      
+      // 👇👇 💡 [수프로 엣지] 부사구 2형식 예문 2 스마트 보정 👇👇
+      .replace(/가족\s*의/g, '가족의')
+      .replace(/듣지\s*못하다\s*~하기때문에/g, '듣지 못했기 때문에')
+      .replace(/슬픈\s*이었다/g, '슬펐다')
+      
+      // 👇👇 💡 [수프로 엣지] 부사구 2형식 예문 1 스마트 보정 👇👇
+      .replace(/만나다\s*~하니/g, '만나니')
+      .replace(/기쁜\s*이다/g, '기쁘다')
       
       // 👇👇 💡 [수프로 엣지] 형용사구 3형식 예문 7 스마트 보정 👇👇
       .replace(/시작하다\s*ㄴ/g, '시작할')
