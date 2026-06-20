@@ -357,6 +357,36 @@ const FORM_RULES = [
   { type: '1형식_무의지동사_예문2', requiredRoles: ['LIV_He', 'LIV_Lived', 'LIV_To', 'LIV_Meet', 'LIV_Grandson'], koreanOrder: ['LIV_He', 'LIV_Long', 'LIV_Lived', 'LIV_To', 'LIV_His', 'LIV_Grandson', 'LIV_Again', 'LIV_Meet'] },
   // 💡 [수프로 엣지] 영한 <1형식> 무의지동사 예문 3 (이곳에 살아서 완벽 대응 레일)
   { type: '1형식_무의지동사_예문3', requiredRoles: ['LIV2_He', 'LIV2_Lived', 'LIV2_To', 'LIV2_See', 'LIV2_You'], koreanOrder: ['LIV2_He', 'LIV2_Here', 'LIV2_Lived', 'LIV2_To', 'LIV2_You', 'LIV2_See'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 동사의 형식 예문 1 (책 판매 완벽 대응 레일)
+  { type: '1형식_동사_예문1', requiredRoles: ['SELL_Book', 'SELL_Sells'], koreanOrder: ['SELL_The', 'SELL_Book', 'SELL_Well', 'SELL_Sells'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 동사의 형식 예문 2 (새의 노래 완벽 대응 레일)
+  { type: '1형식_동사_예문2', requiredRoles: ['SNG_Bird', 'SNG_Sings'], koreanOrder: ['SNG_The', 'SNG_Bird', 'SNG_Sweetly', 'SNG_Sings'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 동사의 형식 예문 3 (역에서 논다 완벽 대응 레일)
+  { type: '1형식_동사_예문3', requiredRoles: ['PLY_He', 'PLY_Plays'], koreanOrder: ['PLY_He', 'PLY_Every', 'PLY_Night', 'PLY_TheStation', 'PLY_At', 'PLY_Plays'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 동사의 형식 예문 4 (서울에서 왔다 완벽 대응 레일)
+  { type: '1형식_동사_예문4', requiredRoles: ['CME_He', 'CME_Came'], koreanOrder: ['CME_He', 'CME_LastYear', 'CME_Seoul', 'CME_From', 'CME_Came'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 동사의 형식 예문 5 (낡은 집 거주 완벽 대응 레일)
+  { type: '1형식_동사_예문5', requiredRoles: ['LIVH_He', 'LIVH_Lived', 'LIVH_In'], koreanOrder: ['LIVH_He', 'LIVH_AVeryOldHouse', 'LIVH_OldHouse', 'LIVH_AHouse', 'LIVH_In', 'LIVH_Lived'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 동사의 형식 예문 6 (존의 서울 거주 완벽 대응 레일)
+  { type: '1형식_동사_예문6', requiredRoles: ['JHN_John', 'JHN_HasLived'], koreanOrder: ['JHN_John', 'JHN_Seoul', 'JHN_In', 'JHN_20Years', 'JHN_For', 'JHN_HasLived'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 동사의 형식 예문 7 (호텔 머물기 완벽 대응 레일)
+  { type: '1형식_동사_예문7', requiredRoles: ['STY_John', 'STY_WillStay'], koreanOrder: ['STY_John', 'STY_This', 'STY_WinterVacation', 'STY_Winter', 'STY_Vacation', 'STY_During', 'STY_The', 'STY_Hotel', 'STY_At', 'STY_WillStay'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 동사의 형식 예문 8 (예쁜 소녀 완벽 대응 레일)
+  { type: '1형식_동사_예문8', requiredRoles: ['GRL_Girl', 'GRL_Lived'], koreanOrder: ['GRL_A1', 'GRL_Pretty', 'GRL_Girl', 'GRL_ASmallVillage', 'GRL_AVillage', 'GRL_In', 'GRL_Lived'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 동사의 형식 예문 9 (해변 휴가 완벽 대응 레일)
+  { type: '1형식_동사_예문9', requiredRoles: ['BCH_He', 'BCH_WillStay'], koreanOrder: ['BCH_He', 'BCH_This', 'BCH_Summer', 'BCH_Vacation', 'BCH_During', 'BCH_His', 'BCH_Family', 'BCH_With', 'BCH_TheBeach', 'BCH_At', 'BCH_WillStay'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 동사의 형식 예문 10 (유명한 은둔자 완벽 대응 레일)
+  { type: '1형식_동사_예문10', requiredRoles: ['HRM_Hermit', 'HRM_Lives'], koreanOrder: ['HRM_The1', 'HRM_Famous', 'HRM_Hermit', 'HRM_His', 'HRM_Disciples', 'HRM_With', 'HRM_The2', 'HRM_Small', 'HRM_Cabin', 'HRM_In', 'HRM_Lives'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 동사의 형식 예문 11 (백화점 완벽 대응 레일)
+  { type: '1형식_동사_예문11', requiredRoles: ['BOY_Went', 'BOY_DeptStore'], koreanOrder: ['BOY_The', 'BOY_Boy', 'BOY_And', 'BOY_Girl', 'BOY_Janes', 'BOY_House', 'BOY_Near', 'BOY_DeptStore', 'BOY_To', 'BOY_Went'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 동사의 형식 예문 12 (왕과 여왕 나룻배 완벽 대응 레일)
+  { type: '1형식_동사_예문12', requiredRoles: ['KNG_Got', 'KNG_FerryBoat'], koreanOrder: ['KNG_The1', 'KNG_Great', 'KNG_King', 'KNG_And', 'KNG_His', 'KNG_Wise', 'KNG_Queen', 'KNG_Their', 'KNG_Official', 'KNG_Suites', 'KNG_With', 'KNG_The2', 'KNG_Elegant', 'KNG_FerryBoat', 'KNG_On', 'KNG_Got'] },
+// 💡 [수프로 엣지] 영한 <1형식> 동사의 형식 예문 13 (큰불 발발 완벽 대응 레일)
+  { type: '1형식_동사_예문13', requiredRoles: ['FIR_Fire', 'FIR_BrokeOut', 'FIR_At'], koreanOrder: ['FIR_A', 'FIR_Big', 'FIR_Fire', 'FIR_Last', 'FIR_Night', 'FIR_In', 'FIR_TheStation', 'FIR_Near', 'FIR_TheBuilding', 'FIR_At', 'FIR_BrokeOut'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 동사의 형식 예문 14 (벽에 걸린 그림 완벽 대응 레일)
+  { type: '1형식_동사_예문14', requiredRoles: ['PIC_Picture', 'PIC_IsHung', 'PIC_Wall'], koreanOrder: ['PIC_A', 'PIC_Strange', 'PIC_Picture', 'PIC_The', 'PIC_Gloomy', 'PIC_Wall', 'PIC_On', 'PIC_IsHung'] },
+  // 💡 [수프로 엣지] 영한 <1형식> 동사의 형식 예문 15 (북한 밀정 기항 완벽 대응 레일)
+  { type: '1형식_동사_예문15', requiredRoles: ['SPY_NorthKorean', 'SPY_Spies', 'SPY_HaveLanded', 'SPY_In'], koreanOrder: ['SPY_Many', 'SPY_NorthKorean', 'SPY_Spies', 'SPY_This', 'SPY_Science', 'SPY_Exposition', 'SPY_During', 'SPY_NorthernJapan', 'SPY_Japan', 'SPY_In', 'SPY_FastBoat', 'SPY_By', 'SPY_Clandestinely', 'SPY_HaveLanded'] },
 ];
 
 // const FORM_RULES = [ 여기 위에 Enter 후에 paste
@@ -405,6 +435,192 @@ export async function POST(request: Request) {
 
 // 여기 아래에 두번 Enter 후 paste
     let processedText = originalText.toLowerCase()
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 15 (7가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체
+      .replace(/(^|\s)many\s+north\s+korean\s+spies\s+have\s+landed\s+clandestinely\s+in\s+northern\s+japan\s+by\s+fast-boat\s+during\s+this\s+science\s+exposition\.?(?!\w)/gi, '$1SPY_Many_Tk SPY_NorthKorean_Tk SPY_Spies_Tk SPY_HaveLanded_Tk SPY_Clandestinely_Tk SPY_In_Tk SPY_NorthernJapan_Tk SPY_By_Tk SPY_FastBoat_Tk SPY_During_Tk SPY_This_Tk SPY_Science_Tk SPY_Exposition_Tk ')
+      // 2. 시간 생략 (during... 생략)
+      .replace(/(^|\s)many\s+north\s+korean\s+spies\s+have\s+landed\s+clandestinely\s+in\s+northern\s+japan\s+by\s+fast-boat\.?(?!\w)/gi, '$1SPY_Many_Tk SPY_NorthKorean_Tk SPY_Spies_Tk SPY_HaveLanded_Tk SPY_Clandestinely_Tk SPY_In_Tk SPY_NorthernJapan_Tk SPY_By_Tk SPY_FastBoat_Tk ')
+      // 3. 몰래, 쾌속정, 과학 생략
+      .replace(/(^|\s)many\s+north\s+korean\s+spies\s+have\s+landed\s+in\s+northern\s+japan\s+during\s+this\s+exposition\.?(?!\w)/gi, '$1SPY_Many_Tk SPY_NorthKorean_Tk SPY_Spies_Tk SPY_HaveLanded_Tk SPY_In_Tk SPY_NorthernJapan_Tk SPY_During_Tk SPY_This_Tk SPY_Exposition_Tk ')
+      // 4. 수많은, 북방(일본), 몰래, 쾌속정 생략
+      .replace(/(^|\s)north\s+korean\s+spies\s+have\s+landed\s+in\s+japan\s+during\s+this\s+science\s+exposition\.?(?!\w)/gi, '$1SPY_NorthKorean_Tk SPY_Spies_Tk SPY_HaveLanded_Tk SPY_In_Tk SPY_Japan_Tk SPY_During_Tk SPY_This_Tk SPY_Science_Tk SPY_Exposition_Tk ')
+      // 5. 수많은, 몰래, 쾌속정, 과학 생략
+      .replace(/(^|\s)north\s+korean\s+spies\s+have\s+landed\s+in\s+northern\s+japan\s+during\s+this\s+exposition\.?(?!\w)/gi, '$1SPY_NorthKorean_Tk SPY_Spies_Tk SPY_HaveLanded_Tk SPY_In_Tk SPY_NorthernJapan_Tk SPY_During_Tk SPY_This_Tk SPY_Exposition_Tk ')
+      // 6. 수많은, 몰래, 시간 생략 (쾌속정 포함)
+      .replace(/(^|\s)north\s+korean\s+spies\s+have\s+landed\s+in\s+northern\s+japan\s+by\s+fast-boat\.?(?!\w)/gi, '$1SPY_NorthKorean_Tk SPY_Spies_Tk SPY_HaveLanded_Tk SPY_In_Tk SPY_NorthernJapan_Tk SPY_By_Tk SPY_FastBoat_Tk ')
+      // 7. 뼈대만 (in Japan)
+      .replace(/(^|\s)north\s+korean\s+spies\s+have\s+landed\s+in\s+japan\.?(?!\w)/gi, '$1SPY_NorthKorean_Tk SPY_Spies_Tk SPY_HaveLanded_Tk SPY_In_Tk SPY_Japan_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 14 (4가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (strange, gloomy 모두 포함)
+      .replace(/(^|\s)a\s+strange\s+picture\s+is\s+hung\s+on\s+the\s+gloomy\s+wall\.?(?!\w)/gi, '$1PIC_A_Tk PIC_Strange_Tk PIC_Picture_Tk PIC_IsHung_Tk PIC_On_Tk PIC_The_Tk PIC_Gloomy_Tk PIC_Wall_Tk ')
+      // 2. gloomy 생략 (strange 포함)
+      .replace(/(^|\s)a\s+strange\s+picture\s+is\s+hung\s+on\s+the\s+wall\.?(?!\w)/gi, '$1PIC_A_Tk PIC_Strange_Tk PIC_Picture_Tk PIC_IsHung_Tk PIC_On_Tk PIC_The_Tk PIC_Wall_Tk ')
+      // 3. strange 생략 (gloomy 포함)
+      .replace(/(^|\s)a\s+picture\s+is\s+hung\s+on\s+the\s+gloomy\s+wall\.?(?!\w)/gi, '$1PIC_A_Tk PIC_Picture_Tk PIC_IsHung_Tk PIC_On_Tk PIC_The_Tk PIC_Gloomy_Tk PIC_Wall_Tk ')
+      // 4. strange, gloomy 모두 생략 (뼈대만)
+      .replace(/(^|\s)a\s+picture\s+is\s+hung\s+on\s+the\s+wall\.?(?!\w)/gi, '$1PIC_A_Tk PIC_Picture_Tk PIC_IsHung_Tk PIC_On_Tk PIC_The_Tk PIC_Wall_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 13 (7가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체
+      .replace(/(^|\s)a\s+big\s+fire\s+broke\s+out\s+at\s+the\s+building\s+near\s+the\s+station\s+in\s+last\s+night\.?(?!\w)/gi, '$1FIR_A_Tk FIR_Big_Tk FIR_Fire_Tk FIR_BrokeOut_Tk FIR_At_Tk FIR_TheBuilding_Tk FIR_Near_Tk FIR_TheStation_Tk FIR_In_Tk FIR_Last_Tk FIR_Night_Tk ')
+      // 2. 시간 생략 (in last night)
+      .replace(/(^|\s)a\s+big\s+fire\s+broke\s+out\s+at\s+the\s+building\s+near\s+the\s+station\.?(?!\w)/gi, '$1FIR_A_Tk FIR_Big_Tk FIR_Fire_Tk FIR_BrokeOut_Tk FIR_At_Tk FIR_TheBuilding_Tk FIR_Near_Tk FIR_TheStation_Tk ')
+      // 3. 장소 수식어 생략 (near the station 생략)
+      .replace(/(^|\s)a\s+big\s+fire\s+broke\s+out\s+at\s+the\s+building\s+in\s+last\s+night\.?(?!\w)/gi, '$1FIR_A_Tk FIR_Big_Tk FIR_Fire_Tk FIR_BrokeOut_Tk FIR_At_Tk FIR_TheBuilding_Tk FIR_In_Tk FIR_Last_Tk FIR_Night_Tk ')
+      // 4. big, near the station 생략 (A fire ... at the building in last night)
+      .replace(/(^|\s)a\s+fire\s+broke\s+out\s+at\s+the\s+building\s+in\s+last\s+night\.?(?!\w)/gi, '$1FIR_A_Tk FIR_Fire_Tk FIR_BrokeOut_Tk FIR_At_Tk FIR_TheBuilding_Tk FIR_In_Tk FIR_Last_Tk FIR_Night_Tk ')
+      // 5. big, building 생략 (A fire ... at the station in last night)
+      .replace(/(^|\s)a\s+fire\s+broke\s+out\s+at\s+the\s+station\s+in\s+last\s+night\.?(?!\w)/gi, '$1FIR_A_Tk FIR_Fire_Tk FIR_BrokeOut_Tk FIR_At_Tk FIR_TheStation_Tk FIR_In_Tk FIR_Last_Tk FIR_Night_Tk ')
+      // 6. big, 수식어, 시간 생략 (A fire ... at the building)
+      .replace(/(^|\s)a\s+fire\s+broke\s+out\s+at\s+the\s+building\.?(?!\w)/gi, '$1FIR_A_Tk FIR_Fire_Tk FIR_BrokeOut_Tk FIR_At_Tk FIR_TheBuilding_Tk ')
+      // 7. big, building, 시간 생략 (A fire ... at the station)
+      .replace(/(^|\s)a\s+fire\s+broke\s+out\s+at\s+the\s+station\.?(?!\w)/gi, '$1FIR_A_Tk FIR_Fire_Tk FIR_BrokeOut_Tk FIR_At_Tk FIR_TheStation_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 12 (6가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체
+      .replace(/(^|\s)the\s+great\s+king\s+and\s+his\s+wise\s+queen\s+got\s+on\s+the\s+elegant\s+ferry-boat\s+with\s+their\s+official\s+suites\.?(?!\w)/gi, '$1KNG_The1_Tk KNG_Great_Tk KNG_King_Tk KNG_And_Tk KNG_His_Tk KNG_Wise_Tk KNG_Queen_Tk KNG_Got_Tk KNG_On_Tk KNG_The2_Tk KNG_Elegant_Tk KNG_FerryBoat_Tk KNG_With_Tk KNG_Their_Tk KNG_Official_Tk KNG_Suites_Tk ')
+      // 2. 동행 부사구 생략 (with their official suites 생략)
+      .replace(/(^|\s)the\s+great\s+king\s+and\s+his\s+wise\s+queen\s+got\s+on\s+the\s+elegant\s+ferry-boat\.?(?!\w)/gi, '$1KNG_The1_Tk KNG_Great_Tk KNG_King_Tk KNG_And_Tk KNG_His_Tk KNG_Wise_Tk KNG_Queen_Tk KNG_Got_Tk KNG_On_Tk KNG_The2_Tk KNG_Elegant_Tk KNG_FerryBoat_Tk ')
+      // 3. great, elegant 생략
+      .replace(/(^|\s)the\s+king\s+and\s+his\s+wise\s+queen\s+got\s+on\s+the\s+ferry-boat\s+with\s+their\s+official\s+suites\.?(?!\w)/gi, '$1KNG_The1_Tk KNG_King_Tk KNG_And_Tk KNG_His_Tk KNG_Wise_Tk KNG_Queen_Tk KNG_Got_Tk KNG_On_Tk KNG_The2_Tk KNG_FerryBoat_Tk KNG_With_Tk KNG_Their_Tk KNG_Official_Tk KNG_Suites_Tk ')
+      // 4. great, wise, 동행 부사구 생략
+      .replace(/(^|\s)the\s+king\s+and\s+his\s+queen\s+got\s+on\s+the\s+elegant\s+ferry-boat\.?(?!\w)/gi, '$1KNG_The1_Tk KNG_King_Tk KNG_And_Tk KNG_His_Tk KNG_Queen_Tk KNG_Got_Tk KNG_On_Tk KNG_The2_Tk KNG_Elegant_Tk KNG_FerryBoat_Tk ')
+      // 5. King 단독 주어
+      .replace(/(^|\s)the\s+king\s+got\s+on\s+the\s+elegant\s+ferry-boat\.?(?!\w)/gi, '$1KNG_The1_Tk KNG_King_Tk KNG_Got_Tk KNG_On_Tk KNG_The2_Tk KNG_Elegant_Tk KNG_FerryBoat_Tk ')
+      // 6. Queen 단독 주어
+      .replace(/(^|\s)the\s+queen\s+got\s+on\s+the\s+elegant\s+ferry-boat\.?(?!\w)/gi, '$1KNG_The1_Tk KNG_Queen_Tk KNG_Got_Tk KNG_On_Tk KNG_The2_Tk KNG_Elegant_Tk KNG_FerryBoat_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 11 (6가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (소년과 소녀, 제인의 집 근처)
+      .replace(/(^|\s)the\s+boy\s+and\s+girl\s+went\s+to\s+the\s+department\s+store\s+near\s+jane's\s+house\.?(?!\w)/gi, '$1BOY_The_Tk BOY_Boy_Tk BOY_And_Tk BOY_Girl_Tk BOY_Went_Tk BOY_To_Tk BOY_DeptStore_Tk BOY_Near_Tk BOY_Janes_Tk BOY_House_Tk ')
+      // 2. near Jane's house 생략
+      .replace(/(^|\s)the\s+boy\s+and\s+girl\s+went\s+to\s+the\s+department\s+store\.?(?!\w)/gi, '$1BOY_The_Tk BOY_Boy_Tk BOY_And_Tk BOY_Girl_Tk BOY_Went_Tk BOY_To_Tk BOY_DeptStore_Tk ')
+      // 3. and girl 생략 (소년 단독 완전체)
+      .replace(/(^|\s)the\s+boy\s+went\s+to\s+the\s+department\s+store\s+near\s+jane's\s+house\.?(?!\w)/gi, '$1BOY_The_Tk BOY_Boy_Tk BOY_Went_Tk BOY_To_Tk BOY_DeptStore_Tk BOY_Near_Tk BOY_Janes_Tk BOY_House_Tk ')
+      // 4. boy and, Jane's 생략 (소녀 단독, near house)
+      .replace(/(^|\s)the\s+girl\s+went\s+to\s+the\s+department\s+store\s+near\s+house\.?(?!\w)/gi, '$1BOY_The_Tk BOY_Girl_Tk BOY_Went_Tk BOY_To_Tk BOY_DeptStore_Tk BOY_Near_Tk BOY_House_Tk ')
+      // 5. 소년 단독, 장소(near 이하) 생략
+      .replace(/(^|\s)the\s+boy\s+went\s+to\s+the\s+department\s+store\.?(?!\w)/gi, '$1BOY_The_Tk BOY_Boy_Tk BOY_Went_Tk BOY_To_Tk BOY_DeptStore_Tk ')
+      // 6. 소녀 단독, 장소(near 이하) 생략
+      .replace(/(^|\s)the\s+girl\s+went\s+to\s+the\s+department\s+store\.?(?!\w)/gi, '$1BOY_The_Tk BOY_Girl_Tk BOY_Went_Tk BOY_To_Tk BOY_DeptStore_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 10 (6가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체
+      .replace(/(^|\s)the\s+famous\s+hermit\s+lives\s+in\s+the\s+small\s+cabin\s+with\s+his\s+disciples\.?(?!\w)/gi, '$1HRM_The1_Tk HRM_Famous_Tk HRM_Hermit_Tk HRM_Lives_Tk HRM_In_Tk HRM_The2_Tk HRM_Small_Tk HRM_Cabin_Tk HRM_With_Tk HRM_His_Tk HRM_Disciples_Tk ')
+      // 2. 동행 생략 (with his disciples 생략)
+      .replace(/(^|\s)the\s+famous\s+hermit\s+lives\s+in\s+the\s+small\s+cabin\.?(?!\w)/gi, '$1HRM_The1_Tk HRM_Famous_Tk HRM_Hermit_Tk HRM_Lives_Tk HRM_In_Tk HRM_The2_Tk HRM_Small_Tk HRM_Cabin_Tk ')
+      // 3. 장소 생략 (in the small cabin 생략)
+      .replace(/(^|\s)the\s+famous\s+hermit\s+lives\s+with\s+his\s+disciples\.?(?!\w)/gi, '$1HRM_The1_Tk HRM_Famous_Tk HRM_Hermit_Tk HRM_Lives_Tk HRM_With_Tk HRM_His_Tk HRM_Disciples_Tk ')
+      // 4. 형용사 + 동행 생략 (famous, with his disciples 생략)
+      .replace(/(^|\s)the\s+hermit\s+lives\s+in\s+the\s+small\s+cabin\.?(?!\w)/gi, '$1HRM_The1_Tk HRM_Hermit_Tk HRM_Lives_Tk HRM_In_Tk HRM_The2_Tk HRM_Small_Tk HRM_Cabin_Tk ')
+      // 5. 형용사 + 장소 생략 (famous, in the small cabin 생략)
+      .replace(/(^|\s)the\s+hermit\s+lives\s+with\s+his\s+disciples\.?(?!\w)/gi, '$1HRM_The1_Tk HRM_Hermit_Tk HRM_Lives_Tk HRM_With_Tk HRM_His_Tk HRM_Disciples_Tk ')
+      // 6. 모두 생략 (뼈대만)
+      .replace(/(^|\s)the\s+hermit\s+lives\.?(?!\w)/gi, '$1HRM_The1_Tk HRM_Hermit_Tk HRM_Lives_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 9 (11가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체
+      .replace(/(^|\s)he\s+will\s+stay\s+at\s+the\s+beach\s+with\s+his\s+family\s+during\s+this\s+summer\s+vacation\.?(?!\w)/gi, '$1BCH_He_Tk BCH_WillStay_Tk BCH_At_Tk BCH_TheBeach_Tk BCH_With_Tk BCH_His_Tk BCH_Family_Tk BCH_During_Tk BCH_This_Tk BCH_Summer_Tk BCH_Vacation_Tk ')
+      // 2. 시간(vacation) 생략
+      .replace(/(^|\s)he\s+will\s+stay\s+at\s+the\s+beach\s+with\s+his\s+family\s+during\s+this\s+summer\.?(?!\w)/gi, '$1BCH_He_Tk BCH_WillStay_Tk BCH_At_Tk BCH_TheBeach_Tk BCH_With_Tk BCH_His_Tk BCH_Family_Tk BCH_During_Tk BCH_This_Tk BCH_Summer_Tk ')
+      // 3. 시간(summer) 생략
+      .replace(/(^|\s)he\s+will\s+stay\s+at\s+the\s+beach\s+with\s+his\s+family\s+during\s+this\s+vacation\.?(?!\w)/gi, '$1BCH_He_Tk BCH_WillStay_Tk BCH_At_Tk BCH_TheBeach_Tk BCH_With_Tk BCH_His_Tk BCH_Family_Tk BCH_During_Tk BCH_This_Tk BCH_Vacation_Tk ')
+      // 4. 시간 전체 생략 (장소 + 동행)
+      .replace(/(^|\s)he\s+will\s+stay\s+at\s+the\s+beach\s+with\s+his\s+family\.?(?!\w)/gi, '$1BCH_He_Tk BCH_WillStay_Tk BCH_At_Tk BCH_TheBeach_Tk BCH_With_Tk BCH_His_Tk BCH_Family_Tk ')
+      // 5. 동행 생략 (장소 + 시간 완전체)
+      .replace(/(^|\s)he\s+will\s+stay\s+at\s+the\s+beach\s+during\s+this\s+summer\s+vacation\.?(?!\w)/gi, '$1BCH_He_Tk BCH_WillStay_Tk BCH_At_Tk BCH_TheBeach_Tk BCH_During_Tk BCH_This_Tk BCH_Summer_Tk BCH_Vacation_Tk ')
+      // 6. 장소 생략 (동행 + 시간 완전체)
+      .replace(/(^|\s)he\s+will\s+stay\s+with\s+his\s+family\s+during\s+this\s+summer\s+vacation\.?(?!\w)/gi, '$1BCH_He_Tk BCH_WillStay_Tk BCH_With_Tk BCH_His_Tk BCH_Family_Tk BCH_During_Tk BCH_This_Tk BCH_Summer_Tk BCH_Vacation_Tk ')
+      // 7. 장소 단독
+      .replace(/(^|\s)he\s+will\s+stay\s+at\s+the\s+beach\.?(?!\w)/gi, '$1BCH_He_Tk BCH_WillStay_Tk BCH_At_Tk BCH_TheBeach_Tk ')
+      // 8. 동행 단독
+      .replace(/(^|\s)he\s+will\s+stay\s+with\s+his\s+family\.?(?!\w)/gi, '$1BCH_He_Tk BCH_WillStay_Tk BCH_With_Tk BCH_His_Tk BCH_Family_Tk ')
+      // 9. 시간(summer) 단독
+      .replace(/(^|\s)he\s+will\s+stay\s+during\s+this\s+summer\.?(?!\w)/gi, '$1BCH_He_Tk BCH_WillStay_Tk BCH_During_Tk BCH_This_Tk BCH_Summer_Tk ')
+      // 10. 시간(vacation) 단독
+      .replace(/(^|\s)he\s+will\s+stay\s+during\s+this\s+vacation\.?(?!\w)/gi, '$1BCH_He_Tk BCH_WillStay_Tk BCH_During_Tk BCH_This_Tk BCH_Vacation_Tk ')
+      // 11. 뼈대만
+      .replace(/(^|\s)he\s+will\s+stay\.?(?!\w)/gi, '$1BCH_He_Tk BCH_WillStay_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 8 (5가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (pretty, a small village 모두 포함)
+      .replace(/(^|\s)a\s+pretty\s+girl\s+lived\s+in\s+a\s+small\s+village\.?(?!\w)/gi, '$1GRL_A1_Tk GRL_Pretty_Tk GRL_Girl_Tk GRL_Lived_Tk GRL_In_Tk GRL_ASmallVillage_Tk ')
+      // 2. small 생략 (pretty, a village)
+      .replace(/(^|\s)a\s+pretty\s+girl\s+lived\s+in\s+a\s+village\.?(?!\w)/gi, '$1GRL_A1_Tk GRL_Pretty_Tk GRL_Girl_Tk GRL_Lived_Tk GRL_In_Tk GRL_AVillage_Tk ')
+      // 3. pretty 생략 (a girl, a small village)
+      .replace(/(^|\s)a\s+girl\s+lived\s+in\s+a\s+small\s+village\.?(?!\w)/gi, '$1GRL_A1_Tk GRL_Girl_Tk GRL_Lived_Tk GRL_In_Tk GRL_ASmallVillage_Tk ')
+      // 4. pretty, small 모두 생략 (a girl, a village)
+      .replace(/(^|\s)a\s+girl\s+lived\s+in\s+a\s+village\.?(?!\w)/gi, '$1GRL_A1_Tk GRL_Girl_Tk GRL_Lived_Tk GRL_In_Tk GRL_AVillage_Tk ')
+      // 5. 부사구 모두 생략 (뼈대만)
+      .replace(/(^|\s)a\s+girl\s+lived\.?(?!\w)/gi, '$1GRL_A1_Tk GRL_Girl_Tk GRL_Lived_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 7 (7가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 장소 + 시간 완전체 (winter vacation)
+      .replace(/(^|\s)john\s+will\s+stay\s+at\s+the\s+hotel\s+during\s+this\s+winter\s+vacation\.?(?!\w)/gi, '$1STY_John_Tk STY_WillStay_Tk STY_At_Tk STY_The_Tk STY_Hotel_Tk STY_During_Tk STY_This_Tk STY_WinterVacation_Tk ')
+      // 2. 장소 + 시간 (vacation 생략)
+      .replace(/(^|\s)john\s+will\s+stay\s+at\s+the\s+hotel\s+during\s+this\s+winter\.?(?!\w)/gi, '$1STY_John_Tk STY_WillStay_Tk STY_At_Tk STY_The_Tk STY_Hotel_Tk STY_During_Tk STY_This_Tk STY_Winter_Tk ')
+      // 3. 장소 + 시간 (winter 생략)
+      .replace(/(^|\s)john\s+will\s+stay\s+at\s+the\s+hotel\s+during\s+this\s+vacation\.?(?!\w)/gi, '$1STY_John_Tk STY_WillStay_Tk STY_At_Tk STY_The_Tk STY_Hotel_Tk STY_During_Tk STY_This_Tk STY_Vacation_Tk ')
+      // 4. 장소 생략 + 시간 완전체
+      .replace(/(^|\s)john\s+will\s+stay\s+during\s+this\s+winter\s+vacation\.?(?!\w)/gi, '$1STY_John_Tk STY_WillStay_Tk STY_During_Tk STY_This_Tk STY_WinterVacation_Tk ')
+      // 5. 장소 생략 + 시간 (vacation 생략)
+      .replace(/(^|\s)john\s+will\s+stay\s+during\s+this\s+winter\.?(?!\w)/gi, '$1STY_John_Tk STY_WillStay_Tk STY_During_Tk STY_This_Tk STY_Winter_Tk ')
+      // 6. 장소 생략 + 시간 (winter 생략)
+      .replace(/(^|\s)john\s+will\s+stay\s+during\s+this\s+vacation\.?(?!\w)/gi, '$1STY_John_Tk STY_WillStay_Tk STY_During_Tk STY_This_Tk STY_Vacation_Tk ')
+      // 7. 장소, 시간 모두 생략 (뼈대만)
+      .replace(/(^|\s)john\s+will\s+stay\.?(?!\w)/gi, '$1STY_John_Tk STY_WillStay_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 6 (4가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (in Seoul, for 20 years 모두 포함)
+      .replace(/(^|\s)john\s+has\s+lived\s+in\s+seoul\s+for\s+20\s+years\.?(?!\w)/gi, '$1JHN_John_Tk JHN_HasLived_Tk JHN_In_Tk JHN_Seoul_Tk JHN_For_Tk JHN_20Years_Tk ')
+      // 2. for 20 years 생략 (장소만 포함)
+      .replace(/(^|\s)john\s+has\s+lived\s+in\s+seoul\.?(?!\w)/gi, '$1JHN_John_Tk JHN_HasLived_Tk JHN_In_Tk JHN_Seoul_Tk ')
+      // 3. in Seoul 생략 (시간만 포함)
+      .replace(/(^|\s)john\s+has\s+lived\s+for\s+20\s+years\.?(?!\w)/gi, '$1JHN_John_Tk JHN_HasLived_Tk JHN_For_Tk JHN_20Years_Tk ')
+      // 4. in Seoul, for 20 years 모두 생략 (뼈대만)
+      .replace(/(^|\s)john\s+has\s+lived\.?(?!\w)/gi, '$1JHN_John_Tk JHN_HasLived_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 5 (3가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (a very old house)
+      .replace(/(^|\s)he\s+lived\s+in\s+a\s+very\s+old\s+house\.?(?!\w)/gi, '$1LIVH_He_Tk LIVH_Lived_Tk LIVH_In_Tk LIVH_AVeryOldHouse_Tk ')
+      // 2. a very 생략 (old house)
+      .replace(/(^|\s)he\s+lived\s+in\s+old\s+house\.?(?!\w)/gi, '$1LIVH_He_Tk LIVH_Lived_Tk LIVH_In_Tk LIVH_OldHouse_Tk ')
+      // 3. very old 생략 (a house)
+      .replace(/(^|\s)he\s+lived\s+in\s+a\s+house\.?(?!\w)/gi, '$1LIVH_He_Tk LIVH_Lived_Tk LIVH_In_Tk LIVH_AHouse_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 4 (4가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (from Seoul, last year 모두 포함)
+      .replace(/(^|\s)he\s+came\s+from\s+seoul\s+last\s+year\.?(?!\w)/gi, '$1CME_He_Tk CME_Came_Tk CME_From_Tk CME_Seoul_Tk CME_LastYear_Tk ')
+      // 2. last year 생략 (from Seoul만 포함)
+      .replace(/(^|\s)he\s+came\s+from\s+seoul\.?(?!\w)/gi, '$1CME_He_Tk CME_Came_Tk CME_From_Tk CME_Seoul_Tk ')
+      // 3. from Seoul 생략 (last year만 포함)
+      .replace(/(^|\s)he\s+came\s+last\s+year\.?(?!\w)/gi, '$1CME_He_Tk CME_Came_Tk CME_LastYear_Tk ')
+      // 4. from Seoul, last year 모두 생략 (뼈대만)
+      .replace(/(^|\s)he\s+came\.?(?!\w)/gi, '$1CME_He_Tk CME_Came_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 3 (백지 오류 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (장소, 시간 모두 포함)
+      .replace(/(^|\s)he\s+plays\s+at\s+the\s+station\s+every\s+night\.?(?!\w)/gi, '$1PLY_He_Tk PLY_Plays_Tk PLY_At_Tk PLY_TheStation_Tk PLY_Every_Tk PLY_Night_Tk ')
+      // 2. 시간 생략 (장소만 포함)
+      .replace(/(^|\s)he\s+plays\s+at\s+the\s+station\.?(?!\w)/gi, '$1PLY_He_Tk PLY_Plays_Tk PLY_At_Tk PLY_TheStation_Tk ')
+      // 3. 장소 생략 (시간만 포함)
+      .replace(/(^|\s)he\s+plays\s+every\s+night\.?(?!\w)/gi, '$1PLY_He_Tk PLY_Plays_Tk PLY_Every_Tk PLY_Night_Tk ')
+      // 4. 장소, 시간 모두 생략 (뼈대만)
+      .replace(/(^|\s)he\s+plays\.?(?!\w)/gi, '$1PLY_He_Tk PLY_Plays_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 2 (백지 오류 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (sweetly 포함)
+      .replace(/(^|\s)the\s+bird\s+sings\s+sweetly\.?(?!\w)/gi, '$1SNG_The_Tk SNG_Bird_Tk SNG_Sings_Tk SNG_Sweetly_Tk ')
+      // 2. sweetly 생략
+      .replace(/(^|\s)the\s+bird\s+sings\.?(?!\w)/gi, '$1SNG_The_Tk SNG_Bird_Tk SNG_Sings_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 1 (예약하다 오역 원천 차단! 최상단 배치!) 👇👇
+      // 1. 완전체 (well 포함)
+      .replace(/(^|\s)the\s+book\s+sells\s+well\.?(?!\w)/gi, '$1SELL_The_Tk SELL_Book_Tk SELL_Sells_Tk SELL_Well_Tk ')
+      // 2. well 생략
+      .replace(/(^|\s)the\s+book\s+sells\.?(?!\w)/gi, '$1SELL_The_Tk SELL_Book_Tk SELL_Sells_Tk ')
       
       // 👇👇 💡 [수프로 엣지] 무의지동사 1형식 예문 3 (오역 철벽 방어! 최상단 배치!) 👇👇
       // 1. 완전체 (here 포함)
@@ -1147,6 +1363,165 @@ export async function POST(request: Request) {
 
       // if (word == 여기 아래에 Enter 두번 후 paste
 
+      // 💡 영한 <1형식> 동사의 형식 예문 15 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('SPY_Many_Tk')) { matchedRole = 'SPY_Many'; translatedWord = '수많은'; displayEn = 'Many'; }
+      if (word.includes('SPY_NorthKorean_Tk')) { matchedRole = 'SPY_NorthKorean'; translatedWord = '북한'; displayEn = 'North Korean'; }
+      if (word.includes('SPY_Spies_Tk')) { matchedRole = 'SPY_Spies'; translatedWord = '밀정들이'; displayEn = 'spies'; }
+      if (word.includes('SPY_HaveLanded_Tk')) { matchedRole = 'SPY_HaveLanded'; translatedWord = '기항했다'; displayEn = 'have landed'; }
+      if (word.includes('SPY_Clandestinely_Tk')) { matchedRole = 'SPY_Clandestinely'; translatedWord = '몰래'; displayEn = 'clandestinely'; }
+      if (word.includes('SPY_In_Tk')) { matchedRole = 'SPY_In'; translatedWord = '에'; displayEn = 'in'; }
+      if (word.includes('SPY_NorthernJapan_Tk')) { matchedRole = 'SPY_NorthernJapan'; translatedWord = '북방 일본'; displayEn = 'Northern Japan'; }
+      if (word.includes('SPY_Japan_Tk')) { matchedRole = 'SPY_Japan'; translatedWord = '일본'; displayEn = 'Japan'; }
+      if (word.includes('SPY_By_Tk')) { matchedRole = 'SPY_By'; translatedWord = '으로'; displayEn = 'by'; }
+      if (word.includes('SPY_FastBoat_Tk')) { matchedRole = 'SPY_FastBoat'; translatedWord = '쾌속정'; displayEn = 'fast-boat'; }
+      if (word.includes('SPY_During_Tk')) { matchedRole = 'SPY_During'; translatedWord = '기간에'; displayEn = 'during'; }
+      if (word.includes('SPY_This_Tk')) { matchedRole = 'SPY_This'; translatedWord = '이번'; displayEn = 'this'; }
+      if (word.includes('SPY_Science_Tk')) { matchedRole = 'SPY_Science'; translatedWord = '과학'; displayEn = 'science'; }
+      if (word.includes('SPY_Exposition_Tk')) { matchedRole = 'SPY_Exposition'; translatedWord = '전람회'; displayEn = 'exposition'; }
+      
+      // 💡 영한 <1형식> 동사의 형식 예문 14 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('PIC_A_Tk')) { matchedRole = 'PIC_A'; translatedWord = '어떤'; displayEn = 'A'; }
+      if (word.includes('PIC_Strange_Tk')) { matchedRole = 'PIC_Strange'; translatedWord = '이상한'; displayEn = 'strange'; }
+      if (word.includes('PIC_Picture_Tk')) { matchedRole = 'PIC_Picture'; translatedWord = '그림이'; displayEn = 'picture'; }
+      if (word.includes('PIC_IsHung_Tk')) { matchedRole = 'PIC_IsHung'; translatedWord = '걸려있다'; displayEn = 'is hung'; }
+      if (word.includes('PIC_On_Tk')) { matchedRole = 'PIC_On'; translatedWord = '에'; displayEn = 'on'; }
+      if (word.includes('PIC_The_Tk')) { matchedRole = 'PIC_The'; translatedWord = ''; displayEn = 'the'; } // 해석 생략으로 자연스럽게 처리
+      if (word.includes('PIC_Gloomy_Tk')) { matchedRole = 'PIC_Gloomy'; translatedWord = '우중충한'; displayEn = 'gloomy'; }
+      if (word.includes('PIC_Wall_Tk')) { matchedRole = 'PIC_Wall'; translatedWord = '벽'; displayEn = 'wall'; }
+      
+      // 💡 영한 <1형식> 동사의 형식 예문 13 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('FIR_A_Tk')) { matchedRole = 'FIR_A'; translatedWord = ''; displayEn = 'A'; }
+      if (word.includes('FIR_Big_Tk')) { matchedRole = 'FIR_Big'; translatedWord = '큰'; displayEn = 'big'; }
+      if (word.includes('FIR_Fire_Tk')) { matchedRole = 'FIR_Fire'; translatedWord = '불이'; displayEn = 'fire'; }
+      if (word.includes('FIR_BrokeOut_Tk')) { matchedRole = 'FIR_BrokeOut'; translatedWord = '일어났다'; displayEn = 'broke out'; }
+      if (word.includes('FIR_At_Tk')) { matchedRole = 'FIR_At'; translatedWord = '에서'; displayEn = 'at'; }
+      if (word.includes('FIR_TheBuilding_Tk')) { matchedRole = 'FIR_TheBuilding'; translatedWord = '건물'; displayEn = 'the building'; }
+      if (word.includes('FIR_Near_Tk')) { matchedRole = 'FIR_Near'; translatedWord = '가까이에 있는'; displayEn = 'near'; }
+      if (word.includes('FIR_TheStation_Tk')) { matchedRole = 'FIR_TheStation'; translatedWord = '정거장'; displayEn = 'the station'; }
+      if (word.includes('FIR_In_Tk')) { matchedRole = 'FIR_In'; translatedWord = '에'; displayEn = 'in'; }
+      if (word.includes('FIR_Last_Tk')) { matchedRole = 'FIR_Last'; translatedWord = '지난'; displayEn = 'last'; }
+      if (word.includes('FIR_Night_Tk')) { matchedRole = 'FIR_Night'; translatedWord = '밤'; displayEn = 'night'; }
+      
+      // 💡 영한 <1형식> 동사의 형식 예문 12 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('KNG_The1_Tk')) { matchedRole = 'KNG_The1'; translatedWord = '그'; displayEn = 'The'; }
+      if (word.includes('KNG_Great_Tk')) { matchedRole = 'KNG_Great'; translatedWord = '위대한'; displayEn = 'great'; }
+      if (word.includes('KNG_King_Tk')) { matchedRole = 'KNG_King'; translatedWord = '왕'; displayEn = 'King'; }
+      if (word.includes('KNG_And_Tk')) { matchedRole = 'KNG_And'; translatedWord = '과'; displayEn = 'and'; }
+      if (word.includes('KNG_His_Tk')) { matchedRole = 'KNG_His'; translatedWord = '그의'; displayEn = 'his'; }
+      if (word.includes('KNG_Wise_Tk')) { matchedRole = 'KNG_Wise'; translatedWord = '현명한'; displayEn = 'wise'; }
+      if (word.includes('KNG_Queen_Tk')) { matchedRole = 'KNG_Queen'; translatedWord = '여왕이'; displayEn = 'Queen'; }
+      if (word.includes('KNG_Got_Tk')) { matchedRole = 'KNG_Got'; translatedWord = '탔다'; displayEn = 'got'; }
+      if (word.includes('KNG_On_Tk')) { matchedRole = 'KNG_On'; translatedWord = '에'; displayEn = 'on'; }
+      if (word.includes('KNG_The2_Tk')) { matchedRole = 'KNG_The2'; translatedWord = ''; displayEn = 'the'; } // 두 번째 the는 해석 생략
+      if (word.includes('KNG_Elegant_Tk')) { matchedRole = 'KNG_Elegant'; translatedWord = '아담한'; displayEn = 'elegant'; }
+      if (word.includes('KNG_FerryBoat_Tk')) { matchedRole = 'KNG_FerryBoat'; translatedWord = '나룻배'; displayEn = 'ferry-boat'; }
+      if (word.includes('KNG_With_Tk')) { matchedRole = 'KNG_With'; translatedWord = '과함께'; displayEn = 'with'; } // 최종 다림질에서 '같이'로 변환
+      if (word.includes('KNG_Their_Tk')) { matchedRole = 'KNG_Their'; translatedWord = '그들의'; displayEn = 'their'; }
+      if (word.includes('KNG_Official_Tk')) { matchedRole = 'KNG_Official'; translatedWord = '공식'; displayEn = 'official'; }
+      if (word.includes('KNG_Suites_Tk')) { matchedRole = 'KNG_Suites'; translatedWord = '수행원'; displayEn = 'suites'; }
+      
+      // 💡 영한 <1형식> 동사의 형식 예문 11 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('BOY_The_Tk')) { matchedRole = 'BOY_The'; translatedWord = '그'; displayEn = 'The'; }
+      if (word.includes('BOY_Boy_Tk')) { matchedRole = 'BOY_Boy'; translatedWord = '소년'; displayEn = 'boy'; }
+      if (word.includes('BOY_And_Tk')) { matchedRole = 'BOY_And'; translatedWord = '과'; displayEn = 'and'; }
+      if (word.includes('BOY_Girl_Tk')) { matchedRole = 'BOY_Girl'; translatedWord = '소녀가'; displayEn = 'girl'; }
+      if (word.includes('BOY_Went_Tk')) { matchedRole = 'BOY_Went'; translatedWord = '갔다'; displayEn = 'went'; }
+      if (word.includes('BOY_To_Tk')) { matchedRole = 'BOY_To'; translatedWord = '으로'; displayEn = 'to'; }
+      if (word.includes('BOY_DeptStore_Tk')) { matchedRole = 'BOY_DeptStore'; translatedWord = '백화점'; displayEn = 'the department store'; }
+      if (word.includes('BOY_Near_Tk')) { matchedRole = 'BOY_Near'; translatedWord = '근처에 있는'; displayEn = 'near'; }
+      if (word.includes('BOY_Janes_Tk')) { matchedRole = 'BOY_Janes'; translatedWord = '제인의'; displayEn = "Jane's"; }
+      if (word.includes('BOY_House_Tk')) { matchedRole = 'BOY_House'; translatedWord = '집'; displayEn = 'house'; }
+      
+      // 💡 영한 <1형식> 동사의 형식 예문 10 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('HRM_The1_Tk')) { matchedRole = 'HRM_The1'; translatedWord = '그'; displayEn = 'The'; }
+      if (word.includes('HRM_Famous_Tk')) { matchedRole = 'HRM_Famous'; translatedWord = '유명한'; displayEn = 'famous'; }
+      if (word.includes('HRM_Hermit_Tk')) { matchedRole = 'HRM_Hermit'; translatedWord = '은둔자는'; displayEn = 'hermit'; }
+      if (word.includes('HRM_Lives_Tk')) { matchedRole = 'HRM_Lives'; translatedWord = '살고있다'; displayEn = 'lives'; }
+      if (word.includes('HRM_In_Tk')) { matchedRole = 'HRM_In'; translatedWord = '에서'; displayEn = 'in'; }
+      if (word.includes('HRM_The2_Tk')) { matchedRole = 'HRM_The2'; translatedWord = ''; displayEn = 'the'; } // 두 번째 the는 해석 생략
+      if (word.includes('HRM_Small_Tk')) { matchedRole = 'HRM_Small'; translatedWord = '자그마한'; displayEn = 'small'; }
+      if (word.includes('HRM_Cabin_Tk')) { matchedRole = 'HRM_Cabin'; translatedWord = '오두막집'; displayEn = 'cabin'; }
+      if (word.includes('HRM_With_Tk')) { matchedRole = 'HRM_With'; translatedWord = '과함께'; displayEn = 'with'; }
+      if (word.includes('HRM_His_Tk')) { matchedRole = 'HRM_His'; translatedWord = '그의'; displayEn = 'his'; }
+      if (word.includes('HRM_Disciples_Tk')) { matchedRole = 'HRM_Disciples'; translatedWord = '제자들'; displayEn = 'disciples'; }
+      
+      // 💡 영한 <1형식> 동사의 형식 예문 9 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('BCH_He_Tk')) { matchedRole = 'BCH_He'; translatedWord = '그는'; displayEn = 'He'; }
+      if (word.includes('BCH_WillStay_Tk')) { matchedRole = 'BCH_WillStay'; translatedWord = '머물 것이다'; displayEn = 'will stay'; }
+      if (word.includes('BCH_At_Tk')) { matchedRole = 'BCH_At'; translatedWord = '에'; displayEn = 'at'; }
+      if (word.includes('BCH_TheBeach_Tk')) { matchedRole = 'BCH_TheBeach'; translatedWord = '해변'; displayEn = 'the beach'; }
+      if (word.includes('BCH_With_Tk')) { matchedRole = 'BCH_With'; translatedWord = '과함께'; displayEn = 'with'; }
+      if (word.includes('BCH_His_Tk')) { matchedRole = 'BCH_His'; translatedWord = '그의'; displayEn = 'his'; }
+      if (word.includes('BCH_Family_Tk')) { matchedRole = 'BCH_Family'; translatedWord = '가족'; displayEn = 'family'; }
+      if (word.includes('BCH_During_Tk')) { matchedRole = 'BCH_During'; translatedWord = '동안에'; displayEn = 'during'; }
+      if (word.includes('BCH_This_Tk')) { matchedRole = 'BCH_This'; translatedWord = '이번'; displayEn = 'this'; }
+      if (word.includes('BCH_Summer_Tk')) { matchedRole = 'BCH_Summer'; translatedWord = '여름'; displayEn = 'summer'; }
+      if (word.includes('BCH_Vacation_Tk')) { matchedRole = 'BCH_Vacation'; translatedWord = '방학'; displayEn = 'vacation'; }
+      
+      // 💡 영한 <1형식> 동사의 형식 예문 8 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('GRL_A1_Tk')) { matchedRole = 'GRL_A1'; translatedWord = '한'; displayEn = 'A'; }
+      if (word.includes('GRL_Pretty_Tk')) { matchedRole = 'GRL_Pretty'; translatedWord = '예쁜'; displayEn = 'pretty'; }
+      if (word.includes('GRL_Girl_Tk')) { matchedRole = 'GRL_Girl'; translatedWord = '소녀가'; displayEn = 'girl'; }
+      if (word.includes('GRL_Lived_Tk')) { matchedRole = 'GRL_Lived'; translatedWord = '살았다'; displayEn = 'lived'; }
+      if (word.includes('GRL_In_Tk')) { matchedRole = 'GRL_In'; translatedWord = '에서'; displayEn = 'in'; }
+      if (word.includes('GRL_ASmallVillage_Tk')) { matchedRole = 'GRL_ASmallVillage'; translatedWord = '조그마한 마을'; displayEn = 'a small village'; }
+      if (word.includes('GRL_AVillage_Tk')) { matchedRole = 'GRL_AVillage'; translatedWord = '마을'; displayEn = 'a village'; }
+
+      // 💡 영한 <1형식> 동사의 형식 예문 7 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('STY_John_Tk')) { matchedRole = 'STY_John'; translatedWord = '존은'; displayEn = 'John'; }
+      if (word.includes('STY_WillStay_Tk')) { matchedRole = 'STY_WillStay'; translatedWord = '머물 것이다'; displayEn = 'will stay'; }
+      if (word.includes('STY_At_Tk')) { matchedRole = 'STY_At'; translatedWord = '에서'; displayEn = 'at'; }
+      if (word.includes('STY_The_Tk')) { matchedRole = 'STY_The'; translatedWord = '그'; displayEn = 'the'; }
+      if (word.includes('STY_Hotel_Tk')) { matchedRole = 'STY_Hotel'; translatedWord = '호텔'; displayEn = 'hotel'; }
+      if (word.includes('STY_During_Tk')) { matchedRole = 'STY_During'; translatedWord = '에'; displayEn = 'during'; }
+      if (word.includes('STY_This_Tk')) { matchedRole = 'STY_This'; translatedWord = '올'; displayEn = 'this'; }
+      if (word.includes('STY_WinterVacation_Tk')) { matchedRole = 'STY_WinterVacation'; translatedWord = '겨울 방학'; displayEn = 'winter vacation'; }
+      if (word.includes('STY_Winter_Tk')) { matchedRole = 'STY_Winter'; translatedWord = '겨울'; displayEn = 'winter'; }
+      if (word.includes('STY_Vacation_Tk')) { matchedRole = 'STY_Vacation'; translatedWord = '방학'; displayEn = 'vacation'; }
+      
+      // 💡 영한 <1형식> 동사의 형식 예문 6 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('JHN_John_Tk')) { matchedRole = 'JHN_John'; translatedWord = '존은'; displayEn = 'John'; }
+      if (word.includes('JHN_HasLived_Tk')) { matchedRole = 'JHN_HasLived'; translatedWord = '살았다'; displayEn = 'has lived'; }
+      if (word.includes('JHN_In_Tk')) { matchedRole = 'JHN_In'; translatedWord = '에서'; displayEn = 'in'; }
+      if (word.includes('JHN_Seoul_Tk')) { matchedRole = 'JHN_Seoul'; translatedWord = '서울'; displayEn = 'Seoul'; }
+      if (word.includes('JHN_For_Tk')) { matchedRole = 'JHN_For'; translatedWord = '간(동안에)'; displayEn = 'for'; }
+      if (word.includes('JHN_20Years_Tk')) { matchedRole = 'JHN_20Years'; translatedWord = '20년'; displayEn = '20 years'; }
+      
+      // 💡 영한 <1형식> 동사의 형식 예문 5 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('LIVH_He_Tk')) { matchedRole = 'LIVH_He'; translatedWord = '그는'; displayEn = 'He'; }
+      if (word.includes('LIVH_Lived_Tk')) { matchedRole = 'LIVH_Lived'; translatedWord = '살았습니다'; displayEn = 'lived'; }
+      if (word.includes('LIVH_In_Tk')) { matchedRole = 'LIVH_In'; translatedWord = '에'; displayEn = 'in'; }
+      if (word.includes('LIVH_AVeryOldHouse_Tk')) { matchedRole = 'LIVH_AVeryOldHouse'; translatedWord = '아주 낡은 집'; displayEn = 'a very old house'; }
+      if (word.includes('LIVH_OldHouse_Tk')) { matchedRole = 'LIVH_OldHouse'; translatedWord = '낡은 집'; displayEn = 'old house'; }
+      if (word.includes('LIVH_AHouse_Tk')) { matchedRole = 'LIVH_AHouse'; translatedWord = '집'; displayEn = 'a house'; }
+      
+      // 💡 영한 <1형식> 동사의 형식 예문 4 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('CME_He_Tk')) { matchedRole = 'CME_He'; translatedWord = '그는'; displayEn = 'He'; }
+      if (word.includes('CME_Came_Tk')) { matchedRole = 'CME_Came'; translatedWord = '왔다'; displayEn = 'came'; }
+      if (word.includes('CME_From_Tk')) { matchedRole = 'CME_From'; translatedWord = '에서'; displayEn = 'from'; }
+      if (word.includes('CME_Seoul_Tk')) { matchedRole = 'CME_Seoul'; translatedWord = '서울'; displayEn = 'Seoul'; }
+      if (word.includes('CME_LastYear_Tk')) { matchedRole = 'CME_LastYear'; translatedWord = '작년에'; displayEn = 'last year'; }
+      
+      // 💡 영한 <1형식> 동사의 형식 예문 3 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('PLY_He_Tk')) { matchedRole = 'PLY_He'; translatedWord = '그는'; displayEn = 'He'; }
+      if (word.includes('PLY_Plays_Tk')) { matchedRole = 'PLY_Plays'; translatedWord = '논다'; displayEn = 'plays'; }
+      if (word.includes('PLY_At_Tk')) { matchedRole = 'PLY_At'; translatedWord = '에서'; displayEn = 'at'; }
+      if (word.includes('PLY_TheStation_Tk')) { matchedRole = 'PLY_TheStation'; translatedWord = '역'; displayEn = 'the station'; }
+      if (word.includes('PLY_Every_Tk')) { matchedRole = 'PLY_Every'; translatedWord = '매일'; displayEn = 'every'; }
+      if (word.includes('PLY_Night_Tk')) { matchedRole = 'PLY_Night'; translatedWord = '저녁'; displayEn = 'night'; }
+      
+      // 💡 영한 <1형식> 동사의 형식 예문 2 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('SNG_The_Tk')) { matchedRole = 'SNG_The'; translatedWord = ''; displayEn = 'The'; }
+      if (word.includes('SNG_Bird_Tk')) { matchedRole = 'SNG_Bird'; translatedWord = '새가'; displayEn = 'bird'; }
+      if (word.includes('SNG_Sings_Tk')) { matchedRole = 'SNG_Sings'; translatedWord = '노래부른다'; displayEn = 'sings'; }
+      if (word.includes('SNG_Sweetly_Tk')) { matchedRole = 'SNG_Sweetly'; translatedWord = '아름답게'; displayEn = 'sweetly'; }
+      
+      // 💡 영한 <1형식> 동사의 형식 예문 1 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('SELL_The_Tk')) { matchedRole = 'SELL_The'; translatedWord = '그'; displayEn = 'The'; }
+      if (word.includes('SELL_Book_Tk')) { matchedRole = 'SELL_Book'; translatedWord = '책은'; displayEn = 'book'; }
+      if (word.includes('SELL_Sells_Tk')) { matchedRole = 'SELL_Sells'; translatedWord = '팔린다'; displayEn = 'sells'; }
+      if (word.includes('SELL_Well_Tk')) { matchedRole = 'SELL_Well'; translatedWord = '잘'; displayEn = 'well'; }
+      
       // 💡 영한 <무의지동사> 1형식 예문 3 (표시 오류 차단 및 토큰 매핑)
       if (word.includes('LIV2_He_Tk')) { matchedRole = 'LIV2_He'; translatedWord = '그는'; displayEn = 'He'; }
       if (word.includes('LIV2_Lived_Tk')) { matchedRole = 'LIV2_Lived'; translatedWord = '살았다'; displayEn = 'lived'; }
@@ -2074,6 +2449,51 @@ export async function POST(request: Request) {
       const isMatch = rule.requiredRoles.every(reqRole => detectedRoles.includes(reqRole));
     // 아래 두번 Enter 후에 paste
 
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 15 절대 방어선 👇👇
+      if (rule.type === '1형식_동사_예문15' && detectedRoles.includes('SPY_NorthKorean') && detectedRoles.includes('SPY_Spies') && detectedRoles.includes('SPY_HaveLanded') && detectedRoles.includes('SPY_In')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 14 절대 방어선 👇👇
+      if (rule.type === '1형식_동사_예문14' && detectedRoles.includes('PIC_Picture') && detectedRoles.includes('PIC_IsHung') && detectedRoles.includes('PIC_Wall')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 13 절대 방어선 👇👇
+      if (rule.type === '1형식_동사_예문13' && detectedRoles.includes('FIR_Fire') && detectedRoles.includes('FIR_BrokeOut') && detectedRoles.includes('FIR_At')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 12 절대 방어선 👇👇
+      if (rule.type === '1형식_동사_예문12' && detectedRoles.includes('KNG_Got') && detectedRoles.includes('KNG_FerryBoat') && (detectedRoles.includes('KNG_King') || detectedRoles.includes('KNG_Queen'))) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 11 절대 방어선 👇👇
+      if (rule.type === '1형식_동사_예문11' && detectedRoles.includes('BOY_Went') && detectedRoles.includes('BOY_DeptStore')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 10 절대 방어선 👇👇
+      if (rule.type === '1형식_동사_예문10' && detectedRoles.includes('HRM_Hermit') && detectedRoles.includes('HRM_Lives')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 9 절대 방어선 👇👇
+      if (rule.type === '1형식_동사_예문9' && detectedRoles.includes('BCH_He') && detectedRoles.includes('BCH_WillStay')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 8 절대 방어선 👇👇
+      if (rule.type === '1형식_동사_예문8' && detectedRoles.includes('GRL_Girl') && detectedRoles.includes('GRL_Lived')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 7 절대 방어선 👇👇
+      if (rule.type === '1형식_동사_예문7' && detectedRoles.includes('STY_John') && detectedRoles.includes('STY_WillStay')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 6 절대 방어선 👇👇
+      if (rule.type === '1형식_동사_예문6' && detectedRoles.includes('JHN_John') && detectedRoles.includes('JHN_HasLived')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 5 절대 방어선 👇👇
+      if (rule.type === '1형식_동사_예문5' && detectedRoles.includes('LIVH_He') && detectedRoles.includes('LIVH_Lived') && detectedRoles.includes('LIVH_In')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 4 절대 방어선 👇👇
+      if (rule.type === '1형식_동사_예문4' && detectedRoles.includes('CME_He') && detectedRoles.includes('CME_Came')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 3 절대 방어선 👇👇
+      if (rule.type === '1형식_동사_예문3' && detectedRoles.includes('PLY_He') && detectedRoles.includes('PLY_Plays')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 2 절대 방어선 👇👇
+      if (rule.type === '1형식_동사_예문2' && detectedRoles.includes('SNG_Bird') && detectedRoles.includes('SNG_Sings')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 1 절대 방어선 👇👇
+      if (rule.type === '1형식_동사_예문1' && detectedRoles.includes('SELL_Book') && detectedRoles.includes('SELL_Sells')) { selectedForm = rule; break; }
+     
      // 👇👇 💡 [수프로 엣지] 무의지동사 1형식 예문 3 절대 방어선 👇👇
       if (rule.type === '1형식_무의지동사_예문3' && detectedRoles.includes('LIV2_He') && detectedRoles.includes('LIV2_Lived') && detectedRoles.includes('LIV2_See')) { selectedForm = rule; break; }
      
@@ -2311,6 +2731,75 @@ export async function POST(request: Request) {
     }
     let finalTranslation = finalKoreanWords.join(' ')
 // 여기 아래에 두번 Enter 후 paste
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 15 스마트 보정 👇👇
+      .replace(/전람회\s*기간에/g, '전람회기간에')
+      .replace(/일본\s*에/g, '일본에')
+      .replace(/쾌속정\s*으로/g, '쾌속정으로')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 14 스마트 보정 👇👇
+      .replace(/벽\s*에/g, '벽에')
+      .replace(/걸려있다/g, '걸려 있다')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 13 스마트 보정 👇👇
+      .replace(/큰\s*불이/g, '큰불이')
+      .replace(/밤\s*에/g, '밤에')
+      .replace(/건물\s*에서/g, '건물에서')
+      .replace(/정거장\s*에서/g, '정거장에서') // building 생략 시 자연스러운 연결
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 12 스마트 보정 👇👇
+      .replace(/왕은?\s*과/g, '왕과') // 👈 '왕은과', '왕 과' 모두 '왕과'로 완벽 압축!
+      .replace(/왕은?\s*(아담한|나룻배)/g, '왕이 $1') // King 단독 주어일 때 자연스러운 조사 '이' 적용
+      .replace(/수행원\s*과함께/g, '수행원과 같이')
+      .replace(/나룻배\s*에/g, '나룻배에')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 11 스마트 보정 👇👇
+      .replace(/소년\s*과\s*소녀가/g, '소년과 소녀가')
+      .replace(/소년\s*제인의/g, '소년이 제인의') // 소년 단독 주어일 때
+      .replace(/소년\s*집/g, '소년이 집') // 소년 단독 주어일 때
+      .replace(/소년\s*백화점/g, '소년이 백화점') // 소년 단독 주어일 때
+      .replace(/백화점\s*으로/g, '백화점으로')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 10 스마트 보정 👇👇
+      .replace(/제자들\s*과함께/g, '제자들과 함께')
+      .replace(/오두막집\s*에서/g, '오두막집에서')
+      .replace(/살고있다/g, '살고 있다')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 9 스마트 보정 👇👇
+      .replace(/여름\s*방학\s*동안에/g, '여름방학 동안에')
+      .replace(/여름\s*동안에/g, '여름 동안에')
+      .replace(/방학\s*동안에/g, '방학 동안에')
+      .replace(/가족\s*과함께/g, '가족들과 함께') // 최종 번역 지침 반영
+      .replace(/해변\s*에/g, '해변에')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 8 스마트 보정 👇👇
+      .replace(/마을\s*에서/g, '마을에서')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 7 스마트 보정 👇👇
+      .replace(/겨울\s*방학\s*에/g, '겨울방학에')
+      .replace(/겨울\s*에/g, '겨울에')
+      .replace(/방학\s*에/g, '방학에')
+      .replace(/호텔\s*에서/g, '호텔에서')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 6 스마트 보정 👇👇
+      .replace(/서울\s*에서/g, '서울에서')
+      .replace(/20년\s*간\(동안에\)/g, '20년간')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 5 스마트 보정 👇👇
+      .replace(/집\s*에/g, '집에')
+      .replace(/집에\s*살았습니다/g, '집에 살았습니다.')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 4 스마트 보정 👇👇
+      .replace(/서울\s*에서/g, '서울에서')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 3 스마트 보정 👇👇
+      .replace(/역\s*에서/g, '역에서')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 2 스마트 보정 👇👇
+      .replace(/새가\s*아름답게\s*노래부른다/g, '새가 아름답게 노래부른다')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 1 스마트 보정 👇👇
+      .replace(/책은\s*잘\s*팔린다/g, '책은 잘 팔린다')
       
       // 👇👇 💡 [수프로 엣지] 무의지동사 1형식 예문 3 스마트 보정 👇👇
       .replace(/살았다\s*그래서/g, '살아서')
