@@ -451,6 +451,12 @@ const FORM_RULES = [
   { type: '5형식_불완전타동사_예문1', requiredRoles: ['THK_I', 'THK_Think', 'THK_Him', 'THK_Boy'], koreanOrder: ['THK_I', 'THK_Him', 'THK_An', 'THK_Honest', 'THK_Boy', 'THK_Think'] },
   // 💡 [수프로 엣지] 영한 <5형식> 불완전타동사 예문 2 (로마 공화국 완벽 대응 레일)
   { type: '5형식_불완전타동사_예문2', requiredRoles: ['CAL_TheRomans', 'CAL_Called', 'CAL_Government', 'CAL_ARepublic'], koreanOrder: ['CAL_TheRomans', 'CAL_AKing', 'CAL_Without', 'CAL_This', 'CAL_New', 'CAL_Government', 'CAL_ARepublic', 'CAL_Called'] },
+  // 💡 [수프로 엣지] 영한 <5형식> 불완전타동사 예문 3 (자연 보호 완벽 대응 레일)
+  { type: '5형식_불완전타동사_예문3', requiredRoles: ['KEE_We', 'KEE_MustKeep', 'KEE_Clean'], koreanOrder: ['KEE_We', 'KEE_All', 'KEE_Living', 'KEE_Creatures', 'KEE_For', 'KEE_Rivers', 'KEE_And', 'KEE_Lakes', 'KEE_Clean', 'KEE_MustKeep'] },
+  // 💡 [수프로 엣지] 영한 <5형식> 불완전타동사 예문 4 (세종대왕 토큰 충돌 방어 완결판)
+  { type: '5형식_불완전타동사_예문4', requiredRoles: ['KJS_People', 'KJS_Consider', 'KJS_Sejong', 'KJS_King'], koreanOrder: ['KJS_Many', 'KJS_People', 'KJS_Sejong', 'KJS_Our', 'KJS_Greatest', 'KJS_King', 'KJS_Consider'] },
+  // 💡 [수프로 엣지] 영한 <5형식> 불완전타동사 예문 5 (대망의 마지막! 현대과학 완벽 대응 레일)
+  { type: '5형식_불완전타동사_예문5', requiredRoles: ['MDS_Science', 'MDS_HasMade'], koreanOrder: ['MDS_Modern', 'MDS_Science', 'MDS_Life', 'MDS_ManyWays', 'MDS_In', 'MDS_Easier', 'MDS_And', 'MDS_More', 'MDS_Comfortable', 'MDS_HasMade'] },
 ];
 
 // const FORM_RULES = [ 여기 위에 Enter 후에 paste
@@ -499,6 +505,58 @@ export async function POST(request: Request) {
 
 // 여기 아래에 두번 Enter 후 paste
     let processedText = originalText.toLowerCase()
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 5형식 예문 5 (대망의 마지막 예문! 7가지 변형 완벽 방어!) 👇👇
+      // 1. 완전체 (10단어)
+      .replace(/(^|\s)modern\s+science\s+has\s+made\s+life\s+easier\s+and\s+more\s+comfortable\s+in\s+many\s+ways\.?(?!\w)/gi, '$1MDS_Modern_Tk MDS_Science_Tk MDS_HasMade_Tk MDS_Life_Tk MDS_Easier_Tk MDS_And_Tk MDS_More_Tk MDS_Comfortable_Tk MDS_In_Tk MDS_ManyWays_Tk ')
+      // 2. Modern 생략 (9단어)
+      .replace(/(^|\s)science\s+has\s+made\s+life\s+easier\s+and\s+more\s+comfortable\s+in\s+many\s+ways\.?(?!\w)/gi, '$1MDS_Science_Tk MDS_HasMade_Tk MDS_Life_Tk MDS_Easier_Tk MDS_And_Tk MDS_More_Tk MDS_Comfortable_Tk MDS_In_Tk MDS_ManyWays_Tk ')
+      // 3. in many ways 생략 (8단어)
+      .replace(/(^|\s)modern\s+science\s+has\s+made\s+life\s+easier\s+and\s+more\s+comfortable\.?(?!\w)/gi, '$1MDS_Modern_Tk MDS_Science_Tk MDS_HasMade_Tk MDS_Life_Tk MDS_Easier_Tk MDS_And_Tk MDS_More_Tk MDS_Comfortable_Tk ')
+      // 4. and more comfortable, in many ways 생략 (6단어)
+      .replace(/(^|\s)modern\s+science\s+has\s+made\s+life\s+easier\.?(?!\w)/gi, '$1MDS_Modern_Tk MDS_Science_Tk MDS_HasMade_Tk MDS_Life_Tk MDS_Easier_Tk ')
+      // 5. easier and more, in many ways 생략 (6단어)
+      .replace(/(^|\s)modern\s+science\s+has\s+made\s+life\s+comfortable\.?(?!\w)/gi, '$1MDS_Modern_Tk MDS_Science_Tk MDS_HasMade_Tk MDS_Life_Tk MDS_Comfortable_Tk ')
+      // 6. Modern, and more comfortable, in many ways 생략 (5단어)
+      .replace(/(^|\s)science\s+has\s+made\s+life\s+easier\.?(?!\w)/gi, '$1MDS_Science_Tk MDS_HasMade_Tk MDS_Life_Tk MDS_Easier_Tk ')
+      // 7. Modern, life, easier and, in many ways 생략 (5단어)
+      .replace(/(^|\s)science\s+has\s+made\s+more\s+comfortable\.?(?!\w)/gi, '$1MDS_Science_Tk MDS_HasMade_Tk MDS_More_Tk MDS_Comfortable_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 5형식 예문 4 (토큰 충돌 원천 차단 완결판!) 👇👇
+      // 1. 완전체 (8단어)
+      .replace(/(^|\s)many\s+people\s+consider\s+king\s+sejong\s+our\s+greatest\s+king\.?(?!\w)/gi, '$1KJS_Many_Tk KJS_People_Tk KJS_Consider_Tk KJS_Sejong_Tk KJS_Our_Tk KJS_Greatest_Tk KJS_King_Tk ')
+      // 2. Many 생략 (7단어)
+      .replace(/(^|\s)people\s+consider\s+king\s+sejong\s+our\s+greatest\s+king\.?(?!\w)/gi, '$1KJS_People_Tk KJS_Consider_Tk KJS_Sejong_Tk KJS_Our_Tk KJS_Greatest_Tk KJS_King_Tk ')
+      // 3. greatest 생략 (7단어)
+      .replace(/(^|\s)many\s+people\s+consider\s+king\s+sejong\s+our\s+king\.?(?!\w)/gi, '$1KJS_Many_Tk KJS_People_Tk KJS_Consider_Tk KJS_Sejong_Tk KJS_Our_Tk KJS_King_Tk ')
+      // 4. King(칭호), greatest 생략 (6단어)
+      .replace(/(^|\s)many\s+people\s+consider\s+sejong\s+our\s+king\.?(?!\w)/gi, '$1KJS_Many_Tk KJS_People_Tk KJS_Consider_Tk KJS_Sejong_Tk KJS_Our_Tk KJS_King_Tk ')
+      // 5. Many, King(칭호), greatest 생략 (5단어)
+      .replace(/(^|\s)people\s+consider\s+sejong\s+our\s+king\.?(?!\w)/gi, '$1KJS_People_Tk KJS_Consider_Tk KJS_Sejong_Tk KJS_Our_Tk KJS_King_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 5형식 예문 3 (11가지 변형 철벽 방어! 길이순 최상단 배치!) 👇👇
+      // 1. 완전체 (11단어)
+      .replace(/(^|\s)we\s+must\s+keep\s+rivers\s+and\s+lakes\s+clean\s+for\s+all\s+living\s+creatures\.?(?!\w)/gi, '$1KEE_We_Tk KEE_MustKeep_Tk KEE_Rivers_Tk KEE_And_Tk KEE_Lakes_Tk KEE_Clean_Tk KEE_For_Tk KEE_All_Tk KEE_Living_Tk KEE_Creatures_Tk ')
+      // 2. all 생략 (10단어)
+      .replace(/(^|\s)we\s+must\s+keep\s+rivers\s+and\s+lakes\s+clean\s+for\s+living\s+creatures\.?(?!\w)/gi, '$1KEE_We_Tk KEE_MustKeep_Tk KEE_Rivers_Tk KEE_And_Tk KEE_Lakes_Tk KEE_Clean_Tk KEE_For_Tk KEE_Living_Tk KEE_Creatures_Tk ')
+      // 3. living 생략 (10단어)
+      .replace(/(^|\s)we\s+must\s+keep\s+rivers\s+and\s+lakes\s+clean\s+for\s+all\s+creatures\.?(?!\w)/gi, '$1KEE_We_Tk KEE_MustKeep_Tk KEE_Rivers_Tk KEE_And_Tk KEE_Lakes_Tk KEE_Clean_Tk KEE_For_Tk KEE_All_Tk KEE_Creatures_Tk ')
+      // 4. and lakes 생략 (9단어)
+      .replace(/(^|\s)we\s+must\s+keep\s+rivers\s+clean\s+for\s+all\s+living\s+creatures\.?(?!\w)/gi, '$1KEE_We_Tk KEE_MustKeep_Tk KEE_Rivers_Tk KEE_Clean_Tk KEE_For_Tk KEE_All_Tk KEE_Living_Tk KEE_Creatures_Tk ')
+      // 5. rivers and 생략 (9단어)
+      .replace(/(^|\s)we\s+must\s+keep\s+lakes\s+clean\s+for\s+all\s+living\s+creatures\.?(?!\w)/gi, '$1KEE_We_Tk KEE_MustKeep_Tk KEE_Lakes_Tk KEE_Clean_Tk KEE_For_Tk KEE_All_Tk KEE_Living_Tk KEE_Creatures_Tk ')
+      // 6. and lakes, all 생략 (8단어)
+      .replace(/(^|\s)we\s+must\s+keep\s+rivers\s+clean\s+for\s+living\s+creatures\.?(?!\w)/gi, '$1KEE_We_Tk KEE_MustKeep_Tk KEE_Rivers_Tk KEE_Clean_Tk KEE_For_Tk KEE_Living_Tk KEE_Creatures_Tk ')
+      // 7. rivers and, all 생략 (8단어)
+      .replace(/(^|\s)we\s+must\s+keep\s+lakes\s+clean\s+for\s+living\s+creatures\.?(?!\w)/gi, '$1KEE_We_Tk KEE_MustKeep_Tk KEE_Lakes_Tk KEE_Clean_Tk KEE_For_Tk KEE_Living_Tk KEE_Creatures_Tk ')
+      // 8. and lakes, living 생략 (8단어)
+      .replace(/(^|\s)we\s+must\s+keep\s+rivers\s+clean\s+for\s+all\s+creatures\.?(?!\w)/gi, '$1KEE_We_Tk KEE_MustKeep_Tk KEE_Rivers_Tk KEE_Clean_Tk KEE_For_Tk KEE_All_Tk KEE_Creatures_Tk ')
+      // 9. rivers and, living 생략 (8단어)
+      .replace(/(^|\s)we\s+must\s+keep\s+lakes\s+clean\s+for\s+all\s+creatures\.?(?!\w)/gi, '$1KEE_We_Tk KEE_MustKeep_Tk KEE_Lakes_Tk KEE_Clean_Tk KEE_For_Tk KEE_All_Tk KEE_Creatures_Tk ')
+      // 10. and lakes, 부사구 전체 생략 (5단어)
+      .replace(/(^|\s)we\s+must\s+keep\s+rivers\s+clean\.?(?!\w)/gi, '$1KEE_We_Tk KEE_MustKeep_Tk KEE_Rivers_Tk KEE_Clean_Tk ')
+      // 11. rivers and, 부사구 전체 생략 (5단어)
+      .replace(/(^|\s)we\s+must\s+keep\s+lakes\s+clean\.?(?!\w)/gi, '$1KEE_We_Tk KEE_MustKeep_Tk KEE_Lakes_Tk KEE_Clean_Tk ')
       
       // 👇👇 💡 [수프로 엣지] 동사의 형식 5형식 예문 2 (4가지 변형 철벽 방어! 길이순 최상단 배치!) 👇👇
       // 1. 완전체 (10단어)
@@ -1793,10 +1851,43 @@ export async function POST(request: Request) {
 
       // if (word == 여기 아래에 Enter 두번 후 paste
 
+      // 💡 영한 <5형식> 동사의 형식 예문 5 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('MDS_Modern_Tk')) { matchedRole = 'MDS_Modern'; translatedWord = '현대'; displayEn = 'Modern'; }
+      if (word.includes('MDS_Science_Tk')) { matchedRole = 'MDS_Science'; translatedWord = '과학은'; displayEn = 'science'; }
+      if (word.includes('MDS_HasMade_Tk')) { matchedRole = 'MDS_HasMade'; translatedWord = '했다'; displayEn = 'has made'; }
+      if (word.includes('MDS_Life_Tk')) { matchedRole = 'MDS_Life'; translatedWord = '삶을'; displayEn = 'life'; }
+      if (word.includes('MDS_Easier_Tk')) { matchedRole = 'MDS_Easier'; translatedWord = '더 쉬운'; displayEn = 'easier'; }
+      if (word.includes('MDS_And_Tk')) { matchedRole = 'MDS_And'; translatedWord = '고'; displayEn = 'and'; }
+      if (word.includes('MDS_More_Tk')) { matchedRole = 'MDS_More'; translatedWord = '더'; displayEn = 'more'; }
+      if (word.includes('MDS_Comfortable_Tk')) { matchedRole = 'MDS_Comfortable'; translatedWord = '편하게'; displayEn = 'comfortable'; }
+      if (word.includes('MDS_In_Tk')) { matchedRole = 'MDS_In'; translatedWord = '에서'; displayEn = 'in'; }
+      if (word.includes('MDS_ManyWays_Tk')) { matchedRole = 'MDS_ManyWays'; translatedWord = '여러면'; displayEn = 'many ways'; }
+      
+      // 💡 영한 <5형식> 동사의 형식 예문 4 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('KJS_Many_Tk')) { matchedRole = 'KJS_Many'; translatedWord = '많은'; displayEn = 'Many'; }
+      if (word.includes('KJS_People_Tk')) { matchedRole = 'KJS_People'; translatedWord = '사람들이'; displayEn = 'people'; }
+      if (word.includes('KJS_Consider_Tk')) { matchedRole = 'KJS_Consider'; translatedWord = '생각한다'; displayEn = 'consider'; }
+      if (word.includes('KJS_Sejong_Tk')) { matchedRole = 'KJS_Sejong'; translatedWord = '세종대왕을'; displayEn = 'Sejong'; }
+      if (word.includes('KJS_Our_Tk')) { matchedRole = 'KJS_Our'; translatedWord = '우리의'; displayEn = 'our'; }
+      if (word.includes('KJS_Greatest_Tk')) { matchedRole = 'KJS_Greatest'; translatedWord = '가장 위대한'; displayEn = 'greatest'; }
+      if (word.includes('KJS_King_Tk')) { matchedRole = 'KJS_King'; translatedWord = '왕이라고'; displayEn = 'king'; }
+      
+      // 💡 영한 <5형식> 동사의 형식 예문 3 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('KEE_We_Tk')) { matchedRole = 'KEE_We'; translatedWord = '우리는'; displayEn = 'We'; }
+      if (word.includes('KEE_MustKeep_Tk')) { matchedRole = 'KEE_MustKeep'; translatedWord = '해야한다'; displayEn = 'must keep'; }
+      if (word.includes('KEE_Rivers_Tk')) { matchedRole = 'KEE_Rivers'; translatedWord = '강'; displayEn = 'rivers'; }
+      if (word.includes('KEE_And_Tk')) { matchedRole = 'KEE_And'; translatedWord = '과'; displayEn = 'and'; }
+      if (word.includes('KEE_Lakes_Tk')) { matchedRole = 'KEE_Lakes'; translatedWord = '호수를'; displayEn = 'lakes'; }
+      if (word.includes('KEE_Clean_Tk')) { matchedRole = 'KEE_Clean'; translatedWord = '깨끗하게'; displayEn = 'clean'; }
+      if (word.includes('KEE_For_Tk')) { matchedRole = 'KEE_For'; translatedWord = '위해'; displayEn = 'for'; }
+      if (word.includes('KEE_All_Tk')) { matchedRole = 'KEE_All'; translatedWord = '모든'; displayEn = 'all'; }
+      if (word.includes('KEE_Living_Tk')) { matchedRole = 'KEE_Living'; translatedWord = ''; displayEn = 'living'; } // 생물들에 뜻이 포함되므로 해석 생략
+      if (word.includes('KEE_Creatures_Tk')) { matchedRole = 'KEE_Creatures'; translatedWord = '생물들을'; displayEn = 'creatures'; }
+      
       // 💡 영한 <5형식> 동사의 형식 예문 2 (표시 오류 차단 및 토큰 매핑)
       if (word.includes('CAL_TheRomans_Tk')) { matchedRole = 'CAL_TheRomans'; translatedWord = '로마인들은'; displayEn = 'The Romans'; }
       if (word.includes('CAL_Called_Tk')) { matchedRole = 'CAL_Called'; translatedWord = '불렀다'; displayEn = 'called'; }
-      if (word.includes('CAL_This_Tk')) { matchedRole = 'CAL_This'; translatedWord = '이'; displayEn = 'this'; }
+      if (word.includes('CAL_This_Tk')) { matchedRole = 'CAL_This'; translatedWord = '이러한'; displayEn = 'this'; }
       if (word.includes('CAL_New_Tk')) { matchedRole = 'CAL_New'; translatedWord = '새로운'; displayEn = 'new'; }
       if (word.includes('CAL_Government_Tk')) { matchedRole = 'CAL_Government'; translatedWord = '정부를'; displayEn = 'government'; }
       if (word.includes('CAL_Without_Tk')) { matchedRole = 'CAL_Without'; translatedWord = '이 없는'; displayEn = 'without'; }
@@ -3257,6 +3348,15 @@ export async function POST(request: Request) {
       const isMatch = rule.requiredRoles.every(reqRole => detectedRoles.includes(reqRole));
     // 아래 두번 Enter 후에 paste
 
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 5형식 예문 5 절대 방어선 👇👇
+      if (rule.type === '5형식_불완전타동사_예문5' && detectedRoles.includes('MDS_Science') && detectedRoles.includes('MDS_HasMade') && (detectedRoles.includes('MDS_Easier') || detectedRoles.includes('MDS_Comfortable'))) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 5형식 예문 4 절대 방어선 👇👇
+      if (rule.type === '5형식_불완전타동사_예문4' && detectedRoles.includes('KJS_People') && detectedRoles.includes('KJS_Consider') && detectedRoles.includes('KJS_Sejong') && detectedRoles.includes('KJS_King')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 5형식 예문 3 절대 방어선 👇👇
+      if (rule.type === '5형식_불완전타동사_예문3' && detectedRoles.includes('KEE_We') && detectedRoles.includes('KEE_MustKeep') && detectedRoles.includes('KEE_Clean') && (detectedRoles.includes('KEE_Rivers') || detectedRoles.includes('KEE_Lakes'))) { selectedForm = rule; break; }
+     
      // 👇👇 💡 [수프로 엣지] 동사의 형식 5형식 예문 2 절대 방어선 👇👇
       if (rule.type === '5형식_불완전타동사_예문2' && detectedRoles.includes('CAL_TheRomans') && detectedRoles.includes('CAL_Called') && detectedRoles.includes('CAL_Government') && detectedRoles.includes('CAL_ARepublic')) { selectedForm = rule; break; }
      
@@ -3636,18 +3736,44 @@ export async function POST(request: Request) {
     let finalTranslation = finalKoreanWords.join(' ')
 // 여기 아래에 두번 Enter 후 paste
       
-      // 👇👇 💡 [수프로 엣지] 동사의 형식 5형식 예문 2 스마트 보정 (띄어쓰기 강제 분리 완결판) 👇👇
-      .replace(/왕\s*이\s*없는/g, '왕이 없는')
-      .replace(/없는\s*이\s*새로운/g, '없는 이 새로운')
-      .replace(/없는이\s*새로운/g, '없는 이 새로운') // '없는이'로 찰싹 붙어버렸을 경우 강제 분리!
-      .replace(/없는\s*이\s*정부를/g, '없는 이 정부를')
-      .replace(/없는이\s*정부를/g, '없는 이 정부를') // new 생략 상태에서 붙어버렸을 경우 강제 분리!
-      .replace(/이\s*새로운\s*정부를/g, '이 새로운 정부를')
-      .replace(/이\s*정부를/g, '이 정부를')
-      .replace(/새로운\s*정부를/g, '새로운 정부를')
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 5형식 예문 5 스마트 보정 (마지막 피날레!) 👇👇
+      .replace(/현대\s*과학은/g, '현대과학은')
+      .replace(/여러면\s*에서/g, '여러면에서')
+      .replace(/삶을\s*여러면에서/g, '삶을 여러면에서')
+      .replace(/더\s*쉬운\s*고\s*더\s*편하게/g, '더 쉽고 더 편하게')
+      .replace(/더\s*쉬운\s*했다/g, '더 쉽게 했다') // easier만 남았을 경우의 문맥 보정
+      .replace(/더\s*편하게\s*했다/g, '더 편하게 했다')
+      .replace(/편하게\s*했다/g, '편하게 했다')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 5형식 예문 4 스마트 보정 👇👇
+      .replace(/많은\s*사람들이/g, '많은 사람들이')
+      .replace(/사람들이\s*세종대왕을/g, '사람들이 세종대왕을')
+      .replace(/세종대왕을\s*우리의/g, '세종대왕을 우리의')
+      .replace(/우리의\s*가장\s*위대한\s*왕이라고/g, '우리의 가장 위대한 왕이라고')
+      .replace(/우리의\s*왕이라고/g, '우리의 왕이라고') // greatest 생략 시
+      .replace(/왕이라고\s*생각한다/g, '왕이라고 생각한다')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 5형식 예문 3 스마트 보정 👇👇
+      .replace(/모든\s*생물들을\s*위해/g, '모든 생물들을 위해')
+      .replace(/생물들을\s*위해/g, '생물들을 위해') // all 생략 시
+      .replace(/위해\s*강\s*과\s*호수를/g, '위해 강과 호수를')
+      .replace(/강\s*과\s*호수를/g, '강과 호수를')
+      .replace(/위해\s*강\s*깨끗하게/g, '위해 강을 깨끗하게') // lakes 생략 시 조사 '을' 추가
+      .replace(/위해\s*호수를\s*깨끗하게/g, '위해 호수를 깨끗하게') // rivers 생략 시
+      .replace(/(^|\s)강\s*깨끗하게/g, '$1강을 깨끗하게') // for 구문 전체 생략 시 조사 추가
+      .replace(/깨끗하게\s*해야한다/g, '깨끗하게 해야 한다')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 5형식 예문 2 스마트 보정 ('이러한' 우회 전술 적용) 👇👇
+      .replace(/왕\s*이\s*없는\s*이러한\s*새로운\s*정부를/g, '왕이 없는 이러한 새로운 정부를')
+      .replace(/왕\s*이\s*없는\s*이러한\s*정부를/g, '왕이 없는 이러한 정부를') // new 생략 시
+      .replace(/왕\s*이\s*없는\s*새로운\s*정부를/g, '왕이 없는 새로운 정부를') // this 생략 시
+      .replace(/왕\s*이\s*없는\s*정부를/g, '왕이 없는 정부를') // this, new 생략 시
+      .replace(/이러한\s*새로운\s*정부를/g, '이러한 새로운 정부를') // without a king 생략 시
+      .replace(/이러한\s*정부를/g, '이러한 정부를') // without a king, new 생략 시
+      .replace(/새로운\s*정부를/g, '새로운 정부를') // without a king, this 생략 시
       .replace(/정부를\s*공화국이라고/g, '정부를 공화국이라고')
       .replace(/공화국이라고\s*불렀다/g, '공화국이라고 불렀다')
-
+      
       // 👇👇 💡 [수프로 엣지] 동사의 형식 5형식 예문 1 스마트 보정 👇👇
       .replace(/정직한\s*소년으로/g, '정직한 소년으로')
       .replace(/소년으로\s*생각한다/g, '소년으로 생각한다')
