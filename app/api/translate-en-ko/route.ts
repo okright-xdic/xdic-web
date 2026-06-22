@@ -387,6 +387,24 @@ const FORM_RULES = [
   { type: '1형식_동사_예문14', requiredRoles: ['PIC_Picture', 'PIC_IsHung', 'PIC_Wall'], koreanOrder: ['PIC_A', 'PIC_Strange', 'PIC_Picture', 'PIC_The', 'PIC_Gloomy', 'PIC_Wall', 'PIC_On', 'PIC_IsHung'] },
   // 💡 [수프로 엣지] 영한 <1형식> 동사의 형식 예문 15 (북한 밀정 기항 완벽 대응 레일)
   { type: '1형식_동사_예문15', requiredRoles: ['SPY_NorthKorean', 'SPY_Spies', 'SPY_HaveLanded', 'SPY_In'], koreanOrder: ['SPY_Many', 'SPY_NorthKorean', 'SPY_Spies', 'SPY_This', 'SPY_Science', 'SPY_Exposition', 'SPY_During', 'SPY_NorthernJapan', 'SPY_Japan', 'SPY_In', 'SPY_FastBoat', 'SPY_By', 'SPY_Clandestinely', 'SPY_HaveLanded'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 동사의 형식 예문 1 (Tom 인기 소년 완벽 대응 레일)
+  { type: '2형식_명사보어_예문1', requiredRoles: ['TOM_Tom', 'TOM_Is', 'TOM_Boy'], koreanOrder: ['TOM_Tom', 'TOM_TheSchool', 'TOM_In', 'TOM_TheMostPopular', 'TOM_ThePopular', 'TOM_The', 'TOM_Boy', 'TOM_Is'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 동사의 형식 예문 2 (수학 과목 완벽 대응 레일)
+  { type: '2형식_명사보어_예문2', requiredRoles: ['MTH_Mathematics', 'MTH_Is', 'MTH_Difficult'], koreanOrder: ['MTH_Mathematics', 'MTH_Difficult', 'MTH_Subject', 'MTH_Is'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 형용사보어 예문 3 (금년 추위 비교 완벽 대응 레일)
+  { type: '2형식_형용사보어_예문3', requiredRoles: ['CLD_Cold', 'CLD_Is', 'CLD_Severer'], koreanOrder: ['CLD_ThisYear', 'CLD_Of1', 'CLD_Cold', 'CLD_LastYear', 'CLD_ThatOf', 'CLD_Than', 'CLD_Severer', 'CLD_Is'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 형용사보어 예문 4 (흥미로운 소설 완벽 대응 레일)
+  { type: '2형식_형용사보어_예문4', requiredRoles: ['NVL_Novel', 'NVL_Is'], koreanOrder: ['NVL_This', 'NVL_Novel', 'NVL_Us', 'NVL_For', 'NVL_VeryInteresting', 'NVL_Interesting', 'NVL_Is'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 형용사보어 예문 5 (모든 사람은 평등하다 완벽 대응 레일)
+  { type: '2형식_형용사보어_예문5', requiredRoles: ['EQL_Men', 'EQL_Are', 'EQL_Equal'], koreanOrder: ['EQL_All', 'EQL_Men', 'EQL_The', 'EQL_Law', 'EQL_Before', 'EQL_Equal', 'EQL_Are'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 명사보어 예문 6 (로마 작은 도시 완벽 대응 레일)
+  { type: '2형식_명사보어_예문6', requiredRoles: ['ROM_Rome', 'ROM_Was', 'ROM_Town'], koreanOrder: ['ROM_Rome', 'ROM_The', 'ROM_Beginning', 'ROM_In', 'ROM_A2', 'ROM_Small2', 'ROM_Kingdom', 'ROM_Of', 'ROM_A1', 'ROM_Small1', 'ROM_Town', 'ROM_Was'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 형용사보어 예문 7 (탐정 소설 완벽 대응 레일)
+  { type: '2형식_형용사보어_예문7', requiredRoles: ['DET_Story', 'DET_Is', 'DET_Interesting'], koreanOrder: ['DET_This', 'DET_Detective', 'DET_Story', 'DET_Us', 'DET_For', 'DET_Very', 'DET_Interesting', 'DET_Is'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 명사보어 예문 8 (언어 수단 완벽 대응 레일)
+  { type: '2형식_명사보어_예문8', requiredRoles: ['LNG_Language', 'LNG_Is', 'LNG_Means'], koreanOrder: ['LNG_Language', 'LNG_Communication', 'LNG_Of', 'LNG_TheMostImportant', 'LNG_TheImportant', 'LNG_The', 'LNG_Means', 'LNG_Is'] },
+  // 💡 [수프로 엣지] 영한 <2형식> 명사보어 예문 9 (속담 경고/지침 완벽 대응 레일)
+  { type: '2형식_명사보어_예문9', requiredRoles: ['PRV_Proverbs', 'PRV_May', 'PRV_Be'], koreanOrder: ['PRV_Proverbs', 'PRV_Foolish', 'PRV_Acts', 'PRV_Against', 'PRV_Warnings', 'PRV_Or', 'PRV_GoodConduct', 'PRV_Conduct', 'PRV_To', 'PRV_Guides', 'PRV_May', 'PRV_Be'] },
 ];
 
 // const FORM_RULES = [ 여기 위에 Enter 후에 paste
@@ -435,6 +453,100 @@ export async function POST(request: Request) {
 
 // 여기 아래에 두번 Enter 후 paste
     let processedText = originalText.toLowerCase()
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 9 (7가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체
+      .replace(/(^|\s)proverbs\s+may\s+be\s+warnings\s+against\s+foolish\s+acts\s+or\s+guides\s+to\s+good\s+conduct\.?(?!\w)/gi, '$1PRV_Proverbs_Tk PRV_May_Tk PRV_Be_Tk PRV_Warnings_Tk PRV_Against_Tk PRV_Foolish_Tk PRV_Acts_Tk PRV_Or_Tk PRV_Guides_Tk PRV_To_Tk PRV_GoodConduct_Tk ')
+      // 2. foolish, good 생략 (warnings against acts or guides to conduct)
+      .replace(/(^|\s)proverbs\s+may\s+be\s+warnings\s+against\s+acts\s+or\s+guides\s+to\s+conduct\.?(?!\w)/gi, '$1PRV_Proverbs_Tk PRV_May_Tk PRV_Be_Tk PRV_Warnings_Tk PRV_Against_Tk PRV_Acts_Tk PRV_Or_Tk PRV_Guides_Tk PRV_To_Tk PRV_Conduct_Tk ')
+      // 3. against foolish acts 생략 (warnings or guides to good conduct)
+      .replace(/(^|\s)proverbs\s+may\s+be\s+warnings\s+or\s+guides\s+to\s+good\s+conduct\.?(?!\w)/gi, '$1PRV_Proverbs_Tk PRV_May_Tk PRV_Be_Tk PRV_Warnings_Tk PRV_Or_Tk PRV_Guides_Tk PRV_To_Tk PRV_GoodConduct_Tk ')
+      // 4. or guides to good conduct 생략 (warnings against foolish acts 단독)
+      .replace(/(^|\s)proverbs\s+may\s+be\s+warnings\s+against\s+foolish\s+acts\.?(?!\w)/gi, '$1PRV_Proverbs_Tk PRV_May_Tk PRV_Be_Tk PRV_Warnings_Tk PRV_Against_Tk PRV_Foolish_Tk PRV_Acts_Tk ')
+      // 5. warnings against foolish acts or 생략 (guides to good conduct 단독)
+      .replace(/(^|\s)proverbs\s+may\s+be\s+guides\s+to\s+good\s+conduct\.?(?!\w)/gi, '$1PRV_Proverbs_Tk PRV_May_Tk PRV_Be_Tk PRV_Guides_Tk PRV_To_Tk PRV_GoodConduct_Tk ')
+      // 6. warnings 단독 (Proverbs may be warnings)
+      .replace(/(^|\s)proverbs\s+may\s+be\s+warnings\.?(?!\w)/gi, '$1PRV_Proverbs_Tk PRV_May_Tk PRV_Be_Tk PRV_Warnings_Tk ')
+      // 7. guides 단독 (Proverbs may be guides)
+      .replace(/(^|\s)proverbs\s+may\s+be\s+guides\.?(?!\w)/gi, '$1PRV_Proverbs_Tk PRV_May_Tk PRV_Be_Tk PRV_Guides_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 8 (5가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (most important, of communication 모두 포함)
+      .replace(/(^|\s)language\s+is\s+the\s+most\s+important\s+means\s+of\s+communication\.?(?!\w)/gi, '$1LNG_Language_Tk LNG_Is_Tk LNG_TheMostImportant_Tk LNG_Means_Tk LNG_Of_Tk LNG_Communication_Tk ')
+      // 2. most 생략 (the important means of communication)
+      .replace(/(^|\s)language\s+is\s+the\s+important\s+means\s+of\s+communication\.?(?!\w)/gi, '$1LNG_Language_Tk LNG_Is_Tk LNG_TheImportant_Tk LNG_Means_Tk LNG_Of_Tk LNG_Communication_Tk ')
+      // 3. most important 생략 (the means of communication)
+      .replace(/(^|\s)language\s+is\s+the\s+means\s+of\s+communication\.?(?!\w)/gi, '$1LNG_Language_Tk LNG_Is_Tk LNG_The_Tk LNG_Means_Tk LNG_Of_Tk LNG_Communication_Tk ')
+      // 4. of communication 생략 (the most important means)
+      .replace(/(^|\s)language\s+is\s+the\s+most\s+important\s+means\.?(?!\w)/gi, '$1LNG_Language_Tk LNG_Is_Tk LNG_TheMostImportant_Tk LNG_Means_Tk ')
+      // 5. most, of communication 생략 (the important means)
+      .replace(/(^|\s)language\s+is\s+the\s+important\s+means\.?(?!\w)/gi, '$1LNG_Language_Tk LNG_Is_Tk LNG_TheImportant_Tk LNG_Means_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 7 (다양한 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (detective, very, for us 모두 포함)
+      .replace(/(^|\s)this\s+detective\s+story\s+is\s+very\s+interesting\s+for\s+us\.?(?!\w)/gi, '$1DET_This_Tk DET_Detective_Tk DET_Story_Tk DET_Is_Tk DET_Very_Tk DET_Interesting_Tk DET_For_Tk DET_Us_Tk ')
+      // 2. very 생략 (This detective story is interesting for us)
+      .replace(/(^|\s)this\s+detective\s+story\s+is\s+interesting\s+for\s+us\.?(?!\w)/gi, '$1DET_This_Tk DET_Detective_Tk DET_Story_Tk DET_Is_Tk DET_Interesting_Tk DET_For_Tk DET_Us_Tk ')
+      // 3. detective 생략 (This story is very interesting for us)
+      .replace(/(^|\s)this\s+story\s+is\s+very\s+interesting\s+for\s+us\.?(?!\w)/gi, '$1DET_This_Tk DET_Story_Tk DET_Is_Tk DET_Very_Tk DET_Interesting_Tk DET_For_Tk DET_Us_Tk ')
+      // 4. for us 생략 (This detective story is very interesting)
+      .replace(/(^|\s)this\s+detective\s+story\s+is\s+very\s+interesting\.?(?!\w)/gi, '$1DET_This_Tk DET_Detective_Tk DET_Story_Tk DET_Is_Tk DET_Very_Tk DET_Interesting_Tk ')
+      // 5. very, for us 생략 (This detective story is interesting)
+      .replace(/(^|\s)this\s+detective\s+story\s+is\s+interesting\.?(?!\w)/gi, '$1DET_This_Tk DET_Detective_Tk DET_Story_Tk DET_Is_Tk DET_Interesting_Tk ')
+      // 6. detective, for us 생략 (This story is very interesting)
+      .replace(/(^|\s)this\s+story\s+is\s+very\s+interesting\.?(?!\w)/gi, '$1DET_This_Tk DET_Story_Tk DET_Is_Tk DET_Very_Tk DET_Interesting_Tk ')
+      // 7. detective, very, for us 모두 생략 (뼈대만)
+      .replace(/(^|\s)this\s+story\s+is\s+interesting\.?(?!\w)/gi, '$1DET_This_Tk DET_Story_Tk DET_Is_Tk DET_Interesting_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 6 (5가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (수식어 모두 포함)
+      .replace(/(^|\s)rome\s+was\s+a\s+small\s+town\s+of\s+a\s+small\s+kingdom\s+in\s+the\s+beginning\.?(?!\w)/gi, '$1ROM_Rome_Tk ROM_Was_Tk ROM_A1_Tk ROM_Small1_Tk ROM_Town_Tk ROM_Of_Tk ROM_A2_Tk ROM_Small2_Tk ROM_Kingdom_Tk ROM_In_Tk ROM_The_Tk ROM_Beginning_Tk ')
+      // 2. 시간 부사구 생략 (in the beginning 생략)
+      .replace(/(^|\s)rome\s+was\s+a\s+small\s+town\s+of\s+a\s+small\s+kingdom\.?(?!\w)/gi, '$1ROM_Rome_Tk ROM_Was_Tk ROM_A1_Tk ROM_Small1_Tk ROM_Town_Tk ROM_Of_Tk ROM_A2_Tk ROM_Small2_Tk ROM_Kingdom_Tk ')
+      // 3. small 2개 생략 (Rome was a town of a kingdom in the beginning)
+      .replace(/(^|\s)rome\s+was\s+a\s+town\s+of\s+a\s+kingdom\s+in\s+the\s+beginning\.?(?!\w)/gi, '$1ROM_Rome_Tk ROM_Was_Tk ROM_A1_Tk ROM_Town_Tk ROM_Of_Tk ROM_A2_Tk ROM_Kingdom_Tk ROM_In_Tk ROM_The_Tk ROM_Beginning_Tk ')
+      // 4. 왕국 수식어 생략 (of a small kingdom 생략)
+      .replace(/(^|\s)rome\s+was\s+a\s+small\s+town\s+in\s+the\s+beginning\.?(?!\w)/gi, '$1ROM_Rome_Tk ROM_Was_Tk ROM_A1_Tk ROM_Small1_Tk ROM_Town_Tk ROM_In_Tk ROM_The_Tk ROM_Beginning_Tk ')
+      // 5. 수식어 모두 생략 (뼈대만)
+      .replace(/(^|\s)rome\s+was\s+a\s+small\s+town\.?(?!\w)/gi, '$1ROM_Rome_Tk ROM_Was_Tk ROM_A1_Tk ROM_Small1_Tk ROM_Town_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 5 (2가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (before the law 모두 포함)
+      .replace(/(^|\s)all\s+men\s+are\s+equal\s+before\s+the\s+law\.?(?!\w)/gi, '$1EQL_All_Tk EQL_Men_Tk EQL_Are_Tk EQL_Equal_Tk EQL_Before_Tk EQL_The_Tk EQL_Law_Tk ')
+      // 2. 부사구 생략 (All men are equal)
+      .replace(/(^|\s)all\s+men\s+are\s+equal\.?(?!\w)/gi, '$1EQL_All_Tk EQL_Men_Tk EQL_Are_Tk EQL_Equal_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 4 (4가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (very, for us 모두 포함)
+      .replace(/(^|\s)this\s+novel\s+is\s+very\s+interesting\s+for\s+us\.?(?!\w)/gi, '$1NVL_This_Tk NVL_Novel_Tk NVL_Is_Tk NVL_VeryInteresting_Tk NVL_For_Tk NVL_Us_Tk ')
+      // 2. very 생략 (interesting for us)
+      .replace(/(^|\s)this\s+novel\s+is\s+interesting\s+for\s+us\.?(?!\w)/gi, '$1NVL_This_Tk NVL_Novel_Tk NVL_Is_Tk NVL_Interesting_Tk NVL_For_Tk NVL_Us_Tk ')
+      // 3. for us 생략 (very interesting)
+      .replace(/(^|\s)this\s+novel\s+is\s+very\s+interesting\.?(?!\w)/gi, '$1NVL_This_Tk NVL_Novel_Tk NVL_Is_Tk NVL_VeryInteresting_Tk ')
+      // 4. very, for us 모두 생략 (뼈대만)
+      .replace(/(^|\s)this\s+novel\s+is\s+interesting\.?(?!\w)/gi, '$1NVL_This_Tk NVL_Novel_Tk NVL_Is_Tk NVL_Interesting_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 3 (비교구문 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (than that of last year 모두 포함)
+      .replace(/(^|\s)the\s+cold\s+of\s+this\s+year\s+is\s+severer\s+than\s+that\s+of\s+last\s+year\.?(?!\w)/gi, '$1CLD_The_Tk CLD_Cold_Tk CLD_Of1_Tk CLD_ThisYear_Tk CLD_Is_Tk CLD_Severer_Tk CLD_Than_Tk CLD_ThatOf_Tk CLD_LastYear_Tk ')
+      // 2. 비교 대상 생략 (The cold of this year is severer)
+      .replace(/(^|\s)the\s+cold\s+of\s+this\s+year\s+is\s+severer\.?(?!\w)/gi, '$1CLD_The_Tk CLD_Cold_Tk CLD_Of1_Tk CLD_ThisYear_Tk CLD_Is_Tk CLD_Severer_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 2 (2가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (difficult subject 모두 포함)
+      .replace(/(^|\s)mathematics\s+is\s+difficult\s+subject\.?(?!\w)/gi, '$1MTH_Mathematics_Tk MTH_Is_Tk MTH_Difficult_Tk MTH_Subject_Tk ')
+      // 2. subject 생략 (difficult만 포함)
+      .replace(/(^|\s)mathematics\s+is\s+difficult\.?(?!\w)/gi, '$1MTH_Mathematics_Tk MTH_Is_Tk MTH_Difficult_Tk ')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 1 (4가지 변형 철벽 방어! 최상단 배치!) 👇👇
+      // 1. 완전체 (most popular, in the school 모두 포함)
+      .replace(/(^|\s)tom\s+is\s+the\s+most\s+popular\s+boy\s+in\s+the\s+school\.?(?!\w)/gi, '$1TOM_Tom_Tk TOM_Is_Tk TOM_TheMostPopular_Tk TOM_Boy_Tk TOM_In_Tk TOM_TheSchool_Tk ')
+      // 2. 장소 생략 (the most popular boy)
+      .replace(/(^|\s)tom\s+is\s+the\s+most\s+popular\s+boy\.?(?!\w)/gi, '$1TOM_Tom_Tk TOM_Is_Tk TOM_TheMostPopular_Tk TOM_Boy_Tk ')
+      // 3. most 생략 (the popular boy in the school)
+      .replace(/(^|\s)tom\s+is\s+the\s+popular\s+boy\s+in\s+the\s+school\.?(?!\w)/gi, '$1TOM_Tom_Tk TOM_Is_Tk TOM_ThePopular_Tk TOM_Boy_Tk TOM_In_Tk TOM_TheSchool_Tk ')
+      // 4. 수식어 모두 생략 (the boy in the school)
+      .replace(/(^|\s)tom\s+is\s+the\s+boy\s+in\s+the\s+school\.?(?!\w)/gi, '$1TOM_Tom_Tk TOM_Is_Tk TOM_The_Tk TOM_Boy_Tk TOM_In_Tk TOM_TheSchool_Tk ')
       
       // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 15 (7가지 변형 철벽 방어! 최상단 배치!) 👇👇
       // 1. 완전체
@@ -1363,6 +1475,99 @@ export async function POST(request: Request) {
 
       // if (word == 여기 아래에 Enter 두번 후 paste
 
+      // 💡 영한 <2형식> 동사의 형식 예문 9 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('PRV_Proverbs_Tk')) { matchedRole = 'PRV_Proverbs'; translatedWord = '속담은'; displayEn = 'Proverbs'; }
+      if (word.includes('PRV_May_Tk')) { matchedRole = 'PRV_May'; translatedWord = '되기도'; displayEn = 'may'; }
+      if (word.includes('PRV_Be_Tk')) { matchedRole = 'PRV_Be'; translatedWord = '한다'; displayEn = 'be'; }
+      if (word.includes('PRV_Warnings_Tk')) { matchedRole = 'PRV_Warnings'; translatedWord = '경고'; displayEn = 'warnings'; }
+      if (word.includes('PRV_Against_Tk')) { matchedRole = 'PRV_Against'; translatedWord = '에대한'; displayEn = 'against'; }
+      if (word.includes('PRV_Foolish_Tk')) { matchedRole = 'PRV_Foolish'; translatedWord = '어리석은'; displayEn = 'foolish'; }
+      if (word.includes('PRV_Acts_Tk')) { matchedRole = 'PRV_Acts'; translatedWord = '행동'; displayEn = 'acts'; }
+      if (word.includes('PRV_Or_Tk')) { matchedRole = 'PRV_Or'; translatedWord = '나 또는'; displayEn = 'or'; }
+      if (word.includes('PRV_Guides_Tk')) { matchedRole = 'PRV_Guides'; translatedWord = '지침이'; displayEn = 'guides'; }
+      if (word.includes('PRV_To_Tk')) { matchedRole = 'PRV_To'; translatedWord = '의'; displayEn = 'to'; }
+      if (word.includes('PRV_GoodConduct_Tk')) { matchedRole = 'PRV_GoodConduct'; translatedWord = '선행'; displayEn = 'good conduct'; }
+      if (word.includes('PRV_Conduct_Tk')) { matchedRole = 'PRV_Conduct'; translatedWord = '행동'; displayEn = 'conduct'; }
+      
+      // 💡 영한 <2형식> 동사의 형식 예문 8 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('LNG_Language_Tk')) { matchedRole = 'LNG_Language'; translatedWord = '언어는'; displayEn = 'Language'; }
+      if (word.includes('LNG_Is_Tk')) { matchedRole = 'LNG_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('LNG_TheMostImportant_Tk')) { matchedRole = 'LNG_TheMostImportant'; translatedWord = '가장 중요한'; displayEn = 'the most important'; }
+      if (word.includes('LNG_TheImportant_Tk')) { matchedRole = 'LNG_TheImportant'; translatedWord = '중요한'; displayEn = 'the important'; }
+      if (word.includes('LNG_The_Tk')) { matchedRole = 'LNG_The'; translatedWord = ''; displayEn = 'the'; } // 해석 생략으로 자연스럽게 처리
+      if (word.includes('LNG_Means_Tk')) { matchedRole = 'LNG_Means'; translatedWord = '수단'; displayEn = 'means'; }
+      if (word.includes('LNG_Of_Tk')) { matchedRole = 'LNG_Of'; translatedWord = '의'; displayEn = 'of'; }
+      if (word.includes('LNG_Communication_Tk')) { matchedRole = 'LNG_Communication'; translatedWord = '의사소통'; displayEn = 'communication'; }
+
+      // 💡 영한 <2형식> 동사의 형식 예문 7 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('DET_This_Tk')) { matchedRole = 'DET_This'; translatedWord = '이러한'; displayEn = 'This'; }
+      if (word.includes('DET_Detective_Tk')) { matchedRole = 'DET_Detective'; translatedWord = '탐정'; displayEn = 'detective'; }
+      if (word.includes('DET_Story_Tk')) { matchedRole = 'DET_Story'; translatedWord = '소설은'; displayEn = 'story'; }
+      if (word.includes('DET_Is_Tk')) { matchedRole = 'DET_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('DET_Very_Tk')) { matchedRole = 'DET_Very'; translatedWord = '대단히'; displayEn = 'very'; }
+      if (word.includes('DET_Interesting_Tk')) { matchedRole = 'DET_Interesting'; translatedWord = '흥미로운'; displayEn = 'interesting'; }
+      if (word.includes('DET_For_Tk')) { matchedRole = 'DET_For'; translatedWord = '에게'; displayEn = 'for'; }
+      if (word.includes('DET_Us_Tk')) { matchedRole = 'DET_Us'; translatedWord = '우리들'; displayEn = 'us'; }
+      
+      // 💡 영한 <2형식> 동사의 형식 예문 6 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('ROM_Rome_Tk')) { matchedRole = 'ROM_Rome'; translatedWord = '로마는'; displayEn = 'Rome'; }
+      if (word.includes('ROM_Was_Tk')) { matchedRole = 'ROM_Was'; translatedWord = '였다'; displayEn = 'was'; }
+      if (word.includes('ROM_A1_Tk')) { matchedRole = 'ROM_A1'; translatedWord = ''; displayEn = 'a'; }
+      if (word.includes('ROM_Small1_Tk')) { matchedRole = 'ROM_Small1'; translatedWord = '작은'; displayEn = 'small'; }
+      if (word.includes('ROM_Town_Tk')) { matchedRole = 'ROM_Town'; translatedWord = '도시'; displayEn = 'town'; }
+      if (word.includes('ROM_Of_Tk')) { matchedRole = 'ROM_Of'; translatedWord = '의'; displayEn = 'of'; }
+      if (word.includes('ROM_A2_Tk')) { matchedRole = 'ROM_A2'; translatedWord = ''; displayEn = 'a'; }
+      if (word.includes('ROM_Small2_Tk')) { matchedRole = 'ROM_Small2'; translatedWord = '조그마한'; displayEn = 'small'; }
+      if (word.includes('ROM_Kingdom_Tk')) { matchedRole = 'ROM_Kingdom'; translatedWord = '왕국'; displayEn = 'kingdom'; }
+      if (word.includes('ROM_In_Tk')) { matchedRole = 'ROM_In'; translatedWord = '에'; displayEn = 'in'; }
+      if (word.includes('ROM_The_Tk')) { matchedRole = 'ROM_The'; translatedWord = ''; displayEn = 'the'; }
+      if (word.includes('ROM_Beginning_Tk')) { matchedRole = 'ROM_Beginning'; translatedWord = '초기'; displayEn = 'beginning'; }
+      
+      // 💡 영한 <2형식> 동사의 형식 예문 5 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('EQL_All_Tk')) { matchedRole = 'EQL_All'; translatedWord = '모든'; displayEn = 'All'; }
+      if (word.includes('EQL_Men_Tk')) { matchedRole = 'EQL_Men'; translatedWord = '사람은'; displayEn = 'men'; }
+      if (word.includes('EQL_Are_Tk')) { matchedRole = 'EQL_Are'; translatedWord = '이다'; displayEn = 'are'; }
+      if (word.includes('EQL_Equal_Tk')) { matchedRole = 'EQL_Equal'; translatedWord = '평등한'; displayEn = 'equal'; }
+      if (word.includes('EQL_Before_Tk')) { matchedRole = 'EQL_Before'; translatedWord = '앞에'; displayEn = 'before'; }
+      if (word.includes('EQL_The_Tk')) { matchedRole = 'EQL_The'; translatedWord = ''; displayEn = 'the'; } // 해석 생략으로 자연스럽게 처리
+      if (word.includes('EQL_Law_Tk')) { matchedRole = 'EQL_Law'; translatedWord = '법'; displayEn = 'law'; }
+      
+      // 💡 영한 <2형식> 동사의 형식 예문 4 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('NVL_This_Tk')) { matchedRole = 'NVL_This'; translatedWord = '이'; displayEn = 'This'; }
+      if (word.includes('NVL_Novel_Tk')) { matchedRole = 'NVL_Novel'; translatedWord = '소설은'; displayEn = 'novel'; }
+      if (word.includes('NVL_Is_Tk')) { matchedRole = 'NVL_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('NVL_VeryInteresting_Tk')) { matchedRole = 'NVL_VeryInteresting'; translatedWord = '매우 흥미로운'; displayEn = 'very interesting'; }
+      if (word.includes('NVL_Interesting_Tk')) { matchedRole = 'NVL_Interesting'; translatedWord = '흥미로운'; displayEn = 'interesting'; }
+      if (word.includes('NVL_For_Tk')) { matchedRole = 'NVL_For'; translatedWord = '에게'; displayEn = 'for'; }
+      if (word.includes('NVL_Us_Tk')) { matchedRole = 'NVL_Us'; translatedWord = '우리들'; displayEn = 'us'; }
+      
+      // 💡 영한 <2형식> 동사의 형식 예문 3 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('CLD_The_Tk')) { matchedRole = 'CLD_The'; translatedWord = ''; displayEn = 'The'; }
+      if (word.includes('CLD_Cold_Tk')) { matchedRole = 'CLD_Cold'; translatedWord = '추위는'; displayEn = 'cold'; }
+      if (word.includes('CLD_Of1_Tk')) { matchedRole = 'CLD_Of1'; translatedWord = '(의)'; displayEn = 'of'; }
+      if (word.includes('CLD_ThisYear_Tk')) { matchedRole = 'CLD_ThisYear'; translatedWord = '금년'; displayEn = 'this year'; }
+      if (word.includes('CLD_Is_Tk')) { matchedRole = 'CLD_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('CLD_Severer_Tk')) { matchedRole = 'CLD_Severer'; translatedWord = '심한'; displayEn = 'severer'; }
+      if (word.includes('CLD_Than_Tk')) { matchedRole = 'CLD_Than'; translatedWord = '보다'; displayEn = 'than'; }
+      if (word.includes('CLD_ThatOf_Tk')) { matchedRole = 'CLD_ThatOf'; translatedWord = '(의)'; displayEn = 'that of'; }
+      if (word.includes('CLD_LastYear_Tk')) { matchedRole = 'CLD_LastYear'; translatedWord = '작년'; displayEn = 'last year'; }
+      
+      // 💡 영한 <2형식> 동사의 형식 예문 2 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('MTH_Mathematics_Tk')) { matchedRole = 'MTH_Mathematics'; translatedWord = '수학은'; displayEn = 'Mathematics'; }
+      if (word.includes('MTH_Is_Tk')) { matchedRole = 'MTH_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('MTH_Difficult_Tk')) { matchedRole = 'MTH_Difficult'; translatedWord = '어려운'; displayEn = 'difficult'; }
+      if (word.includes('MTH_Subject_Tk')) { matchedRole = 'MTH_Subject'; translatedWord = '과목'; displayEn = 'subject'; }
+      
+      // 💡 영한 <2형식> 동사의 형식 예문 1 (표시 오류 차단 및 토큰 매핑)
+      if (word.includes('TOM_Tom_Tk')) { matchedRole = 'TOM_Tom'; translatedWord = 'Tom은'; displayEn = 'Tom'; }
+      if (word.includes('TOM_Is_Tk')) { matchedRole = 'TOM_Is'; translatedWord = '이다'; displayEn = 'is'; }
+      if (word.includes('TOM_TheMostPopular_Tk')) { matchedRole = 'TOM_TheMostPopular'; translatedWord = '가장 인기있는'; displayEn = 'the most popular'; }
+      if (word.includes('TOM_ThePopular_Tk')) { matchedRole = 'TOM_ThePopular'; translatedWord = '인기있는'; displayEn = 'the popular'; }
+      if (word.includes('TOM_The_Tk')) { matchedRole = 'TOM_The'; translatedWord = '그'; displayEn = 'the'; }
+      if (word.includes('TOM_Boy_Tk')) { matchedRole = 'TOM_Boy'; translatedWord = '소년'; displayEn = 'boy'; }
+      if (word.includes('TOM_In_Tk')) { matchedRole = 'TOM_In'; translatedWord = '에서'; displayEn = 'in'; }
+      if (word.includes('TOM_TheSchool_Tk')) { matchedRole = 'TOM_TheSchool'; translatedWord = '학교'; displayEn = 'the school'; }
+      
       // 💡 영한 <1형식> 동사의 형식 예문 15 (표시 오류 차단 및 토큰 매핑)
       if (word.includes('SPY_Many_Tk')) { matchedRole = 'SPY_Many'; translatedWord = '수많은'; displayEn = 'Many'; }
       if (word.includes('SPY_NorthKorean_Tk')) { matchedRole = 'SPY_NorthKorean'; translatedWord = '북한'; displayEn = 'North Korean'; }
@@ -2449,6 +2654,33 @@ export async function POST(request: Request) {
       const isMatch = rule.requiredRoles.every(reqRole => detectedRoles.includes(reqRole));
     // 아래 두번 Enter 후에 paste
 
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 9 절대 방어선 👇👇
+      if (rule.type === '2형식_명사보어_예문9' && detectedRoles.includes('PRV_Proverbs') && detectedRoles.includes('PRV_May') && detectedRoles.includes('PRV_Be')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 8 절대 방어선 👇👇
+      if (rule.type === '2형식_명사보어_예문8' && detectedRoles.includes('LNG_Language') && detectedRoles.includes('LNG_Is') && detectedRoles.includes('LNG_Means')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 7 절대 방어선 👇👇
+      if (rule.type === '2형식_형용사보어_예문7' && detectedRoles.includes('DET_Story') && detectedRoles.includes('DET_Is') && detectedRoles.includes('DET_Interesting')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 6 절대 방어선 👇👇
+      if (rule.type === '2형식_명사보어_예문6' && detectedRoles.includes('ROM_Rome') && detectedRoles.includes('ROM_Was') && detectedRoles.includes('ROM_Town')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 5 절대 방어선 👇👇
+      if (rule.type === '2형식_형용사보어_예문5' && detectedRoles.includes('EQL_Men') && detectedRoles.includes('EQL_Are') && detectedRoles.includes('EQL_Equal')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 4 절대 방어선 👇👇
+      if (rule.type === '2형식_형용사보어_예문4' && detectedRoles.includes('NVL_Novel') && detectedRoles.includes('NVL_Is') && (detectedRoles.includes('NVL_VeryInteresting') || detectedRoles.includes('NVL_Interesting'))) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 3 절대 방어선 👇👇
+      if (rule.type === '2형식_형용사보어_예문3' && detectedRoles.includes('CLD_Cold') && detectedRoles.includes('CLD_Is') && detectedRoles.includes('CLD_Severer')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 2 절대 방어선 👇👇
+      if (rule.type === '2형식_명사보어_예문2' && detectedRoles.includes('MTH_Mathematics') && detectedRoles.includes('MTH_Is') && detectedRoles.includes('MTH_Difficult')) { selectedForm = rule; break; }
+     
+     // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 1 절대 방어선 👇👇
+      if (rule.type === '2형식_명사보어_예문1' && detectedRoles.includes('TOM_Tom') && detectedRoles.includes('TOM_Is') && detectedRoles.includes('TOM_Boy')) { selectedForm = rule; break; }
+     
      // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 15 절대 방어선 👇👇
       if (rule.type === '1형식_동사_예문15' && detectedRoles.includes('SPY_NorthKorean') && detectedRoles.includes('SPY_Spies') && detectedRoles.includes('SPY_HaveLanded') && detectedRoles.includes('SPY_In')) { selectedForm = rule; break; }
      
@@ -2731,6 +2963,49 @@ export async function POST(request: Request) {
     }
     let finalTranslation = finalKoreanWords.join(' ')
 // 여기 아래에 두번 Enter 후 paste
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 9 스마트 보정 👇👇
+      .replace(/행동\s*에대한/g, '행동에 대한')
+      .replace(/경고\s*나\s*또는/g, '경고나 또는')
+      .replace(/선행\s*의/g, '선행의')
+      .replace(/행동\s*의/g, '행동의') // conduct 단독일 때
+      .replace(/지침이\s*되기도\s*한다/g, '지침이 되기도 한다')
+      .replace(/경고\s*되기도\s*한다/g, '경고가 되기도 한다') // warnings 단독일 때
+      .replace(/되기도\s*한다/g, '되기도 한다')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 8 스마트 보정 👇👇
+      .replace(/의사소통\s*의/g, '의사소통의')
+      .replace(/수단\s*이다/g, '수단이다')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 7 스마트 보정 👇👇
+      .replace(/우리들\s*에게/g, '우리들에게')
+      .replace(/흥미로운\s*이다/g, '흥미롭다')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 6 스마트 보정 👇👇
+      .replace(/초기\s*에/g, '초기에')
+      .replace(/왕국\s*의/g, '왕국의')
+      .replace(/도시\s*였다/g, '도시였다')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 5 스마트 보정 👇👇
+      .replace(/법\s*앞에/g, '법 앞에')
+      .replace(/평등한\s*이다/g, '평등하다')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 4 스마트 보정 👇👇
+      .replace(/우리들\s*에게/g, '우리들에게')
+      .replace(/흥미로운\s*이다/g, '흥미롭다')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 3 스마트 보정 👇👇
+      .replace(/금년\s*\(\s*의\s*\)\s*추위는/g, '금년 추위는')
+      .replace(/작년\s*\(\s*의\s*\)\s*보다/g, '작년 추위보다') // that of를 문맥에 맞게 '추위'로 변환
+      .replace(/심한\s*이다/g, '심하다')
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 2 스마트 보정 👇👇
+      .replace(/과목\s*이다/g, '과목이다')
+      .replace(/어려운\s*이다/g, '어렵다') // subject가 생략되었을 때의 자연스러운 처리
+      
+      // 👇👇 💡 [수프로 엣지] 동사의 형식 2형식 예문 1 스마트 보정 👇👇
+      .replace(/학교\s*에서/g, '학교에서')
+      .replace(/소년\s*이다/g, '소년이다')
       
       // 👇👇 💡 [수프로 엣지] 동사의 형식 1형식 예문 15 스마트 보정 👇👇
       .replace(/전람회\s*기간에/g, '전람회기간에')
