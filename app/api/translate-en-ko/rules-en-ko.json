@@ -1,4 +1,20 @@
 {
+  "[N1] consider [N2] [N3]": "[N1]은 [N2]를 [N3]로 생각한다",
+  "i think [N1] [N2]": "나는 [N1]를 [N2]로 생각한다",
+  "[N1] bought [N2] [N3]": "[N1]은 [N2]에게 [N3]를 사주었다",
+  "i remember [N] name": "나는 [N]의 이름을 기억하고 있다",
+  "[N1] is a [ADJ] means": "[N1]은 [ADJ] 수단이다",
+  "[N] is interesting": "[N]은 흥미롭다",
+  "[N1] is a [N2]": "[N1]은 [N2]이다",
+  "i have to go to the [N]": "나는 [N]에 가야 한다",
+  "can you tell me the way to the [N]": "[N]으로 가는 길을 알려주실 수 있나요",
+  "please show me the [N]": "[N]를 보여주세요",
+  "you should consult a [N]": "[N]와 상담해야 합니다",
+  "he works at a [N]": "그는 [N]에서 일한다",
+  "i am interested in [N]": "나는 [N]에 관심이 있다",
+  "this [N] is very efficient": "이 [N]는 매우 효율적이다",
+  "look at the [N]": "그 [N]을 봐라",
+
   "look at the sky": "그 하늘을 봐라",
   "modern science has made life easier and more comfortable in many ways": "현대과학은 삶을 여러면에서 더 쉽고 더 편하게 했다",
   "science has made life easier and more comfortable in many ways": "과학은 삶을 여러면에서 더 쉽고 더 편하게 했다",
@@ -137,7 +153,7 @@
   "the settlers in america were free from tyrannies": "미국의 그 정주자들은 폭정에서 해방되었다",
   "the first settlers in america were free from corrupting powers": "미국의 최초의 정주자들은 부패해가는 세력에서 해방되었다",
   "proverbs may be warnings against foolish acts or guides to good conduct": "속담은 어리석은 행동에 대한 경고나 또는 선행의 지침이 되기도 한다",
-  "proverbs may be warnings against acts or guides to conduct": "속담은 행동에 대한 경고나 또는 행동의 지침이 되기도 한다",
+  "proverbs may be warnings against acts or guides to conduct": "속담은 행동에 대한 경고나 또는 행동의 지침이 되기도 단다",
   "proverbs may be warnings or guides to good conduct": "속담은 경고나 또는 선행의 지침이 되기도 한다",
   "proverbs may be warnings against foolish acts": "속담은 어리석은 행동에 대한 경고가 되기도 한다",
   "proverbs may be guides to good conduct": "속담은 선행의 지침이 되기도 한다",
@@ -434,6 +450,5 @@
   "success depends on your effort": "성공은 당신의 노력에 달려 있다",
   "the information is available on our website": "그 정보는 우리 웹사이트에서 볼 수 있다",
   "please submit the report by friday": "금요일까지 보고서를 제출해 주세요",
-  "i look forward to hearing from you": "당신의 소식을 기다리겠습니다",
-  "look at the [N]": "그 [N]을 봐라"
+  "i look forward to hearing from you": "당신의 소식을 기다리겠습니다"
 }
