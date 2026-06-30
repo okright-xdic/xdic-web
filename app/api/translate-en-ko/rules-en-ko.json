@@ -1,5 +1,4 @@
 {
-  "Where is the nearest [N]?": "가장 가까운 [N]은/는 어디에 있나요?",
   "How much does the [N] cost?": "[N] 비용은 얼마인가요?",
   "Please give my regards to [N].": "[N]에게 안부 전해주세요.",
   "How long does it take to get to [N]?": "[N]까지 얼마나 걸리나요?",
@@ -47,6 +46,7 @@
   "[N] is interesting": "[N]은 흥미롭다",
   "[N1] is a [N2]": "[N1]은 [N2]이다",
   "i have to go to the [N]": "나는 [N]에 가야 한다",
+  "Where is the nearest [N]?": "가장 가까운 [N]은/는 어디에 있나요?",
   "can you tell me the way to the [N]": "[N]으로 가는 길을 알려주실 수 있나요",
   "please show me the [N]": "[N]를 보여주세요",
   "you should consult a [N]": "[N]와 상담해야 합니다",
