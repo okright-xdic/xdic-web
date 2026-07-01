@@ -494,7 +494,8 @@ export default function SearchInput({
 
     const basePath = isApp || checkIsNative() ? '/app' : '/';
     startTransition(() => {
-      router.push(`${basePath}?q=${encodeURIComponent(finalQuery)}`);
+      // 🌟 [수프로 마스터 수정] 화면의 검색어는 그대로 두고, URL 파라미터로 원본(q)과 변환본(nq)을 모두 넘깁니다.
+      router.push(`${basePath}?q=${encodeURIComponent(rawTrimmed)}&nq=${encodeURIComponent(finalQuery)}`);
     });
   };
 
