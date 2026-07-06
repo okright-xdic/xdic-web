@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Capacitor } from '@capacitor/core';
+import { SpeechRecognition } from '@capgo/capacitor-speech-recognition';
 import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import PopularKeywords from '@/components/PopularKeywords'; 
@@ -69,6 +70,10 @@ export default function SearchPage({
 
   const [aiTranslation, setAiTranslation] = useState<string | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<{ko: string, en: string}[] | null>(null);
+
+  // 🌟 번역 결과 박스 전용 마이크 상태
+  const [isBoxListening, setIsBoxListening] = useState(false);
+  const [boxMicLang, setBoxMicLang] = useState<'ko-KR' | 'en-US' | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -321,6 +326,104 @@ export default function SearchPage({
     }
   };
 
+  // 🌟 번역 박스 전용 단발성 마이크 검색 로직
+  const handleBoxVoiceSearch = async (lang: 'ko-KR' | 'en-US') => {
+    if (isBoxListening) return;
+    setBoxMicLang(lang);
+    setIsBoxListening(true);
+
+    const isNative = Capacitor.isNativePlatform();
+    const basePath = displayIsApp ? '/app' : '/';
+
+    if (isNative) {
+      try {
+        const { available } = await SpeechRecognition.available();
+        if (!available) {
+          alert('이 기기에서는 음성 인식을 사용할 수 없습니다.');
+          setIsBoxListening(false);
+          setBoxMicLang(null);
+          return;
+        }
+
+        let perm = await SpeechRecognition.checkPermissions();
+        if (perm.speechRecognition !== 'granted') {
+          perm = await SpeechRecognition.requestPermissions();
+        }
+
+        if (perm.speechRecognition !== 'granted') {
+          alert('마이크 권한이 필요합니다. 설정에서 권한을 허용해주세요.');
+          setIsBoxListening(false);
+          setBoxMicLang(null);
+          return;
+        }
+
+        const result = await SpeechRecognition.start({
+          language: lang,
+          maxResults: 1,
+          partialResults: false,
+          popup: false,
+        });
+
+        let transcript = String(result?.matches?.[0] || '').trim().replace(/[.,?!]/g, '');
+        setIsBoxListening(false);
+        setBoxMicLang(null);
+
+        if (transcript) {
+          router.push(`${basePath}?q=${encodeURIComponent(transcript)}`);
+        }
+      } catch (e: any) {
+        setIsBoxListening(false);
+        setBoxMicLang(null);
+        const msg = String(e?.message || e || '').toLowerCase();
+        if (msg.includes('denied') || msg.includes('permission')) {
+          alert('마이크 권한이 차단되었습니다. 설정에서 허용해주세요.');
+        }
+      }
+    } else {
+      const Ctor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (!Ctor) {
+        alert('이 브라우저는 음성 인식을 지원하지 않습니다. (Chrome 브라우저 권장)');
+        setIsBoxListening(false);
+        setBoxMicLang(null);
+        return;
+      }
+
+      const recognition = new Ctor();
+      recognition.lang = lang;
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onresult = (event: any) => {
+        setIsBoxListening(false);
+        setBoxMicLang(null);
+        const transcript = String(event?.results?.[0]?.[0]?.transcript || '').trim();
+        if (transcript) {
+          router.push(`${basePath}?q=${encodeURIComponent(transcript)}`);
+        }
+      };
+
+      recognition.onerror = (e: any) => {
+        setIsBoxListening(false);
+        setBoxMicLang(null);
+        if (e.error === 'not-allowed') {
+          alert('마이크 권한이 차단되었습니다. 브라우저 설정에서 마이크를 허용해주세요.');
+        }
+      };
+
+      recognition.onend = () => {
+        setIsBoxListening(false);
+        setBoxMicLang(null);
+      };
+
+      try {
+        recognition.start();
+      } catch {
+        setIsBoxListening(false);
+        setBoxMicLang(null);
+      }
+    }
+  };
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = displayResults.slice(indexOfFirstItem, indexOfLastItem);
@@ -388,6 +491,18 @@ export default function SearchPage({
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           {displayQuery ? (
             <div className="w-full mt-5">
+              
+              {/* 🌟 앱 다운로드 안내 문구 (앱이 아닐 때만 노출) */}
+              {!displayIsApp && (
+                <div className="w-full mb-6 animate-in fade-in slide-in-from-top-2 duration-500">
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 shadow-sm text-center">
+                    <p className="text-[14px] md:text-[15px] font-bold text-slate-700 leading-snug break-keep">
+                      📱 휴대폰 앱 다운방법: <span className="text-blue-600 font-extrabold">갤럭시폰</span>은 <span className="text-orange-500 font-extrabold">Play 스토어</span>에서, <span className="text-blue-600 font-extrabold">iPhone</span>은 <span className="text-orange-500 font-extrabold">App Store</span>에서 <span className="text-purple-600 font-extrabold">x-dic</span>으로 검색!
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {isTooShort ? (
                 <div className="py-32 text-center text-slate-400 text-xl font-light italic animate-in fade-in slide-in-from-bottom-2 duration-300">
                   단어는 <span style={{ color: '#ea580c', fontWeight: 'bold' }}>두 글자 이상</span> 입력해 주세요.
@@ -395,30 +510,57 @@ export default function SearchPage({
               ) : displayResults.length > 0 ? (
                 <div className="space-y-6">
 
-                  {/* 🌟 [수프로 마법] 번역 박스 + 시각적 매칭 UI */}
+                  {/* 🌟 [수프로 마법] 번역 박스 + 스피커 및 검색 문장 표시 UI 반영 */}
                   {aiTranslation && (
                     <div className="bg-blue-50 border-2 border-blue-300 rounded-2xl p-5 mb-8 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
-                      <div className="flex items-center gap-2 mb-3">
+                      <div className="flex items-center gap-2 mb-4">
                         <span className="text-2xl drop-shadow-sm">✨</span>
                         <h3 className="text-blue-800 font-extrabold text-[16px] md:text-lg tracking-tight"> 추천 문장 번역</h3>
                       </div>
-                      <p className="text-xl md:text-2xl font-bold text-slate-900 leading-snug pl-1">"{aiTranslation}"</p>
                       
-                      {/*aiAnalysis && aiAnalysis.length > 0 && (
-                        <div className="mt-5 pl-1">
-                          <p className="text-[12px] font-bold text-slate-500 mb-2">🔍 문장 구조 분석 (한글 ➔ 영어 매칭)</p>
-                          <div className="flex flex-wrap gap-2">
-                            {aiAnalysis.map((item, index) => (
-                              <div key={index} className="flex flex-col items-center justify-center bg-white border border-blue-200 rounded-lg px-3 py-1.5 shadow-sm transition-transform hover:scale-105">
-                                <span className="text-[13px] font-bold text-slate-600 mb-0.5">{item.ko}</span>
-                                <div className="w-full h-px bg-blue-100 mb-1"></div>
-                                <span className="text-[14px] font-black text-blue-600">{item.en}</span>
-                              </div>
-                            ))}
+                      <div className="flex flex-col gap-4 pl-1 mb-2">
+                        {/* 🌟 1. 사용자가 검색한 내용 표시 */}
+                        <div className="flex items-start gap-3">
+                          <span className="text-[13px] md:text-[15px] font-bold text-blue-700/80 whitespace-nowrap mt-1">검색 내용:</span>
+                          <p className="text-[16px] md:text-[18px] font-bold text-slate-800 leading-snug flex-1">{displayQuery}</p>
+                          
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            {/* 스피커 버튼 (발음 듣기) */}
+                            <button onClick={() => handleSpeak(displayQuery)} className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
+                            </button>
+                            {/* 복사 버튼 */}
+                            <button onClick={() => handleCopy(displayQuery, 'query')} className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm" title="복사">
+                              {copiedId === 'query' ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-emerald-500"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>
+                              ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" /></svg>
+                              )}
+                            </button>
                           </div>
                         </div>
-                      )}
-		      */}
+                        
+                        {/* 🌟 2. 번역 결과 표시 (따옴표 제거 & 마침표 정리) */}
+                        <div className="flex items-start gap-3">
+                          <span className="text-[13px] md:text-[15px] font-bold text-blue-700/80 whitespace-nowrap mt-1">검색 결과:</span>
+                          <p className="text-xl md:text-2xl font-black text-slate-900 leading-snug flex-1">{aiTranslation.replace(/\.{2,}/g, '.')}</p>
+                          
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            {/* 🌟 번역 결과 듣기(스피커) 버튼 */}
+                            <button onClick={() => handleSpeak(aiTranslation)} className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
+                            </button>
+                            {/* 복사 버튼 */}
+                            <button onClick={() => handleCopy(aiTranslation.replace(/\.{2,}/g, '.'), 'translation')} className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm" title="복사">
+                              {copiedId === 'translation' ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-emerald-500"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>
+                              ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" /></svg>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
 
                       <p className="text-[12px] md:text-[13px] text-blue-600/80 mt-4 pl-1 font-medium">엑스딕이 추천하는 전문가 번역 데이터 중 가장 자연스러운 문장입니다.</p>
                     </div>
@@ -508,7 +650,7 @@ export default function SearchPage({
                       </p>
                       <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
                         <button onClick={() => handleExternalSearch('naver')} className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-[#03C75A] hover:bg-[#02b351] text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-md">네이버 사전 검색</button>
-                        <button onClick={() => handleExternalSearch('google')} className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition-all shadow-sm hover:shadow-md">Google 검색</button>
+                        <button onClick={() => handleExternalSearch('google')} className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold transition-all shadow-sm hover:shadow-md">Google 검색</button>
                       </div>
                     </div>
                   )}
