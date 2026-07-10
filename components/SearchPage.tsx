@@ -70,6 +70,9 @@ export default function SearchPage({
 
   const [aiTranslation, setAiTranslation] = useState<string | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<{ko: string, en: string}[] | null>(null);
+  
+  // 🌟 [수프로 엣지] 백엔드에서 보낸 '참고용' 비밀 신호를 담을 상태 추가!
+  const [isReference, setIsReference] = useState<boolean>(false);
 
   // 🌟 번역 결과 박스 전용 마이크 상태
   const [isBoxListening, setIsBoxListening] = useState(false);
@@ -108,18 +111,22 @@ export default function SearchPage({
         if (data.ok && data.best) {
           setAiTranslation(data.best.target_text);
           setAiAnalysis(data.best.analysis || null);
+          setIsReference(data.best.isReference || false); // 🌟 신호 저장!
         } else {
           setAiTranslation(null);
           setAiAnalysis(null);
+          setIsReference(false);
         }
       })
       .catch(() => {
         setAiTranslation(null);
         setAiAnalysis(null);
+        setIsReference(false);
       });
     } else {
       setAiTranslation(null);
       setAiAnalysis(null);
+      setIsReference(false);
     }
   }, [query]);
 
@@ -224,15 +231,24 @@ export default function SearchPage({
 
   useEffect(() => setCurrentPage(1), [results, query]);
 
-  // 🌟 [수프로 마법] 3. 화면 렌더링 단계에서 0번(기초영어) 완벽 차단!
+  // ==========================================
+  // 검색 결과 표시용 카테고리별 개수 제한
+  // category_id 0인 기초영어도 정상적으로 표시합니다.
+  // ==========================================
   const displayResults = React.useMemo(() => {
     const categoryCount: Record<number, number> = {};
-    return results.filter(item => {
-      // 💡 여기서 필터링하여 프론트엔드 리스트에 절대 노출되지 않도록 만듭니다!
-      if (item.category_id === 0) return false; 
-      
-      const catId = item.category_id != null ? item.category_id : 12;
-      categoryCount[catId] = (categoryCount[catId] || 0) + 1;
+
+    return results.filter((item) => {
+      const catId =
+        item.category_id !== null &&
+        item.category_id !== undefined
+          ? Number(item.category_id)
+          : 12;
+
+      categoryCount[catId] =
+        (categoryCount[catId] || 0) + 1;
+
+      // 각 카테고리에서 최대 5개까지 표시
       return categoryCount[catId] <= 5;
     });
   }, [results]);
@@ -540,9 +556,11 @@ export default function SearchPage({
                           </div>
                         </div>
                         
-                        {/* 🌟 2. 번역 결과 표시 (따옴표 제거 & 마침표 정리) */}
+                        {/* 🌟 2. 번역 결과 표시 (라벨 동적 변경) */}
                         <div className="flex items-start gap-3">
-                          <span className="text-[13px] md:text-[15px] font-bold text-blue-700/80 whitespace-nowrap mt-1">검색 결과:</span>
+                          <span className={`text-[13px] md:text-[15px] font-bold whitespace-nowrap mt-1 ${isReference ? 'text-orange-600' : 'text-blue-700/80'}`}>
+                            {isReference ? '참고 문장:' : '검색 결과:'}
+                          </span>
                           <p className="text-xl md:text-2xl font-black text-slate-900 leading-snug flex-1">{aiTranslation.replace(/\.{2,}/g, '.')}</p>
                           
                           <div className="flex items-center gap-1.5 mt-0.5">
@@ -562,7 +580,11 @@ export default function SearchPage({
                         </div>
                       </div>
 
-                      <p className="text-[12px] md:text-[13px] text-blue-600/80 mt-4 pl-1 font-medium">엑스딕이 추천하는 전문가 번역 데이터 중 가장 자연스러운 문장입니다.</p>
+                      <p className={`text-[12px] md:text-[13px] mt-4 pl-1 font-medium ${isReference ? 'text-orange-600/80' : 'text-blue-600/80'}`}>
+                        {isReference 
+                          ? '💡 정확히 일치하는 문장이 없어 가장 유사한 데이터를 참고용으로 제공합니다.' 
+                          : '엑스딕이 추천하는 전문가 번역 데이터 중 가장 자연스러운 문장입니다.'}
+                      </p>
                     </div>
                   )}
 

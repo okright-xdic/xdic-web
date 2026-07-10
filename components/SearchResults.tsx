@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 
 // 🌟 [핀포인트 수정 1] 0번 '기준 영어' 추가!
 const CATEGORY_NAMES: { [key: number]: string } = {
-  0: '기준 영어', 1: '기본영어', 2: '인문사회용어', 3: '기계_전기_전자용어', 4: '교육_종교_예체능용어',
+  0: '기초 영어', 1: '기본영어', 2: '인문사회용어', 3: '기계_전기_전자용어', 4: '교육_종교_예체능용어',
   5: '무역경제용어', 6: '자동차_환경용어', 7: '물리_화학용어', 8: '컴퓨터용어',
   9: '의학용어', 10: '인문사회기타용어', 11: '과학기술기타용어', 12: '기타'
 };
@@ -79,37 +79,109 @@ export default function SearchResults({ keyword }: { keyword: string }) {
 
   useEffect(() => {
     const trimmedKey = keyword.trim();
+
     if (trimmedKey.length < 2) {
       setResults([]);
-      return; 
+      setIsLoading(false);
+      setCurrentPage(1);
+      return;
     }
+
+    // 이전 검색 요청을 중단하기 위한 장치
+    const controller = new AbortController();
+    let ignoreThisRequest = false;
+
     const fetchResults = async () => {
       setIsLoading(true);
+
       try {
-        const response = await fetch(`/api/rpc-search?q=${encodeURIComponent(trimmedKey)}`);
+        const response = await fetch(
+          `/api/rpc-search?q=${encodeURIComponent(trimmedKey)}`,
+          {
+            signal: controller.signal,
+            cache: 'no-store',
+          }
+        );
+
         const data = await response.json();
-        
-        // 🌟 [핀포인트 수정 2] 서버에서 받은 결과를 무조건 5개씩만 필터링!
-        const rawResults = data.results || [];
+
+        // 이미 더 새로운 검색 요청이 시작됐다면
+        // 이 오래된 결과는 화면에 반영하지 않습니다.
+        if (ignoreThisRequest) {
+          return;
+        }
+
+        if (!response.ok) {
+          console.error('[rpc-search 응답 오류]', {
+            keyword: trimmedKey,
+            status: response.status,
+            data,
+          });
+
+          setResults([]);
+          return;
+        }
+
+        const rawResults = Array.isArray(data.results)
+          ? data.results
+          : [];
+
         const categoryCount: Record<number, number> = {};
 
         const limitedResults = rawResults.filter((item: any) => {
-          const catId = item.category_id != null ? item.category_id : 12; 
-          categoryCount[catId] = (categoryCount[catId] || 0) + 1;
-          return categoryCount[catId] <= 5; // 5개까지만 통과
+          const catId =
+            item.category_id !== null &&
+            item.category_id !== undefined
+              ? Number(item.category_id)
+              : 12;
+
+          categoryCount[catId] =
+            (categoryCount[catId] || 0) + 1;
+
+          return categoryCount[catId] <= 5;
+        });
+
+        console.log('[SearchResults 검색 성공]', {
+          keyword: trimmedKey,
+          apiResultCount: rawResults.length,
+          displayedResultCount: limitedResults.length,
+          firstResult: limitedResults[0] || null,
         });
 
         setResults(limitedResults);
-        // 🌟 필터링 끝
+      } catch (err: any) {
+        // 새 검색으로 인해 이전 요청이 취소된 경우는 오류가 아닙니다.
+        if (
+          err?.name === 'AbortError' ||
+          ignoreThisRequest
+        ) {
+          return;
+        }
 
-      } catch (err) {
+        console.error('[SearchResults 검색 오류]', {
+          keyword: trimmedKey,
+          message: err?.message || String(err),
+          error: err,
+        });
+
         setResults([]);
       } finally {
-        setIsLoading(false);
-        setCurrentPage(1);
+        // 현재 검색 요청일 때만 로딩 상태를 종료합니다.
+        if (!ignoreThisRequest) {
+          setIsLoading(false);
+          setCurrentPage(1);
+        }
       }
     };
+
     fetchResults();
+
+    // keyword가 바뀌거나 컴포넌트가 종료되면
+    // 이전 검색이 결과 상태를 덮어쓰지 못하도록 막습니다.
+    return () => {
+      ignoreThisRequest = true;
+      controller.abort();
+    };
   }, [keyword]);
 
   const currentItems = results.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
