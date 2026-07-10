@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { NextResponse } from 'next/server';
-import customRules from './rules-en-ko.json'; // 👈 🚨 선생님! 이 한 줄이 빠져있어서 에러가 났습니다!
-
+import { createClient } from '@supabase/supabase-js';
+import customRules from './rules-en-ko.json';
 // ============================================================================
 // 🌟 [수프로 엔진 영한(En-Ko) v12.9] 엑스딕 RBMT: 1~5형식 통합 & 평서문 (해라체 + 해요체) 탑재
 // ============================================================================
@@ -34,11 +34,11 @@ const parseConjugations = (rawStr: string) => {
 };
 
 // 런타임에 1회 파싱하여 메모리에 적재 (Vercel 에러 원천 차단)
-parseConjugations(KO_ENDINGS_RAW);
-parseConjugations(HAEYO_ENDINGS_RAW);
-parseConjugations(HASHIPSIO_ENDINGS_RAW);
-parseConjugations(Q_FRIENDS_ENDINGS_RAW);
-parseConjugations(HASHIPSIO_Q_ENDINGS_RAW);
+parseConjugations(typeof KO_ENDINGS_RAW !== 'undefined' ? KO_ENDINGS_RAW : '');
+parseConjugations(typeof HAEYO_ENDINGS_RAW !== 'undefined' ? HAEYO_ENDINGS_RAW : '');
+parseConjugations(typeof HASHIPSIO_ENDINGS_RAW !== 'undefined' ? HASHIPSIO_ENDINGS_RAW : '');
+parseConjugations(typeof Q_FRIENDS_ENDINGS_RAW !== 'undefined' ? Q_FRIENDS_ENDINGS_RAW : '');
+parseConjugations(typeof HASHIPSIO_Q_ENDINGS_RAW !== 'undefined' ? HASHIPSIO_Q_ENDINGS_RAW : '');
 
 // 통합 3단 활용 변환기
 const getKoreanConjugation = (baseWord: string, tense: 'past' | 'future' | 'present'): string => {
@@ -216,24 +216,6 @@ const FORM_RULES = [
   { type: '3형식_영한_목적어구_예문3', requiredRoles: ['EK3E3_Boy', 'EK3E3_Wanted', 'EK3E3_Become'], koreanOrder: ['EK3E3_The', 'EK3E3_Bright', 'EK3E3_Boy', 'EK3E3_Future', 'EK3E3_In', 'EK3E3_Scientist', 'EK3E3_Become', 'EK3E3_To', 'EK3E3_Wanted'] },
   { type: '3형식_영한_목적어구_예문4', requiredRoles: ['EK3E4_She', 'EK3E4_Decided', 'EK3E4_Dye'], koreanOrder: ['EK3E4_She', 'EK3E4_The', 'EK3E4_Petals', 'EK3E4_With', 'EK3E4_Fingernails', 'EK3E4_Dye', 'EK3E4_To', 'EK3E4_Decided'] },
   { type: '3형식_영한_목적어구_예문5', requiredRoles: ['EK3E5_She', 'EK3E5_Liked', 'EK3E5_Tell'], koreanOrder: ['EK3E5_She', 'EK3E5_Tourists', 'EK3E5_Greece', 'EK3E5_Of', 'EK3E5_History', 'EK3E5_And', 'EK3E5_Culture', 'EK3E5_Tell', 'EK3E5_To', 'EK3E5_Liked'] },
-  { type: '3형식_영한_목적어구_예문6', requiredRoles: ['EK3E6_Wrong', 'EK3E6_Want', 'EK3E6_Leave'], koreanOrder: ['EK3E6_You', 'EK3E6_Much', 'EK3E6_Wealth', 'EK3E6_Leave', 'EK3E6_To2', 'EK3E6_Want', 'EK3E6_To1', 'EK3E6_Wrong', 'EK3E6_Is'] },
-  { type: '3형식_영한_목적어구_예문7', requiredRoles: ['EK3E7_Greeks', 'EK3E7_Liked', 'EK3E7_Make'], koreanOrder: ['EK3E7_Greeks', 'EK3E7_Their', 'EK3E7_Bodies', 'EK3E7_Gymnasium', 'EK3E7_Of', 'EK3E7_Exercises', 'EK3E7_With', 'EK3E7_Strong', 'EK3E7_Make', 'EK3E7_To', 'EK3E7_Liked'] },
-  { type: '2형식_영한_보충어구_예문1', requiredRoles: ['EK2C1_Plan', 'EK2C1_Is', 'EK2C1_Go'], koreanOrder: ['EK2C1_My', 'EK2C1_Plan', 'EK2C1_This', 'EK2C1_Weekend', 'EK2C1_On', 'EK2C1_Her', 'EK2C1_With', 'EK2C1_Museum', 'EK2C1_To2', 'EK2C1_Go', 'EK2C1_To1', 'EK2C1_Is'] },
-  { type: '2형식_영한_보충어구_예문2', requiredRoles: ['EK2C2_Hope', 'EK2C2_Become'], koreanOrder: ['EK2C2_His', 'EK2C2_Hope', 'EK2C2_Future', 'EK2C2_In', 'EK2C2_Doctor', 'EK2C2_Become', 'EK2C2_To'] },
-  { type: '1형식_영한_기본문형_예문1', requiredRoles: ['EK1B1_Father', 'EK1B1_Works'], koreanOrder: ['EK1B1_My', 'EK1B1_Father', 'EK1B1_Morning', 'EK1B1_From', 'EK1B1_Evening', 'EK1B1_Till', 'EK1B1_Works'] },
-  { type: '1형식_영한_기본문형_예문2', requiredRoles: ['EK1B2_He', 'EK1B2_HadWork'], koreanOrder: ['EK1B2_He', 'EK1B2_Living', 'EK1B2_For', 'EK1B2_Hard', 'EK1B2_HadWork'] },
-  { type: '2형식_영한_가주어-진주어 예문 8', requiredRoles: ['EK2G8_Health', 'EK2G8_GetUp'], koreanOrder: ['EK2G8_Morning', 'EK2G8_In', 'EK2G8_Early', 'EK2G8_GetUp', 'EK2G8_To', 'EK2G8_Health', 'EK2G8_For', 'EK2G8_Good', 'EK2G8_Is'] },
-  { type: '2형식_영한_가주어-진주어 예문 9', requiredRoles: ['EK2G9_Hope', 'EK2G9_Be'], koreanOrder: ['EK2G9_Future', 'EK2G9_In', 'EK2G9_Poet', 'EK2G9_Be', 'EK2G9_To', 'EK2G9_My', 'EK2G9_Hope', 'EK2G9_Is'] },
-  { type: '2형식_영한_가주어-진주어 예문 10', requiredRoles: ['EK2G10_Easy', 'EK2G10_Study'], koreanOrder: ['EK2G10_This', 'EK2G10_Way', 'EK2G10_In', 'EK2G10_English', 'EK2G10_Study', 'EK2G10_To', 'EK2G10_Very', 'EK2G10_Easy', 'EK2G10_Is'] },
-  { type: '2형식_영한_가주어-진주어 예문 11', requiredRoles: ['EK2G11_Task', 'EK2G11_Lend'], koreanOrder: ['EK2G11_This', 'EK2G11_ReadingWeek', 'EK2G11_During', 'EK2G11_Many1', 'EK2G11_Citizens', 'EK2G11_Many2', 'EK2G11_Books', 'EK2G11_Lend', 'EK2G11_To', 'EK2G11_Our', 'EK2G11_Task', 'EK2G11_Is'] },
-  { type: '2형식_영한_가주어-진주어 예문 12', requiredRoles: ['EK2G12_Health', 'EK2G12_Work'], koreanOrder: ['EK2G12_Work', 'EK2G12_And', 'EK2G12_To2', 'EK2G12_Play', 'EK2G12_To1', 'EK2G12_Health', 'EK2G12_For', 'EK2G12_Good', 'EK2G12_Is'] },
-  { type: '2형식_영한_가주어-진주어 예문 13', requiredRoles: ['EK2G13_Duty', 'EK2G13_Advance'], koreanOrder: ['EK2G13_Gov', 'EK2G13_Uphold', 'EK2G13_And1', 'EK2G13_My2', 'EK2G13_Peoples', 'EK2G13_Of', 'EK2G13_Happiness', 'EK2G13_And2', 'EK2G13_Prosperity', 'EK2G13_Advance', 'EK2G13_To2', 'EK2G13_My1', 'EK2G13_Duty', 'EK2G13_Is'] },
-  { type: '2형식_영한_가주어-진주어 예문 14', requiredRoles: ['EK2G14_Task'], koreanOrder: ['EK2G14_Many1', 'EK2G14_Youths1', 'EK2G14_True', 'EK2G14_Subjects', 'EK2G14_Teach', 'EK2G14_To1', 'EK2G14_And', 'EK2G14_Them', 'EK2G14_Great', 'EK2G14_Youths2', 'EK2G14_Make', 'EK2G14_To2', 'EK2G14_Our', 'EK2G14_Task', 'EK2G14_Is'] },
-  { type: '3형식_영한_예문1', requiredRoles: ['RST_I', 'RST_Want'], koreanOrder: ['RST_I', 'RST_House', 'RST_In', 'RST_Rest', 'RST_To', 'RST_Want'] },
-  { type: '3형식_영한_예문2', requiredRoles: ['KNW_I', 'KNW_Want', 'KNW_Know'], koreanOrder: ['KNW_I', 'KNW_Animals', 'KNW_And', 'KNW_Plants', 'KNW_About', 'KNW_Know', 'KNW_To', 'KNW_Want'] },
-  { type: '3형식_목적어구_예문3', requiredRoles: ['BS2_Boy', 'BS2_Wanted', 'BS2_Become'], koreanOrder: ['BS2_The', 'BS2_Bright', 'BS2_Boy', 'BS2_Future', 'BS2_In', 'BS2_Sci', 'BS2_Become', 'BS2_To', 'BS2_Wanted'] },
-  { type: '3형식_목적어구_예문4', requiredRoles: ['DYE_She', 'DYE_Decided', 'DYE_Dye'], koreanOrder: ['DYE_She', 'DYE_The', 'DYE_Petals', 'DYE_With', 'DYE_Her', 'DYE_Fingernails', 'DYE_Dye', 'DYE_To', 'DYE_Decided'] },
-  { type: '3형식_목적어구_예문5', requiredRoles: ['TEL_She', 'TEL_Liked', 'TEL_Tell'], koreanOrder: ['TEL_She', 'TEL_Tourists', 'TEL_Greece', 'TEL_Of', 'TEL_History', 'TEL_And', 'TEL_Culture', 'TEL_Tell', 'TEL_To', 'TEL_Liked'] },
   { type: '목적어구_영한_예문6', requiredRoles: ['WRG_Wrong', 'WRG_Want', 'WRG_Leave'], koreanOrder: ['WRG_You', 'WRG_Much', 'WRG_Wealth', 'WRG_Leave', 'WRG_To2', 'WRG_Want', 'WRG_To1', 'WRG_Wrong', 'WRG_Is'] },
   { type: '3형식_목적어구_예문7', requiredRoles: ['GRK_Subj', 'GRK_Liked', 'GRK_Make'], koreanOrder: ['GRK_Subj', 'GRK_Their', 'GRK_Bodies', 'GRK_Gym', 'GRK_Of', 'GRK_Exercises', 'GRK_With', 'GRK_Strong', 'GRK_Make', 'GRK_To', 'GRK_Liked'] },
   { type: '2형식_보충어구_예문1', requiredRoles: ['PLN_Plan', 'PLN_Go', 'PLN_Museum'], koreanOrder: ['PLN_My', 'PLN_Plan', 'PLN_This', 'PLN_Weekend', 'PLN_On', 'PLN_Her', 'PLN_With', 'PLN_Museum', 'PLN_To2', 'PLN_Go', 'PLN_To1', 'PLN_Is'] },
@@ -259,8 +241,8 @@ const FORM_RULES = [
   { type: '1형식_의지동사_예문1', requiredRoles: ['VOL_He', 'VOL_Came', 'VOL_To', 'VOL_See', 'VOL_You'], koreanOrder: ['VOL_He', 'VOL_You', 'VOL_See', 'VOL_To', 'VOL_Here', 'VOL_Came'] },
   { type: '1형식_의지동사_예문2', requiredRoles: ['GAT_We', 'GAT_Gathered', 'GAT_Talk', 'GAT_Thing'], koreanOrder: ['GAT_We', 'GAT_Thing', 'GAT_About', 'GAT_Talk', 'GAT_To', 'GAT_Today', 'GAT_Here', 'GAT_Gathered'] },
   { type: '3형식_의지동사_예문3', requiredRoles: ['BOU_He', 'BOU_Bought', 'BOU_House', 'BOU_Live'], koreanOrder: ['BOU_He', 'BOU_His', 'BOU_GoodWife', 'BOU_And', 'BOU_PrettyDaughter', 'BOU_ADaughter', 'BOU_With', 'BOU_Quiet', 'BOU_Country', 'BOU_In', 'BOU_Live', 'BOU_To', 'BOU_The1', 'BOU_Old', 'BOU_House', 'BOU_Bought'] },
-  { type: '3형식_의지동사_예문4', requiredRoles: ['PRG_We', 'PRG_Made', 'PRG_Program', 'PRG_Teach'], koreanOrder: ['PRG_We', 'PRG_This', 'PRG_Vacation', 'PRG_During', 'PRG_Many', 'PRG_Students', 'PRG_Other', 'PRG_Country', 'PRG_Of', 'PRG_The', 'PRG_Culture', 'PRG_Customs', 'PRG_And', 'PRG_Art', 'PRG_Teach', 'PRG_To', 'PRG_A', 'PRG_Special', 'PRG_Program', 'PRG_Made'] },
-  { type: '3형식_의지동사_예문5', requiredRoles: ['ALB_Albert', 'ALB_Used'], koreanOrder: ['ALB_Albert', 'ALB_Hospital', 'ALB_Bigger', 'ALB_Make1', 'ALB_And', 'ALB_Leprosy', 'ALB_Suffer', 'ALB_To3', 'ALB_People', 'ALB_For', 'ALB_Place', 'ALB_Make2', 'ALB_To2', 'ALB_To1', 'ALB_The', 'ALB_PrizeMoney', 'ALB_Prize', 'ALB_Money', 'ALB_Used'] },
+  { type: '4형식_의지동사_예문4', requiredRoles: ['PRG_We', 'PRG_Made', 'PRG_Program', 'PRG_Teach'], koreanOrder: ['PRG_We', 'PRG_This', 'PRG_Vacation', 'PRG_During', 'PRG_Many', 'PRG_Students', 'PRG_Other', 'PRG_Country', 'PRG_Of', 'PRG_The', 'PRG_Culture', 'PRG_Customs', 'PRG_And', 'PRG_Art', 'PRG_Teach', 'PRG_To', 'PRG_A', 'PRG_Special', 'PRG_Program', 'PRG_Made'] },
+  { type: '5형식_의지동사_예문5', requiredRoles: ['ALB_Albert', 'ALB_Used'], koreanOrder: ['ALB_Albert', 'ALB_Hospital', 'ALB_Bigger', 'ALB_Make1', 'ALB_And', 'ALB_Leprosy', 'ALB_Suffer', 'ALB_To3', 'ALB_People', 'ALB_For', 'ALB_Place', 'ALB_Make2', 'ALB_To2', 'ALB_To1', 'ALB_The', 'ALB_PrizeMoney', 'ALB_Prize', 'ALB_Money', 'ALB_Used'] },
   { type: '1형식_무의지동사_예문1', requiredRoles: ['NVO_Child', 'NVO_Grew', 'NVO_To', 'NVO_Be'], koreanOrder: ['NVO_The', 'NVO_Child', 'NVO_Grew', 'NVO_To', 'NVO_FineYouth', 'NVO_Youth', 'NVO_Be'] },
   { type: '1형식_무의지동사_예문2', requiredRoles: ['LIV_He', 'LIV_Lived', 'LIV_To', 'LIV_Meet', 'LIV_Grandson'], koreanOrder: ['LIV_He', 'LIV_Long', 'LIV_Lived', 'LIV_To', 'LIV_His', 'LIV_Grandson', 'LIV_Again', 'LIV_Meet'] },
   { type: '1형식_무의지동사_예문3', requiredRoles: ['LIV2_He', 'LIV2_Lived', 'LIV2_To', 'LIV2_See', 'LIV2_You'], koreanOrder: ['LIV2_He', 'LIV2_Here', 'LIV2_Lived', 'LIV2_To', 'LIV2_You', 'LIV2_See'] },
@@ -291,51 +273,175 @@ const FORM_RULES = [
   { type: '2형식_형용사보어_예문10', requiredRoles: ['STL_Settlers', 'STL_Were', 'STL_Free'], koreanOrder: ['STL_America', 'STL_In', 'STL_TheFirst', 'STL_The', 'STL_Settlers', 'STL_Europe', 'STL_Of', 'STL_Tyrannies', 'STL_And', 'STL_Corrupting', 'STL_Powers', 'STL_From', 'STL_Free', 'STL_Were'] },
 ];
 
+// =========================================================================
+// 💡 메인 POST 함수 시작
+// =========================================================================
 export async function POST(request: Request) {
   try {
     const { q } = await request.json();
     if (!q) return NextResponse.json({ ok: false, error: '검색어가 없습니다.' });
 
-    let originalText = q.trim().replace(/[.!]+$/, ''); // 💡 물음표(?)는 살림
-    const cleanSearchText = originalText.toLowerCase(); // 검색어 소문자 통일
+    let originalText = q.trim().replace(/[.!]+$/, ''); 
+    const cleanSearchTextWithSpace = originalText.replace(/[?.,!]/g, '').trim().toLowerCase();
+    
+let dbFallbackText = '';
+
+    // =================================================================
+    // 🌟 [수프로 핵심 마법] 무적의 DB 선제적 검색 (정규화/퍼지/사오정 삼중 폭격)
+    // =================================================================
+    try {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://mhfazebnnvdhemjrgokq.supabase.co";
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1oZmF6ZWJubnZkaGVtanJnb2txIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjUzOTMwMCwiZXhwIjoyMDgyMTE1MzAwfQ.quJJjmAtOr1qNgx44UMSHkKcR0evrfQPOtIj12J7ZFQ";
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        let combinedData: any[] = [];
+        
+        // 🚀 1. 하이픈, 공백을 %로 치환하여 DB에서 100% 잡아내는 무적의 JS 퍼지 문자열 생성
+        const fuzzySearchText = originalText.replace(/[^a-zA-Z0-9가-힣]+/g, '%');
+        
+        // 🚀 2. 삼중 폭격 쿼리 (에러가 나도 하나는 무조건 걸리도록 병렬 처리)
+        const queries = [
+            supabase.from('dictionary_lines').select('*').ilike('line_text', `%${fuzzySearchText}%`).limit(20),
+            supabase.rpc('search_dictionary_fuzzy', { q: originalText }),
+            supabase.rpc('search_dictionary_v8', { keyword: originalText })
+        ];
+        
+        const results = await Promise.allSettled(queries);
+        results.forEach(res => {
+            if (res.status === 'fulfilled' && res.value && res.value.data) {
+                combinedData = combinedData.concat(res.value.data);
+            }
+        });
+
+        // 🚀 3. 핵심 단어 추출 (사오정 검색 방지를 위해 please, check 같은 흔한 단어는 철저히 배제)
+        const cleanQuery = originalText.replace(/[.,!?]/g, '').trim();
+        const tokens = cleanQuery.split(/\s+/).filter(w => w.length >= 2);
+        const stopWords = new Set(['we', 'will', 'the', 'of', 'to', 'in', 'on', 'at', 'a', 'an', 'is', 'are', 'was', 'were', 'it', 'for', 'be', 'this', 'that', 'my', 'because', 'your', 'please', 'check', 'out', 'up', 'can', 'could', 'would']);
+        const coreTokens = tokens.filter(t => !stopWords.has(t.toLowerCase()) && t.length >= 3);
+
+        // 🚀 4. 그래도 못 찾았을 때만 핵심 단어로 쪼개기 검색
+        if (combinedData.length === 0 && coreTokens.length > 0) {
+             const promises = coreTokens.slice(0, 3).map(t => 
+                 supabase.from('dictionary_lines').select('*').ilike('line_text', `%${t}%`).limit(30)
+             );
+             const tokenResults = await Promise.all(promises);
+             tokenResults.forEach(res => { if (res.data) combinedData = combinedData.concat(res.data); });
+        }
+
+        // 🚀 5. 수집된 데이터 필터링 및 점수 매기기
+        if (combinedData.length > 0) {
+            const uniqueItems = Array.from(new Map(combinedData.map(item => [item.id, item])).values());
+            
+            const pureOriginal = originalText.toLowerCase().replace(/[^a-z0-9가-힣]/g, '');
+            let bestMatchItem = null;
+            let isExactMatch = false;
+            let maxCoreMatchCount = 0;
+
+            for (const item of uniqueItems) {
+                const pureLineText = item.line_text.toLowerCase().replace(/[^a-z0-9가-힣]/g, '');
+                
+                // 💡 1순위: 완벽 일치 (하이픈, 공백 등 전부 무시하고 알파벳/한글만 비교)
+                if (pureOriginal.length > 0 && pureLineText.includes(pureOriginal)) {
+                    bestMatchItem = item;
+                    isExactMatch = true;
+                    break;
+                }
+                
+                // 💡 2순위: 핵심 단어(Core Tokens)가 얼마나 많이 포함되어 있는지 점수화
+                let coreMatchCount = 0;
+                for (const token of coreTokens) {
+                    const pureToken = token.toLowerCase().replace(/[^a-z0-9가-힣]/g, '');
+                    if (pureToken.length > 1 && pureLineText.includes(pureToken)) {
+                        coreMatchCount++;
+                    }
+                }
+                
+                if (coreMatchCount > maxCoreMatchCount || 
+                   (coreMatchCount === maxCoreMatchCount && maxCoreMatchCount > 0 && item.line_text.length < (bestMatchItem?.line_text.length || 999))) {
+                    maxCoreMatchCount = coreMatchCount;
+                    bestMatchItem = item;
+                }
+            }
+
+            // 🚀 6. 결과 반환 결정
+            if (bestMatchItem) {
+                const fullText = bestMatchItem.line_text;
+                let targetTextToDisplay = fullText;
+                
+                // 💡 [수프로 엣지: 유저 요청사항 완벽 반영] 
+                // 정확히 일치할 경우: 콜론(:) 앞의 한국어만 싹둑 잘라서 보여줌!
+                if (isExactMatch) {
+                    const splitText = fullText.split(':');
+                    if (splitText.length > 1) {
+                        targetTextToDisplay = splitText[0].trim();
+                    }
+                }
+
+                dbFallbackText = fullText; 
+                
+                // 💡 사오정 철벽 방어: 흔한 단어 다 빼고, 남은 '핵심 단어' 중 60% 이상 매칭되어야만 통과!
+                const requiredMatches = Math.max(1, Math.ceil(coreTokens.length * 0.6));
+                
+                if (isExactMatch || maxCoreMatchCount >= requiredMatches) {
+                    return NextResponse.json({ 
+                        ok: true, 
+                        best: { 
+                            source_text: originalText, 
+                            target_text: targetTextToDisplay, 
+                            isReference: !isExactMatch, // 완벽 일치면 false(결과문장), 유사도면 true(참고문장)
+                            analysis: [{ 
+                                ko: isExactMatch ? "💡 검색하신 문장과 일치하는 결과입니다." : "💡 가장 유사한 데이터를 참고용으로 제공합니다.", 
+                                en: fullText 
+                            }] 
+                        } 
+                    });
+                }
+            }
+        }
+    } catch (dbError) {
+        console.error('DB 선제적 검색 실패:', dbError);
+    }
 
     // 👇👇 💡 [수프로 엣지] 1단계: JSON 사전에서 완벽 일치 문장을 0.01초 만에 바로 반환! 👇👇
-    if (customRules[cleanSearchText as keyof typeof customRules]) {
+    const ruleKey = Object.keys(customRules).find(
+      key => key.replace(/[?.,!]/g, '').trim().toLowerCase() === cleanSearchTextWithSpace
+    );
+
+    if (ruleKey) {
+      let fastResult = customRules[ruleKey as keyof typeof customRules];
       return NextResponse.json({ 
         ok: true, 
         best: { 
           source_text: originalText, 
-          target_text: customRules[cleanSearchText as keyof typeof customRules] + '.', 
+          target_text: fastResult, 
+          isReference: false,
           analysis: [] 
         } 
       });
     }
 
-    // 👇👇 💡 [수프로 엣지] 2단계: 영한 템플릿(패턴) 엔진 가동! (구멍 뚫린 문장 자동 조립 메커니즘) 👇👇
+    // 👇👇 💡 [수프로 엣지] 2단계: 영한 만능 템플릿(패턴) 엔진 가동! 👇👇
     let patternResult: string | null = null;
     let matchedAnalysis: { en: string; ko: string }[] = [];
 
     for (const [patternEn, templateKo] of Object.entries(customRules)) {
-      if (patternEn.includes('[n]') || patternEn.includes('[v]') || patternEn.includes('[adj]') || 
-          patternEn.includes('[N]') || patternEn.includes('[V]') || patternEn.includes('[ADJ]')) {
-        
-        // 변형 파라미터 감지용 정규식 생성 (대소문자 완벽 대응)
-        const escapedPattern = patternEn
-          .replace(/[.+^${}()|[\]\\]/g, '\\$&') 
-          .replace(/\\\[[nN]\\\]/g, '(.+)')
-          .replace(/\\\[[vV]\\\]/g, '(.+)')
-          .replace(/\\\[[aA][dD][jJ]\\\]/g, '(.+)');
+      const hasPlaceholder = /\[[A-Za-z0-9_]+\]/.test(patternEn);
+      
+      if (hasPlaceholder) {
+        const cleanPattern = patternEn.replace(/[?.,!]/g, '').trim().toLowerCase();
+        let escapedPattern = cleanPattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
+        escapedPattern = escapedPattern.replace(/\\\[[a-z0-9_]+\\\]/g, '(.+)');
 
         const regex = new RegExp('^' + escapedPattern + '$', 'i');
-        const match = cleanSearchText.match(regex);
+        const match = cleanSearchTextWithSpace.match(regex);
 
         if (match) {
-          let finalKo = templateKo;
-          const placeholders = patternEn.match(/\[[nNvVaAdDjJ]+\]/g) || [];
+          let finalKo = templateKo as string;
+          const placeholders = patternEn.match(/\[[A-Za-z0-9_]+\]/g) || [];
           
           for (let pIdx = 0; pIdx < placeholders.length; pIdx++) {
             const engWord = match[pIdx + 1].trim().toLowerCase();
-            let koWord = MOCK_EN_KO_DB[engWord] || engWord; // DB에서 한국어 뜻 검색
+            let koWord = MOCK_EN_KO_DB[engWord] || engWord; 
             
             finalKo = finalKo.replace(placeholders[pIdx], koWord);
             matchedAnalysis.push({ en: engWord, ko: koWord });
@@ -347,20 +453,25 @@ export async function POST(request: Request) {
     }
 
     if (patternResult) {
-      // 한국어 조립 후 자연스러운 처리
       patternResult = patternResult.replace(/\s+/g, ' ').trim();
-      return NextResponse.json({
-        ok: true,
-        best: {
-          source_text: originalText,
-          target_text: patternResult + '.',
-          analysis: matchedAnalysis
-        }
-      });
+      
+      // 💡 [수프로 엣지] 템플릿 조립 결과에 영어가 섞여 있다면 조립을 취소하고 DB 폴백으로 넘김!
+      const hasUnmatchedEnglishInPattern = /[a-zA-Z]{2,}/.test(patternResult);
+      if (!hasUnmatchedEnglishInPattern) {
+          return NextResponse.json({
+            ok: true,
+            best: {
+              source_text: originalText,
+              target_text: patternResult,
+              isReference: true, 
+              analysis: matchedAnalysis
+            }
+          });
+      }
     }
     // 👆👆 ------------------------------------------------------------------ 👆👆
     
-        // 💡 [지능형 전처리] 복합동사 묶기 로직 (선생님 원본 코드 100% 유지)
+    // 💡 [지능형 전처리] 복합동사 묶기 로직
     const complexFourFormVerbs_KO = [
       '먹이를 주다', '비용이 들게 하다', '시간을 덜어주다', '수고를 덜어주다', '인상을 주다'
     ];
@@ -467,7 +578,6 @@ export async function POST(request: Request) {
     const words = processedText.split(/\s+/);
     const parsedTokens = [];
 
-    // 선생님 원본 그대로 배열 유지!
     const fiveFormVerbs = [
       'ask', 'request', 'require', 'demand', 'beg', 'urge', 'prompt', 'invite', 'advise', 'encourage', 
       'expect', 'intend', 'mean', 'allow', 'permit', 'enable', 'force', 'compel', 'oblige', 'cause', 
@@ -873,7 +983,7 @@ export async function POST(request: Request) {
       if (word.includes('EK2G14_Them_Tk')) { matchedRole = 'EK2G14_Them'; translatedWord = '그들을'; displayEn = 'them'; }
       if (word.includes('EK2G14_Great_Tk')) { matchedRole = 'EK2G14_Great'; translatedWord = '훌륭한'; displayEn = 'great'; }
       if (word.includes('EK2G14_Youths2_Tk')) { matchedRole = 'EK2G14_Youths2'; translatedWord = '젊은이로'; displayEn = 'youths'; } 
-
+      
       if (word.includes('EK2G13_It_Tk')) { matchedRole = 'EK2G13_It'; translatedWord = ''; displayEn = 'It'; }
       if (word.includes('EK2G13_Is_Tk')) { matchedRole = 'EK2G13_Is'; translatedWord = '이다'; displayEn = 'is'; }
       if (word.includes('EK2G13_My1_Tk')) { matchedRole = 'EK2G13_My1'; translatedWord = '나의'; displayEn = 'my'; }
@@ -1136,7 +1246,7 @@ export async function POST(request: Request) {
     }
     if (detectedRoles.includes('Subj_Plan') || detectedRoles.includes('Verb_Inf_Go') || detectedRoles.includes('Obj_Museum') || detectedRoles.includes('Mod_This_Weekend')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_보충어구_예문1_전용') || null;
-    }    
+    }   
     if (detectedRoles.includes('Subj_Greeks') || detectedRoles.includes('To_Inf_Make') || detectedRoles.includes('Obj_Comp_Strong') || detectedRoles.includes('Inst_Ex') || detectedRoles.includes('Obj_Of_Gym')) {
         selectedForm = FORM_RULES.find(r => r.type === '5형식_To부정사_예문7_전용') || null;
     }
@@ -1172,7 +1282,7 @@ export async function POST(request: Request) {
     }
     if (detectedRoles.includes('Verb_Sent') || detectedRoles.includes('Obj_Son') || detectedRoles.includes('Prep_To_Son') || detectedRoles.includes('Obj_TheBook')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_형용사구_예문3_전용') || null;
-    }    
+    }   
     if (detectedRoles.includes('Subj_Men') || detectedRoles.includes('Obj_Nile') || detectedRoles.includes('Comp_Farmers') || detectedRoles.includes('Verb_Were')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_형용사구_예문4_전용') || null;
     }
@@ -1197,7 +1307,13 @@ export async function POST(request: Request) {
     if (detectedRoles.includes('Subj_Water_Adv4') || detectedRoles.includes('Comp_IsGood_Adv4') || detectedRoles.includes('Verb_Inf_Drink_Adv4')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_부사구_예문4_전용') || null;
     }
-    if (detectedRoles.includes('Verb_GotUp_Res1') || detectedRoles.includes('Adv_Here_Vol1') || detectedRoles.includes('To_Inf_Vol1') || detectedRoles.includes('Verb_Inf_See_Vol1')) {
+    if (detectedRoles.includes('Subj_Boy_Res2') || detectedRoles.includes('Comp_IsClever_Res2') || detectedRoles.includes('Verb_Inf_Understand_Res2')) {
+        selectedForm = FORM_RULES.find(r => r.type === '2형식_부사구_결과_예문2_전용') || null;
+    }
+    if (detectedRoles.includes('Comp_Idle_Res3') || detectedRoles.includes('Verb_Inf_Read_Res3') || detectedRoles.includes('Obj_Books_Res3')) {
+        selectedForm = FORM_RULES.find(r => r.type === '2형식_부사구_결과_예문3_전용') || null;
+    }
+    if (detectedRoles.includes('Verb_Came_Vol1') || detectedRoles.includes('Adv_Here_Vol1') || detectedRoles.includes('To_Inf_Vol1') || detectedRoles.includes('Verb_Inf_See_Vol1')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_의지동사_예문1_전용') || null;
     }
     if (detectedRoles.includes('Verb_Gathered_Vol2') || detectedRoles.includes('Verb_Inf_Talk_Vol2') || detectedRoles.includes('Obj_ImportantThing_Vol2')) {
@@ -1311,6 +1427,9 @@ export async function POST(request: Request) {
     if (detectedRoles.includes('Subj_I_F3E5') || detectedRoles.includes('Verb_Met_F3E5') || detectedRoles.includes('Obj_Her_F3E5')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문5_파크_전용') || null;
     }
+    if (detectedRoles.includes('Verb_Devoted_F3E6') || detectedRoles.includes('Obj_Life_F3E6') || detectedRoles.includes('Obj_Mankind_F3E6')) {
+        selectedForm = FORM_RULES.find(r => r.type === '3형식_예문6_전용') || null;
+    }
     if (detectedRoles.includes('Verb_Defeated_F3E8') || detectedRoles.includes('Obj_Invaders_F3E8')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문8_전용') || null;
     }
@@ -1366,7 +1485,6 @@ export async function POST(request: Request) {
         selectedForm = FORM_RULES.find(r => r.type === '5형식_예문5_전용') || null;
     }
 
-    // 💡 위에서 맞춤형 설계도를 찾지 못했을 때만 일반 규칙 루프를 실행합니다.
     if (!selectedForm) {
         for (const rule of FORM_RULES) {
           const isMatch = rule.requiredRoles.every(reqRole => detectedRoles.includes(reqRole));
@@ -1413,27 +1531,42 @@ export async function POST(request: Request) {
     }
 
     const finalKoreanWords = [];
-    for (const role of selectedForm.koreanOrder) {
-      if (phrases[role]) {
-        const cleaned = phrases[role].filter(w => w.trim() !== '').join(' ');
-        if (cleaned) finalKoreanWords.push(cleaned);
-      }
+    if (selectedForm.koreanOrder) {
+        for (const role of selectedForm.koreanOrder) {
+          if (phrases[role]) {
+            const cleaned = phrases[role].filter(w => w.trim() !== '').join(' ');
+            if (cleaned) finalKoreanWords.push(cleaned);
+          }
+        }
     }
 
     let finalTranslation = finalKoreanWords.join(' ')
-      .replace(/\s*\./g, '.') // 마침표 앞 공백 제거
-      .replace(/\s{2,}/g, ' '); // 다중 공백 제거
+      .replace(/\s*\./g, '.') 
+      .replace(/\s{2,}/g, ' ')
+      .trim(); 
 
-    // 💡 [수프로 엣지] 영한 번역 의문문 처리 (Do you process -> 가공합니까?)
     const isQuestion = originalText.includes('?');
-    if (isQuestion) {
-        // 영어 원문에 따라 적절한 3단 활용을 적용하도록 보완 가능. 현재는 원형 유지
+
+    // 🚨 [수프로 엣지] 껍데기 번역 차단 및 빈 화면에 마침표(.)만 찍히는 버그 완벽 수정!
+    const hasUnmatchedEnglish = /[a-zA-Z]{2,}/.test(finalTranslation);
+    const isMeaningless = finalTranslation.replace(/[.,!?\s]/g, '').length < 2; 
+    
+    if (isMeaningless || hasUnmatchedEnglish) {
+         return NextResponse.json({ ok: false, error: '분석할 수 없는 문장 구조입니다.' });
     }
 
     if (!finalTranslation.endsWith('.') && !isQuestion) finalTranslation += '.';
     if (isQuestion && !finalTranslation.endsWith('?')) finalTranslation += '?';
 
-    return NextResponse.json({ ok: true, best: { source_text: originalText, target_text: finalTranslation, analysis: mapped_analysis } });
+    return NextResponse.json({ 
+        ok: true, 
+        best: { 
+            source_text: originalText, 
+            target_text: finalTranslation, 
+            isReference: true, 
+            analysis: mapped_analysis 
+        } 
+    });
   } catch (error) {
     console.error('영한 RBMT 엔진 에러:', error);
     return NextResponse.json({ ok: false, error: '서버 에러가 발생했습니다.' }, { status: 500 });

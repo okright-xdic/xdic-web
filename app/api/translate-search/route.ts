@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 // ============================================================================
 // 🌟 [수프로 엔진 한영(Ko-En) v12.94] 엑스딕 RBMT: 1~5형식 통합 & 평서문(3종) + 의문형(2종) 탑재
@@ -358,7 +359,6 @@ const FORM_RULES = [
   { type: '1형식_명령문_예문1', requiredRoles: ['LOK_Look', 'LOK_Sky'], koreanOrder: ['LOK_The', 'LOK_Sky', 'LOK_At', 'LOK_Look'] },
 ];
 
-// 💡 [수프로 엣지] 별도 분리된 한영 JSON 레시피 북 불러오기!
 import customRules from './rules-ko-en.json';
 
 // =========================================================================
@@ -366,16 +366,95 @@ import customRules from './rules-ko-en.json';
 // =========================================================================
 export async function POST(request: Request) {
   try {
-    const { q } = await request.json();
-    if (!q) return NextResponse.json({ ok: false, error: '검색어가 없습니다.' });
+    const body = await request.json();
+    let originalText = body.text || body.query || body.q || "";
 
-    let originalText = q.trim().replace(/[.!]+$/, ''); 
-    
-    // 👇👇 💡 [수프로 엣지] 공통 의문문 지능형 판별기 👇👇
+    if (!originalText.trim()) {
+        return NextResponse.json({ ok: false, error: '검색어가 없습니다.' });
+    }
+
+    originalText = originalText.trim().replace(/[.!]+$/, '');
+
+    // =================================================================
+    // 🌟 [수프로 핵심 마법] 235만 대용량 DB 선제적 사오정 검색! 
+    // =================================================================
+    try {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://mhfazebnnvdhemjrgokq.supabase.co";
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1oZmF6ZWJubnZkaGVtanJnb2txIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjUzOTMwMCwiZXhwIjoyMDgyMTE1MzAwfQ.quJJjmAtOr1qNgx44UMSHkKcR0evrfQPOtIj12J7ZFQ";
+        
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        const cleanText = originalText.replace(/[.,?!]/g, '').trim();
+        const tokens = cleanText.split(/\s+/).filter(w => w.length >= 1);
+        
+        if (tokens.length > 0) {
+            let combinedData: any[] = [];
+            
+            // 1. 전체 통째로 검색
+            const { data: exactData } = await supabase
+                .from('dictionary_lines')
+                .select('*')
+                .ilike('line_text', `%${cleanText}%`)
+                .limit(50);
+                
+            if (exactData) combinedData = combinedData.concat(exactData);
+            
+            // 2. 단어 쪼개서 병렬 검색
+            const coreTokens = [...tokens].sort((a, b) => b.length - a.length).slice(0, 4);
+            const promises = coreTokens.map(t => 
+                supabase.from('dictionary_lines').select('*').ilike('line_text', `%${t}%`).limit(150)
+            );
+            
+            const results = await Promise.all(promises);
+            for (const res of results) {
+                if (res.data) combinedData = combinedData.concat(res.data);
+            }
+            
+            const uniqueItems = Array.from(new Map(combinedData.map(item => [item.id, item])).values());
+            
+            let bestMatchText = '';
+            let maxMatchCount = 0;
+            
+            for (const item of uniqueItems) {
+                let currentMatchCount = 0;
+                for (const token of tokens) {
+                    const tClean = token.replace(/[.,?!]/g, '');
+                    if (tClean && item.line_text.includes(tClean)) {
+                        currentMatchCount++;
+                    }
+                }
+                
+                if (currentMatchCount > maxMatchCount || 
+                   (currentMatchCount === maxMatchCount && maxMatchCount > 0 && item.line_text.length < bestMatchText.length)) {
+                    maxMatchCount = currentMatchCount;
+                    bestMatchText = item.line_text;
+                }
+            }
+            
+            const matchRatio = maxMatchCount / tokens.length;
+            if (bestMatchText && (matchRatio >= 0.4 || maxMatchCount >= 2 || (tokens.length === 1 && maxMatchCount === 1))) {
+                // 💡 [요청사항 반영] 영어만 자르지 않고 원본 그대로 반환 + isReference(참고용) 플래그 추가!
+                return NextResponse.json({ 
+                    ok: true, 
+                    best: { 
+                        source_text: originalText, 
+                        target_text: bestMatchText.trim(), 
+                        isReference: true, 
+                        analysis: [{ ko: originalText, en: "💡 정확히 일치하는 문장이 없어 가장 유사한 참고 문장을 제공합니다." }] 
+                    } 
+                });
+            }
+        }
+    } catch (dbError) {
+        console.error('선제적 DB 유사도 검색 실패:', dbError);
+    }
+
+    // =================================================================
+    // 💡 1~2단계: 패턴 매칭 엔진
+    // =================================================================
     const questionEndings = /(니까|나요|까요|습니까|니|냐|대요|인가요|건가요|합니까|하시겠습니까|되겠니|한지요|하겠니)[.\s]*$/;
     const isQuestion = originalText.includes('?') || questionEndings.test(originalText);
 
-    // 👇👇 💡 1단계: 한영 고속도로 👇👇
     const compressedSearchText = originalText
       .replace(/[?.,!\s]/g, '')
       .replace(/하였다/g, '했다')
@@ -406,34 +485,33 @@ export async function POST(request: Request) {
       });
     }
 
-    // 👇👇 💡 2단계: 한영 템플릿(패턴) 엔진 👇👇
     let patternResult: string | null = null;
     let matchedAnalysis: { en: string; ko: string }[] = [];
 
-    if (customRules) {
+if (customRules) {
       for (const [patternKo, templateEn] of Object.entries(customRules)) {
-        if (patternKo.includes('[N]') || patternKo.includes('[V]') || patternKo.includes('[ADJ]') ||
-            patternKo.includes('[n]') || patternKo.includes('[v]') || patternKo.includes('[adj]')) {
-          
+        // 💡 [수프로 엣지] 어떤 영문/숫자 태그가 와도 다 잡아내는 만능 레이더 장착!
+        const hasPlaceholder = /\[[A-Za-z0-9_]+\]/.test(patternKo);
+        
+        if (hasPlaceholder) {
           const compressedPattern = patternKo.replace(/\s+/g, '');
           const escapedPattern = compressedPattern
             .replace(/[.+^${}()|[\]\\]/g, '\\$&') 
-            .replace(/\\\[[nN]\\\]/g, '(.+)')
-            .replace(/\\\[[vV]\\\]/g, '(.+)')
-            .replace(/\\\[[aA][dD][jJ]\\\]/g, '(.+)');
+            // 💡 [DAY], [COUNTRY1], [ABSTRACT] 등 대괄호 안의 모든 문자를 빈칸(.+)으로 변환
+            .replace(/\\\[[A-Za-z0-9_]+\\\]/g, '(.+)');
 
           const regex = new RegExp('^' + escapedPattern + '$', 'i');
           const match = compressedSearchText.match(regex);
 
           if (match) {
             let finalEn = templateEn as string;
-            const placeholders = patternKo.match(/\[[nNvVaAdDjJ]+\]/g) || [];
+            // 💡 패턴에서 사용된 태그들을 순서대로 몽땅 추출
+            const placeholders = patternKo.match(/\[[A-Za-z0-9_]+\]/g) || [];
             
             for (let pIdx = 0; pIdx < placeholders.length; pIdx++) {
               let koWord = match[pIdx + 1].trim();
               koWord = koWord.replace(/(을|를|은|는|이|가|에|에서|으로|로)$/, '');
 
-              // 🚨 ERROR FIX: MOCK_EN_KO_DB를 MOCK_XDIC_DB로 완벽 수정!
               const extendDB: Record<string, string> = {
                 '나무': 'tree', '소년': 'boy', '사과': 'apple', '소녀': 'girl', '하늘': 'sky',
                 '음악': 'music', '수건': 'towel'
@@ -463,11 +541,14 @@ export async function POST(request: Request) {
         }
       });
     }
-    // 👆👆 ------------------------------------------------------------------ 👆👆
 
-    // 💡 3단계: 기존 RBMT 엔진 (함수 삭제 에러 방지 처리 완료)
+    // =================================================================
+    // 💡 3단계: 기존 단어 조립(RBMT) 엔진
+    // =================================================================
     let processedText = originalText.toLowerCase();
+    // @ts-ignore
     if (typeof applyTranslationReplaceRules === 'function') {
+        // @ts-ignore
         processedText = applyTranslationReplaceRules(processedText);
     }
 
@@ -569,14 +650,14 @@ export async function POST(request: Request) {
       }
 
       let translatedWord = word;
-      if (MOCK_EN_KO_DB[cleanWord]) {
-          translatedWord = MOCK_EN_KO_DB[cleanWord];
-      } else if (MOCK_EN_KO_DB[baseWord]) {
-          translatedWord = MOCK_EN_KO_DB[baseWord];
+      if (MOCK_XDIC_DB[cleanWord]) {
+          translatedWord = MOCK_XDIC_DB[cleanWord];
+      } else if (MOCK_XDIC_DB[baseWord]) {
+          translatedWord = MOCK_XDIC_DB[baseWord];
       } else {
           const rootWord = baseWord;
-          if (MOCK_EN_KO_DB[rootWord]) {
-              translatedWord = MOCK_EN_KO_DB[rootWord];
+          if (MOCK_XDIC_DB[rootWord]) {
+              translatedWord = MOCK_XDIC_DB[rootWord];
               matchedRole = 'Verb';
           }
       }
@@ -585,7 +666,6 @@ export async function POST(request: Request) {
       if (word.includes('LOK_At_Tk')) { matchedRole = 'LOK_At'; translatedWord = '을'; displayEn = 'at'; }
       if (word.includes('LOK_The_Tk')) { matchedRole = 'LOK_The'; translatedWord = '그'; displayEn = 'the'; }
       if (word.includes('LOK_Sky_Tk')) { matchedRole = 'LOK_Sky'; translatedWord = '하늘'; displayEn = 'sky'; }
-      
       if (word.includes('MDS_Modern_Tk')) { matchedRole = 'MDS_Modern'; translatedWord = '현대'; displayEn = 'Modern'; }
       if (word.includes('MDS_Science_Tk')) { matchedRole = 'MDS_Science'; translatedWord = '과학은'; displayEn = 'science'; }
       if (word.includes('MDS_HasMade_Tk')) { matchedRole = 'MDS_HasMade'; translatedWord = '했다'; displayEn = 'has made'; }
@@ -596,7 +676,6 @@ export async function POST(request: Request) {
       if (word.includes('MDS_Comfortable_Tk')) { matchedRole = 'MDS_Comfortable'; translatedWord = '편하게'; displayEn = 'comfortable'; }
       if (word.includes('MDS_In_Tk')) { matchedRole = 'MDS_In'; translatedWord = '에서'; displayEn = 'in'; }
       if (word.includes('MDS_ManyWays_Tk')) { matchedRole = 'MDS_ManyWays'; translatedWord = '여러면'; displayEn = 'many ways'; }
-      
       if (word.includes('KJS_Many_Tk')) { matchedRole = 'KJS_Many'; translatedWord = '많은'; displayEn = 'Many'; }
       if (word.includes('KJS_People_Tk')) { matchedRole = 'KJS_People'; translatedWord = '사람들이'; displayEn = 'people'; }
       if (word.includes('KJS_Consider_Tk')) { matchedRole = 'KJS_Consider'; translatedWord = '생각한다'; displayEn = 'consider'; }
@@ -604,7 +683,6 @@ export async function POST(request: Request) {
       if (word.includes('KJS_Our_Tk')) { matchedRole = 'KJS_Our'; translatedWord = '우리의'; displayEn = 'our'; }
       if (word.includes('KJS_Greatest_Tk')) { matchedRole = 'KJS_Greatest'; translatedWord = '가장 위대한'; displayEn = 'greatest'; }
       if (word.includes('KJS_King_Tk')) { matchedRole = 'KJS_King'; translatedWord = '왕이라고'; displayEn = 'king'; }
-      
       if (word.includes('KEE_We_Tk')) { matchedRole = 'KEE_We'; translatedWord = '우리는'; displayEn = 'We'; }
       if (word.includes('KEE_MustKeep_Tk')) { matchedRole = 'KEE_MustKeep'; translatedWord = '해야한다'; displayEn = 'must keep'; }
       if (word.includes('KEE_Rivers_Tk')) { matchedRole = 'KEE_Rivers'; translatedWord = '강'; displayEn = 'rivers'; }
@@ -615,7 +693,6 @@ export async function POST(request: Request) {
       if (word.includes('KEE_All_Tk')) { matchedRole = 'KEE_All'; translatedWord = '모든'; displayEn = 'all'; }
       if (word.includes('KEE_Living_Tk')) { matchedRole = 'KEE_Living'; translatedWord = ''; displayEn = 'living'; } 
       if (word.includes('KEE_Creatures_Tk')) { matchedRole = 'KEE_Creatures'; translatedWord = '생물들을'; displayEn = 'creatures'; }
-      
       if (word.includes('CAL_TheRomans_Tk')) { matchedRole = 'CAL_TheRomans'; translatedWord = '로마인들은'; displayEn = 'The Romans'; }
       if (word.includes('CAL_Called_Tk')) { matchedRole = 'CAL_Called'; translatedWord = '불렀다'; displayEn = 'called'; }
       if (word.includes('CAL_This_Tk')) { matchedRole = 'CAL_This'; translatedWord = '이러한'; displayEn = 'this'; }
@@ -624,14 +701,12 @@ export async function POST(request: Request) {
       if (word.includes('CAL_Without_Tk')) { matchedRole = 'CAL_Without'; translatedWord = '이 없는'; displayEn = 'without'; }
       if (word.includes('CAL_AKing_Tk')) { matchedRole = 'CAL_AKing'; translatedWord = '왕'; displayEn = 'a king'; }
       if (word.includes('CAL_ARepublic_Tk')) { matchedRole = 'CAL_ARepublic'; translatedWord = '공화국이라고'; displayEn = 'a republic'; }
-      
       if (word.includes('THK_I_Tk')) { matchedRole = 'THK_I'; translatedWord = '나는'; displayEn = 'I'; }
       if (word.includes('THK_Think_Tk')) { matchedRole = 'THK_Think'; translatedWord = '생각한다'; displayEn = 'think'; }
       if (word.includes('THK_Him_Tk')) { matchedRole = 'THK_Him'; translatedWord = '그를'; displayEn = 'him'; }
       if (word.includes('THK_An_Tk')) { matchedRole = 'THK_An'; translatedWord = ''; displayEn = 'an'; } 
       if (word.includes('THK_Honest_Tk')) { matchedRole = 'THK_Honest'; translatedWord = '정직한'; displayEn = 'honest'; }
       if (word.includes('THK_Boy_Tk')) { matchedRole = 'THK_Boy'; translatedWord = '소년으로'; displayEn = 'boy'; }
-      
       if (word.includes('CPT_The1_Tk')) { matchedRole = 'CPT_The1'; translatedWord = '그'; displayEn = 'The'; }
       if (word.includes('CPT_Charitable_Tk')) { matchedRole = 'CPT_Charitable'; translatedWord = '인자한'; displayEn = 'charitable'; }
       if (word.includes('CPT_Carpenter_Tk')) { matchedRole = 'CPT_Carpenter'; translatedWord = '목수는'; displayEn = 'carpenter'; }
@@ -646,7 +721,6 @@ export async function POST(request: Request) {
       if (word.includes('CPT_TheSilent_Tk')) { matchedRole = 'CPT_TheSilent'; translatedWord = '조용한'; displayEn = 'the silent'; }
       if (word.includes('CPT_Valley_Tk')) { matchedRole = 'CPT_Valley'; translatedWord = '계곡'; displayEn = 'valley'; }
       if (word.includes('CPT_The_Tk')) { matchedRole = 'CPT_The'; translatedWord = ''; displayEn = 'the'; } 
-      
       if (word.includes('SNT_My_Tk')) { matchedRole = 'SNT_My'; translatedWord = '내'; displayEn = 'My'; }
       if (word.includes('SNT_Friend_Tk')) { matchedRole = 'SNT_Friend'; translatedWord = '친구가'; displayEn = 'friend'; }
       if (word.includes('SNT_In_Tk')) { matchedRole = 'SNT_In'; translatedWord = '에있는'; displayEn = 'in'; }
@@ -657,7 +731,6 @@ export async function POST(request: Request) {
       if (word.includes('SNT_Pretty_Tk')) { matchedRole = 'SNT_Pretty'; translatedWord = '예쁜'; displayEn = 'pretty'; }
       if (word.includes('SNT_Picture_Tk')) { matchedRole = 'SNT_Picture'; translatedWord = '그림'; displayEn = 'picture'; }
       if (word.includes('SNT_Postcard_Tk')) { matchedRole = 'SNT_Postcard'; translatedWord = '엽서를'; displayEn = 'postcard'; }
-      
       if (word.includes('LNT_We_Tk')) { matchedRole = 'LNT_We'; translatedWord = '우리는'; displayEn = 'We'; }
       if (word.includes('LNT_Lent_Tk')) { matchedRole = 'LNT_Lent'; translatedWord = '빌려주었다'; displayEn = 'lent'; }
       if (word.includes('LNT_Citizens_Tk')) { matchedRole = 'LNT_Citizens'; translatedWord = '시민들에게'; displayEn = 'citizens'; }
@@ -667,7 +740,6 @@ export async function POST(request: Request) {
       if (word.includes('LNT_This_Tk')) { matchedRole = 'LNT_This'; translatedWord = '이번'; displayEn = 'this'; }
       if (word.includes('LNT_Reading_Tk')) { matchedRole = 'LNT_Reading'; translatedWord = '독서'; displayEn = 'reading'; }
       if (word.includes('LNT_Week_Tk')) { matchedRole = 'LNT_Week'; translatedWord = '주간'; displayEn = 'week'; }
-      
       if (word.includes('MAK_My_Tk')) { matchedRole = 'MAK_My'; translatedWord = '나의'; displayEn = 'My'; }
       if (word.includes('MAK_Uncle_Tk')) { matchedRole = 'MAK_Uncle'; translatedWord = '아저씨가'; displayEn = 'uncle'; }
       if (word.includes('MAK_Made_Tk')) { matchedRole = 'MAK_Made'; translatedWord = '만들어주셨다'; displayEn = 'made'; }
@@ -675,7 +747,6 @@ export async function POST(request: Request) {
       if (word.includes('MAK_A_Tk')) { matchedRole = 'MAK_A'; translatedWord = ''; displayEn = 'a'; }
       if (word.includes('MAK_Pretty_Tk')) { matchedRole = 'MAK_Pretty'; translatedWord = '예쁜'; displayEn = 'pretty'; }
       if (word.includes('MAK_ToyShip_Tk')) { matchedRole = 'MAK_ToyShip'; translatedWord = '장난감-배를'; displayEn = 'toy-ship'; }
-      
       if (word.includes('BOU_The_Tk')) { matchedRole = 'BOU_The'; translatedWord = '그'; displayEn = 'The'; }
       if (word.includes('BOU_GoodNatured_Tk')) { matchedRole = 'BOU_GoodNatured'; translatedWord = '착한'; displayEn = 'good-natured'; }
       if (word.includes('BOU_Girl_Tk')) { matchedRole = 'BOU_Girl'; translatedWord = '소녀는'; displayEn = 'girl'; }
@@ -685,7 +756,6 @@ export async function POST(request: Request) {
       if (word.includes('BOU_A_Tk')) { matchedRole = 'BOU_A'; translatedWord = ''; displayEn = 'a'; }
       if (word.includes('BOU_Pretty_Tk')) { matchedRole = 'BOU_Pretty'; translatedWord = '예쁜'; displayEn = 'pretty'; }
       if (word.includes('BOU_Doll_Tk')) { matchedRole = 'BOU_Doll'; translatedWord = '인형을'; displayEn = 'doll'; }
-      
       if (word.includes('GND_MahatmaGandi_Tk')) { matchedRole = 'GND_MahatmaGandi'; translatedWord = '마하트마 간디는'; displayEn = 'Mahatma Gandi'; }
       if (word.includes('GND_Gandi_Tk')) { matchedRole = 'GND_Gandi'; translatedWord = '간디는'; displayEn = 'Gandi'; }
       if (word.includes('GND_Once_Tk')) { matchedRole = 'GND_Once'; translatedWord = '옛날에'; displayEn = 'once'; }
@@ -715,7 +785,6 @@ export async function POST(request: Request) {
       if (word.includes('GND_TheWay_Tk')) { matchedRole = 'GND_TheWay'; translatedWord = '방법'; displayEn = 'the way'; }
       if (word.includes('GND_They3_Tk')) { matchedRole = 'GND_They3'; translatedWord = '자기들이'; displayEn = 'they'; }
       if (word.includes('GND_Like_Tk')) { matchedRole = 'GND_Like'; translatedWord = '좋아하는'; displayEn = 'like'; }
-      
       if (word.includes('EST_Einstein_Tk')) { matchedRole = 'EST_Einstein'; translatedWord = '아인슈타인은'; displayEn = 'Einstein'; }
       if (word.includes('EST_Developed_Tk')) { matchedRole = 'EST_Developed'; translatedWord = '발전시켰다'; displayEn = 'developed'; }
       if (word.includes('EST_His_Tk')) { matchedRole = 'EST_His'; translatedWord = '그의'; displayEn = 'his'; }
@@ -727,7 +796,6 @@ export async function POST(request: Request) {
       if (word.includes('EST_Complex_Tk')) { matchedRole = 'EST_Complex'; translatedWord = '복잡한'; displayEn = 'complex'; }
       if (word.includes('EST_Mathematical_Tk')) { matchedRole = 'EST_Mathematical'; translatedWord = '수학적'; displayEn = 'mathematical'; }
       if (word.includes('EST_Reasoning_Tk')) { matchedRole = 'EST_Reasoning'; translatedWord = '추리를'; displayEn = 'reasoning'; }
-      
       if (word.includes('DSC_They_Tk')) { matchedRole = 'DSC_They'; translatedWord = '그들은'; displayEn = 'They'; }
       if (word.includes('DSC_Discussed_Tk')) { matchedRole = 'DSC_Discussed'; translatedWord = '의논했다'; displayEn = 'discussed'; }
       if (word.includes('DSC_ThePlan_Tk')) { matchedRole = 'DSC_ThePlan'; translatedWord = '계획을'; displayEn = 'the plan'; }
@@ -738,7 +806,6 @@ export async function POST(request: Request) {
       if (word.includes('DSC_With_Tk')) { matchedRole = 'DSC_With'; translatedWord = '과함께'; displayEn = 'with'; }
       if (word.includes('DSC_Their2_Tk')) { matchedRole = 'DSC_Their2'; translatedWord = '자기(의)'; displayEn = 'their'; }
       if (word.includes('DSC_Friends_Tk')) { matchedRole = 'DSC_Friends'; translatedWord = '친구들'; displayEn = 'friends'; }
-      
       if (word.includes('PLY_Many_Tk')) { matchedRole = 'PLY_Many'; translatedWord = '많은'; displayEn = 'Many'; }
       if (word.includes('PLY_Boys_Tk')) { matchedRole = 'PLY_Boys'; translatedWord = '소년들이'; displayEn = 'boys'; }
       if (word.includes('PLY_PlayGames_Tk')) { matchedRole = 'PLY_PlayGames'; translatedWord = '경기를 한다'; displayEn = 'play games'; }
@@ -749,7 +816,6 @@ export async function POST(request: Request) {
       if (word.includes('PLY_On_Tk')) { matchedRole = 'PLY_On'; translatedWord = '에'; displayEn = 'on'; }
       if (word.includes('PLY_Sunday_Tk')) { matchedRole = 'PLY_Sunday'; translatedWord = '일요일'; displayEn = 'Sunday'; }
       if (word.includes('PLY_Morning_Tk')) { matchedRole = 'PLY_Morning'; translatedWord = '아침'; displayEn = 'morning'; }
-      
       if (word.includes('LIV_The1_Tk')) { matchedRole = 'LIV_The1'; translatedWord = '그'; displayEn = 'The'; }
       if (word.includes('LIV_Old_Tk')) { matchedRole = 'LIV_Old'; translatedWord = '나이든'; displayEn = 'old'; }
       if (word.includes('LIV_Man_Tk')) { matchedRole = 'LIV_Man'; translatedWord = '남자는'; displayEn = 'man'; }
@@ -764,7 +830,6 @@ export async function POST(request: Request) {
       if (word.includes('LIV_With_Tk')) { matchedRole = 'LIV_With'; translatedWord = '과함께'; displayEn = 'with'; }
       if (word.includes('LIV_His_Tk')) { matchedRole = 'LIV_His'; translatedWord = '그의'; displayEn = 'his'; }
       if (word.includes('LIV_Family_Tk')) { matchedRole = 'LIV_Family'; translatedWord = '가족'; displayEn = 'family'; }
-      
       if (word.includes('FLT_The1_Tk')) { matchedRole = 'FLT_The1'; translatedWord = '그'; displayEn = 'The'; }
       if (word.includes('FLT_Stern_Tk')) { matchedRole = 'FLT_Stern'; translatedWord = '근엄한'; displayEn = 'stern'; }
       if (word.includes('FLT_Woman_Tk')) { matchedRole = 'FLT_Woman'; translatedWord = '부인은'; displayEn = 'woman'; }
@@ -776,7 +841,6 @@ export async function POST(request: Request) {
       if (word.includes('FLT_Her_Tk')) { matchedRole = 'FLT_Her'; translatedWord = '그녀의'; displayEn = 'her'; }
       if (word.includes('FLT_Experienced_Tk')) { matchedRole = 'FLT_Experienced'; translatedWord = '능숙한'; displayEn = 'experienced'; }
       if (word.includes('FLT_Hand_Tk')) { matchedRole = 'FLT_Hand'; translatedWord = '손'; displayEn = 'hand'; }
-      
       if (word.includes('ITR_It_Tk')) { matchedRole = 'ITR_It'; translatedWord = ''; displayEn = 'It'; }
       if (word.includes('ITR_Is_Tk')) { matchedRole = 'ITR_Is'; translatedWord = '이다'; displayEn = 'is'; }
       if (word.includes('ITR_True_Tk')) { matchedRole = 'ITR_True'; translatedWord = '사실'; displayEn = 'true'; }
@@ -795,7 +859,6 @@ export async function POST(request: Request) {
       if (word.includes('ITR_IronCladShips_Tk')) { matchedRole = 'ITR_IronCladShips'; translatedWord = '철갑선'; displayEn = 'iron-clad ships'; }
       if (word.includes('ITR_In2_Tk')) { matchedRole = 'ITR_In2'; translatedWord = '으로'; displayEn = 'in'; }
       if (word.includes('ITR_History_Tk')) { matchedRole = 'ITR_History'; translatedWord = '역사상'; displayEn = 'history'; }
-      
       if (word.includes('LSS_AdmLeeSoonShin_Tk')) { matchedRole = 'LSS_AdmLeeSoonShin'; translatedWord = '이순신 장군은'; displayEn = 'Adm. Lee Soon Shin'; }
       if (word.includes('LSS_LeeSoonShin_Tk')) { matchedRole = 'LSS_LeeSoonShin'; translatedWord = '이순신 장군은'; displayEn = 'Lee Soon Shin'; }
       if (word.includes('LSS_Defeated_Tk')) { matchedRole = 'LSS_Defeated'; translatedWord = '물리쳤다'; displayEn = 'defeated'; }
@@ -810,7 +873,6 @@ export async function POST(request: Request) {
       if (word.includes('LSS_TheFirst_Tk')) { matchedRole = 'LSS_TheFirst'; translatedWord = '최초의'; displayEn = 'the first'; }
       if (word.includes('LSS_The_Tk')) { matchedRole = 'LSS_The'; translatedWord = ''; displayEn = 'the'; } 
       if (word.includes('LSS_IronCladShips_Tk')) { matchedRole = 'LSS_IronCladShips'; translatedWord = '철갑선'; displayEn = 'iron-clad ships'; }
-      
       if (word.includes('HEA_He_Tk')) { matchedRole = 'HEA_He'; translatedWord = '그는'; displayEn = 'He'; }
       if (word.includes('HEA_CanNotHear_Tk')) { matchedRole = 'HEA_CanNotHear'; translatedWord = '들을 수 없었다'; displayEn = 'can not hear'; }
       if (word.includes('HEA_TheAnimals_Tk')) { matchedRole = 'HEA_TheAnimals'; translatedWord = '동물의'; displayEn = 'the animals'; }
@@ -819,7 +881,6 @@ export async function POST(request: Request) {
       if (word.includes('HEA_In_Tk')) { matchedRole = 'HEA_In'; translatedWord = '에서'; displayEn = 'in'; }
       if (word.includes('HEA_His_Tk')) { matchedRole = 'HEA_His'; translatedWord = '그의'; displayEn = 'his'; }
       if (word.includes('HEA_House_Tk')) { matchedRole = 'HEA_House'; translatedWord = '집'; displayEn = 'house'; }
-      
       if (word.includes('DVT_He_Tk')) { matchedRole = 'DVT_He'; translatedWord = '그는'; displayEn = 'He'; }
       if (word.includes('DVT_Devoted_Tk')) { matchedRole = 'DVT_Devoted'; translatedWord = '바쳤다'; displayEn = 'devoted'; }
       if (word.includes('DVT_His_Tk')) { matchedRole = 'DVT_His'; translatedWord = '그의'; displayEn = 'his'; }
@@ -829,7 +890,6 @@ export async function POST(request: Request) {
       if (word.includes('DVT_Of_Tk')) { matchedRole = 'DVT_Of'; translatedWord = '의'; displayEn = 'of'; }
       if (word.includes('DVT_Mankind_Tk')) { matchedRole = 'DVT_Mankind'; translatedWord = '인류'; displayEn = 'mankind'; }
       if (word.includes('DVT_TheMankind_Tk')) { matchedRole = 'DVT_TheMankind'; translatedWord = '인류'; displayEn = 'the mankind'; }
-      
       if (word.includes('MET_I_Tk')) { matchedRole = 'MET_I'; translatedWord = '나는'; displayEn = 'I'; }
       if (word.includes('MET_Met_Tk')) { matchedRole = 'MET_Met'; translatedWord = '만났다'; displayEn = 'met'; }
       if (word.includes('MET_Her_Tk')) { matchedRole = 'Obj_Her_F3E5'; translatedWord = '그 여자를'; displayEn = 'her'; }
@@ -839,7 +899,6 @@ export async function POST(request: Request) {
       if (word.includes('MET_A_Tk')) { matchedRole = 'MET_A'; translatedWord = '어느'; displayEn = 'a'; }
       if (word.includes('MET_Fine_Tk')) { matchedRole = 'MET_Fine'; translatedWord = '맑은'; displayEn = 'fine'; }
       if (word.includes('MET_Morning_Tk')) { matchedRole = 'MET_Morning'; translatedWord = '아침'; displayEn = 'morning'; }
-      
       if (word.includes('PLT_An_Tk')) { matchedRole = 'PLT_An'; translatedWord = '한'; displayEn = 'An'; }
       if (word.includes('PLT_OldMan_Tk')) { matchedRole = 'PLT_OldMan'; translatedWord = '노인이'; displayEn = 'old man'; }
       if (word.includes('PLT_Planted_Tk')) { matchedRole = 'PLT_Planted'; translatedWord = '심었습니다'; displayEn = 'planted'; }
@@ -847,22 +906,18 @@ export async function POST(request: Request) {
       if (word.includes('PLT_Little_Tk')) { matchedRole = 'PLT_Little'; translatedWord = '작은'; displayEn = 'little'; }
       if (word.includes('PLT_Tree_Tk')) { matchedRole = 'PLT_Tree'; translatedWord = '나무를'; displayEn = 'tree'; }
       if (word.includes('PLT_OnceUponATime_Tk')) { matchedRole = 'PLT_OnceUponATime'; translatedWord = '옛날에'; displayEn = 'once upon a time'; }
-      
       if (word.includes('RMB_I_Tk')) { matchedRole = 'RMB_I'; translatedWord = '나는'; displayEn = 'I'; }
       if (word.includes('RMB_Remember_Tk')) { matchedRole = 'RMB_Remember'; translatedWord = '기억하고 있다'; displayEn = 'remember'; }
       if (word.includes('RMB_His_Tk')) { matchedRole = 'RMB_His'; translatedWord = '그의'; displayEn = 'his'; }
       if (word.includes('RMB_Name_Tk')) { matchedRole = 'RMB_Name'; translatedWord = '이름을'; displayEn = 'name'; }
       if (word.includes('RMB_Well_Tk')) { matchedRole = 'RMB_Well'; translatedWord = '잘'; displayEn = 'well'; }
-      
       if (word.includes('TAK_You_Tk')) { matchedRole = 'TAK_You'; translatedWord = '너는'; displayEn = 'You'; }
       if (word.includes('TAK_MustTakeCareOf_Tk')) { matchedRole = 'TAK_MustTakeCareOf'; translatedWord = '보살펴야 한다'; displayEn = 'must take care of'; }
       if (word.includes('TAK_The_Tk')) { matchedRole = 'TAK_The'; translatedWord = '그'; displayEn = 'the'; }
       if (word.includes('TAK_Baby_Tk')) { matchedRole = 'TAK_Baby'; translatedWord = '아기를'; displayEn = 'baby'; }
-      
       if (word.includes('LAU_He_Tk')) { matchedRole = 'LAU_He'; translatedWord = '그는'; displayEn = 'He'; }
       if (word.includes('LAU_LaughedAt_Tk')) { matchedRole = 'LAU_LaughedAt'; translatedWord = '비웃었다'; displayEn = 'laughed at'; }
       if (word.includes('LAU_Me_Tk')) { matchedRole = 'LAU_Me'; translatedWord = '나를'; displayEn = 'me'; }
-      
       if (word.includes('EK2G14_It_Tk')) { matchedRole = 'EK2G14_It'; translatedWord = ''; displayEn = 'It'; }
       if (word.includes('EK2G14_Is_Tk')) { matchedRole = 'EK2G14_Is'; translatedWord = '이다'; displayEn = 'is'; }
       if (word.includes('EK2G14_Our_Tk')) { matchedRole = 'EK2G14_Our'; translatedWord = '우리의'; displayEn = 'our'; }
@@ -879,7 +934,6 @@ export async function POST(request: Request) {
       if (word.includes('EK2G14_Them_Tk')) { matchedRole = 'EK2G14_Them'; translatedWord = '그들을'; displayEn = 'them'; }
       if (word.includes('EK2G14_Great_Tk')) { matchedRole = 'EK2G14_Great'; translatedWord = '훌륭한'; displayEn = 'great'; }
       if (word.includes('EK2G14_Youths2_Tk')) { matchedRole = 'EK2G14_Youths2'; translatedWord = '젊은이로'; displayEn = 'youths'; } 
-
       if (word.includes('EK2G13_It_Tk')) { matchedRole = 'EK2G13_It'; translatedWord = ''; displayEn = 'It'; }
       if (word.includes('EK2G13_Is_Tk')) { matchedRole = 'EK2G13_Is'; translatedWord = '이다'; displayEn = 'is'; }
       if (word.includes('EK2G13_My1_Tk')) { matchedRole = 'EK2G13_My1'; translatedWord = '나의'; displayEn = 'my'; }
@@ -896,7 +950,6 @@ export async function POST(request: Request) {
       if (word.includes('EK2G13_Of_Tk')) { matchedRole = 'EK2G13_Of'; translatedWord = '의'; displayEn = 'of'; }
       if (word.includes('EK2G13_My2_Tk')) { matchedRole = 'EK2G13_My2'; translatedWord = '나의'; displayEn = 'my'; }
       if (word.includes('EK2G13_Peoples_Tk')) { matchedRole = 'EK2G13_Peoples'; translatedWord = '신민들'; displayEn = 'peoples'; }
-      
       if (word.includes('EK2G12_It_Tk')) { matchedRole = 'EK2G12_It'; translatedWord = ''; displayEn = 'It'; }
       if (word.includes('EK2G12_Is_Tk')) { matchedRole = 'EK2G12_Is'; translatedWord = '이다'; displayEn = 'is'; }
       if (word.includes('EK2G12_Good_Tk')) { matchedRole = 'EK2G12_Good'; translatedWord = '좋은'; displayEn = 'good'; }
@@ -907,7 +960,6 @@ export async function POST(request: Request) {
       if (word.includes('EK2G12_And_Tk')) { matchedRole = 'EK2G12_And'; translatedWord = '고'; displayEn = 'and'; }
       if (word.includes('EK2G12_To2_Tk')) { matchedRole = 'EK2G12_To2'; translatedWord = '것은'; displayEn = 'to'; }
       if (word.includes('EK2G12_Play_Tk')) { matchedRole = 'EK2G12_Play'; translatedWord = '놀다'; displayEn = 'play'; }
-      
       if (word.includes('EK2G11_It_Tk')) { matchedRole = 'EK2G11_It'; translatedWord = ''; displayEn = 'It'; }
       if (word.includes('EK2G11_Is_Tk')) { matchedRole = 'EK2G11_Is'; translatedWord = '이다'; displayEn = 'is'; }
       if (word.includes('EK2G11_Our_Tk')) { matchedRole = 'EK2G11_Our'; translatedWord = '우리의'; displayEn = 'our'; }
@@ -921,7 +973,6 @@ export async function POST(request: Request) {
       if (word.includes('EK2G11_During_Tk')) { matchedRole = 'EK2G11_During'; translatedWord = '에'; displayEn = 'during'; }
       if (word.includes('EK2G11_This_Tk')) { matchedRole = 'EK2G11_This'; translatedWord = '이번'; displayEn = 'this'; }
       if (word.includes('EK2G11_ReadingWeek_Tk')) { matchedRole = 'EK2G11_ReadingWeek'; translatedWord = '독서주간'; displayEn = 'reading week'; }
-      
       if (word.includes('EK2G10_It_Tk')) { matchedRole = 'EK2G10_It'; translatedWord = ''; displayEn = 'It'; }
       if (word.includes('EK2G10_Is_Tk')) { matchedRole = 'EK2G10_Is'; translatedWord = '이다'; displayEn = 'is'; }
       if (word.includes('EK2G10_Very_Tk')) { matchedRole = 'EK2G10_Very'; translatedWord = '대단히'; displayEn = 'very'; }
@@ -932,7 +983,6 @@ export async function POST(request: Request) {
       if (word.includes('EK2G10_In_Tk')) { matchedRole = 'EK2G10_In'; translatedWord = '으로'; displayEn = 'in'; }
       if (word.includes('EK2G10_This_Tk')) { matchedRole = 'EK2G10_This'; translatedWord = '이러한'; displayEn = 'this'; } 
       if (word.includes('EK2G10_Way_Tk')) { matchedRole = 'EK2G10_Way'; translatedWord = '방법'; displayEn = 'way'; }
-      
       if (word.includes('EK2G9_It_Tk')) { matchedRole = 'EK2G9_It'; translatedWord = ''; displayEn = 'It'; }
       if (word.includes('EK2G9_Is_Tk')) { matchedRole = 'EK2G9_Is'; translatedWord = '이다'; displayEn = 'is'; }
       if (word.includes('EK2G9_My_Tk')) { matchedRole = 'EK2G9_My'; translatedWord = '나의'; displayEn = 'my'; }
@@ -943,7 +993,6 @@ export async function POST(request: Request) {
       if (word.includes('EK2G9_Poet_Tk')) { matchedRole = 'EK2G9_Poet'; translatedWord = '시인이'; displayEn = 'a poet'; }
       if (word.includes('EK2G9_In_Tk')) { matchedRole = 'EK2G9_In'; translatedWord = '에'; displayEn = 'in'; }
       if (word.includes('EK2G9_Future_Tk')) { matchedRole = 'EK2G9_Future'; translatedWord = '미래'; displayEn = 'the future'; }
-      
       if (word.includes('EK2G8_It_Tk')) { matchedRole = 'EK2G8_It'; translatedWord = ''; displayEn = 'It'; } 
       if (word.includes('EK2G8_Is_Tk')) { matchedRole = 'EK2G8_Is'; translatedWord = '이다'; displayEn = 'is'; }
       if (word.includes('EK2G8_Good_Tk')) { matchedRole = 'EK2G8_Good'; translatedWord = '좋은'; displayEn = 'good'; }
@@ -954,13 +1003,11 @@ export async function POST(request: Request) {
       if (word.includes('EK2G8_Early_Tk')) { matchedRole = 'EK2G8_Early'; translatedWord = '일찍'; displayEn = 'early'; }
       if (word.includes('EK2G8_In_Tk')) { matchedRole = 'EK2G8_In'; translatedWord = '에'; displayEn = 'in'; }
       if (word.includes('EK2G8_Morning_Tk')) { matchedRole = 'EK2G8_Morning'; translatedWord = '아침'; displayEn = 'the morning'; }
-      
       if (word.includes('EK1B2_He_Tk')) { matchedRole = 'EK1B2_He'; translatedWord = '그는'; displayEn = 'He'; }
       if (word.includes('EK1B2_HadWork_Tk')) { matchedRole = 'EK1B2_HadWork'; translatedWord = '일해야만 했다'; displayEn = 'had to work'; }
       if (word.includes('EK1B2_Hard_Tk')) { matchedRole = 'EK1B2_Hard'; translatedWord = '열심히'; displayEn = 'hard'; }
       if (word.includes('EK1B2_For_Tk')) { matchedRole = 'EK1B2_For'; translatedWord = '위하여'; displayEn = 'for'; }
       if (word.includes('EK1B2_Living_Tk')) { matchedRole = 'EK1B2_Living'; translatedWord = '생계를'; displayEn = 'a living'; }
-      
       if (word.includes('EK1B1_My_Tk')) { matchedRole = 'EK1B1_My'; translatedWord = '나의'; displayEn = 'My'; }
       if (word.includes('EK1B1_Father_Tk')) { matchedRole = 'EK1B1_Father'; translatedWord = '아버지는'; displayEn = 'father'; }
       if (word.includes('EK1B1_Works_Tk')) { matchedRole = 'EK1B1_Works'; translatedWord = '일하신다'; displayEn = 'works'; }
@@ -968,7 +1015,6 @@ export async function POST(request: Request) {
       if (word.includes('EK1B1_Morning_Tk')) { matchedRole = 'EK1B1_Morning'; translatedWord = '아침'; displayEn = 'morning'; }
       if (word.includes('EK1B1_Till_Tk')) { matchedRole = 'EK1B1_Till'; translatedWord = '까지'; displayEn = 'till'; }
       if (word.includes('EK1B1_Evening_Tk')) { matchedRole = 'EK1B1_Evening'; translatedWord = '저녁'; displayEn = 'evening'; }
-      
       if (word.includes('EK2C2_His_Tk')) { matchedRole = 'EK2C2_His'; translatedWord = '그의'; displayEn = 'His'; }
       if (word.includes('EK2C2_Hope_Tk')) { matchedRole = 'EK2C2_Hope'; translatedWord = '꿈은'; displayEn = 'hope'; }
       if (word.includes('EK2C2_Is_Tk')) { matchedRole = 'EK2C2_Is'; translatedWord = ''; displayEn = 'is'; } 
@@ -977,7 +1023,6 @@ export async function POST(request: Request) {
       if (word.includes('EK2C2_Doctor_Tk')) { matchedRole = 'EK2C2_Doctor'; translatedWord = '훌륭한 의사가'; displayEn = 'a great doctor'; }
       if (word.includes('EK2C2_In_Tk')) { matchedRole = 'EK2C2_In'; translatedWord = '에'; displayEn = 'in'; }
       if (word.includes('EK2C2_Future_Tk')) { matchedRole = 'EK2C2_Future'; translatedWord = '미래'; displayEn = 'the future'; }
-      
       if (word.includes('EK2C1_My_Tk')) { matchedRole = 'EK2C1_My'; translatedWord = '나의'; displayEn = 'My'; }
       if (word.includes('EK2C1_Plan_Tk')) { matchedRole = 'EK2C1_Plan'; translatedWord = '계획은'; displayEn = 'plan'; }
       if (word.includes('EK2C1_Is_Tk')) { matchedRole = 'EK2C1_Is'; translatedWord = ''; displayEn = 'is'; } 
@@ -1492,23 +1537,17 @@ export async function POST(request: Request) {
         return (t.role === 'Verb_Past' || t.role === 'Verb_Present') ? 'Verb' : t.role;
     });
 
-let selectedForm = null;
+    let selectedForm = null;
 
-    // 👇👇 💡 [수프로 엣지] 3형식 예문 7 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_CannotHear_F3E7') || detectedRoles.includes('Obj_Cries_F3E7')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문7_전용') || null;
     }
-
-    // 👇👇 💡 [수프로 엣지] 3형식 예문 6 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Devoted_F3E6') || detectedRoles.includes('Obj_Life_F3E6') || detectedRoles.includes('Obj_Mankind_F3E6')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문6_전용') || null;
     }
-
-    // 👇👇 💡 [수프로 엣지] 의지동사 예문 6 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Devoted_Vol6') || detectedRoles.includes('Obj_Life_Vol6') || detectedRoles.includes('Obj_Mankind_Vol6')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_의지동사_예문6_전용') || null;
     }
-
     if (detectedRoles.includes('Subj_Aim') || detectedRoles.includes('Verb_Inf_Offer') || detectedRoles.includes('IO_Students') || detectedRoles.includes('Obj_Opp')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_보충어구_예문3_전용') || null;
     }
@@ -1517,11 +1556,10 @@ let selectedForm = null;
     }
     if (detectedRoles.includes('Subj_Plan') || detectedRoles.includes('Verb_Inf_Go') || detectedRoles.includes('Obj_Museum') || detectedRoles.includes('Mod_This_Weekend')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_보충어구_예문1_전용') || null;
-    }    
+    }   
     if (detectedRoles.includes('Subj_Greeks') || detectedRoles.includes('To_Inf_Make') || detectedRoles.includes('Obj_Comp_Strong') || detectedRoles.includes('Inst_Ex') || detectedRoles.includes('Obj_Of_Gym')) {
         selectedForm = FORM_RULES.find(r => r.type === '5형식_To부정사_예문7_전용') || null;
     }
-    // 💡 [우선순위 수호] 선언된 변수에 맞춤형 설계도를 먼저 매칭합니다.
     if (detectedRoles.includes('Comp_Wrong')) {
         selectedForm = FORM_RULES.find(r => r.type === '가주어_예문6_전용') || null;
     }
@@ -1540,296 +1578,223 @@ let selectedForm = null;
     if (detectedRoles.includes('Verb_Inf_Read') || detectedRoles.includes('Obj_Books') || detectedRoles.includes('Obj_Country') || detectedRoles.includes('Obj_This_Time')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_보충어구_예문4_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 예문 5 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_Resp') || detectedRoles.includes('Verb_Inf_Keep') || detectedRoles.includes('Obj_Env') || detectedRoles.includes('Comp_Beautiful')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_보충어구_예문5_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 예문 6 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Taught') || detectedRoles.includes('Obj_Him') || detectedRoles.includes('To_Inf_OC') || detectedRoles.includes('Inf_Obj_TheBook')) {
         selectedForm = FORM_RULES.find(r => r.type === '5형식_보충어구_예문6_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 형용사구 예문 1 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Visited') || detectedRoles.includes('Obj_Uncle') || detectedRoles.includes('To_Inf_Adj_Live') || detectedRoles.includes('Obj_Cali')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_형용사구_예문1_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 형용사구 예문 2 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_Darwin') || detectedRoles.includes('Comp_Biologist') || detectedRoles.includes('Comp_Famous') || detectedRoles.includes('Obj_Evo')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_형용사구_예문2_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 형용사구 예문 3 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Sent') || detectedRoles.includes('Obj_Son') || detectedRoles.includes('Prep_To_Son') || detectedRoles.includes('Obj_TheBook')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_형용사구_예문3_전용') || null;
-    }    
-    // 👇👇 💡 [수프로 엣지] 형용사구 예문 4 절대 방어선 👇👇
+    }   
     if (detectedRoles.includes('Subj_Men') || detectedRoles.includes('Obj_Nile') || detectedRoles.includes('Comp_Farmers') || detectedRoles.includes('Verb_Were')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_형용사구_예문4_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 형용사구 예문 5 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_TheGirl') || detectedRoles.includes('DO_NicePresent') || detectedRoles.includes('Comp_Betty') || detectedRoles.includes('Obj_Bday')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_형용사구_예문5_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 형용사구 예문 6 절대 방어선 👇👇
     if (detectedRoles.includes('Comp_Dictator') || detectedRoles.includes('Verb_Inf_Think') || detectedRoles.includes('Obj_Himself') || detectedRoles.includes('OC_GreatLeader')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_형용사구_예문6_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 형용사구 예문 7 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_King') || detectedRoles.includes('DO_Reward') || detectedRoles.includes('IO_Man') || detectedRoles.includes('Obj_Anything')) {
         selectedForm = FORM_RULES.find(r => r.type === '4형식_형용사구_예문7_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 부사구 예문 1 절대 방어선 👇👇
     if (detectedRoles.includes('Comp_Glad_Adv1') || detectedRoles.includes('Verb_Inf_Meet_Adv1') || detectedRoles.includes('Obj_You_Adv1') || detectedRoles.includes('Adv_Here_Adv1')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_부사구_예문1_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 부사구 예문 2 절대 방어선 👇👇
     if (detectedRoles.includes('Comp_Sad_Adv2') || detectedRoles.includes('Verb_Inf_Hear_Adv2') || detectedRoles.includes('Obj_TheNews_Adv2') || detectedRoles.includes('Obj_Family_Adv2')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_부사구_예문2_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 부사구 예문 3 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_Diagram_Adv3') || detectedRoles.includes('Comp_IsConvenient_Adv3') || detectedRoles.includes('Obj_HardestSentence_Adv3') || detectedRoles.includes('Adv_Systematically_Adv3')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_부사구_예문3_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 부사구 예문 4 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_Water_Adv4') || detectedRoles.includes('Comp_IsGood_Adv4') || detectedRoles.includes('Verb_Inf_Drink_Adv4')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_부사구_예문4_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 부사구_결과 예문 2 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_Boy_Res2') || detectedRoles.includes('Comp_IsClever_Res2') || detectedRoles.includes('Verb_Inf_Understand_Res2')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_부사구_결과_예문2_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 부사구_결과 예문 3 절대 방어선 👇👇
     if (detectedRoles.includes('Comp_Idle_Res3') || detectedRoles.includes('Verb_Inf_Read_Res3') || detectedRoles.includes('Obj_Books_Res3')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_부사구_결과_예문3_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 의지동사 예문 1 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Came_Vol1') || detectedRoles.includes('Adv_Here_Vol1') || detectedRoles.includes('To_Inf_Vol1') || detectedRoles.includes('Verb_Inf_See_Vol1')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_의지동사_예문1_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 의지동사 예문 2 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Gathered_Vol2') || detectedRoles.includes('Verb_Inf_Talk_Vol2') || detectedRoles.includes('Obj_ImportantThing_Vol2')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_의지동사_예문2_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 의지동사 예문 3 (17피스) 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Bought_Vol3') || detectedRoles.includes('Obj_House_Vol3') || detectedRoles.includes('Noun_PrettyDaughter_Vol3') || detectedRoles.includes('Noun_ADaughter_Vol3') || detectedRoles.includes('Noun_PrettyDaughter2_Vol3') || detectedRoles.includes('Noun_Country_Vol3')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_의지동사_예문3_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 의지동사 예문 4 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Made_Vol4') || detectedRoles.includes('Obj_ASpecialProgram_Vol4') || detectedRoles.includes('Obj_AProgram_Vol4') || detectedRoles.includes('Verb_Teach_Vol4') || detectedRoles.includes('Noun_Vacation_Vol4')) {
         selectedForm = FORM_RULES.find(r => r.type === '4형식_의지동사_예문4_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 의지동사 예문 5 (17피스) 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_Albert_Vol5') || detectedRoles.includes('Noun_PrizeMoney_Vol5') || detectedRoles.includes('Verb_SufferFrom_Vol5') || detectedRoles.includes('Noun_Leprosy_Vol5')) {
         selectedForm = FORM_RULES.find(r => r.type === '5형식_의지동사_예문5_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 무의지동사 예문 1 절대 방어선 👇👇
     if (detectedRoles.includes('Noun_Child_Invol1') || detectedRoles.includes('Verb_Grew_Invol1') || detectedRoles.includes('Adj_AFine_Invol1') || detectedRoles.includes('Noun_Youth_Invol1')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_무의지동사_예문1_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 무의지동사 예문 2 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Lived_Invol2') || detectedRoles.includes('Noun_Grandson_Invol2') || detectedRoles.includes('Adv_Again_Invol2')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_무의지동사_예문2_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 무의지동사 예문 3 절대 방어선 👇👇
     if (detectedRoles.includes('Adv_Here_Invol3') || detectedRoles.includes('Pron_You_Invol3') || detectedRoles.includes('Verb_See_Invol3')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_무의지동사_예문3_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 1형식 예문 1 절대 방어선 👇👇
     if (detectedRoles.includes('Noun_Book_Form1') || detectedRoles.includes('Verb_Sells_Form1')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_예문1_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 1형식 예문 2 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_TheBird_Form2') || detectedRoles.includes('Verb_Sings_Form2') || detectedRoles.includes('Adv_Sweetly_Form2')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_예문2_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 1형식 예문 3 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Plays_Form3') || detectedRoles.includes('Noun_TheStation_Form3') || detectedRoles.includes('Noun_Night_Form3') || detectedRoles.includes('Noun_Day_Form3')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_예문3_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 1형식 예문 4 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Came_Form4') || detectedRoles.includes('Noun_Seoul_Form4') || detectedRoles.includes('Adv_LastYear_Form4')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_예문4_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 1형식 예문 5 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Lived_Form5') || detectedRoles.includes('Noun_OldHouse_Form5') || detectedRoles.includes('Noun_AnOldHouse_Form5') || detectedRoles.includes('Noun_AHouse_Form5')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_예문5_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 1형식 예문 6 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_John_Form6') || detectedRoles.includes('Noun_TwentyYears_Form6')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_예문6_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 1형식 예문 7 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_WillStay_Form7') || detectedRoles.includes('Noun_WinterVacation_Form7')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_예문7_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 1형식 예문 8 절대 방어선 👇👇
     if (detectedRoles.includes('Noun_Girl_Form8') || detectedRoles.includes('Noun_SmallVillage_Form8') || detectedRoles.includes('Noun_Village_Form8')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_예문8_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 1형식 예문 9 절대 방어선 👇👇
     if (detectedRoles.includes('Noun_TheBeach_Form9') || detectedRoles.includes('Noun_Family_Form9') || detectedRoles.includes('Noun_Vacation_Form9')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_예문9_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 1형식 예문 10 절대 방어선 👇👇
     if (detectedRoles.includes('Noun_Hermit_Form10') || detectedRoles.includes('Noun_Cabin_Form10') || detectedRoles.includes('Noun_Disciples_Form10')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_예문10_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 1형식 예문 11 절대 방어선 👇👇
     if (detectedRoles.includes('Noun_DeptStore_Form11') || detectedRoles.includes('Noun_JanesHouse_Form11') || detectedRoles.includes('Noun_House_Form11')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_예문11_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 1형식 예문 12 절대 방어선 👇👇
     if (detectedRoles.includes('Noun_King_F12') || detectedRoles.includes('Noun_ElegantFerry_F12') || detectedRoles.includes('Noun_Suites_F12')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_예문12_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 1형식 예문 13 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_ABigFire_F13') || detectedRoles.includes('Noun_Building_F13') || detectedRoles.includes('Noun_Station_F13')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_예문13_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 1형식 예문 14 절대 방어선 👇👇
     if (detectedRoles.includes('Noun_Picture_F14') || detectedRoles.includes('Verb_IsHung_F14') || detectedRoles.includes('Noun_Wall_F14')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_예문14_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 1형식 예문 15 절대 방어선 👇👇
     if (detectedRoles.includes('Noun_Spies_F15') || detectedRoles.includes('Verb_HaveLanded_F15')) {
         selectedForm = FORM_RULES.find(r => r.type === '1형식_예문15_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 2형식 예문 1 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_Tom_F2E1') || detectedRoles.includes('Comp_Boy_F2E1')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_예문1_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 2형식 예문 2 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_Math_F2E2') || detectedRoles.includes('Comp_Subject_F2E2') || detectedRoles.includes('Comp_Difficult_F2E2')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_예문2_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 2형식 예문 3 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_TheCold_F2E3') || detectedRoles.includes('Comp_Severer_F2E3') || detectedRoles.includes('Pron_ThatOf_F2E3')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_예문3_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 2형식 예문 4 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_Novel_F2E4') || detectedRoles.includes('Comp_Interesting_F2E4')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_예문4_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 2형식 예문 5 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_Men_F2E5') || detectedRoles.includes('Comp_Equal_F2E5')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_예문5_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 2형식 예문 6 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_Rome_F2E6') || detectedRoles.includes('Comp_SmallTown_F2E6')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_예문6_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 2형식 예문 7 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_DetectiveStory_F2E7') || detectedRoles.includes('Comp_Interesting_F2E7')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_예문7_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 2형식 예문 8 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_Language_F2E8') || detectedRoles.includes('Comp_Means_F2E8')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_예문8_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 2형식 예문 9 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_Proverbs_F2E9') || detectedRoles.includes('Verb_MayBe_F2E9')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_예문9_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 2형식 예문 10 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_Settlers_F2E10') || detectedRoles.includes('Comp_Free_F2E10')) {
         selectedForm = FORM_RULES.find(r => r.type === '2형식_예문10_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 3형식 예문 1 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_He_F3E1') || detectedRoles.includes('Verb_LaughedAt_F3E1')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문1_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 3형식 예문 2 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_MustTakeCareOf_F3E2') || detectedRoles.includes('Obj_Baby_F3E2')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문2_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 3형식 예문 3 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Remember_F3E3') || detectedRoles.includes('Obj_Name_F3E3')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문3_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 3형식 예문 4 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_OldMan_F3E4') || detectedRoles.includes('Verb_Planted_F3E4')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문4_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 3형식 예문 5 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_I_F3E5') || detectedRoles.includes('Verb_Met_F3E5') || detectedRoles.includes('Obj_Her_F3E5')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문5_파크_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 3형식 예문 6 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Devoted_F3E6') || detectedRoles.includes('Obj_Life_F3E6') || detectedRoles.includes('Obj_Mankind_F3E6')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문6_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 3형식 예문 8 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Defeated_F3E8') || detectedRoles.includes('Obj_Invaders_F3E8')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문8_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 가주어_진주어 예문 9 절대 방어선 👇👇
     if (detectedRoles.includes('Dummy_It_F3E9') || detectedRoles.includes('Verb_Defeat_F3E9') || detectedRoles.includes('Obj_Invaders_F3E9')) {
         selectedForm = FORM_RULES.find(r => r.type === '가주어_예문9_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 3형식 예문 10 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Felt_F3E10') || detectedRoles.includes('Obj_Hair_F3E10')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문10_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 3형식 예문 11 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Lived_F3E11') || detectedRoles.includes('Obj_HappyLife_F3E11')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문11_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 3형식 예문 12 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Play_F3E12') || detectedRoles.includes('Obj_Games_F3E12')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문12_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 3형식 예문 13 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Discussed_F3E13') || detectedRoles.includes('Obj_Plan_F3E13')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문13_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 3형식 예문 14 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Developed_F3E14') || detectedRoles.includes('Obj_Theory_F3E14')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문14_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 3형식 예문 15 (간디 명언) 절대 방어선 👇👇
     if (detectedRoles.includes('Subj_Gandhi_F3E15') || detectedRoles.includes('Verb_Said_F3E15')) {
         selectedForm = FORM_RULES.find(r => r.type === '3형식_예문15_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 4형식 예문 1 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Bought_F4E1') || detectedRoles.includes('IO_Friend_F4E1')) {
         selectedForm = FORM_RULES.find(r => r.type === '4형식_예문1_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 4형식 예문 2 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Made_F4E2') || detectedRoles.includes('DO_ToyShip_F4E2')) {
         selectedForm = FORM_RULES.find(r => r.type === '4형식_예문2_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 4형식 예문 3 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Lent_F4E3') || detectedRoles.includes('IO_Citizens_F4E3')) {
         selectedForm = FORM_RULES.find(r => r.type === '4형식_예문3_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 4형식 예문 4 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Sent_F4E4') || detectedRoles.includes('DO_Postcard_F4E4')) {
         selectedForm = FORM_RULES.find(r => r.type === '4형식_예문4_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 4형식 예문 5 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Built_F4E5') || detectedRoles.includes('Subj_Carpenter_F4E5')) {
         selectedForm = FORM_RULES.find(r => r.type === '4형식_예문5_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 5형식 예문 1 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Think_F5E1') || detectedRoles.includes('OC_Boy_F5E1')) {
         selectedForm = FORM_RULES.find(r => r.type === '5형식_예문1_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 5형식 예문 2 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Called_F5E2') || detectedRoles.includes('OC_Republic_F5E2')) {
         selectedForm = FORM_RULES.find(r => r.type === '5형식_예문2_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 5형식 예문 3 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Keep_F5E3') || detectedRoles.includes('OC_Clean_F5E3')) {
         selectedForm = FORM_RULES.find(r => r.type === '5형식_예문3_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 5형식 예문 4 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Consider_F5E4') || detectedRoles.includes('Obj_Sejong_F5E4')) {
         selectedForm = FORM_RULES.find(r => r.type === '5형식_예문4_전용') || null;
     }
-    // 👇👇 💡 [수프로 엣지] 5형식 예문 5 절대 방어선 👇👇
     if (detectedRoles.includes('Verb_Made_F5E5') || detectedRoles.includes('Subj_Science_F5E5')) {
         selectedForm = FORM_RULES.find(r => r.type === '5형식_예문5_전용') || null;
     }
 
-    // 위에서 맞춤형 설계도를 찾지 못했을 때만 일반 규칙 루프를 실행합니다.
     if (!selectedForm) {
         for (const rule of FORM_RULES) {
           const isMatch = rule.requiredRoles.every(reqRole => detectedRoles.includes(reqRole));
@@ -1876,19 +1841,18 @@ let selectedForm = null;
     }
 
     const finalEnglishWords = [];
-    for (const role of selectedForm.englishOrder) {
-      if (phrases[role]) {
-        const cleaned = phrases[role].filter(w => w.trim() !== '').join(' ');
-        if (cleaned) finalEnglishWords.push(cleaned);
-      }
+    if (selectedForm.englishOrder) {
+        for (const role of selectedForm.englishOrder) {
+          if (phrases[role]) {
+            const cleaned = phrases[role].filter(w => w.trim() !== '').join(' ');
+            if (cleaned) finalEnglishWords.push(cleaned);
+          }
+        }
     }
 
     let finalTranslation = finalEnglishWords.join(' ')
       .replace(/culture,\s*customs,\s*art/i, 'the culture, customs, and art');
       
-    // 👇👇 여기서부터 끝까지 덮어써주세요! (중복 선언 제거 완료) 👇👇
-    // 💡 [수프로 엣지] 의문문 지능형 변환 (isQuestion 변수는 맨 위에서 이미 선언했으므로 그대로 재사용합니다!)
-    
     if (isQuestion && finalTranslation.trim() !== '') { 
        let aux = 'Do';
        if (originalText.includes('았') || originalText.includes('었') || originalText.includes('했') || originalText.includes('였')) {
@@ -1909,23 +1873,19 @@ let selectedForm = null;
     }
     
     if (finalTranslation.trim() !== '') {
-        // 👇👇 💡 [수프로 엣지] 마침표 앞의 찌꺼기 공백을 완벽하게 진공 청소! 👇👇
         finalTranslation = finalTranslation.trim().replace(/\s+/g, ' '); 
-        
         finalTranslation = finalTranslation.charAt(0).toUpperCase() + finalTranslation.slice(1);
-        
         if (isQuestion) {
             if (!finalTranslation.endsWith('?')) finalTranslation += '?';
         } else {
             if (!finalTranslation.endsWith('.')) finalTranslation += '.';
         }
-    } else {
-        return NextResponse.json({ ok: false, error: '분석할 수 없는 문장 구조입니다.' });
-    }
-
-    return NextResponse.json({ ok: true, best: { source_text: originalText, target_text: finalTranslation, analysis: [] } });
+        return NextResponse.json({ ok: true, best: { source_text: originalText, target_text: finalTranslation, analysis: [] } });
+    } 
+        
+    return NextResponse.json({ ok: false, error: '분석할 수 없는 문장 구조입니다.' });
   } catch (error) {
     console.error('한영 RBMT 엔진 에러:', error);
     return NextResponse.json({ ok: false, error: '서버 에러가 발생했습니다.' }, { status: 500 });
   }
-} // 👈 💡 여기서 POST 함수가 100% 완벽하게 닫힙니다!!!
+}
