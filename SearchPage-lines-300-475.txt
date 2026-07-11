@@ -1,0 +1,176 @@
+﻿ 300:   };
+ 301: 
+ 302:   const handleSpeak = (text: string) => {
+ 303:     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+ 304:       window.speechSynthesis.cancel(); 
+ 305:       const voices = window.speechSynthesis.getVoices();
+ 306:       const enVoices = voices.filter(v => v.lang.startsWith('en'));
+ 307:       const koVoices = voices.filter(v => v.lang.startsWith('ko'));
+ 308:       const enVoice = enVoices.find(v => v.name.includes('Google US English Male')) || enVoices.find(v => v.name.includes('Google US English')) || enVoices[0];
+ 309:       const koVoice = koVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) || koVoices[0];
+ 310:       const parts: { lang: string; text: string }[] = [];
+ 311:       let currentLang = /[a-zA-Z]/.test(text.charAt(0)) ? 'en' : 'ko'; 
+ 312:       let currentText = '';
+ 313:       for (let i = 0; i < text.length; i++) {
+ 314:         const char = text[i];
+ 315:         if (/[a-zA-Z]/.test(char)) {
+ 316:           if (currentLang !== 'en' && currentText.trim().length > 0) { parts.push({ lang: currentLang, text: currentText }); currentText = ''; }
+ 317:           currentLang = 'en'; currentText += char;
+ 318:         } else if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(char)) {
+ 319:           if (currentLang !== 'ko' && currentText.trim().length > 0) { parts.push({ lang: currentLang, text: currentText }); currentText = ''; }
+ 320:           currentLang = 'ko'; currentText += char;
+ 321:         } else {
+ 322:           currentText += char;
+ 323:         }
+ 324:       }
+ 325:       if (currentText.trim().length > 0) parts.push({ lang: currentLang, text: currentText });
+ 326:       parts.forEach((part) => {
+ 327:         if (!/[a-zA-Z가-힣0-9]/.test(part.text)) return; 
+ 328:         const utterance = new SpeechSynthesisUtterance(part.text);
+ 329:         if (part.lang === 'ko') {
+ 330:           if (koVoice) utterance.voice = koVoice;
+ 331:           utterance.lang = koVoice ? koVoice.lang : 'ko-KR';
+ 332:           utterance.pitch = 1.0; utterance.rate = 1.05; utterance.volume = 1.0; 
+ 333:         } else {
+ 334:           if (enVoice) utterance.voice = enVoice;
+ 335:           utterance.lang = enVoice ? enVoice.lang : 'en-US';
+ 336:           utterance.pitch = 0.9; utterance.rate = 0.85; utterance.volume = 0.75; 
+ 337:         }
+ 338:         window.speechSynthesis.speak(utterance);
+ 339:       });
+ 340:     } else {
+ 341:       alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
+ 342:     }
+ 343:   };
+ 344: 
+ 345:   // 🌟 번역 박스 전용 단발성 마이크 검색 로직
+ 346:   const handleBoxVoiceSearch = async (lang: 'ko-KR' | 'en-US') => {
+ 347:     if (isBoxListening) return;
+ 348:     setBoxMicLang(lang);
+ 349:     setIsBoxListening(true);
+ 350: 
+ 351:     const isNative = Capacitor.isNativePlatform();
+ 352:     const basePath = displayIsApp ? '/app' : '/';
+ 353: 
+ 354:     if (isNative) {
+ 355:       try {
+ 356:         const { available } = await SpeechRecognition.available();
+ 357:         if (!available) {
+ 358:           alert('이 기기에서는 음성 인식을 사용할 수 없습니다.');
+ 359:           setIsBoxListening(false);
+ 360:           setBoxMicLang(null);
+ 361:           return;
+ 362:         }
+ 363: 
+ 364:         let perm = await SpeechRecognition.checkPermissions();
+ 365:         if (perm.speechRecognition !== 'granted') {
+ 366:           perm = await SpeechRecognition.requestPermissions();
+ 367:         }
+ 368: 
+ 369:         if (perm.speechRecognition !== 'granted') {
+ 370:           alert('마이크 권한이 필요합니다. 설정에서 권한을 허용해주세요.');
+ 371:           setIsBoxListening(false);
+ 372:           setBoxMicLang(null);
+ 373:           return;
+ 374:         }
+ 375: 
+ 376:         const result = await SpeechRecognition.start({
+ 377:           language: lang,
+ 378:           maxResults: 1,
+ 379:           partialResults: false,
+ 380:           popup: false,
+ 381:         });
+ 382: 
+ 383:         let transcript = String(result?.matches?.[0] || '').trim().replace(/[.,?!]/g, '');
+ 384:         setIsBoxListening(false);
+ 385:         setBoxMicLang(null);
+ 386: 
+ 387:         if (transcript) {
+ 388:           router.push(`${basePath}?q=${encodeURIComponent(transcript)}`);
+ 389:         }
+ 390:       } catch (e: any) {
+ 391:         setIsBoxListening(false);
+ 392:         setBoxMicLang(null);
+ 393:         const msg = String(e?.message || e || '').toLowerCase();
+ 394:         if (msg.includes('denied') || msg.includes('permission')) {
+ 395:           alert('마이크 권한이 차단되었습니다. 설정에서 허용해주세요.');
+ 396:         }
+ 397:       }
+ 398:     } else {
+ 399:       const Ctor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+ 400:       if (!Ctor) {
+ 401:         alert('이 브라우저는 음성 인식을 지원하지 않습니다. (Chrome 브라우저 권장)');
+ 402:         setIsBoxListening(false);
+ 403:         setBoxMicLang(null);
+ 404:         return;
+ 405:       }
+ 406: 
+ 407:       const recognition = new Ctor();
+ 408:       recognition.lang = lang;
+ 409:       recognition.continuous = false;
+ 410:       recognition.interimResults = false;
+ 411: 
+ 412:       recognition.onresult = (event: any) => {
+ 413:         setIsBoxListening(false);
+ 414:         setBoxMicLang(null);
+ 415:         const transcript = String(event?.results?.[0]?.[0]?.transcript || '').trim();
+ 416:         if (transcript) {
+ 417:           router.push(`${basePath}?q=${encodeURIComponent(transcript)}`);
+ 418:         }
+ 419:       };
+ 420: 
+ 421:       recognition.onerror = (e: any) => {
+ 422:         setIsBoxListening(false);
+ 423:         setBoxMicLang(null);
+ 424:         if (e.error === 'not-allowed') {
+ 425:           alert('마이크 권한이 차단되었습니다. 브라우저 설정에서 마이크를 허용해주세요.');
+ 426:         }
+ 427:       };
+ 428: 
+ 429:       recognition.onend = () => {
+ 430:         setIsBoxListening(false);
+ 431:         setBoxMicLang(null);
+ 432:       };
+ 433: 
+ 434:       try {
+ 435:         recognition.start();
+ 436:       } catch {
+ 437:         setIsBoxListening(false);
+ 438:         setBoxMicLang(null);
+ 439:       }
+ 440:     }
+ 441:   };
+ 442: 
+ 443:   const indexOfLastItem =
+ 444:     currentPage * itemsPerPage;
+ 445: 
+ 446:   const indexOfFirstItem =
+ 447:     indexOfLastItem - itemsPerPage;
+ 448: 
+ 449:   const currentItems =
+ 450:     displayResults.slice(
+ 451:       indexOfFirstItem,
+ 452:       indexOfLastItem
+ 453:     );
+ 454: 
+ 455:   const totalPages =
+ 456:     Math.ceil(
+ 457:       displayResults.length /
+ 458:         itemsPerPage
+ 459:     );
+ 460: 
+ 461:   const handlePageChange = (
+ 462:     pageNumber: number
+ 463:   ) => {
+ 464:     setCurrentPage(pageNumber);
+ 465: 
+ 466:     window.scrollTo({
+ 467:       top: 0,
+ 468:       behavior: 'smooth',
+ 469:     });
+ 470:   };
+ 471: 
+ 472:   return (
+ 473:     <div className="flex flex-col min-h-screen bg-white">
+ 474:       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
+ 475:         {!displayQuery && <UnifiedHeader />}

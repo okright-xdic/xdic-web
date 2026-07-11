@@ -1,0 +1,320 @@
+﻿   1: 'use client';
+   2: 
+   3: import React, { useEffect, useState, useMemo } from 'react';
+   4: import Image from 'next/image';
+   5: import Link from 'next/link';
+   6: import { Capacitor } from '@capacitor/core';
+   7: import { SpeechRecognition } from '@capgo/capacitor-speech-recognition';
+   8: import SearchInput from '@/components/SearchInput';
+   9: import Footer from '@/components/Footer';
+  10: import PopularKeywords from '@/components/PopularKeywords'; 
+  11: import RecentKeywords from '@/components/RecentKeywords'; 
+  12: import KakaoAdFit from '@/components/ads/KakaoAdFit'; 
+  13: import NuanceWidget from '@/components/NuanceWidget'; 
+  14: import TodaysConversation from '@/components/TodaysConversation'; 
+  15: import AppTodaysConversation from '@/components/AppTodaysConversation'; 
+  16: import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+  17: import { useRouter } from 'next/navigation';
+  18: 
+  19: interface SearchResult {
+  20:   id: string | number;
+  21:   category_id: number;
+  22:   line_text: string;
+  23:   source_order?: number;
+  24: }
+  25: 
+  26: interface SearchPageProps {
+  27:   query: string;
+  28:   results?: SearchResult[];
+  29:   orangeKeys?: string[]; 
+  30:   blueKeys?: string[];    
+  31:   isApp?: boolean;
+  32:   popularSearches?: string[];
+  33:   recentSearches?: { word: string; count: number }[];
+  34:   isPartialMatch?: boolean;
+  35:   matchedKeywords?: string[];
+  36: }
+  37: 
+  38: const CATEGORY_NAMES: Record<number, string> = {
+  39:   0: '기초영어(Reference English)', 
+  40:   1: '기본영어(Basic English)', 
+  41:   2: '인문사회용어(Terms for Humanities&Sociology)', 
+  42:   3: '기계·전기·전자용어(Machine·Electricity·Electronics)', 
+  43:   4: '교육·종교·예체능용어(Education·Religion·Arts&Sports)',
+  44:   5: '무역경제용어(Terms for Trade and Economy)', 
+  45:   6: '자동차·환경용어(Terms for Automobile·Environment)', 
+  46:   7: '물리·화학용어(Terms for Physics·Chemistry)', 
+  47:   8: '컴퓨터용어(Computer Terms)', 
+  48:   9: '의학용어(Medical Terms)', 
+  49:   10: '인문사회기타용어(Humanities&Sociology_Others)', 
+  50:   11: '과학기술기타용어(Terms for Science&Technology)', 
+  51:   12: '기타(Other Terms)'
+  52: };
+  53: 
+  54: export default function SearchPage({ 
+  55:   query, results = [], orangeKeys = [], blueKeys = [],
+  56:   isApp = false, popularSearches = [], recentSearches = [],
+  57:   isPartialMatch = false, matchedKeywords = []    
+  58: }: SearchPageProps) {
+  59:   const router = useRouter();
+  60:   const [currentPage, setCurrentPage] = useState(1);
+  61:   const itemsPerPage = 20;
+  62:   
+  63:   const [clientIsApp, setClientIsApp] = useState(false);
+  64:   const [mounted, setMounted] = useState(false);
+  65:   const [previewData, setPreviewData] = useState<any[]>([]);
+  66:   const [copiedId, setCopiedId] = useState<string | number | null>(null);
+  67: 
+  68:   const [isMobileWeb, setIsMobileWeb] = useState(false);
+  69:   const [supabase] = useState(() => createClientComponentClient());
+  70: 
+  71:   const [aiTranslation, setAiTranslation] = useState<string | null>(null);
+  72:   const [aiAnalysis, setAiAnalysis] = useState<{ko: string, en: string}[] | null>(null);
+  73:   
+  74:   // 🌟 [수프로 엣지] 백엔드에서 보낸 '참고용' 비밀 신호를 담을 상태 추가!
+  75:   const [isReference, setIsReference] = useState<boolean>(false);
+  76: 
+  77:   // 🌟 번역 결과 박스 전용 마이크 상태
+  78:   const [isBoxListening, setIsBoxListening] = useState(false);
+  79:   const [boxMicLang, setBoxMicLang] = useState<'ko-KR' | 'en-US' | null>(null);
+  80: 
+  81:   useEffect(() => {
+  82:     setMounted(true);
+  83:     if (typeof window !== 'undefined') {
+  84:       const ua = navigator.userAgent || '';
+  85:       const isNativeEnv = Capacitor.isNativePlatform() || ua.includes('wv') || ua.includes('Capacitor');
+  86:       if (isNativeEnv) setClientIsApp(true);
+  87:     }
+  88:     const fetchPreview = async () => {
+  89:       const { data } = await supabase.from('conversation_lines').select('*').order('created_at', { ascending: false }).limit(3);
+  90:       if (data) setPreviewData(data);
+  91:     };
+  92:     fetchPreview();
+  93:   }, [supabase]);
+  94: 
+  95:   // 🌟 [수프로 마법] 2. 번역 API 지능형 라우팅 (한영 vs 영한)
+  96:   useEffect(() => {
+  97:     const displayQuery = (query || '').trim();
+  98:     if (displayQuery.length >= 2) {
+  99:       
+ 100:       // 💡 한국어가 하나라도 있으면 한영 번역기로, 순수 영어면 영한 번역기로 요청을 보냅니다!
+ 101:       const hasKorean = /[가-힣]/.test(displayQuery);
+ 102:       const endpoint = hasKorean ? '/api/translate-search' : '/api/translate-en-ko';
+ 103: 
+ 104:       fetch(endpoint, {
+ 105:         method: 'POST',
+ 106:         headers: { 'Content-Type': 'application/json' },
+ 107:         body: JSON.stringify({ q: displayQuery }),
+ 108:       })
+ 109:       .then(res => res.json())
+ 110:       .then(data => {
+ 111:         if (data.ok && data.best) {
+ 112:           setAiTranslation(data.best.target_text);
+ 113:           setAiAnalysis(data.best.analysis || null);
+ 114:           setIsReference(data.best.isReference || false); // 🌟 신호 저장!
+ 115:         } else {
+ 116:           setAiTranslation(null);
+ 117:           setAiAnalysis(null);
+ 118:           setIsReference(false);
+ 119:         }
+ 120:       })
+ 121:       .catch(() => {
+ 122:         setAiTranslation(null);
+ 123:         setAiAnalysis(null);
+ 124:         setIsReference(false);
+ 125:       });
+ 126:     } else {
+ 127:       setAiTranslation(null);
+ 128:       setAiAnalysis(null);
+ 129:       setIsReference(false);
+ 130:     }
+ 131:   }, [query]);
+ 132: 
+ 133:   useEffect(() => {
+ 134:     if (typeof window === 'undefined') return;
+ 135:     const handleResize = () => setIsMobileWeb(window.innerWidth < 768);
+ 136:     handleResize(); 
+ 137:     window.addEventListener('resize', handleResize);
+ 138:     return () => window.removeEventListener('resize', handleResize);
+ 139:   }, []);
+ 140: 
+ 141:   const displayIsApp = isApp || clientIsApp;
+ 142:   const displayQuery = (query || '').trim();
+ 143:   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
+ 144: 
+ 145:   const handleBookmarkClick = () => {
+ 146:     if (typeof window === 'undefined') return;
+ 147:     const userAgent = navigator.userAgent.toLowerCase();
+ 148:     const isMac = userAgent.includes('mac');
+ 149:     const isMobile = /iphone|ipad|ipod|android/.test(userAgent);
+ 150:     if (displayIsApp) { alert('앱(App)에서는 이미 홈 화면에 설치되어 있습니다! 언제든 아이콘을 눌러 접속해주세요.'); return; }
+ 151:     if (isMobile) alert('🌟 모바일 브라우저 환경입니다.\n화면 하단이나 상단 메뉴(⋮)에서 [⭐ 별 모양 아이콘]을 눌러 즐겨찾기에 추가해주세요!');
+ 152:     else if (isMac) alert('🌟 Mac 환경입니다.\n키보드에서 [ Cmd + D ] 를 동시에 눌러 엑스딕을 즐겨찾기에 추가해주세요!');
+ 153:     else alert('🌟 PC 환경입니다.\n키보드에서 [ Ctrl + D ] 를 동시에 눌러 엑스딕을 즐겨찾기에 추가해주세요!');
+ 154:   };
+ 155: 
+ 156:   const derivedBlueKeys = useMemo(() => {
+ 157:     const keys: string[] = [];
+ 158:     const lowerQuery = displayQuery.toLowerCase().trim();
+ 159:     if (!lowerQuery) return keys;
+ 160:     const stopWords = new Set(['a', 'an', 'the', 'is', 'are', 'was', 'were', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by']);
+ 161:     const queryTokens = lowerQuery.split(/\s+/).filter(t => t.length > 1 && !stopWords.has(t));
+ 162:     const lowerQueryNoSpace = lowerQuery.replace(/\s+/g, '');
+ 163:     results.forEach(item => {
+ 164:       const text = item.line_text || '';
+ 165:       const cleanText = text.replace(/[.,:;()\[\]?!"]/g, '');
+ 166:       const words = cleanText.split(/\s+/).filter(Boolean);
+ 167:       const engWords = words.filter(w => /^[a-zA-Z\-]+$/.test(w));
+ 168:       const korWords = words.filter(w => /[가-힣]/.test(w));
+ 169:       if (engWords.length > 0 && korWords.length > 0) {
+ 170:           const engJoined = engWords.join('').toLowerCase();
+ 171:           const korJoined = korWords.join('').toLowerCase();
+ 172:           if (engJoined === lowerQueryNoSpace) korWords.forEach(kw => keys.push(kw));
+ 173:           else if (korJoined === lowerQueryNoSpace) engWords.forEach(ew => keys.push(ew));
+ 174:           else {
+ 175:               if (engWords.length === 1) {
+ 176:                   const ew = engWords[0].toLowerCase();
+ 177:                   if (queryTokens.includes(ew) || ew === lowerQueryNoSpace) korWords.forEach(kw => keys.push(kw));
+ 178:               }
+ 179:               if (korWords.length === 1) {
+ 180:                   const kw = korWords[0].toLowerCase();
+ 181:                   if (queryTokens.includes(kw) || kw === lowerQueryNoSpace) engWords.forEach(ew => keys.push(ew));
+ 182:               }
+ 183:           }
+ 184:       }
+ 185:     });
+ 186:     return [...new Set(keys)].filter(b => {
+ 187:        const lowerB = b.toLowerCase();
+ 188:        if (stopWords.has(lowerB)) return false; 
+ 189:        return !(orangeKeys || []).some(o => o.toLowerCase() === lowerB);
+ 190:     });
+ 191:   }, [displayQuery, results, orangeKeys]);
+ 192: 
+ 193:   const UnifiedHeader = () => (
+ 194:     <header className="w-full pt-8 pb-0 md:pt-12 md:pb-0">
+ 195:       <div className="flex flex-col items-center justify-center text-center gap-2 mb-6 px-1 w-full">
+ 196:         <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer mb-2">
+ 197:           <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="X-DIC Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
+ 198:         </a>
+ 199:         <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer hover:opacity-80 transition-opacity">
+ 200:           <h1 className="text-[22px] md:text-[26px] font-extrabold text-slate-800 leading-tight">한영/영한사전 – 복합어(합성어) 전문 엑스딕!</h1>
+ 201:         </a>
+ 202:         <div className="flex flex-col items-center w-full mt-1 mb-2">
+ 203:           <p className="text-[11px] md:text-[13px] text-slate-400 font-semibold mb-3">Korean-English/English-Korean Dictionary – Compound Terminology</p>
+ 204:           <div className="w-full max-w-[95%] md:max-w-3xl bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 md:py-3 shadow-sm">
+ 205:             <p className="text-[12px] md:text-[14px] text-slate-700 font-bold leading-snug break-keep text-center">
+ 206:               <span className="text-blue-600 mr-1">💡 전문용어 검색 특화:</span>
+ 207:               의학용어 · 교육용어 · 기계용어 · 무역경제용어 · 자동차용어 · 전자용어 · 컴퓨터용어 등
+ 208:             </p>
+ 209:             <p className="text-[10px] md:text-[11px] text-slate-400 font-medium leading-tight mt-1.5 px-2 break-keep text-center">
+ 210:               Specialized search for terminology such as medical, educational, mechanical, trade, economic, automobile, electronic, computer, etc.
+ 211:             </p>
+ 212:           </div>
+ 213:         </div>
+ 214:       </div>
+ 215:       <div className="w-full">
+ 216:         <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
+ 217:         {displayIsApp && (
+ 218:           <div className="flex justify-end max-w-2xl mx-auto mt-2 mb-6 px-4 animate-in fade-in duration-500">
+ 219:             <a href="/app/waggle" className="animate-bounce bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-6 py-2.5 rounded-full shadow-lg border-2 border-white text-sm flex items-center gap-2 hover:scale-105 transition-transform">
+ 220:               <span className="text-xl">💬</span> 평가단 와글와글 입장!
+ 221:             </a>
+ 222:           </div>
+ 223:         )}
+ 224:         {mounted && !displayIsApp && <TodaysConversation />}
+ 225:         {mounted && displayIsApp && <AppTodaysConversation />}
+ 226:       </div>
+ 227:     </header>
+ 228:   );
+ 229: 
+ 230:   const getSearchUrl = (keyword: string) => displayIsApp ? `/app?q=${encodeURIComponent(keyword)}` : `/?q=${encodeURIComponent(keyword)}`;
+ 231: 
+ 232:   useEffect(() => setCurrentPage(1), [results, query]);
+ 233: 
+ 234:   // ==========================================
+ 235:   // 검색 결과 표시용 카테고리별 개수 제한
+ 236:   // category_id 0인 기초영어도 정상적으로 표시합니다.
+ 237:   // ==========================================
+ 238:   const displayResults = React.useMemo(() => {
+ 239:     const categoryCount: Record<number, number> = {};
+ 240: 
+ 241:     return results.filter((item) => {
+ 242:       const catId =
+ 243:         item.category_id !== null &&
+ 244:         item.category_id !== undefined
+ 245:           ? Number(item.category_id)
+ 246:           : 12;
+ 247: 
+ 248:       categoryCount[catId] =
+ 249:         (categoryCount[catId] || 0) + 1;
+ 250: 
+ 251:       // 각 카테고리에서 최대 5개까지 표시
+ 252:       return categoryCount[catId] <= 5;
+ 253:     });
+ 254:   }, [results]);
+ 255: 
+ 256:   const handleExternalSearch = (site: 'google' | 'naver') => {
+ 257:     if (!displayQuery) return;
+ 258:     const encoded = encodeURIComponent(displayQuery);
+ 259:     const url = site === 'google' ? `https://www.google.com/search?q=${encoded}` : `https://en.dict.naver.com/#/search?query=${encoded}`;
+ 260:     window.open(url, '_blank');
+ 261:   };
+ 262: 
+ 263:   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타(Other Terms)';
+ 264: 
+ 265:   const highlightMatch = (text: string) => {
+ 266:     const allKeys = [...new Set([...orangeKeys, ...derivedBlueKeys])].filter(Boolean).sort((a, b) => b.length - a.length);
+ 267:     if (allKeys.length === 0) return <span style={{ color: '#334155', fontWeight: 400 }}>{text}</span>;
+ 268:     const escapedRegexParts = allKeys.map(k => {
+ 269:       const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+ 270:       if (!/[가-힣]/.test(k)) return `\\b${escaped}\\b`; 
+ 271:       return escaped; 
+ 272:     });
+ 273:     const regex = new RegExp(`(${escapedRegexParts.join('|')})`, 'gi');
+ 274:     const parts = text.split(regex);
+ 275:     const lowerQueryNoSpace = displayQuery.toLowerCase().replace(/\s+/g, '');
+ 276:     return (
+ 277:       <>
+ 278:         {parts.map((part, idx) => {
+ 279:           const lowerPart = part.toLowerCase();
+ 280:           const lowerPartNoSpace = lowerPart.replace(/\s+/g, ''); 
+ 281:           let color = '#334155';
+ 282:           let weight = 400; 
+ 283:           if (orangeKeys.some((k) => k.toLowerCase() === lowerPart)) { color = '#ea580c'; weight = 400; }
+ 284:           else if (derivedBlueKeys.some((k) => k.toLowerCase() === lowerPart)) { color = '#2563eb'; weight = 400; }
+ 285:           if (lowerPartNoSpace === lowerQueryNoSpace && orangeKeys.length > 0) { color = '#ea580c'; weight = 400; }
+ 286:           return <span key={idx} style={{ color, fontWeight: weight }}>{part}</span>;
+ 287:         })}
+ 288:       </>
+ 289:     );
+ 290:   };
+ 291: 
+ 292:   const handleCopy = async (text: string, id: string | number) => {
+ 293:     try {
+ 294:       await navigator.clipboard.writeText(text);
+ 295:       setCopiedId(id);
+ 296:       setTimeout(() => setCopiedId(null), 2000);
+ 297:     } catch (err) {
+ 298:       alert('복사 기능을 지원하지 않는 기기입니다.');
+ 299:     }
+ 300:   };
+ 301: 
+ 302:   const handleSpeak = (text: string) => {
+ 303:     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+ 304:       window.speechSynthesis.cancel(); 
+ 305:       const voices = window.speechSynthesis.getVoices();
+ 306:       const enVoices = voices.filter(v => v.lang.startsWith('en'));
+ 307:       const koVoices = voices.filter(v => v.lang.startsWith('ko'));
+ 308:       const enVoice = enVoices.find(v => v.name.includes('Google US English Male')) || enVoices.find(v => v.name.includes('Google US English')) || enVoices[0];
+ 309:       const koVoice = koVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) || koVoices[0];
+ 310:       const parts: { lang: string; text: string }[] = [];
+ 311:       let currentLang = /[a-zA-Z]/.test(text.charAt(0)) ? 'en' : 'ko'; 
+ 312:       let currentText = '';
+ 313:       for (let i = 0; i < text.length; i++) {
+ 314:         const char = text[i];
+ 315:         if (/[a-zA-Z]/.test(char)) {
+ 316:           if (currentLang !== 'en' && currentText.trim().length > 0) { parts.push({ lang: currentLang, text: currentText }); currentText = ''; }
+ 317:           currentLang = 'en'; currentText += char;
+ 318:         } else if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(char)) {
+ 319:           if (currentLang !== 'ko' && currentText.trim().length > 0) { parts.push({ lang: currentLang, text: currentText }); currentText = ''; }
+ 320:           currentLang = 'ko'; currentText += char;

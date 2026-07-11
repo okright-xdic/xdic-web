@@ -440,14 +440,33 @@ export default function SearchPage({
     }
   };
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = displayResults.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(displayResults.length / itemsPerPage);
+  const indexOfLastItem =
+    currentPage * itemsPerPage;
 
-  const handlePageChange = (pageNumber: number) => {
+  const indexOfFirstItem =
+    indexOfLastItem - itemsPerPage;
+
+  const currentItems =
+    displayResults.slice(
+      indexOfFirstItem,
+      indexOfLastItem
+    );
+
+  const totalPages =
+    Math.ceil(
+      displayResults.length /
+        itemsPerPage
+    );
+
+  const handlePageChange = (
+    pageNumber: number
+  ) => {
     setCurrentPage(pageNumber);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
   };
 
   return (
@@ -580,13 +599,13 @@ export default function SearchPage({
                         </div>
                       </div>
 
-                      <p className={`text-[12px] md:text-[13px] mt-4 pl-1 font-medium ${isReference ? 'text-orange-600/80' : 'text-blue-600/80'}`}>
-                        {isReference 
-                          ? '💡 정확히 일치하는 문장이 없어 가장 유사한 데이터를 참고용으로 제공합니다.' 
-                          : '엑스딕이 추천하는 전문가 번역 데이터 중 가장 자연스러운 문장입니다.'}
+                    {isReference && (
+                      <p className="text-[12px] md:text-[13px] mt-4 pl-1 font-medium text-orange-600/80">
+                        엑스딕이 추천하는 전문가 번역 데이터 중 가장 자연스러운 문장입니다.
                       </p>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                )}
 
                   {isPartialMatch && matchedKeywords.length > 0 && (
                     <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl shadow-sm mb-4 animate-in fade-in slide-in-from-top-2">

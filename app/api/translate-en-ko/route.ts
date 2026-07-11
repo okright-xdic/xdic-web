@@ -273,6 +273,499 @@ const FORM_RULES = [
   { type: '2형식_형용사보어_예문10', requiredRoles: ['STL_Settlers', 'STL_Were', 'STL_Free'], koreanOrder: ['STL_America', 'STL_In', 'STL_TheFirst', 'STL_The', 'STL_Settlers', 'STL_Europe', 'STL_Of', 'STL_Tyrannies', 'STL_And', 'STL_Corrupting', 'STL_Powers', 'STL_From', 'STL_Free', 'STL_Were'] },
 ];
 
+// ============================================================================
+// 🌟 rules-en-ko.json 템플릿 패턴 추출 엔진
+// ============================================================================
+
+type CompiledTemplateRule = {
+  patternEn: string;
+  templateKo: string;
+  placeholders: string[];
+  regex: RegExp;
+  literalLength: number;
+};
+
+type ExtractedTemplateSlot = {
+  name: string;
+  raw: string;
+  occurrence: number;
+};
+
+type ExtractedTemplateMatch = {
+  patternEn: string;
+  templateKo: string;
+  slots: ExtractedTemplateSlot[];
+};
+
+// 문장 비교를 위한 정규화
+const normalizeTemplateText = (
+  value: string
+): string => {
+  return String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/[‐-‒–—]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[.!?,;:]+$/g, '')
+    .toLowerCase();
+};
+
+// 정규식 특수문자 보호
+const escapeTemplateRegex = (
+  value: string
+): string => {
+  return value.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+};
+
+// rules-en-ko.json의 템플릿 규칙을 한 번만 컴파일
+const compileTemplateRules = (): CompiledTemplateRule[] => {
+  const compiledRules: CompiledTemplateRule[] = [];
+
+  for (
+    const [patternEn, rawTemplateKo]
+    of Object.entries(
+      customRules as Record<string, string>
+    )
+  ) {
+    // 대문자 플레이스홀더가 있는 규칙만 템플릿으로 사용
+    if (
+      !/\[[A-Z][A-Z0-9_]*\]/.test(patternEn)
+    ) {
+      continue;
+    }
+
+    const templateKo = String(rawTemplateKo);
+    const normalizedPattern =
+      normalizeTemplateText(patternEn);
+
+    const placeholders: string[] = [];
+    let regexSource = '';
+    let cursor = 0;
+
+    const placeholderMatches = [
+      ...normalizedPattern.matchAll(
+        /\[([a-z][a-z0-9_]*)\]/g
+      ),
+    ];
+
+    for (const match of placeholderMatches) {
+      const matchIndex = match.index ?? 0;
+
+      const literalPart =
+        normalizedPattern.slice(
+          cursor,
+          matchIndex
+        );
+
+      regexSource += escapeTemplateRegex(
+        literalPart
+      ).replace(/\s+/g, '\\s+');
+
+      placeholders.push(
+        match[1].toUpperCase()
+      );
+
+      // 비탐욕 방식으로 필요한 부분만 추출
+      regexSource += '(.+?)';
+
+      cursor =
+        matchIndex + match[0].length;
+    }
+
+    regexSource += escapeTemplateRegex(
+      normalizedPattern.slice(cursor)
+    ).replace(/\s+/g, '\\s+');
+
+    // 한국어 출력에 있는 플레이스홀더 확인
+    const outputPlaceholders = [
+      ...templateKo.matchAll(
+        /\[([A-Z][A-Z0-9_]*)\]/g
+      ),
+    ].map((match) => match[1]);
+
+    // 영어 입력에 없는 플레이스홀더를
+    // 한국어 출력이 요구하면 해당 규칙은 제외
+    const invalidOutputPlaceholders =
+      outputPlaceholders.filter(
+        (name) =>
+          !placeholders.includes(name)
+      );
+
+    if (
+      invalidOutputPlaceholders.length > 0
+    ) {
+      console.warn(
+        '[JSON 템플릿 제외: 플레이스홀더 불일치]',
+        {
+          patternEn,
+          templateKo,
+          missing:
+            invalidOutputPlaceholders,
+        }
+      );
+
+      continue;
+    }
+
+    const literalLength =
+      normalizedPattern
+        .replace(
+          /\[[a-z][a-z0-9_]*\]/g,
+          ''
+        )
+        .replace(/\s+/g, '')
+        .length;
+
+    compiledRules.push({
+      patternEn,
+      templateKo,
+      placeholders,
+      regex: new RegExp(
+        `^${regexSource}$`,
+        'i'
+      ),
+      literalLength,
+    });
+  }
+
+  // 더 구체적인 규칙을 먼저 검사
+  return compiledRules.sort((a, b) => {
+    if (
+      b.literalLength !== a.literalLength
+    ) {
+      return (
+        b.literalLength -
+        a.literalLength
+      );
+    }
+
+    return (
+      a.placeholders.length -
+      b.placeholders.length
+    );
+  });
+};
+
+const COMPILED_TEMPLATE_RULES =
+  compileTemplateRules();
+
+// 입력 문장에서 실제 플레이스홀더 값을 추출
+const extractTemplatePattern = (
+  inputText: string
+): ExtractedTemplateMatch | null => {
+  const normalizedInput =
+    normalizeTemplateText(inputText);
+
+  for (
+    const rule
+    of COMPILED_TEMPLATE_RULES
+  ) {
+    const match =
+      normalizedInput.match(rule.regex);
+
+    if (!match) {
+      continue;
+    }
+
+    const occurrenceCount:
+      Record<string, number> = {};
+
+    const slots =
+      rule.placeholders.map(
+        (name, index) => {
+          const occurrence =
+            occurrenceCount[name] || 0;
+
+          occurrenceCount[name] =
+            occurrence + 1;
+
+          return {
+            name,
+            raw: String(
+              match[index + 1] || ''
+            ).trim(),
+            occurrence,
+          };
+        }
+      );
+
+    return {
+      patternEn: rule.patternEn,
+      templateKo: rule.templateKo,
+      slots,
+    };
+  }
+
+  return null;
+};
+
+// 특정 슬롯 안에서만 사용하는 안전한 보정 사전
+const TEMPLATE_SLOT_OVERRIDES:
+  Record<string, Record<string, string>> = {
+  ADJ: {
+    friendly: '친절',
+    kind: '친절',
+    kindly: '친절',
+  },
+
+  S: {
+    i: '저',
+    you: '당신',
+    he: '그',
+    she: '그녀',
+    we: '우리',
+    they: '그들',
+  },
+
+  S2: {
+    i: '저',
+    you: '당신',
+    he: '그',
+    she: '그녀',
+    we: '우리',
+    they: '그들',
+  },
+
+  N: {
+    key: '열쇠',
+  },
+
+  PLACE: {
+    seoul: '서울',
+    busan: '부산',
+    korea: '한국',
+    home: '집',
+  },
+
+  DURATION: {
+    'one day': '1일',
+    'two days': '2일',
+    'one week': '1주',
+    'two weeks': '2주',
+    'one month': '1개월',
+    'two months': '2개월',
+    'one year': '1년',
+    'two years': '2년',
+  },
+};
+
+// 추출된 슬롯의 영어를 한국어로 변환
+const translateTemplateSlot = (
+  slotName: string,
+  rawValue: string
+): string | null => {
+  const normalized =
+    normalizeTemplateText(rawValue);
+
+  const withoutArticle =
+    normalized.replace(
+      /^(a|an|the)\s+/,
+      ''
+    );
+
+  const candidates = [
+    normalized,
+    withoutArticle,
+  ].filter(Boolean);
+
+  const slotDictionary =
+    TEMPLATE_SLOT_OVERRIDES[
+      slotName
+    ] || {};
+
+  // 1. 슬롯 전용 사전
+  // 2. 기존 MOCK_EN_KO_DB 순서
+  for (const candidate of candidates) {
+    if (slotDictionary[candidate]) {
+      return slotDictionary[candidate];
+    }
+
+    if (MOCK_EN_KO_DB[candidate]) {
+      return MOCK_EN_KO_DB[candidate];
+    }
+  }
+
+  // 여러 단어가 모두 사전에 있을 때만 조립
+  const words =
+    withoutArticle
+      .split(/\s+/)
+      .filter(Boolean);
+
+  if (words.length > 1) {
+    const translatedWords =
+      words.map((word) => {
+        return (
+          slotDictionary[word] ||
+          MOCK_EN_KO_DB[word] ||
+          null
+        );
+      });
+
+    if (
+      translatedWords.every(Boolean)
+    ) {
+      return translatedWords.join(' ');
+    }
+  }
+
+  // 영어가 그대로 남는 혼종 결과 방지
+  return null;
+};
+
+// 한글 받침 확인
+const hasKoreanFinalConsonant = (
+  word: string
+): boolean => {
+  const chars = [...word];
+
+  for (
+    let index = chars.length - 1;
+    index >= 0;
+    index--
+  ) {
+    const char = chars[index];
+
+    if (/[가-힣]/.test(char)) {
+      const code =
+        char.charCodeAt(0) -
+        0xac00;
+
+      return code % 28 !== 0;
+    }
+  }
+
+  return false;
+};
+
+// ㄹ 받침인지 확인
+const hasRieulFinalConsonant = (
+  word: string
+): boolean => {
+  const chars = [...word];
+
+  for (
+    let index = chars.length - 1;
+    index >= 0;
+    index--
+  ) {
+    const char = chars[index];
+
+    if (/[가-힣]/.test(char)) {
+      const code =
+        char.charCodeAt(0) -
+        0xac00;
+
+      return code % 28 === 8;
+    }
+  }
+
+  return false;
+};
+
+// 은/는, 이/가, 을/를, 와/과, (으)로 처리
+const resolveTemplateParticles = (
+  value: string
+): string => {
+  return value
+    .replace(
+      /([가-힣]+)\(으\)로/g,
+      (_, word: string) => {
+        if (
+          !hasKoreanFinalConsonant(word) ||
+          hasRieulFinalConsonant(word)
+        ) {
+          return `${word}로`;
+        }
+
+        return `${word}으로`;
+      }
+    )
+    .replace(
+      /([가-힣]+)으로\/로/g,
+      (_, word: string) => {
+        if (
+          !hasKoreanFinalConsonant(word) ||
+          hasRieulFinalConsonant(word)
+        ) {
+          return `${word}로`;
+        }
+
+        return `${word}으로`;
+      }
+    )
+    .replace(
+      /([가-힣]+)로\/으로/g,
+      (_, word: string) => {
+        if (
+          !hasKoreanFinalConsonant(word) ||
+          hasRieulFinalConsonant(word)
+        ) {
+          return `${word}로`;
+        }
+
+        return `${word}으로`;
+      }
+    )
+    .replace(
+      /([가-힣]+)은\/는/g,
+      (_, word: string) =>
+        `${word}${
+          hasKoreanFinalConsonant(word)
+            ? '은'
+            : '는'
+        }`
+    )
+    .replace(
+      /([가-힣]+)이\/가/g,
+      (_, word: string) =>
+        `${word}${
+          hasKoreanFinalConsonant(word)
+            ? '이'
+            : '가'
+        }`
+    )
+    .replace(
+      /([가-힣]+)을\/를/g,
+      (_, word: string) =>
+        `${word}${
+          hasKoreanFinalConsonant(word)
+            ? '을'
+            : '를'
+        }`
+    )
+    .replace(
+      /([가-힣]+)를\/을/g,
+      (_, word: string) =>
+        `${word}${
+          hasKoreanFinalConsonant(word)
+            ? '을'
+            : '를'
+        }`
+    )
+    .replace(
+      /([가-힣]+)와\/과/g,
+      (_, word: string) =>
+        `${word}${
+          hasKoreanFinalConsonant(word)
+            ? '과'
+            : '와'
+        }`
+    )
+    .replace(
+      /([가-힣]+)과\/와/g,
+      (_, word: string) =>
+        `${word}${
+          hasKoreanFinalConsonant(word)
+            ? '과'
+            : '와'
+        }`
+    );
+};
+
 // =========================================================================
 // 💡 메인 POST 함수 시작
 // =========================================================================
@@ -289,21 +782,56 @@ let dbFallbackText = '';
     // =================================================================
     // 🌟 [수프로 핵심 마법] 무적의 DB 선제적 검색 (정규화/퍼지/사오정 삼중 폭격)
     // =================================================================
+    // =================================================================
+    // 🌟 [수프로 핵심 마법] DB 선제적 검색
+    // =================================================================
     try {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://mhfazebnnvdhemjrgokq.supabase.co";
-        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1oZmF6ZWJubnZkaGVtanJnb2txIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjUzOTMwMCwiZXhwIjoyMDgyMTE1MzAwfQ.quJJjmAtOr1qNgx44UMSHkKcR0evrfQPOtIj12J7ZFQ";
-        const supabase = createClient(supabaseUrl, supabaseKey);
+      const supabaseUrl =
+        process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-        let combinedData: any[] = [];
-        
+      const supabaseKey =
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error(
+          'Supabase 환경변수가 설정되지 않았습니다.'
+        );
+      }
+
+      const supabase = createClient(
+        supabaseUrl,
+        supabaseKey
+      );
+
+      let combinedData: any[] = [];
+      
         // 🚀 1. 하이픈, 공백을 %로 치환하여 DB에서 100% 잡아내는 무적의 JS 퍼지 문자열 생성
         const fuzzySearchText = originalText.replace(/[^a-zA-Z0-9가-힣]+/g, '%');
         
         // 🚀 2. 삼중 폭격 쿼리 (에러가 나도 하나는 무조건 걸리도록 병렬 처리)
         const queries = [
-            supabase.from('dictionary_lines').select('*').ilike('line_text', `%${fuzzySearchText}%`).limit(20),
-            supabase.rpc('search_dictionary_fuzzy', { q: originalText }),
-            supabase.rpc('search_dictionary_v8', { keyword: originalText })
+          supabase
+            .from('dictionary_lines')
+            .select('*')
+            .ilike(
+              'line_text',
+              `%${fuzzySearchText}%`
+            )
+            .limit(20),
+
+          supabase.rpc(
+            'search_dictionary_fuzzy',
+            {
+              q: originalText,
+            }
+          ),
+
+          supabase.rpc(
+            'search_dictionary_v8',
+            {
+              search_keyword: originalText,
+            }
+          ),
         ];
         
         const results = await Promise.allSettled(queries);
@@ -320,12 +848,194 @@ let dbFallbackText = '';
         const coreTokens = tokens.filter(t => !stopWords.has(t.toLowerCase()) && t.length >= 3);
 
         // 🚀 4. 그래도 못 찾았을 때만 핵심 단어로 쪼개기 검색
-        if (combinedData.length === 0 && coreTokens.length > 0) {
-             const promises = coreTokens.slice(0, 3).map(t => 
-                 supabase.from('dictionary_lines').select('*').ilike('line_text', `%${t}%`).limit(30)
-             );
-             const tokenResults = await Promise.all(promises);
-             tokenResults.forEach(res => { if (res.data) combinedData = combinedData.concat(res.data); });
+        // =================================================================
+        // 🚀 4. Exact Match가 없으면 문장 구조 + 핵심 단어 후보 보강 검색
+        // =================================================================
+        // 약한 후보가 이미 있더라도 문장 구조가 더 비슷한 후보를 추가로 찾습니다.
+
+        const pureOriginalForCandidateSearch = originalText
+          .toLowerCase()
+          .replace(/[^a-z0-9가-힣]/g, '');
+
+        const hasExactCandidate = combinedData.some((item: any) => {
+          const pureLineText = String(item?.line_text || '')
+            .toLowerCase()
+            .replace(/[^a-z0-9가-힣]/g, '');
+
+          return (
+            pureOriginalForCandidateSearch.length > 0 &&
+            pureLineText.includes(pureOriginalForCandidateSearch)
+          );
+        });
+
+        if (!hasExactCandidate) {
+          const candidateQueries: any[] = [];
+
+          // 마지막 단어만 달라진 유사 문장을 찾기 위한 문장 구조 검색
+          // 예: Are the people there kind
+          //  → Are the people there
+          const structurePhrase =
+            tokens.length >= 4
+              ? tokens.slice(0, -1).join(' ')
+              : '';
+
+          if (structurePhrase.length >= 8) {
+            candidateQueries.push(
+              supabase
+                .from('dictionary_lines')
+                .select('*')
+                .ilike(
+                  'line_text',
+                  `%${structurePhrase}%`
+                )
+                .limit(30)
+            );
+          }
+
+          // =============================================================
+          // 한 단어만 바뀐 문장의 유사 후보 검색
+          // =============================================================
+          // 예:
+          // birthday → farewell
+          //
+          // 입력:
+          // Thank you so much for throwing me a birthday party.
+          //
+          // birthday를 한 번 제외한 패턴:
+          // %thank%you%so%much%for%throwing%me%a%party%
+          //
+          // 이 패턴은 다음 DB 문장을 찾을 수 있습니다.
+          // Thank you so much for throwing me a farewell party.
+
+          const normalizedSequenceTokens = tokens
+            .map((token) =>
+              token
+                .toLowerCase()
+                .replace(
+                  /[^a-z0-9가-힣]/g,
+                  ''
+                )
+            )
+            .filter(Boolean);
+
+          const omissionPatterns: string[] = [];
+
+          if (
+            normalizedSequenceTokens.length >= 5
+          ) {
+            // 문장의 앞뒤 단어는 유지하고,
+            // 중간의 의미 있는 단어 중 하나씩 제외해 봅니다.
+            const removableTokenIndexes =
+              normalizedSequenceTokens
+                .map((token, index) => ({
+                  token,
+                  index,
+                }))
+                .filter(
+                  ({ token, index }) =>
+                    index > 0 &&
+                    index <
+                      normalizedSequenceTokens.length -
+                        1 &&
+                    token.length >= 3 &&
+                    !stopWords.has(token)
+                )
+                // 불필요한 DB 호출을 제한하기 위해
+                // 뒤쪽의 의미 있는 단어 최대 6개만 검사
+                .slice(-6);
+
+            for (
+              const {
+                index: removableIndex,
+              } of removableTokenIndexes
+            ) {
+              const patternWords =
+                normalizedSequenceTokens.filter(
+                  (_, index) =>
+                    index !== removableIndex
+                );
+
+              if (patternWords.length < 4) {
+                continue;
+              }
+
+              const omissionPattern =
+                `%${patternWords.join('%')}%`;
+
+              omissionPatterns.push(
+                omissionPattern
+              );
+
+              candidateQueries.push(
+                supabase
+                  .from('dictionary_lines')
+                  .select('*')
+                  // 기초영어 콜론 문장만 검사하므로
+                  // 235만 행 전체 검색을 피합니다.
+                  .eq('category_id', 0)
+                  .ilike(
+                    'line_text',
+                    omissionPattern
+                  )
+                  .limit(20)
+              );
+            }
+          }
+
+          console.log(
+            '[한 단어 변경 후보 패턴]',
+            {
+              query: originalText,
+              omissionPatterns,
+            }
+          );
+
+          // 핵심 단어별 후보도 함께 보강합니다.
+          for (const token of coreTokens.slice(0, 3)) {
+            candidateQueries.push(
+              supabase
+                .from('dictionary_lines')
+                .select('*')
+                .ilike(
+                  'line_text',
+                  `%${token}%`
+                )
+                .limit(30)
+            );
+          }
+
+          if (candidateQueries.length > 0) {
+            const candidateResults =
+              await Promise.allSettled(candidateQueries);
+
+            candidateResults.forEach((result) => {
+              if (
+                result.status === 'fulfilled' &&
+                Array.isArray(result.value?.data)
+              ) {
+                combinedData = combinedData.concat(
+                  result.value.data
+                );
+              }
+
+              if (
+                result.status === 'fulfilled' &&
+                result.value?.error
+              ) {
+                console.error(
+                  '[문장 후보 보강 검색 오류]',
+                  result.value.error
+                );
+              }
+            });
+          }
+
+          console.log('[문장 구조/핵심어 후보 보강]', {
+            query: originalText,
+            structurePhrase,
+            coreTokens,
+            combinedCount: combinedData.length,
+          });
         }
 
         // 🚀 5. 수집된 데이터 필터링 및 점수 매기기
@@ -337,69 +1047,180 @@ let dbFallbackText = '';
             let isExactMatch = false;
             let maxCoreMatchCount = 0;
 
-            for (const item of uniqueItems) {
-                const pureLineText = item.line_text.toLowerCase().replace(/[^a-z0-9가-힣]/g, '');
-                
-                // 💡 1순위: 완벽 일치 (하이픈, 공백 등 전부 무시하고 알파벳/한글만 비교)
-                if (pureOriginal.length > 0 && pureLineText.includes(pureOriginal)) {
-                    bestMatchItem = item;
-                    isExactMatch = true;
-                    break;
-                }
-                
-                // 💡 2순위: 핵심 단어(Core Tokens)가 얼마나 많이 포함되어 있는지 점수화
-                let coreMatchCount = 0;
-                for (const token of coreTokens) {
-                    const pureToken = token.toLowerCase().replace(/[^a-z0-9가-힣]/g, '');
-                    if (pureToken.length > 1 && pureLineText.includes(pureToken)) {
-                        coreMatchCount++;
-                    }
-                }
-                
-                if (coreMatchCount > maxCoreMatchCount || 
-                   (coreMatchCount === maxCoreMatchCount && maxCoreMatchCount > 0 && item.line_text.length < (bestMatchItem?.line_text.length || 999))) {
-                    maxCoreMatchCount = coreMatchCount;
-                    bestMatchItem = item;
-                }
-            }
+for (const item of uniqueItems) {
+  const rawLineText = String(
+    item.line_text || ''
+  ).toLowerCase();
 
-            // 🚀 6. 결과 반환 결정
+  // 전체 문장 Exact Match용:
+  // 공백, 문장부호, 하이픈 차이를 무시합니다.
+  const pureLineText = rawLineText.replace(
+    /[^a-z0-9가-힣]/g,
+    ''
+  );
+
+  // 콜론이 있으면 오른쪽 영어 문장만 후보 비교에 사용합니다.
+  const colonIndex = rawLineText.indexOf(':');
+
+  const candidateText =
+    colonIndex >= 0
+      ? rawLineText.slice(colonIndex + 1)
+      : rawLineText;
+
+  // 핵심 단어 비교용:
+  // 공백을 없애서 한 문자열로 만들지 않고
+  // 실제 단어 단위로 분리합니다.
+  // follow-up은 followup으로 정규화합니다.
+  const candidateTokens =
+    candidateText
+      .replace(/[-–—]/g, '')
+      .match(/[a-z0-9가-힣]+/g) || [];
+
+  const candidateTokenSet =
+    new Set(candidateTokens);
+
+  // ========================================
+  // 1순위: 전체 입력 문장 Exact Match
+  // ========================================
+  const pureCandidateText = candidateText
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣]/g, '');
+
+  if (
+    pureOriginal.length > 0 &&
+    pureCandidateText === pureOriginal
+  ) {
+    bestMatchItem = item;
+    isExactMatch = true;
+    break;
+  }
+
+  // ========================================
+  // 2순위: 핵심 단어의 실제 단어 일치
+  // ========================================
+  let coreMatchCount = 0;
+
+  for (const token of coreTokens) {
+    const pureToken = token
+      .toLowerCase()
+      .replace(/[^a-z0-9가-힣]/g, '');
+
+    if (
+      pureToken.length > 1 &&
+      candidateTokenSet.has(pureToken)
+    ) {
+      coreMatchCount++;
+    }
+  }
+
+  if (
+    coreMatchCount > maxCoreMatchCount ||
+    (
+      coreMatchCount === maxCoreMatchCount &&
+      maxCoreMatchCount > 0 &&
+      item.line_text.length <
+        (bestMatchItem?.line_text.length || 999)
+    )
+  ) {
+    maxCoreMatchCount = coreMatchCount;
+    bestMatchItem = item;
+  }
+}
+
+            // =============================================================
+            // 🚀 6. DB 결과 우선순위 결정
+            // =============================================================
+            // 1. DB Exact Match는 즉시 반환
+            // 2. DB 유사 문장은 임시 보관
+            // 3. 이후 JSON 완전 일치 → JSON 템플릿 → RBMT 순서로 진행
             if (bestMatchItem) {
-                const fullText = bestMatchItem.line_text;
-                let targetTextToDisplay = fullText;
-                
-                // 💡 [수프로 엣지: 유저 요청사항 완벽 반영] 
-                // 정확히 일치할 경우: 콜론(:) 앞의 한국어만 싹둑 잘라서 보여줌!
-                if (isExactMatch) {
-                    const splitText = fullText.split(':');
-                    if (splitText.length > 1) {
-                        targetTextToDisplay = splitText[0].trim();
-                    }
-                }
+              const fullText = String(
+                bestMatchItem.line_text || ''
+              );
 
-                dbFallbackText = fullText; 
-                
-                // 💡 사오정 철벽 방어: 흔한 단어 다 빼고, 남은 '핵심 단어' 중 60% 이상 매칭되어야만 통과!
-                const requiredMatches = Math.max(1, Math.ceil(coreTokens.length * 0.6));
-                
-                if (isExactMatch || maxCoreMatchCount >= requiredMatches) {
-                    return NextResponse.json({ 
-                        ok: true, 
-                        best: { 
-                            source_text: originalText, 
-                            target_text: targetTextToDisplay, 
-                            isReference: !isExactMatch, // 완벽 일치면 false(결과문장), 유사도면 true(참고문장)
-                            analysis: [{ 
-                                ko: isExactMatch ? "💡 검색하신 문장과 일치하는 결과입니다." : "💡 가장 유사한 데이터를 참고용으로 제공합니다.", 
-                                en: fullText 
-                            }] 
-                        } 
-                    });
-                }
-            }
-        }
+              const requiredMatches = Math.max(
+                1,
+                Math.ceil(coreTokens.length * 0.6)
+              );
+
+              // =========================================================
+              // 1순위: DB Exact Match이면 즉시 반환
+              // =========================================================
+              if (isExactMatch) {
+                const exactColonIndex =
+                  fullText.indexOf(':');
+
+                const targetTextToDisplay =
+                  exactColonIndex >= 0
+                    ? fullText
+                        .slice(0, exactColonIndex)
+                        .trim()
+                    : fullText.trim();
+
+                console.log(
+                  '[DB Exact Match 즉시 반환]',
+                  {
+                    query: originalText,
+                    result: fullText,
+                  }
+                );
+
+                return NextResponse.json({
+                  ok: true,
+                  best: {
+                    source_text: originalText,
+                    target_text:
+                      targetTextToDisplay,
+                    isReference: false,
+                    analysis: [
+                      {
+                        ko: '💡 검색하신 문장과 일치하는 결과입니다.',
+                        en: fullText,
+                      },
+                    ],
+                    engine: 'database-exact',
+                  },
+                });
+              }
+
+              // =========================================================
+              // DB 유사 문장은 반환하지 않고 fallback으로만 보관
+              // =========================================================
+              if (
+                maxCoreMatchCount >=
+                requiredMatches
+              ) {
+                dbFallbackText = fullText;
+
+                console.log(
+                  '[DB 유사 문장 임시 보관]',
+                  {
+                    query: originalText,
+                    result: fullText,
+                    maxCoreMatchCount,
+                    requiredMatches,
+                  }
+                );
+              } else {
+                console.log(
+                  '[DB 유사 문장 기준 미달]',
+                  {
+                    query: originalText,
+                    result: fullText,
+                    maxCoreMatchCount,
+                    requiredMatches,
+                  }
+                );
+              }
+            } // if (bestMatchItem) 닫기
+
+        } // if (combinedData.length > 0) 닫기
+
     } catch (dbError) {
-        console.error('DB 선제적 검색 실패:', dbError);
+      console.error(
+        'DB 선제적 검색 실패:',
+        dbError
+      );
     }
 
     // 👇👇 💡 [수프로 엣지] 1단계: JSON 사전에서 완벽 일치 문장을 0.01초 만에 바로 반환! 👇👇
@@ -420,57 +1241,160 @@ let dbFallbackText = '';
       });
     }
 
-    // 👇👇 💡 [수프로 엣지] 2단계: 영한 만능 템플릿(패턴) 엔진 가동! 👇👇
-    let patternResult: string | null = null;
-    let matchedAnalysis: { en: string; ko: string }[] = [];
+    // =================================================================
+    // 🌟 2단계: rules-en-ko.json 패턴 추출 및 템플릿 생성
+    // =================================================================
+    const extractedTemplate =
+      extractTemplatePattern(originalText);
 
-    for (const [patternEn, templateKo] of Object.entries(customRules)) {
-      const hasPlaceholder = /\[[A-Za-z0-9_]+\]/.test(patternEn);
-      
-      if (hasPlaceholder) {
-        const cleanPattern = patternEn.replace(/[?.,!]/g, '').trim().toLowerCase();
-        let escapedPattern = cleanPattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
-        escapedPattern = escapedPattern.replace(/\\\[[a-z0-9_]+\\\]/g, '(.+)');
+    if (extractedTemplate) {
+      console.log(
+        '[JSON 패턴 추출 성공]',
+        {
+          input: originalText,
+          pattern:
+            extractedTemplate.patternEn,
+          slots:
+            extractedTemplate.slots,
+        }
+      );
 
-        const regex = new RegExp('^' + escapedPattern + '$', 'i');
-        const match = cleanSearchTextWithSpace.match(regex);
+      const translatedSlotValues:
+        Record<string, string[]> = {};
 
-        if (match) {
-          let finalKo = templateKo as string;
-          const placeholders = patternEn.match(/\[[A-Za-z0-9_]+\]/g) || [];
-          
-          for (let pIdx = 0; pIdx < placeholders.length; pIdx++) {
-            const engWord = match[pIdx + 1].trim().toLowerCase();
-            let koWord = MOCK_EN_KO_DB[engWord] || engWord; 
-            
-            finalKo = finalKo.replace(placeholders[pIdx], koWord);
-            matchedAnalysis.push({ en: engWord, ko: koWord });
-          }
-          patternResult = finalKo;
+      const matchedAnalysis:
+        { en: string; ko: string }[] = [];
+
+      let hasUnknownSlot = false;
+
+      for (
+        const slot
+        of extractedTemplate.slots
+      ) {
+        const koValue =
+          translateTemplateSlot(
+            slot.name,
+            slot.raw
+          );
+
+        if (!koValue) {
+          hasUnknownSlot = true;
+
+          console.log(
+            '[JSON 패턴 슬롯 번역 보류]',
+            {
+              slotName: slot.name,
+              rawValue: slot.raw,
+              pattern:
+                extractedTemplate.patternEn,
+            }
+          );
+
           break;
         }
-      }
-    }
 
-    if (patternResult) {
-      patternResult = patternResult.replace(/\s+/g, ' ').trim();
-      
-      // 💡 [수프로 엣지] 템플릿 조립 결과에 영어가 섞여 있다면 조립을 취소하고 DB 폴백으로 넘김!
-      const hasUnmatchedEnglishInPattern = /[a-zA-Z]{2,}/.test(patternResult);
-      if (!hasUnmatchedEnglishInPattern) {
+        if (
+          !translatedSlotValues[
+            slot.name
+          ]
+        ) {
+          translatedSlotValues[
+            slot.name
+          ] = [];
+        }
+
+        translatedSlotValues[
+          slot.name
+        ].push(koValue);
+
+        matchedAnalysis.push({
+          en: slot.raw,
+          ko: koValue,
+        });
+      }
+
+      // 모든 슬롯을 한국어로 변환한 경우에만 출력
+      if (!hasUnknownSlot) {
+        const useCount:
+          Record<string, number> = {};
+
+        let generatedKorean =
+          extractedTemplate.templateKo.replace(
+            /\[([A-Z][A-Z0-9_]*)\]/g,
+            (
+              originalPlaceholder,
+              slotName: string
+            ) => {
+              const values =
+                translatedSlotValues[
+                  slotName
+                ];
+
+              if (
+                !values ||
+                values.length === 0
+              ) {
+                return originalPlaceholder;
+              }
+
+              const index =
+                useCount[slotName] || 0;
+
+              useCount[slotName] =
+                index + 1;
+
+              // 같은 플레이스홀더가 출력에 여러 번 있으면
+              // 입력에서 추출한 값을 순서대로 사용
+              return values[
+                Math.min(
+                  index,
+                  values.length - 1
+                )
+              ];
+            }
+          );
+
+        generatedKorean =
+          resolveTemplateParticles(
+            generatedKorean
+          )
+            .replace(/\s+/g, ' ')
+            .replace(/\s+([?.!,])/g, '$1')
+            .trim();
+
+        const hasRemainingPlaceholder =
+          /\[[A-Z][A-Z0-9_]*\]/.test(
+            generatedKorean
+          );
+
+        if (!hasRemainingPlaceholder) {
+          console.log(
+            '[JSON 패턴 문장 생성 성공]',
+            {
+              input: originalText,
+              pattern:
+                extractedTemplate.patternEn,
+              result: generatedKorean,
+            }
+          );
+
           return NextResponse.json({
             ok: true,
             best: {
               source_text: originalText,
-              target_text: patternResult,
-              isReference: true, 
-              analysis: matchedAnalysis
-            }
+              target_text:
+                generatedKorean,
+              isReference: false,
+              analysis:
+                matchedAnalysis,
+              engine: 'json-template',
+              matchedPattern:
+                extractedTemplate.patternEn,
+            },
           });
+        }
       }
-    }
-    // 👆👆 ------------------------------------------------------------------ 👆👆
-    
+    }    
     // 💡 [지능형 전처리] 복합동사 묶기 로직
     const complexFourFormVerbs_KO = [
       '먹이를 주다', '비용이 들게 하다', '시간을 덜어주다', '수고를 덜어주다', '인상을 주다'
@@ -1547,28 +2471,115 @@ let dbFallbackText = '';
 
     const isQuestion = originalText.includes('?');
 
-    // 🚨 [수프로 엣지] 껍데기 번역 차단 및 빈 화면에 마침표(.)만 찍히는 버그 완벽 수정!
-    const hasUnmatchedEnglish = /[a-zA-Z]{2,}/.test(finalTranslation);
-    const isMeaningless = finalTranslation.replace(/[.,!?\s]/g, '').length < 2; 
-    
-    if (isMeaningless || hasUnmatchedEnglish) {
-         return NextResponse.json({ ok: false, error: '분석할 수 없는 문장 구조입니다.' });
+    // =============================================================
+    // 🚨 RBMT 결과 검증 및 최종 DB Similarity fallback
+    // =============================================================
+    const hasUnmatchedEnglish =
+      /[a-zA-Z]{2,}/.test(finalTranslation);
+
+    const isMeaningless =
+      finalTranslation
+        .replace(/[.,!?\s]/g, '')
+        .length < 2;
+
+    // =============================================================
+    // RBMT 실패
+    // → 저장해 둔 DB 유사 문장이 있으면 마지막 참고 문장으로 반환
+    // =============================================================
+    if (
+      isMeaningless ||
+      hasUnmatchedEnglish
+    ) {
+      if (dbFallbackText) {
+        console.log(
+          '[RBMT 실패 → DB 유사 문장 fallback]',
+          {
+            query: originalText,
+            fallback: dbFallbackText,
+            isMeaningless,
+            hasUnmatchedEnglish,
+          }
+        );
+
+        return NextResponse.json({
+          ok: true,
+          best: {
+            source_text: originalText,
+            target_text: dbFallbackText,
+            isReference: true,
+            analysis: [
+              {
+                ko: '💡 JSON과 RBMT에서 적절한 번역을 만들지 못해 가장 유사한 DB 문장을 참고용으로 제공합니다.',
+                en: dbFallbackText,
+              },
+            ],
+            engine:
+              'database-similarity-fallback',
+          },
+        });
+      }
+
+      // DB 유사 후보도 없을 때만 결과 없음
+      return NextResponse.json({
+        ok: false,
+        error:
+          '분석할 수 없는 문장 구조입니다.',
+      });
     }
 
-    if (!finalTranslation.endsWith('.') && !isQuestion) finalTranslation += '.';
-    if (isQuestion && !finalTranslation.endsWith('?')) finalTranslation += '?';
+    // =============================================================
+    // RBMT 성공
+    // =============================================================
+    if (
+      !finalTranslation.endsWith('.') &&
+      !isQuestion
+    ) {
+      finalTranslation += '.';
+    }
 
-    return NextResponse.json({ 
-        ok: true, 
-        best: { 
-            source_text: originalText, 
-            target_text: finalTranslation, 
-            isReference: true, 
-            analysis: mapped_analysis 
-        } 
+    if (
+      isQuestion &&
+      !finalTranslation.endsWith('?')
+    ) {
+      finalTranslation += '?';
+    }
+
+    console.log('[RBMT 번역 성공]', {
+      query: originalText,
+      result: finalTranslation,
+      form: selectedForm?.type,
     });
+
+    return NextResponse.json({
+      ok: true,
+      best: {
+        source_text: originalText,
+        target_text: finalTranslation,
+
+        // RBMT가 직접 생성한 번역이므로
+        // 참고 문장이 아닙니다.
+        isReference: false,
+
+        analysis: mapped_analysis,
+        engine: 'rbmt',
+        matchedForm:
+          selectedForm?.type || null,
+      },
+    });
+
   } catch (error) {
-    console.error('영한 RBMT 엔진 에러:', error);
-    return NextResponse.json({ ok: false, error: '서버 에러가 발생했습니다.' }, { status: 500 });
+    console.error(
+      '영한 RBMT 엔진 에러:',
+      error
+    );
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          '서버 에러가 발생했습니다.',
+      },
+      { status: 500 }
+    );
   }
 }

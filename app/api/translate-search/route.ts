@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import customRules from './rules-ko-en.json';
 
 // ============================================================================
 // 🌟 [수프로 엔진 한영(Ko-En) v12.94] 엑스딕 RBMT: 1~5형식 통합 & 평서문(3종) + 의문형(2종) 탑재
@@ -359,8 +360,6 @@ const FORM_RULES = [
   { type: '1형식_명령문_예문1', requiredRoles: ['LOK_Look', 'LOK_Sky'], koreanOrder: ['LOK_The', 'LOK_Sky', 'LOK_At', 'LOK_Look'] },
 ];
 
-import customRules from './rules-ko-en.json';
-
 // =========================================================================
 // 💡 메인 POST 함수 시작
 // =========================================================================
@@ -376,11 +375,78 @@ export async function POST(request: Request) {
     originalText = originalText.trim().replace(/[.!]+$/, '');
 
     // =================================================================
+    // 🎯 0단계: rules-ko-en.json 완전 일치
+    // =================================================================
+    // DB 유사 검색보다 먼저 검사하여,
+    // JSON에 정확히 등록된 문장은 참고 문장이 아닌 검색 결과로 반환합니다.
+
+    const normalizeKoJsonExact = (
+      value: string
+    ): string => {
+      return String(value || '')
+        .normalize('NFC')
+        .replace(/\s+/g, '')
+        .replace(/[?.!,;:'"“”‘’]/g, '')
+        .trim();
+    };
+
+    const normalizedOriginalForJson =
+      normalizeKoJsonExact(originalText);
+
+    const exactJsonRuleKey =
+      Object.keys(customRules).find(
+        (key) =>
+          // 플레이스홀더 템플릿은 여기서 제외
+          !/\[[A-Za-z0-9_]+\]/.test(key) &&
+          normalizeKoJsonExact(key) ===
+            normalizedOriginalForJson
+      );
+
+    if (exactJsonRuleKey) {
+      const exactJsonTranslation =
+        String(
+          customRules[
+            exactJsonRuleKey as keyof typeof customRules
+          ]
+        ).trim();
+
+      console.log('[한영 JSON Exact Match 성공]', {
+        query: originalText,
+        rule: exactJsonRuleKey,
+        result: exactJsonTranslation,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: exactJsonTranslation,
+
+          // 정확 일치이므로 참고 문장이 아닙니다.
+          isReference: false,
+
+          analysis: [],
+          engine: 'json-exact',
+          matchedRule: exactJsonRuleKey,
+        },
+      });
+    }
+
+    // =================================================================
     // 🌟 [수프로 핵심 마법] 235만 대용량 DB 선제적 사오정 검색! 
     // =================================================================
     try {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://mhfazebnnvdhemjrgokq.supabase.co";
-        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1oZmF6ZWJubnZkaGVtanJnb2txIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjUzOTMwMCwiZXhwIjoyMDgyMTE1MzAwfQ.quJJjmAtOr1qNgx44UMSHkKcR0evrfQPOtIj12J7ZFQ";
+      const supabaseUrl =
+        process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+      const supabaseKey =
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error(
+          'Supabase 환경변수가 설정되지 않았습니다.'
+        );
+      }
         
         const supabase = createClient(supabaseUrl, supabaseKey);
         
