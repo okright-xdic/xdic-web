@@ -27,7 +27,8 @@ const kSuffixes = [
   '에', '로', '와', '과', '의', '아', '야', '도', '만', '랑', '고', '지', '면', '서'
 ].sort((a, b) => b.length - a.length);
 
-const eStopWords = new Set([
+  const eStopWords = new Set([
+  'please',
   'a', 'an', 'the', 'is', 'are', 'was', 'were', 'am', 'be', 'been', 'being',
   'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'about', 'as', 'into', 'like', 'through', 'after', 'over', 'between', 'out', 'against', 'during', 'without', 'before', 'under', 'around', 'among',
   'and', 'or', 'but', 'so', 'because', 'although', 'if',
@@ -226,18 +227,34 @@ const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[
 
   const hasTight = corpusSuperTight.length > 0 || dictSuperTight.length > 0 || corpusStandalone.length > 0 || dictStandalone.length > 0;
 
-  if (hasTight && !isSplitMode) {
-    return [
-      ...sortByCategory(corpusSuperTight),
-      ...sortByCategory(dictSuperTight),
-      ...sortByCategory(corpusStandalone),
-      ...sortByCategory(dictStandalone),
-      ...sortByCategory(dictPartialMatch), 
-      ...sortByCategory(corpusPartialMatch),
-      ...sortByRelevanceAndCategory(andMatchesBoundary), 
-      ...sortByRelevanceAndCategory(andMatchesPartial)
-    ];
-  } else {
+if (hasTight && !isSplitMode) {
+  return [
+    // Exact 또는 강한 일치 결과
+    ...sortByCategory(corpusSuperTight),
+    ...sortByCategory(dictSuperTight),
+    ...sortByCategory(corpusStandalone),
+    ...sortByCategory(dictStandalone),
+
+    // 검색어 전체가 포함된 관련 결과
+    ...sortByCategory(dictPartialMatch),
+    ...sortByCategory(corpusPartialMatch),
+    ...sortByRelevanceAndCategory(
+      andMatchesBoundary
+    ),
+    ...sortByRelevanceAndCategory(
+      andMatchesPartial
+    ),
+
+    // Exact Match가 있더라도 일부 핵심어가 포함된
+    // 관련 자료를 추가 정보로 제공합니다.
+    ...sortByRelevanceAndCategory(
+      orMatchesBoundary
+    ),
+    ...sortByRelevanceAndCategory(
+      orMatchesPartial
+    ),
+  ];
+} else {
     const combinedTightSplit: any[] = [];
     const sortedFrontTight = sortByCategory(frontTightMatches);
     const sortedBackTight = sortByCategory(backTightMatches);
@@ -514,23 +531,111 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
            });
            orangeKeys.push(...orangeCandidates);
 
-           validOrKeywords.forEach(k => {
-             const cleanK = k.replace(/[,.()\[\]:"']/g, '');
-             if (!cleanK) return;
+// =====================================================
+// 문장 검색용 관련 핵심어 선정
+// =====================================================
+// 너무 흔한 표현은 제외하고, 의미가 강한 단어부터
+// 최대 4개까지만 관련 검색에 사용합니다.
+const relatedSearchKeywords = [
+  ...new Set(validOrKeywords)
+]
+  .filter((keyword) => {
+    const cleanKeyword = keyword
+      .replace(/[,.()\[\]:"']/g, '')
+      .trim();
 
-             const isEnglishK = /^[a-zA-Z0-9_\s\-]+$/.test(cleanK);
+    if (!cleanKeyword) {
+      return false;
+    }
 
-             fallbackPromises.push(fetchExactPhrase(cleanK, false));
+    const lowerKeyword =
+      cleanKeyword.toLowerCase();
 
-             if (!isEnglishK) {
-                 fallbackPromises.push((async () => {
-                   try {
-                     const { data } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${cleanK}%`).order('category_id', { ascending: true }).limit(30);
-                     if (data) data.forEach(item => addRes(item));
-                   } catch(e) {}
-                 })());
-             }
-           });
+    // 정중 표현은 관련 용어 검색에서 제외
+    if (
+      lowerKeyword === 'please'
+    ) {
+      return false;
+    }
+
+    const isEnglishKeyword =
+      /^[a-zA-Z0-9_\s\-]+$/.test(
+        cleanKeyword
+      );
+
+    // 영어는 3글자 이상, 한국어는 2글자 이상
+    return isEnglishKeyword
+      ? cleanKeyword.length >= 3
+      : cleanKeyword.length >= 2;
+  })
+  // 긴 핵심어를 우선 검색
+  .sort((a, b) => b.length - a.length)
+  .slice(0, 4);
+
+relatedSearchKeywords.forEach((keyword) => {
+  const cleanK = keyword
+    .replace(/[,.()\[\]:"']/g, '')
+    .trim();
+
+  if (!cleanK) {
+    return;
+  }
+
+  // 기존의 단어 경계 중심 검색도 유지합니다.
+  fallbackPromises.push(
+    fetchExactPhrase(cleanK, false)
+  );
+
+  // ===================================================
+  // 영어·한국어 공통 관련 문장 검색
+  // ===================================================
+  // category_id 0은 번역 말뭉치 전용이므로
+  // 관련 검색 결과에는 포함하지 않습니다.
+  fallbackPromises.push((async () => {
+    try {
+      const { data, error } = await supabase
+        .from('dictionary_lines')
+        .select('*')
+        .neq('category_id', 0)
+        .ilike(
+          'line_text',
+          `%${cleanK}%`
+        )
+        .order('category_id', {
+          ascending: true,
+        })
+        .limit(30);
+
+      if (error) {
+        console.error(
+          '[관련 핵심어 검색 오류]',
+          {
+            query: cleanQuery,
+            keyword: cleanK,
+            message: error.message,
+          }
+        );
+
+        return;
+      }
+
+      if (Array.isArray(data)) {
+        data.forEach((item) => {
+          addRes(item);
+        });
+      }
+    } catch (error) {
+      console.error(
+        '[관련 핵심어 검색 예외]',
+        {
+          query: cleanQuery,
+          keyword: cleanK,
+          error,
+        }
+      );
+    }
+  })());
+});
          }
       }
 

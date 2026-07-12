@@ -51,6 +51,80 @@ const CATEGORY_NAMES: Record<number, string> = {
   12: '기타(Other Terms)'
 };
 
+// ================================================================
+// 단어·전문용어와 번역할 문장을 구분합니다.
+// ================================================================
+const isSentenceLikeQuery = (value: string): boolean => {
+  const text = String(value || '').trim();
+
+  if (!text) {
+    return false;
+  }
+
+  const hasKorean = /[가-힣]/.test(text);
+
+  // ------------------------------------------------
+  // 한국어 문장 판별
+  // ------------------------------------------------
+  if (hasKorean) {
+    const withoutEndingPunctuation = text
+      .replace(/[.!?]+$/g, '')
+      .trim();
+
+    const wordCount = withoutEndingPunctuation
+      .split(/\s+/)
+      .filter(Boolean).length;
+
+    const hasKoreanSentenceEnding =
+      /(습니다|습니까|입니다|인가요|나요|까요|세요|해요|했어요|했습니까|합니다|했다|한다|된다|됐다|이다|아니다|있다|없다|싶다|좋아해요|좋아하세요|주세요|줘요|죠)$/u.test(
+        withoutEndingPunctuation
+      );
+
+    return (
+      hasKoreanSentenceEnding ||
+      (wordCount >= 2 && /[?!]$/.test(text))
+    );
+  }
+
+  // ------------------------------------------------
+  // 영어 문장 판별
+  // ------------------------------------------------
+  const englishWords =
+    text.match(/[A-Za-z]+(?:['’-][A-Za-z]+)*/g) || [];
+
+  // sepsis, email, septic shock 등의 단어·용어 제외
+  if (englishWords.length < 2) {
+    return false;
+  }
+
+  const lowerText = text.toLowerCase();
+
+  const hasEnglishPredicate =
+    /\b(am|is|are|was|were|be|been|being|do|does|did|have|has|had|can|could|will|would|shall|should|may|might|must|need|needs|needed|want|wants|wanted|like|likes|liked|love|loves|loved|know|knows|knew|think|thinks|thought|go|goes|went|come|comes|came|check|checks|checked|show|shows|showed|tell|tells|told|give|gives|gave|take|takes|took|make|makes|made|find|finds|found|help|helps|helped|thank|thanks|please|let|lets|look|looks|stop|stops|wait|waits|try|tries|tried|use|uses|used|work|works|worked|live|lives|lived|stay|stays|stayed|feel|feels|felt|seem|seems|seemed|mean|means|meant|ask|asks|asked|buy|buys|bought|bring|brings|brought|send|sends|sent|call|calls|called|open|opens|opened|close|closes|closed|start|starts|started|finish|finishes|finished|lose|loses|lost|throw|throws|threw|throwing|ride|rides|rode|riding)\b/i.test(
+      lowerText
+    );
+
+  const commonExpression =
+    /^(thank you|thanks|thanks a lot|good morning|good afternoon|good evening|good night)[.!?]?$/i.test(
+      text
+    );
+
+  const startsLikeSentence =
+    /^(i|you|he|she|it|we|they|there|this|that|these|those|who|what|when|where|why|how|please|let's)\b/i.test(
+      text
+    );
+
+  return (
+    commonExpression ||
+    hasEnglishPredicate ||
+    (
+      englishWords.length >= 3 &&
+      startsLikeSentence &&
+      /[.!?]$/.test(text)
+    )
+  );
+};
+
 export default function SearchPage({ 
   query, results = [], orangeKeys = [], blueKeys = [],
   isApp = false, popularSearches = [], recentSearches = [],
@@ -92,43 +166,79 @@ export default function SearchPage({
     fetchPreview();
   }, [supabase]);
 
-  // 🌟 [수프로 마법] 2. 번역 API 지능형 라우팅 (한영 vs 영한)
-  useEffect(() => {
-    const displayQuery = (query || '').trim();
-    if (displayQuery.length >= 2) {
-      
-      // 💡 한국어가 하나라도 있으면 한영 번역기로, 순수 영어면 영한 번역기로 요청을 보냅니다!
-      const hasKorean = /[가-힣]/.test(displayQuery);
-      const endpoint = hasKorean ? '/api/translate-search' : '/api/translate-en-ko';
+  // 🌟 [수프로 마법] 2. 번역 API 지능형 라우팅
+// 단어·전문용어는 번역 블록을 만들지 않고,
+// 문장형 검색어만 한영·영한 번역 API로 보냅니다.
+useEffect(() => {
+  const normalizedQuery = String(query || '').trim();
 
-      fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ q: displayQuery }),
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.ok && data.best) {
-          setAiTranslation(data.best.target_text);
-          setAiAnalysis(data.best.analysis || null);
-          setIsReference(data.best.isReference || false); // 🌟 신호 저장!
-        } else {
-          setAiTranslation(null);
-          setAiAnalysis(null);
-          setIsReference(false);
-        }
-      })
-      .catch(() => {
-        setAiTranslation(null);
-        setAiAnalysis(null);
-        setIsReference(false);
-      });
-    } else {
-      setAiTranslation(null);
-      setAiAnalysis(null);
-      setIsReference(false);
-    }
-  }, [query]);
+  const clearTranslationBox = () => {
+    setAiTranslation(null);
+    setAiAnalysis(null);
+    setIsReference(false);
+  };
+
+  // 두 글자 미만이거나 문장 형태가 아니면
+  // 추천 문장 번역 API를 호출하지 않습니다.
+  if (
+    normalizedQuery.length < 2 ||
+    !isSentenceLikeQuery(normalizedQuery)
+  ) {
+    clearTranslationBox();
+    return;
+  }
+
+  const controller = new AbortController();
+
+  const hasKorean = /[가-힣]/.test(normalizedQuery);
+
+  const endpoint = hasKorean
+    ? '/api/translate-search'
+    : '/api/translate-en-ko';
+
+  // 이전 검색 결과가 잠시 남는 현상 방지
+  clearTranslationBox();
+
+  fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      q: normalizedQuery,
+    }),
+    signal: controller.signal,
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.ok && data.best) {
+        setAiTranslation(
+          data.best.target_text || null
+        );
+
+        setAiAnalysis(
+          data.best.analysis || null
+        );
+
+        setIsReference(
+          Boolean(data.best.isReference)
+        );
+      } else {
+        clearTranslationBox();
+      }
+    })
+    .catch((error) => {
+      if (error?.name === 'AbortError') {
+        return;
+      }
+
+      clearTranslationBox();
+    });
+
+  return () => {
+    controller.abort();
+  };
+}, [query]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -231,27 +341,34 @@ export default function SearchPage({
 
   useEffect(() => setCurrentPage(1), [results, query]);
 
-  // ==========================================
-  // 검색 결과 표시용 카테고리별 개수 제한
-  // category_id 0인 기초영어도 정상적으로 표시합니다.
-  // ==========================================
-  const displayResults = React.useMemo(() => {
-    const categoryCount: Record<number, number> = {};
+// ==========================================
+// 화면에 표시할 검색 결과 정리
+// category_id 0은 번역 말뭉치 전용이므로
+// 일반 검색 결과 목록에서는 숨깁니다.
+// ==========================================
+const displayResults = React.useMemo(() => {
+  const categoryCount: Record<number, number> = {};
 
-    return results.filter((item) => {
-      const catId =
-        item.category_id !== null &&
-        item.category_id !== undefined
-          ? Number(item.category_id)
-          : 12;
+  return results.filter((item) => {
+    const catId =
+      item.category_id !== null &&
+      item.category_id !== undefined
+        ? Number(item.category_id)
+        : 12;
 
-      categoryCount[catId] =
-        (categoryCount[catId] || 0) + 1;
+    // 기초영어 말뭉치는 번역 엔진에서만 사용하고
+    // 검색 결과 목록에는 표시하지 않습니다.
+    if (catId === 0) {
+      return false;
+    }
 
-      // 각 카테고리에서 최대 5개까지 표시
-      return categoryCount[catId] <= 5;
-    });
-  }, [results]);
+    categoryCount[catId] =
+      (categoryCount[catId] || 0) + 1;
+
+    // 각 표시 카테고리에서 최대 5개
+    return categoryCount[catId] <= 5;
+  });
+}, [results]);
 
   const handleExternalSearch = (site: 'google' | 'naver') => {
     if (!displayQuery) return;
@@ -542,7 +659,7 @@ export default function SearchPage({
                 <div className="py-32 text-center text-slate-400 text-xl font-light italic animate-in fade-in slide-in-from-bottom-2 duration-300">
                   단어는 <span style={{ color: '#ea580c', fontWeight: 'bold' }}>두 글자 이상</span> 입력해 주세요.
                 </div>
-              ) : displayResults.length > 0 ? (
+              ) : (displayResults.length > 0 || Boolean(aiTranslation)) ? (
                 <div className="space-y-6">
 
                   {/* 🌟 [수프로 마법] 번역 박스 + 스피커 및 검색 문장 표시 UI 반영 */}
@@ -607,7 +724,9 @@ export default function SearchPage({
                   </div>
                 )}
 
-                  {isPartialMatch && matchedKeywords.length > 0 && (
+{!aiTranslation &&
+  isPartialMatch &&
+  matchedKeywords.length > 0 && (
                     <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl shadow-sm mb-4 animate-in fade-in slide-in-from-top-2">
                       <div className="flex items-start gap-3">
                         <span className="text-xl">💡</span>
