@@ -2,6 +2,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import customRules from './rules-en-ko.json';
+
+// 🌟 TwoPro v3.4: this/that/these/those 지시 한정사와 핵심 슬롯 어휘 분리
 // ============================================================================
 // 🌟 [수프로 엔진 영한(En-Ko) v12.9] 엑스딕 RBMT: 1~5형식 통합 & 평서문 (해라체 + 해요체) 탑재
 // ============================================================================
@@ -297,6 +299,61 @@ type ExtractedTemplateMatch = {
   slots: ExtractedTemplateSlot[];
 };
 
+
+type TemplateSlotKind =
+  | 'noun'
+  | 'verb'
+  | 'adjective'
+  | 'place'
+  | 'subject'
+  | 'duration'
+  | 'number'
+  | 'other';
+
+type TemplateDictionaryCandidate = {
+  value: string;
+  categoryId: number;
+  sourceOrder: number;
+  lineText: string;
+  score: number;
+};
+
+type TemplateReferenceWord = {
+  source: string;
+  selected: string | null;
+  candidates: string[];
+  slot: string;
+  confidence: number;
+};
+
+type TemplateSlotTranslation = {
+  // 실제 한국어 문장 생성에 넣는 값입니다.
+  // this/that/these/those가 있으면 이/그가 결합될 수 있습니다.
+  value: string | null;
+
+  // 참고 단어에 표시할 핵심 어휘 후보입니다.
+  // 지시 한정사는 포함하지 않습니다.
+  candidates: string[];
+
+  confidence: number;
+  selectedBy:
+    | 'override'
+    | 'duration'
+    | 'memory'
+    | 'dictionary'
+    | 'compound'
+    | 'none';
+  slotKind: TemplateSlotKind;
+
+  // 참고 단어의 왼쪽에 표시할 핵심 영어 어휘입니다.
+  // 예: "this edifice" → "edifice"
+  referenceSource: string;
+
+  // 참고 후보 중 실제 선택된 핵심 한국어 뜻입니다.
+  // 예: 문장 생성값은 "이 건물", 참고 선택값은 "건물"
+  referenceSelected: string | null;
+};
+
 // 문장 비교를 위한 정규화
 const normalizeTemplateText = (
   value: string
@@ -312,6 +369,126 @@ const normalizeTemplateText = (
 };
 
 // 정규식 특수문자 보호
+
+// ============================================================================
+// 🌟 [영한 슬롯 후보 선택 v3.4] 지시 한정사 분리 보정
+// ============================================================================
+// 일반 템플릿이 [N] = "this edifice"처럼 지시 한정사까지 함께 잡더라도
+// 사전 조회와 참고 단어에는 핵심 명사 "edifice"만 사용합니다.
+// 문장 생성 시에는 this/these → 이, that/those → 그를 다시 결합합니다.
+type TemplateDeterminerInfo = {
+  normalized: string;
+  lexicalValue: string;
+  referenceSource: string;
+  determiner: '' | 'a' | 'an' | 'the' | 'this' | 'that' | 'these' | 'those';
+  koreanPrefix: '' | '이' | '그';
+  isPluralDemonstrative: boolean;
+};
+
+const splitLeadingTemplateDeterminer = (
+  rawValue: string
+): TemplateDeterminerInfo => {
+  const normalized =
+    normalizeTemplateText(rawValue);
+
+  const match = normalized.match(
+    /^(a|an|the|this|that|these|those)\s+(.+)$/
+  );
+
+  if (!match) {
+    return {
+      normalized,
+      lexicalValue: normalized,
+      referenceSource: normalized,
+      determiner: '',
+      koreanPrefix: '',
+      isPluralDemonstrative: false,
+    };
+  }
+
+  const determiner = match[1] as
+    TemplateDeterminerInfo['determiner'];
+
+  const lexicalValue = String(match[2] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const koreanPrefix =
+    determiner === 'this' ||
+    determiner === 'these'
+      ? '이'
+      : determiner === 'that' ||
+        determiner === 'those'
+        ? '그'
+        : '';
+
+  return {
+    normalized,
+    lexicalValue,
+    referenceSource: lexicalValue,
+    determiner,
+    koreanPrefix,
+    isPluralDemonstrative:
+      determiner === 'these' ||
+      determiner === 'those',
+  };
+};
+
+const applyTemplateDeterminerToKorean = (
+  coreValue: string | null,
+  determinerInfo: TemplateDeterminerInfo,
+  slotKind: TemplateSlotKind
+): string | null => {
+  if (!coreValue) {
+    return null;
+  }
+
+  const core = String(coreValue)
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!core) {
+    return null;
+  }
+
+  // 지시 한정사는 명사·장소·주체 슬롯에서만 결합합니다.
+  if (
+    !determinerInfo.koreanPrefix ||
+    !(
+      slotKind === 'noun' ||
+      slotKind === 'place' ||
+      slotKind === 'subject'
+    )
+  ) {
+    return core;
+  }
+
+  let inflectedCore = core;
+
+  // these/those는 한국어 문장 생성값에 복수 표지 "들"을 보강합니다.
+  // 이미 "들"로 끝나거나 숫자·집합 의미가 분명한 값은 중복하지 않습니다.
+  if (
+    determinerInfo.isPluralDemonstrative &&
+    !/들$/.test(inflectedCore) &&
+    !/(사람들|여러|다수|복수)$/.test(inflectedCore)
+  ) {
+    inflectedCore = `${inflectedCore}들`;
+  }
+
+  const prefix =
+    determinerInfo.koreanPrefix;
+
+  // 이미 같은 지시어가 붙어 있으면 중복 결합하지 않습니다.
+  if (
+    inflectedCore === prefix ||
+    inflectedCore.startsWith(`${prefix} `)
+  ) {
+    return inflectedCore;
+  }
+
+  return `${prefix} ${inflectedCore}`;
+};
+
 const escapeTemplateRegex = (
   value: string
 ): string => {
@@ -531,7 +708,10 @@ const TEMPLATE_SLOT_OVERRIDES:
   },
 
   N: {
+    // 다의어가 기본영어 DB에서 여러 뜻으로 검색될 때
+    // 문장 슬롯에서 사용할 대표 명사 뜻을 우선합니다.
     key: '열쇠',
+    book: '책',
   },
 
   PLACE: {
@@ -553,67 +733,958 @@ const TEMPLATE_SLOT_OVERRIDES:
   },
 };
 
-// 추출된 슬롯의 영어를 한국어로 변환
-const translateTemplateSlot = (
-  slotName: string,
+
+// ============================================================================
+// 🌟 TwoPro v3.5.2: 대표 뜻 우선 가중치
+// ============================================================================
+// TEMPLATE_SLOT_OVERRIDES와 달리 후보를 즉시 1개로 확정하지 않습니다.
+// DB에서 찾은 모든 뜻을 참고 단어로 유지하면서,
+// 일상 문장에서 대표성이 높은 뜻만 정렬 점수로 우선합니다.
+const TEMPLATE_PREFERRED_KO_MEANINGS:
+  Record<string, string[]> = {
+  building: [
+    '건물',
+    '건축물',
+    '가옥',
+  ],
+  edifice: [
+    '건물',
+    '건축물',
+    '대건축물',
+  ],
+};
+
+// 템플릿 슬롯 이름의 숫자 접미사를 제거합니다.
+// N1, N2, N3는 모두 기본 슬롯 유형 N으로 처리합니다.
+const getBaseTemplateSlotName = (
+  slotName: string
+): string => {
+  return String(slotName || '')
+    .toUpperCase()
+    .replace(/\d+$/, '');
+};
+
+// 같은 단어를 반복 조회하지 않도록 서버 인스턴스 안에서 캐시합니다.
+const TEMPLATE_SLOT_DB_CACHE =
+  new Map<string, TemplateDictionaryCandidate[]>();
+
+let templateSlotSupabaseClient: any = null;
+
+// 슬롯 번역 전용 Supabase 클라이언트
+const getTemplateSlotSupabaseClient = () => {
+  if (templateSlotSupabaseClient) {
+    return templateSlotSupabaseClient;
+  }
+
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  const supabaseKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    return null;
+  }
+
+  templateSlotSupabaseClient = createClient(
+    supabaseUrl,
+    supabaseKey
+  );
+
+  return templateSlotSupabaseClient;
+};
+
+// 슬롯 이름을 품사·의미 역할로 분류합니다.
+// 규칙의 [N], [V], [PLACE]처럼 작성자가 지정한 슬롯 종류를
+// DB 후보 선택에서 가장 강한 문맥 정보로 사용합니다.
+const getTemplateSlotKind = (
+  slotName: string
+): TemplateSlotKind => {
+  const baseSlotName =
+    getBaseTemplateSlotName(slotName);
+
+  if (baseSlotName === 'V') {
+    return 'verb';
+  }
+
+  if (baseSlotName === 'ADJ') {
+    return 'adjective';
+  }
+
+  if (
+    baseSlotName === 'PLACE' ||
+    baseSlotName === 'COUNTRY'
+  ) {
+    return 'place';
+  }
+
+  if (
+    baseSlotName === 'S' ||
+    baseSlotName === 'PERSON'
+  ) {
+    return 'subject';
+  }
+
+  if (
+    baseSlotName === 'DURATION' ||
+    baseSlotName === 'TIME'
+  ) {
+    return 'duration';
+  }
+
+  if (
+    baseSlotName === 'NUM' ||
+    baseSlotName === 'NUMBER'
+  ) {
+    return 'number';
+  }
+
+  // [N], [O], [IO], [DOCUMENT], [TRANSPORT] 등은
+  // 기본적으로 명사 슬롯으로 처리합니다.
+  return 'noun';
+};
+
+const normalizeKoreanCandidate = (
+  value: string
+): string => {
+  return String(value || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s:;,.()\-–—]+/, '')
+    .replace(/[\s:;,.()\-–—]+$/, '')
+    .trim();
+};
+
+// 기본영어 행 예:
+// autocar 자동차
+// book 책, 서적
+// 영어 표제어가 정확히 앞에 있는 짧은 행에서
+// 한국어 후보를 여러 개 추출합니다.
+const extractKoreanCandidatesFromBasicEnglishLine = (
+  lineText: string,
+  englishValue: string
+): string[] => {
+  const line = String(lineText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const candidate = String(englishValue || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!line || !candidate) {
+    return [];
+  }
+
+  const escapedCandidate =
+    escapeTemplateRegex(candidate);
+
+  const match = line.match(
+    new RegExp(
+      `^${escapedCandidate}(?:\\s*[:=|]\\s*|\\s+)(.+)$`,
+      'i'
+    )
+  );
+
+  if (!match) {
+    return [];
+  }
+
+  const remainder = String(match[1] || '')
+    .replace(/^[\-–—]\s*/, '')
+    .trim();
+
+  // "Book of Changes / I Ching 주역"처럼
+  // 영어 구가 더 이어지는 행은 슬롯 단어 후보에서 제외합니다.
+  if (!/^[가-힣]/.test(remainder)) {
+    return [];
+  }
+
+  const rawSegments = remainder.split(
+    /\s*(?:,|;|\||\/)\s*/
+  );
+
+  const candidates: string[] = [];
+
+  for (const rawSegment of rawSegments) {
+    const koreanMatch = rawSegment.match(
+      /[가-힣][가-힣0-9·ㆍ\s-]*/
+    );
+
+    if (!koreanMatch) {
+      continue;
+    }
+
+    const korean =
+      normalizeKoreanCandidate(
+        koreanMatch[0]
+      );
+
+    if (
+      korean &&
+      korean.length <= 40
+    ) {
+      candidates.push(korean);
+    }
+  }
+
+  return [...new Set(candidates)];
+};
+
+// 기존 호출과의 호환성을 유지하는 단일 후보 추출 함수
+const extractKoreanFromBasicEnglishLine = (
+  lineText: string,
+  englishValue: string
+): string | null => {
+  return (
+    extractKoreanCandidatesFromBasicEnglishLine(
+      lineText,
+      englishValue
+    )[0] || null
+  );
+};
+
+const looksLikeKoreanVerb = (
+  value: string
+): boolean => {
+  const text = normalizeKoreanCandidate(value);
+
+  return /(?:하다|되다|시키다|주다|받다|가다|오다|먹다|읽다|쓰다|열다|닫다|보다|찾다|잃다|바꾸다|변경하다|예약하다)$/.test(
+    text
+  );
+};
+
+const looksLikePlaceNoun = (
+  value: string
+): boolean => {
+  const text = normalizeKoreanCandidate(value);
+
+  return /(?:시|도|군|구|국|집|호텔|공항|역|학교|병원|건물|건조물|관|센터|공원|마을|도시|항구|사무실)$/.test(
+    text
+  );
+};
+
+// 기본영어와 다른 전문 카테고리에서 수집한 후보를 점수화합니다.
+// 기본영어 정확 표제어, 짧은 1:1 행, 슬롯 품사 일치를 우선합니다.
+const scoreTemplateDictionaryCandidate = (
+  value: string,
+  categoryId: number,
+  sourceOrder: number,
+  lineText: string,
+  slotKind: TemplateSlotKind
+): number => {
+  let score =
+    categoryId === 1
+      ? 100
+      : 45;
+
+  const normalizedValue =
+    normalizeKoreanCandidate(value);
+
+  const compactLength =
+    normalizedValue.replace(/\s+/g, '').length;
+
+  if (compactLength <= 3) {
+    score += 18;
+  } else if (compactLength <= 6) {
+    score += 10;
+  } else if (compactLength > 14) {
+    score -= 12;
+  }
+
+  if (
+    String(lineText || '').length <= 40
+  ) {
+    score += 18;
+  } else if (
+    String(lineText || '').length > 100
+  ) {
+    score -= 20;
+  }
+
+  if (sourceOrder > 0) {
+    score += Math.max(
+      0,
+      10 - Math.floor(
+        Math.log10(sourceOrder + 1) * 2
+      )
+    );
+  }
+
+  if (slotKind === 'noun') {
+    score += looksLikeKoreanVerb(
+      normalizedValue
+    )
+      ? -55
+      : 25;
+  }
+
+  if (slotKind === 'verb') {
+    score += looksLikeKoreanVerb(
+      normalizedValue
+    )
+      ? 40
+      : -25;
+  }
+
+  if (slotKind === 'place') {
+    score += looksLikePlaceNoun(
+      normalizedValue
+    )
+      ? 28
+      : 5;
+  }
+
+  if (slotKind === 'adjective') {
+    score += /(?:하다|롭다|스럽다|좋다|나쁘다|크다|작다|길다|짧다)$/.test(
+      normalizedValue
+    )
+      ? 28
+      : 0;
+  }
+
+  return score;
+};
+
+const calculateTemplateCandidateConfidence = (
+  candidates: TemplateDictionaryCandidate[]
+): number => {
+  if (candidates.length === 0) {
+    return 0;
+  }
+
+  if (candidates.length === 1) {
+    return candidates[0].categoryId === 1
+      ? 0.9
+      : 0.78;
+  }
+
+  const margin =
+    candidates[0].score -
+    candidates[1].score;
+
+  if (margin >= 30) {
+    return 0.9;
+  }
+
+  if (margin >= 15) {
+    return 0.82;
+  }
+
+  if (margin >= 6) {
+    return 0.72;
+  }
+
+  return 0.58;
+};
+
+// category_id 1 기본영어를 먼저 검색하고,
+// 후보가 부족할 때만 category_id 2~12의 정확 표제어 후보를 보강합니다.
+const lookupTemplateSlotCandidates = async (
+  rawValue: string,
+  slotName: string
+): Promise<TemplateDictionaryCandidate[]> => {
+  const normalized =
+    normalizeTemplateText(rawValue);
+
+  // 직접 호출되더라도 관사·지시 한정사를 사전 표제어에서 분리합니다.
+  const withoutArticle = normalized.replace(
+    /^(a|an|the|this|that|these|those)\s+/,
+    ''
+  );
+
+  const slotKind =
+    getTemplateSlotKind(slotName);
+
+  const supabase =
+    getTemplateSlotSupabaseClient();
+
+  if (
+    !supabase ||
+    !withoutArticle
+  ) {
+    return [];
+  }
+
+  const cacheKey =
+    `${slotKind}:${withoutArticle}`;
+
+  if (
+    TEMPLATE_SLOT_DB_CACHE.has(cacheKey)
+  ) {
+    return (
+      TEMPLATE_SLOT_DB_CACHE.get(
+        cacheKey
+      ) || []
+    );
+  }
+
+  const collected:
+    TemplateDictionaryCandidate[] = [];
+
+  const collectRows = (
+    rows: any[],
+    sourceCategoryFallback: number
+  ) => {
+    for (const item of rows || []) {
+      const categoryId =
+        Number(
+          item?.category_id ??
+          sourceCategoryFallback
+        );
+
+      const sourceOrder =
+        Number(item?.source_order || 0);
+
+      const lineText =
+        String(item?.line_text || '');
+
+      const values =
+        extractKoreanCandidatesFromBasicEnglishLine(
+          lineText,
+          withoutArticle
+        );
+
+      for (const value of values) {
+        collected.push({
+          value,
+          categoryId,
+          sourceOrder,
+          lineText,
+          score:
+            scoreTemplateDictionaryCandidate(
+              value,
+              categoryId,
+              sourceOrder,
+              lineText,
+              slotKind
+            ),
+        });
+      }
+    }
+  };
+
+  try {
+    const {
+      data: basicData,
+      error: basicError,
+    } = await supabase
+      .from('dictionary_lines')
+      .select(
+        'line_text, category_id, source_order'
+      )
+      .eq('category_id', 1)
+      .ilike(
+        'line_text',
+        `${withoutArticle}%`
+      )
+      .order(
+        'source_order',
+        { ascending: true }
+      )
+      .limit(50);
+
+    if (basicError) {
+      console.error(
+        '[템플릿 슬롯 기본영어 후보 조회 오류]',
+        {
+          value: withoutArticle,
+          message: basicError.message,
+        }
+      );
+    } else {
+      collectRows(
+        basicData || [],
+        1
+      );
+    }
+
+    // 기본영어에 후보가 3개 미만일 때만
+    // 다른 카테고리의 정확 표제어 행을 제한적으로 보강합니다.
+    if (collected.length < 3) {
+      const {
+        data: extraData,
+        error: extraError,
+      } = await supabase
+        .from('dictionary_lines')
+        .select(
+          'line_text, category_id, source_order'
+        )
+        .neq('category_id', 0)
+        .neq('category_id', 1)
+        .ilike(
+          'line_text',
+          `${withoutArticle}%`
+        )
+        .order(
+          'category_id',
+          { ascending: true }
+        )
+        .limit(40);
+
+      if (extraError) {
+        console.error(
+          '[템플릿 슬롯 다른 카테고리 후보 조회 오류]',
+          {
+            value: withoutArticle,
+            message: extraError.message,
+          }
+        );
+      } else {
+        collectRows(
+          extraData || [],
+          12
+        );
+      }
+    }
+  } catch (error) {
+    console.error(
+      '[템플릿 슬롯 후보 조회 예외]',
+      {
+        value: withoutArticle,
+        error,
+      }
+    );
+  }
+
+  const preferredMeanings =
+    TEMPLATE_PREFERRED_KO_MEANINGS[
+      withoutArticle
+    ] || [];
+
+  const deduplicated =
+    Array.from(
+      collected.reduce(
+        (
+          map:
+            Map<
+              string,
+              TemplateDictionaryCandidate
+            >,
+          item
+        ) => {
+          const key =
+            normalizeKoreanCandidate(
+              item.value
+            );
+
+          const previous =
+            map.get(key);
+
+          if (
+            !previous ||
+            item.score > previous.score
+          ) {
+            map.set(key, item);
+          }
+
+          return map;
+        },
+        new Map()
+      ).values()
+    )
+      .map((item) => {
+        const normalizedValue =
+          normalizeKoreanCandidate(
+            item.value
+          );
+
+        const preferredIndex =
+          preferredMeanings.indexOf(
+            normalizedValue
+          );
+
+        if (preferredIndex < 0) {
+          return item;
+        }
+
+        return {
+          ...item,
+          // 첫 번째 대표 뜻은 가장 강하게 우선하되,
+          // 나머지 후보도 참고 단어 목록에 그대로 보존합니다.
+          score:
+            item.score +
+            Math.max(
+              80,
+              140 - preferredIndex * 20
+            ),
+        };
+      })
+      .sort(
+        (a, b) =>
+          b.score - a.score ||
+          a.sourceOrder - b.sourceOrder ||
+          a.value.length - b.value.length
+      )
+      .slice(0, 8);
+
+  TEMPLATE_SLOT_DB_CACHE.set(
+    cacheKey,
+    deduplicated
+  );
+
+  return deduplicated;
+};
+
+// 기존 코드와의 호환성을 위한 대표 후보 조회 함수
+const lookupTemplateSlotFromBasicEnglish = async (
+  rawValue: string,
+  slotName: string = 'N'
+): Promise<string | null> => {
+  const candidates =
+    await lookupTemplateSlotCandidates(
+      rawValue,
+      slotName
+    );
+
+  return candidates[0]?.value || null;
+};
+
+const TEMPLATE_NUMBER_WORDS:
+  Record<string, string> = {
+    zero: '0',
+    one: '1',
+    two: '2',
+    three: '3',
+    four: '4',
+    five: '5',
+    six: '6',
+    seven: '7',
+    eight: '8',
+    nine: '9',
+    ten: '10',
+    eleven: '11',
+    twelve: '12',
+  };
+
+// one day, three weeks, 5 months 등
+// 기본적인 기간 표현을 자동 변환합니다.
+const translateTemplateDuration = (
   rawValue: string
 ): string | null => {
   const normalized =
     normalizeTemplateText(rawValue);
 
-  const withoutArticle =
-    normalized.replace(
-      /^(a|an|the)\s+/,
-      ''
+  const match = normalized.match(
+    /^(zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d+)\s+(day|days|week|weeks|month|months|year|years|hour|hours|minute|minutes)$/
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const number =
+    TEMPLATE_NUMBER_WORDS[match[1]] ||
+    match[1];
+
+  const unitMap:
+    Record<string, string> = {
+      day: '일',
+      days: '일',
+      week: '주',
+      weeks: '주',
+      month: '개월',
+      months: '개월',
+      year: '년',
+      years: '년',
+      hour: '시간',
+      hours: '시간',
+      minute: '분',
+      minutes: '분',
+    };
+
+  return `${number}${unitMap[match[2]]}`;
+};
+
+// 추출된 슬롯의 영어를 한국어로 변환합니다.
+// 우선순위:
+// 1. 검증된 슬롯별 수동 예외
+// 2. 기간·숫자 자동 변환
+// 3. 동사·형용사 슬롯의 메모리 사전
+// 4. 기본영어 정확 표제어 후보
+// 5. 다른 카테고리의 정확 표제어 후보
+// 6. 여러 단어를 각각 번역해 조립
+const translateTemplateSlotDetailed = async (
+  slotName: string,
+  rawValue: string,
+  contextText: string
+): Promise<TemplateSlotTranslation> => {
+  const determinerInfo =
+    splitLeadingTemplateDeterminer(
+      rawValue
     );
 
+  const normalized =
+    determinerInfo.normalized;
+
+  // 사전 조회·수동 예외·참고 단어에는 지시 한정사를 제외한 핵심 어휘만 사용합니다.
+  const lexicalValue =
+    determinerInfo.lexicalValue;
+
   const candidates = [
+    lexicalValue,
     normalized,
-    withoutArticle,
   ].filter(Boolean);
 
-  const slotDictionary =
+  const upperSlotName =
+    String(slotName || '').toUpperCase();
+
+  const baseSlotName =
+    getBaseTemplateSlotName(
+      upperSlotName
+    );
+
+  const slotKind =
+    getTemplateSlotKind(
+      upperSlotName
+    );
+
+  const baseDictionary =
     TEMPLATE_SLOT_OVERRIDES[
-      slotName
+      baseSlotName
     ] || {};
 
-  // 1. 슬롯 전용 사전
-  // 2. 기존 MOCK_EN_KO_DB 순서
+  const exactDictionary =
+    TEMPLATE_SLOT_OVERRIDES[
+      upperSlotName
+    ] || {};
+
+  const slotDictionary = {
+    ...baseDictionary,
+    ...exactDictionary,
+  };
+
+  const buildResult = (
+    coreValue: string | null,
+    resultCandidates: string[],
+    confidence: number,
+    selectedBy:
+      TemplateSlotTranslation['selectedBy']
+  ): TemplateSlotTranslation => {
+    const normalizedCandidates =
+      [...new Set(
+        resultCandidates
+          .map((item) =>
+            String(item || '')
+              .replace(/\s+/g, ' ')
+              .trim()
+          )
+          .filter(Boolean)
+      )];
+
+    return {
+      value:
+        applyTemplateDeterminerToKorean(
+          coreValue,
+          determinerInfo,
+          slotKind
+        ),
+      candidates:
+        normalizedCandidates,
+      confidence,
+      selectedBy,
+      slotKind,
+      referenceSource:
+        determinerInfo.referenceSource ||
+        lexicalValue ||
+        normalized,
+      referenceSelected:
+        coreValue,
+    };
+  };
+
+  // 검증된 수동 예외는 가장 높은 신뢰도로 사용합니다.
+  // "this book"도 핵심 어휘 "book"으로 예외 사전을 조회합니다.
   for (const candidate of candidates) {
     if (slotDictionary[candidate]) {
-      return slotDictionary[candidate];
-    }
+      const coreValue =
+        slotDictionary[candidate];
 
-    if (MOCK_EN_KO_DB[candidate]) {
-      return MOCK_EN_KO_DB[candidate];
+      return buildResult(
+        coreValue,
+        [coreValue],
+        0.99,
+        'override'
+      );
     }
   }
 
-  // 여러 단어가 모두 사전에 있을 때만 조립
+  if (slotKind === 'duration') {
+    const duration =
+      translateTemplateDuration(
+        lexicalValue
+      );
+
+    if (duration) {
+      return buildResult(
+        duration,
+        [duration],
+        0.99,
+        'duration'
+      );
+    }
+  }
+
+  // 동사·형용사 등 비명사 슬롯에서만
+  // 기존 메모리 사전을 먼저 허용합니다.
+  if (
+    slotKind === 'verb' ||
+    slotKind === 'adjective' ||
+    slotKind === 'other'
+  ) {
+    for (const candidate of candidates) {
+      if (MOCK_EN_KO_DB[candidate]) {
+        const coreValue =
+          MOCK_EN_KO_DB[candidate];
+
+        return buildResult(
+          coreValue,
+          [coreValue],
+          0.95,
+          'memory'
+        );
+      }
+    }
+  }
+
+  const dictionaryCandidates =
+    await lookupTemplateSlotCandidates(
+      lexicalValue,
+      upperSlotName
+    );
+
+  if (dictionaryCandidates.length > 0) {
+    const confidence =
+      calculateTemplateCandidateConfidence(
+        dictionaryCandidates
+      );
+
+    const coreValue =
+      dictionaryCandidates[0].value;
+
+    console.log(
+      '[템플릿 슬롯 후보 선택]',
+      {
+        slotName: upperSlotName,
+        slotKind,
+        rawValue,
+        lexicalValue,
+        determiner:
+          determinerInfo.determiner,
+        contextText,
+        selected: coreValue,
+        generatedValue:
+          applyTemplateDeterminerToKorean(
+            coreValue,
+            determinerInfo,
+            slotKind
+          ),
+        confidence,
+        candidates:
+          dictionaryCandidates.map(
+            (item) => ({
+              value: item.value,
+              score: item.score,
+              categoryId:
+                item.categoryId,
+            })
+          ),
+      }
+    );
+
+    return buildResult(
+      coreValue,
+      dictionaryCandidates.map(
+        (item) => item.value
+      ),
+      confidence,
+      'dictionary'
+    );
+  }
+
+  // 여러 단어가 모두 번역될 때만 조립합니다.
+  // 지시 한정사는 이미 분리됐으므로 "this edifice"가
+  // "this"와 "edifice"로 잘못 분해되지 않습니다.
   const words =
-    withoutArticle
+    lexicalValue
       .split(/\s+/)
       .filter(Boolean);
 
   if (words.length > 1) {
-    const translatedWords =
-      words.map((word) => {
-        return (
-          slotDictionary[word] ||
-          MOCK_EN_KO_DB[word] ||
-          null
-        );
-      });
+    const translatedWords: string[] = [];
+    const compoundCandidates: string[] =
+      [];
+    let compoundConfidence = 1;
 
-    if (
-      translatedWords.every(Boolean)
-    ) {
-      return translatedWords.join(' ');
+    for (const word of words) {
+      const wordResult =
+        await translateTemplateSlotDetailed(
+          upperSlotName,
+          word,
+          contextText
+        );
+
+      if (!wordResult.value) {
+        return buildResult(
+          null,
+          compoundCandidates,
+          0,
+          'none'
+        );
+      }
+
+      translatedWords.push(
+        wordResult.value
+      );
+
+      compoundCandidates.push(
+        ...wordResult.candidates
+      );
+
+      compoundConfidence =
+        Math.min(
+          compoundConfidence,
+          wordResult.confidence
+        );
     }
+
+    const compoundCoreValue =
+      translatedWords.join(' ');
+
+    return buildResult(
+      compoundCoreValue,
+      compoundCandidates,
+      Math.max(
+        0.55,
+        compoundConfidence - 0.05
+      ),
+      'compound'
+    );
   }
 
-  // 영어가 그대로 남는 혼종 결과 방지
-  return null;
+  return buildResult(
+    null,
+    [],
+    0,
+    'none'
+  );
+};
+
+// 기존 단일 문자열 호출과의 호환성을 유지합니다.
+const translateTemplateSlot = async (
+  slotName: string,
+  rawValue: string
+): Promise<string | null> => {
+  const result =
+    await translateTemplateSlotDetailed(
+      slotName,
+      rawValue,
+      rawValue
+    );
+
+  return result.value;
 };
 
 // 한글 받침 확인
@@ -767,6 +1838,411 @@ const resolveTemplateParticles = (
 };
 
 // =========================================================================
+// 🌟 TwoPro v3.5.2: 지시 한정사 + 명사 + be동사 + 형용사 문장 안전 생성
+// v3.4.1의 지시 한정사 분리 기능을 유지하면서,
+// This/That/These/Those + noun + is/are + adjective 구조를 먼저 생성합니다.
+// =========================================================================
+type DemonstrativeCopularMatch = {
+  demonstrative:
+    | 'this'
+    | 'that'
+    | 'these'
+    | 'those';
+  nounRaw: string;
+  nounLookup: string;
+  adjectiveRaw: string;
+  adverbRaw: string;
+  plural: boolean;
+};
+
+const singularizeEnglishNounWord = (
+  value: string
+): string => {
+  const word = String(value || '')
+    .toLowerCase()
+    .trim();
+
+  if (!word) {
+    return word;
+  }
+
+  const irregular:
+    Record<string, string> = {
+      people: 'person',
+      men: 'man',
+      women: 'woman',
+      children: 'child',
+      feet: 'foot',
+      teeth: 'tooth',
+      mice: 'mouse',
+      geese: 'goose',
+    };
+
+  if (irregular[word]) {
+    return irregular[word];
+  }
+
+  if (/[^aeiou]ies$/.test(word)) {
+    return `${word.slice(0, -3)}y`;
+  }
+
+  if (/(ches|shes|xes|zes|ses)$/.test(word)) {
+    return word.slice(0, -2);
+  }
+
+  if (
+    word.endsWith('s') &&
+    !word.endsWith('ss') &&
+    !word.endsWith('us') &&
+    !word.endsWith('is')
+  ) {
+    return word.slice(0, -1);
+  }
+
+  return word;
+};
+
+const singularizeEnglishNounPhrase = (
+  value: string
+): string => {
+  const words = normalizeTemplateText(value)
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (words.length === 0) {
+    return '';
+  }
+
+  words[words.length - 1] =
+    singularizeEnglishNounWord(
+      words[words.length - 1]
+    );
+
+  return words.join(' ');
+};
+
+const parseDemonstrativeCopularSentence = (
+  inputText: string
+): DemonstrativeCopularMatch | null => {
+  const normalized =
+    normalizeTemplateText(inputText);
+
+  const match = normalized.match(
+    /^(this|that|these|those)\s+(.+?)\s+(is|are)\s+(?:(truly|very|really|quite|so)\s+)?([a-z][a-z'’-]*(?:\s+[a-z][a-z'’-]*)?)$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const demonstrative =
+    match[1].toLowerCase() as
+      | 'this'
+      | 'that'
+      | 'these'
+      | 'those';
+
+  const nounRaw = String(match[2] || '')
+    .trim();
+
+  const beVerb = String(match[3] || '')
+    .toLowerCase();
+
+  const adverbRaw = String(match[4] || '')
+    .toLowerCase()
+    .trim();
+
+  const adjectiveRaw = String(match[5] || '')
+    .toLowerCase()
+    .trim();
+
+  if (
+    !nounRaw ||
+    !adjectiveRaw ||
+    nounRaw.split(/\s+/).length > 3 ||
+    adjectiveRaw.split(/\s+/).length > 2
+  ) {
+    return null;
+  }
+
+  const plural =
+    demonstrative === 'these' ||
+    demonstrative === 'those' ||
+    beVerb === 'are';
+
+  return {
+    demonstrative,
+    nounRaw,
+    nounLookup:
+      singularizeEnglishNounPhrase(nounRaw),
+    adjectiveRaw,
+    adverbRaw,
+    plural,
+  };
+};
+
+const COPULAR_ADJECTIVE_PREDICATES:
+  Record<string, string> = {
+    large: '큽니다',
+    small: '작습니다',
+    old: '오래되었습니다',
+    new: '새롭습니다',
+    magnificent: '웅장합니다',
+    beautiful: '아름답습니다',
+    good: '좋습니다',
+    bad: '나쁩니다',
+    high: '높습니다',
+    low: '낮습니다',
+    long: '깁니다',
+    short: '짧습니다',
+    clean: '깨끗합니다',
+    dirty: '더럽습니다',
+    expensive: '비쌉니다',
+    cheap: '쌉니다',
+  };
+
+const COPULAR_ADVERBS_KO:
+  Record<string, string> = {
+    truly: '정말',
+    very: '매우',
+    really: '정말',
+    quite: '꽤',
+    so: '아주',
+  };
+
+const toKoreanCopularPredicate = (
+  englishAdjective: string,
+  translatedValue: string | null
+): string | null => {
+  const direct =
+    COPULAR_ADJECTIVE_PREDICATES[
+      normalizeTemplateText(
+        englishAdjective
+      )
+    ];
+
+  if (direct) {
+    return direct;
+  }
+
+  const value =
+    normalizeKoreanCandidate(
+      translatedValue || ''
+    );
+
+  if (!value) {
+    return null;
+  }
+
+  const exactMap:
+    Record<string, string> = {
+      크다: '큽니다',
+      큰: '큽니다',
+      작다: '작습니다',
+      작은: '작습니다',
+      좋다: '좋습니다',
+      좋은: '좋습니다',
+      나쁘다: '나쁩니다',
+      나쁜: '나쁩니다',
+      오래되다: '오래되었습니다',
+      오래된: '오래되었습니다',
+      낡다: '낡았습니다',
+      낡은: '낡았습니다',
+      웅장하다: '웅장합니다',
+      웅장한: '웅장합니다',
+      아름답다: '아름답습니다',
+      아름다운: '아름답습니다',
+      깨끗하다: '깨끗합니다',
+      더럽다: '더럽습니다',
+    };
+
+  if (exactMap[value]) {
+    return exactMap[value];
+  }
+
+  if (value.endsWith('하다')) {
+    return `${value.slice(0, -2)}합니다`;
+  }
+
+  if (value.endsWith('되다')) {
+    return `${value.slice(0, -2)}됩니다`;
+  }
+
+  return null;
+};
+
+const buildCopularReferenceWord = (
+  source: string,
+  slot: string,
+  result: TemplateSlotTranslation
+): TemplateReferenceWord | null => {
+  const candidates = [
+    ...new Set(
+      result.candidates.filter(Boolean)
+    ),
+  ].slice(0, 6);
+
+  if (
+    candidates.length <= 1 &&
+    result.confidence >= 0.85
+  ) {
+    return null;
+  }
+
+  return {
+    source:
+      result.referenceSource ||
+      source,
+    selected:
+      result.referenceSelected ??
+      result.value,
+    candidates,
+    slot,
+    confidence: Number(
+      result.confidence.toFixed(2)
+    ),
+  };
+};
+
+const translateDemonstrativeCopularSentence = async (
+  inputText: string
+): Promise<{
+  targetText: string;
+  confidence: number;
+  referenceWords: TemplateReferenceWord[];
+} | null> => {
+  const parsed =
+    parseDemonstrativeCopularSentence(
+      inputText
+    );
+
+  if (!parsed) {
+    return null;
+  }
+
+  // 지시 한정사는 파서에서 이미 분리했으므로
+  // 사전 조회에는 building / edifice 같은 핵심 명사만 전달합니다.
+  const nounResult =
+    await translateTemplateSlotDetailed(
+      'N',
+      parsed.nounLookup,
+      inputText
+    );
+
+  const adjectiveResult =
+    await translateTemplateSlotDetailed(
+      'ADJ',
+      parsed.adjectiveRaw,
+      inputText
+    );
+
+  const predicate =
+    toKoreanCopularPredicate(
+      parsed.adjectiveRaw,
+      adjectiveResult.value
+    );
+
+  if (
+    !nounResult.value ||
+    !predicate
+  ) {
+    return null;
+  }
+
+  // 이 구조는 문법적으로 명사 자리가 분명합니다.
+  // 기본영어 후보가 여러 개여서 점수 차가 작더라도
+  // 단일 핵심 명사라면 0.55 이상에서 안전하게 1순위 후보를 사용합니다.
+  const nounConfidenceFloor =
+    parsed.nounLookup.split(/\s+/).length === 1
+      ? 0.55
+      : 0.66;
+
+  if (
+    nounResult.confidence <
+    nounConfidenceFloor
+  ) {
+    return null;
+  }
+
+  const demonstrativeKo =
+    parsed.demonstrative === 'this' ||
+    parsed.demonstrative === 'these'
+      ? '이'
+      : '그';
+
+  let nounKo =
+    String(
+      nounResult.referenceSelected ??
+      nounResult.value
+    )
+      .replace(/^\s*(이|그)\s+/, '')
+      .trim();
+
+  if (!nounKo) {
+    return null;
+  }
+
+  if (
+    parsed.plural &&
+    !nounKo.endsWith('들')
+  ) {
+    nounKo += '들';
+  }
+
+  const subject =
+    resolveTemplateParticles(
+      `${demonstrativeKo} ${nounKo}은/는`
+    );
+
+  const adverbKo =
+    COPULAR_ADVERBS_KO[
+      parsed.adverbRaw
+    ] || '';
+
+  const targetText = [
+    subject,
+    adverbKo,
+    predicate,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim() + '.';
+
+  const referenceWords = [
+    buildCopularReferenceWord(
+      parsed.nounLookup,
+      'N',
+      nounResult
+    ),
+    buildCopularReferenceWord(
+      parsed.adjectiveRaw,
+      'ADJ',
+      adjectiveResult
+    ),
+  ].filter(Boolean) as
+    TemplateReferenceWord[];
+
+  const adjectiveConfidence =
+    COPULAR_ADJECTIVE_PREDICATES[
+      parsed.adjectiveRaw
+    ]
+      ? 0.95
+      : adjectiveResult.confidence;
+
+  return {
+    targetText,
+    confidence: Number(
+      Math.min(
+        nounResult.confidence,
+        adjectiveConfidence
+      ).toFixed(2)
+    ),
+    referenceWords,
+  };
+};
+
+// =========================================================================
 // 💡 메인 POST 함수 시작
 // =========================================================================
 export async function POST(request: Request) {
@@ -778,6 +2254,10 @@ export async function POST(request: Request) {
     const cleanSearchTextWithSpace = originalText.replace(/[?.,!]/g, '').trim().toLowerCase();
     
 let dbFallbackText = '';
+    let templateReferenceWords:
+      TemplateReferenceWord[] = [];
+    let templateMinimumConfidence = 1;
+    let templateMatchedButUncertain = false;
 
     // =================================================================
     // 🌟 [수프로 핵심 마법] 무적의 DB 선제적 검색 (정규화/퍼지/사오정 삼중 폭격)
@@ -1229,7 +2709,18 @@ for (const item of uniqueItems) {
     );
 
     if (ruleKey) {
-      let fastResult = customRules[ruleKey as keyof typeof customRules];
+      let fastResult =
+        resolveTemplateParticles(
+          String(
+            customRules[
+              ruleKey as keyof typeof customRules
+            ]
+          )
+        )
+          .replace(/\s+/g, ' ')
+          .replace(/\s+([?.!,])/g, '$1')
+          .trim();
+
       return NextResponse.json({ 
         ok: true, 
         best: { 
@@ -1238,6 +2729,33 @@ for (const item of uniqueItems) {
           isReference: false,
           analysis: [] 
         } 
+      });
+    }
+
+    // =================================================================
+    // 🌟 1.5단계: 지시 한정사 + 명사 + be동사 + 형용사 안전 생성
+    // =================================================================
+    const demonstrativeCopularResult =
+      await translateDemonstrativeCopularSentence(
+        originalText
+      );
+
+    if (demonstrativeCopularResult) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            demonstrativeCopularResult.targetText,
+          isReference: false,
+          analysis: [],
+          confidence:
+            demonstrativeCopularResult.confidence,
+          referenceWords:
+            demonstrativeCopularResult.referenceWords,
+          engine:
+            'demonstrative-copular-contextual-v3.5.2',
+        },
       });
     }
 
@@ -1271,14 +2789,60 @@ for (const item of uniqueItems) {
         const slot
         of extractedTemplate.slots
       ) {
-        const koValue =
-          translateTemplateSlot(
+        const slotResult =
+          await translateTemplateSlotDetailed(
             slot.name,
-            slot.raw
+            slot.raw,
+            originalText
           );
 
-        if (!koValue) {
+        templateMinimumConfidence =
+          Math.min(
+            templateMinimumConfidence,
+            slotResult.confidence
+          );
+
+        const referenceCandidates =
+          [...new Set(
+            slotResult.candidates
+              .filter(Boolean)
+          )].slice(0, 6);
+
+        if (
+          referenceCandidates.length > 1 ||
+          (
+            slotResult.selectedBy ===
+              'dictionary' &&
+            slotResult.confidence < 0.85
+          )
+        ) {
+          templateReferenceWords.push({
+            source:
+              slotResult.referenceSource ||
+              slot.raw,
+            selected:
+              slotResult.referenceSelected ??
+              slotResult.value,
+            candidates:
+              referenceCandidates,
+            slot: slot.name,
+            confidence:
+              Number(
+                slotResult.confidence
+                  .toFixed(2)
+              ),
+          });
+        }
+
+        // 후보가 없거나 후보 간 점수 차가 너무 작으면
+        // 확정 번역을 만들지 않고 참고 문장 단계로 넘깁니다.
+        if (
+          !slotResult.value ||
+          slotResult.confidence < 0.66
+        ) {
           hasUnknownSlot = true;
+          templateMatchedButUncertain =
+            true;
 
           console.log(
             '[JSON 패턴 슬롯 번역 보류]',
@@ -1287,6 +2851,10 @@ for (const item of uniqueItems) {
               rawValue: slot.raw,
               pattern:
                 extractedTemplate.patternEn,
+              confidence:
+                slotResult.confidence,
+              candidates:
+                slotResult.candidates,
             }
           );
 
@@ -1305,11 +2873,13 @@ for (const item of uniqueItems) {
 
         translatedSlotValues[
           slot.name
-        ].push(koValue);
+        ].push(slotResult.value);
 
         matchedAnalysis.push({
-          en: slot.raw,
-          ko: koValue,
+          en:
+            slotResult.referenceSource ||
+            slot.raw,
+          ko: slotResult.value,
         });
       }
 
@@ -1387,14 +2957,54 @@ for (const item of uniqueItems) {
               isReference: false,
               analysis:
                 matchedAnalysis,
-              engine: 'json-template',
+              confidence:
+                Number(
+                  templateMinimumConfidence
+                    .toFixed(2)
+                ),
+              referenceWords:
+                templateReferenceWords,
+              engine:
+                'json-template-contextual',
               matchedPattern:
                 extractedTemplate.patternEn,
             },
           });
         }
       }
-    }    
+    }
+
+    // 템플릿 구조는 맞았지만 슬롯 후보의 신뢰도가 낮으면
+    // 억지로 생성하지 않고 DB 참고 문장 + 참고 단어를 반환합니다.
+    if (
+      templateMatchedButUncertain &&
+      dbFallbackText
+    ) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: dbFallbackText,
+          isReference: true,
+          confidence:
+            Number(
+              templateMinimumConfidence
+                .toFixed(2)
+            ),
+          referenceWords:
+            templateReferenceWords,
+          analysis: [
+            {
+              ko: '💡 슬롯 후보의 뜻이 여러 개여서 가장 유사한 말뭉치 문장과 참고 단어를 함께 제공합니다.',
+              en: dbFallbackText,
+            },
+          ],
+          engine:
+            'database-reference-with-word-candidates',
+        },
+      });
+    }
+
     // 💡 [지능형 전처리] 복합동사 묶기 로직
     const complexFourFormVerbs_KO = [
       '먹이를 주다', '비용이 들게 하다', '시간을 덜어주다', '수고를 덜어주다', '인상을 주다'
@@ -2513,6 +4123,15 @@ for (const item of uniqueItems) {
                 en: dbFallbackText,
               },
             ],
+            confidence:
+              templateReferenceWords.length > 0
+                ? Number(
+                    templateMinimumConfidence
+                      .toFixed(2)
+                  )
+                : null,
+            referenceWords:
+              templateReferenceWords,
             engine:
               'database-similarity-fallback',
           },
@@ -2561,6 +4180,8 @@ for (const item of uniqueItems) {
         isReference: false,
 
         analysis: mapped_analysis,
+        referenceWords:
+          templateReferenceWords,
         engine: 'rbmt',
         matchedForm:
           selectedForm?.type || null,

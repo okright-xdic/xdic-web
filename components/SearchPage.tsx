@@ -23,12 +23,21 @@ interface SearchResult {
   source_order?: number;
 }
 
+interface TranslationReferenceWord {
+  source: string;
+  selected?: string | null;
+  candidates: string[];
+  slot?: string;
+  confidence?: number;
+}
+
 interface SearchPageProps {
   query: string;
   results?: SearchResult[];
   orangeKeys?: string[]; 
   blueKeys?: string[];    
   isApp?: boolean;
+  isSentenceSearch?: boolean;
   popularSearches?: string[];
   recentSearches?: { word: string; count: number }[];
   isPartialMatch?: boolean;
@@ -125,12 +134,19 @@ const isSentenceLikeQuery = (value: string): boolean => {
   );
 };
 
-export default function SearchPage({ 
-  query, results = [], orangeKeys = [], blueKeys = [],
-  isApp = false, popularSearches = [], recentSearches = [],
-  isPartialMatch = false, matchedKeywords = []    
+  export default function SearchPage({
+  query,
+  results = [],
+  orangeKeys = [],
+  blueKeys = [],
+  isApp = false,
+  isSentenceSearch = false,
+  popularSearches = [],
+  recentSearches = [],
+  isPartialMatch = false,
+  matchedKeywords = [],
 }: SearchPageProps) {
-  const router = useRouter();
+const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   
@@ -147,6 +163,11 @@ export default function SearchPage({
   
   // 🌟 [수프로 엣지] 백엔드에서 보낸 '참고용' 비밀 신호를 담을 상태 추가!
   const [isReference, setIsReference] = useState<boolean>(false);
+
+  // 슬롯 후보가 여러 개인 경우 번역 블록 아래에 표시할 참고 단어
+  const [referenceWords, setReferenceWords] = useState<
+    TranslationReferenceWord[]
+  >([]);
 
   // 🌟 번역 결과 박스 전용 마이크 상태
   const [isBoxListening, setIsBoxListening] = useState(false);
@@ -176,6 +197,7 @@ useEffect(() => {
     setAiTranslation(null);
     setAiAnalysis(null);
     setIsReference(false);
+    setReferenceWords([]);
   };
 
   // 두 글자 미만이거나 문장 형태가 아니면
@@ -222,6 +244,72 @@ useEffect(() => {
 
         setIsReference(
           Boolean(data.best.isReference)
+        );
+
+        const nextReferenceWords =
+          Array.isArray(
+            data.best.referenceWords
+          )
+            ? data.best.referenceWords
+            : Array.isArray(
+                data.referenceWords
+              )
+              ? data.referenceWords
+              : [];
+
+        setReferenceWords(
+          nextReferenceWords
+            .map((item: any) => ({
+              source:
+                String(
+                  item?.source || ''
+                ).trim(),
+              selected:
+                item?.selected
+                  ? String(
+                      item.selected
+                    ).trim()
+                  : null,
+              candidates:
+                Array.isArray(
+                  item?.candidates
+                )
+                  ? [
+                      ...new Set(
+                        item.candidates
+                          .map(
+                            (candidate: any) =>
+                              String(
+                                candidate || ''
+                              ).trim()
+                          )
+                          .filter(Boolean)
+                      ),
+                    ]
+                  : [],
+              slot:
+                item?.slot
+                  ? String(item.slot)
+                  : undefined,
+              confidence:
+                Number.isFinite(
+                  Number(
+                    item?.confidence
+                  )
+                )
+                  ? Number(
+                      item.confidence
+                    )
+                  : undefined,
+            }))
+            .filter(
+              (
+                item:
+                  TranslationReferenceWord
+              ) =>
+                item.source &&
+                item.candidates.length > 0
+            )
         );
       } else {
         clearTranslationBox();
@@ -716,6 +804,75 @@ const displayResults = React.useMemo(() => {
                         </div>
                       </div>
 
+                    {referenceWords.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-blue-200/80 space-y-2">
+                        {referenceWords.map((item, index) => {
+                          const selected =
+                            item.selected || '';
+
+                          const orderedCandidates = [
+                            selected,
+                            ...item.candidates,
+                          ].filter(
+                            (
+                              value,
+                              candidateIndex,
+                              values
+                            ) =>
+                              Boolean(value) &&
+                              values.indexOf(value) ===
+                                candidateIndex
+                          );
+
+                          return (
+                            <div
+                              key={`${item.source}-${index}`}
+                              className="flex items-start gap-3 pl-1"
+                            >
+                              <span className="text-[12px] md:text-[13px] font-bold text-emerald-700 whitespace-nowrap mt-0.5">
+                                참고 단어:
+                              </span>
+
+                              <p className="text-[13px] md:text-[15px] text-slate-700 leading-relaxed flex-1 break-words">
+                                <span className="font-extrabold text-slate-900">
+                                  {item.source}
+                                </span>
+                                <span className="mx-1.5 text-slate-400">
+                                  →
+                                </span>
+                                {orderedCandidates.map(
+                                  (
+                                    candidate,
+                                    candidateIndex
+                                  ) => (
+                                    <React.Fragment
+                                      key={`${candidate}-${candidateIndex}`}
+                                    >
+                                      {candidateIndex > 0 && (
+                                        <span className="text-slate-400">
+                                          ,{' '}
+                                        </span>
+                                      )}
+                                      <span
+                                        className={
+                                          candidate ===
+                                          selected
+                                            ? 'font-extrabold text-emerald-700'
+                                            : 'font-medium text-slate-600'
+                                        }
+                                      >
+                                        {candidate}
+                                      </span>
+                                    </React.Fragment>
+                                  )
+                                )}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
                     {isReference && (
                       <p className="text-[12px] md:text-[13px] mt-4 pl-1 font-medium text-orange-600/80">
                         엑스딕이 추천하는 전문가 번역 데이터 중 가장 자연스러운 문장입니다.
@@ -740,7 +897,11 @@ const displayResults = React.useMemo(() => {
 
                   <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                     <span className="text-sm font-semibold text-slate-500">
-                      검색 결과 <span style={{ color: '#2563eb', fontWeight: 'bold' }}>{displayResults.length}</span>건
+                      {isSentenceSearch ? '관련 검색 결과' : '검색 결과'}{' '}
+                      <span style={{ color: '#2563eb', fontWeight: 'bold' }}>
+                        {displayResults.length}
+                      </span>
+                      건
                     </span>
                   </div>
 

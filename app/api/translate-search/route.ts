@@ -360,6 +360,1878 @@ const FORM_RULES = [
   { type: '1형식_명령문_예문1', requiredRoles: ['LOK_Look', 'LOK_Sky'], koreanOrder: ['LOK_The', 'LOK_Sky', 'LOK_At', 'LOK_Look'] },
 ];
 
+
+// ============================================================================
+// ☆ TwoPro 한영 JSON 슬롯 엔진 v4
+// [S]·[PLACE]·[DURATION]·[N] 실제 번역, 한국어 조사 인식,
+// 명사/동사 슬롯 분리, a/an/the 관사 보정을 담당합니다.
+// ============================================================================
+
+type TwoProKoEnCompiledRule = {
+  patternKo: string;
+  templateEn: string;
+  regex: RegExp;
+  slots: string[];
+  specificity: number;
+};
+
+type TwoProKoEnSlotResult = {
+  token: string;
+  source: string;
+  target: string;
+  slotType: string;
+};
+
+const TWO_PRO_KO_EN_SUBJECTS: Record<string, string> = {
+  '나': 'I',
+  '저': 'I',
+  '너': 'you',
+  '당신': 'you',
+  '그': 'he',
+  '그녀': 'she',
+  '우리': 'we',
+  '저희': 'we',
+  '그들': 'they',
+  '이것': 'it',
+  '그것': 'it',
+  '저것': 'it',
+};
+
+const TWO_PRO_KO_EN_COMMON_NOUNS: Record<string, string> = {
+  '책': 'book',
+  '열쇠': 'key',
+  '자동차': 'car',
+  '자전거': 'bicycle',
+  '케이크': 'cake',
+  '이메일': 'email',
+  '편지': 'letter',
+  '소포': 'package',
+  '여권': 'passport',
+  '표': 'ticket',
+  '방': 'room',
+  '객실': 'room',
+  '호텔': 'hotel',
+  '학교': 'school',
+  '병원': 'hospital',
+  '공항': 'airport',
+  '회사': 'company',
+  '사무실': 'office',
+  '전화': 'phone',
+  '컴퓨터': 'computer',
+  '파일': 'file',
+  '문서': 'document',
+  '예약': 'reservation',
+  '날짜': 'date',
+  '시간': 'time',
+};
+
+
+const TWO_PRO_KO_EN_COMMON_VERBS: Record<string, string> = {
+  '예약': 'book',
+  '예약하다': 'book',
+  '확인': 'check',
+  '확인하다': 'check',
+  '사용': 'use',
+  '사용하다': 'use',
+  '변경': 'change',
+  '변경하다': 'change',
+  '번역': 'translate',
+  '번역하다': 'translate',
+  '제출': 'submit',
+  '제출하다': 'submit',
+  '취소': 'cancel',
+  '취소하다': 'cancel',
+  '추천': 'recommend',
+  '추천하다': 'recommend',
+  '보여주다': 'show',
+  '가져오다': 'bring',
+  '가져가다': 'take',
+  '찾다': 'find',
+  '잃어버리다': 'lose',
+  '살다': 'live',
+  '일하다': 'work',
+  '머무르다': 'stay',
+  '먹다': 'eat',
+  '마시다': 'drink',
+  '읽다': 'read',
+  '쓰다': 'write',
+  '가다': 'go',
+  '오다': 'come',
+  '만들다': 'make',
+  '좋아하다': 'like',
+  '사랑하다': 'love',
+  '돕다': 'help',
+  '기다리다': 'wait',
+  '말하다': 'say',
+  '보내다': 'send',
+  '전화하다': 'call',
+};
+
+const TWO_PRO_KO_EN_PLACES: Record<string, string> = {
+  '서울': 'Seoul',
+  '부산': 'Busan',
+  '대구': 'Daegu',
+  '인천': 'Incheon',
+  '한국': 'Korea',
+  '대한민국': 'Korea',
+  '미국': 'the United States',
+  '영국': 'the United Kingdom',
+  '일본': 'Japan',
+  '중국': 'China',
+  '프랑스': 'France',
+  '독일': 'Germany',
+  '호텔': 'hotel',
+  '학교': 'school',
+  '병원': 'hospital',
+  '공항': 'airport',
+  '회사': 'company',
+  '사무실': 'office',
+  '집': 'home',
+};
+
+const TWO_PRO_KO_EN_UNCOUNTABLE_NOUNS = new Set([
+  'advice',
+  'equipment',
+  'furniture',
+  'information',
+  'luggage',
+  'money',
+  'music',
+  'news',
+  'research',
+  'traffic',
+  'weather',
+]);
+
+const TWO_PRO_KO_EN_NOUN_SLOT_TYPES = new Set([
+  'N',
+  'O',
+  'IO',
+  'ABSTRACT',
+  'ANIMAL',
+  'APP',
+  'BODY',
+  'CLOTHING',
+  'CLUB',
+  'COMPANY',
+  'COUNTRY',
+  'DOCUMENT',
+  'EVENT',
+  'FOOD',
+  'GROUP',
+  'INGREDIENT',
+  'MANNER',
+  'METHOD',
+  'OPTION',
+  'PERSON',
+  'PURPOSE',
+  'SOUND',
+  'SOURCE',
+  'SUBSTANCE',
+  'SYMPTOM',
+  'TASK',
+  'TOOL',
+  'TRANSPORT',
+]);
+
+const TWO_PRO_KO_EN_SLOT_CACHE = new Map<string, string | null>();
+
+const twoProNormalizeKoTemplateInput = (value: string): string => {
+  return String(value || '')
+    .normalize('NFC')
+    .replace(/[?.!,;:'"“”‘’]/g, '')
+    .trim();
+};
+
+const twoProEscapeRegex = (value: string): string => {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+const twoProLiteralToRegex = (literal: string): string => {
+  return String(literal || '')
+    .replace(/[?.!,;:'"“”‘’]/g, '')
+    .split(/(\s+)/)
+    .map((part) => {
+      if (!part) return '';
+      if (/^\s+$/.test(part)) return '\\s*';
+      return twoProEscapeRegex(part);
+    })
+    .join('');
+};
+
+const TWO_PRO_PARTICLE_MARKERS: Array<{
+  text: string;
+  regex: string;
+  fixed?: boolean;
+}> = [
+  { text: '으로/로', regex: '(?:으로|로)' },
+  { text: '로/으로', regex: '(?:으로|로)' },
+  { text: '(으)로', regex: '(?:으로|로)' },
+  { text: '은/는', regex: '(?:은|는)' },
+  { text: '는/은', regex: '(?:은|는)' },
+  { text: '이/가', regex: '(?:이|가)' },
+  { text: '가/이', regex: '(?:이|가)' },
+  { text: '을/를', regex: '(?:을|를)' },
+  { text: '를/을', regex: '(?:을|를)' },
+  { text: '과/와', regex: '(?:과|와)' },
+  { text: '와/과', regex: '(?:과|와)' },
+  { text: '으로', regex: '(?:으로|로)', fixed: true },
+  { text: '은', regex: '(?:은|는)', fixed: true },
+  { text: '는', regex: '(?:은|는)', fixed: true },
+  { text: '이', regex: '(?:이|가)', fixed: true },
+  { text: '가', regex: '(?:이|가)', fixed: true },
+  { text: '을', regex: '(?:을|를)', fixed: true },
+  { text: '를', regex: '(?:을|를)', fixed: true },
+  { text: '과', regex: '(?:과|와)', fixed: true },
+  { text: '와', regex: '(?:과|와)', fixed: true },
+  { text: '로', regex: '(?:으로|로)', fixed: true },
+];
+
+const twoProCanConsumeFixedParticle = (
+  pattern: string,
+  particleEndIndex: number
+): boolean => {
+  const nextChar = pattern.charAt(particleEndIndex);
+  return (
+    !nextChar ||
+    /\s/.test(nextChar) ||
+    /[?.!,;:'"“”‘’]/.test(nextChar) ||
+    nextChar === '['
+  );
+};
+
+const twoProCompileKoEnRule = (
+  patternKo: string,
+  templateEn: string
+): TwoProKoEnCompiledRule | null => {
+  if (!/\[[A-Za-z][A-Za-z0-9_]*\]/.test(patternKo)) {
+    return null;
+  }
+
+  const normalizedPattern = String(patternKo || '').normalize('NFC');
+  const placeholderRegex = /\[([A-Za-z][A-Za-z0-9_]*)\]/g;
+
+  const slots: string[] = [];
+  let regexSource = '^\\s*';
+  let cursor = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = placeholderRegex.exec(normalizedPattern)) !== null) {
+    regexSource += twoProLiteralToRegex(
+      normalizedPattern.slice(cursor, match.index)
+    );
+
+    const token = match[1];
+    slots.push(token);
+    regexSource += '(.+?)';
+
+    cursor = match.index + match[0].length;
+
+    for (const marker of TWO_PRO_PARTICLE_MARKERS) {
+      if (!normalizedPattern.startsWith(marker.text, cursor)) {
+        continue;
+      }
+
+      const markerEnd = cursor + marker.text.length;
+
+      if (
+        marker.fixed &&
+        !twoProCanConsumeFixedParticle(normalizedPattern, markerEnd)
+      ) {
+        continue;
+      }
+
+      regexSource += marker.regex;
+      cursor = markerEnd;
+      placeholderRegex.lastIndex = cursor;
+      break;
+    }
+  }
+
+  regexSource += twoProLiteralToRegex(normalizedPattern.slice(cursor));
+  regexSource += '\\s*$';
+
+  const literalLength = normalizedPattern
+    .replace(/\[[A-Za-z][A-Za-z0-9_]*\]/g, '')
+    .replace(/\s+/g, '')
+    .replace(/[?.!,;:'"“”‘’/()]/g, '')
+    .length;
+
+  try {
+    return {
+      patternKo,
+      templateEn,
+      regex: new RegExp(regexSource, 'i'),
+      slots,
+      specificity: literalLength * 10 - slots.length,
+    };
+  } catch (error) {
+    console.error('[한영 JSON 템플릿 정규식 생성 실패]', {
+      patternKo,
+      error,
+    });
+
+    return null;
+  }
+};
+
+const TWO_PRO_KO_EN_TEMPLATE_RULES: TwoProKoEnCompiledRule[] =
+  Object.entries(customRules)
+    .map(([patternKo, templateEn]) =>
+      twoProCompileKoEnRule(patternKo, String(templateEn))
+    )
+    .filter(
+      (rule): rule is TwoProKoEnCompiledRule =>
+        Boolean(rule)
+    )
+    .sort((a, b) => b.specificity - a.specificity);
+
+const twoProBaseSlotType = (token: string): string => {
+  return String(token || '')
+    .toUpperCase()
+    .replace(/\d+$/, '');
+};
+
+const twoProCleanCapturedKo = (value: string): string => {
+  return String(value || '')
+    .normalize('NFC')
+    .replace(/^[\s"'“”‘’]+|[\s"'“”‘’]+$/g, '')
+    .replace(/[?.!,;:]+$/g, '')
+    .trim();
+};
+
+const twoProKoreanNumberToDigit = (value: string): string | null => {
+  const normalized = String(value || '').trim();
+
+  if (/^\d+$/.test(normalized)) {
+    return normalized;
+  }
+
+  const map: Record<string, string> = {
+    '한': '1',
+    '하나': '1',
+    '두': '2',
+    '둘': '2',
+    '세': '3',
+    '셋': '3',
+    '네': '4',
+    '넷': '4',
+    '다섯': '5',
+    '여섯': '6',
+    '일곱': '7',
+    '여덟': '8',
+    '아홉': '9',
+    '열': '10',
+  };
+
+  return map[normalized] || null;
+};
+
+const twoProTranslateDuration = (value: string): string | null => {
+  const cleanValue = twoProCleanCapturedKo(value)
+    .replace(/\s*동안$/g, '')
+    .trim();
+
+  if (/^\d+\s+(?:day|week|month|year|hour|minute)s?$/i.test(cleanValue)) {
+    return cleanValue;
+  }
+
+  const durationMatch = cleanValue.match(
+    /^(\d+|한|하나|두|둘|세|셋|네|넷|다섯|여섯|일곱|여덟|아홉|열)\s*(년|개월|달|주|일|시간|분)$/
+  );
+
+  if (!durationMatch) {
+    return null;
+  }
+
+  const number = twoProKoreanNumberToDigit(durationMatch[1]);
+
+  if (!number) {
+    return null;
+  }
+
+  const unitMap: Record<string, string> = {
+    '년': 'year',
+    '개월': 'month',
+    '달': 'month',
+    '주': 'week',
+    '일': 'day',
+    '시간': 'hour',
+    '분': 'minute',
+  };
+
+  const unit = unitMap[durationMatch[2]];
+
+  if (!unit) {
+    return null;
+  }
+
+  return `${number} ${unit}${number === '1' ? '' : 's'}`;
+};
+
+const twoProNormalizeKoreanVerb = (value: string): string[] => {
+  const cleanValue = twoProCleanCapturedKo(value).replace(/\s+/g, '_');
+  const candidates = new Set<string>();
+
+  const add = (candidate: string) => {
+    const cleanCandidate = candidate.replace(/^_+|_+$/g, '').trim();
+    if (cleanCandidate) candidates.add(cleanCandidate);
+  };
+
+  add(cleanValue);
+
+  if (!cleanValue.endsWith('다')) {
+    add(`${cleanValue}다`);
+  }
+
+  if (!cleanValue.endsWith('하다')) {
+    add(`${cleanValue}하다`);
+  }
+
+  const endingRules: Array<[RegExp, string]> = [
+    [/하는$/, '하다'],
+    [/하기$/, '하다'],
+    [/하며$/, '하다'],
+    [/해서$/, '하다'],
+    [/하여$/, '하다'],
+    [/해$/, '하다'],
+    [/하고$/, '하다'],
+    [/했다$/, '하다'],
+    [/합니다$/, '하다'],
+    [/해요$/, '하다'],
+    [/할$/, '하다'],
+    [/을$/, '다'],
+    [/ㄹ$/, '다'],
+  ];
+
+  for (const [pattern, replacement] of endingRules) {
+    if (pattern.test(cleanValue)) {
+      add(cleanValue.replace(pattern, replacement));
+    }
+  }
+
+  return [...candidates];
+};
+
+const twoProCleanEnglishCandidate = (value: string): string => {
+  let candidate = String(value || '')
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\[[^\]]*\]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  candidate = candidate
+    .split(/\s*(?:,|;|\/|\||=|:|：)\s*/)[0]
+    .trim();
+
+  candidate = candidate
+    .replace(/^[\-–—]+\s*|\s*[\-–—]+$/g, '')
+    .replace(/[.?!]+$/g, '')
+    .trim();
+
+  return candidate;
+};
+
+const twoProExtractEnglishCandidates = (
+  lineText: string,
+  koreanTerm: string
+): string[] => {
+  const line = String(lineText || '').normalize('NFC').trim();
+  const term = String(koreanTerm || '').normalize('NFC').trim();
+
+  if (!line || !term || !line.includes(term)) {
+    return [];
+  }
+
+  const escapedTerm = twoProEscapeRegex(term);
+  const candidates: string[] = [];
+
+  const koreanFirst = line.match(
+    new RegExp(
+      `^\\s*${escapedTerm}(?:\\s*[:：=\\t\\-–—]\\s*|\\s+)(.+)$`,
+      'i'
+    )
+  );
+
+  if (koreanFirst?.[1]) {
+    candidates.push(koreanFirst[1]);
+  }
+
+  const englishFirst = line.match(
+    new RegExp(
+      `^(.+?)(?:\\s*[:：=\\t\\-–—]\\s*|\\s+)${escapedTerm}(?:\\s|$)`,
+      'i'
+    )
+  );
+
+  if (englishFirst?.[1]) {
+    candidates.push(englishFirst[1]);
+  }
+
+  const termIndex = line.indexOf(term);
+
+  if (termIndex > 0) {
+    candidates.push(line.slice(0, termIndex));
+  }
+
+  const afterTerm = line.slice(termIndex + term.length);
+
+  if (afterTerm.trim()) {
+    candidates.push(afterTerm);
+  }
+
+  return [...new Set(
+    candidates
+      .map(twoProCleanEnglishCandidate)
+      .filter((candidate) => {
+        if (!candidate || !/[A-Za-z]/.test(candidate)) {
+          return false;
+        }
+
+        if (/[가-힣]/.test(candidate)) {
+          return false;
+        }
+
+        return candidate.split(/\s+/).length <= 6;
+      })
+  )];
+};
+
+const twoProScoreEnglishCandidate = (
+  candidate: string,
+  lineText: string,
+  koreanTerm: string,
+  slotType: string,
+  sourceOrder: number
+): number => {
+  const wordCount = candidate.split(/\s+/).filter(Boolean).length;
+  const lowerCandidate = candidate.toLowerCase();
+  let score = 0;
+
+  const compactLine = String(lineText || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    compactLine === `${candidate} ${koreanTerm}` ||
+    compactLine === `${koreanTerm} ${candidate}` ||
+    compactLine === `${candidate}: ${koreanTerm}` ||
+    compactLine === `${koreanTerm}: ${candidate}`
+  ) {
+    score += 120;
+  }
+
+  if (wordCount === 1) score += 45;
+  else if (wordCount === 2) score += 25;
+  else score -= wordCount * 5;
+
+  if (/^[A-Za-z][A-Za-z'-]*$/.test(candidate)) {
+    score += 20;
+  }
+
+  if (slotType === 'V') {
+    if (/^to\s+/i.test(candidate)) score += 15;
+    if (/ing$/i.test(candidate)) score -= 8;
+  } else {
+    if (/^to\s+/i.test(candidate)) score -= 35;
+    if (/\b(?:do|does|did|is|are|was|were|have|has|had)\b/i.test(candidate)) {
+      score -= 25;
+    }
+  }
+
+  if (slotType === 'PLACE' && /^[A-Z]/.test(candidate)) {
+    score += 12;
+  }
+
+  if (lowerCandidate === koreanTerm.toLowerCase()) {
+    score -= 100;
+  }
+
+  score -= Math.min(Number(sourceOrder || 0), 100000) / 100000;
+
+  return score;
+};
+
+const twoProLookupBasicEnglish = async (
+  koreanTerm: string,
+  slotType: string,
+  supabase: any
+): Promise<string | null> => {
+  const cleanTerm = twoProCleanCapturedKo(koreanTerm);
+
+  if (!cleanTerm || !supabase) {
+    return null;
+  }
+
+  const cacheKey = `${slotType}::${cleanTerm}`;
+
+  if (TWO_PRO_KO_EN_SLOT_CACHE.has(cacheKey)) {
+    return TWO_PRO_KO_EN_SLOT_CACHE.get(cacheKey) || null;
+  }
+
+  try {
+    const escapedSearchTerm = cleanTerm
+      .replace(/\\/g, '\\\\')
+      .replace(/%/g, '\\%')
+      .replace(/_/g, '\\_');
+
+    const { data, error } = await supabase
+      .from('dictionary_lines')
+      .select('line_text, source_order, category_id')
+      .eq('category_id', 1)
+      .ilike('line_text', `%${escapedSearchTerm}%`)
+      .order('source_order', { ascending: true })
+      .limit(80);
+
+    if (error) {
+      console.error('[한영 슬롯 기본영어 조회 오류]', {
+        koreanTerm: cleanTerm,
+        slotType,
+        message: error.message,
+      });
+
+      TWO_PRO_KO_EN_SLOT_CACHE.set(cacheKey, null);
+      return null;
+    }
+
+    const ranked: Array<{
+      candidate: string;
+      score: number;
+    }> = [];
+
+    for (const item of Array.isArray(data) ? data : []) {
+      const lineText = String(item?.line_text || '');
+
+      for (const candidate of twoProExtractEnglishCandidates(
+        lineText,
+        cleanTerm
+      )) {
+        ranked.push({
+          candidate,
+          score: twoProScoreEnglishCandidate(
+            candidate,
+            lineText,
+            cleanTerm,
+            slotType,
+            Number(item?.source_order || 0)
+          ),
+        });
+      }
+    }
+
+    ranked.sort((a, b) => b.score - a.score);
+
+    const bestCandidate = ranked[0]?.candidate || null;
+
+    TWO_PRO_KO_EN_SLOT_CACHE.set(cacheKey, bestCandidate);
+
+    return bestCandidate;
+  } catch (error) {
+    console.error('[한영 슬롯 기본영어 조회 예외]', {
+      koreanTerm: cleanTerm,
+      slotType,
+      error,
+    });
+
+    TWO_PRO_KO_EN_SLOT_CACHE.set(cacheKey, null);
+    return null;
+  }
+};
+
+const twoProTranslateKoEnSlot = async (
+  token: string,
+  capturedValue: string,
+  supabase: any
+): Promise<string | null> => {
+  const slotType = twoProBaseSlotType(token);
+  const cleanValue = twoProCleanCapturedKo(capturedValue);
+
+  if (!cleanValue) {
+    return null;
+  }
+
+  if (/^[A-Za-z0-9][A-Za-z0-9\s'’\-]*$/.test(cleanValue)) {
+    return cleanValue;
+  }
+
+  if (slotType === 'S') {
+    if (TWO_PRO_KO_EN_SUBJECTS[cleanValue]) {
+      return TWO_PRO_KO_EN_SUBJECTS[cleanValue];
+    }
+
+    return (
+      TWO_PRO_KO_EN_COMMON_NOUNS[cleanValue] ||
+      await twoProLookupBasicEnglish(cleanValue, 'N', supabase)
+    );
+  }
+
+  if (slotType === 'DURATION' || slotType === 'TIME') {
+    const duration = twoProTranslateDuration(cleanValue);
+
+    if (duration) {
+      return duration;
+    }
+  }
+
+  if (slotType === 'PLACE') {
+    return (
+      TWO_PRO_KO_EN_PLACES[cleanValue] ||
+      TWO_PRO_KO_EN_COMMON_NOUNS[cleanValue] ||
+      await twoProLookupBasicEnglish(cleanValue, 'PLACE', supabase)
+    );
+  }
+
+  if (slotType === 'V') {
+    for (const verbCandidate of twoProNormalizeKoreanVerb(cleanValue)) {
+      if (TWO_PRO_KO_EN_COMMON_VERBS[verbCandidate]) {
+        return TWO_PRO_KO_EN_COMMON_VERBS[verbCandidate];
+      }
+
+      if (MOCK_XDIC_DB[verbCandidate]) {
+        return String(MOCK_XDIC_DB[verbCandidate])
+          .replace(/^to\s+/i, '')
+          .trim();
+      }
+    }
+
+    const dbVerb = await twoProLookupBasicEnglish(
+      cleanValue,
+      'V',
+      supabase
+    );
+
+    return dbVerb
+      ? dbVerb.replace(/^to\s+/i, '').trim()
+      : null;
+  }
+
+  if (slotType === 'NUM') {
+    return twoProKoreanNumberToDigit(cleanValue) || cleanValue;
+  }
+
+  if (slotType === 'DAY') {
+    const dayMap: Record<string, string> = {
+      '월요일': 'Monday',
+      '화요일': 'Tuesday',
+      '수요일': 'Wednesday',
+      '목요일': 'Thursday',
+      '금요일': 'Friday',
+      '토요일': 'Saturday',
+      '일요일': 'Sunday',
+      '오늘': 'today',
+      '내일': 'tomorrow',
+      '어제': 'yesterday',
+    };
+
+    if (dayMap[cleanValue]) {
+      return dayMap[cleanValue];
+    }
+  }
+
+  if (
+    slotType === 'N' ||
+    TWO_PRO_KO_EN_NOUN_SLOT_TYPES.has(slotType)
+  ) {
+    return (
+      TWO_PRO_KO_EN_COMMON_NOUNS[cleanValue] ||
+      await twoProLookupBasicEnglish(cleanValue, 'N', supabase)
+    );
+  }
+
+  if (MOCK_XDIC_DB[cleanValue]) {
+    return String(MOCK_XDIC_DB[cleanValue]);
+  }
+
+  return (
+    TWO_PRO_KO_EN_COMMON_NOUNS[cleanValue] ||
+    await twoProLookupBasicEnglish(cleanValue, slotType, supabase)
+  );
+};
+
+const twoProStartsWithVowelSound = (word: string): boolean => {
+  const cleanWord = String(word || '')
+    .replace(/^[^A-Za-z0-9]+/, '')
+    .toLowerCase();
+
+  if (!cleanWord) {
+    return false;
+  }
+
+  if (/^(hour|honest|honor|honour|heir|herb)\b/.test(cleanWord)) {
+    return true;
+  }
+
+  if (/^(uni(?:versity|form|t)|user|use|usual|one|once|euro)\b/.test(cleanWord)) {
+    return false;
+  }
+
+  if (/^[8]/.test(cleanWord)) {
+    return true;
+  }
+
+  return /^[aeiou]/.test(cleanWord);
+};
+
+const twoProFixEnglishArticles = (value: string): string => {
+  let text = String(value || '');
+
+  text = text.replace(
+    /\b(a\/an|a|an)\s+(the\s+)?([A-Za-z0-9][A-Za-z0-9'’\-]*)/gi,
+    (
+      _match,
+      _article,
+      existingThe,
+      firstWord
+    ) => {
+      if (existingThe) {
+        return `the ${firstWord}`;
+      }
+
+      const lowerWord = String(firstWord).toLowerCase();
+
+      if (
+        TWO_PRO_KO_EN_UNCOUNTABLE_NOUNS.has(lowerWord) ||
+        (/s$/i.test(firstWord) && !/ss$/i.test(firstWord))
+      ) {
+        return firstWord;
+      }
+
+      return `${twoProStartsWithVowelSound(firstWord) ? 'an' : 'a'} ${firstWord}`;
+    }
+  );
+
+  text = text
+    .replace(/\bthe\s+the\b/gi, 'the')
+    .replace(/\b(?:a|an)\s+(the\s+)/gi, '$1');
+
+  const properPlaces = [
+    'Seoul',
+    'Busan',
+    'Daegu',
+    'Incheon',
+    'Korea',
+    'Japan',
+    'China',
+    'France',
+    'Germany',
+  ];
+
+  for (const place of properPlaces) {
+    text = text.replace(
+      new RegExp(`\\bthe\\s+${place}\\b`, 'g'),
+      place
+    );
+  }
+
+  return text;
+};
+
+const twoProFinalizeEnglish = (
+  value: string,
+  sourceText: string
+): string => {
+  let text = twoProFixEnglishArticles(value)
+    .replace(/\s+/g, ' ')
+    .replace(/\s+([?.!,;:])/g, '$1')
+    .trim();
+
+  if (!text) {
+    return text;
+  }
+
+  text = text.replace(
+    /^([a-z])/,
+    (match) => match.toUpperCase()
+  );
+
+  if (!/[.?!]$/.test(text)) {
+    const sourceIsQuestion =
+      /\?$/.test(String(sourceText || '').trim()) ||
+      /(습니까|나요|까요|인가요|건가요|니|냐)\s*$/.test(
+        String(sourceText || '').trim()
+      );
+
+    text += sourceIsQuestion ? '?' : '.';
+  }
+
+  return text;
+};
+
+const twoProRenderEnglishTemplate = (
+  templateEn: string,
+  slotResults: TwoProKoEnSlotResult[]
+): string | null => {
+  const queues = new Map<string, string[]>();
+
+  for (const slot of slotResults) {
+    const current = queues.get(slot.token) || [];
+    current.push(slot.target);
+    queues.set(slot.token, current);
+  }
+
+  let failed = false;
+
+  const rendered = String(templateEn || '').replace(
+    /\[([A-Za-z][A-Za-z0-9_]*)\]/g,
+    (_full, token) => {
+      const queue = queues.get(token) || [];
+      const replacement = queue.shift();
+
+      if (!replacement) {
+        failed = true;
+        return `[${token}]`;
+      }
+
+      queues.set(token, queue);
+      return replacement;
+    }
+  );
+
+  if (failed || /\[[A-Za-z][A-Za-z0-9_]*\]/.test(rendered)) {
+    return null;
+  }
+
+  return rendered;
+};
+
+const twoProTryKoEnJsonTemplate = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  matchedRule: string;
+  analysis: Array<{ ko: string; en: string }>;
+} | null> => {
+  const normalizedInput = twoProNormalizeKoTemplateInput(originalText);
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  const supabase =
+    supabaseUrl && supabaseKey
+      ? createClient(supabaseUrl, supabaseKey)
+      : null;
+
+  let matchedTemplateAttempts = 0;
+
+  for (const rule of TWO_PRO_KO_EN_TEMPLATE_RULES) {
+    const match = normalizedInput.match(rule.regex);
+
+    if (!match) {
+      continue;
+    }
+
+    matchedTemplateAttempts += 1;
+
+    if (matchedTemplateAttempts > 30) {
+      break;
+    }
+
+    const slotResults: TwoProKoEnSlotResult[] = [];
+    let slotTranslationFailed = false;
+
+    for (let index = 0; index < rule.slots.length; index += 1) {
+      const token = rule.slots[index];
+      const capturedValue = twoProCleanCapturedKo(match[index + 1]);
+      const translatedValue = await twoProTranslateKoEnSlot(
+        token,
+        capturedValue,
+        supabase
+      );
+
+      if (!translatedValue) {
+        slotTranslationFailed = true;
+        break;
+      }
+
+      slotResults.push({
+        token,
+        source: capturedValue,
+        target: translatedValue,
+        slotType: twoProBaseSlotType(token),
+      });
+    }
+
+    if (slotTranslationFailed) {
+      continue;
+    }
+
+    const rendered = twoProRenderEnglishTemplate(
+      rule.templateEn,
+      slotResults
+    );
+
+    if (!rendered) {
+      continue;
+    }
+
+    return {
+      targetText: twoProFinalizeEnglish(rendered, originalText),
+      matchedRule: rule.patternKo,
+      analysis: slotResults.map((slot) => ({
+        ko: slot.source,
+        en: `${slot.target} [${slot.slotType}]`,
+      })),
+    };
+  }
+
+  return null;
+};
+
+
+
+// ============================================================================
+// ☆ TwoPro 한영 문맥 후보 선택 엔진 v5
+// 슬롯 품사·문장 구조·기본영어 후보 우선순위와 참고 단어를 제공합니다.
+// ============================================================================
+
+type TwoProKoEnReferenceWordV5 = {
+  source: string;
+  selected: string | null;
+  candidates: string[];
+  slot: string;
+  confidence: number;
+};
+
+type TwoProKoEnCandidateBundleV5 = {
+  source: string;
+  selected: string;
+  candidates: string[];
+  confidence: number;
+  slotType: string;
+};
+
+const TWO_PRO_KO_EN_V5_CACHE = new Map<
+  string,
+  TwoProKoEnCandidateBundleV5 | null
+>();
+
+const TWO_PRO_KO_EN_LEXICAL_PRIORITIES_V5: Record<
+  string,
+  string[]
+> = {
+  '건물': ['building', 'structure', 'edifice', 'house'],
+  '건축물': ['building', 'structure', 'edifice'],
+  '건조물': ['edifice', 'structure', 'building'],
+  '책': ['book', 'volume'],
+  '자동차': ['car', 'automobile', 'vehicle'],
+  '자전거': ['bicycle', 'bike'],
+  '열쇠': ['key'],
+  '계약서': ['contract', 'agreement'],
+  '조항': ['clause', 'provision', 'article'],
+  '초안': ['draft'],
+  '크다': ['large', 'big', 'great'],
+  '작다': ['small', 'little'],
+  '오래되다': ['old', 'aged', 'long-standing'],
+  '낡다': ['old', 'worn', 'dilapidated'],
+  '웅장하다': ['magnificent', 'grand', 'majestic', 'imposing'],
+  '고결하다': ['noble', 'lofty', 'virtuous'],
+  '아름답다': ['beautiful', 'lovely'],
+  '새롭다': ['new', 'novel'],
+  '좋다': ['good', 'nice'],
+  '나쁘다': ['bad', 'poor'],
+  '넓다': ['wide', 'spacious', 'broad'],
+  '많다': ['many', 'much', 'numerous'],
+};
+
+const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
+  string,
+  string
+> = {
+  '큽니다': '크다',
+  '커요': '크다',
+  '큰': '크다',
+  '작습니다': '작다',
+  '작아요': '작다',
+  '작은': '작다',
+  '오래되었습니다': '오래되다',
+  '오래됐습니다': '오래되다',
+  '오래됐어요': '오래되다',
+  '오래된': '오래되다',
+  '낡았습니다': '낡다',
+  '낡아요': '낡다',
+  '낡은': '낡다',
+  '웅장합니다': '웅장하다',
+  '웅장하군요': '웅장하다',
+  '웅장해요': '웅장하다',
+  '웅장한': '웅장하다',
+  '아름답습니다': '아름답다',
+  '아름다워요': '아름답다',
+  '아름다운': '아름답다',
+  '새롭습니다': '새롭다',
+  '새로워요': '새롭다',
+  '새로운': '새롭다',
+  '좋습니다': '좋다',
+  '좋아요': '좋다',
+  '좋은': '좋다',
+  '나쁩니다': '나쁘다',
+  '나빠요': '나쁘다',
+  '나쁜': '나쁘다',
+  '넓습니다': '넓다',
+  '넓어요': '넓다',
+  '넓은': '넓다',
+  '많습니다': '많다',
+  '많아요': '많다',
+  '많은': '많다',
+};
+
+const twoProNormalizeKoreanAdjectiveV5 = (
+  value: string
+): string => {
+  const cleanValue = twoProCleanCapturedKo(value);
+
+  if (TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5[cleanValue]) {
+    return TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5[cleanValue];
+  }
+
+  if (/하였습니다$/.test(cleanValue)) {
+    return cleanValue.replace(/하였습니다$/, '하다');
+  }
+
+  if (/했습니다$/.test(cleanValue)) {
+    return cleanValue.replace(/했습니다$/, '하다');
+  }
+
+  if (/합니다$/.test(cleanValue)) {
+    return cleanValue.replace(/합니다$/, '하다');
+  }
+
+  if (/하군요$/.test(cleanValue)) {
+    return cleanValue.replace(/하군요$/, '하다');
+  }
+
+  if (/하네요$/.test(cleanValue)) {
+    return cleanValue.replace(/하네요$/, '하다');
+  }
+
+  if (/해요$/.test(cleanValue)) {
+    return cleanValue.replace(/해요$/, '하다');
+  }
+
+  if (/되었습니다$/.test(cleanValue)) {
+    return cleanValue.replace(/되었습니다$/, '되다');
+  }
+
+  if (/됐습니다$/.test(cleanValue)) {
+    return cleanValue.replace(/됐습니다$/, '되다');
+  }
+
+  return cleanValue.endsWith('다')
+    ? cleanValue
+    : cleanValue;
+};
+
+const twoProNormalizeKoreanNounV5 = (
+  value: string
+): string => {
+  return twoProCleanCapturedKo(value)
+    .replace(/(?:으로|로|에서|에게|한테|은|는|이|가|을|를|과|와|에)$/u, '')
+    .trim();
+};
+
+const twoProNormalizeEnglishCandidateV5 = (
+  value: string
+): string => {
+  return twoProCleanEnglishCandidate(value)
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+const twoProPriorityBonusV5 = (
+  source: string,
+  candidate: string
+): number => {
+  const priorities =
+    TWO_PRO_KO_EN_LEXICAL_PRIORITIES_V5[source] || [];
+
+  const normalizedCandidate =
+    twoProNormalizeEnglishCandidateV5(candidate).toLowerCase();
+
+  const index = priorities.findIndex(
+    (item) => item.toLowerCase() === normalizedCandidate
+  );
+
+  return index >= 0 ? 1000 - index * 80 : 0;
+};
+
+const twoProConfidenceFromScoresV5 = (
+  firstScore: number,
+  secondScore: number | null,
+  hasPriority: boolean
+): number => {
+  if (hasPriority) {
+    return 0.96;
+  }
+
+  if (secondScore === null) {
+    return 0.82;
+  }
+
+  const gap = Math.max(0, firstScore - secondScore);
+
+  return Math.max(
+    0.5,
+    Math.min(0.91, 0.58 + gap / 180)
+  );
+};
+
+const twoProLookupBasicEnglishCandidatesV5 = async (
+  sourceTerm: string,
+  slotType: string,
+  supabase: any
+): Promise<TwoProKoEnCandidateBundleV5 | null> => {
+  const normalizedSource =
+    slotType === 'ADJ'
+      ? twoProNormalizeKoreanAdjectiveV5(sourceTerm)
+      : slotType === 'V'
+        ? twoProCleanCapturedKo(sourceTerm)
+        : twoProNormalizeKoreanNounV5(sourceTerm);
+
+  if (!normalizedSource) {
+    return null;
+  }
+
+  const cacheKey = `${slotType}::${normalizedSource}`;
+
+  if (TWO_PRO_KO_EN_V5_CACHE.has(cacheKey)) {
+    return TWO_PRO_KO_EN_V5_CACHE.get(cacheKey) || null;
+  }
+
+  const priorityList =
+    TWO_PRO_KO_EN_LEXICAL_PRIORITIES_V5[normalizedSource] || [];
+
+  const candidateMap = new Map<
+    string,
+    { candidate: string; score: number }
+  >();
+
+  const addCandidate = (
+    candidateValue: string,
+    baseScore: number
+  ) => {
+    const candidate =
+      twoProNormalizeEnglishCandidateV5(candidateValue);
+
+    if (
+      !candidate ||
+      !/[A-Za-z]/.test(candidate) ||
+      /[가-힣]/.test(candidate)
+    ) {
+      return;
+    }
+
+    let score =
+      baseScore +
+      twoProPriorityBonusV5(normalizedSource, candidate);
+
+    const wordCount =
+      candidate.split(/\s+/).filter(Boolean).length;
+
+    if (wordCount === 1) score += 30;
+    else if (wordCount === 2) score += 12;
+    else score -= wordCount * 4;
+
+    if (slotType === 'V') {
+      if (/^to\s+/i.test(candidate)) score += 18;
+      if (/\b(?:is|are|was|were)\b/i.test(candidate)) score -= 30;
+    }
+
+    if (slotType === 'ADJ') {
+      if (/^to\s+/i.test(candidate)) score -= 50;
+      if (/^(?:a|an|the)\s+/i.test(candidate)) score -= 35;
+      if (/\b(?:is|are|was|were|have|has)\b/i.test(candidate)) {
+        score -= 45;
+      }
+      if (/ly$/i.test(candidate)) score -= 12;
+    }
+
+    if (
+      slotType === 'N' ||
+      TWO_PRO_KO_EN_NOUN_SLOT_TYPES.has(slotType)
+    ) {
+      if (/^to\s+/i.test(candidate)) score -= 55;
+      if (/\b(?:is|are|was|were|have|has)\b/i.test(candidate)) {
+        score -= 35;
+      }
+    }
+
+    const key = candidate.toLowerCase();
+    const previous = candidateMap.get(key);
+
+    if (!previous || previous.score < score) {
+      candidateMap.set(key, {
+        candidate,
+        score,
+      });
+    }
+  };
+
+  for (let index = 0; index < priorityList.length; index += 1) {
+    addCandidate(priorityList[index], 300 - index * 10);
+  }
+
+  if (slotType === 'S' && TWO_PRO_KO_EN_SUBJECTS[normalizedSource]) {
+    addCandidate(TWO_PRO_KO_EN_SUBJECTS[normalizedSource], 500);
+  }
+
+  if (
+    (slotType === 'N' ||
+      TWO_PRO_KO_EN_NOUN_SLOT_TYPES.has(slotType)) &&
+    TWO_PRO_KO_EN_COMMON_NOUNS[normalizedSource]
+  ) {
+    addCandidate(
+      TWO_PRO_KO_EN_COMMON_NOUNS[normalizedSource],
+      500
+    );
+  }
+
+  if (
+    slotType === 'PLACE' &&
+    TWO_PRO_KO_EN_PLACES[normalizedSource]
+  ) {
+    addCandidate(TWO_PRO_KO_EN_PLACES[normalizedSource], 500);
+  }
+
+  if (slotType === 'V') {
+    for (const verbCandidate of twoProNormalizeKoreanVerb(
+      normalizedSource
+    )) {
+      if (TWO_PRO_KO_EN_COMMON_VERBS[verbCandidate]) {
+        addCandidate(
+          TWO_PRO_KO_EN_COMMON_VERBS[verbCandidate],
+          500
+        );
+      }
+
+      if (MOCK_XDIC_DB[verbCandidate]) {
+        addCandidate(
+          String(MOCK_XDIC_DB[verbCandidate]),
+          350
+        );
+      }
+    }
+  }
+
+  if (supabase) {
+    try {
+      const escapedSearchTerm = normalizedSource
+        .replace(/\\/g, '\\\\')
+        .replace(/%/g, '\\%')
+        .replace(/_/g, '\\_');
+
+      const { data, error } = await supabase
+        .from('dictionary_lines')
+        .select('line_text, source_order, category_id')
+        .eq('category_id', 1)
+        .ilike('line_text', `%${escapedSearchTerm}%`)
+        .order('source_order', { ascending: true })
+        .limit(100);
+
+      if (!error) {
+        for (const item of Array.isArray(data) ? data : []) {
+          const lineText = String(item?.line_text || '');
+
+          for (const candidate of twoProExtractEnglishCandidates(
+            lineText,
+            normalizedSource
+          )) {
+            addCandidate(
+              candidate,
+              twoProScoreEnglishCandidate(
+                candidate,
+                lineText,
+                normalizedSource,
+                slotType,
+                Number(item?.source_order || 0)
+              )
+            );
+          }
+        }
+      } else {
+        console.error('[한영 v5 후보 조회 오류]', {
+          sourceTerm: normalizedSource,
+          slotType,
+          message: error.message,
+        });
+      }
+    } catch (error) {
+      console.error('[한영 v5 후보 조회 예외]', {
+        sourceTerm: normalizedSource,
+        slotType,
+        error,
+      });
+    }
+  }
+
+  const ranked = [...candidateMap.values()]
+    .sort((a, b) => b.score - a.score);
+
+  const first = ranked[0];
+
+  if (!first) {
+    TWO_PRO_KO_EN_V5_CACHE.set(cacheKey, null);
+    return null;
+  }
+
+  const prioritiesLower = priorityList.map(
+    (item) => item.toLowerCase()
+  );
+
+  const selectedPriorityIndex = prioritiesLower.indexOf(
+    first.candidate.toLowerCase()
+  );
+
+  const bundle: TwoProKoEnCandidateBundleV5 = {
+    source: normalizedSource,
+    selected:
+      slotType === 'V'
+        ? first.candidate.replace(/^to\s+/i, '').trim()
+        : first.candidate,
+    candidates: ranked
+      .slice(0, 6)
+      .map((item) =>
+        slotType === 'V'
+          ? item.candidate.replace(/^to\s+/i, '').trim()
+          : item.candidate
+      )
+      .filter(
+        (candidate, index, values) =>
+          candidate &&
+          values.findIndex(
+            (item) =>
+              item.toLowerCase() === candidate.toLowerCase()
+          ) === index
+      ),
+    confidence: twoProConfidenceFromScoresV5(
+      first.score,
+      ranked[1]?.score ?? null,
+      selectedPriorityIndex >= 0
+    ),
+    slotType,
+  };
+
+  TWO_PRO_KO_EN_V5_CACHE.set(cacheKey, bundle);
+
+  return bundle;
+};
+
+const twoProTranslateKoEnSlotV5 = async (
+  token: string,
+  capturedValue: string,
+  supabase: any
+): Promise<TwoProKoEnCandidateBundleV5 | null> => {
+  const slotType = twoProBaseSlotType(token);
+  const cleanValue = twoProCleanCapturedKo(capturedValue);
+
+  if (!cleanValue) {
+    return null;
+  }
+
+  if (/^[A-Za-z0-9][A-Za-z0-9\s'’\-]*$/.test(cleanValue)) {
+    return {
+      source: cleanValue,
+      selected: cleanValue,
+      candidates: [cleanValue],
+      confidence: 1,
+      slotType,
+    };
+  }
+
+  if (slotType === 'DURATION' || slotType === 'TIME') {
+    const duration = twoProTranslateDuration(cleanValue);
+
+    if (duration) {
+      return {
+        source: cleanValue,
+        selected: duration,
+        candidates: [duration],
+        confidence: 1,
+        slotType,
+      };
+    }
+  }
+
+  if (slotType === 'NUM') {
+    const number =
+      twoProKoreanNumberToDigit(cleanValue) || cleanValue;
+
+    return {
+      source: cleanValue,
+      selected: number,
+      candidates: [number],
+      confidence: 1,
+      slotType,
+    };
+  }
+
+  if (slotType === 'DAY') {
+    const dayMap: Record<string, string> = {
+      '월요일': 'Monday',
+      '화요일': 'Tuesday',
+      '수요일': 'Wednesday',
+      '목요일': 'Thursday',
+      '금요일': 'Friday',
+      '토요일': 'Saturday',
+      '일요일': 'Sunday',
+      '오늘': 'today',
+      '내일': 'tomorrow',
+      '어제': 'yesterday',
+    };
+
+    if (dayMap[cleanValue]) {
+      return {
+        source: cleanValue,
+        selected: dayMap[cleanValue],
+        candidates: [dayMap[cleanValue]],
+        confidence: 1,
+        slotType,
+      };
+    }
+  }
+
+  const lookupType =
+    slotType === 'ADJ'
+      ? 'ADJ'
+      : slotType === 'V'
+        ? 'V'
+        : slotType === 'PLACE'
+          ? 'PLACE'
+          : slotType === 'S'
+            ? 'S'
+            : 'N';
+
+  const bundle =
+    await twoProLookupBasicEnglishCandidatesV5(
+      cleanValue,
+      lookupType,
+      supabase
+    );
+
+  if (bundle) {
+    return {
+      ...bundle,
+      slotType,
+    };
+  }
+
+  const legacyTranslation =
+    await twoProTranslateKoEnSlot(
+      token,
+      capturedValue,
+      supabase
+    );
+
+  if (!legacyTranslation) {
+    return null;
+  }
+
+  return {
+    source:
+      slotType === 'ADJ'
+        ? twoProNormalizeKoreanAdjectiveV5(cleanValue)
+        : cleanValue,
+    selected: legacyTranslation,
+    candidates: [legacyTranslation],
+    confidence: 0.55,
+    slotType,
+  };
+};
+
+const twoProReferenceWordV5 = (
+  bundle: TwoProKoEnCandidateBundleV5
+): TwoProKoEnReferenceWordV5 | null => {
+  if (
+    ['S', 'DURATION', 'TIME', 'NUM', 'DAY'].includes(
+      bundle.slotType
+    )
+  ) {
+    return null;
+  }
+
+  if (!bundle.source || bundle.candidates.length === 0) {
+    return null;
+  }
+
+  return {
+    source: bundle.source,
+    selected: bundle.selected,
+    candidates: bundle.candidates,
+    slot: bundle.slotType,
+    confidence: bundle.confidence,
+  };
+};
+
+const twoProPluralizeEnglishV5 = (
+  value: string
+): string => {
+  const words = String(value || '').trim().split(/\s+/);
+  const last = words.pop() || '';
+
+  const irregular: Record<string, string> = {
+    person: 'people',
+    child: 'children',
+    man: 'men',
+    woman: 'women',
+    mouse: 'mice',
+    foot: 'feet',
+    tooth: 'teeth',
+  };
+
+  const lowerLast = last.toLowerCase();
+  let plural = irregular[lowerLast];
+
+  if (!plural) {
+    if (/[^aeiou]y$/i.test(last)) {
+      plural = `${last.slice(0, -1)}ies`;
+    } else if (/(s|x|z|ch|sh)$/i.test(last)) {
+      plural = `${last}es`;
+    } else if (/s$/i.test(last)) {
+      plural = last;
+    } else {
+      plural = `${last}s`;
+    }
+  }
+
+  words.push(plural);
+  return words.join(' ');
+};
+
+const twoProTryKoEnDemonstrativeCopularV5 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/g, '')
+    .trim();
+
+  const match = normalized.match(
+    /^(이|그)\s+(.+?)(들)?(?:은|는)\s+(?:(정말|매우|아주)\s+)?(.+)$/u
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const demonstrativeKo = match[1];
+  const nounSource = twoProNormalizeKoreanNounV5(match[2]);
+  const isPlural = Boolean(match[3]);
+  const adverbKo = match[4] || '';
+  const adjectiveSource =
+    twoProNormalizeKoreanAdjectiveV5(match[5]);
+
+  if (!nounSource || !adjectiveSource) {
+    return null;
+  }
+
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  const supabase =
+    supabaseUrl && supabaseKey
+      ? createClient(supabaseUrl, supabaseKey)
+      : null;
+
+  const nounBundle =
+    await twoProLookupBasicEnglishCandidatesV5(
+      nounSource,
+      'N',
+      supabase
+    );
+
+  const adjectiveBundle =
+    await twoProLookupBasicEnglishCandidatesV5(
+      adjectiveSource,
+      'ADJ',
+      supabase
+    );
+
+  if (!nounBundle || !adjectiveBundle) {
+    return null;
+  }
+
+  const demonstrativeEn =
+    demonstrativeKo === '이'
+      ? isPlural
+        ? 'These'
+        : 'This'
+      : isPlural
+        ? 'Those'
+        : 'That';
+
+  const nounEn = isPlural
+    ? twoProPluralizeEnglishV5(nounBundle.selected)
+    : nounBundle.selected;
+
+  const beVerb = isPlural ? 'are' : 'is';
+
+  const adverbMap: Record<string, string> = {
+    '정말': 'truly',
+    '매우': 'very',
+    '아주': 'very',
+  };
+
+  const adverbEn = adverbMap[adverbKo] || '';
+
+  const targetText = twoProFinalizeEnglish(
+    [
+      demonstrativeEn,
+      nounEn,
+      beVerb,
+      adverbEn,
+      adjectiveBundle.selected,
+    ]
+      .filter(Boolean)
+      .join(' '),
+    originalText
+  );
+
+  const referenceWords = [
+    twoProReferenceWordV5(nounBundle),
+    twoProReferenceWordV5(adjectiveBundle),
+  ].filter(
+    (
+      item
+    ): item is TwoProKoEnReferenceWordV5 =>
+      Boolean(item)
+  );
+
+  return {
+    targetText,
+    analysis: [
+      {
+        ko: nounSource,
+        en: `${nounBundle.selected} [N]`,
+      },
+      {
+        ko: adjectiveSource,
+        en: `${adjectiveBundle.selected} [ADJ]`,
+      },
+    ],
+    referenceWords,
+    engine: 'contextual-demonstrative-copular-ko-en-v5',
+  };
+};
+
+const twoProTryKoEnJsonTemplateV5 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  matchedRule: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+} | null> => {
+  const normalizedInput =
+    twoProNormalizeKoTemplateInput(originalText);
+
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  const supabase =
+    supabaseUrl && supabaseKey
+      ? createClient(supabaseUrl, supabaseKey)
+      : null;
+
+  let matchedTemplateAttempts = 0;
+
+  for (const rule of TWO_PRO_KO_EN_TEMPLATE_RULES) {
+    const match = normalizedInput.match(rule.regex);
+
+    if (!match) {
+      continue;
+    }
+
+    matchedTemplateAttempts += 1;
+
+    if (matchedTemplateAttempts > 40) {
+      break;
+    }
+
+    const slotResults: Array<
+      TwoProKoEnSlotResult & {
+        bundle: TwoProKoEnCandidateBundleV5;
+      }
+    > = [];
+
+    let slotTranslationFailed = false;
+
+    for (
+      let index = 0;
+      index < rule.slots.length;
+      index += 1
+    ) {
+      const token = rule.slots[index];
+      const capturedValue = twoProCleanCapturedKo(
+        match[index + 1]
+      );
+
+      const bundle =
+        await twoProTranslateKoEnSlotV5(
+          token,
+          capturedValue,
+          supabase
+        );
+
+      if (!bundle) {
+        slotTranslationFailed = true;
+        break;
+      }
+
+      slotResults.push({
+        token,
+        source: bundle.source,
+        target: bundle.selected,
+        slotType: twoProBaseSlotType(token),
+        bundle,
+      });
+    }
+
+    if (slotTranslationFailed) {
+      continue;
+    }
+
+    const rendered = twoProRenderEnglishTemplate(
+      rule.templateEn,
+      slotResults
+    );
+
+    if (!rendered) {
+      continue;
+    }
+
+    const referenceWords = slotResults
+      .map((slot) => twoProReferenceWordV5(slot.bundle))
+      .filter(
+        (
+          item
+        ): item is TwoProKoEnReferenceWordV5 =>
+          Boolean(item)
+      );
+
+    return {
+      targetText: twoProFinalizeEnglish(
+        rendered,
+        originalText
+      ),
+      matchedRule: rule.patternKo,
+      analysis: slotResults.map((slot) => ({
+        ko: slot.bundle.source,
+        en: `${slot.bundle.selected} [${slot.slotType}]`,
+      })),
+      referenceWords,
+    };
+  }
+
+  return null;
+};
+
 // =========================================================================
 // 💡 메인 POST 함수 시작
 // =========================================================================
@@ -429,6 +2301,67 @@ export async function POST(request: Request) {
           engine: 'json-exact',
           matchedRule: exactJsonRuleKey,
         },
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.25단계: 한영 지시어 + 명사 + 계사 + 형용사 문맥 번역
+    // 이/그, 단수/복수, 형용사 활용을 먼저 해석합니다.
+    // =================================================================
+    const twoProCopularResult =
+      await twoProTryKoEnDemonstrativeCopularV5(
+        originalText
+      );
+
+    if (twoProCopularResult) {
+      console.log('[한영 문맥 계사 번역 성공]', {
+        query: originalText,
+        result: twoProCopularResult.targetText,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCopularResult.targetText,
+          isReference: false,
+          analysis: twoProCopularResult.analysis,
+          referenceWords:
+            twoProCopularResult.referenceWords,
+          engine: twoProCopularResult.engine,
+        },
+        referenceWords:
+          twoProCopularResult.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.5단계: TwoPro 한영 JSON 슬롯 템플릿
+    // DB 유사 참고 문장보다 먼저 실행합니다.
+    // =================================================================
+    const twoProTemplateResult =
+      await twoProTryKoEnJsonTemplateV5(originalText);
+
+    if (twoProTemplateResult) {
+      console.log('[한영 JSON Template Match 성공]', {
+        query: originalText,
+        rule: twoProTemplateResult.matchedRule,
+        result: twoProTemplateResult.targetText,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProTemplateResult.targetText,
+          isReference: false,
+          analysis: twoProTemplateResult.analysis,
+          referenceWords: twoProTemplateResult.referenceWords,
+          engine: 'json-template-ko-en-v5',
+          matchedRule: twoProTemplateResult.matchedRule,
+        },
+        referenceWords:
+          twoProTemplateResult.referenceWords,
       });
     }
 

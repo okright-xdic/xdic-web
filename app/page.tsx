@@ -117,6 +117,287 @@ const sortByRelevanceAndCategory = (list: any[]) => {
   });
 };
 
+// ============================================================
+// 문장 관련 검색 결과 표시 정책
+// ============================================================
+
+const SENTENCE_RELATED_LIMIT = 20;
+
+// 처음에는 다양한 카테고리의 상위 결과를 우선 선택합니다.
+const SENTENCE_FIRST_STAGE_LIMIT = 8;
+const SENTENCE_FIRST_STAGE_PER_CATEGORY = 3;
+
+// 최종적으로 한 카테고리가 차지할 수 있는 최대 개수입니다.
+const SENTENCE_FINAL_PER_CATEGORY = 5;
+
+// 문장 검색에서 우선 보강할 중요 카테고리
+// 1: 기본영어
+// 2: 인문사회용어
+// 10: 인문사회기타용어
+const IMPORTANT_CATEGORY_TARGETS: Record<number, number> = {
+  1: 5,
+  2: 4,
+  10: 3,
+};
+
+// ============================================================
+// 단어·전문용어와 문장을 구분합니다.
+// ============================================================
+
+const isSentenceLikeQuery = (
+  value: string
+): boolean => {
+  const text = String(value || '').trim();
+
+  if (!text) {
+    return false;
+  }
+
+  const hasKorean = /[가-힣]/.test(text);
+
+  // ----------------------------------------------------------
+  // 한국어 문장 판별
+  // ----------------------------------------------------------
+  if (hasKorean) {
+    const cleanText = text
+      .replace(/[.!?]+$/g, '')
+      .trim();
+
+    const wordCount = cleanText
+      .split(/\s+/)
+      .filter(Boolean)
+      .length;
+
+    const hasSentenceEnding =
+      /(습니다|습니까|입니다|입니까|인가요|나요|까요|세요|해요|했어요|합니다|했다|한다|된다|됐다|이다|아니다|있다|없다|싶다|좋아해요|좋아하세요|주세요|줘요|할까요|합니까)$/u.test(
+        cleanText
+      );
+
+    return (
+      hasSentenceEnding ||
+      (
+        wordCount >= 2 &&
+        /[?!]$/.test(text)
+      )
+    );
+  }
+
+  // ----------------------------------------------------------
+  // 영어 문장 판별
+  // ----------------------------------------------------------
+  const englishWords =
+    text.match(
+      /[A-Za-z]+(?:['’-][A-Za-z]+)*/g
+    ) || [];
+
+  // sepsis, septic shock, blood pressure 등은
+  // 단어·전문용어 검색으로 처리합니다.
+  if (englishWords.length < 2) {
+    return false;
+  }
+
+  const hasPredicate =
+    /\b(am|is|are|was|were|be|been|being|do|does|did|have|has|had|can|could|will|would|shall|should|may|might|must|need|needs|want|wants|like|likes|liked|love|loves|know|knows|think|thinks|go|goes|went|come|comes|came|check|checks|show|shows|tell|tells|give|gives|take|takes|make|makes|find|finds|help|helps|thank|thanks|please|look|looks|wait|waits|try|tries|use|uses|work|works|live|lives|stay|stays|feel|feels|seem|seems|ask|asks|buy|buys|bring|brings|send|sends|call|calls|open|opens|close|closes|start|starts|finish|finishes|lose|loses|lost|throw|throws|throwing|ride|rides|riding)\b/i.test(
+      text
+    );
+
+  const commonExpression =
+    /^(thank you|thanks|thanks a lot|good morning|good afternoon|good evening|good night)[.!?]?$/i.test(
+      text
+    );
+
+  const startsLikeSentence =
+    /^(i|you|he|she|it|we|they|there|this|that|these|those|who|what|when|where|why|how|please|let's)\b/i.test(
+      text
+    );
+
+  return (
+    commonExpression ||
+    hasPredicate ||
+    (
+      englishWords.length >= 3 &&
+      startsLikeSentence &&
+      /[.!?]$/.test(text)
+    )
+  );
+};
+
+// ============================================================
+// 문장 관련 검색 결과를 최대 20건으로 정리합니다.
+// ============================================================
+
+const selectSentenceRelatedResults = (
+  rankedResults: any[]
+): any[] => {
+  if (
+    !Array.isArray(rankedResults) ||
+    rankedResults.length === 0
+  ) {
+    return [];
+  }
+
+  // category_id 0은 번역 말뭉치 전용이므로
+  // 관련 검색 결과에서는 제외합니다.
+  const candidates = rankedResults.filter(
+    (item) =>
+      Number(item.category_id) !== 0
+  );
+
+  const selected: any[] = [];
+  const selectedKeys = new Set<string>();
+
+  const categoryCounts:
+    Record<number, number> = {};
+
+  const getResultKey = (
+    item: any
+  ): string => {
+    if (
+      item.id !== null &&
+      item.id !== undefined
+    ) {
+      return String(item.id);
+    }
+
+    return [
+      Number(item.category_id),
+      String(item.line_text || ''),
+    ].join('::');
+  };
+
+  const addResult = (
+    item: any,
+    categoryLimit:
+      number = SENTENCE_FINAL_PER_CATEGORY
+  ): boolean => {
+    const categoryId =
+      item.category_id !== null &&
+      item.category_id !== undefined
+        ? Number(item.category_id)
+        : 12;
+
+    if (categoryId === 0) {
+      return false;
+    }
+
+    const key = getResultKey(item);
+
+    if (selectedKeys.has(key)) {
+      return false;
+    }
+
+    const currentCount =
+      categoryCounts[categoryId] || 0;
+
+    if (currentCount >= categoryLimit) {
+      return false;
+    }
+
+    selected.push(item);
+    selectedKeys.add(key);
+
+    categoryCounts[categoryId] =
+      currentCount + 1;
+
+    return true;
+  };
+
+  // ----------------------------------------------------------
+  // 1단계: 관련도가 높은 상위 8건
+  // 카테고리당 최대 3건
+  // ----------------------------------------------------------
+
+  for (const item of candidates) {
+    if (
+      selected.length >=
+      SENTENCE_FIRST_STAGE_LIMIT
+    ) {
+      break;
+    }
+
+    addResult(
+      item,
+      SENTENCE_FIRST_STAGE_PER_CATEGORY
+    );
+  }
+
+  // ----------------------------------------------------------
+  // 2단계: 중요 카테고리 보강
+  // ----------------------------------------------------------
+
+  const importantCategoryOrder = [
+    1,
+    2,
+    10,
+  ];
+
+  for (
+    const categoryId
+    of importantCategoryOrder
+  ) {
+    const targetCount =
+      IMPORTANT_CATEGORY_TARGETS[
+        categoryId
+      ] || 0;
+
+    if (targetCount <= 0) {
+      continue;
+    }
+
+    for (const item of candidates) {
+      if (
+        selected.length >=
+        SENTENCE_RELATED_LIMIT
+      ) {
+        break;
+      }
+
+      if (
+        Number(item.category_id) !==
+        categoryId
+      ) {
+        continue;
+      }
+
+      const currentCount =
+        categoryCounts[categoryId] || 0;
+
+      if (currentCount >= targetCount) {
+        break;
+      }
+
+      addResult(
+        item,
+        Math.min(
+          targetCount,
+          SENTENCE_FINAL_PER_CATEGORY
+        )
+      );
+    }
+  }
+
+  // ----------------------------------------------------------
+  // 3단계: 나머지를 관련도 순서로 최대 20건까지 채움
+  // 최종 카테고리당 최대 5건
+  // ----------------------------------------------------------
+
+  for (const item of candidates) {
+    if (
+      selected.length >=
+      SENTENCE_RELATED_LIMIT
+    ) {
+      break;
+    }
+
+    addResult(
+      item,
+      SENTENCE_FINAL_PER_CATEGORY
+    );
+  }
+
+  return selected;
+};
+
 const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[], flexStr: string, isSplitMode: boolean = false) => {
   if (!items || items.length === 0) return [];
   const lowerKeywordNoSpace = keyword.trim().toLowerCase().replace(/\s+/g, '');
@@ -331,6 +612,10 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
   const cleanQuery = query.trim();
   const noSpaceLen = cleanQuery.replace(/\s+/g, '').length;
   const noSpaceQuery = cleanQuery.replace(/\s+/g, '');
+
+// 문장 검색인지 단어 검색인지 서버에서 판단
+const isSentenceSearch =
+  isSentenceLikeQuery(cleanQuery);
 
   const supabase = createServerComponentClient({ cookies });
 
@@ -710,6 +995,14 @@ relatedSearchKeywords.forEach((keyword) => {
       
       let isSplitModeActive = !!bestSplit;
       results = rotateResults(results, cleanQuery, allSearchKeywords, flexStr, isSplitModeActive);
+// 문장 검색은 관련 검색 결과를
+// 중요 카테고리와 다양성을 고려해 최대 20건으로 정리합니다.
+if (isSentenceSearch) {
+  results =
+    selectSentenceRelatedResults(
+      results
+    );
+}
     }
   }
 
@@ -726,6 +1019,7 @@ relatedSearchKeywords.forEach((keyword) => {
       recentSearches={globalRecent}
       isPartialMatch={isPartialMatch}
       matchedKeywords={matchedKeywords}
+      isSentenceSearch={isSentenceSearch}
     />
   );
 }
