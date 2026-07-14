@@ -84,13 +84,25 @@ const isSentenceLikeQuery = (value: string): boolean => {
       .split(/\s+/)
       .filter(Boolean).length;
 
-    const hasKoreanSentenceEnding =
-      /(습니다|습니까|입니다|인가요|나요|까요|세요|해요|했어요|했습니까|합니다|했다|한다|된다|됐다|이다|아니다|있다|없다|싶다|좋아해요|좋아하세요|주세요|줘요|죠)$/u.test(
+    // ============================================================
+    // ☆ TwoPro v1.2: 한국어 문장 종결형 판별 보강
+    // '큽니다/갑니다/옵니다'처럼 공통 끝부분이 '니다'인 문장과
+    // '커요/작아요/좋아요' 같은 2어절 이상의 해요체를 인식합니다.
+    // ============================================================
+    const hasKoreanFormalEnding =
+      /(습니다|습니까|니다|니까|입니다|인가요|나요|까요|세요|십시오|해요|했어요|했습니까|했다|한다|된다|됐다|이다|아니다|있다|없다|싶다|좋아해요|좋아하세요|주세요|줘요|죠|군요|네요)$/u.test(
+        withoutEndingPunctuation
+      );
+
+    const hasKoreanConversationalEnding =
+      wordCount >= 2 &&
+      /(요|다|죠|군요|네요)$/u.test(
         withoutEndingPunctuation
       );
 
     return (
-      hasKoreanSentenceEnding ||
+      hasKoreanFormalEnding ||
+      hasKoreanConversationalEnding ||
       (wordCount >= 2 && /[?!]$/.test(text))
     );
   }
@@ -230,6 +242,7 @@ useEffect(() => {
       q: normalizedQuery,
     }),
     signal: controller.signal,
+    cache: 'no-store',
   })
     .then((res) => res.json())
     .then((data) => {
