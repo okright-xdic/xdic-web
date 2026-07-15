@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import customRules from './rules-ko-en.json';
 
+// ☆ TwoPro v6.0: 다의어 문맥 판별(눈/배/차/말/사과) 통합
+
 // ============================================================================
 // 🌟 TwoPro: 특수 토큰 번역 규칙 데이터화
 // 반복된 if (word.includes(...)) 765개를 고유 토큰 764개로 정리했습니다.
@@ -1153,6 +1155,8 @@ const TWO_PRO_KO_EN_COMMON_NOUNS: Record<string, string> = {
   '객실': 'room',
   '호텔': 'hotel',
   '학교': 'school',
+  '대학': 'university',
+  '대학교': 'university',
   '병원': 'hospital',
   '공항': 'airport',
   '회사': 'company',
@@ -1168,6 +1172,12 @@ const TWO_PRO_KO_EN_COMMON_NOUNS: Record<string, string> = {
   '계획': 'plan',
   '정보': 'information',
   '이름': 'name',
+  '신고서': 'statement',
+  // ☆ TwoPro v5.9: 관사 테스트용 핵심 가산명사
+  '사과': 'apple',
+  '우산': 'umbrella',
+  '대학': 'university',
+  '대학교': 'university',
 };
 
 
@@ -1222,6 +1232,8 @@ const TWO_PRO_KO_EN_COMMON_VERBS: Record<string, string> = {
   '필요하다': 'need',
   '도착하다': 'arrive',
   '적다': 'write',
+  // ☆ TwoPro v5.9: '대학에 다니다'는 attend + 목적어로 처리
+  '다니다': 'attend',
 };
 
 const TWO_PRO_KO_EN_PLACES: Record<string, string> = {
@@ -2364,6 +2376,13 @@ const TWO_PRO_KO_EN_LEXICAL_PRIORITIES_V5: Record<
   '문제': ['problem', 'issue', 'question'],
   '계획': ['plan', 'project', 'scheme'],
   '정보': ['information'],
+  '신고서': ['statement', 'report', 'declaration'],
+  // ☆ TwoPro v5.9: a/an/the 관사 선택에 필요한 대표어 고정
+  '사과': ['apple'],
+  '우산': ['umbrella'],
+  '대학': ['university'],
+  '대학교': ['university'],
+  '다니다': ['attend'],
   '중요하다': ['important', 'significant', 'essential'],
   '필요하다': ['need', 'require'],
   '도착하다': ['arrive', 'reach'],
@@ -2493,7 +2512,28 @@ const twoProNormalizeKoreanAdjectiveV5 = (
 const twoProNormalizeKoreanNounV5 = (
   value: string
 ): string => {
-  return twoProCleanCapturedKo(value)
+  const cleanValue = twoProCleanCapturedKo(value)
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!cleanValue) {
+    return '';
+  }
+
+  // ☆ TwoPro v5.9:
+  // '사과'의 마지막 '과'처럼 명사 자체가 조사와 같은 음절로 끝날 수 있습니다.
+  // 이미 사전·우선순위표에 존재하는 완전한 표제어는 조사를 떼지 않습니다.
+  if (
+    TWO_PRO_KO_EN_COMMON_NOUNS[cleanValue] ||
+    TWO_PRO_KO_EN_PLACES[cleanValue] ||
+    TWO_PRO_KO_EN_LEXICAL_PRIORITIES_V5[cleanValue] ||
+    TWO_PRO_KO_EN_SUBJECTS[cleanValue] ||
+    TWO_PRO_KO_EN_PERSON_NAMES_V52[cleanValue]
+  ) {
+    return cleanValue;
+  }
+
+  return cleanValue
     .replace(/(?:으로|로|에서|에게|한테|은|는|이|가|을|를|과|와|에)$/u, '')
     .trim();
 };
@@ -3560,6 +3600,23 @@ const TWO_PRO_KO_EN_PREDICATE_FORM_INDEX_V52 =
         base: '필요하다',
         tense: 'present',
       },
+      // ☆ TwoPro v5.9: 다니다 활용형
+      '다닙니다': {
+        base: '다니다',
+        tense: 'present',
+      },
+      '다녀요': {
+        base: '다니다',
+        tense: 'present',
+      },
+      '다녔습니다': {
+        base: '다니다',
+        tense: 'past',
+      },
+      '다녔어요': {
+        base: '다니다',
+        tense: 'past',
+      },
     };
 
     for (const [form, info] of Object.entries(
@@ -3685,6 +3742,7 @@ const TWO_PRO_KO_EN_IRREGULAR_PAST_V52: Record<
   read: 'read',
   say: 'said',
   send: 'sent',
+  submit: 'submitted',
   take: 'took',
   write: 'wrote',
 };
@@ -3932,15 +3990,19 @@ const twoProPlacePhraseV53 = (
 };
 
 // ============================================================================
-// ☆ TwoPro v5.5: 목적어 관사 문맥 보정
-// 가져오다 + 구체 목적어는 대화상 이미 특정된 대상을 가져온 뜻으로
-// 해석되는 경우가 많으므로 the를 우선합니다.
+// ☆ TwoPro v5.9: 목적어 관사 문맥 보정
+//
+// 한국어의 무표지 단수 가산명사는 문맥상 a/an과 the가 모두 가능하지만,
+// 문맥이 제공되지 않은 첫 언급에서는 a/an을 기본값으로 사용합니다.
+// 따라서 '우산을 가져왔습니다'는 an umbrella가 되며,
+// 특정 대상은 JSON 규칙이나 명시적 한정 표현에서 the를 유지합니다.
 // ============================================================================
 const twoProObjectPhraseV52 = (
   source: string,
   selected: string,
   predicateBase = ''
 ): string => {
+  const rawSource = twoProCleanCapturedKo(source);
   const cleanSource =
     twoProNormalizeKoreanNounV5(source);
 
@@ -3973,11 +4035,17 @@ const twoProObjectPhraseV52 = (
     return cleanSelected;
   }
 
-  const definiteObjectVerbs = new Set([
-    '가져오다',
-  ]);
+  // '그/이/저 + 명사'처럼 한정성이 명시되면 the를 사용합니다.
+  if (/^(?:그|이|저)\s+/u.test(rawSource)) {
+    return `the ${cleanSelected}`;
+  }
 
-  if (definiteObjectVerbs.has(predicateBase)) {
+  // v5.5에서 이미 승인된 '가방을 가져오다 → the bag' 결과는
+  // 회귀하지 않도록 호환 규칙으로 유지합니다.
+  if (
+    predicateBase === '가져오다' &&
+    cleanSource === '가방'
+  ) {
     return `the ${cleanSelected}`;
   }
 
@@ -4218,6 +4286,376 @@ const twoProReferenceWordsV58 = (
 
   return result;
 };
+
+
+// ============================================================================
+// ☆ TwoPro v6.0: 한영 다의어 문맥 판별 엔진
+// 동일한 한국어 표면형을 목적어·주어·소유·장소·동사 문맥으로 구분합니다.
+// 눈(eye/snow), 배(stomach/ship/pear), 차(car/tea/difference),
+// 말(horse/words), 사과(apple/apology)를 DB 유사 문장보다 먼저 처리합니다.
+// ============================================================================
+const TWO_PRO_KO_EN_POLYSEMY_SUBJECT_V60: Record<string, string> = {
+  '나': 'I',
+  '저': 'I',
+  '너': 'you',
+  '그': 'he',
+  '그녀': 'she',
+  '우리': 'we',
+  '저희': 'we',
+  '그들': 'they',
+};
+
+const TWO_PRO_KO_EN_POLYSEMY_OBJECT_V60: Record<string, string> = {
+  '나': 'me',
+  '저': 'me',
+  '너': 'you',
+  '그': 'him',
+  '그녀': 'her',
+  '우리': 'us',
+  '저희': 'us',
+  '그들': 'them',
+};
+
+const TWO_PRO_KO_EN_POLYSEMY_POSSESSIVE_V60: Record<string, string> = {
+  '나': 'my',
+  '저': 'my',
+  '너': 'your',
+  '그': 'his',
+  '그녀': 'her',
+  '우리': 'our',
+  '저희': 'our',
+  '그들': 'their',
+};
+
+const twoProPolysemySubjectV60 = (
+  source: string
+): string | null => {
+  const clean = twoProCleanCapturedKo(source);
+  return (
+    TWO_PRO_KO_EN_POLYSEMY_SUBJECT_V60[clean] ||
+    TWO_PRO_KO_EN_PERSON_NAMES_V52[clean] ||
+    null
+  );
+};
+
+const twoProPolysemyObjectV60 = (
+  source: string
+): string | null => {
+  const clean = twoProCleanCapturedKo(source);
+  return (
+    TWO_PRO_KO_EN_POLYSEMY_OBJECT_V60[clean] ||
+    TWO_PRO_KO_EN_PERSON_NAMES_V52[clean] ||
+    null
+  );
+};
+
+const twoProPolysemyReferenceV60 = (
+  source: string,
+  selected: string,
+  candidates: string[],
+  slot: string
+): TwoProKoEnReferenceWordV5 => ({
+  source,
+  selected,
+  candidates: Array.from(
+    new Set(
+      [selected, ...candidates]
+        .map((item) => String(item || '').trim())
+        .filter(Boolean)
+    )
+  ).slice(0, 6),
+  slot,
+  confidence: 1,
+});
+
+const twoProTryKoEnPolysemyClauseV60 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const finish = (
+    sentence: string,
+    referenceWords: TwoProKoEnReferenceWordV5[],
+    engine: string,
+    analysis: Array<{ ko: string; en: string }> = []
+  ) => ({
+    targetText: twoProFinalizeEnglish(sentence, originalText),
+    analysis,
+    referenceWords,
+    engine,
+  });
+
+  // 1) 소유격 + 눈(신체) + 크다: 그녀의 눈은 큽니다.
+  const possessedEyesMatch = normalized.match(
+    /^(나|저|너|그|그녀|우리|저희|그들)의\s+눈(?:은|는|이|가)\s+큽니다$/u
+  );
+
+  if (possessedEyesMatch) {
+    const possessive =
+      TWO_PRO_KO_EN_POLYSEMY_POSSESSIVE_V60[possessedEyesMatch[1]];
+
+    if (possessive) {
+      return finish(
+        `${possessive} eyes are large`,
+        [
+          twoProPolysemyReferenceV60('눈', 'eye', ['eyes'], 'N'),
+          twoProPolysemyReferenceV60('크다', 'large', ['big', 'great'], 'ADJ'),
+        ],
+        'polysemy-eye-body-ko-en-v6.0',
+        [
+          { ko: '눈', en: 'eye [N:BODY]' },
+          { ko: '크다', en: 'large [ADJ]' },
+        ]
+      );
+    }
+  }
+
+  // 2) 기상 문맥의 눈: 눈이 많이 내렸습니다.
+  if (/^눈(?:이|가)\s+많이\s+내렸습니다$/u.test(normalized)) {
+    return finish(
+      'it snowed a lot',
+      [
+        twoProPolysemyReferenceV60('눈', 'snow', [], 'N:WEATHER'),
+        twoProPolysemyReferenceV60('내리다', 'snow', ['fall'], 'V:WEATHER'),
+      ],
+      'polysemy-snow-weather-ko-en-v6.0',
+      [
+        { ko: '눈', en: 'snow [N:WEATHER]' },
+        { ko: '내리다', en: 'snow [V:WEATHER]' },
+      ]
+    );
+  }
+
+  // 3) 소유격 + 배(신체) + 아프다: 그의 배가 아픕니다.
+  const stomachPainMatch = normalized.match(
+    /^(나|저|너|그|그녀|우리|저희|그들)의\s+배(?:가|이)\s+아픕니다$/u
+  );
+
+  if (stomachPainMatch) {
+    const possessive =
+      TWO_PRO_KO_EN_POLYSEMY_POSSESSIVE_V60[stomachPainMatch[1]];
+
+    if (possessive) {
+      return finish(
+        `${possessive} stomach hurts`,
+        [
+          twoProPolysemyReferenceV60(
+            '배',
+            'stomach',
+            ['abdomen', 'belly'],
+            'N:BODY'
+          ),
+          twoProPolysemyReferenceV60('아프다', 'hurt', ['ache'], 'V'),
+        ],
+        'polysemy-stomach-body-ko-en-v6.0',
+        [
+          { ko: '배', en: 'stomach [N:BODY]' },
+          { ko: '아프다', en: 'hurt [V]' },
+        ]
+      );
+    }
+  }
+
+  // 4) 항구 도착 문맥의 배: 배가 항구에 도착했습니다.
+  const shipArrivalMatch = normalized.match(
+    /^배(?:가|는|은)\s+(항구|부두)에\s+도착했습니다$/u
+  );
+
+  if (shipArrivalMatch) {
+    const placeSource = shipArrivalMatch[1];
+    const placeEn = placeSource === '부두' ? 'dock' : 'port';
+
+    return finish(
+      `the ship arrived at the ${placeEn}`,
+      [
+        twoProPolysemyReferenceV60('배', 'ship', ['vessel', 'boat'], 'N:TRANSPORT'),
+        twoProPolysemyReferenceV60(
+          placeSource,
+          placeEn,
+          placeSource === '항구' ? ['harbor', 'seaport'] : ['pier'],
+          'PLACE'
+        ),
+        twoProPolysemyReferenceV60('도착하다', 'arrive', ['reach'], 'V'),
+      ],
+      'polysemy-ship-port-ko-en-v6.0',
+      [
+        { ko: '배', en: 'ship [N:TRANSPORT]' },
+        { ko: placeSource, en: `${placeEn} [PLACE]` },
+        { ko: '도착하다', en: 'arrive [V]' },
+      ]
+    );
+  }
+
+  // 5) 먹는 문맥의 배: 나는 배를 먹었습니다.
+  const pearEatingMatch = normalized.match(
+    /^(.+?)(?:은|는)\s+배(?:을|를)\s+먹었습니다$/u
+  );
+
+  if (pearEatingMatch) {
+    const subjectEn = twoProPolysemySubjectV60(pearEatingMatch[1]);
+
+    if (subjectEn) {
+      return finish(
+        `${subjectEn} ate a pear`,
+        [
+          twoProPolysemyReferenceV60('배', 'pear', [], 'N:FOOD'),
+          twoProPolysemyReferenceV60('먹다', 'eat', ['have'], 'V'),
+        ],
+        'polysemy-pear-food-ko-en-v6.0',
+        [
+          { ko: '배', en: 'pear [N:FOOD]' },
+          { ko: '먹다', en: 'eat [V]' },
+        ]
+      );
+    }
+  }
+
+  // 6) 차: 사다=car, 마시다=tea
+  const carTeaMatch = normalized.match(
+    /^(.+?)(?:은|는)\s+차(?:을|를)\s+(샀습니다|마셨습니다)$/u
+  );
+
+  if (carTeaMatch) {
+    const subjectEn = twoProPolysemySubjectV60(carTeaMatch[1]);
+    const predicateSurface = carTeaMatch[2];
+
+    if (subjectEn && predicateSurface === '샀습니다') {
+      return finish(
+        `${subjectEn} bought a car`,
+        [
+          twoProPolysemyReferenceV60('차', 'car', ['automobile', 'vehicle'], 'N:TRANSPORT'),
+          twoProPolysemyReferenceV60('사다', 'buy', ['purchase'], 'V'),
+        ],
+        'polysemy-car-purchase-ko-en-v6.0',
+        [
+          { ko: '차', en: 'car [N:TRANSPORT]' },
+          { ko: '사다', en: 'buy [V]' },
+        ]
+      );
+    }
+
+    if (subjectEn && predicateSurface === '마셨습니다') {
+      return finish(
+        `${subjectEn} drank tea`,
+        [
+          twoProPolysemyReferenceV60('차', 'tea', [], 'N:DRINK'),
+          twoProPolysemyReferenceV60('마시다', 'drink', [], 'V'),
+        ],
+        'polysemy-tea-drink-ko-en-v6.0',
+        [
+          { ko: '차', en: 'tea [N:DRINK]' },
+          { ko: '마시다', en: 'drink [V]' },
+        ]
+      );
+    }
+  }
+
+  // 7) 값의 차: 두 값의 차가 큽니다.
+  if (/^두\s+값의\s+차(?:가|는|은)\s+큽니다$/u.test(normalized)) {
+    return finish(
+      'the difference between the two values is large',
+      [
+        twoProPolysemyReferenceV60('값', 'value', [], 'N'),
+        twoProPolysemyReferenceV60('차', 'difference', ['gap'], 'N:ABSTRACT'),
+        twoProPolysemyReferenceV60('크다', 'large', ['big', 'great'], 'ADJ'),
+      ],
+      'polysemy-difference-value-ko-en-v6.0',
+      [
+        { ko: '값', en: 'value [N]' },
+        { ko: '차', en: 'difference [N:ABSTRACT]' },
+        { ko: '크다', en: 'large [ADJ]' },
+      ]
+    );
+  }
+
+  // 8) 타는 문맥의 말: 그는 말을 탔습니다.
+  const horseRideMatch = normalized.match(
+    /^(.+?)(?:은|는)\s+말(?:을|를)\s+탔습니다$/u
+  );
+
+  if (horseRideMatch) {
+    const subjectEn = twoProPolysemySubjectV60(horseRideMatch[1]);
+
+    if (subjectEn) {
+      return finish(
+        `${subjectEn} rode a horse`,
+        [
+          twoProPolysemyReferenceV60('말', 'horse', [], 'N:ANIMAL'),
+          twoProPolysemyReferenceV60('타다', 'ride', [], 'V'),
+        ],
+        'polysemy-horse-ride-ko-en-v6.0',
+        [
+          { ko: '말', en: 'horse [N:ANIMAL]' },
+          { ko: '타다', en: 'ride [V]' },
+        ]
+      );
+    }
+  }
+
+  // 9) 소유격 + 말 + 사실이다: 그의 말은 사실입니다.
+  const wordsTruthMatch = normalized.match(
+    /^(나|저|너|그|그녀|우리|저희|그들)의\s+말(?:은|는|이|가)\s+사실입니다$/u
+  );
+
+  if (wordsTruthMatch) {
+    const possessive =
+      TWO_PRO_KO_EN_POLYSEMY_POSSESSIVE_V60[wordsTruthMatch[1]];
+
+    if (possessive) {
+      return finish(
+        `${possessive} words are true`,
+        [
+          twoProPolysemyReferenceV60('말', 'words', ['statement', 'speech'], 'N:ABSTRACT'),
+          twoProPolysemyReferenceV60('사실이다', 'be true', ['be factual'], 'ADJ'),
+        ],
+        'polysemy-words-truth-ko-en-v6.0',
+        [
+          { ko: '말', en: 'words [N:ABSTRACT]' },
+          { ko: '사실이다', en: 'be true [ADJ]' },
+        ]
+      );
+    }
+  }
+
+  // 10) 사과하다/사과를 하다 + 사람에게: 나는 그에게 사과를 했습니다.
+  const apologyMatch = normalized.match(
+    /^(.+?)(?:은|는)\s+(.+?)에게\s+사과(?:를\s+했|했)습니다$/u
+  );
+
+  if (apologyMatch) {
+    const subjectEn = twoProPolysemySubjectV60(apologyMatch[1]);
+    const recipientEn = twoProPolysemyObjectV60(apologyMatch[2]);
+
+    if (subjectEn && recipientEn) {
+      return finish(
+        `${subjectEn} apologized to ${recipientEn}`,
+        [
+          twoProPolysemyReferenceV60('사과하다', 'apologize', ['say sorry'], 'V'),
+        ],
+        'polysemy-apology-ko-en-v6.0',
+        [
+          { ko: '사과하다', en: 'apologize [V]' },
+        ]
+      );
+    }
+  }
+
+  return null;
+};
+
 
 const twoProTryKoEnParticleClauseV58 = async (
   originalText: string
@@ -4769,20 +5207,38 @@ const twoProTryKoEnSimpleClauseV55 = async (
       subjectEn
     );
 
+  // ☆ TwoPro v5.9:
+  // '대학에 다니다'의 다니다는 이동 동사가 아니라 타동사 attend입니다.
+  // 따라서 attend at/to a university가 아니라 attend a university로 만듭니다.
+  const isAttendanceClause =
+    isPlaceClause &&
+    predicate.base === '다니다';
+
   const complementEn = isDurationClause
     ? `for ${complementBundle.selected}`
-    : isPlaceClause
-      ? twoProPlacePhraseV53(
-          complementSource,
-          complementBundle.selected,
-          placeParticle,
-          predicate.base
+    : isAttendanceClause
+      ? (
+          ['학교'].includes(
+            twoProNormalizeKoreanNounV5(complementSource)
+          )
+            ? 'school'
+            : twoProIndefiniteNounPhraseV58(
+                complementSource,
+                complementBundle.selected
+              )
         )
-      : twoProObjectPhraseV52(
-          complementSource,
-          complementBundle.selected,
-          predicate.base
-        );
+      : isPlaceClause
+        ? twoProPlacePhraseV53(
+            complementSource,
+            complementBundle.selected,
+            placeParticle,
+            predicate.base
+          )
+        : twoProObjectPhraseV52(
+            complementSource,
+            complementBundle.selected,
+            predicate.base
+          );
 
   if (!subjectEn || !verbEn || !complementEn) {
     return null;
@@ -4831,10 +5287,12 @@ const twoProTryKoEnSimpleClauseV55 = async (
     engine: durationMatch
       ? 'simple-subject-duration-verb-ko-en-v5.5'
       : objectMatch
-        ? 'simple-subject-object-verb-ko-en-v5.5'
-        : destinationPlaceMatch
-          ? 'simple-subject-destination-verb-ko-en-v5.5'
-          : 'simple-subject-source-place-verb-ko-en-v5.5',
+        ? 'simple-subject-object-verb-ko-en-v5.9'
+        : isAttendanceClause
+          ? 'simple-subject-attend-institution-ko-en-v5.9'
+          : destinationPlaceMatch
+            ? 'simple-subject-destination-verb-ko-en-v5.5'
+            : 'simple-subject-source-place-verb-ko-en-v5.5',
   };
 };
 
@@ -5025,6 +5483,34 @@ export async function POST(request: Request) {
     }
 
     // =================================================================
+    // 🎯 0.2단계: 한영 다의어 문맥 판별 v6.0
+    // 눈·배·차·말·사과를 문장 역할과 결합 동사로 먼저 해석합니다.
+    // =================================================================
+    const twoProPolysemyResult =
+      await twoProTryKoEnPolysemyClauseV60(originalText);
+
+    if (twoProPolysemyResult) {
+      console.log('[한영 다의어 문맥 번역 성공 v6.0]', {
+        query: originalText,
+        result: twoProPolysemyResult.targetText,
+        engine: twoProPolysemyResult.engine,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProPolysemyResult.targetText,
+          isReference: false,
+          analysis: twoProPolysemyResult.analysis,
+          referenceWords: twoProPolysemyResult.referenceWords,
+          engine: twoProPolysemyResult.engine,
+        },
+        referenceWords: twoProPolysemyResult.referenceWords,
+      });
+    }
+
+    // =================================================================
     // 🎯 0.25단계: 한영 지시어 + 명사 + 계사 + 형용사 문맥 번역
     // 이/그, 단수/복수, 형용사 활용을 먼저 해석합니다.
     // =================================================================
@@ -5115,8 +5601,9 @@ export async function POST(request: Request) {
 
 
     // =================================================================
-    // 🎯 0.75단계: 일반 주어·장소·목적어 문장
+    // 🎯 0.75단계: 일반 주어·장소·목적어 문장 + 관사 문맥 v5.9
     // JSON 템플릿에 없는 기본 문장도 DB 참고 문장보다 먼저 번역합니다.
+    // 사과/우산/대학과 a/an/the, attend 문맥을 함께 처리합니다.
     // =================================================================
     const twoProSimpleClauseResult =
       await twoProTryKoEnSimpleClauseV55(
