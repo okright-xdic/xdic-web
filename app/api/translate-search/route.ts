@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import customRules from './rules-ko-en.json';
 
-// ☆ TwoPro v6.0: 다의어 문맥 판별(눈/배/차/말/사과) 통합
+// ☆ TwoPro v6.1: 다의어 문맥 판별(눈/배/차/말/사과/회의) 통합
 
 // ============================================================================
 // 🌟 TwoPro: 특수 토큰 번역 규칙 데이터화
@@ -1165,6 +1165,12 @@ const TWO_PRO_KO_EN_COMMON_NOUNS: Record<string, string> = {
   '컴퓨터': 'computer',
   '파일': 'file',
   '문서': 'document',
+  '자료': 'the material',
+  '보고서': 'report',
+  '영수증': 'receipt',
+  '사진': 'photo',
+  '계약서': 'contract',
+  '견적서': 'quotation',
   '예약': 'reservation',
   '날짜': 'date',
   '시간': 'time',
@@ -2339,6 +2345,9 @@ type TwoProKoEnReferenceWordV5 = {
 type TwoProKoEnCandidateBundleV5 = {
   source: string;
   selected: string;
+  // 문장 생성에는 관사·문맥이 반영된 표면형을 사용할 수 있습니다.
+  // 참고 단어에는 selected의 대표 표제어를 그대로 표시합니다.
+  renderedValue?: string;
   candidates: string[];
   // 화면의 참고 단어에는 한국어 표제어와 정확히 1:1로 대응하는
   // 기본영어 후보만 표시합니다. 문맥 선택용 전체 후보와 분리합니다.
@@ -2370,6 +2379,14 @@ const TWO_PRO_KO_EN_LEXICAL_PRIORITIES_V5: Record<
   '검토하다': ['review', 'examine'],
   '보내다': ['send'],
   '열다': ['open'],
+  '자료': ['the material', 'material', 'data', 'document'],
+  // ☆ TwoPro v6.1: 회의는 문맥별 대표어를 별도 판별합니다.
+  // 기본 우선순위는 업무·일상에서 가장 흔한 meeting입니다.
+  '회의': ['meeting', 'conference', 'session', 'doubt', 'skepticism', 'misgivings'],
+  '보고서': ['report'],
+  '영수증': ['receipt'],
+  '사진': ['photo', 'picture'],
+  '견적서': ['quotation', 'quote', 'estimate'],
   '계약서': ['contract', 'agreement'],
   '조항': ['clause', 'provision', 'article'],
   '초안': ['draft'],
@@ -2412,6 +2429,15 @@ const TWO_PRO_KO_EN_LEXICAL_PRIORITIES_V5: Record<
   '기다리다': ['wait'],
   '운동하다': ['exercise', 'work out'],
   '잃어버리다': ['lose', 'misplace'],
+};
+
+const TWO_PRO_KO_EN_FORBIDDEN_CANDIDATES_V61: Record<
+  string,
+  ReadonlySet<string>
+> = {
+  // 'circuitous'는 '우회하는/에두르는'이라는 형용사이며
+  // 한국어 명사 '회의'의 번역 후보가 아닙니다.
+  '회의': new Set(['circuitous']),
 };
 
 const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
@@ -2538,6 +2564,115 @@ const twoProNormalizeKoreanNounV5 = (
     .trim();
 };
 
+// ============================================================================
+// ☆ TwoPro v6.1: '회의' 문맥 다의어 판별
+// 참고 단어에는 대표 표제어(meeting)를 표시하고,
+// 문장 생성에는 필요한 경우 관사(the meeting)를 별도로 적용합니다.
+// ============================================================================
+const twoProResolveContextualPolysemyBundleV61 = (
+  sourceTerm: string,
+  slotType: string,
+  originalText: string
+): TwoProKoEnCandidateBundleV5 | null => {
+  if (
+    slotType !== 'N' &&
+    !TWO_PRO_KO_EN_NOUN_SLOT_TYPES.has(slotType)
+  ) {
+    return null;
+  }
+
+  const normalizedSource =
+    twoProNormalizeKoreanNounV5(sourceTerm);
+
+  if (normalizedSource !== '회의') {
+    return null;
+  }
+
+  const context = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const makeBundle = (
+    selected: string,
+    renderedValue: string,
+    candidates: string[],
+    confidence: number
+  ): TwoProKoEnCandidateBundleV5 => ({
+    source: '회의',
+    selected,
+    renderedValue,
+    candidates,
+    referenceCandidates: candidates,
+    confidence,
+    slotType,
+  });
+
+  // 의심·불신: 회의가 들다/듭니다, 회의를 품다, 회의적으로 보다
+  if (
+    /(회의(?:가|를|에)?\s*(?:들|듭|품|느끼|생기)|회의적|의심|불신|회의를\s+표하)/u.test(
+      context
+    )
+  ) {
+    return makeBundle(
+      'doubt',
+      'doubt',
+      ['doubt', 'skepticism', 'misgivings'],
+      0.99
+    );
+  }
+
+  // 회기·본회의·개회·폐회 문맥
+  if (
+    /(본회의|회기|개회|폐회|정회|속개|의회\s*회의)/u.test(
+      context
+    )
+  ) {
+    return makeBundle(
+      'session',
+      'the session',
+      ['session', 'meeting'],
+      0.99
+    );
+  }
+
+  // 국제·학술·정상·기자 회의처럼 conference가 자연스러운 문맥
+  if (
+    /(국제|학술|정상|기자|평화|연례|대규모|세계|협상)\s*회의|회의(?:를|가|는|은)?\s*(?:주최|개최)/u.test(
+      context
+    )
+  ) {
+    return makeBundle(
+      'conference',
+      'the conference',
+      ['conference', 'meeting', 'convention'],
+      0.99
+    );
+  }
+
+  // 취소·시작·참석·연기 등 일반 업무·일상 회의 문맥
+  if (
+    /(회의(?:를|가|는|은|에|에서|의)?\s*(?:취소|시작|끝|종료|참석|연기|미루|잡|소집|진행|준비|주재|예약|변경)|(?:취소|시작|끝|종료|참석|연기|미루|잡|소집|진행|준비|주재|예약|변경).{0,12}회의|회의\s*(?:일정|시간|안건|장소|자료|참석자|회의실|회의록))/u.test(
+      context
+    )
+  ) {
+    return makeBundle(
+      'meeting',
+      'the meeting',
+      ['meeting', 'conference', 'session'],
+      0.99
+    );
+  }
+
+  return makeBundle(
+    'meeting',
+    'the meeting',
+    ['meeting', 'conference', 'session'],
+    0.97
+  );
+};
+
 const twoProNormalizeEnglishCandidateV5 = (
   value: string
 ): string => {
@@ -2634,6 +2769,13 @@ const twoProLookupBasicEnglishCandidatesV5 = async (
     }
 
     const key = candidate.toLowerCase();
+    const forbiddenCandidates =
+      TWO_PRO_KO_EN_FORBIDDEN_CANDIDATES_V61[normalizedSource];
+
+    if (forbiddenCandidates?.has(key)) {
+      return;
+    }
+
     if (!exactReferenceCandidateMap.has(key)) {
       exactReferenceCandidateMap.set(key, candidate);
     }
@@ -2651,6 +2793,14 @@ const twoProLookupBasicEnglishCandidatesV5 = async (
       !/[A-Za-z]/.test(candidate) ||
       /[가-힣]/.test(candidate)
     ) {
+      return;
+    }
+
+    const candidateKey = candidate.toLowerCase();
+    const forbiddenCandidates =
+      TWO_PRO_KO_EN_FORBIDDEN_CANDIDATES_V61[normalizedSource];
+
+    if (forbiddenCandidates?.has(candidateKey)) {
       return;
     }
 
@@ -2878,7 +3028,8 @@ const twoProLookupBasicEnglishCandidatesV5 = async (
 const twoProTranslateKoEnSlotV5 = async (
   token: string,
   capturedValue: string,
-  supabase: any
+  supabase: any,
+  originalText: string = ''
 ): Promise<TwoProKoEnCandidateBundleV5 | null> => {
   const slotType = twoProBaseSlotType(token);
   const cleanValue = twoProCleanCapturedKo(capturedValue);
@@ -2895,6 +3046,17 @@ const twoProTranslateKoEnSlotV5 = async (
       confidence: 1,
       slotType,
     };
+  }
+
+  const contextualPolysemyBundle =
+    twoProResolveContextualPolysemyBundleV61(
+      cleanValue,
+      slotType,
+      originalText
+    );
+
+  if (contextualPolysemyBundle) {
+    return contextualPolysemyBundle;
   }
 
   if (slotType === 'DURATION' || slotType === 'TIME') {
@@ -4292,7 +4454,7 @@ const twoProReferenceWordsV58 = (
 // ☆ TwoPro v6.0: 한영 다의어 문맥 판별 엔진
 // 동일한 한국어 표면형을 목적어·주어·소유·장소·동사 문맥으로 구분합니다.
 // 눈(eye/snow), 배(stomach/ship/pear), 차(car/tea/difference),
-// 말(horse/words), 사과(apple/apology)를 DB 유사 문장보다 먼저 처리합니다.
+// 말(horse/words), 사과(apple/apology), 회의(meeting/doubt)를 문맥 우선 처리합니다.
 // ============================================================================
 const TWO_PRO_KO_EN_POLYSEMY_SUBJECT_V60: Record<string, string> = {
   '나': 'I',
@@ -5354,7 +5516,8 @@ const twoProTryKoEnJsonTemplateV5 = async (
         await twoProTranslateKoEnSlotV5(
           token,
           capturedValue,
-          supabase
+          supabase,
+          originalText
         );
 
       if (!bundle) {
@@ -5365,7 +5528,9 @@ const twoProTryKoEnJsonTemplateV5 = async (
       slotResults.push({
         token,
         source: bundle.source,
-        target: bundle.selected,
+        target:
+          bundle.renderedValue ||
+          bundle.selected,
         slotType: twoProBaseSlotType(token),
         bundle,
       });
@@ -5484,7 +5649,7 @@ export async function POST(request: Request) {
 
     // =================================================================
     // 🎯 0.2단계: 한영 다의어 문맥 판별 v6.0
-    // 눈·배·차·말·사과를 문장 역할과 결합 동사로 먼저 해석합니다.
+    // 눈·배·차·말·사과와 회의를 문장 역할·결합 동사·주변어로 먼저 해석합니다.
     // =================================================================
     const twoProPolysemyResult =
       await twoProTryKoEnPolysemyClauseV60(originalText);
@@ -5542,36 +5707,8 @@ export async function POST(request: Request) {
     }
 
     // =================================================================
-    // 🎯 0.4단계: 한국어 조사 문맥 번역 v5.8
-    // 은/는·이/가·을/를·(으)로·과/와·에서·에를 역할별로 처리합니다.
-    // =================================================================
-    const twoProParticleResult =
-      await twoProTryKoEnParticleClauseV58(originalText);
-
-    if (twoProParticleResult) {
-      console.log('[한영 조사 문맥 번역 성공 v5.8]', {
-        query: originalText,
-        result: twoProParticleResult.targetText,
-        engine: twoProParticleResult.engine,
-      });
-
-      return NextResponse.json({
-        ok: true,
-        best: {
-          source_text: originalText,
-          target_text: twoProParticleResult.targetText,
-          isReference: false,
-          analysis: twoProParticleResult.analysis,
-          referenceWords: twoProParticleResult.referenceWords,
-          engine: twoProParticleResult.engine,
-        },
-        referenceWords: twoProParticleResult.referenceWords,
-      });
-    }
-
-    // =================================================================
-    // 🎯 0.5단계: TwoPro 한영 JSON 슬롯 템플릿
-    // DB 유사 참고 문장보다 먼저 실행합니다.
+    // 🎯 0.35단계: TwoPro 한영 JSON 슬롯 템플릿
+    // 구체적인 JSON 템플릿을 일반 조사 문맥 엔진보다 먼저 실행합니다.
     // =================================================================
     const twoProTemplateResult =
       await twoProTryKoEnJsonTemplateV5(originalText);
@@ -5599,6 +5736,34 @@ export async function POST(request: Request) {
       });
     }
 
+
+    // =================================================================
+    // 🎯 0.4단계: 한국어 조사 문맥 번역 v5.8
+    // 은/는·이/가·을/를·(으)로·과/와·에서·에를 역할별로 처리합니다.
+    // =================================================================
+    const twoProParticleResult =
+      await twoProTryKoEnParticleClauseV58(originalText);
+
+    if (twoProParticleResult) {
+      console.log('[한영 조사 문맥 번역 성공 v5.8]', {
+        query: originalText,
+        result: twoProParticleResult.targetText,
+        engine: twoProParticleResult.engine,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProParticleResult.targetText,
+          isReference: false,
+          analysis: twoProParticleResult.analysis,
+          referenceWords: twoProParticleResult.referenceWords,
+          engine: twoProParticleResult.engine,
+        },
+        referenceWords: twoProParticleResult.referenceWords,
+      });
+    }
 
     // =================================================================
     // 🎯 0.75단계: 일반 주어·장소·목적어 문장 + 관사 문맥 v5.9
@@ -5771,62 +5936,12 @@ export async function POST(request: Request) {
       });
     }
 
-    let patternResult: string | null = null;
-    let matchedAnalysis: { en: string; ko: string }[] = [];
-
-if (customRules) {
-      for (const [patternKo, templateEn] of Object.entries(customRules)) {
-        // 💡 [수프로 엣지] 어떤 영문/숫자 태그가 와도 다 잡아내는 만능 레이더 장착!
-        const hasPlaceholder = /\[[A-Za-z0-9_]+\]/.test(patternKo);
-        
-        if (hasPlaceholder) {
-          const compressedPattern = patternKo.replace(/\s+/g, '');
-          const escapedPattern = compressedPattern
-            .replace(/[.+^${}()|[\]\\]/g, '\\$&') 
-            // 💡 [DAY], [COUNTRY1], [ABSTRACT] 등 대괄호 안의 모든 문자를 빈칸(.+)으로 변환
-            .replace(/\\\[[A-Za-z0-9_]+\\\]/g, '(.+)');
-
-          const regex = new RegExp('^' + escapedPattern + '$', 'i');
-          const match = compressedSearchText.match(regex);
-
-          if (match) {
-            let finalEn = templateEn as string;
-            // 💡 패턴에서 사용된 태그들을 순서대로 몽땅 추출
-            const placeholders = patternKo.match(/\[[A-Za-z0-9_]+\]/g) || [];
-            
-            for (let pIdx = 0; pIdx < placeholders.length; pIdx++) {
-              let koWord = match[pIdx + 1].trim();
-              koWord = koWord.replace(/(을|를|은|는|이|가|에|에서|으로|로)$/, '');
-
-              const extendDB: Record<string, string> = {
-                '나무': 'tree', '소년': 'boy', '사과': 'apple', '소녀': 'girl', '하늘': 'sky',
-                '음악': 'music', '수건': 'towel'
-              };
-              let enWord = extendDB[koWord] || MOCK_XDIC_DB[koWord] || koWord; 
-              
-              finalEn = finalEn.replace(placeholders[pIdx], enWord);
-              matchedAnalysis.push({ en: enWord, ko: koWord });
-            }
-            patternResult = finalEn;
-            break;
-          }
-        }
-      }
-    }
-
-    if (patternResult) {
-      patternResult = patternResult.replace(/\s+/g, ' ').trim();
-      patternResult = patternResult.charAt(0).toUpperCase() + patternResult.slice(1);
-
-      return NextResponse.json({
-        ok: true,
-        best: {
-          source_text: originalText,
-          target_text: patternResult + (isQuestion ? '?' : '.'),
-          analysis: matchedAnalysis
-        }
-      });
-    }
+    // =================================================================
+    // 구형 customRules 슬롯 순회는 제거했습니다.
+    // 위의 TwoPro JSON 슬롯 템플릿 엔진이 조사·우선순위·슬롯 번역을
+    // 처리하므로, 여기서 [N] 주세요 같은 광범위 규칙을 다시 검사하면
+    // 'Please give me 자료를 보내' 같은 한영 혼합 오번역이 발생합니다.
+    // =================================================================
 
     // =================================================================
     // 💡 3단계: 기존 단어 조립(RBMT) 엔진

@@ -61,6 +61,67 @@ const CATEGORY_NAMES: Record<number, string> = {
 };
 
 // ================================================================
+// 대응어 하이라이트 안전 처리
+// - '한' 같은 한 글자 토큰이 '완전한/조사한/이용한' 내부에서
+//   잘못 색칠되는 것을 막습니다.
+// ================================================================
+const HIGHLIGHT_STOPWORDS = new Set([
+  // 한국어 한 글자 조사·의존 표현
+  '한', '을', '를', '은', '는', '이', '가', '와', '과', '의',
+  '에', '로', '도', '만', '수', '좀', '및',
+
+  // 영어 기능어
+  'a', 'an', 'the', 'is', 'are', 'was', 'were',
+  'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'
+]);
+
+const normalizeHighlightKey = (value: string): string =>
+  String(value || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .replace(/^[.,:;!?()[\]{}"'“”‘’]+/g, '')
+    .replace(/[.,:;!?()[\]{}"'“”‘’]+$/g, '')
+    .trim();
+
+const sanitizeHighlightKeys = (
+  values: readonly string[]
+): string[] => {
+  const unique = new Map<string, string>();
+
+  for (const rawValue of values) {
+    const value = normalizeHighlightKey(rawValue);
+    const compact = value.replace(/\s+/g, '');
+    const compareKey = value.toLocaleLowerCase();
+
+    if (!value || compact.length < 2) {
+      continue;
+    }
+
+    if (HIGHLIGHT_STOPWORDS.has(compareKey)) {
+      continue;
+    }
+
+    // 한글 한 글자는 다른 단어의 어미·관형형과 쉽게 충돌하므로 제외
+    if (/^[가-힣]$/u.test(compact)) {
+      continue;
+    }
+
+    if (!unique.has(compareKey)) {
+      unique.set(compareKey, value);
+    }
+  }
+
+  // 긴 대응어를 먼저 처리해 짧은 대응어가 일부를 선점하지 않게 합니다.
+  return Array.from(unique.values()).sort(
+    (a, b) => b.length - a.length
+  );
+};
+
+const escapeHighlightRegExp = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+
+// ================================================================
 // 단어·전문용어와 번역할 문장을 구분합니다.
 // ================================================================
 const isSentenceLikeQuery = (value: string): boolean => {
@@ -364,6 +425,11 @@ useEffect(() => {
     else alert('🌟 PC 환경입니다.\n키보드에서 [ Ctrl + D ] 를 동시에 눌러 엑스딕을 즐겨찾기에 추가해주세요!');
   };
 
+  const safeOrangeKeys = useMemo(
+    () => sanitizeHighlightKeys(orangeKeys || []),
+    [orangeKeys]
+  );
+
   const derivedBlueKeys = useMemo(() => {
     const keys: string[] = [];
     const lowerQuery = displayQuery.toLowerCase().trim();
@@ -394,12 +460,19 @@ useEffect(() => {
           }
       }
     });
-    return [...new Set(keys)].filter(b => {
-       const lowerB = b.toLowerCase();
-       if (stopWords.has(lowerB)) return false; 
-       return !(orangeKeys || []).some(o => o.toLowerCase() === lowerB);
+    return sanitizeHighlightKeys(
+      [...new Set(keys)]
+    ).filter((blueKey) => {
+      const lowerBlueKey =
+        blueKey.toLocaleLowerCase();
+
+      return !safeOrangeKeys.some(
+        (orangeKey) =>
+          orangeKey.toLocaleLowerCase() ===
+          lowerBlueKey
+      );
     });
-  }, [displayQuery, results, orangeKeys]);
+  }, [displayQuery, results, safeOrangeKeys]);
 
   const UnifiedHeader = () => (
     <header className="w-full pt-8 pb-0 md:pt-12 md:pb-0">
@@ -481,27 +554,90 @@ const displayResults = React.useMemo(() => {
   const getCategoryName = (id: number) => CATEGORY_NAMES[id] || '기타(Other Terms)';
 
   const highlightMatch = (text: string) => {
-    const allKeys = [...new Set([...orangeKeys, ...derivedBlueKeys])].filter(Boolean).sort((a, b) => b.length - a.length);
-    if (allKeys.length === 0) return <span style={{ color: '#334155', fontWeight: 400 }}>{text}</span>;
-    const escapedRegexParts = allKeys.map(k => {
-      const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      if (!/[가-힣]/.test(k)) return `\\b${escaped}\\b`; 
-      return escaped; 
-    });
-    const regex = new RegExp(`(${escapedRegexParts.join('|')})`, 'gi');
-    const parts = text.split(regex);
-    const lowerQueryNoSpace = displayQuery.toLowerCase().replace(/\s+/g, '');
+    const normalizedText =
+      String(text || '').normalize('NFC');
+
+    const safeBlueKeys =
+      sanitizeHighlightKeys(derivedBlueKeys);
+
+    const allKeys = sanitizeHighlightKeys([
+      ...safeOrangeKeys,
+      ...safeBlueKeys,
+    ]);
+
+    if (allKeys.length === 0) {
+      return (
+        <span
+          style={{
+            color: '#334155',
+            fontWeight: 400,
+          }}
+        >
+          {normalizedText}
+        </span>
+      );
+    }
+
+    const orangeKeySet = new Set(
+      safeOrangeKeys.map((key) =>
+        key.toLocaleLowerCase()
+      )
+    );
+
+    const blueKeySet = new Set(
+      safeBlueKeys.map((key) =>
+        key.toLocaleLowerCase()
+      )
+    );
+
+    const escapedRegexParts =
+      allKeys.map((key) => {
+        const escaped =
+          escapeHighlightRegExp(key);
+
+        // 영어는 단어 경계를 적용하고,
+        // 한국어는 '자료'가 '자료를' 안에서도 대응되도록 부분 일치를 허용합니다.
+        return /[가-힣]/u.test(key)
+          ? escaped
+          : `\\b${escaped}\\b`;
+      });
+
+    const regex = new RegExp(
+      `(${escapedRegexParts.join('|')})`,
+      'giu'
+    );
+
+    const parts = normalizedText.split(regex);
+
     return (
       <>
         {parts.map((part, idx) => {
-          const lowerPart = part.toLowerCase();
-          const lowerPartNoSpace = lowerPart.replace(/\s+/g, ''); 
+          const comparePart =
+            normalizeHighlightKey(
+              part
+            ).toLocaleLowerCase();
+
           let color = '#334155';
-          let weight = 400; 
-          if (orangeKeys.some((k) => k.toLowerCase() === lowerPart)) { color = '#ea580c'; weight = 400; }
-          else if (derivedBlueKeys.some((k) => k.toLowerCase() === lowerPart)) { color = '#2563eb'; weight = 400; }
-          if (lowerPartNoSpace === lowerQueryNoSpace && orangeKeys.length > 0) { color = '#ea580c'; weight = 400; }
-          return <span key={idx} style={{ color, fontWeight: weight }}>{part}</span>;
+
+          if (orangeKeySet.has(comparePart)) {
+            color = '#ea580c';
+          } else if (
+            blueKeySet.has(comparePart)
+          ) {
+            color = '#2563eb';
+          }
+
+          return (
+            <span
+              key={idx}
+              style={{
+                color,
+                fontWeight: 400,
+              }}
+            >
+              {part}
+            </span>
+          );
         })}
       </>
     );
