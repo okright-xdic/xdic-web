@@ -879,11 +879,11 @@ const displayResults = React.useMemo(() => {
       <main className="w-full flex-grow">
         <div className="container mx-auto px-4 md:px-6 max-w-4xl">
           {displayQuery ? (
-            <div className="w-full mt-5">
+            <div className="w-full mt-0">
               
               {/* 🌟 앱 다운로드 안내 문구 (앱이 아닐 때만 노출) */}
               {!displayIsApp && (
-                <div className="w-full mb-6 animate-in fade-in slide-in-from-top-2 duration-500">
+                <div className="w-full mb-4 animate-in fade-in slide-in-from-top-2 duration-500">
                   <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 shadow-sm text-center">
                     <p className="text-[14px] md:text-[15px] font-bold text-slate-700 leading-snug break-keep">
                       📱 휴대폰 앱 다운방법: <span className="text-blue-600 font-extrabold">갤럭시폰</span>은 <span className="text-orange-500 font-extrabold">Play 스토어</span>에서, <span className="text-blue-600 font-extrabold">iPhone</span>은 <span className="text-orange-500 font-extrabold">App Store</span>에서 <span className="text-purple-600 font-extrabold">x-dic</span>으로 검색!
@@ -901,13 +901,13 @@ const displayResults = React.useMemo(() => {
 
                   {/* 🌟 [수프로 마법] 번역 박스 + 스피커 및 검색 문장 표시 UI 반영 */}
                   {aiTranslation && (
-                    <div className="bg-blue-50 border-2 border-blue-300 rounded-2xl p-5 mb-8 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
-                      <div className="flex items-center gap-2 mb-4">
-                        <span className="text-2xl drop-shadow-sm">✨</span>
+                    <div className="bg-blue-50 border-2 border-blue-300 rounded-2xl p-4 mb-5 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl drop-shadow-sm">✨</span>
                         <h3 className="text-blue-800 font-extrabold text-[16px] md:text-lg tracking-tight"> 추천 문장 번역</h3>
                       </div>
                       
-                      <div className="flex flex-col gap-4 pl-1 mb-2">
+                      <div className="flex flex-col gap-2.5 pl-1 mb-0">
                         {/* 🌟 1. 사용자가 검색한 내용 표시 */}
                         <div className="flex items-start gap-3">
                           <span className="text-[13px] md:text-[15px] font-bold text-blue-700/80 whitespace-nowrap mt-1">검색 내용:</span>
@@ -934,7 +934,7 @@ const displayResults = React.useMemo(() => {
                           <span className={`text-[13px] md:text-[15px] font-bold whitespace-nowrap mt-1 ${isReference ? 'text-orange-600' : 'text-blue-700/80'}`}>
                             {isReference ? '참고 문장:' : '검색 결과:'}
                           </span>
-                          <p className="text-xl md:text-2xl font-black text-slate-900 leading-snug flex-1">{aiTranslation.replace(/\.{2,}/g, '.')}</p>
+                          <p className="text-[18px] md:text-[20px] font-black text-slate-900 leading-snug flex-1">{aiTranslation.replace(/\.{2,}/g, '.')}</p>
                           
                           <div className="flex items-center gap-1.5 mt-0.5">
                             {/* 🌟 번역 결과 듣기(스피커) 버튼 */}
@@ -954,7 +954,7 @@ const displayResults = React.useMemo(() => {
                       </div>
 
                     {referenceWords.length > 0 && (
-                      <div className="mt-4 pt-4 border-t border-blue-200/80 space-y-2">
+                      <div className="mt-3 pt-3 border-t border-blue-200/80 space-y-1.5">
                         {referenceWords.map((item, index) => {
                           const selected =
                             item.selected || '';
@@ -1124,6 +1124,31 @@ const displayResults = React.useMemo(() => {
                       </div>
                     </div>
                   )}
+
+                  {/* =====================================================
+                      AI-Hub 한-영 번역 말뭉치 데이터 활용 출처 표기
+                      - 검색 결과·페이지네이션·외부 검색 안내 다음
+                      - 하단 광고 바로 이전
+                      - 웹과 앱에서 모두 표시
+                     ===================================================== */}
+                  <aside
+                    aria-label="AI-Hub 데이터 활용 출처"
+                    className="w-full max-w-4xl mx-auto mt-8 mb-2 px-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-center shadow-sm"
+                  >
+                    <p className="text-[11px] md:text-xs text-slate-500 leading-relaxed break-keep">
+                      본 성과물은 2026년도 과학기술정보통신부 및 한국지능정보사회진흥원의
+                      {' '}&apos;지능정보 산업 인프라 조성&apos; 사업으로 구축된 AI-Hub의
+                      {' '}한-영 번역 말뭉치 데이터를 이용하여 구축되었습니다.
+                    </p>
+                    <p
+                      lang="en"
+                      className="mt-2 text-[11px] md:text-xs text-slate-500 leading-relaxed break-words"
+                    >
+                      This product was made using 한-영 번역 말뭉치 from AI-Hub,
+                      which was supported by the Ministry of Science and ICT and
+                      National Information Society Agency(NIA) in 2026.
+                    </p>
+                  </aside>
 
                   {!displayIsApp && currentItems.length >= 10 && (
                     <div className="w-full flex justify-center mt-8 mb-2">

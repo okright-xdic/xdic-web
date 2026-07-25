@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import customRules from './rules-ko-en.json';
 
-// ☆ TwoPro v6.1: 다의어 문맥 판별(눈/배/차/말/사과/회의) 통합
+// ☆ TwoPro v6.9-safe: 문두 인칭대명사 범용 오버레이 + 소유격 일치
 
 // ============================================================================
 // 🌟 TwoPro: 특수 토큰 번역 규칙 데이터화
@@ -1127,7 +1127,15 @@ type TwoProKoEnSlotResult = {
 const TWO_PRO_KO_EN_SUBJECTS: Record<string, string> = {
   '나': 'I',
   '저': 'I',
+
+  // ☆ TwoPro v6.7-safe:
+  // [SUBJ]이/가 규칙에서 '네가'는 조사 '가'가 분리되어
+  // 슬롯값이 '네'가 됩니다. 일반 사전 조회로 보내지 않고
+  // 반드시 2인칭 주어 you로 처리합니다.
   '너': 'you',
+  '네': 'you',
+  '니': 'you',
+  '너희': 'you',
   '당신': 'you',
   '그': 'he',
   '그녀': 'she',
@@ -1137,6 +1145,96 @@ const TWO_PRO_KO_EN_SUBJECTS: Record<string, string> = {
   '이것': 'it',
   '그것': 'it',
   '저것': 'it',
+};
+
+// ☆ TwoPro v6.4: 간접목적어·수혜자 슬롯용 목적격 대명사
+const TWO_PRO_KO_EN_OBJECT_PRONOUNS_V64: Readonly<
+  Record<string, string>
+> = {
+  '나': 'me',
+  '저': 'me',
+  '내': 'me',
+  '제': 'me',
+
+  '우리': 'us',
+  '저희': 'us',
+
+  '너': 'you',
+  '네': 'you',
+  '당신': 'you',
+  '너희': 'you',
+
+  '그': 'him',
+  '그녀': 'her',
+  '그들': 'them',
+
+  '이것': 'it',
+  '그것': 'it',
+  '저것': 'it',
+
+  '서로': 'each other',
+  '자기': 'himself or herself',
+};
+
+const twoProRecipientDisplaySourceV64 = (
+  capturedValue: string,
+  originalText: string
+): string => {
+  const captured = String(capturedValue || '')
+    .normalize('NFC')
+    .trim();
+
+  if (!captured) {
+    return captured;
+  }
+
+  const escaped = captured.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+
+  const match = String(originalText || '')
+    .normalize('NFC')
+    .match(
+      new RegExp(
+        `(?:^|\\s)(${escaped}(?:에게|한테|께|게))(?=\\s|$)`,
+        'u'
+      )
+    );
+
+  return match?.[1] || captured;
+};
+
+
+// ☆ TwoPro v6.6-safe: 종속절 주어 슬롯의 원문 표시
+// 캡처값 '그'를 화면에서는 '그가'처럼 조사 포함 형태로 보여 줍니다.
+const twoProSubjectClauseDisplaySourceV66Safe = (
+  capturedValue: string,
+  originalText: string
+): string => {
+  const captured = String(capturedValue || '')
+    .normalize('NFC')
+    .trim();
+
+  if (!captured) {
+    return captured;
+  }
+
+  const escaped = captured.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+
+  const match = String(originalText || '')
+    .normalize('NFC')
+    .match(
+      new RegExp(
+        `(?:^|\\s)(${escaped}(?:이|가))(?=\\s|$)`,
+        'u'
+      )
+    );
+
+  return match?.[1] || captured;
 };
 
 const TWO_PRO_KO_EN_COMMON_NOUNS: Record<string, string> = {
@@ -1339,6 +1437,12 @@ const TWO_PRO_PARTICLE_MARKERS: Array<{
   regex: string;
   fixed?: boolean;
 }> = [
+  // ☆ TwoPro v6.4: 간접목적어·수혜자 조사
+  // '제게/내게/네게'의 축약형도 같은 규칙으로 처리합니다.
+  {
+    text: '에게/한테/께/게',
+    regex: '(?:에게|한테|께|게)',
+  },
   { text: '으로/로', regex: '(?:으로|로)' },
   { text: '로/으로', regex: '(?:으로|로)' },
   { text: '(으)로', regex: '(?:으로|로)' },
@@ -2207,6 +2311,223 @@ const twoProFinalizeEnglish = (
   return text;
 };
 
+// ============================================================================
+// ☆ TwoPro v6.5: JSON 슬롯 규칙의 목적어 관사 보정
+//
+// 기존 twoProObjectPhraseV52()는 조사 기반 엔진에서만 사용되었습니다.
+// 이제 [N]을/를처럼 목적격 조사와 결합한 JSON 슬롯에도 재사용합니다.
+// 단, 영어 템플릿이 이미 the/a/an/my...를 제공하면 중복 적용하지 않습니다.
+// ============================================================================
+const TWO_PRO_KO_EN_ENGLISH_DETERMINERS_V65 = [
+  'a/an',
+  'a',
+  'an',
+  'the',
+  'some',
+  'any',
+  'this',
+  'that',
+  'these',
+  'those',
+  'my',
+  'your',
+  'his',
+  'her',
+  'our',
+  'their',
+  'its',
+  'each',
+  'every',
+  'no',
+] as const;
+
+const twoProKoreanSlotHasObjectParticleV65 = (
+  patternKo: string,
+  token: string
+): boolean => {
+  const escapedToken =
+    twoProEscapeRegex(`[${token}]`);
+
+  return new RegExp(
+    `${escapedToken}(?:을/를|를/을|을|를)`,
+    'u'
+  ).test(String(patternKo || ''));
+};
+
+const twoProEnglishTemplateHasDeterminerV65 = (
+  templateEn: string,
+  token: string
+): boolean => {
+  const escapedToken =
+    twoProEscapeRegex(`[${token}]`);
+
+  const determinerPattern =
+    TWO_PRO_KO_EN_ENGLISH_DETERMINERS_V65
+      .map((value) => twoProEscapeRegex(value))
+      .join('|');
+
+  return new RegExp(
+    `(?:^|\\s)(?:${determinerPattern})\\s+${escapedToken}(?=\\s|[.,!?;:]|$)`,
+    'i'
+  ).test(String(templateEn || ''));
+};
+
+const twoProApplyJsonSlotArticleV65 = (
+  patternKo: string,
+  templateEn: string,
+  token: string,
+  sourceValue: string,
+  translatedValue: string
+): string => {
+  const slotType =
+    twoProBaseSlotType(token);
+
+  if (
+    slotType === 'IO' ||
+    !TWO_PRO_KO_EN_NOUN_SLOT_TYPES.has(slotType)
+  ) {
+    return translatedValue;
+  }
+
+  if (
+    !twoProKoreanSlotHasObjectParticleV65(
+      patternKo,
+      token
+    )
+  ) {
+    return translatedValue;
+  }
+
+  if (
+    twoProEnglishTemplateHasDeterminerV65(
+      templateEn,
+      token
+    )
+  ) {
+    return translatedValue;
+  }
+
+  return twoProObjectPhraseV52(
+    sourceValue,
+    translatedValue
+  );
+};
+
+
+// ============================================================================
+// ☆ TwoPro v6.6-safe: [SUBJ] 종속절의 주어·동사 일치
+//
+// 이 함수는 [SUBJ]가 실제로 존재하는 규칙에만 적용됩니다.
+// 기존 [PLACE], [N], [IO], [S] 규칙은 입력값을 그대로 반환합니다.
+// ============================================================================
+const twoProPresentVerbForSubjectV66Safe = (
+  baseVerb: string,
+  subject: string
+): string => {
+  const verb = String(baseVerb || '').trim();
+  const lowerSubject = String(subject || '')
+    .trim()
+    .toLowerCase();
+
+  if (
+    !verb ||
+    ['i', 'you', 'we', 'they'].includes(
+      lowerSubject
+    )
+  ) {
+    return verb;
+  }
+
+  const irregular: Record<string, string> = {
+    be: 'is',
+    do: 'does',
+    go: 'goes',
+    have: 'has',
+  };
+
+  const lowerVerb = verb.toLowerCase();
+
+  if (irregular[lowerVerb]) {
+    return irregular[lowerVerb];
+  }
+
+  if (/[^aeiou]y$/i.test(verb)) {
+    return `${verb.slice(0, -1)}ies`;
+  }
+
+  if (/(s|x|z|ch|sh|o)$/i.test(verb)) {
+    return `${verb}es`;
+  }
+
+  return `${verb}s`;
+};
+
+const twoProApplySubordinateSubjectAgreementV66Safe = (
+  templateEn: string,
+  renderedText: string,
+  slotResults: TwoProKoEnSlotResult[]
+): string => {
+  const subjectSlot = slotResults.find(
+    (slot) =>
+      twoProBaseSlotType(slot.token) ===
+      'SUBJ'
+  );
+
+  if (!subjectSlot) {
+    return renderedText;
+  }
+
+  const templateMatch = String(
+    templateEn || ''
+  ).match(
+    /\[SUBJ\]\s+([A-Za-z]+)\b/i
+  );
+
+  if (!templateMatch) {
+    return renderedText;
+  }
+
+  const baseVerb = templateMatch[1];
+  const subject = String(
+    subjectSlot.target || ''
+  ).trim();
+
+  if (!subject) {
+    return renderedText;
+  }
+
+  const conjugatedVerb =
+    twoProPresentVerbForSubjectV66Safe(
+      baseVerb,
+      subject
+    );
+
+  if (
+    !conjugatedVerb ||
+    conjugatedVerb === baseVerb
+  ) {
+    return renderedText;
+  }
+
+  const escapedSubject = subject.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+
+  const escapedVerb = baseVerb.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+
+  return String(renderedText || '').replace(
+    new RegExp(
+      `\\b${escapedSubject}\\s+${escapedVerb}\\b`,
+      'i'
+    ),
+    `${subject} ${conjugatedVerb}`
+  );
+};
+
 const twoProRenderEnglishTemplate = (
   templateEn: string,
   slotResults: TwoProKoEnSlotResult[]
@@ -3046,6 +3367,84 @@ const twoProTranslateKoEnSlotV5 = async (
       confidence: 1,
       slotType,
     };
+  }
+
+  // ☆ TwoPro v6.4: 간접목적어는 주격이 아니라 목적격으로 변환합니다.
+  // 제/저/나 → me, 우리/저희 → us, 그 → him 등
+  if (slotType === 'IO') {
+    const normalizedRecipient =
+      twoProNormalizeKoreanNounV5(
+        cleanValue
+      );
+
+    const objectPronoun =
+      TWO_PRO_KO_EN_OBJECT_PRONOUNS_V64[
+        normalizedRecipient
+      ];
+
+    if (objectPronoun) {
+      return {
+        source:
+          twoProRecipientDisplaySourceV64(
+            cleanValue,
+            originalText
+          ),
+        selected: objectPronoun,
+        candidates: [objectPronoun],
+        referenceCandidates: [objectPronoun],
+        confidence: 1,
+        slotType,
+      };
+    }
+  }
+
+  // ☆ TwoPro v6.6-safe: 종속절 주어 전용 슬롯
+  // 기존 [S] 처리와 분리하여 명령문의 when 절 주어에만 사용합니다.
+  if (slotType === 'SUBJ') {
+    const normalizedSubject =
+      twoProNormalizeKoreanNounV5(
+        cleanValue
+      );
+
+    const subjectPronoun =
+      TWO_PRO_KO_EN_SUBJECTS[
+        normalizedSubject
+      ];
+
+    if (subjectPronoun) {
+      return {
+        source:
+          twoProSubjectClauseDisplaySourceV66Safe(
+            cleanValue,
+            originalText
+          ),
+        selected: subjectPronoun,
+        candidates: [subjectPronoun],
+        referenceCandidates: [subjectPronoun],
+        confidence: 1,
+        slotType: 'SUBJ',
+      };
+    }
+
+    const translatedSubject =
+      await twoProTranslateSubjectV52(
+        cleanValue,
+        supabase
+      );
+
+    if (translatedSubject) {
+      return {
+        ...translatedSubject,
+        source:
+          twoProSubjectClauseDisplaySourceV66Safe(
+            cleanValue,
+            originalText
+          ),
+        slotType: 'SUBJ',
+      };
+    }
+
+    return null;
   }
 
   const contextualPolysemyBundle =
@@ -5458,8 +5857,941 @@ const twoProTryKoEnSimpleClauseV55 = async (
   };
 };
 
-const twoProTryKoEnJsonTemplateV5 = async (
+// ============================================================================
+// ☆ TwoPro v6.2: 문두 명시적 주어 처리
+// 완전 일치·주어 포함 규칙이 실패했을 때만 주어를 분리하여
+// 기존 무주어 슬롯 규칙을 재사용합니다.
+// ============================================================================
+type TwoProExplicitSubjectV62 = {
+  source: string;
+  pronoun: 'I' | 'we' | 'you' | 'he' | 'she' | 'they';
+  body: string;
+};
+
+const TWO_PRO_EXPLICIT_SUBJECTS_V62: Readonly<
+  Array<{
+    forms: readonly string[];
+    pronoun: TwoProExplicitSubjectV62['pronoun'];
+  }>
+> = [
+  {
+    forms: ['저희는', '저희가', '저흰', '우리는', '우리가', '우린'],
+    pronoun: 'we',
+  },
+  {
+    forms: ['당신께서는', '당신은', '당신이', '너희는', '너희가', '너흰', '너는', '네가', '니가', '너가', '니는', '넌'],
+    pronoun: 'you',
+  },
+  {
+    forms: ['그녀는', '그녀가'],
+    pronoun: 'she',
+  },
+  {
+    forms: ['그들은', '그들이'],
+    pronoun: 'they',
+  },
+  {
+    forms: ['그는', '그가'],
+    pronoun: 'he',
+  },
+  {
+    forms: ['저는', '제가', '나는', '내가', '전', '난'],
+    pronoun: 'I',
+  },
+];
+
+const twoProExtractLeadingSubjectV62 = (
   originalText: string
+): TwoProExplicitSubjectV62 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  for (const group of TWO_PRO_EXPLICIT_SUBJECTS_V62) {
+    const orderedForms = [...group.forms].sort(
+      (left, right) => right.length - left.length
+    );
+
+    for (const form of orderedForms) {
+      if (!normalized.startsWith(`${form} `)) {
+        continue;
+      }
+
+      const body = normalized
+        .slice(form.length)
+        .trim();
+
+      if (!body) {
+        return null;
+      }
+
+      return {
+        source: form,
+        pronoun: group.pronoun,
+        body,
+      };
+    }
+  }
+
+  return null;
+};
+
+const twoProSubjectDisplayV62 = (
+  pronoun: TwoProExplicitSubjectV62['pronoun']
+): string => {
+  const displayMap: Record<
+    TwoProExplicitSubjectV62['pronoun'],
+    string
+  > = {
+    I: 'I',
+    we: 'we',
+    you: 'you',
+    he: 'he',
+    she: 'she',
+    they: 'they',
+  };
+
+  return displayMap[pronoun];
+};
+
+const twoProCapitalizeSubjectV62 = (
+  pronoun: TwoProExplicitSubjectV62['pronoun']
+): string =>
+  pronoun === 'I'
+    ? 'I'
+    : pronoun.charAt(0).toUpperCase() + pronoun.slice(1);
+
+// ============================================================================
+// ☆ TwoPro v6.8-safe: 문두 인칭대명사 범용 영어 주어 오버레이
+//
+// 한국어 문두의 나는/우리는/당신은/그는/그들은 등을 한 번만 추출한 뒤,
+// 기존 무주어 핵심 문장을 번역하고 영어 문장 유형에 맞게 주어를 재배치합니다.
+// - 의문문: Have you → Has he, Do you → Does she, Are you → Am I
+// - 평서문: I want → He wants, We are → I am
+// - 명령문: 2인칭 주어는 영어에서 생략하고 기존 Please ...를 유지
+// ============================================================================
+type TwoProEnglishSentenceMoodV68 =
+  | 'question'
+  | 'imperative'
+  | 'declarative';
+
+const twoProDetectEnglishSentenceMoodV68 = (
+  targetText: string
+): TwoProEnglishSentenceMoodV68 => {
+  const target = String(targetText || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    /\?$/.test(target) ||
+    /^(?:Am|Is|Are|Was|Were|Have|Has|Do|Does|Did|Can|Could|Will|Would|Should|Must|May|Might)(?:n't)?\s+(?:I|you|we|he|she|they)\b/i.test(
+      target
+    )
+  ) {
+    return 'question';
+  }
+
+  if (/^(?:Please|Kindly)\b/i.test(target)) {
+    return 'imperative';
+  }
+
+  return 'declarative';
+};
+
+const twoProEnglishSubjectFormsV68 = (
+  pronoun: TwoProExplicitSubjectV62['pronoun']
+) => {
+  const subject = twoProCapitalizeSubjectV62(pronoun);
+  const lowerSubject = pronoun === 'I' ? 'I' : pronoun;
+  const thirdPerson = pronoun === 'he' || pronoun === 'she';
+
+  return {
+    subject,
+    lowerSubject,
+    thirdPerson,
+    presentBe:
+      pronoun === 'I'
+        ? 'am'
+        : thirdPerson
+          ? 'is'
+          : 'are',
+    pastBe:
+      pronoun === 'I' || thirdPerson
+        ? 'was'
+        : 'were',
+    haveAux: thirdPerson ? 'has' : 'have',
+    doAux: thirdPerson ? 'does' : 'do',
+  };
+};
+
+const TWO_PRO_SAFE_PAST_VERBS_V68 = new Set([
+  'was',
+  'were',
+  'had',
+  'did',
+  'went',
+  'came',
+  'made',
+  'sent',
+  'found',
+  'felt',
+  'thought',
+  'knew',
+  'took',
+  'gave',
+  'got',
+  'saw',
+  'met',
+  'left',
+  'told',
+  'said',
+  'wrote',
+  'read',
+  'bought',
+  'tried',
+  'worked',
+  'studied',
+  'lived',
+  'wanted',
+  'needed',
+  'planned',
+  'hoped',
+  'liked',
+  'used',
+  'checked',
+  'cancelled',
+  'canceled',
+  'arrived',
+  'attended',
+  'learned',
+  'learnt',
+]);
+
+const TWO_PRO_REVERSE_THIRD_VERBS_V68: Record<string, string> = {
+  is: 'be',
+  does: 'do',
+  has: 'have',
+  goes: 'go',
+  wants: 'want',
+  needs: 'need',
+  plans: 'plan',
+  hopes: 'hope',
+  thinks: 'think',
+  knows: 'know',
+  likes: 'like',
+  loves: 'love',
+  prefers: 'prefer',
+  tries: 'try',
+  studies: 'study',
+  works: 'work',
+  lives: 'live',
+  learns: 'learn',
+  speaks: 'speak',
+  sends: 'send',
+  checks: 'check',
+  cancels: 'cancel',
+  uses: 'use',
+  takes: 'take',
+  makes: 'make',
+  finds: 'find',
+  feels: 'feel',
+  seems: 'seem',
+  stays: 'stay',
+  attends: 'attend',
+  arrives: 'arrive',
+  contacts: 'contact',
+  holds: 'hold',
+  begins: 'begin',
+  starts: 'start',
+};
+
+const twoProExpandLeadingSubjectContractionV68 = (
+  targetText: string
+): string => {
+  return String(targetText || '')
+    .replace(/^I'm\b/i, 'I am')
+    .replace(/^We're\b/i, 'We are')
+    .replace(/^You're\b/i, 'You are')
+    .replace(/^He's\b/i, 'He is')
+    .replace(/^She's\b/i, 'She is')
+    .replace(/^They're\b/i, 'They are')
+    .replace(/^I've\b/i, 'I have')
+    .replace(/^We've\b/i, 'We have')
+    .replace(/^You've\b/i, 'You have')
+    .replace(/^He's\b/i, 'He has')
+    .replace(/^She's\b/i, 'She has')
+    .replace(/^They've\b/i, 'They have')
+    .replace(/^I'll\b/i, 'I will')
+    .replace(/^We'll\b/i, 'We will')
+    .replace(/^You'll\b/i, 'You will')
+    .replace(/^He'll\b/i, 'He will')
+    .replace(/^She'll\b/i, 'She will')
+    .replace(/^They'll\b/i, 'They will')
+    .replace(/^I'd\b/i, 'I would')
+    .replace(/^We'd\b/i, 'We would')
+    .replace(/^You'd\b/i, 'You would')
+    .replace(/^He'd\b/i, 'He would')
+    .replace(/^She'd\b/i, 'She would')
+    .replace(/^They'd\b/i, 'They would');
+};
+
+const twoProRebaseQuestionSubjectV68 = (
+  targetText: string,
+  pronoun: TwoProExplicitSubjectV62['pronoun']
+): string | null => {
+  const target = String(targetText || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = target.match(
+    /^(Am|Is|Are|Was|Were|Have|Has|Do|Does|Did|Can|Could|Will|Would|Should|Must|May|Might)(n't)?\s+(I|you|we|he|she|they)\b(.*)$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const forms = twoProEnglishSubjectFormsV68(pronoun);
+  const originalAux = match[1].toLowerCase();
+  const negative = match[2] || '';
+  let nextAux = originalAux;
+
+  if (['am', 'is', 'are'].includes(originalAux)) {
+    nextAux = forms.presentBe;
+  } else if (['was', 'were'].includes(originalAux)) {
+    nextAux = forms.pastBe;
+  } else if (['have', 'has'].includes(originalAux)) {
+    nextAux = forms.haveAux;
+  } else if (['do', 'does'].includes(originalAux)) {
+    nextAux = forms.doAux;
+  }
+
+  const capitalizedAux =
+    nextAux.charAt(0).toUpperCase() + nextAux.slice(1);
+
+  return `${capitalizedAux}${negative} ${forms.lowerSubject}${match[4]}`;
+};
+
+const twoProDeconjugateThirdPersonVerbV68 = (
+  verb: string
+): string | null => {
+  const lowerVerb = String(verb || '').toLowerCase();
+
+  if (TWO_PRO_REVERSE_THIRD_VERBS_V68[lowerVerb]) {
+    return TWO_PRO_REVERSE_THIRD_VERBS_V68[lowerVerb];
+  }
+
+  return null;
+};
+
+
+// ============================================================================
+// ☆ TwoPro v6.9-safe: 문두 주어에 따른 영어 소유 표현 일치
+//
+// 주어 오버레이가 I → We처럼 문법적 주어를 바꿀 때,
+// 그 주어와 동일한 소유자에 속하는 my/mine/myself도
+// our/ours/ourselves로 함께 맞춥니다.
+//
+// 다른 사람을 가리키는 소유격은 변경하지 않습니다.
+// 예: I sent your file. → We sent your file.  (your 유지)
+// ============================================================================
+type TwoProEnglishPersonV69 =
+  | 'I'
+  | 'we'
+  | 'you'
+  | 'he'
+  | 'she'
+  | 'they';
+
+type TwoProPossessiveFormsV69 = {
+  adjective: string;
+  independent: string;
+  reflexive: string;
+};
+
+const TWO_PRO_POSSESSIVE_FORMS_V69: Record<
+  TwoProEnglishPersonV69,
+  TwoProPossessiveFormsV69
+> = {
+  I: {
+    adjective: 'my',
+    independent: 'mine',
+    reflexive: 'myself',
+  },
+  we: {
+    adjective: 'our',
+    independent: 'ours',
+    reflexive: 'ourselves',
+  },
+  you: {
+    adjective: 'your',
+    independent: 'yours',
+    reflexive: 'yourself',
+  },
+  he: {
+    adjective: 'his',
+    independent: 'his',
+    reflexive: 'himself',
+  },
+  she: {
+    adjective: 'her',
+    independent: 'hers',
+    reflexive: 'herself',
+  },
+  they: {
+    adjective: 'their',
+    independent: 'theirs',
+    reflexive: 'themselves',
+  },
+};
+
+const twoProDetectEnglishMainSubjectV69 = (
+  targetText: string
+): TwoProEnglishPersonV69 | null => {
+  const target = String(targetText || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const declarativeMatch = target.match(
+    /^(I|We|You|He|She|They)\b/i
+  );
+
+  if (declarativeMatch) {
+    const raw = declarativeMatch[1].toLowerCase();
+
+    if (raw === 'i') return 'I';
+    if (raw === 'we') return 'we';
+    if (raw === 'you') return 'you';
+    if (raw === 'he') return 'he';
+    if (raw === 'she') return 'she';
+    if (raw === 'they') return 'they';
+  }
+
+  const questionMatch = target.match(
+    /^(?:Am|Is|Are|Was|Were|Have|Has|Do|Does|Did|Can|Could|Will|Would|Should|Must|May|Might)(?:n't)?\s+(I|you|we|he|she|they)\b/i
+  );
+
+  if (!questionMatch) {
+    return null;
+  }
+
+  const raw = questionMatch[1].toLowerCase();
+
+  if (raw === 'i') return 'I';
+  if (raw === 'we') return 'we';
+  if (raw === 'you') return 'you';
+  if (raw === 'he') return 'he';
+  if (raw === 'she') return 'she';
+  if (raw === 'they') return 'they';
+
+  return null;
+};
+
+const twoProPossessiveTargetPersonV69 = (
+  pronoun: TwoProExplicitSubjectV62['pronoun']
+): TwoProEnglishPersonV69 =>
+  pronoun === 'I'
+    ? 'I'
+    : pronoun;
+
+const twoProReplaceWholeWordPreservingCaseV69 = (
+  text: string,
+  from: string,
+  to: string
+): string => {
+  const escaped = from.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+
+  return String(text || '').replace(
+    new RegExp(`\\b${escaped}\\b`, 'gi'),
+    (matched) => {
+      if (matched === matched.toUpperCase()) {
+        return to.toUpperCase();
+      }
+
+      if (
+        matched.charAt(0) ===
+        matched.charAt(0).toUpperCase()
+      ) {
+        return (
+          to.charAt(0).toUpperCase() +
+          to.slice(1)
+        );
+      }
+
+      return to;
+    }
+  );
+};
+
+const twoProAlignPossessivesWithLeadingSubjectV69 = (
+  originalTargetText: string,
+  transformedTargetText: string,
+  pronoun: TwoProExplicitSubjectV62['pronoun']
+): string => {
+  const originalPerson =
+    twoProDetectEnglishMainSubjectV69(
+      originalTargetText
+    );
+
+  if (!originalPerson) {
+    return transformedTargetText;
+  }
+
+  const targetPerson =
+    twoProPossessiveTargetPersonV69(
+      pronoun
+    );
+
+  if (originalPerson === targetPerson) {
+    return transformedTargetText;
+  }
+
+  const fromForms =
+    TWO_PRO_POSSESSIVE_FORMS_V69[
+      originalPerson
+    ];
+
+  const toForms =
+    TWO_PRO_POSSESSIVE_FORMS_V69[
+      targetPerson
+    ];
+
+  let result = String(
+    transformedTargetText || ''
+  );
+
+  // 긴 형태를 먼저 치환하여 부분 충돌을 방지합니다.
+  result =
+    twoProReplaceWholeWordPreservingCaseV69(
+      result,
+      fromForms.reflexive,
+      toForms.reflexive
+    );
+
+  result =
+    twoProReplaceWholeWordPreservingCaseV69(
+      result,
+      fromForms.independent,
+      toForms.independent
+    );
+
+  result =
+    twoProReplaceWholeWordPreservingCaseV69(
+      result,
+      fromForms.adjective,
+      toForms.adjective
+    );
+
+  return result;
+};
+
+const twoProApplyLeadingSubjectOverlayV68 = (
+  targetText: string,
+  pronoun: TwoProExplicitSubjectV62['pronoun']
+): string | null => {
+  const target = String(targetText || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!target) {
+    return null;
+  }
+
+  const mood = twoProDetectEnglishSentenceMoodV68(target);
+
+  // 한국어 명령문의 너는/당신은/너희는은 영어에서 보통 생략합니다.
+  // 1·3인칭 명령문은 의미가 달라질 수 있으므로 억지로 변환하지 않습니다.
+  if (mood === 'imperative') {
+    return pronoun === 'you' ? target : null;
+  }
+
+  if (mood === 'question') {
+    const rebasedQuestion =
+      twoProRebaseQuestionSubjectV68(
+        target,
+        pronoun
+      );
+
+    if (!rebasedQuestion) {
+      return null;
+    }
+
+    return twoProAlignPossessivesWithLeadingSubjectV69(
+      target,
+      rebasedQuestion,
+      pronoun
+    );
+  }
+
+  const expanded =
+    twoProExpandLeadingSubjectContractionV68(
+      target
+    );
+
+  const forms = twoProEnglishSubjectFormsV68(pronoun);
+
+  const auxiliaryMatch = expanded.match(
+    /^(I|We|You|He|She|They)\s+(am|is|are|was|were|have|has|do|does|will|would|can|could|should|must|may|might)\b(.*)$/i
+  );
+
+  if (auxiliaryMatch) {
+    const originalAux = auxiliaryMatch[2].toLowerCase();
+    let nextAux = originalAux;
+
+    if (['am', 'is', 'are'].includes(originalAux)) {
+      nextAux = forms.presentBe;
+    } else if (['was', 'were'].includes(originalAux)) {
+      nextAux = forms.pastBe;
+    } else if (['have', 'has'].includes(originalAux)) {
+      nextAux = forms.haveAux;
+    } else if (['do', 'does'].includes(originalAux)) {
+      nextAux = forms.doAux;
+    }
+
+    const transformed =
+      `${forms.subject} ${nextAux}${auxiliaryMatch[3]}`;
+
+    return twoProAlignPossessivesWithLeadingSubjectV69(
+      expanded,
+      transformed,
+      pronoun
+    );
+  }
+
+  const simpleMatch = expanded.match(
+    /^(I|We|You|He|She|They)\s+([A-Za-z]+)\b(.*)$/i
+  );
+
+  if (!simpleMatch) {
+    return null;
+  }
+
+  const originalSubject = simpleMatch[1].toLowerCase();
+  const originalVerb = simpleMatch[2];
+  const lowerVerb = originalVerb.toLowerCase();
+  const originalThird =
+    originalSubject === 'he' || originalSubject === 'she';
+
+  if (TWO_PRO_SAFE_PAST_VERBS_V68.has(lowerVerb)) {
+    const transformed =
+      `${forms.subject} ${originalVerb}${simpleMatch[3]}`;
+
+    return twoProAlignPossessivesWithLeadingSubjectV69(
+      expanded,
+      transformed,
+      pronoun
+    );
+  }
+
+  let nextVerb = originalVerb;
+
+  if (!originalThird && forms.thirdPerson) {
+    nextVerb = twoProConjugateEnglishWordV52(
+      originalVerb,
+      'present',
+      true
+    );
+  } else if (originalThird && !forms.thirdPerson) {
+    const deconjugated =
+      twoProDeconjugateThirdPersonVerbV68(
+        originalVerb
+      );
+
+    if (!deconjugated) {
+      return null;
+    }
+
+    nextVerb = deconjugated;
+  }
+
+  const transformed =
+    `${forms.subject} ${nextVerb}${simpleMatch[3]}`;
+
+  return twoProAlignPossessivesWithLeadingSubjectV69(
+    expanded,
+    transformed,
+    pronoun
+  );
+};
+
+const twoProApplyExplicitSubjectV62 = (
+  targetText: string,
+  pronoun: TwoProExplicitSubjectV62['pronoun']
+): string | null => {
+  const target = String(targetText || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!target) {
+    return null;
+  }
+
+  // 기존 템플릿이 1인칭 문장일 때만 주어를 안전하게 바꿉니다.
+  // 명령문(Please...), 무주어 수동문, 일반 사실문에는 주어를 억지로 붙이지 않습니다.
+  if (!/^(I\b|I'd\b|I'm\b|I've\b|I'll\b)/i.test(target)) {
+    return null;
+  }
+
+  if (pronoun === 'I') {
+    return target;
+  }
+
+  const subject = twoProCapitalizeSubjectV62(pronoun);
+  const isThirdPerson =
+    pronoun === 'he' || pronoun === 'she';
+
+  const directReplacements: Array<
+    [RegExp, string]
+  > = [
+    [/^I'd\b/i, `${subject}'d`],
+    [
+      /^I'm\b/i,
+      isThirdPerson
+        ? `${subject} is`
+        : `${subject}'re`,
+    ],
+    [
+      /^I've\b/i,
+      isThirdPerson
+        ? `${subject} has`
+        : `${subject}'ve`,
+    ],
+    [/^I'll\b/i, `${subject}'ll`],
+    [
+      /^I am\b/i,
+      `${subject} ${
+        isThirdPerson
+          ? 'is'
+          : pronoun === 'you'
+            ? 'are'
+            : 'are'
+      }`,
+    ],
+    [
+      /^I was\b/i,
+      `${subject} ${
+        isThirdPerson ? 'was' : 'were'
+      }`,
+    ],
+    [
+      /^I have\b/i,
+      `${subject} ${
+        isThirdPerson ? 'has' : 'have'
+      }`,
+    ],
+    [
+      /^I do not\b/i,
+      `${subject} ${
+        isThirdPerson
+          ? 'does not'
+          : 'do not'
+      }`,
+    ],
+    [
+      /^I don't\b/i,
+      `${subject} ${
+        isThirdPerson
+          ? "doesn't"
+          : "don't"
+      }`,
+    ],
+    [
+      /^I do\b/i,
+      `${subject} ${
+        isThirdPerson ? 'does' : 'do'
+      }`,
+    ],
+  ];
+
+  for (const [pattern, replacement] of directReplacements) {
+    if (pattern.test(target)) {
+      return target.replace(pattern, replacement);
+    }
+  }
+
+  // 조동사는 주어가 바뀌어도 형태가 같습니다.
+  if (
+    /^I\s+(?:can|cannot|can't|could|couldn't|will|won't|would|wouldn't|should|shouldn't|must|mustn't|may|might)\b/i.test(
+      target
+    )
+  ) {
+    return target.replace(/^I\b/i, subject);
+  }
+
+  // 과거형은 주어가 바뀌어도 동사 형태가 같습니다.
+  if (
+    /^I\s+(?:had|did|went|came|made|sent|found|felt|thought|knew|took|gave|got|saw|met|left|told|said|wrote|read|bought|tried|worked|studied|lived|wanted|needed|planned|hoped|liked|used|checked|cancelled|canceled)\b/i.test(
+      target
+    )
+  ) {
+    return target.replace(/^I\b/i, subject);
+  }
+
+  // 복수·2인칭은 일반 현재형의 동사 형태가 I와 같습니다.
+  if (!isThirdPerson) {
+    return target.replace(/^I\b/i, subject);
+  }
+
+  // 3인칭 단수는 자주 쓰는 현재형만 보수적으로 활용합니다.
+  const thirdPersonVerbMap: Record<string, string> = {
+    want: 'wants',
+    need: 'needs',
+    plan: 'plans',
+    hope: 'hopes',
+    think: 'thinks',
+    know: 'knows',
+    like: 'likes',
+    love: 'loves',
+    prefer: 'prefers',
+    try: 'tries',
+    go: 'goes',
+    study: 'studies',
+    work: 'works',
+    live: 'lives',
+    learn: 'learns',
+    speak: 'speaks',
+    send: 'sends',
+    check: 'checks',
+    cancel: 'cancels',
+    use: 'uses',
+    take: 'takes',
+    make: 'makes',
+    find: 'finds',
+    feel: 'feels',
+    seem: 'seems',
+    stay: 'stays',
+    attend: 'attends',
+  };
+
+  const presentMatch = target.match(
+    /^I\s+([A-Za-z]+)\b(.*)$/i
+  );
+
+  if (!presentMatch) {
+    return null;
+  }
+
+  const verb = presentMatch[1].toLowerCase();
+  const conjugated = thirdPersonVerbMap[verb];
+
+  if (!conjugated) {
+    return null;
+  }
+
+  return `${subject} ${conjugated}${presentMatch[2]}`;
+};
+
+// ============================================================================
+// ☆ TwoPro v6.3: 고정 exact 문장의 기본 영어 주어 재배치
+// 예: We are holding ... → They are holding ...
+// 명령문·무주어 문장에는 적용하지 않습니다.
+// ============================================================================
+const twoProRebaseExactEnglishSubjectV63 = (
+  targetText: string,
+  pronoun: TwoProExplicitSubjectV62['pronoun']
+): string | null => {
+  const target = String(targetText || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!target || /^Please\b/i.test(target)) {
+    return null;
+  }
+
+  const subject =
+    twoProCapitalizeSubjectV62(pronoun);
+
+  const presentBe =
+    pronoun === 'I'
+      ? 'am'
+      : pronoun === 'he' || pronoun === 'she'
+        ? 'is'
+        : 'are';
+
+  const pastBe =
+    pronoun === 'he' ||
+    pronoun === 'she' ||
+    pronoun === 'I'
+      ? 'was'
+      : 'were';
+
+  const haveAux =
+    pronoun === 'he' || pronoun === 'she'
+      ? 'has'
+      : 'have';
+
+  const doAux =
+    pronoun === 'he' || pronoun === 'she'
+      ? 'does'
+      : 'do';
+
+  // 자주 쓰는 주어 축약형을 우선 완전형으로 정규화합니다.
+  const expanded = target
+    .replace(/^I'm\b/i, 'I am')
+    .replace(/^We're\b/i, 'We are')
+    .replace(/^You're\b/i, 'You are')
+    .replace(/^They're\b/i, 'They are')
+    .replace(/^I've\b/i, 'I have')
+    .replace(/^We've\b/i, 'We have')
+    .replace(/^You've\b/i, 'You have')
+    .replace(/^They've\b/i, 'They have')
+    .replace(/^I'll\b/i, 'I will')
+    .replace(/^We'll\b/i, 'We will')
+    .replace(/^You'll\b/i, 'You will')
+    .replace(/^He'll\b/i, 'He will')
+    .replace(/^She'll\b/i, 'She will')
+    .replace(/^They'll\b/i, 'They will')
+    .replace(/^I'd\b/i, 'I would')
+    .replace(/^We'd\b/i, 'We would')
+    .replace(/^You'd\b/i, 'You would')
+    .replace(/^He'd\b/i, 'He would')
+    .replace(/^She'd\b/i, 'She would')
+    .replace(/^They'd\b/i, 'They would');
+
+  const auxiliaryMatch = expanded.match(
+    /^(I|We|You|He|She|They)\s+(am|is|are|was|were|have|has|do|does|will|would|can|could|should|must|may|might)\b(.*)$/i
+  );
+
+  if (auxiliaryMatch) {
+    const originalAux =
+      auxiliaryMatch[2].toLowerCase();
+
+    let nextAux = originalAux;
+
+    if (['am', 'is', 'are'].includes(originalAux)) {
+      nextAux = presentBe;
+    } else if (
+      ['was', 'were'].includes(originalAux)
+    ) {
+      nextAux = pastBe;
+    } else if (
+      ['have', 'has'].includes(originalAux)
+    ) {
+      nextAux = haveAux;
+    } else if (
+      ['do', 'does'].includes(originalAux)
+    ) {
+      nextAux = doAux;
+    }
+
+    return `${subject} ${nextAux}${auxiliaryMatch[3]}`;
+  }
+
+  // 기존 I형 슬롯 템플릿 변환 로직도 함께 재사용합니다.
+  return twoProApplyExplicitSubjectV62(
+    target,
+    pronoun
+  );
+};
+
+
+const twoProTryKoEnJsonTemplateV5 = async (
+  templateText: string,
+  contextText: string = templateText
 ): Promise<{
   targetText: string;
   matchedRule: string;
@@ -5467,7 +6799,7 @@ const twoProTryKoEnJsonTemplateV5 = async (
   referenceWords: TwoProKoEnReferenceWordV5[];
 } | null> => {
   const normalizedInput =
-    twoProNormalizeKoTemplateInput(originalText);
+    twoProNormalizeKoTemplateInput(templateText);
 
   const supabaseUrl =
     process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -5517,7 +6849,7 @@ const twoProTryKoEnJsonTemplateV5 = async (
           token,
           capturedValue,
           supabase,
-          originalText
+          contextText
         );
 
       if (!bundle) {
@@ -5525,12 +6857,23 @@ const twoProTryKoEnJsonTemplateV5 = async (
         break;
       }
 
+      const baseTranslatedValue =
+        bundle.renderedValue ||
+        bundle.selected;
+
+      const articleAdjustedValue =
+        twoProApplyJsonSlotArticleV65(
+          rule.patternKo,
+          rule.templateEn,
+          token,
+          bundle.source,
+          baseTranslatedValue
+        );
+
       slotResults.push({
         token,
         source: bundle.source,
-        target:
-          bundle.renderedValue ||
-          bundle.selected,
+        target: articleAdjustedValue,
         slotType: twoProBaseSlotType(token),
         bundle,
       });
@@ -5549,6 +6892,13 @@ const twoProTryKoEnJsonTemplateV5 = async (
       continue;
     }
 
+    const renderedWithSubjectAgreement =
+      twoProApplySubordinateSubjectAgreementV66Safe(
+        rule.templateEn,
+        rendered,
+        slotResults
+      );
+
     const referenceWords = slotResults
       .map((slot) => twoProReferenceWordV5(slot.bundle))
       .filter(
@@ -5560,8 +6910,8 @@ const twoProTryKoEnJsonTemplateV5 = async (
 
     return {
       targetText: twoProFinalizeEnglish(
-        rendered,
-        originalText
+        renderedWithSubjectAgreement,
+        contextText
       ),
       matchedRule: rule.patternKo,
       analysis: slotResults.map((slot) => ({
@@ -5647,6 +6997,89 @@ export async function POST(request: Request) {
       });
     }
 
+
+    // =================================================================
+    // 🎯 0.1단계: 문두 명시적 주어 + 고정 exact 규칙 재사용 v6.3
+    // 예: 그들은 + 국제 회의를 개최합니다.
+    //     → They are holding an international conference.
+    // =================================================================
+    const exactExplicitSubject =
+      twoProExtractLeadingSubjectV62(
+        originalText
+      );
+
+    if (exactExplicitSubject) {
+      const normalizedBodyForJson =
+        normalizeKoJsonExact(
+          exactExplicitSubject.body
+        );
+
+      const bodyExactJsonRuleKey =
+        Object.keys(customRules).find(
+          (key) =>
+            !/\[[A-Za-z0-9_]+\]/.test(key) &&
+            normalizeKoJsonExact(key) ===
+              normalizedBodyForJson
+        );
+
+      if (bodyExactJsonRuleKey) {
+        const bodyExactTranslation =
+          String(
+            customRules[
+              bodyExactJsonRuleKey as keyof typeof customRules
+            ]
+          ).trim();
+
+        const subjectAdjustedExactTranslation =
+          twoProApplyLeadingSubjectOverlayV68(
+            bodyExactTranslation,
+            exactExplicitSubject.pronoun
+          );
+
+        if (subjectAdjustedExactTranslation) {
+          console.log(
+            '[한영 JSON Subject Exact Match 성공 v6.3]',
+            {
+              query: originalText,
+              subject:
+                exactExplicitSubject.source,
+              rule: bodyExactJsonRuleKey,
+              result:
+                subjectAdjustedExactTranslation,
+            }
+          );
+
+          return NextResponse.json({
+            ok: true,
+            best: {
+              source_text: originalText,
+              target_text:
+                subjectAdjustedExactTranslation,
+              isReference: false,
+              analysis: [
+                {
+                  ko: exactExplicitSubject.source,
+                  en: `${
+                    twoProSubjectDisplayV62(
+                      exactExplicitSubject.pronoun
+                    )
+                  } [SUBJECT]`,
+                },
+              ],
+              referenceWords: [],
+              engine:
+                'json-exact-ko-en-v6.8-subject-overlay',
+              matchedRule:
+                bodyExactJsonRuleKey,
+              explicitSubject:
+                exactExplicitSubject.source,
+            },
+            referenceWords: [],
+          });
+        }
+      }
+    }
+
     // =================================================================
     // 🎯 0.2단계: 한영 다의어 문맥 판별 v6.0
     // 눈·배·차·말·사과와 회의를 문장 역할·결합 동사·주변어로 먼저 해석합니다.
@@ -5710,14 +7143,78 @@ export async function POST(request: Request) {
     // 🎯 0.35단계: TwoPro 한영 JSON 슬롯 템플릿
     // 구체적인 JSON 템플릿을 일반 조사 문맥 엔진보다 먼저 실행합니다.
     // =================================================================
-    const twoProTemplateResult =
+    let twoProTemplateResult =
       await twoProTryKoEnJsonTemplateV5(originalText);
 
+    let explicitSubject:
+      | TwoProExplicitSubjectV62
+      | null = null;
+
+    let subjectAdjustedTarget:
+      | string
+      | null = null;
+
+    // 완전한 원문 템플릿이 없을 때만 문두 주어를 분리합니다.
+    // 주어 포함 전용 규칙이 있다면 기존 규칙이 항상 우선합니다.
+    if (!twoProTemplateResult) {
+      explicitSubject =
+        twoProExtractLeadingSubjectV62(
+          originalText
+        );
+
+      if (explicitSubject) {
+        const bodyTemplateResult =
+          await twoProTryKoEnJsonTemplateV5(
+            explicitSubject.body,
+            originalText
+          );
+
+        if (bodyTemplateResult) {
+          const adjusted =
+            twoProApplyLeadingSubjectOverlayV68(
+              bodyTemplateResult.targetText,
+              explicitSubject.pronoun
+            );
+
+          if (adjusted) {
+            subjectAdjustedTarget =
+              adjusted;
+
+            twoProTemplateResult = {
+              ...bodyTemplateResult,
+              targetText: adjusted,
+              analysis: [
+                {
+                  ko: explicitSubject.source,
+                  en: `${
+                    twoProSubjectDisplayV62(
+                      explicitSubject.pronoun
+                    )
+                  } [SUBJECT]`,
+                },
+                ...bodyTemplateResult.analysis,
+              ],
+            };
+          }
+        }
+      }
+    }
+
     if (twoProTemplateResult) {
+      const usedExplicitSubject =
+        Boolean(
+          explicitSubject &&
+          subjectAdjustedTarget
+        );
+
       console.log('[한영 JSON Template Match 성공]', {
         query: originalText,
         rule: twoProTemplateResult.matchedRule,
         result: twoProTemplateResult.targetText,
+        explicitSubject:
+          usedExplicitSubject
+            ? explicitSubject?.source
+            : null,
       });
 
       return NextResponse.json({
@@ -5728,8 +7225,16 @@ export async function POST(request: Request) {
           isReference: false,
           analysis: twoProTemplateResult.analysis,
           referenceWords: twoProTemplateResult.referenceWords,
-          engine: 'json-template-ko-en-v5',
-          matchedRule: twoProTemplateResult.matchedRule,
+          engine:
+            usedExplicitSubject
+              ? 'json-template-ko-en-v6.8-subject-overlay'
+              : 'json-template-ko-en-v5',
+          matchedRule:
+            twoProTemplateResult.matchedRule,
+          explicitSubject:
+            usedExplicitSubject
+              ? explicitSubject?.source
+              : null,
         },
         referenceWords:
           twoProTemplateResult.referenceWords,
@@ -5763,6 +7268,51 @@ export async function POST(request: Request) {
         },
         referenceWords: twoProParticleResult.referenceWords,
       });
+    }
+
+    // ☆ TwoPro v6.8-safe: 문두 주어를 제거한 핵심 문장을
+    // 기존 조사 문맥 엔진으로 번역한 뒤 동일한 오버레이를 적용합니다.
+    if (exactExplicitSubject) {
+      const bodyParticleResult =
+        await twoProTryKoEnParticleClauseV58(
+          exactExplicitSubject.body
+        );
+
+      if (bodyParticleResult) {
+        const adjustedParticleTarget =
+          twoProApplyLeadingSubjectOverlayV68(
+            bodyParticleResult.targetText,
+            exactExplicitSubject.pronoun
+          );
+
+        if (adjustedParticleTarget) {
+          return NextResponse.json({
+            ok: true,
+            best: {
+              source_text: originalText,
+              target_text: adjustedParticleTarget,
+              isReference: false,
+              analysis: [
+                {
+                  ko: exactExplicitSubject.source,
+                  en: `${twoProSubjectDisplayV62(
+                    exactExplicitSubject.pronoun
+                  )} [SUBJECT]`,
+                },
+                ...bodyParticleResult.analysis,
+              ],
+              referenceWords:
+                bodyParticleResult.referenceWords,
+              engine:
+                'particle-ko-en-v6.8-subject-overlay',
+              explicitSubject:
+                exactExplicitSubject.source,
+            },
+            referenceWords:
+              bodyParticleResult.referenceWords,
+          });
+        }
+      }
     }
 
     // =================================================================
@@ -5799,6 +7349,50 @@ export async function POST(request: Request) {
         referenceWords:
           twoProSimpleClauseResult.referenceWords,
       });
+    }
+
+    // ☆ TwoPro v6.8-safe: 일반 문장 엔진에도 같은 문두 주어 오버레이 적용
+    if (exactExplicitSubject) {
+      const bodySimpleClauseResult =
+        await twoProTryKoEnSimpleClauseV55(
+          exactExplicitSubject.body
+        );
+
+      if (bodySimpleClauseResult) {
+        const adjustedSimpleTarget =
+          twoProApplyLeadingSubjectOverlayV68(
+            bodySimpleClauseResult.targetText,
+            exactExplicitSubject.pronoun
+          );
+
+        if (adjustedSimpleTarget) {
+          return NextResponse.json({
+            ok: true,
+            best: {
+              source_text: originalText,
+              target_text: adjustedSimpleTarget,
+              isReference: false,
+              analysis: [
+                {
+                  ko: exactExplicitSubject.source,
+                  en: `${twoProSubjectDisplayV62(
+                    exactExplicitSubject.pronoun
+                  )} [SUBJECT]`,
+                },
+                ...bodySimpleClauseResult.analysis,
+              ],
+              referenceWords:
+                bodySimpleClauseResult.referenceWords,
+              engine:
+                'simple-ko-en-v6.8-subject-overlay',
+              explicitSubject:
+                exactExplicitSubject.source,
+            },
+            referenceWords:
+              bodySimpleClauseResult.referenceWords,
+          });
+        }
+      }
     }
 
     // =================================================================
