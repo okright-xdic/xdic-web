@@ -237,7 +237,7 @@ const router = useRouter();
   // 🌟 [수프로 엣지] 백엔드에서 보낸 '참고용' 비밀 신호를 담을 상태 추가!
   const [isReference, setIsReference] = useState<boolean>(false);
 
-  // 슬롯 후보가 여러 개인 경우 번역 블록 아래에 표시할 참고 단어
+  // 문형·구 번역 결과를 번역 블록 아래에 표시할 참고 표현
   const [referenceWords, setReferenceWords] = useState<
     TranslationReferenceWord[]
   >([]);
@@ -273,19 +273,41 @@ useEffect(() => {
     setReferenceWords([]);
   };
 
-  // 두 글자 미만이거나 문장 형태가 아니면
-  // 추천 문장 번역 API를 호출하지 않습니다.
+  const hasKorean =
+    /[가-힣]/.test(normalizedQuery);
+
+  const sentenceLike =
+    isSentenceLikeQuery(normalizedQuery);
+
+  const koreanWordCount = hasKorean
+    ? normalizedQuery
+        .replace(/[.!?]+$/g, '')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .length
+    : 0;
+
+  // PHRASES 파일의 구를 확인하기 위해 한국어 한 어절 이상도
+  // translate-search API에 보냅니다.
+  // 단, 응답 단계에서 PHRASES 직접 번역이 아닐 경우에는
+  // 일반 단어·전문용어 번역 블록을 표시하지 않습니다.
+  // 한 어절이라도 PHRASES에 정확히 등록되어 있을 수 있으므로
+  // 한국어 검색어는 translate-search API에 확인 요청을 보냅니다.
+  // 화면에는 PHRASES 직접 번역 결과일 때만 표시합니다.
+  const phraseCandidate =
+    hasKorean &&
+    koreanWordCount >= 1;
+
   if (
     normalizedQuery.length < 2 ||
-    !isSentenceLikeQuery(normalizedQuery)
+    (!sentenceLike && !phraseCandidate)
   ) {
     clearTranslationBox();
     return;
   }
 
   const controller = new AbortController();
-
-  const hasKorean = /[가-힣]/.test(normalizedQuery);
 
   const endpoint = hasKorean
     ? '/api/translate-search'
@@ -308,6 +330,35 @@ useEffect(() => {
     .then((res) => res.json())
     .then((data) => {
       if (data.ok && data.best) {
+        const responseEngine =
+          String(
+            data.best.engine || ''
+          );
+
+        const isDirectPhraseResult =
+          responseEngine.startsWith(
+            'phrase-sequence-ko-en-'
+          ) ||
+          (
+            data.best.phraseApplied === true &&
+            String(
+              data.best.baseEngine || ''
+            ).startsWith(
+              'phrase-sequence-ko-en-'
+            )
+          );
+
+        // 문장이 아닌 한 어절·구 검색어는
+        // rules-ko-en-phrases.json이 직접 번역한 경우에만
+        // 파란 번역 블록을 표시합니다.
+        if (
+          !sentenceLike &&
+          !isDirectPhraseResult
+        ) {
+          clearTranslationBox();
+          return;
+        }
+
         setAiTranslation(
           data.best.target_text || null
         );
@@ -979,7 +1030,7 @@ const displayResults = React.useMemo(() => {
                               className="flex items-start gap-3 pl-1"
                             >
                               <span className="text-[12px] md:text-[13px] font-bold text-emerald-700 whitespace-nowrap mt-0.5">
-                                참고 단어:
+                                참고 표현:
                               </span>
 
                               <p className="text-[13px] md:text-[15px] text-slate-700 leading-relaxed flex-1 break-words">
