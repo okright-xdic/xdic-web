@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import customRules from './rules-ko-en.json';
 import phraseRules from './rules-ko-en-phrases.json';
 
-// ☆ TwoPro v9.18-safe: v9.14 유지 + phrases JSON 최장 구 매칭·슬롯 조립·진단 정보
+// ☆ TwoPro v9.19-safe: v9.14 유지 + phrases JSON 최장 구 매칭·슬롯 조립·진단 정보
 
 // ============================================================================
 // 🌟 TwoPro v9.15-safe: rules-ko-en-phrases.json 통합
@@ -2471,10 +2471,12 @@ const twoProFixEnglishArticles = (value: string): string => {
   text = text.replace(
     /\b(a\/an|a|an)\s+(the\s+)?([A-Za-z0-9][A-Za-z0-9'’\-]*)/gi,
     (
-      _match,
-      _article,
-      existingThe,
-      firstWord
+      matchedText: string,
+      _article: string,
+      existingThe: string | undefined,
+      firstWord: string,
+      offset: number,
+      wholeText: string
     ) => {
       if (existingThe) {
         return `the ${firstWord}`;
@@ -2482,14 +2484,41 @@ const twoProFixEnglishArticles = (value: string): string => {
 
       const lowerWord = String(firstWord).toLowerCase();
 
+      // v9.19:
+      // 관사 뒤의 첫 단어만 보고 복수 명사로 단정하면
+      // a famous doctor의 famous가 s로 끝난다는 이유로
+      // 관사가 제거되는 문제가 있었습니다.
+      //
+      // 뒤에 다른 영어 단어가 이어지면 첫 단어는 형용사 또는
+      // 명사 수식어일 수 있으므로 관사를 유지합니다.
+      const remainingText = String(wholeText || '')
+        .slice(offset + matchedText.length);
+
+      const hasFollowingLexicalWord =
+        /^\s+[A-Za-z0-9][A-Za-z0-9'’\-]*/.test(
+          remainingText
+        );
+
       if (
-        TWO_PRO_KO_EN_UNCOUNTABLE_NOUNS.has(lowerWord) ||
-        (/s$/i.test(firstWord) && !/ss$/i.test(firstWord))
+        !hasFollowingLexicalWord &&
+        (
+          TWO_PRO_KO_EN_UNCOUNTABLE_NOUNS.has(
+            lowerWord
+          ) ||
+          (
+            /s$/i.test(firstWord) &&
+            !/ss$/i.test(firstWord)
+          )
+        )
       ) {
         return firstWord;
       }
 
-      return `${twoProStartsWithVowelSound(firstWord) ? 'an' : 'a'} ${firstWord}`;
+      return `${
+        twoProStartsWithVowelSound(firstWord)
+          ? 'an'
+          : 'a'
+      } ${firstWord}`;
     }
   );
 
