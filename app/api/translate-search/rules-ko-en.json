@@ -10039,5 +10039,7 @@
   "[S]은/는 [ADJ1]고 [ADJ2]해요": "[S] is [ADJ1] and [ADJ2]",
   "매우 [ADJ]": "It is very [ADJ]",
   "조금 [ADJ]": "It is a little [ADJ]",
-  "[CLAUSE1]지만 [CLAUSE2].": "[CLAUSE1], but [CLAUSE2]."
+  "[CLAUSE1]지만 [CLAUSE2].": "[CLAUSE1], but [CLAUSE2].",
+  "[N]을/를 다시 확인한 후 서명해 주세요.": "Please review the [N] again before signing.",
+  "계약서 초안에 [N] 조항을 추가하고 싶습니다.": "I'd like to add a/an [N] clause to the draft contract."
 }
