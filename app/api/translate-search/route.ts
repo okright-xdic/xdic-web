@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import customRules from './rules-ko-en.json';
 import phraseRules from './rules-ko-en-phrases.json';
 
-// ☆ TwoPro v9.54-safe: v9.53 유지 + 범용 인칭주어·소유격을 재사용하는 손자 만남 결과 문형 직접 번역
+// ☆ TwoPro v9.55-safe: v9.54 유지 + 범용 주어 기반 매일 논다·이곳에 살아서 만나다 문형 직접 번역
 
 // ============================================================================
 // 🌟 TwoPro v9.15-safe: rules-ko-en-phrases.json 통합
@@ -13204,6 +13204,298 @@ const twoProTryKoEnYouthChangeV953 = (
 
 
 // ============================================================================
+// ☆ TwoPro v9.55-safe A: 범용 주어 기반 '매일 (저녁) (역에서) 논다'
+//
+// 처리 본문:
+// - 매일 저녁 역에서 논다
+// - 매일 역에서 논다
+// - 매일 저녁 논다
+// - 매일 논다
+//
+// 안전 원칙:
+// 1. 기존 v6.2/v9.53 범용 주어 해석기를 재사용합니다.
+// 2. '매일 저녁'은 every night, '매일'은 every day로 구별합니다.
+// 3. 이 문형에서만 '역에서'를 at the station으로 처리합니다.
+//    일반 문장의 역에서에는 from the station 등이 가능하므로
+//    범용 장소 PHRASES로 새로 고정하지 않습니다.
+// 4. 3인칭 단수는 plays, 나머지 주어는 play로 일치시킵니다.
+// ============================================================================
+type TwoProDailyPlayResultV955 = {
+  targetText: string;
+  analysis: Array<{
+    ko: string;
+    en: string;
+  }>;
+  referenceWords: any[];
+  engine: string;
+  matchedRule: string;
+};
+
+const twoProTryKoEnDailyPlayV955 = (
+  originalText: string
+): TwoProDailyPlayResultV955 | null => {
+  const subject =
+    twoProResolveReusableSubjectV953(
+      originalText
+    );
+
+  if (!subject) {
+    return null;
+  }
+
+  const normalizedBody = subject.body
+    .normalize('NFC')
+    .replace(/\s+/g, '')
+    .replace(/[?.!,;:'"“”‘’()\[\]{}…·]/g, '')
+    .trim();
+
+  const match = normalizedBody.match(
+    /^매일(저녁)?(역에서)?논다$/u
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const hasNight = Boolean(match[1]);
+  const hasStation = Boolean(match[2]);
+
+  const isThirdPersonSingular =
+    subject.english === 'He' ||
+    subject.english === 'She' ||
+    subject.english === 'The child';
+
+  const verbEn = isThirdPersonSingular
+    ? 'plays'
+    : 'play';
+
+  const timeKo = hasNight
+    ? '매일 저녁'
+    : '매일';
+
+  const timeEn = hasNight
+    ? 'every night'
+    : 'every day';
+
+  const targetCore = [
+    subject.english,
+    verbEn,
+    hasStation ? 'at the station' : '',
+    timeEn,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const subjectDisplay =
+    subject.english === 'I'
+      ? 'I'
+      : subject.english.replace(
+          /^([A-Z])/,
+          (first) => first.toLowerCase()
+        );
+
+  const referenceWords: any[] = [
+    {
+      source: subject.source,
+      selected: subjectDisplay,
+      candidates: [subjectDisplay],
+      slot: 'SUBJECT',
+      confidence: 1,
+      origin:
+        subject.origin === 'explicit-pronoun-v6.2'
+          ? 'route-v6.2+v9.55'
+          : 'route-v9.55',
+    },
+    {
+      source: '논다',
+      selected: verbEn,
+      candidates: [verbEn],
+      slot: 'MAIN_VERB',
+      confidence: 1,
+      origin: 'route-v9.55',
+    },
+  ];
+
+  if (hasStation) {
+    referenceWords.push({
+      source: '역에서',
+      selected: 'at the station',
+      candidates: ['at the station'],
+      slot: 'LOCATION',
+      confidence: 1,
+      origin: 'route-v9.55',
+    });
+  }
+
+  referenceWords.push({
+    source: timeKo,
+    selected: timeEn,
+    candidates: [timeEn],
+    slot: 'FREQUENCY_TIME',
+    confidence: 1,
+    origin: 'route-v9.55',
+  });
+
+  const targetText = twoProFinalizeEnglish(
+    targetCore,
+    originalText
+  );
+
+  return {
+    targetText,
+    analysis: referenceWords.map(
+      (item) => ({
+        ko: item.source,
+        en: `${item.selected} [${item.slot}]`,
+      })
+    ),
+    referenceWords,
+    engine:
+      'reusable-subject-daily-play-ko-en-v9.55',
+    matchedRule: [
+      'DAILY_PLAY_V955',
+      hasNight ? 'EVERY_NIGHT' : 'EVERY_DAY',
+      hasStation ? 'AT_STATION' : 'NO_LOCATION',
+      isThirdPersonSingular
+        ? 'PLAYS'
+        : 'PLAY',
+    ].join('_'),
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v9.55-safe B: 범용 주어 기반 '(이곳에) 살아서 너를 만났다'
+//
+// 처리 본문:
+// - 이곳에 살아서 너를 만났다
+// - 살아서 너를 만났다
+//
+// 안전 원칙:
+// 1. 기존 교재식 무의지동사 결과 구조인 lived (here) to see you를 유지합니다.
+// 2. '이곳에'는 전치사를 덧붙이지 않고 here로 처리하여
+//    at the this place here 같은 중복 장소 표현을 막습니다.
+// 3. '너'를 tolerate로 잘못 고르는 일반 단어 후보보다 먼저 처리합니다.
+// 4. 위 두 제한 본문만 가로채며 다른 살다/만나다 문장은 건드리지 않습니다.
+// ============================================================================
+type TwoProLiveMeetYouResultV955 = {
+  targetText: string;
+  analysis: Array<{
+    ko: string;
+    en: string;
+  }>;
+  referenceWords: any[];
+  engine: string;
+  matchedRule: string;
+};
+
+const twoProTryKoEnLiveMeetYouV955 = (
+  originalText: string
+): TwoProLiveMeetYouResultV955 | null => {
+  const subject =
+    twoProResolveReusableSubjectV953(
+      originalText
+    );
+
+  if (!subject) {
+    return null;
+  }
+
+  const normalizedBody = subject.body
+    .normalize('NFC')
+    .replace(/\s+/g, '')
+    .replace(/[?.!,;:'"“”‘’()\[\]{}…·]/g, '')
+    .trim();
+
+  const match = normalizedBody.match(
+    /^(이곳에)?살아서너를만났다$/u
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const hasHere = Boolean(match[1]);
+
+  const targetCore = [
+    subject.english,
+    'lived',
+    hasHere ? 'here' : '',
+    'to see you',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const subjectDisplay =
+    subject.english === 'I'
+      ? 'I'
+      : subject.english.replace(
+          /^([A-Z])/,
+          (first) => first.toLowerCase()
+        );
+
+  const livedKo = hasHere
+    ? '이곳에 살아서'
+    : '살아서';
+
+  const livedEn = hasHere
+    ? 'lived here'
+    : 'lived';
+
+  const referenceWords: any[] = [
+    {
+      source: subject.source,
+      selected: subjectDisplay,
+      candidates: [subjectDisplay],
+      slot: 'SUBJECT',
+      confidence: 1,
+      origin:
+        subject.origin === 'explicit-pronoun-v6.2'
+          ? 'route-v6.2+v9.55'
+          : 'route-v9.55',
+    },
+    {
+      source: livedKo,
+      selected: livedEn,
+      candidates: [livedEn],
+      slot: 'RESULT_MAIN_VERB',
+      confidence: 1,
+      origin: 'route-v9.55',
+    },
+    {
+      source: '너를 만났다',
+      selected: 'to see you',
+      candidates: ['to see you'],
+      slot: 'RESULT_INFINITIVE',
+      confidence: 1,
+      origin: 'route-v9.55',
+    },
+  ];
+
+  const targetText = twoProFinalizeEnglish(
+    targetCore,
+    originalText
+  );
+
+  return {
+    targetText,
+    analysis: referenceWords.map(
+      (item) => ({
+        ko: item.source,
+        en: `${item.selected} [${item.slot}]`,
+      })
+    ),
+    referenceWords,
+    engine:
+      'reusable-subject-live-meet-you-ko-en-v9.55',
+    matchedRule: hasHere
+      ? 'LIVE_HERE_TO_SEE_YOU_V955'
+      : 'LIVE_TO_SEE_YOU_V955',
+  };
+};
+
+
+// ============================================================================
 // ☆ TwoPro v9.54-safe: 범용 주어·소유격 기반 손자 만남 결과 문형
 //
 // 처리 본문:
@@ -22247,6 +22539,103 @@ export async function POST(request: Request) {
         init
       );
     };
+
+    // =================================================================
+    // 🎯 -0.24단계: 범용 주어 기반 매일 논다 문형 v9.55
+    //
+    // '저녁' 또는 '역에서'가 생략된 조합도 일반 검색으로 내려가기 전에
+    // every night/every day와 장소 유무를 직접 조립합니다.
+    // =================================================================
+    const twoProDailyPlayV955 =
+      twoProTryKoEnDailyPlayV955(
+        originalText
+      );
+
+    if (twoProDailyPlayV955) {
+      console.log(
+        '[한영 범용 주어 매일 논다 문형 성공 v9.55]',
+        {
+          query: originalText,
+          result:
+            twoProDailyPlayV955.targetText,
+          engine:
+            twoProDailyPlayV955.engine,
+          matchedRule:
+            twoProDailyPlayV955.matchedRule,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProDailyPlayV955.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProDailyPlayV955.analysis,
+          referenceWords:
+            twoProDailyPlayV955.referenceWords,
+          engine:
+            twoProDailyPlayV955.engine,
+          matchedRule:
+            twoProDailyPlayV955.matchedRule,
+        },
+        referenceWords:
+          twoProDailyPlayV955.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // 🎯 -0.23단계: 범용 주어 기반 이곳에 살아서 너를 만나다 v9.55
+    //
+    // 일반 분석에서 이곳/너를 잘못 조립하기 전에 제한 문형으로 처리합니다.
+    // =================================================================
+    const twoProLiveMeetYouV955 =
+      twoProTryKoEnLiveMeetYouV955(
+        originalText
+      );
+
+    if (twoProLiveMeetYouV955) {
+      console.log(
+        '[한영 범용 주어 살아서 너를 만나다 문형 성공 v9.55]',
+        {
+          query: originalText,
+          result:
+            twoProLiveMeetYouV955.targetText,
+          engine:
+            twoProLiveMeetYouV955.engine,
+          matchedRule:
+            twoProLiveMeetYouV955.matchedRule,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProLiveMeetYouV955.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProLiveMeetYouV955.analysis,
+          referenceWords:
+            twoProLiveMeetYouV955.referenceWords,
+          engine:
+            twoProLiveMeetYouV955.engine,
+          matchedRule:
+            twoProLiveMeetYouV955.matchedRule,
+        },
+        referenceWords:
+          twoProLiveMeetYouV955.referenceWords,
+      });
+    }
+
 
     // =================================================================
     // 🎯 -0.22단계: 범용 주어·소유격 기반 손자 만남 결과 문형 v9.54
