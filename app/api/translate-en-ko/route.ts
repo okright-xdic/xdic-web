@@ -584,6 +584,705 @@ const twoProTranslateHadToWorkV131 = (
   };
 };
 
+// ============================================================================
+// ☆ TwoPro v13.2-safe: It is + 소유격 + hope + to부정사 문형
+//
+// - my/our/your/his/her/their를 소유격 위치에서만 판별합니다.
+// - to be a poet / to be a great poet와 in the future의 선택 조합을 처리합니다.
+// - 문장 전체 PHRASE를 만들지 않고 소유 명사구·to부정사구·시간구로 분리합니다.
+// - DB 유사 문장 fallback보다 먼저 실행하여 my 문장을 다른 소유격 문장의
+//   참고 문장으로 잘못 재사용하거나 hope를 사전의 여러 뜻으로 분해하지 않습니다.
+// ============================================================================
+type TwoProHopeToBePoetResultV132 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+const TWO_PRO_POSSESSIVE_HOPE_V132: Record<
+  string,
+  string
+> = {
+  my: '나의 꿈',
+  our: '우리의 꿈',
+  your: '너의 꿈',
+  his: '그의 꿈',
+  her: '그녀의 꿈',
+  their: '그들의 꿈',
+};
+
+const twoProTranslateHopeToBePoetV132 = (
+  value: unknown
+): TwoProHopeToBePoetResultV132 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^It\s+is\s+(my|our|your|his|her|their)\s+hope\s+to\s+be\s+(a\s+great\s+poet|a\s+poet)(?:\s+(in\s+the\s+future))?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const possessiveEn = match[1].toLowerCase();
+  const hopeKo =
+    TWO_PRO_POSSESSIVE_HOPE_V132[possessiveEn];
+  const professionEn = match[2]
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
+  const hasFuture = Boolean(match[3]);
+  const professionKo =
+    professionEn === 'a great poet'
+      ? '위대한 시인이 되는 것'
+      : '시인이 되는 것';
+
+  const targetText = [
+    hasFuture ? '미래에' : '',
+    `${professionKo}이`,
+    `${hopeKo}이다`,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const referenceWords: TemplateReferenceWord[] = [
+    {
+      source: `${match[1]} hope`,
+      selected: hopeKo,
+      candidates: [hopeKo],
+      slot: 'POSSESSIVE_HOPE',
+      confidence: 1,
+    },
+    {
+      source:
+        professionEn === 'a great poet'
+          ? 'to be a great poet'
+          : 'to be a poet',
+      selected: professionKo,
+      candidates: [professionKo],
+      slot: 'TO_INFINITIVE_COMPLEMENT',
+      confidence: 1,
+    },
+  ];
+
+  if (hasFuture) {
+    referenceWords.push({
+      source: 'in the future',
+      selected: '미래에',
+      candidates: ['미래에'],
+      slot: 'TIME_PHRASE',
+      confidence: 1,
+    });
+  }
+
+  return {
+    targetText,
+    referenceWords,
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.3-safe: It is (very) easy to study English [in this way]
+//
+// - very easy / easy의 정도 차이를 보존합니다.
+// - to study English는 이 문형 안에서 명사적 to부정사로만 해석합니다.
+// - in this way는 방법 부사구로 분리하여 참고 표현에 표시합니다.
+// - 문장 전체 PHRASE를 추가하지 않고, 정확 일치에서도 참고 표현을 제공합니다.
+// ============================================================================
+type TwoProEasyStudyEnglishResultV133 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+const twoProTranslateEasyStudyEnglishV133 = (
+  value: unknown
+): TwoProEasyStudyEnglishResultV133 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^It\s+is\s+(very\s+)?easy\s+to\s+study\s+English(?:\s+(in\s+this\s+way))?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const isVeryEasy = Boolean(match[1]);
+  const hasMethod = Boolean(match[2]);
+  const adjectiveSource = isVeryEasy
+    ? 'very easy'
+    : 'easy';
+  const adjectiveTarget = isVeryEasy
+    ? '대단히 쉽다'
+    : '쉽다';
+
+  const targetText = [
+    hasMethod ? '이러한 방법으로' : '',
+    '영어를 공부하기는',
+    adjectiveTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const referenceWords: TemplateReferenceWord[] = [
+    {
+      source: adjectiveSource,
+      selected: adjectiveTarget,
+      candidates: [adjectiveTarget],
+      slot: 'ADJECTIVE_PREDICATE',
+      confidence: 1,
+    },
+    {
+      source: 'to study English',
+      selected: '영어를 공부하기',
+      candidates: ['영어를 공부하기'],
+      slot: 'TO_INFINITIVE_SUBJECT',
+      confidence: 1,
+    },
+  ];
+
+  if (hasMethod) {
+    referenceWords.push({
+      source: 'in this way',
+      selected: '이러한 방법으로',
+      candidates: ['이러한 방법으로'],
+      slot: 'METHOD_PHRASE',
+      confidence: 1,
+    });
+  }
+
+  return {
+    targetText,
+    referenceWords,
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.3-safe: It is our task to lend ... 문형
+//
+// - our는 소유격 위치에서만 우리의로 판별합니다.
+// - many citizens/citizens는 lend의 간접목적어이므로 에게를 붙입니다.
+// - many books/books는 직접목적어이므로 을을 붙입니다.
+// - during this reading week를 시간 부사구로 보존합니다.
+// - exact rule의 번역 결과를 유지하면서 참고 표현을 함께 표시합니다.
+// ============================================================================
+type TwoProOurTaskLendResultV133 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+const twoProTranslateOurTaskLendV133 = (
+  value: unknown
+): TwoProOurTaskLendResultV133 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^It\s+is\s+our\s+task\s+to\s+lend\s+(many\s+)?citizens\s+(many\s+)?books(?:\s+(during\s+this\s+reading\s+week))?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const hasManyCitizens = Boolean(match[1]);
+  const hasManyBooks = Boolean(match[2]);
+  const hasReadingWeek = Boolean(match[3]);
+
+  const citizensSource = hasManyCitizens
+    ? 'many citizens'
+    : 'citizens';
+  const citizensTarget = hasManyCitizens
+    ? '많은 시민들에게'
+    : '시민들에게';
+  const booksSource = hasManyBooks
+    ? 'many books'
+    : 'books';
+  const booksTarget = hasManyBooks
+    ? '많은 책을'
+    : '책을';
+
+  const targetText = [
+    hasReadingWeek ? '이번 독서 주간에' : '',
+    citizensTarget,
+    booksTarget,
+    '빌려주는 것은 우리의 일이다',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const referenceWords: TemplateReferenceWord[] = [
+    {
+      source: 'our task',
+      selected: '우리의 일',
+      candidates: ['우리의 일'],
+      slot: 'POSSESSIVE_TASK',
+      confidence: 1,
+    },
+    {
+      source: 'to lend',
+      selected: '빌려주는 것',
+      candidates: ['빌려주는 것'],
+      slot: 'TO_INFINITIVE_TASK',
+      confidence: 1,
+    },
+    {
+      source: citizensSource,
+      selected: citizensTarget,
+      candidates: [citizensTarget],
+      slot: 'INDIRECT_OBJECT',
+      confidence: 1,
+    },
+    {
+      source: booksSource,
+      selected: booksTarget,
+      candidates: [booksTarget],
+      slot: 'DIRECT_OBJECT',
+      confidence: 1,
+    },
+  ];
+
+  if (hasReadingWeek) {
+    referenceWords.push({
+      source: 'during this reading week',
+      selected: '이번 독서 주간에',
+      candidates: ['이번 독서 주간에'],
+      slot: 'TIME_PHRASE',
+      confidence: 1,
+    });
+  }
+
+  return {
+    targetText,
+    referenceWords,
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.4-safe: It is my duty to ... 문형
+//
+// - my duty를 소유격 + 명사구로 고정하여 다의어 분해를 막습니다.
+// - constitutional의 정상 철자와 원문 자료의 consitutional 오탈자를 모두 허용합니다.
+// - and to advance / and advance 두 형태를 동일한 병렬 to부정사 구조로 처리합니다.
+// - happiness / prosperity / happiness and prosperity의 축소형을 지원합니다.
+// - 문장 전체를 PHRASE로 넣지 않고 정확 일치에서도 참고 표현을 제공합니다.
+// ============================================================================
+type TwoProMyDutyResultV134 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+const twoProTranslateMyDutyV134 = (
+  value: unknown
+): TwoProMyDutyResultV134 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const upholdMatch = source.match(
+    /^It\s+is\s+my\s+duty\s+to\s+uphold\s+(constitutional|consitutional)\s+government\s+and\s+(to\s+)?advance\s+the\s+(happiness\s+and\s+prosperity|happiness|prosperity)\s+of\s+my\s+peoples[.!?]?$/i
+  );
+
+  const advanceOnlyMatch = source.match(
+    /^It\s+is\s+my\s+duty\s+to\s+advance\s+the\s+(happiness\s+and\s+prosperity|happiness|prosperity)\s+of\s+my\s+peoples[.!?]?$/i
+  );
+
+  if (!upholdMatch && !advanceOnlyMatch) {
+    return null;
+  }
+
+  const hasUphold = Boolean(upholdMatch);
+  const constitutionalSource = upholdMatch
+    ? upholdMatch[1].toLowerCase()
+    : '';
+  const hasRepeatedTo = upholdMatch
+    ? Boolean(upholdMatch[2])
+    : true;
+  const benefitSource = (
+    upholdMatch ? upholdMatch[3] : advanceOnlyMatch?.[1]
+  )
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
+
+  const benefitTarget =
+    benefitSource === 'happiness and prosperity'
+      ? '나의 신민들의 행복과 번영을'
+      : benefitSource === 'happiness'
+        ? '나의 신민들의 행복을'
+        : '나의 신민들의 번영을';
+
+  const advanceTarget = `${benefitTarget} 증진시키는 것`;
+  const targetText = hasUphold
+    ? `입헌정치를 유지하고 ${advanceTarget}이 나의 의무입니다`
+    : `${advanceTarget}이 나의 의무입니다`;
+
+  const referenceWords: TemplateReferenceWord[] = [
+    {
+      source: 'my duty',
+      selected: '나의 의무',
+      candidates: ['나의 의무'],
+      slot: 'POSSESSIVE_DUTY',
+      confidence: 1,
+    },
+  ];
+
+  if (hasUphold) {
+    referenceWords.push({
+      source: `to uphold ${constitutionalSource} government`,
+      selected: '입헌정치를 유지하는 것',
+      candidates: ['입헌정치를 유지하는 것'],
+      slot: 'TO_INFINITIVE_DUTY_1',
+      confidence: 1,
+    });
+  }
+
+  const advanceSource = hasUphold
+    ? `${hasRepeatedTo ? 'to ' : ''}advance the ${benefitSource} of my peoples`
+    : `to advance the ${benefitSource} of my peoples`;
+
+  referenceWords.push({
+    source: advanceSource,
+    selected: advanceTarget,
+    candidates: [advanceTarget],
+    slot: hasUphold
+      ? 'TO_INFINITIVE_DUTY_2'
+      : 'TO_INFINITIVE_DUTY',
+    confidence: 1,
+  });
+
+  return {
+    targetText,
+    referenceWords,
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.5-safe: It is [possessive] task to teach/make ... 문형
+//
+// - my/our/your/his/her/their를 task 앞의 소유격으로만 해석합니다.
+// - many youths/youths는 teach의 간접목적어이므로 에게를 붙입니다.
+// - the true subject-matters/the subject-matters는 직접목적어로 처리합니다.
+// - and to make / and make 두 병렬형을 동일하게 처리합니다.
+// - me/us/you/him/her/them을 목적격으로 고정하여 사전 다의어 분해를 막습니다.
+// - 문장 전체를 PHRASE로 넣지 않고 정확 일치에서도 참고 표현을 제공합니다.
+// ============================================================================
+type TwoProPossessiveTaskTeachMakeResultV135 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+const TWO_PRO_TASK_POSSESSIVE_V135: Record<string, string> = {
+  my: '나의 일',
+  our: '우리의 일',
+  your: '너의 일',
+  his: '그의 일',
+  her: '그녀의 일',
+  their: '그들의 일',
+};
+
+const TWO_PRO_TASK_OBJECT_V135: Record<string, string> = {
+  me: '나를',
+  us: '우리를',
+  you: '너를',
+  him: '그를',
+  her: '그녀를',
+  them: '그들을',
+};
+
+const twoProTranslatePossessiveTaskTeachMakeV135 = (
+  value: unknown
+): TwoProPossessiveTaskTeachMakeResultV135 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/[‐‑‒–—]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const prefixMatch = source.match(
+    /^It\s+is\s+(my|our|your|his|her|their)\s+task\s+to\s+(.+?)[.!?]?$/i
+  );
+
+  if (!prefixMatch) {
+    return null;
+  }
+
+  const possessiveSource = prefixMatch[1].toLowerCase();
+  const taskTarget = TWO_PRO_TASK_POSSESSIVE_V135[possessiveSource];
+  const body = prefixMatch[2].trim();
+
+  const referenceWords: TemplateReferenceWord[] = [
+    {
+      source: `${possessiveSource} task`,
+      selected: taskTarget,
+      candidates: [taskTarget],
+      slot: 'POSSESSIVE_TASK',
+      confidence: 1,
+    },
+  ];
+
+  const teachMatch = body.match(
+    /^teach\s+(many\s+)?youths\s+the\s+(true\s+)?subject[-\s]matters(?:\s+and\s+(to\s+)?make\s+(me|us|you|him|her|them)\s+(great\s+)?youths)?$/i
+  );
+
+  if (teachMatch) {
+    const hasManyYouths = Boolean(teachMatch[1]);
+    const hasTrueSubjects = Boolean(teachMatch[2]);
+    const hasMake = Boolean(teachMatch[4]);
+    const hasRepeatedTo = Boolean(teachMatch[3]);
+
+    const youthsSource = hasManyYouths
+      ? 'many youths'
+      : 'youths';
+    const youthsTarget = hasManyYouths
+      ? '많은 젊은이들에게'
+      : '젊은이들에게';
+    const subjectSource = hasTrueSubjects
+      ? 'the true subject-matters'
+      : 'the subject-matters';
+    const subjectTarget = hasTrueSubjects
+      ? '참된 과제를'
+      : '과제를';
+
+    referenceWords.push(
+      {
+        source: 'to teach',
+        selected: '가르쳐 주는 것',
+        candidates: ['가르쳐 주는 것'],
+        slot: 'TO_INFINITIVE_TASK_1',
+        confidence: 1,
+      },
+      {
+        source: youthsSource,
+        selected: youthsTarget,
+        candidates: [youthsTarget],
+        slot: 'INDIRECT_OBJECT',
+        confidence: 1,
+      },
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [subjectTarget],
+        slot: 'DIRECT_OBJECT',
+        confidence: 1,
+      }
+    );
+
+    if (!hasMake) {
+      return {
+        targetText: `${youthsTarget} ${subjectTarget} 가르쳐 주는 것이 ${taskTarget}이다`,
+        referenceWords,
+      };
+    }
+
+    const objectSource = teachMatch[4].toLowerCase();
+    const objectTarget = TWO_PRO_TASK_OBJECT_V135[objectSource];
+    const hasGreat = Boolean(teachMatch[5]);
+    const complementTarget = hasGreat
+      ? '훌륭한 젊은이로'
+      : '젊은이로';
+    const makeSource = `${hasRepeatedTo ? 'to ' : ''}make ${objectSource} ${hasGreat ? 'great ' : ''}youths`;
+    const makeTarget = `${objectTarget} ${complementTarget} 만드는 것`;
+
+    referenceWords.push({
+      source: makeSource,
+      selected: makeTarget,
+      candidates: [makeTarget],
+      slot: 'TO_INFINITIVE_TASK_2',
+      confidence: 1,
+    });
+
+    return {
+      targetText: `${youthsTarget} ${subjectTarget} 가르쳐 주어서 ${objectTarget} ${complementTarget} 만드는 것이 ${taskTarget}이다`,
+      referenceWords,
+    };
+  }
+
+  const makeOnlyMatch = body.match(
+    /^make\s+(me|us|you|him|her|them)\s+(great\s+)?youths$/i
+  );
+
+  if (makeOnlyMatch) {
+    const objectSource = makeOnlyMatch[1].toLowerCase();
+    const objectTarget = TWO_PRO_TASK_OBJECT_V135[objectSource];
+    const hasGreat = Boolean(makeOnlyMatch[2]);
+    const complementTarget = hasGreat
+      ? '훌륭한 젊은이로'
+      : '젊은이로';
+    const makeTarget = `${objectTarget} ${complementTarget} 만드는 것`;
+
+    referenceWords.push({
+      source: `to make ${objectSource} ${hasGreat ? 'great ' : ''}youths`,
+      selected: makeTarget,
+      candidates: [makeTarget],
+      slot: 'TO_INFINITIVE_TASK',
+      confidence: 1,
+    });
+
+    return {
+      targetText: `${makeTarget}이 ${taskTarget}이다`,
+      referenceWords,
+    };
+  }
+
+  // 원문 학습 자료에 존재하는 비표준 축약형:
+  // "to teach make them great youths"
+  const teachMakeMatch = body.match(
+    /^teach\s+make\s+(me|us|you|him|her|them)\s+(great\s+)?youths$/i
+  );
+
+  if (teachMakeMatch) {
+    const objectSource = teachMakeMatch[1].toLowerCase();
+    const objectTarget = TWO_PRO_TASK_OBJECT_V135[objectSource];
+    const hasGreat = Boolean(teachMakeMatch[2]);
+    const complementTarget = hasGreat
+      ? '훌륭한 젊은이로'
+      : '젊은이로';
+    const makeTarget = `${objectTarget} ${complementTarget} 만드는 것`;
+
+    referenceWords.push(
+      {
+        source: 'to teach',
+        selected: '가르쳐 주는 것',
+        candidates: ['가르쳐 주는 것'],
+        slot: 'TO_INFINITIVE_TASK_1',
+        confidence: 1,
+      },
+      {
+        source: `make ${objectSource} ${hasGreat ? 'great ' : ''}youths`,
+        selected: makeTarget,
+        candidates: [makeTarget],
+        slot: 'TO_INFINITIVE_TASK_2',
+        confidence: 1,
+      }
+    );
+
+    return {
+      targetText: `가르쳐 주어서 ${objectTarget} ${complementTarget} 만드는 것이 ${taskTarget}이다`,
+      referenceWords,
+    };
+  }
+
+  return null;
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.6-safe: 주어 인칭대명사 + want/wants/wanted to rest 문형
+//
+// - I/We/You/He/She/They를 문장 첫머리의 주어로만 판별합니다.
+// - 현재형 want/wants의 주어-동사 수일치를 확인합니다.
+// - wanted는 모든 지원 주어의 과거형으로 처리합니다.
+// - in the house는 이 문형 안에서 동작 장소의 "집에서"로만 해석합니다.
+// - 문장 전체나 역할 의존 인칭대명사를 전역 PHRASE로 추가하지 않습니다.
+// - 정확 일치에서도 주어·동사구·장소구 참고 표현을 제공합니다.
+// ============================================================================
+type TwoProWantToRestResultV136 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+const TWO_PRO_WANT_REST_SUBJECT_V136: Record<string, string> = {
+  i: '나는',
+  we: '우리는',
+  you: '너는',
+  he: '그는',
+  she: '그녀는',
+  they: '그들은',
+};
+
+const twoProTranslateWantToRestV136 = (
+  value: unknown
+): TwoProWantToRestResultV136 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^(I|We|You|He|She|They)\s+(want|wants|wanted)\s+to\s+rest(?:\s+(in\s+the\s+house))?[.!?]?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = match[1];
+  const subjectKey = subjectSource.toLowerCase();
+  const verbSource = match[2].toLowerCase();
+  const hasLocation = Boolean(match[3]);
+
+  const singularThirdPerson =
+    subjectKey === 'he' || subjectKey === 'she';
+
+  if (
+    (verbSource === 'wants' && !singularThirdPerson) ||
+    (verbSource === 'want' && singularThirdPerson)
+  ) {
+    return null;
+  }
+
+  const subjectTarget =
+    TWO_PRO_WANT_REST_SUBJECT_V136[subjectKey];
+  const predicateTarget =
+    verbSource === 'wanted'
+      ? '쉬기를 원했다'
+      : '쉬기를 원한다';
+
+  const referenceWords: TemplateReferenceWord[] = [
+    {
+      source: subjectSource,
+      selected: subjectTarget,
+      candidates: [subjectTarget],
+      slot: 'SUBJECT_PRONOUN',
+      confidence: 1,
+    },
+    {
+      source: `${verbSource} to rest`,
+      selected: predicateTarget,
+      candidates: [predicateTarget],
+      slot: 'VERB_TO_INFINITIVE',
+      confidence: 1,
+    },
+  ];
+
+  if (hasLocation) {
+    referenceWords.push({
+      source: 'in the house',
+      selected: '집에서',
+      candidates: ['집에서'],
+      slot: 'PLACE_PHRASE',
+      confidence: 1,
+    });
+  }
+
+  return {
+    targetText: [
+      subjectTarget,
+      hasLocation ? '집에서' : '',
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+    referenceWords,
+  };
+};
+
 type TemplateSlotTranslation = {
   // 실제 한국어 문장 생성에 넣는 값입니다.
   // this/that/these/those가 있으면 이/그가 결합될 수 있습니다.
@@ -2536,6 +3235,159 @@ let dbFallbackText = '';
           referenceWords:
             twoProHadToWorkResultV131.referenceWords,
           engine: 'had-to-work-pattern-v13.1',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.2-safe: 소유격 hope + to be a poet 고신뢰 문형
+    // =================================================================
+    // DB 유사 문장과 사전 다의어 분해보다 먼저 소유격·to부정사·시간구를 조립합니다.
+    const twoProHopeToBePoetResultV132 =
+      twoProTranslateHopeToBePoetV132(
+        originalText
+      );
+
+    if (twoProHopeToBePoetResultV132) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProHopeToBePoetResultV132.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProHopeToBePoetResultV132.referenceWords,
+          engine:
+            'hope-to-be-poet-pattern-v13.2',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.3-safe: easy to study English 고신뢰 문형
+    // =================================================================
+    const twoProEasyStudyEnglishResultV133 =
+      twoProTranslateEasyStudyEnglishV133(
+        originalText
+      );
+
+    if (twoProEasyStudyEnglishResultV133) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProEasyStudyEnglishResultV133.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProEasyStudyEnglishResultV133.referenceWords,
+          engine:
+            'easy-study-english-pattern-v13.3',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.3-safe: our task to lend 고신뢰 문형
+    // =================================================================
+    const twoProOurTaskLendResultV133 =
+      twoProTranslateOurTaskLendV133(
+        originalText
+      );
+
+    if (twoProOurTaskLendResultV133) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProOurTaskLendResultV133.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProOurTaskLendResultV133.referenceWords,
+          engine:
+            'our-task-lend-pattern-v13.3',
+        },
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.4-safe: my duty + uphold/advance 고신뢰 문형
+    // =================================================================
+    const twoProMyDutyResultV134 =
+      twoProTranslateMyDutyV134(
+        originalText
+      );
+
+    if (twoProMyDutyResultV134) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProMyDutyResultV134.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProMyDutyResultV134.referenceWords,
+          engine:
+            'my-duty-constitutional-pattern-v13.4',
+        },
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.5-safe: 소유격 task + teach/make 고신뢰 문형
+    // =================================================================
+    const twoProPossessiveTaskTeachMakeResultV135 =
+      twoProTranslatePossessiveTaskTeachMakeV135(
+        originalText
+      );
+
+    if (twoProPossessiveTaskTeachMakeResultV135) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProPossessiveTaskTeachMakeResultV135.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProPossessiveTaskTeachMakeResultV135.referenceWords,
+          engine:
+            'possessive-task-teach-make-pattern-v13.5',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.6-safe: want/wants/wanted to rest 고신뢰 문형
+    // =================================================================
+    const twoProWantToRestResultV136 =
+      twoProTranslateWantToRestV136(
+        originalText
+      );
+
+    if (twoProWantToRestResultV136) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProWantToRestResultV136.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProWantToRestResultV136.referenceWords,
+          engine:
+            'want-to-rest-pattern-v13.6',
         },
       });
     }
