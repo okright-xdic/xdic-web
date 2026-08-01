@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import customRules from './rules-ko-en.json';
 import phraseRules from './rules-ko-en-phrases.json';
 
-// ☆ TwoPro v9.74-safe: v9.73 유지 + 머리를 만졌다 문형에서 공용 주격·소유격·도구구와 hair/touched 문맥을 정확히 처리
+// ☆ TwoPro v9.79-safe: v9.78 유지 + 4형식 인형 구매 문형의 주격·간접목적격·소유격·관사를 정확히 처리
 
 // ============================================================================
 // 🌟 TwoPro v9.15-safe: rules-ko-en-phrases.json 통합
@@ -13859,6 +13859,2553 @@ const twoProTryKoEnRememberNameV970 = (
 };
 
 
+
+// ============================================================================
+// ☆ TwoPro v9.79-safe: [주어] + [수혜자]에게 + (예쁜) 인형을 사 주었다
+//
+// 처리 예:
+// - 그 착한 소녀는 그녀의 친구에게 예쁜 인형을 사 주었다.
+// - 그 소녀는 그녀의 친구에게 인형을 사 주었다.
+// - 그녀는 친구에게 인형을 사 주었다.
+// - 그는 그의 친구에게 예쁜 인형을 사 주었다.
+// - 나는 그에게 인형을 사 주었다.
+// - 우리는 그들에게 예쁜 인형을 사 주었다.
+//
+// 핵심:
+// 1. 인칭대명사 주어는 기존 v6.2 공용 주격 추출기를 재사용합니다.
+// 2. 나/저/우리/우리들/너희/너희들/그/그녀/그들 등 수혜자는
+//    기존 v6.4 공용 목적격 표를 재사용하여 me/us/you/him/her/them으로 처리합니다.
+// 3. 나의/우리의/너희의/그의/그녀의/그들의 친구는 기존 v9.1 공용
+//    소유격 표를 재사용하여 my/our/your/his/her/their friend로 처리합니다.
+// 4. 소유격이 없는 '친구에게'는 문두 주어의 친구로 해석합니다.
+// 5. 영어 4형식 어순은 bought + 간접목적어 + 직접목적어이며,
+//    간접목적어 앞에 to나 a/an/the를 붙이지 않습니다.
+// 6. '예쁜 인형을'은 a pretty doll, '인형을'은 a doll로 처리합니다.
+// 7. 과거형 사 주었다/사주었다에만 적용하여 현재·미래·단순 구입 문형을
+//    가로채지 않습니다.
+// 8. 사 주었다, 친구에게, 인형을은 문맥·인칭·관사에 민감하므로
+//    rules-ko-en-phrases.json에는 추가하지 않습니다.
+// ============================================================================
+type TwoProBuyDollSubjectV979 = {
+  source: string;
+  english: string;
+  possessive: string;
+  body: string;
+  kind: 'PRONOUN_SUBJECT' | 'GIRL_NOUN_SUBJECT';
+  pronoun?: TwoProExplicitSubjectV62['pronoun'];
+};
+
+type TwoProBuyDollRecipientV979 = {
+  source: string;
+  selected: string;
+  kind:
+    | 'OBJECT_PRONOUN_RECIPIENT'
+    | 'POSSESSED_FRIEND_RECIPIENT'
+    | 'SUBJECT_FRIEND_RECIPIENT';
+};
+
+type TwoProBuyDollObjectV979 = {
+  source: string;
+  selected: 'a pretty doll' | 'a doll';
+  kind: 'PRETTY_DOLL_OBJECT' | 'DOLL_OBJECT';
+};
+
+type TwoProBuyDollResultV979 = {
+  targetText: string;
+  analysis: Array<{
+    ko: string;
+    en: string;
+  }>;
+  referenceWords: any[];
+  engine: string;
+  matchedRule: string;
+};
+
+const TWO_PRO_BUY_DOLL_SUBJECT_POSSESSIVES_V979:
+  Readonly<
+    Record<
+      TwoProExplicitSubjectV62['pronoun'],
+      string
+    >
+  > = {
+    I: 'my',
+    we: 'our',
+    you: 'your',
+    he: 'his',
+    she: 'her',
+    they: 'their',
+  };
+
+const TWO_PRO_BUY_DOLL_NOUN_SUBJECTS_V979 =
+  Object.freeze([
+    {
+      forms: ['그 착한 소녀는', '그 착한 소녀가'],
+      english: 'The good-natured girl',
+      possessive: 'her',
+    },
+    {
+      forms: ['그 소녀는', '그 소녀가'],
+      english: 'The girl',
+      possessive: 'her',
+    },
+    {
+      forms: ['착한 소녀는', '착한 소녀가'],
+      english: 'A good-natured girl',
+      possessive: 'her',
+    },
+    {
+      forms: ['소녀는', '소녀가'],
+      english: 'A girl',
+      possessive: 'her',
+    },
+  ] as const);
+
+const twoProResolveBuyDollSubjectV979 = (
+  normalized: string
+): TwoProBuyDollSubjectV979 | null => {
+  const explicitSubject =
+    twoProExtractLeadingSubjectV62(normalized);
+
+  if (explicitSubject) {
+    return {
+      source: explicitSubject.source,
+      english:
+        twoProCapitalizeSubjectV62(
+          explicitSubject.pronoun
+        ),
+      possessive:
+        TWO_PRO_BUY_DOLL_SUBJECT_POSSESSIVES_V979[
+          explicitSubject.pronoun
+        ],
+      body: explicitSubject.body,
+      kind: 'PRONOUN_SUBJECT',
+      pronoun: explicitSubject.pronoun,
+    };
+  }
+
+  for (const item of TWO_PRO_BUY_DOLL_NOUN_SUBJECTS_V979) {
+    const forms = [...item.forms].sort(
+      (left, right) => right.length - left.length
+    );
+
+    for (const form of forms) {
+      if (!normalized.startsWith(`${form} `)) {
+        continue;
+      }
+
+      const body = normalized
+        .slice(form.length)
+        .trim();
+
+      if (!body) {
+        return null;
+      }
+
+      return {
+        source: form,
+        english: item.english,
+        possessive: item.possessive,
+        body,
+        kind: 'GIRL_NOUN_SUBJECT',
+      };
+    }
+  }
+
+  return null;
+};
+
+const twoProResolveBuyDollRecipientV979 = (
+  sourceWithParticle: string,
+  subjectPossessive: string
+): TwoProBuyDollRecipientV979 | null => {
+  const normalized = String(sourceWithParticle || '')
+    .normalize('NFC')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const particleMatch = normalized.match(
+    /^(.+?)(에게|한테|께|게)$/u
+  );
+
+  if (!particleMatch) {
+    return null;
+  }
+
+  const stem = particleMatch[1].trim();
+
+  if (!stem) {
+    return null;
+  }
+
+  if (stem === '친구') {
+    return {
+      source: normalized,
+      selected: `${subjectPossessive} friend`,
+      kind: 'SUBJECT_FRIEND_RECIPIENT',
+    };
+  }
+
+  const friendMatch = stem.match(
+    /^(.+?)\s+친구$/u
+  );
+
+  if (friendMatch) {
+    const possessiveSource =
+      friendMatch[1].trim();
+
+    const possessiveEn =
+      /^(?:자기(?:의)?|자신의)$/u.test(
+        possessiveSource
+      )
+        ? subjectPossessive
+        : TWO_PRO_RELATIVE_POSSESSIVE_DETERMINERS_V91[
+            possessiveSource
+          ];
+
+    if (!possessiveEn) {
+      return null;
+    }
+
+    return {
+      source: normalized,
+      selected: `${possessiveEn} friend`,
+      kind: 'POSSESSED_FRIEND_RECIPIENT',
+    };
+  }
+
+  const objectPronoun =
+    TWO_PRO_KO_EN_OBJECT_PRONOUNS_V64[
+      stem
+    ];
+
+  if (!objectPronoun) {
+    return null;
+  }
+
+  return {
+    source: normalized,
+    selected: objectPronoun,
+    kind: 'OBJECT_PRONOUN_RECIPIENT',
+  };
+};
+
+const twoProResolveBuyDollObjectV979 = (
+  source: string
+): TwoProBuyDollObjectV979 | null => {
+  const normalized = String(source || '')
+    .normalize('NFC')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  if (normalized === '예쁜 인형을') {
+    return {
+      source: normalized,
+      selected: 'a pretty doll',
+      kind: 'PRETTY_DOLL_OBJECT',
+    };
+  }
+
+  if (normalized === '인형을') {
+    return {
+      source: normalized,
+      selected: 'a doll',
+      kind: 'DOLL_OBJECT',
+    };
+  }
+
+  return null;
+};
+
+const twoProTryKoEnBuyDollV979 = (
+  originalText: string
+): TwoProBuyDollResultV979 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const subject =
+    twoProResolveBuyDollSubjectV979(
+      normalized
+    );
+
+  if (!subject) {
+    return null;
+  }
+
+  const bodyMatch = subject.body.match(
+    /^(.+?(?:에게|한테|께|게))\s+(예쁜\s+인형을|인형을)\s+(사\s*주었다|사주었다)$/u
+  );
+
+  if (!bodyMatch) {
+    return null;
+  }
+
+  const recipientSource =
+    String(bodyMatch[1] || '')
+      .replace(/\s+/gu, ' ')
+      .trim();
+
+  const objectSource =
+    String(bodyMatch[2] || '')
+      .replace(/\s+/gu, ' ')
+      .trim();
+
+  const predicateSource =
+    String(bodyMatch[3] || '')
+      .replace(/\s+/gu, ' ')
+      .trim();
+
+  const recipient =
+    twoProResolveBuyDollRecipientV979(
+      recipientSource,
+      subject.possessive
+    );
+
+  const object =
+    twoProResolveBuyDollObjectV979(
+      objectSource
+    );
+
+  if (!recipient || !object) {
+    return null;
+  }
+
+  const predicateEn = 'bought';
+
+  const targetText =
+    twoProFinalizeEnglish(
+      [
+        subject.english,
+        predicateEn,
+        recipient.selected,
+        object.selected,
+      ].join(' '),
+      originalText
+    );
+
+  const referenceWords: any[] = [
+    {
+      source: subject.source,
+      selected: subject.english,
+      candidates: [subject.english],
+      slot: subject.kind,
+      confidence: 1,
+      origin: 'route-v9.79',
+    },
+    {
+      source: predicateSource,
+      selected: predicateEn,
+      candidates: [predicateEn, 'buy'],
+      slot: 'PAST_DITRANSITIVE_PREDICATE',
+      confidence: 1,
+      origin: 'route-v9.79',
+    },
+    {
+      source: recipient.source,
+      selected: recipient.selected,
+      candidates: [recipient.selected],
+      slot: recipient.kind,
+      confidence: 1,
+      origin: 'route-v9.79',
+    },
+    {
+      source: object.source,
+      selected: object.selected,
+      candidates: [object.selected],
+      slot: object.kind,
+      confidence: 1,
+      origin: 'route-v9.79',
+    },
+  ];
+
+  return {
+    targetText,
+    analysis: referenceWords.map(
+      (item) => ({
+        ko: item.source,
+        en: `${item.selected} [${item.slot}]`,
+      })
+    ),
+    referenceWords,
+    engine:
+      'buy-doll-ditransitive-pronoun-possessive-ko-en-v9.79',
+    matchedRule: [
+      'BUY_DOLL_DITRANSITIVE_V979',
+      subject.kind,
+      recipient.kind,
+      object.kind,
+      subject.pronoun || 'GIRL_NOUN',
+    ].join('_'),
+  };
+};
+
+
+
+
+// ============================================================================
+// ☆ TwoPro v9.82-safe: [인칭대명사 주어] + [목적격 인칭대명사]를 +
+//                      (정직한) 소년으로 생각한다
+//
+// 처리 예:
+// - 나는 그를 정직한 소년으로 생각한다.
+// - 그는 나를 소년으로 생각한다.
+// - 그는 그녀를 소년으로 생각한다.
+// - 나는 그들을 소년으로 생각한다.
+// - 그들은 너희를 정직한 소년으로 생각한다.
+//
+// 핵심:
+// 1. 주어는 기존 v6.2 공용 주격 추출기를 재사용하여
+//    I/we/you/he/she/they를 구분합니다.
+// 2. 목적어는 기존 v6.4 공용 목적격 표를 재사용하여
+//    me/us/you/him/her/them을 구분합니다.
+// 3. he/she 주어일 때만 think를 thinks로 굴절합니다.
+// 4. 단수 목적어의 보어는 a boy/an honest boy,
+//    복수 목적어의 보어는 boys/honest boys로 조립합니다.
+// 5. 목적격 대명사 앞에는 a/an/the를 붙이지 않으며,
+//    boy에 희귀·방언적 후보 gossoon을 사용하지 않습니다.
+// 6. 현재형 '생각한다'와 사람 목적격 대명사에만 제한하여
+//    과거·미래·일반 명사 목적어 문형을 가로채지 않습니다.
+// 7. think/thinks, 목적격, 관사, 단수·복수가 함께 결정되므로
+//    rules-ko-en-phrases.json에는 새 고정 PHRASE를 추가하지 않습니다.
+// ============================================================================
+type TwoProThinkObjectComplementResultV982 = {
+  targetText: string;
+  analysis: Array<{
+    ko: string;
+    en: string;
+  }>;
+  referenceWords: any[];
+  engine: string;
+  matchedRule: string;
+};
+
+const TWO_PRO_THINK_PERSON_OBJECT_STEMS_V982 =
+  Object.freeze([
+    '나',
+    '저',
+    '내',
+    '제',
+    '우리',
+    '우리들',
+    '저희',
+    '저희들',
+    '너',
+    '네',
+    '당신',
+    '너희',
+    '너희들',
+    '그',
+    '그녀',
+    '그들',
+    '그녀들',
+  ] as const);
+
+const TWO_PRO_THINK_PLURAL_OBJECT_STEMS_V982 =
+  new Set<string>([
+    '우리',
+    '우리들',
+    '저희',
+    '저희들',
+    '너희',
+    '너희들',
+    '그들',
+    '그녀들',
+  ]);
+
+const twoProTryKoEnThinkObjectComplementV982 = (
+  originalText: string
+): TwoProThinkObjectComplementResultV982 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const subject =
+    twoProExtractLeadingSubjectV62(normalized);
+
+  if (!subject) {
+    return null;
+  }
+
+  const bodyMatch = subject.body.match(
+    /^(.+?)(을|를)\s+(정직한\s+)?소년으로\s+생각한다$/u
+  );
+
+  if (!bodyMatch) {
+    return null;
+  }
+
+  const objectSource = `${String(
+    bodyMatch[1] || ''
+  ).trim()}${String(bodyMatch[2] || '').trim()}`;
+
+  const hasHonest = Boolean(bodyMatch[3]);
+
+  const objectPronoun =
+    twoProResolveObjectPronounWithParticleV969(
+      objectSource
+    );
+
+  if (!objectPronoun) {
+    return null;
+  }
+
+  if (
+    !TWO_PRO_THINK_PERSON_OBJECT_STEMS_V982
+      .includes(
+        objectPronoun.stem as
+          typeof TWO_PRO_THINK_PERSON_OBJECT_STEMS_V982[number]
+      )
+  ) {
+    return null;
+  }
+
+  const subjectEn =
+    twoProCapitalizeSubjectV62(subject.pronoun);
+
+  const predicateEn =
+    subject.pronoun === 'he' ||
+    subject.pronoun === 'she'
+      ? 'thinks'
+      : 'think';
+
+  const isPluralObject =
+    TWO_PRO_THINK_PLURAL_OBJECT_STEMS_V982
+      .has(objectPronoun.stem);
+
+  const complementKo = hasHonest
+    ? '정직한 소년으로'
+    : '소년으로';
+
+  const complementEn = isPluralObject
+    ? hasHonest
+      ? 'honest boys'
+      : 'boys'
+    : hasHonest
+      ? 'an honest boy'
+      : 'a boy';
+
+  const targetText = twoProFinalizeEnglish(
+    [
+      subjectEn,
+      predicateEn,
+      objectPronoun.selected,
+      complementEn,
+    ].join(' '),
+    originalText
+  );
+
+  const referenceWords: any[] = [
+    {
+      source: subject.source,
+      selected: subjectEn,
+      candidates: [subjectEn],
+      slot: 'SUBJECT_PRONOUN',
+      confidence: 1,
+      origin: 'route-v9.82',
+    },
+    {
+      source: '생각한다',
+      selected: predicateEn,
+      candidates: [predicateEn, 'think'],
+      slot: 'PRESENT_OBJECT_COMPLEMENT_PREDICATE',
+      confidence: 1,
+      origin: 'route-v9.82',
+    },
+    {
+      source: objectPronoun.source,
+      selected: objectPronoun.selected,
+      candidates: [objectPronoun.selected],
+      slot: 'OBJECT_PRONOUN',
+      confidence: 1,
+      origin: 'route-v9.82',
+    },
+    {
+      source: complementKo,
+      selected: complementEn,
+      candidates: [complementEn],
+      slot: isPluralObject
+        ? hasHonest
+          ? 'PLURAL_HONEST_BOY_OBJECT_COMPLEMENT'
+          : 'PLURAL_BOY_OBJECT_COMPLEMENT'
+        : hasHonest
+          ? 'SINGULAR_HONEST_BOY_OBJECT_COMPLEMENT'
+          : 'SINGULAR_BOY_OBJECT_COMPLEMENT',
+      confidence: 1,
+      origin: 'route-v9.82',
+    },
+  ];
+
+  return {
+    targetText,
+    analysis: referenceWords.map(
+      (item) => ({
+        ko: item.source,
+        en: `${item.selected} [${item.slot}]`,
+      })
+    ),
+    referenceWords,
+    engine:
+      'think-object-complement-pronoun-ko-en-v9.82',
+    matchedRule: [
+      'THINK_OBJECT_COMPLEMENT_V982',
+      subject.pronoun.toUpperCase(),
+      isPluralObject
+        ? 'PLURAL_OBJECT'
+        : 'SINGULAR_OBJECT',
+      hasHonest
+        ? 'HONEST_BOY'
+        : 'BOY',
+    ].join('_'),
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v9.81-safe: [주어] + [수혜자 시민들]에게 + ([계곡 장소]) +
+//                      (큰) 집을 지어주었다
+//
+// 처리 예:
+// - 그 인자한 목수는 집 없는 가련한 시민들에게 조용한 계곡에다 큰 집을 지어주었다.
+// - 그 목수는 시민들에게 집을 지어주었다.
+// - 그는 시민들에게 집을 지어주었다.
+// - 그녀는 시민들에게 집을 지어주었다.
+// - 그들은 시민들에게 집을 지어주었다.
+// - 나는 시민들에게 집을 지어주었다.
+//
+// 핵심:
+// 1. 기존 참고 데이터의 "built the poor citizens without the houses ..."는
+//    영어 목적어 구조가 잘못되어 있으므로 이 제한 문형이 먼저 가로챕니다.
+// 2. 영어는 build + 물건 + for + 수혜자 + 장소 어순으로 조립합니다.
+// 3. 집 없는 시민은 homeless citizens로 처리하며 without the houses로
+//    직역하지 않습니다.
+// 4. 큰 집/집의 단수 관사는 각각 a large house/a house로 보장합니다.
+// 5. 조용한 계곡에다/계곡에다는 각각 in a quiet valley/in a valley로
+//    처리하며, 장소가 없는 축소 문장도 허용합니다.
+// 6. 지어주었다/지어 주었다의 과거형과 아래 제한 명사구에만 적용합니다.
+// 7. 인칭·4형식·전치사·관사가 함께 결정되므로 rules-ko-en-phrases.json에는
+//    새 고정 PHRASE를 추가하지 않습니다.
+// ============================================================================
+type TwoProBuildHouseSubjectV981 = {
+  source: string;
+  english: string;
+  body: string;
+  kind: 'PRONOUN_SUBJECT' | 'CARPENTER_NOUN_SUBJECT';
+  pronoun?: TwoProExplicitSubjectV62['pronoun'];
+};
+
+type TwoProBuildHouseRecipientV981 = {
+  source: string;
+  selected: string;
+  kind:
+    | 'POOR_HOMELESS_CITIZENS_RECIPIENT'
+    | 'POOR_CITIZENS_RECIPIENT'
+    | 'HOMELESS_CITIZENS_RECIPIENT'
+    | 'CITIZENS_RECIPIENT';
+};
+
+type TwoProBuildHouseLocationV981 = {
+  source: string;
+  selected: 'in a quiet valley' | 'in a valley';
+  kind: 'QUIET_VALLEY_LOCATION' | 'VALLEY_LOCATION';
+};
+
+type TwoProBuildHouseObjectV981 = {
+  source: string;
+  selected: 'a large house' | 'a house';
+  kind: 'LARGE_HOUSE_OBJECT' | 'HOUSE_OBJECT';
+};
+
+type TwoProBuildHouseResultV981 = {
+  targetText: string;
+  analysis: Array<{
+    ko: string;
+    en: string;
+  }>;
+  referenceWords: any[];
+  engine: string;
+  matchedRule: string;
+};
+
+const TWO_PRO_BUILD_HOUSE_NOUN_SUBJECTS_V981 =
+  Object.freeze([
+    {
+      forms: ['그 인자한 목수는', '그 인자한 목수가'],
+      english: 'The charitable carpenter',
+      kind: 'CHARITABLE_CARPENTER',
+    },
+    {
+      forms: ['그 목수는', '그 목수가'],
+      english: 'The carpenter',
+      kind: 'CARPENTER',
+    },
+  ] as const);
+
+const TWO_PRO_BUILD_HOUSE_RECIPIENTS_V981:
+  ReadonlyArray<TwoProBuildHouseRecipientV981> =
+  Object.freeze([
+    {
+      source: '집 없는 가련한 시민들에게',
+      selected: 'for the poor homeless citizens',
+      kind: 'POOR_HOMELESS_CITIZENS_RECIPIENT',
+    },
+    {
+      source: '집 없는 시민들에게',
+      selected: 'for the homeless citizens',
+      kind: 'HOMELESS_CITIZENS_RECIPIENT',
+    },
+    {
+      source: '가련한 시민들에게',
+      selected: 'for the poor citizens',
+      kind: 'POOR_CITIZENS_RECIPIENT',
+    },
+    {
+      source: '시민들에게',
+      selected: 'for the citizens',
+      kind: 'CITIZENS_RECIPIENT',
+    },
+  ]);
+
+const TWO_PRO_BUILD_HOUSE_LOCATIONS_V981:
+  ReadonlyArray<TwoProBuildHouseLocationV981> =
+  Object.freeze([
+    {
+      source: '조용한 계곡에다',
+      selected: 'in a quiet valley',
+      kind: 'QUIET_VALLEY_LOCATION',
+    },
+    {
+      source: '계곡에다',
+      selected: 'in a valley',
+      kind: 'VALLEY_LOCATION',
+    },
+  ]);
+
+const TWO_PRO_BUILD_HOUSE_OBJECTS_V981:
+  ReadonlyArray<TwoProBuildHouseObjectV981> =
+  Object.freeze([
+    {
+      source: '큰 집을',
+      selected: 'a large house',
+      kind: 'LARGE_HOUSE_OBJECT',
+    },
+    {
+      source: '집을',
+      selected: 'a house',
+      kind: 'HOUSE_OBJECT',
+    },
+  ]);
+
+const twoProResolveBuildHouseSubjectV981 = (
+  normalized: string
+): TwoProBuildHouseSubjectV981 | null => {
+  const explicitSubject =
+    twoProExtractLeadingSubjectV62(normalized);
+
+  if (explicitSubject) {
+    return {
+      source: explicitSubject.source,
+      english:
+        twoProCapitalizeSubjectV62(
+          explicitSubject.pronoun
+        ),
+      body: explicitSubject.body,
+      kind: 'PRONOUN_SUBJECT',
+      pronoun: explicitSubject.pronoun,
+    };
+  }
+
+  const nounSubjects =
+    TWO_PRO_BUILD_HOUSE_NOUN_SUBJECTS_V981
+      .flatMap((item) =>
+        item.forms.map((form) => ({
+          form,
+          english: item.english,
+        }))
+      )
+      .sort(
+        (left, right) =>
+          right.form.length - left.form.length
+      );
+
+  for (const item of nounSubjects) {
+    if (!normalized.startsWith(`${item.form} `)) {
+      continue;
+    }
+
+    const body = normalized
+      .slice(item.form.length)
+      .trim();
+
+    if (!body) {
+      return null;
+    }
+
+    return {
+      source: item.form,
+      english: item.english,
+      body,
+      kind: 'CARPENTER_NOUN_SUBJECT',
+    };
+  }
+
+  return null;
+};
+
+const twoProTryKoEnBuildHouseForCitizensV981 = (
+  originalText: string
+): TwoProBuildHouseResultV981 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const subject =
+    twoProResolveBuildHouseSubjectV981(
+      normalized
+    );
+
+  if (!subject) {
+    return null;
+  }
+
+  const predicateMatch = subject.body.match(
+    /^(.*?)\s+(지어\s*주었다|지어주었다)$/u
+  );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const bodyWithoutPredicate = String(
+    predicateMatch[1] || ''
+  )
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const predicateSource = String(
+    predicateMatch[2] || ''
+  )
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const recipients = [
+    ...TWO_PRO_BUILD_HOUSE_RECIPIENTS_V981,
+  ].sort(
+    (left, right) =>
+      right.source.length - left.source.length
+  );
+
+  const locations = [
+    ...TWO_PRO_BUILD_HOUSE_LOCATIONS_V981,
+  ].sort(
+    (left, right) =>
+      right.source.length - left.source.length
+  );
+
+  const objects = [
+    ...TWO_PRO_BUILD_HOUSE_OBJECTS_V981,
+  ].sort(
+    (left, right) =>
+      right.source.length - left.source.length
+  );
+
+  let recipient:
+    | TwoProBuildHouseRecipientV981
+    | null = null;
+  let location:
+    | TwoProBuildHouseLocationV981
+    | null = null;
+  let object:
+    | TwoProBuildHouseObjectV981
+    | null = null;
+
+  for (const recipientCandidate of recipients) {
+    if (
+      !bodyWithoutPredicate.startsWith(
+        `${recipientCandidate.source} `
+      )
+    ) {
+      continue;
+    }
+
+    const afterRecipient = bodyWithoutPredicate
+      .slice(recipientCandidate.source.length)
+      .trim();
+
+    const directObject = objects.find(
+      (item) => item.source === afterRecipient
+    );
+
+    if (directObject) {
+      recipient = recipientCandidate;
+      object = directObject;
+      location = null;
+      break;
+    }
+
+    for (const locationCandidate of locations) {
+      if (
+        !afterRecipient.startsWith(
+          `${locationCandidate.source} `
+        )
+      ) {
+        continue;
+      }
+
+      const afterLocation = afterRecipient
+        .slice(locationCandidate.source.length)
+        .trim();
+
+      const objectCandidate = objects.find(
+        (item) => item.source === afterLocation
+      );
+
+      if (!objectCandidate) {
+        continue;
+      }
+
+      recipient = recipientCandidate;
+      location = locationCandidate;
+      object = objectCandidate;
+      break;
+    }
+
+    if (recipient && object) {
+      break;
+    }
+  }
+
+  if (!recipient || !object) {
+    return null;
+  }
+
+  const predicateEn = 'built';
+
+  const targetText =
+    twoProFinalizeEnglish(
+      [
+        subject.english,
+        predicateEn,
+        object.selected,
+        recipient.selected,
+        location?.selected || '',
+      ]
+        .filter(Boolean)
+        .join(' '),
+      originalText
+    );
+
+  const referenceWords: any[] = [
+    {
+      source: subject.source,
+      selected: subject.english,
+      candidates: [subject.english],
+      slot: subject.kind,
+      confidence: 1,
+      origin: 'route-v9.81',
+    },
+    {
+      source: predicateSource,
+      selected: predicateEn,
+      candidates: [predicateEn, 'build'],
+      slot: 'PAST_BUILD_FOR_PREDICATE',
+      confidence: 1,
+      origin: 'route-v9.81',
+    },
+    {
+      source: object.source,
+      selected: object.selected,
+      candidates: [object.selected],
+      slot: object.kind,
+      confidence: 1,
+      origin: 'route-v9.81',
+    },
+    {
+      source: recipient.source,
+      selected: recipient.selected,
+      candidates: [recipient.selected],
+      slot: recipient.kind,
+      confidence: 1,
+      origin: 'route-v9.81',
+    },
+  ];
+
+  if (location) {
+    referenceWords.push({
+      source: location.source,
+      selected: location.selected,
+      candidates: [location.selected],
+      slot: location.kind,
+      confidence: 1,
+      origin: 'route-v9.81',
+    });
+  }
+
+  return {
+    targetText,
+    analysis: referenceWords.map(
+      (item) => ({
+        ko: item.source,
+        en: `${item.selected} [${item.slot}]`,
+      })
+    ),
+    referenceWords,
+    engine:
+      'build-house-for-citizens-ko-en-v9.81',
+    matchedRule: [
+      'BUILD_HOUSE_FOR_CITIZENS_V981',
+      subject.kind,
+      recipient.kind,
+      object.kind,
+      location
+        ? location.kind
+        : 'NO_LOCATION',
+      subject.pronoun || 'CARPENTER',
+    ].join('_'),
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v9.80-safe: [주어] + [수혜자]에게 + (예쁜) 장난감-배를 만들어 주셨다
+//
+// 처리 예:
+// - 나의 아저씨가 나에게 예쁜 장난감-배를 만들어 주셨다.
+// - 나의 아저씨가 장난감-배를 만들어 주셨다.
+// - 그가 나에게 예쁜 장난감-배를 만들어 주셨다.
+// - 그들이 장난감-배를 만들어 주셨다.
+//
+// 핵심:
+// 1. 그/그녀/그들/나/저/우리/너희 등 대명사 주어는 기존 v6.2 공용
+//    주격 추출기를 재사용합니다.
+// 2. 나에게/우리에게/그에게/그녀에게/그들에게 등 수혜자는 기존 v6.4
+//    공용 목적격 표를 재사용하여 me/us/him/her/them으로 처리합니다.
+// 3. '나의 아저씨가/는' 계열은 문두 명사 주어 My uncle로 제한 처리합니다.
+// 4. 수혜자가 있으면 made + 간접목적어 + 직접목적어의 4형식으로,
+//    수혜자가 없으면 made + 직접목적어의 3형식으로 조립합니다.
+// 5. '예쁜 장난감-배를'은 a pretty toy-ship,
+//    '장난감-배를'은 a toy-ship으로 처리합니다.
+// 6. 만들어 주셨다/만들어주셨다의 과거 존대형에만 적용하여 현재·미래·
+//    단순 '만들었다' 문형을 가로채지 않습니다.
+// 7. 나에게, 만들어 주셨다, 장난감-배를은 인칭·문형·관사에 민감하므로
+//    rules-ko-en-phrases.json에는 추가하지 않습니다.
+// ============================================================================
+type TwoProMakeToyShipSubjectV980 = {
+  source: string;
+  english: string;
+  body: string;
+  kind: 'PRONOUN_SUBJECT' | 'MY_UNCLE_NOUN_SUBJECT';
+  pronoun?: TwoProExplicitSubjectV62['pronoun'];
+};
+
+type TwoProMakeToyShipRecipientV980 = {
+  source: string;
+  selected: string;
+  kind: 'OBJECT_PRONOUN_RECIPIENT';
+};
+
+type TwoProMakeToyShipObjectV980 = {
+  source: string;
+  selected: 'a pretty toy-ship' | 'a toy-ship';
+  kind: 'PRETTY_TOY_SHIP_OBJECT' | 'TOY_SHIP_OBJECT';
+};
+
+type TwoProMakeToyShipResultV980 = {
+  targetText: string;
+  analysis: Array<{
+    ko: string;
+    en: string;
+  }>;
+  referenceWords: any[];
+  engine: string;
+  matchedRule: string;
+};
+
+const TWO_PRO_MAKE_TOY_SHIP_UNCLE_SUBJECTS_V980 =
+  Object.freeze([
+    '나의 아저씨가',
+    '나의 아저씨는',
+    '내 아저씨가',
+    '내 아저씨는',
+    '저의 아저씨가',
+    '저의 아저씨는',
+    '제 아저씨가',
+    '제 아저씨는',
+  ] as const);
+
+const twoProResolveMakeToyShipSubjectV980 = (
+  normalized: string
+): TwoProMakeToyShipSubjectV980 | null => {
+  const explicitSubject =
+    twoProExtractLeadingSubjectV62(normalized);
+
+  if (explicitSubject) {
+    return {
+      source: explicitSubject.source,
+      english:
+        twoProCapitalizeSubjectV62(
+          explicitSubject.pronoun
+        ),
+      body: explicitSubject.body,
+      kind: 'PRONOUN_SUBJECT',
+      pronoun: explicitSubject.pronoun,
+    };
+  }
+
+  const orderedUncleSubjects = [
+    ...TWO_PRO_MAKE_TOY_SHIP_UNCLE_SUBJECTS_V980,
+  ].sort(
+    (left, right) => right.length - left.length
+  );
+
+  for (const form of orderedUncleSubjects) {
+    if (!normalized.startsWith(`${form} `)) {
+      continue;
+    }
+
+    const body = normalized
+      .slice(form.length)
+      .trim();
+
+    if (!body) {
+      return null;
+    }
+
+    return {
+      source: form,
+      english: 'My uncle',
+      body,
+      kind: 'MY_UNCLE_NOUN_SUBJECT',
+    };
+  }
+
+  return null;
+};
+
+const twoProResolveMakeToyShipRecipientV980 = (
+  sourceWithParticle: string
+): TwoProMakeToyShipRecipientV980 | null => {
+  const normalized = String(sourceWithParticle || '')
+    .normalize('NFC')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const particleMatch = normalized.match(
+    /^(.+?)(에게|한테|께|게)$/u
+  );
+
+  if (!particleMatch) {
+    return null;
+  }
+
+  const stem = String(particleMatch[1] || '')
+    .trim();
+
+  if (!stem) {
+    return null;
+  }
+
+  const objectPronoun =
+    TWO_PRO_KO_EN_OBJECT_PRONOUNS_V64[
+      stem
+    ];
+
+  if (!objectPronoun) {
+    return null;
+  }
+
+  return {
+    source: normalized,
+    selected: objectPronoun,
+    kind: 'OBJECT_PRONOUN_RECIPIENT',
+  };
+};
+
+const twoProResolveMakeToyShipObjectV980 = (
+  source: string
+): TwoProMakeToyShipObjectV980 | null => {
+  const normalized = String(source || '')
+    .normalize('NFC')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  if (normalized === '예쁜 장난감-배를') {
+    return {
+      source: normalized,
+      selected: 'a pretty toy-ship',
+      kind: 'PRETTY_TOY_SHIP_OBJECT',
+    };
+  }
+
+  if (normalized === '장난감-배를') {
+    return {
+      source: normalized,
+      selected: 'a toy-ship',
+      kind: 'TOY_SHIP_OBJECT',
+    };
+  }
+
+  return null;
+};
+
+const twoProTryKoEnMakeToyShipV980 = (
+  originalText: string
+): TwoProMakeToyShipResultV980 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const subject =
+    twoProResolveMakeToyShipSubjectV980(
+      normalized
+    );
+
+  if (!subject) {
+    return null;
+  }
+
+  const bodyMatch = subject.body.match(
+    /^(?:(.+?(?:에게|한테|께|게))\s+)?(예쁜\s+장난감-배를|장난감-배를)\s+(만들어\s*주셨다|만들어주셨다)$/u
+  );
+
+  if (!bodyMatch) {
+    return null;
+  }
+
+  const recipientSource =
+    String(bodyMatch[1] || '')
+      .replace(/\s+/gu, ' ')
+      .trim();
+
+  const objectSource =
+    String(bodyMatch[2] || '')
+      .replace(/\s+/gu, ' ')
+      .trim();
+
+  const predicateSource =
+    String(bodyMatch[3] || '')
+      .replace(/\s+/gu, ' ')
+      .trim();
+
+  const recipient = recipientSource
+    ? twoProResolveMakeToyShipRecipientV980(
+        recipientSource
+      )
+    : null;
+
+  if (recipientSource && !recipient) {
+    return null;
+  }
+
+  const object =
+    twoProResolveMakeToyShipObjectV980(
+      objectSource
+    );
+
+  if (!object) {
+    return null;
+  }
+
+  const predicateEn = 'made';
+
+  const targetText =
+    twoProFinalizeEnglish(
+      [
+        subject.english,
+        predicateEn,
+        recipient?.selected || '',
+        object.selected,
+      ]
+        .filter(Boolean)
+        .join(' '),
+      originalText
+    );
+
+  const referenceWords: any[] = [
+    {
+      source: subject.source,
+      selected: subject.english,
+      candidates: [subject.english],
+      slot: subject.kind,
+      confidence: 1,
+      origin: 'route-v9.80',
+    },
+    {
+      source: predicateSource,
+      selected: predicateEn,
+      candidates: [predicateEn, 'make'],
+      slot: 'PAST_MAKE_FOR_PREDICATE',
+      confidence: 1,
+      origin: 'route-v9.80',
+    },
+  ];
+
+  if (recipient) {
+    referenceWords.push({
+      source: recipient.source,
+      selected: recipient.selected,
+      candidates: [recipient.selected],
+      slot: recipient.kind,
+      confidence: 1,
+      origin: 'route-v9.80',
+    });
+  }
+
+  referenceWords.push({
+    source: object.source,
+    selected: object.selected,
+    candidates: [object.selected],
+    slot: object.kind,
+    confidence: 1,
+    origin: 'route-v9.80',
+  });
+
+  return {
+    targetText,
+    analysis: referenceWords.map(
+      (item) => ({
+        ko: item.source,
+        en: `${item.selected} [${item.slot}]`,
+      })
+    ),
+    referenceWords,
+    engine:
+      'make-toy-ship-ditransitive-pronoun-ko-en-v9.80',
+    matchedRule: [
+      'MAKE_TOY_SHIP_V980',
+      subject.kind,
+      recipient
+        ? recipient.kind
+        : 'NO_RECIPIENT',
+      object.kind,
+      subject.pronoun || 'MY_UNCLE',
+    ].join('_'),
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v9.78-safe: 아인슈타인은 [사고/추리 수단]을 통해(서)
+//                      그의 이론을 발전시켰다
+//
+// 처리 예:
+// - 아인슈타인은 깊은 사고와 복잡한 수학적 추리를 통해 그의 이론을 발전시켰다.
+// - 아인슈타인은 깊은 사고와 추리를 통해서 그의 이론을 발전시켰다.
+// - 아인슈타인은 사고와 수학적 추리를 통해 그의 이론을 발전시켰다.
+// - 아인슈타인은 수학적 추리를 통해서 그의 이론을 발전시켰다.
+// - 아인슈타인은 추리를 통해서 그의 이론을 발전시켰다.
+// - 아인슈타인은 그의 이론을 발전시켰다.
+//
+// 핵심:
+// 1. 이 문형은 아인슈타인 + 그의 이론 + 과거형 발전시켰다에만 적용합니다.
+// 2. 통해/통해서를 모두 허용하되 통과 수단은 아래의 제한된 명사구만 받습니다.
+// 3. 가장 긴 수단 구를 먼저 판별하여 짧은 '추리'가 긴 구를 가로채지 않습니다.
+// 4. 추리는 이 문맥에서 inference/deduction보다 reasoning이 자연스럽습니다.
+// 5. 인칭·시제·장소·관사에 영향을 주는 고정 PHRASE를 새로 추가하지 않습니다.
+// ============================================================================
+type TwoProEinsteinTheoryResultV978 = {
+  targetText: string;
+  analysis: Array<{
+    ko: string;
+    en: string;
+  }>;
+  referenceWords: any[];
+  engine: string;
+  matchedRule: string;
+};
+
+type TwoProEinsteinMethodV978 = {
+  source: string;
+  selected: string;
+  rule: string;
+};
+
+const TWO_PRO_EINSTEIN_METHODS_V978:
+  ReadonlyArray<TwoProEinsteinMethodV978> =
+  Object.freeze([
+    {
+      source: '깊은 사고와 복잡한 수학적 추리를',
+      selected:
+        'through deep thought and complex mathematical reasoning',
+      rule: 'DEEP_THOUGHT_COMPLEX_MATHEMATICAL_REASONING',
+    },
+    {
+      source: '사고와 복잡한 수학적 추리를',
+      selected:
+        'through thought and complex mathematical reasoning',
+      rule: 'THOUGHT_COMPLEX_MATHEMATICAL_REASONING',
+    },
+    {
+      source: '깊은 사고와 수학적 추리를',
+      selected:
+        'through deep thought and mathematical reasoning',
+      rule: 'DEEP_THOUGHT_MATHEMATICAL_REASONING',
+    },
+    {
+      source: '깊은 사고와 복잡한 추리를',
+      selected:
+        'through deep thought and complex reasoning',
+      rule: 'DEEP_THOUGHT_COMPLEX_REASONING',
+    },
+    {
+      source: '사고와 수학적 추리를',
+      selected:
+        'through thought and mathematical reasoning',
+      rule: 'THOUGHT_MATHEMATICAL_REASONING',
+    },
+    {
+      source: '사고와 복잡한 추리를',
+      selected:
+        'through thought and complex reasoning',
+      rule: 'THOUGHT_COMPLEX_REASONING',
+    },
+    {
+      source: '깊은 사고와 추리를',
+      selected:
+        'through deep thought and reasoning',
+      rule: 'DEEP_THOUGHT_REASONING',
+    },
+    {
+      source: '사고와 추리를',
+      selected: 'through thought and reasoning',
+      rule: 'THOUGHT_REASONING',
+    },
+    {
+      source: '복잡한 수학적 추리를',
+      selected:
+        'through complex mathematical reasoning',
+      rule: 'COMPLEX_MATHEMATICAL_REASONING',
+    },
+    {
+      source: '수학적 추리를',
+      selected: 'through mathematical reasoning',
+      rule: 'MATHEMATICAL_REASONING',
+    },
+    {
+      source: '복잡한 추리를',
+      selected: 'through complex reasoning',
+      rule: 'COMPLEX_REASONING',
+    },
+    {
+      source: '추리를',
+      selected: 'through reasoning',
+      rule: 'REASONING',
+    },
+  ]);
+
+const TWO_PRO_EINSTEIN_METHOD_BY_SOURCE_V978:
+  Readonly<Record<string, TwoProEinsteinMethodV978>> =
+  Object.freeze(
+    Object.fromEntries(
+      TWO_PRO_EINSTEIN_METHODS_V978.map(
+        (item) => [item.source, item]
+      )
+    )
+  );
+
+const TWO_PRO_EINSTEIN_METHOD_PATTERN_V978 =
+  TWO_PRO_EINSTEIN_METHODS_V978
+    .map((item) => item.source)
+    .sort((left, right) => right.length - left.length)
+    .map((item) =>
+      item.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    )
+    .join('|');
+
+const TWO_PRO_EINSTEIN_THEORY_REGEX_V978 =
+  new RegExp(
+    `^아인슈타인은\\s+` +
+      `(?:(` +
+      TWO_PRO_EINSTEIN_METHOD_PATTERN_V978 +
+      `)\\s+(통해(?:서)?)\\s+)?` +
+      `그의\\s+이론을\\s+발전시켰다$`,
+    'u'
+  );
+
+const twoProTryKoEnEinsteinTheoryV978 = (
+  originalText: string
+): TwoProEinsteinTheoryResultV978 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const match = normalized.match(
+    TWO_PRO_EINSTEIN_THEORY_REGEX_V978
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const methodSource = String(match[1] || '').trim();
+  const connectorSource = String(match[2] || '').trim();
+  const method = methodSource
+    ? TWO_PRO_EINSTEIN_METHOD_BY_SOURCE_V978[
+        methodSource
+      ]
+    : null;
+
+  if (methodSource && !method) {
+    return null;
+  }
+
+  const subjectSource = '아인슈타인은';
+  const subjectEn = 'Einstein';
+  const predicateSource = '발전시켰다';
+  const predicateEn = 'developed';
+  const objectSource = '그의 이론을';
+  const objectEn = 'his theory';
+
+  const targetText = twoProFinalizeEnglish(
+    [
+      subjectEn,
+      predicateEn,
+      objectEn,
+      method?.selected || '',
+    ]
+      .filter(Boolean)
+      .join(' '),
+    originalText
+  );
+
+  const referenceWords: any[] = [
+    {
+      source: subjectSource,
+      selected: subjectEn,
+      candidates: [subjectEn],
+      slot: 'PROPER_NOUN_SUBJECT',
+      confidence: 1,
+      origin: 'route-v9.78',
+    },
+    {
+      source: predicateSource,
+      selected: predicateEn,
+      candidates: [predicateEn, 'develop'],
+      slot: 'PAST_TRANSITIVE_PREDICATE',
+      confidence: 1,
+      origin: 'route-v9.78',
+    },
+    {
+      source: objectSource,
+      selected: objectEn,
+      candidates: [objectEn],
+      slot: 'POSSESSED_OBJECT',
+      confidence: 1,
+      origin: 'route-v9.78',
+    },
+  ];
+
+  if (method) {
+    referenceWords.push({
+      source: `${method.source} ${connectorSource}`,
+      selected: method.selected,
+      candidates: [method.selected],
+      slot: 'MEANS_ADJUNCT',
+      confidence: 1,
+      origin: 'route-v9.78',
+    });
+  }
+
+  return {
+    targetText,
+    analysis: referenceWords.map((item) => ({
+      ko: item.source,
+      en: `${item.selected} [${item.slot}]`,
+    })),
+    referenceWords,
+    engine:
+      'einstein-develop-theory-through-reasoning-ko-en-v9.78',
+    matchedRule: [
+      'EINSTEIN_THEORY_V978',
+      method?.rule || 'NO_METHOD',
+    ].join('_'),
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v9.77-safe: [인칭대명사 주어] + (동반구) + [소유격] 계획을 의논했다
+//
+// 처리 예:
+// - 그들은 자기 친구들과 함께 그들의 겨울방학에 대한 계획을 의논했다.
+// - 그들은 자기 친구들과 함께 그들의 계획을 의논했다.
+// - 그들은 그들의 계획을 의논했다.
+// - 그들은 그와 함께 그들의 계획을 의논했다.
+// - 그는 그의 계획을 의논했다.
+// - 그녀는 그녀의 계획을 의논했다.
+// - 나는 나의 계획을 의논했다.
+//
+// 핵심:
+// 1. 문두 주어는 기존 v6.2 공용 주격 추출기를 재사용합니다.
+// 2. 나의/우리의/너희의/그의/그녀의/그들의 등은 기존 v9.1 공용
+//    소유격 표를 재사용하여 my/our/your/his/her/their plan으로 처리합니다.
+// 3. 나와/우리와/그와/그녀와/그들과 함께는 기존 v6.4 공용 목적격
+//    표를 재사용하여 with me/us/him/her/them으로 처리합니다.
+// 4. 자기 친구들과 함께는 문두 주어를 선행사로 삼아
+//    with my/our/your/his/her/their friends로 처리합니다.
+// 5. 영어 discuss는 타동사이므로 discuss about the plan처럼 about을
+//    덧붙이지 않고 discussed + 목적어로 조립합니다.
+// 6. 겨울방학에 대한 계획은 the plan for [소유격] winter vacation으로
+//    처리하고, 일반 [소유격] 계획은 [소유격] plan으로 처리합니다.
+// 7. 과거형 '의논했다'에만 적용하여 의논한다/의논할 것이다/검토했다
+//    같은 다른 시제·동사를 가로채지 않습니다.
+// ============================================================================
+type TwoProDiscussPlanResultV977 = {
+  targetText: string;
+  analysis: Array<{
+    ko: string;
+    en: string;
+  }>;
+  referenceWords: any[];
+  engine: string;
+  matchedRule: string;
+};
+
+const TWO_PRO_DISCUSS_PLAN_SUBJECT_POSSESSIVES_V977:
+  Readonly<
+    Record<
+      TwoProExplicitSubjectV62['pronoun'],
+      string
+    >
+  > = {
+    I: 'my',
+    we: 'our',
+    you: 'your',
+    he: 'his',
+    she: 'her',
+    they: 'their',
+  };
+
+const TWO_PRO_DISCUSS_PLAN_POSSESSIVE_FORMS_V977 =
+  Object.freeze(
+    Object.keys(
+      TWO_PRO_RELATIVE_POSSESSIVE_DETERMINERS_V91
+    ).sort(
+      (left, right) =>
+        right.length - left.length
+    )
+  );
+
+const TWO_PRO_DISCUSS_PLAN_COMPANION_PRONOUN_FORMS_V977 =
+  Object.freeze(
+    Object.keys(
+      TWO_PRO_KO_EN_OBJECT_PRONOUNS_V64
+    )
+      .filter(
+        (form) =>
+          !['서로', '자기'].includes(form)
+      )
+      .sort(
+        (left, right) =>
+          right.length - left.length
+      )
+  );
+
+const twoProEscapeRegExpV977 = (
+  value: string
+): string =>
+  String(value || '').replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+
+const TWO_PRO_DISCUSS_PLAN_BODY_REGEX_V977 =
+  new RegExp(
+    `^(?:(` +
+      `자기(?:의)?\\s+친구들과\\s+함께|` +
+      `자신의\\s+친구들과\\s+함께|` +
+      `(?:` +
+      TWO_PRO_DISCUSS_PLAN_POSSESSIVE_FORMS_V977
+        .map(twoProEscapeRegExpV977)
+        .join('|') +
+      `)\\s+친구들과\\s+함께|` +
+      `(?:` +
+      TWO_PRO_DISCUSS_PLAN_COMPANION_PRONOUN_FORMS_V977
+        .map(twoProEscapeRegExpV977)
+        .join('|') +
+      `)(?:와|과)\\s+함께` +
+    `)\\s+)?` +
+    `((?:` +
+      TWO_PRO_DISCUSS_PLAN_POSSESSIVE_FORMS_V977
+        .map(twoProEscapeRegExpV977)
+        .join('|') +
+      `|자기(?:의)?|자신의)\\s+` +
+      `(?:(겨울\\s*방학에\\s+대한)\\s+)?계획을|계획을)` +
+    `\\s+의논했다$`,
+    'u'
+  );
+
+const twoProResolveDiscussPlanCompanionV977 = (
+  source: string,
+  subjectPronoun:
+    TwoProExplicitSubjectV62['pronoun']
+): {
+  selected: string;
+  kind:
+    | 'SUBJECT_REFLEXIVE_FRIENDS'
+    | 'EXPLICIT_POSSESSIVE_FRIENDS'
+    | 'OBJECT_PRONOUN_COMPANION';
+} | null => {
+  const normalized = String(source || '')
+    .normalize('NFC')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (
+    /^(?:자기(?:의)?|자신의)\s+친구들과\s+함께$/u.test(
+      normalized
+    )
+  ) {
+    const possessive =
+      TWO_PRO_DISCUSS_PLAN_SUBJECT_POSSESSIVES_V977[
+        subjectPronoun
+      ];
+
+    return {
+      selected: `with ${possessive} friends`,
+      kind: 'SUBJECT_REFLEXIVE_FRIENDS',
+    };
+  }
+
+  const friendMatch = normalized.match(
+    /^(.+?)\s+친구들과\s+함께$/u
+  );
+
+  if (friendMatch) {
+    const possessive =
+      TWO_PRO_RELATIVE_POSSESSIVE_DETERMINERS_V91[
+        friendMatch[1].trim()
+      ];
+
+    if (!possessive) {
+      return null;
+    }
+
+    return {
+      selected: `with ${possessive} friends`,
+      kind: 'EXPLICIT_POSSESSIVE_FRIENDS',
+    };
+  }
+
+  const pronounMatch = normalized.match(
+    /^(.+?)(?:와|과)\s+함께$/u
+  );
+
+  if (!pronounMatch) {
+    return null;
+  }
+
+  const objectPronoun =
+    TWO_PRO_KO_EN_OBJECT_PRONOUNS_V64[
+      pronounMatch[1].trim()
+    ];
+
+  if (!objectPronoun) {
+    return null;
+  }
+
+  return {
+    selected: `with ${objectPronoun}`,
+    kind: 'OBJECT_PRONOUN_COMPANION',
+  };
+};
+
+const twoProResolveDiscussPlanObjectV977 = (
+  source: string,
+  subjectPronoun:
+    TwoProExplicitSubjectV62['pronoun']
+): {
+  selected: string;
+  kind:
+    | 'BARE_PLAN'
+    | 'POSSESSED_PLAN'
+    | 'WINTER_VACATION_PLAN';
+  possessiveEn?: string;
+} | null => {
+  const normalized = String(source || '')
+    .normalize('NFC')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (normalized === '계획을') {
+    return {
+      selected: 'the plan',
+      kind: 'BARE_PLAN',
+    };
+  }
+
+  const match = normalized.match(
+    /^(.+?)\s+(?:(겨울\s*방학에\s+대한)\s+)?계획을$/u
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const possessiveSource =
+    match[1].trim();
+
+  const possessiveEn =
+    /^(?:자기(?:의)?|자신의)$/u.test(
+      possessiveSource
+    )
+      ? TWO_PRO_DISCUSS_PLAN_SUBJECT_POSSESSIVES_V977[
+          subjectPronoun
+        ]
+      : TWO_PRO_RELATIVE_POSSESSIVE_DETERMINERS_V91[
+          possessiveSource
+        ];
+
+  if (!possessiveEn) {
+    return null;
+  }
+
+  const hasWinterVacation =
+    Boolean(match[2]);
+
+  return {
+    selected: hasWinterVacation
+      ? `the plan for ${possessiveEn} winter vacation`
+      : `${possessiveEn} plan`,
+    kind: hasWinterVacation
+      ? 'WINTER_VACATION_PLAN'
+      : 'POSSESSED_PLAN',
+    possessiveEn,
+  };
+};
+
+const twoProTryKoEnDiscussPlanV977 = (
+  originalText: string
+): TwoProDiscussPlanResultV977 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const explicitSubject =
+    twoProExtractLeadingSubjectV62(
+      normalized
+    );
+
+  if (!explicitSubject) {
+    return null;
+  }
+
+  const bodyMatch =
+    explicitSubject.body.match(
+      TWO_PRO_DISCUSS_PLAN_BODY_REGEX_V977
+    );
+
+  if (!bodyMatch) {
+    return null;
+  }
+
+  const companionSource =
+    String(bodyMatch[1] || '')
+      .replace(/\s+/gu, ' ')
+      .trim();
+
+  const planSource =
+    String(bodyMatch[2] || '')
+      .replace(/\s+/gu, ' ')
+      .trim();
+
+  const plan =
+    twoProResolveDiscussPlanObjectV977(
+      planSource,
+      explicitSubject.pronoun
+    );
+
+  if (!plan) {
+    return null;
+  }
+
+  const companion = companionSource
+    ? twoProResolveDiscussPlanCompanionV977(
+        companionSource,
+        explicitSubject.pronoun
+      )
+    : null;
+
+  if (companionSource && !companion) {
+    return null;
+  }
+
+  const subjectEn =
+    twoProCapitalizeSubjectV62(
+      explicitSubject.pronoun
+    );
+
+  const predicateSource = '의논했다';
+  const predicateEn = 'discussed';
+
+  const targetText =
+    twoProFinalizeEnglish(
+      [
+        subjectEn,
+        predicateEn,
+        plan.selected,
+        companion?.selected || '',
+      ]
+        .filter(Boolean)
+        .join(' '),
+      originalText
+    );
+
+  const referenceWords: any[] = [
+    {
+      source: explicitSubject.source,
+      selected: subjectEn,
+      candidates: [subjectEn],
+      slot: 'SUBJECT_PRONOUN',
+      confidence: 1,
+      origin: 'route-v9.77',
+    },
+    {
+      source: predicateSource,
+      selected: predicateEn,
+      candidates: [predicateEn, 'discuss'],
+      slot: 'PAST_TRANSITIVE_PREDICATE',
+      confidence: 1,
+      origin: 'route-v9.77',
+    },
+    {
+      source: planSource,
+      selected: plan.selected,
+      candidates: [plan.selected],
+      slot: plan.kind,
+      confidence: 1,
+      origin: 'route-v9.77',
+    },
+  ];
+
+  if (companionSource && companion) {
+    referenceWords.push({
+      source: companionSource,
+      selected: companion.selected,
+      candidates: [companion.selected],
+      slot: companion.kind,
+      confidence: 1,
+      origin: 'route-v9.77',
+    });
+  }
+
+  return {
+    targetText,
+    analysis: referenceWords.map(
+      (item) => ({
+        ko: item.source,
+        en: `${item.selected} [${item.slot}]`,
+      })
+    ),
+    referenceWords,
+    engine:
+      'discuss-plan-pronoun-possessive-ko-en-v9.77',
+    matchedRule: [
+      'DISCUSS_PLAN_V977',
+      explicitSubject.pronoun,
+      plan.kind,
+      companion?.kind || 'NO_COMPANION',
+    ].join('_'),
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v9.76-safe: [주어] + (일요일 아침에/아침에)
+//                      + 학교 근처에 있는 운동장에서 + 경기를 한다
+//
+// 처리 예:
+// - 많은 소년들이 일요일 아침에 학교 근처에 있는 운동장에서 경기를 한다.
+// - 소년들이 아침에 학교 근처에 있는 운동장에서 경기를 한다.
+// - 나는 학교 근처에 있는 운동장에서 경기를 한다.
+// - 그는 학교 근처에 있는 운동장에서 경기를 한다.
+// - 그녀는 학교 근처에 있는 운동장에서 경기를 한다.
+// - 그들은 학교 근처에 있는 운동장에서 경기를 한다.
+//
+// 핵심:
+// 1. 인칭대명사 주어는 기존 v6.2 공용 문두 주어 추출기를 재사용합니다.
+// 2. 많은 소년들이/소년들이는 제한된 명사 주어로 별도 처리합니다.
+// 3. I/we/you/they/boys에는 play games, he/she에는 plays games를 사용합니다.
+// 4. '학교'를 stadium으로 잘못 옮기지 않고 school로 고정합니다.
+// 5. '운동장에서'는 장소이므로 in the field, '일요일 아침에'는
+//    on Sunday morning, 일반 '아침에'는 in the morning으로 처리합니다.
+// 6. 경기를 했다/할 것이다, 다른 장소, 다른 운동 종목에는 적용하지 않습니다.
+// ============================================================================
+type TwoProPlayGamesSubjectV976 = {
+  source: string;
+  english: string;
+  thirdPersonSingular: boolean;
+  body: string;
+  subjectKind: 'noun' | 'pronoun';
+  pronoun?: TwoProExplicitSubjectV62['pronoun'];
+};
+
+type TwoProPlayGamesResultV976 = {
+  targetText: string;
+  analysis: Array<{
+    ko: string;
+    en: string;
+  }>;
+  referenceWords: any[];
+  engine: string;
+  matchedRule: string;
+};
+
+const TWO_PRO_PLAY_GAMES_NOUN_SUBJECTS_V976:
+  Readonly<
+    Array<{
+      source: string;
+      english: string;
+    }>
+  > = [
+    {
+      source: '많은 소년들이',
+      english: 'Many boys',
+    },
+    {
+      source: '소년들이',
+      english: 'Boys',
+    },
+  ];
+
+const TWO_PRO_PLAY_GAMES_TIME_PHRASES_V976:
+  Readonly<Record<string, string>> = {
+    '일요일 아침에': 'on Sunday morning',
+    '아침에': 'in the morning',
+  };
+
+const TWO_PRO_PLAY_GAMES_BODY_REGEX_V976 =
+  /^(?:(일요일\s+아침에|아침에)\s+)?학교\s+근처에\s+있는\s+운동장에서\s+경기를\s+한다$/u;
+
+const twoProExtractPlayGamesSubjectV976 = (
+  originalText: string
+): TwoProPlayGamesSubjectV976 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  for (
+    const nounSubject
+    of TWO_PRO_PLAY_GAMES_NOUN_SUBJECTS_V976
+  ) {
+    if (
+      !normalized.startsWith(
+        `${nounSubject.source} `
+      )
+    ) {
+      continue;
+    }
+
+    const body = normalized
+      .slice(nounSubject.source.length)
+      .trim();
+
+    if (!body) {
+      return null;
+    }
+
+    return {
+      source: nounSubject.source,
+      english: nounSubject.english,
+      thirdPersonSingular: false,
+      body,
+      subjectKind: 'noun',
+    };
+  }
+
+  const explicitSubject =
+    twoProExtractLeadingSubjectV62(
+      normalized
+    );
+
+  if (!explicitSubject) {
+    return null;
+  }
+
+  return {
+    source: explicitSubject.source,
+    english:
+      twoProCapitalizeSubjectV62(
+        explicitSubject.pronoun
+      ),
+    thirdPersonSingular:
+      explicitSubject.pronoun === 'he' ||
+      explicitSubject.pronoun === 'she',
+    body: explicitSubject.body,
+    subjectKind: 'pronoun',
+    pronoun: explicitSubject.pronoun,
+  };
+};
+
+const twoProTryKoEnPlayGamesV976 = (
+  originalText: string
+): TwoProPlayGamesResultV976 | null => {
+  const subject =
+    twoProExtractPlayGamesSubjectV976(
+      originalText
+    );
+
+  if (!subject) {
+    return null;
+  }
+
+  const bodyMatch =
+    subject.body.match(
+      TWO_PRO_PLAY_GAMES_BODY_REGEX_V976
+    );
+
+  if (!bodyMatch) {
+    return null;
+  }
+
+  const timeSource =
+    String(bodyMatch[1] || '')
+      .replace(/\s+/gu, ' ')
+      .trim();
+
+  const timeEn =
+    timeSource
+      ? TWO_PRO_PLAY_GAMES_TIME_PHRASES_V976[
+          timeSource
+        ] || ''
+      : '';
+
+  if (timeSource && !timeEn) {
+    return null;
+  }
+
+  const predicateSource = '경기를 한다';
+  const predicateEn =
+    subject.thirdPersonSingular
+      ? 'plays games'
+      : 'play games';
+
+  const locationSource =
+    '학교 근처에 있는 운동장에서';
+  const locationEn =
+    'in the field near the school';
+
+  const targetText =
+    twoProFinalizeEnglish(
+      [
+        subject.english,
+        predicateEn,
+        locationEn,
+        timeEn,
+      ]
+        .filter(Boolean)
+        .join(' '),
+      originalText
+    );
+
+  const referenceWords: any[] = [
+    {
+      source: subject.source,
+      selected: subject.english,
+      candidates: [subject.english],
+      slot: 'SUBJECT',
+      confidence: 1,
+      origin: 'route-v9.76',
+    },
+    {
+      source: predicateSource,
+      selected: predicateEn,
+      candidates: [
+        predicateEn,
+        subject.thirdPersonSingular
+          ? 'play games'
+          : 'plays games',
+      ],
+      slot: subject.thirdPersonSingular
+        ? 'PRESENT_PREDICATE_THIRD_SINGULAR'
+        : 'PRESENT_PREDICATE_BASE',
+      confidence: 1,
+      origin: 'route-v9.76',
+    },
+    {
+      source: locationSource,
+      selected: locationEn,
+      candidates: [locationEn],
+      slot: 'LOCATION',
+      confidence: 1,
+      origin: 'route-v9.76',
+    },
+  ];
+
+  if (timeSource) {
+    referenceWords.push({
+      source: timeSource,
+      selected: timeEn,
+      candidates: [timeEn],
+      slot: 'TIME_PHRASE',
+      confidence: 1,
+      origin: 'route-v9.76',
+    });
+  }
+
+  return {
+    targetText,
+    analysis: referenceWords.map(
+      (item) => ({
+        ko: item.source,
+        en: `${item.selected} [${item.slot}]`,
+      })
+    ),
+    referenceWords,
+    engine:
+      'play-games-subject-agreement-ko-en-v9.76',
+    matchedRule: [
+      'PLAY_GAMES_V976',
+      subject.subjectKind === 'noun'
+        ? subject.source === '많은 소년들이'
+          ? 'MANY_BOYS'
+          : 'BOYS'
+        : subject.pronoun,
+      subject.thirdPersonSingular
+        ? 'THIRD_SINGULAR'
+        : 'BASE_FORM',
+      timeSource === '일요일 아침에'
+        ? 'SUNDAY_MORNING'
+        : timeSource === '아침에'
+          ? 'MORNING'
+          : 'NO_TIME',
+      'FIELD_NEAR_SCHOOL',
+    ].join('_'),
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v9.75-safe: [인칭대명사 주어] + (장소) + ([소유격] 가족과 함께)
+//                      + (행복한) 삶을 살았다
+//
+// 처리 예:
+// - 그는 조용한 시골에서 그의 가족과 함께 행복한 삶을 살았다.
+// - 그는 그의 가족과 함께 삶을 살았다.
+// - 그녀는 그녀의 가족과 함께 행복한 삶을 살았다.
+// - 우리는 시골에서 우리의 가족과 함께 삶을 살았다.
+// - 나는 행복한 삶을 살았다.
+//
+// 핵심:
+// 1. 나는/저는/우리는/우리들은/너희는/너희들은/그는/그녀는/그들은을
+//    기존 v6.2 공용 문두 주어 추출기로 처리합니다.
+// 2. 나의/내/저의/제/우리의/너희의/그의/그녀의/그들의 등은
+//    기존 v9.1 공용 소유격 표를 재사용합니다.
+// 3. 소유격 없는 '가족과 함께'는 문두 주어의 가족으로 해석합니다.
+// 4. 영어 어순은 lived a (happy) life + 장소 + with ... family로 조립합니다.
+// 5. 살았다의 과거형 lived는 모든 주어에서 동일하므로 주어 수에 따른
+//    lives/live 오류가 생기지 않습니다.
+// 6. '행복한 삶을 살았다'가 '삶을 살았다'보다 먼저 선택되도록
+//    PHRASES 최장 구 우선 규칙과 동일하게 검사합니다.
+// 7. 살고 있다/살 것이다/살았다(목적어 없음)에는 적용하지 않습니다.
+// ============================================================================
+type TwoProHappyLifeResultV975 = {
+  targetText: string;
+  analysis: Array<{
+    ko: string;
+    en: string;
+  }>;
+  referenceWords: any[];
+  engine: string;
+  matchedRule: string;
+};
+
+const TWO_PRO_HAPPY_LIFE_SUBJECT_POSSESSIVES_V975:
+  Readonly<
+    Record<
+      TwoProExplicitSubjectV62['pronoun'],
+      string
+    >
+  > = {
+    I: 'my',
+    we: 'our',
+    you: 'your',
+    he: 'his',
+    she: 'her',
+    they: 'their',
+  };
+
+const TWO_PRO_HAPPY_LIFE_LOCATIONS_V975:
+  Readonly<Record<string, string>> = {
+    '조용한 시골에서': 'in the quiet country',
+    '시골에서': 'in the country',
+  };
+
+const TWO_PRO_HAPPY_LIFE_POSSESSIVE_FORMS_V975 =
+  Object.freeze(
+    Object.keys(
+      TWO_PRO_RELATIVE_POSSESSIVE_DETERMINERS_V91
+    ).sort(
+      (left, right) =>
+        right.length - left.length
+    )
+  );
+
+const twoProEscapeRegExpV975 = (
+  value: string
+): string =>
+  String(value || '').replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+
+const TWO_PRO_HAPPY_LIFE_BODY_REGEX_V975 =
+  new RegExp(
+    `^(?:(조용한\\s+시골에서|시골에서)\\s+)?` +
+      `(?:(?:(` +
+      TWO_PRO_HAPPY_LIFE_POSSESSIVE_FORMS_V975
+        .map(twoProEscapeRegExpV975)
+        .join('|') +
+      `)\\s+)?(가족(?:들)?과\\s+함께)\\s+)?` +
+      `(행복한\\s+)?삶을\\s+살았다$`,
+    'u'
+  );
+
+const twoProTryKoEnHappyLifeV975 = (
+  originalText: string
+): TwoProHappyLifeResultV975 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const explicitSubject =
+    twoProExtractLeadingSubjectV62(
+      normalized
+    );
+
+  if (!explicitSubject) {
+    return null;
+  }
+
+  const bodyMatch =
+    explicitSubject.body.match(
+      TWO_PRO_HAPPY_LIFE_BODY_REGEX_V975
+    );
+
+  if (!bodyMatch) {
+    return null;
+  }
+
+  const locationSource =
+    String(bodyMatch[1] || '')
+      .replace(/\s+/gu, ' ')
+      .trim();
+
+  const familyPossessiveSource =
+    String(bodyMatch[2] || '')
+      .replace(/\s+/gu, ' ')
+      .trim();
+
+  const familyCompanionSource =
+    String(bodyMatch[3] || '')
+      .replace(/\s+/gu, ' ')
+      .trim();
+
+  const hasHappy =
+    Boolean(
+      String(bodyMatch[4] || '').trim()
+    );
+
+  const subjectEn =
+    twoProCapitalizeSubjectV62(
+      explicitSubject.pronoun
+    );
+
+  const subjectPossessiveEn =
+    TWO_PRO_HAPPY_LIFE_SUBJECT_POSSESSIVES_V975[
+      explicitSubject.pronoun
+    ];
+
+  const locationEn =
+    locationSource
+      ? TWO_PRO_HAPPY_LIFE_LOCATIONS_V975[
+          locationSource
+        ] || ''
+      : '';
+
+  const familyPossessiveEn =
+    familyCompanionSource
+      ? familyPossessiveSource
+        ? TWO_PRO_RELATIVE_POSSESSIVE_DETERMINERS_V91[
+            familyPossessiveSource
+          ] || ''
+        : subjectPossessiveEn
+      : '';
+
+  if (
+    (locationSource && !locationEn) ||
+    (
+      familyCompanionSource &&
+      !familyPossessiveEn
+    )
+  ) {
+    return null;
+  }
+
+  const lifeSource =
+    hasHappy
+      ? '행복한 삶을 살았다'
+      : '삶을 살았다';
+
+  const lifeEn =
+    hasHappy
+      ? 'lived a happy life'
+      : 'lived a life';
+
+  const familySource =
+    familyCompanionSource
+      ? [
+          familyPossessiveSource,
+          familyCompanionSource,
+        ]
+          .filter(Boolean)
+          .join(' ')
+      : '';
+
+  const familyEn =
+    familyCompanionSource
+      ? `with ${familyPossessiveEn} family`
+      : '';
+
+  const targetText =
+    twoProFinalizeEnglish(
+      [
+        subjectEn,
+        lifeEn,
+        locationEn,
+        familyEn,
+      ]
+        .filter(Boolean)
+        .join(' '),
+      originalText
+    );
+
+  const referenceWords: any[] = [
+    {
+      source: explicitSubject.source,
+      selected: subjectEn,
+      candidates: [subjectEn],
+      slot: 'SUBJECT',
+      confidence: 1,
+      origin: 'route-v9.75',
+    },
+    {
+      source: lifeSource,
+      selected: lifeEn,
+      candidates: [
+        lifeEn,
+        hasHappy
+          ? 'live a happy life'
+          : 'live a life',
+      ],
+      slot: 'PAST_COGNATE_OBJECT_PREDICATE',
+      confidence: 1,
+      origin: 'route-v9.75',
+    },
+  ];
+
+  if (locationSource) {
+    referenceWords.push({
+      source: locationSource,
+      selected: locationEn,
+      candidates: [locationEn],
+      slot: 'LOCATION',
+      confidence: 1,
+      origin: 'route-v9.75',
+    });
+  }
+
+  if (familySource) {
+    referenceWords.push({
+      source: familySource,
+      selected: familyEn,
+      candidates: [familyEn],
+      slot: familyPossessiveSource
+        ? 'EXPLICIT_POSSESSED_FAMILY_COMPANION'
+        : 'SUBJECT_POSSESSED_FAMILY_COMPANION',
+      confidence: 1,
+      origin: 'route-v9.75',
+    });
+  }
+
+  return {
+    targetText,
+    analysis: referenceWords.map(
+      (item) => ({
+        ko: item.source,
+        en: `${item.selected} [${item.slot}]`,
+      })
+    ),
+    referenceWords,
+    engine:
+      'happy-life-pronoun-possessive-ko-en-v9.75',
+    matchedRule: [
+      'HAPPY_LIFE_V975',
+      hasHappy
+        ? 'HAPPY_LIFE'
+        : 'LIFE',
+      locationSource
+        ? locationSource === '조용한 시골에서'
+          ? 'QUIET_COUNTRY'
+          : 'COUNTRY'
+        : 'NO_LOCATION',
+      familyCompanionSource
+        ? familyPossessiveSource
+          ? 'EXPLICIT_FAMILY_POSSESSOR'
+          : 'SUBJECT_FAMILY_POSSESSOR'
+        : 'NO_FAMILY',
+      explicitSubject.pronoun,
+    ].join('_'),
+  };
+};
+
+
 // ============================================================================
 // ☆ TwoPro v9.74-safe: [주어] + ([소유격] 손으로) + [소유격] 머리를 만졌다
 //
@@ -26463,6 +29010,400 @@ export async function POST(request: Request) {
         init
       );
     };
+
+
+
+    // =================================================================
+    // 🎯 -0.52단계: 생각하다 5형식 + 주격·목적격·관사·단복수 v9.82
+    //
+    // 일반 사전 조립이 그/나/그녀/그들을 that/nyquist/she/they로 남기거나
+    // 소년을 gossoon으로 선택하기 전에 제한 문형으로 확정합니다.
+    // =================================================================
+    const twoProThinkObjectComplementV982 =
+      twoProTryKoEnThinkObjectComplementV982(
+        originalText
+      );
+
+    if (twoProThinkObjectComplementV982) {
+      console.log(
+        '[한영 생각하다 5형식 주격·목적격·관사·단복수 문형 성공 v9.82]',
+        {
+          query: originalText,
+          result:
+            twoProThinkObjectComplementV982.targetText,
+          engine:
+            twoProThinkObjectComplementV982.engine,
+          matchedRule:
+            twoProThinkObjectComplementV982.matchedRule,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProThinkObjectComplementV982.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProThinkObjectComplementV982.analysis,
+          referenceWords:
+            twoProThinkObjectComplementV982.referenceWords,
+          engine:
+            twoProThinkObjectComplementV982.engine,
+          matchedRule:
+            twoProThinkObjectComplementV982.matchedRule,
+        },
+        referenceWords:
+          twoProThinkObjectComplementV982.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 -0.51단계: 시민들에게 집을 지어주었다 + 주격·수혜자·장소·관사 v9.81
+    //
+    // 기존 참고 데이터의 잘못된 "built ... without the houses ..." 조립과
+    // 주어 교체 문장의 대체 검색 전환을 막기 위해 제한 문형으로 확정합니다.
+    // =================================================================
+    const twoProBuildHouseV981 =
+      twoProTryKoEnBuildHouseForCitizensV981(
+        originalText
+      );
+
+    if (twoProBuildHouseV981) {
+      console.log(
+        '[한영 시민 수혜 집 건축 주격·전치사·관사 문형 성공 v9.81]',
+        {
+          query: originalText,
+          result:
+            twoProBuildHouseV981.targetText,
+          engine:
+            twoProBuildHouseV981.engine,
+          matchedRule:
+            twoProBuildHouseV981.matchedRule,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBuildHouseV981.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBuildHouseV981.analysis,
+          referenceWords:
+            twoProBuildHouseV981.referenceWords,
+          engine:
+            twoProBuildHouseV981.engine,
+          matchedRule:
+            twoProBuildHouseV981.matchedRule,
+        },
+        referenceWords:
+          twoProBuildHouseV981.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // 🎯 -0.50단계: 장난감-배를 만들어 주셨다 + 3·4형식 인칭대명사 v9.80
+    //
+    // 일반 토큰 조립이 '그가/그들이'를 주격으로 확정하지 못하거나,
+    // '나에게'를 me로 바꾸지 못하고 장난감-배 앞 관사를 빠뜨리기 전에
+    // 제한 문형으로 확정합니다.
+    // =================================================================
+    const twoProMakeToyShipV980 =
+      twoProTryKoEnMakeToyShipV980(
+        originalText
+      );
+
+    if (twoProMakeToyShipV980) {
+      console.log(
+        '[한영 장난감-배 제작 3·4형식 주격·간접목적격 문형 성공 v9.80]',
+        {
+          query: originalText,
+          result:
+            twoProMakeToyShipV980.targetText,
+          engine:
+            twoProMakeToyShipV980.engine,
+          matchedRule:
+            twoProMakeToyShipV980.matchedRule,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProMakeToyShipV980.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProMakeToyShipV980.analysis,
+          referenceWords:
+            twoProMakeToyShipV980.referenceWords,
+          engine:
+            twoProMakeToyShipV980.engine,
+          matchedRule:
+            twoProMakeToyShipV980.matchedRule,
+        },
+        referenceWords:
+          twoProMakeToyShipV980.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // 🎯 -0.49단계: 인형을 사 주었다 + 4형식 주격·간접목적격·소유격 v9.79
+    //
+    // 일반 토큰 조립이 친구에게를 단순 전치사구로 만들거나, 그/그녀/그들을
+    // 주격으로 남기고 인형 앞 관사를 빠뜨리기 전에 제한 문형으로 확정합니다.
+    // =================================================================
+    const twoProBuyDollV979 =
+      twoProTryKoEnBuyDollV979(
+        originalText
+      );
+
+    if (twoProBuyDollV979) {
+      console.log(
+        '[한영 인형 구매 4형식 주격·간접목적격·소유격 문형 성공 v9.79]',
+        {
+          query: originalText,
+          result:
+            twoProBuyDollV979.targetText,
+          engine:
+            twoProBuyDollV979.engine,
+          matchedRule:
+            twoProBuyDollV979.matchedRule,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBuyDollV979.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBuyDollV979.analysis,
+          referenceWords:
+            twoProBuyDollV979.referenceWords,
+          engine:
+            twoProBuyDollV979.engine,
+          matchedRule:
+            twoProBuyDollV979.matchedRule,
+        },
+        referenceWords:
+          twoProBuyDollV979.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // 🎯 -0.48단계: 아인슈타인 + 추리를 통해(서) + 이론 발전 v9.78
+    //
+    // 일반 토큰 조립이 '추리'를 다른 의미로 선택하거나 축소 문장을
+    // 참고 문장으로만 돌리기 전에 제한 문형으로 확정합니다.
+    // =================================================================
+    const twoProEinsteinTheoryV978 =
+      twoProTryKoEnEinsteinTheoryV978(
+        originalText
+      );
+
+    if (twoProEinsteinTheoryV978) {
+      console.log(
+        '[한영 아인슈타인 이론 발전 수단 문형 성공 v9.78]',
+        {
+          query: originalText,
+          result:
+            twoProEinsteinTheoryV978.targetText,
+          engine:
+            twoProEinsteinTheoryV978.engine,
+          matchedRule:
+            twoProEinsteinTheoryV978.matchedRule,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProEinsteinTheoryV978.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProEinsteinTheoryV978.analysis,
+          referenceWords:
+            twoProEinsteinTheoryV978.referenceWords,
+          engine:
+            twoProEinsteinTheoryV978.engine,
+          matchedRule:
+            twoProEinsteinTheoryV978.matchedRule,
+        },
+        referenceWords:
+          twoProEinsteinTheoryV978.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // 🎯 -0.47단계: 계획을 의논했다 + 주격·목적격·소유격 v9.77
+    //
+    // 일반 토큰 조립이 그의/그녀의/나의를 that/she 등으로 오인하거나,
+    // 그와 함께의 그를 주격 he로 남기기 전에 제한 문형으로 확정합니다.
+    // =================================================================
+    const twoProDiscussPlanV977 =
+      twoProTryKoEnDiscussPlanV977(
+        originalText
+      );
+
+    if (twoProDiscussPlanV977) {
+      console.log(
+        '[한영 계획을 의논했다 주격·목적격·소유격 문형 성공 v9.77]',
+        {
+          query: originalText,
+          result:
+            twoProDiscussPlanV977.targetText,
+          engine:
+            twoProDiscussPlanV977.engine,
+          matchedRule:
+            twoProDiscussPlanV977.matchedRule,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProDiscussPlanV977.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProDiscussPlanV977.analysis,
+          referenceWords:
+            twoProDiscussPlanV977.referenceWords,
+          engine:
+            twoProDiscussPlanV977.engine,
+          matchedRule:
+            twoProDiscussPlanV977.matchedRule,
+        },
+        referenceWords:
+          twoProDiscussPlanV977.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // 🎯 -0.46단계: 경기를 한다 + 주격·수 일치·장소·시간구 v9.76
+    //
+    // 더 긴 참고 문장으로 대체되기 전에 입력 주어의 수와 인칭에 맞춰
+    // play/plays를 선택하고, 학교를 stadium으로 오역하지 않도록 합니다.
+    // =================================================================
+    const twoProPlayGamesV976 =
+      twoProTryKoEnPlayGamesV976(
+        originalText
+      );
+
+    if (twoProPlayGamesV976) {
+      console.log(
+        '[한영 경기를 한다 주격·수 일치 문형 성공 v9.76]',
+        {
+          query: originalText,
+          result:
+            twoProPlayGamesV976.targetText,
+          engine:
+            twoProPlayGamesV976.engine,
+          matchedRule:
+            twoProPlayGamesV976.matchedRule,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProPlayGamesV976.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProPlayGamesV976.analysis,
+          referenceWords:
+            twoProPlayGamesV976.referenceWords,
+          engine:
+            twoProPlayGamesV976.engine,
+          matchedRule:
+            twoProPlayGamesV976.matchedRule,
+        },
+        referenceWords:
+          twoProPlayGamesV976.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // 🎯 -0.45단계: 행복한 삶을 살았다 + 주격·소유격·장소·가족 v9.75
+    //
+    // 더 긴 참고 문장으로 대체되기 전에 입력 문장의 주어·소유격·장소·
+    // 가족 동반구와 lived a (happy) life를 직접 조립합니다.
+    // =================================================================
+    const twoProHappyLifeV975 =
+      twoProTryKoEnHappyLifeV975(
+        originalText
+      );
+
+    if (twoProHappyLifeV975) {
+      console.log(
+        '[한영 행복한 삶을 살았다 주격·소유격 문형 성공 v9.75]',
+        {
+          query: originalText,
+          result:
+            twoProHappyLifeV975.targetText,
+          engine:
+            twoProHappyLifeV975.engine,
+          matchedRule:
+            twoProHappyLifeV975.matchedRule,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProHappyLifeV975.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProHappyLifeV975.analysis,
+          referenceWords:
+            twoProHappyLifeV975.referenceWords,
+          engine:
+            twoProHappyLifeV975.engine,
+          matchedRule:
+            twoProHappyLifeV975.matchedRule,
+        },
+        referenceWords:
+          twoProHappyLifeV975.referenceWords,
+      });
+    }
+
 
     // =================================================================
     // 🎯 -0.44단계: 머리를 만졌다 + 주격·소유격·도구구 v9.74

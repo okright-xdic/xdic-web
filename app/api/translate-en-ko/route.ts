@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import customRules from './rules-en-ko.json';
+import phraseRules from './rules-en-ko-phrases.json';
 
 // 🌟 TwoPro v3.4: this/that/these/those 지시 한정사와 핵심 슬롯 어휘 분리
 // ============================================================================
@@ -324,6 +325,263 @@ type TemplateReferenceWord = {
   candidates: string[];
   slot: string;
   confidence: number;
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.0-safe: 영한 참고 표현 전용 PHRASES
+//
+// - 번역문 생성에는 개입하지 않습니다.
+// - 성공한 번역 결과의 하단 "참고 표현"만 보강합니다.
+// - 영어 대소문자·문장부호·아포스트로피·하이픈 차이를 정규화합니다.
+// - 긴 구를 먼저 선택하고 서로 겹치는 짧은 구는 제외합니다.
+// ============================================================================
+type TwoProEnKoPhraseEntryV130 = {
+  en: string;
+  ko: string;
+  normalizedEn: string;
+};
+
+type TwoProEnKoMatchedPhraseV130 = {
+  en: string;
+  ko: string;
+  start: number;
+  end: number;
+};
+
+const twoProNormalizePhraseEnV130 = (
+  value: unknown
+): string =>
+  String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/[‐‑‒–—]/g, '-')
+    .toLocaleLowerCase()
+    .replace(/[^\p{L}\p{N}'-]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const TWO_PRO_EN_KO_PHRASE_ENTRIES_V130:
+  TwoProEnKoPhraseEntryV130[] =
+  Object.entries(
+    phraseRules as Record<string, unknown>
+  )
+    .map(([en, rawKo]) => ({
+      en: String(en || '')
+        .normalize('NFC')
+        .replace(/\s+/g, ' ')
+        .trim(),
+      ko: String(rawKo || '')
+        .normalize('NFC')
+        .replace(/\s+/g, ' ')
+        .trim(),
+      normalizedEn:
+        twoProNormalizePhraseEnV130(en),
+    }))
+    .filter(
+      (entry) =>
+        Boolean(entry.en) &&
+        Boolean(entry.ko) &&
+        Boolean(entry.normalizedEn) &&
+        !/\[[A-Za-z0-9_]+\]/.test(entry.en)
+    )
+    .sort(
+      (left, right) =>
+        right.normalizedEn.length -
+          left.normalizedEn.length ||
+        right.en.length - left.en.length
+    );
+
+const twoProFindLongestEnKoPhraseMatchesV130 = (
+  value: unknown
+): TwoProEnKoMatchedPhraseV130[] => {
+  const source =
+    twoProNormalizePhraseEnV130(value);
+
+  if (!source) {
+    return [];
+  }
+
+  const candidates:
+    TwoProEnKoMatchedPhraseV130[] = [];
+
+  for (
+    const entry
+    of TWO_PRO_EN_KO_PHRASE_ENTRIES_V130
+  ) {
+    let cursor = 0;
+
+    while (
+      cursor <=
+      source.length - entry.normalizedEn.length
+    ) {
+      const start = source.indexOf(
+        entry.normalizedEn,
+        cursor
+      );
+
+      if (start < 0) {
+        break;
+      }
+
+      const end =
+        start + entry.normalizedEn.length;
+
+      const leftBoundary =
+        start === 0 || source[start - 1] === ' ';
+      const rightBoundary =
+        end === source.length || source[end] === ' ';
+
+      if (leftBoundary && rightBoundary) {
+        candidates.push({
+          en: entry.en,
+          ko: entry.ko,
+          start,
+          end,
+        });
+      }
+
+      cursor = start + 1;
+    }
+  }
+
+  candidates.sort(
+    (left, right) =>
+      (right.end - right.start) -
+        (left.end - left.start) ||
+      left.start - right.start
+  );
+
+  const selected:
+    TwoProEnKoMatchedPhraseV130[] = [];
+
+  for (const candidate of candidates) {
+    const overlaps = selected.some(
+      (item) =>
+        candidate.start < item.end &&
+        candidate.end > item.start
+    );
+
+    if (!overlaps) {
+      selected.push(candidate);
+    }
+  }
+
+  return selected
+    .sort(
+      (left, right) => left.start - right.start
+    )
+    .slice(0, 6);
+};
+
+const twoProBuildEnKoPhraseReferencesV130 = (
+  value: unknown
+): TemplateReferenceWord[] =>
+  twoProFindLongestEnKoPhraseMatchesV130(value)
+    .map((match) => ({
+      source: match.en,
+      selected: match.ko,
+      candidates: [match.ko],
+      slot: 'PHRASE',
+      confidence: 1,
+    }));
+
+// ============================================================================
+// ☆ TwoPro v13.1-safe: 주어 인칭대명사 + had to work 문형
+//
+// - I/We/You/He/She/They의 주어 역할을 문장 첫머리에서만 판별합니다.
+// - had to work / had to work hard / for a living의 조합만 처리합니다.
+// - You는 주격·목적격 형태가 같으므로 전역 PHRASES에 넣지 않고,
+//   이 문형 안에서만 주어로 안전하게 해석합니다.
+// - 문장 전체를 여러 개의 exact rule로 복제하지 않고 하나의 고신뢰 문형으로 처리합니다.
+// ============================================================================
+type TwoProHadToWorkResultV131 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+const TWO_PRO_SUBJECT_PRONOUNS_V131: Record<
+  string,
+  string
+> = {
+  i: '나는',
+  we: '우리는',
+  you: '너는',
+  he: '그는',
+  she: '그녀는',
+  they: '그들은',
+};
+
+const twoProTranslateHadToWorkV131 = (
+  value: unknown
+): TwoProHadToWorkResultV131 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^(I|We|You|He|She|They)\s+had\s+to\s+work(?:\s+(hard))?(?:\s+(for\s+a\s+living))?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectEn = match[1];
+  const subjectKo =
+    TWO_PRO_SUBJECT_PRONOUNS_V131[
+      subjectEn.toLowerCase()
+    ];
+  const hasHard = Boolean(match[2]);
+  const hasLiving = Boolean(match[3]);
+  const verbSource = hasHard
+    ? 'had to work hard'
+    : 'had to work';
+  const verbTarget = hasHard
+    ? '열심히 일해야만 했다'
+    : '일해야만 했다';
+
+  const targetText = [
+    subjectKo,
+    hasLiving ? '생계를 위하여' : '',
+    verbTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const referenceWords: TemplateReferenceWord[] = [
+    {
+      source: subjectEn,
+      selected: subjectKo,
+      candidates: [subjectKo],
+      slot: 'SUBJECT_PRONOUN',
+      confidence: 1,
+    },
+    {
+      source: verbSource,
+      selected: verbTarget,
+      candidates: [verbTarget],
+      slot: 'VERB_PHRASE',
+      confidence: 1,
+    },
+  ];
+
+  if (hasLiving) {
+    referenceWords.push({
+      source: 'for a living',
+      selected: '생계를 위하여',
+      candidates: ['생계를 위하여'],
+      slot: 'PURPOSE_PHRASE',
+      confidence: 1,
+    });
+  }
+
+  return {
+    targetText,
+    referenceWords,
+  };
 };
 
 type TemplateSlotTranslation = {
@@ -2260,6 +2518,29 @@ let dbFallbackText = '';
     let templateMatchedButUncertain = false;
 
     // =================================================================
+    // ☆ TwoPro v13.1-safe: 주어 인칭대명사 + had to work 고신뢰 문형
+    // =================================================================
+    // DB 유사 문장이 엉뚱하게 선택되기 전에 문법적으로 완결된 이 문형을 처리합니다.
+    const twoProHadToWorkResultV131 =
+      twoProTranslateHadToWorkV131(originalText);
+
+    if (twoProHadToWorkResultV131) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProHadToWorkResultV131.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProHadToWorkResultV131.referenceWords,
+          engine: 'had-to-work-pattern-v13.1',
+        },
+      });
+    }
+
+    // =================================================================
     // 🌟 [수프로 핵심 마법] 무적의 DB 선제적 검색 (정규화/퍼지/사오정 삼중 폭격)
     // =================================================================
     // =================================================================
@@ -2658,7 +2939,11 @@ for (const item of uniqueItems) {
                         en: fullText,
                       },
                     ],
-                    engine: 'database-exact',
+                    referenceWords:
+                      twoProBuildEnKoPhraseReferencesV130(
+                        originalText
+                      ),
+                    engine: 'database-exact-v13.0',
                   },
                 });
               }
@@ -2727,7 +3012,12 @@ for (const item of uniqueItems) {
           source_text: originalText, 
           target_text: fastResult, 
           isReference: false,
-          analysis: [] 
+          analysis: [],
+          referenceWords:
+            twoProBuildEnKoPhraseReferencesV130(
+              originalText
+            ),
+          engine: 'rules-en-ko-exact-v13.0'
         } 
       });
     }
