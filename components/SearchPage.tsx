@@ -181,8 +181,727 @@ const isSentenceLikeQuery = (value: string): boolean => {
 
   const lowerText = text.toLowerCase();
 
+  // ================================================================
+  // ☆ TwoPro v13.61-safe: hear + cry/cries 전용 문장 판별
+  // ================================================================
+  // 일반 조동사 판별에 걸리는 can/could/will 문장뿐 아니라,
+  // 한 단어 조동사 cannot과 단순 현재 hears도 반드시
+  // /api/translate-en-ko로 전달합니다.
+  //
+  // 이 검사는 번역 규칙이 아니라 "API 전달 여부"만 결정합니다.
+  // 실제 번역은 route.ts의 v13.60 제한 문형이 담당합니다.
+  const isTwoProHearCriesSentenceV1361 = (() => {
+    const match = text.match(
+      /^(I|We|You|He|She|They)\s+(can\s+not\s+hear|cannot\s+hear|can['’]t\s+hear|could\s+not\s+hear|couldnot\s+hear|couldn['’]t\s+hear|will\s+not\s+hear|won['’]t\s+hear|can\s+hear|could\s+hear|will\s+hear|hear|hears|heard)\s+(?:(?:the\s+)?animal['’]s\s+cry|(?:the\s+)?animals['’]\s+cries|(?:the\s+)?cr(?:y|ies))(?:\s+in\s+(?:my|our|your|his|her|their|the)\s+houses?)?[.!?]?$/i
+    );
+
+    if (!match) {
+      return false;
+    }
+
+    const subject = String(match[1] || '').toLowerCase();
+    const predicate = String(match[2] || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    // 단순 현재의 주어·동사 수 일치만 이 단계에서 확인합니다.
+    if (predicate === 'hears') {
+      return subject === 'he' || subject === 'she';
+    }
+
+    if (predicate === 'hear') {
+      return subject !== 'he' && subject !== 'she';
+    }
+
+    return true;
+  })();
+
+  if (isTwoProHearCriesSentenceV1361) {
+    return true;
+  }
+
+  // ================================================================
+  // ☆ TwoPro v13.62-safe: 이순신/defeat 문형 전용 문장 판별
+  // ================================================================
+  // defeated/defeats는 기존 일반 영어 술어 목록에 없었으므로
+  // 정확 일치 규칙이 남아 있어도 번역 API가 호출되지 않았습니다.
+  // 아래 제한 문형만 /api/translate-en-ko로 전달합니다.
+  const isTwoProLeeSoonShinDefeatSentenceV1362 = (() => {
+    const match = text.match(
+      /^(Adm\.\s+Lee\s+Soon\s+Shin|Lee\s+Soon\s+Shin|I|We|You|He|She|They)\s+(defeat|defeats|defeated|will\s+defeat)\s+(?:(?:the\s+)?(?:powerful\s+)?invaders?)(?:\s+in\s+(?:the\s+South\s+Shore(?:\s+of\s+Korea)?|the\s+Shore\s+of\s+Korea))?(?:\s+with\s+(?:the\s+first\s+|the\s+)?iron-clad\s+ships?)?[.!?]?$/i
+    );
+
+    if (!match) {
+      return false;
+    }
+
+    const subject = String(match[1] || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const predicate = String(match[2] || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const isThirdPersonSingularSubject =
+      subject === 'adm. lee soon shin' ||
+      subject === 'lee soon shin' ||
+      subject === 'he' ||
+      subject === 'she';
+
+    if (predicate === 'defeats') {
+      return isThirdPersonSingularSubject;
+    }
+
+    if (predicate === 'defeat') {
+      return !isThirdPersonSingularSubject;
+    }
+
+    return true;
+  })();
+
+  if (isTwoProLeeSoonShinDefeatSentenceV1362) {
+    return true;
+  }
+
+  // ================================================================
+  // ☆ TwoPro v13.64-safe: discuss the plan 문형 전용 문장 판별
+  // ================================================================
+  // discuss/discusses/discussed가 기존 일반 술어 목록에 없어도
+  // 아래 제한 문형은 반드시 /api/translate-en-ko로 전달합니다.
+  // 실제 번역과 수·인칭 검증은 route.ts의 v13.64 처리기가 담당합니다.
+  const isTwoProDiscussPlanSentenceV1364 = (() => {
+    const match = text.match(
+      /^(I|We|You|He|She|They)\s+(discuss|discusses|discussed|will\s+discuss)\s+(?:a|the|my|our|your|his|her|their)\s+plans?(?:\s+for\s+(?:(?:my|our|your|his|her|their)\s+)?winter\s+vacation)?(?:\s+with\s+(?:(?:my|our|your|his|her|their)\s+friends?|me|us|you|him|her|them))?[.!?]?$/i
+    );
+
+    if (!match) {
+      return false;
+    }
+
+    const subject = String(match[1] || '')
+      .toLowerCase();
+
+    const predicate = String(match[2] || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const isThirdPersonSingular =
+      subject === 'he' ||
+      subject === 'she';
+
+    if (predicate === 'discusses') {
+      return isThirdPersonSingular;
+    }
+
+    if (predicate === 'discuss') {
+      return !isThirdPersonSingular;
+    }
+
+    return true;
+  })();
+
+  if (isTwoProDiscussPlanSentenceV1364) {
+    return true;
+  }
+
+  // ================================================================
+  // ☆ TwoPro v13.65-safe: develop one's theory 문형 전용 문장 판별
+  // ================================================================
+  // Einstein처럼 일반 대명사로 시작하지 않는 주어와
+  // develop/develops/developed를 포함한 아래 제한 문형을
+  // 반드시 /api/translate-en-ko로 전달합니다.
+  // 실제 번역과 수·인칭 검증은 route.ts의 v13.65 처리기가 담당합니다.
+  const isTwoProDevelopTheorySentenceV1365 = (() => {
+    const match = text.match(
+      /^(Einstein|I|We|You|He|She|They)\s+(develop|develops|developed|will\s+develop)\s+(?:(?:a|the|my|our|your|his|her|their)\s+(?:theory|theories)|theories)(?:\s+through\s+(?:deep\s+thought(?:\s+and\s+(?:complex\s+)?mathematical\s+reasoning)?|thought(?:\s+and\s+reasoning)?|(?:complex\s+)?mathematical\s+reasoning|reasoning))?[.!?]?$/i
+    );
+
+    if (!match) {
+      return false;
+    }
+
+    const subject = String(match[1] || '')
+      .toLowerCase()
+      .trim();
+
+    const predicate = String(match[2] || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const isThirdPersonSingular =
+      subject === 'einstein' ||
+      subject === 'he' ||
+      subject === 'she';
+
+    if (predicate === 'develops') {
+      return isThirdPersonSingular;
+    }
+
+    if (predicate === 'develop') {
+      return !isThirdPersonSingular;
+    }
+
+    return true;
+  })();
+
+  if (isTwoProDevelopTheorySentenceV1365) {
+    return true;
+  }
+
+  // ================================================================
+  // ☆ TwoPro v13.66-safe: Gandhi independence 복합절 문장 판별
+  // ================================================================
+  // Mahatma Gandi/Gandhi처럼 일반 대명사로 시작하지 않는 주어와
+  // say/says/said, 복합 when 절을 포함한 제한 문형을
+  // 반드시 /api/translate-en-ko로 전달합니다.
+  // 실제 번역·인칭·수·시제 검증은 route.ts의 v13.66 처리기가 담당합니다.
+  const isTwoProGandhiIndependenceSentenceV1366 = (() => {
+    const normalized = text
+      .replace(/[.!?]+$/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const mainMatch = normalized.match(
+      /^(Mahatma\s+(?:Gandi|Gandhi)|Gandi|Gandhi|I|We|You|He|She|They)\s+(?:(once)\s+)?(say|says|said|will\s+say)\s+that\s+(India|I|We|You|He|She|They)\s+(would\s+attain|will\s+attain)\s+(?:complete\s+)?independence(?:\s+(when\s+.+))?$/i
+    );
+
+    if (!mainMatch) {
+      return false;
+    }
+
+    const reportSubject = String(
+      mainMatch[1] || ''
+    )
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const onceSource = String(
+      mainMatch[2] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const reportVerb = String(
+      mainMatch[3] || ''
+    )
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const attainVerb = String(
+      mainMatch[5] || ''
+    )
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const conditionSource = String(
+      mainMatch[6] || ''
+    )
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const reportSubjectIsThirdSingular =
+      reportSubject === 'mahatma gandi' ||
+      reportSubject === 'mahatma gandhi' ||
+      reportSubject === 'gandi' ||
+      reportSubject === 'gandhi' ||
+      reportSubject === 'he' ||
+      reportSubject === 'she';
+
+    if (reportVerb === 'says') {
+      if (!reportSubjectIsThirdSingular) {
+        return false;
+      }
+    } else if (reportVerb === 'say') {
+      if (reportSubjectIsThirdSingular) {
+        return false;
+      }
+    }
+
+    if (
+      onceSource &&
+      reportVerb !== 'said'
+    ) {
+      return false;
+    }
+
+    if (
+      reportVerb === 'said' &&
+      attainVerb !== 'would attain'
+    ) {
+      return false;
+    }
+
+    if (
+      reportVerb !== 'said' &&
+      attainVerb !== 'will attain'
+    ) {
+      return false;
+    }
+
+    if (!conditionSource) {
+      return true;
+    }
+
+    const conditionMatch = conditionSource.match(
+      /^when\s+(the\s+masses|people|I|We|You|He|She|They)\s+(feel|feels|felt|will\s+feel)\s+(?:(?:\(\s*that\s*\)|that)\s+)?(I|We|You|He|She|They)\s+(can|could|will\s+be\s+able\s+to)\s+improve\s+(my|our|your|his|her|their)\s+lot(?:\s+by\s+(my|our|your|his|her|their)\s+own\s+(?:effort|efforts))?(?:\s+and\s+that\s+(I|We|You|He|She|They)\s+(can|could|will\s+be\s+able\s+to)\s+shape\s+(my|our|your|his|her|their)\s+(?:destiny|destinies)(?:\s+the\s+way\s+(I|We|You|He|She|They)\s+(like|likes|liked|will\s+like))?)?$/i
+    );
+
+    if (!conditionMatch) {
+      return false;
+    }
+
+    const conditionSubject = String(
+      conditionMatch[1] || ''
+    )
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const feelVerb = String(
+      conditionMatch[2] || ''
+    )
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const improvePronoun = String(
+      conditionMatch[3] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const improveAbility = String(
+      conditionMatch[4] || ''
+    )
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const lotPossessive = String(
+      conditionMatch[5] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const effortPossessive = String(
+      conditionMatch[6] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const shapePronoun = String(
+      conditionMatch[7] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const shapeAbility = String(
+      conditionMatch[8] || ''
+    )
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const destinyPossessive = String(
+      conditionMatch[9] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const wayPronoun = String(
+      conditionMatch[10] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const likeVerb = String(
+      conditionMatch[11] || ''
+    )
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const expectedPronounMap:
+      Record<string, string> = {
+        'the masses': 'they',
+        people: 'they',
+        i: 'i',
+        we: 'we',
+        you: 'you',
+        he: 'he',
+        she: 'she',
+        they: 'they',
+      };
+
+    const expectedPossessiveMap:
+      Record<string, string> = {
+        i: 'my',
+        we: 'our',
+        you: 'your',
+        he: 'his',
+        she: 'her',
+        they: 'their',
+      };
+
+    const expectedPronoun =
+      expectedPronounMap[
+        conditionSubject
+      ];
+
+    const expectedPossessive =
+      expectedPossessiveMap[
+        expectedPronoun
+      ];
+
+    if (
+      !expectedPronoun ||
+      !expectedPossessive ||
+      improvePronoun !== expectedPronoun ||
+      lotPossessive !== expectedPossessive
+    ) {
+      return false;
+    }
+
+    const conditionIsThirdSingular =
+      conditionSubject === 'he' ||
+      conditionSubject === 'she';
+
+    if (
+      feelVerb === 'feels' &&
+      !conditionIsThirdSingular
+    ) {
+      return false;
+    }
+
+    if (
+      feelVerb === 'feel' &&
+      conditionIsThirdSingular
+    ) {
+      return false;
+    }
+
+    if (
+      effortPossessive &&
+      effortPossessive !==
+        expectedPossessive
+    ) {
+      return false;
+    }
+
+    if (shapePronoun) {
+      if (
+        shapePronoun !== expectedPronoun ||
+        destinyPossessive !==
+          expectedPossessive ||
+        shapeAbility !== improveAbility
+      ) {
+        return false;
+      }
+
+      if (
+        wayPronoun &&
+        wayPronoun !== expectedPronoun
+      ) {
+        return false;
+      }
+
+      const wayIsThirdSingular =
+        expectedPronoun === 'he' ||
+        expectedPronoun === 'she';
+
+      if (
+        likeVerb === 'likes' &&
+        !wayIsThirdSingular
+      ) {
+        return false;
+      }
+
+      if (
+        likeVerb === 'like' &&
+        wayIsThirdSingular
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  })();
+
+  if (
+    isTwoProGandhiIndependenceSentenceV1366
+  ) {
+    return true;
+  }
+
+  // ================================================================
+  // ☆ TwoPro v13.68-safe: lend + 간접목적어 + book(s) 문장 판별
+  // ================================================================
+  // lend/lends/lent는 기존 일반 술어 목록에 없으므로,
+  // 아래 제한된 4형식 문형을 반드시 /api/translate-en-ko로 전달합니다.
+  // 실제 번역과 수·인칭·관사 검증은 route.ts의 v13.68 처리기가 담당합니다.
+  const isTwoProLendBooksSentenceV1368 = (() => {
+    const match = text.match(
+      /^(I|We|You|He|She|They)\s+(lend|lends|lent|will\s+lend)\s+((?:(?:a|the)\s+citizens?)|citizens|me|us|you|him|her|them)\s+((?:many\s+books)|(?:(?:a|the|my|our|your|his|her|their)\s+books?)|books)(?:\s+during\s+(?:this|that|the)\s+(?:reading\s+)?week)?[.!?]?$/i
+    );
+
+    if (!match) {
+      return false;
+    }
+
+    const subject = String(match[1] || '')
+      .toLowerCase()
+      .trim();
+
+    const predicate = String(match[2] || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const recipient = String(match[3] || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const directObject = String(
+      match[4] || ''
+    )
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const subjectIsThirdSingular =
+      subject === 'he' ||
+      subject === 'she';
+
+    if (predicate === 'lends') {
+      if (!subjectIsThirdSingular) {
+        return false;
+      }
+    } else if (predicate === 'lend') {
+      if (subjectIsThirdSingular) {
+        return false;
+      }
+    }
+
+    const citizenMatch = recipient.match(
+      /^(?:(a|the)\s+)?(citizen|citizens)$/
+    );
+
+    if (citizenMatch) {
+      const determiner = String(
+        citizenMatch[1] || ''
+      )
+        .toLowerCase()
+        .trim();
+
+      const isPlural =
+        String(citizenMatch[2] || '')
+          .toLowerCase() === 'citizens';
+
+      if (!determiner && !isPlural) {
+        return false;
+      }
+
+      if (determiner === 'a' && isPlural) {
+        return false;
+      }
+    }
+
+    const bookMatch = directObject.match(
+      /^(a|the|my|our|your|his|her|their)\s+(book|books)$/
+    );
+
+    if (
+      bookMatch &&
+      String(bookMatch[1] || '')
+        .toLowerCase() === 'a' &&
+      String(bookMatch[2] || '')
+        .toLowerCase() === 'books'
+    ) {
+      return false;
+    }
+
+    return true;
+  })();
+
+  if (isTwoProLendBooksSentenceV1368) {
+    return true;
+  }
+
+  // ================================================================
+  // ☆ TwoPro v13.71-safe: build + 간접목적어 + house(s) 문장 판별
+  // ================================================================
+  // build/builds/built가 일반 영어 술어 목록에 없어도,
+  // 아래 제한된 4형식 문형은 반드시 /api/translate-en-ko로 전달합니다.
+  // 실제 번역과 수·인칭·관사 검증은 route.ts의 v13.71 처리기가 담당합니다.
+  const isTwoProBuildHousesSentenceV1371 = (() => {
+    const match = text.match(
+      /^((?:(?:My|Our|Your|His|Her|Their|The)\s+(?:charitable\s+)?carpenters?)|I|We|You|He|She|They)\s+(build|builds|built|will\s+build)\s+((?:(?:(?:a|the)\s+)?(?:poor\s+)?citizens?(?:\s+without\s+(?:(?:a|the|my|our|your|his|her|their)\s+)?houses?)?)|me|us|you|him|her|them)\s+((?:(?:a|the|my|our|your|his|her|their|many)\s+)?(?:grand\s+)?houses?)(?:\s+in\s+(?:this|that|the|my|our|your|his|her|their)\s+(?:silent\s+)?(?:valley|valleys))?[.!?]?$/i
+    );
+
+    if (!match) {
+      return false;
+    }
+
+    const subject = String(match[1] || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const predicate = String(match[2] || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const recipient = String(match[3] || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const directObject = String(match[4] || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const subjectIsThirdSingular =
+      subject === 'he' ||
+      subject === 'she' ||
+      /^(?:my|our|your|his|her|their|the)\s+(?:charitable\s+)?carpenter$/.test(
+        subject
+      );
+
+    if (
+      predicate === 'builds' &&
+      !subjectIsThirdSingular
+    ) {
+      return false;
+    }
+
+    if (
+      predicate === 'build' &&
+      subjectIsThirdSingular
+    ) {
+      return false;
+    }
+
+    const citizenMatch = recipient.match(
+      /^(?:(a|the)\s+)?(?:poor\s+)?(citizen|citizens)(?:\s+without\s+(?:(a|the|my|our|your|his|her|their)\s+)?(house|houses))?$/
+    );
+
+    if (citizenMatch) {
+      const citizenDeterminer = String(
+        citizenMatch[1] || ''
+      )
+        .toLowerCase()
+        .trim();
+
+      const citizenIsPlural =
+        String(citizenMatch[2] || '')
+          .toLowerCase() === 'citizens';
+
+      const withoutDeterminer = String(
+        citizenMatch[3] || ''
+      )
+        .toLowerCase()
+        .trim();
+
+      const withoutHouse = String(
+        citizenMatch[4] || ''
+      )
+        .toLowerCase()
+        .trim();
+
+      if (
+        !citizenDeterminer &&
+        !citizenIsPlural
+      ) {
+        return false;
+      }
+
+      if (
+        citizenDeterminer === 'a' &&
+        citizenIsPlural
+      ) {
+        return false;
+      }
+
+      if (withoutHouse) {
+        const withoutIsPlural =
+          withoutHouse === 'houses';
+
+        if (
+          !withoutDeterminer &&
+          !withoutIsPlural
+        ) {
+          return false;
+        }
+
+        if (
+          withoutDeterminer === 'a' &&
+          withoutIsPlural
+        ) {
+          return false;
+        }
+      }
+    }
+
+    const houseMatch = directObject.match(
+      /^(?:(a|the|my|our|your|his|her|their|many)\s+)?(?:grand\s+)?(house|houses)$/
+    );
+
+    if (!houseMatch) {
+      return false;
+    }
+
+    const houseDeterminer = String(
+      houseMatch[1] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const houseIsPlural =
+      String(houseMatch[2] || '')
+        .toLowerCase() === 'houses';
+
+    if (
+      !houseDeterminer &&
+      !houseIsPlural
+    ) {
+      return false;
+    }
+
+    if (
+      houseDeterminer === 'a' &&
+      houseIsPlural
+    ) {
+      return false;
+    }
+
+    if (
+      houseDeterminer === 'many' &&
+      !houseIsPlural
+    ) {
+      return false;
+    }
+
+    return true;
+  })();
+
+  if (isTwoProBuildHousesSentenceV1371) {
+    return true;
+  }
+
   const hasEnglishPredicate =
-    /\b(am|is|are|was|were|be|been|being|do|does|did|have|has|had|can|could|will|would|shall|should|may|might|must|need|needs|needed|want|wants|wanted|like|likes|liked|love|loves|loved|know|knows|knew|think|thinks|thought|go|goes|went|get|gets|got|getting|gather|gathers|gathered|gathering|come|comes|came|check|checks|checked|show|shows|showed|tell|tells|told|teach|teaches|taught|teaching|give|gives|gave|take|takes|took|make|makes|made|find|finds|found|help|helps|helped|thank|thanks|please|let|lets|look|looks|stop|stops|wait|waits|try|tries|tried|use|uses|used|work|works|worked|sell|sells|sold|selling|sing|sings|sang|play|plays|played|playing|visit|visits|visited|visiting|live|lives|lived|stay|stays|stayed|feel|feels|felt|seem|seems|seemed|mean|means|meant|ask|asks|asked|buy|buys|bought|break|breaks|broke|breaking|bring|brings|brought|send|sends|sent|call|calls|called|open|opens|opened|close|closes|closed|start|starts|started|finish|finishes|finished|lose|loses|lost|throw|throws|threw|throwing|ride|rides|rode|riding)\b/i.test(
+    /\b(am|is|are|was|were|be|been|being|do|does|did|have|has|had|can|could|will|would|shall|should|may|might|must|cannot|couldnot|need|needs|needed|want|wants|wanted|like|likes|liked|love|loves|loved|know|knows|knew|think|thinks|thought|go|goes|went|get|gets|got|getting|gather|gathers|gathered|gathering|come|comes|came|check|checks|checked|show|shows|showed|tell|tells|told|teach|teaches|taught|teaching|give|gives|gave|take|takes|took|make|makes|made|find|finds|found|help|helps|helped|hear|hears|heard|hearing|thank|thanks|please|let|lets|look|looks|stop|stops|wait|waits|try|tries|tried|use|uses|used|work|works|worked|sell|sells|sold|selling|sing|sings|sang|play|plays|played|playing|visit|visits|visited|visiting|live|lives|lived|stay|stays|stayed|feel|feels|felt|seem|seems|seemed|mean|means|meant|ask|asks|asked|buy|buys|bought|break|breaks|broke|breaking|bring|brings|brought|send|sends|sent|call|calls|called|open|opens|opened|close|closes|closed|start|starts|started|finish|finishes|finished|lose|loses|lost|meet|meets|met|devote|devotes|devoted|remember|remembers|remembered|remembering|plant|plants|planted|planting|laugh|laughs|laughed|throw|throws|threw|throwing|ride|rides|rode|riding)\b/i.test(
       lowerText
     );
 
@@ -242,6 +961,11 @@ const router = useRouter();
     TranslationReferenceWord[]
   >([]);
 
+  // ☆ TwoPro v13.70: 문법 교정이 적용된 정규 영어 문장
+  const [correctedEnglish, setCorrectedEnglish] = useState<
+    string | null
+  >(null);
+
   // 🌟 번역 결과 박스 전용 마이크 상태
   const [isBoxListening, setIsBoxListening] = useState(false);
   const [boxMicLang, setBoxMicLang] = useState<'ko-KR' | 'en-US' | null>(null);
@@ -271,6 +995,7 @@ useEffect(() => {
     setAiAnalysis(null);
     setIsReference(false);
     setReferenceWords([]);
+    setCorrectedEnglish(null);
   };
 
   const hasKorean =
@@ -369,6 +1094,19 @@ useEffect(() => {
 
         setIsReference(
           Boolean(data.best.isReference)
+        );
+
+        const nextCorrectedEnglish =
+          String(
+            data.best.corrected_source_text || ''
+          ).trim();
+
+        setCorrectedEnglish(
+          nextCorrectedEnglish &&
+          nextCorrectedEnglish.toLowerCase() !==
+            normalizedQuery.toLowerCase()
+            ? nextCorrectedEnglish
+            : null
         );
 
         const nextReferenceWords =
@@ -980,6 +1718,58 @@ const displayResults = React.useMemo(() => {
                           </div>
                         </div>
                         
+                        {correctedEnglish && (
+                          <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2">
+                            <span className="text-[13px] md:text-[15px] font-bold text-amber-700 whitespace-nowrap mt-0.5">
+                              영어 교정:
+                            </span>
+                            <p className="text-[15px] md:text-[17px] font-bold text-slate-800 leading-snug flex-1">
+                              {correctedEnglish}
+                            </p>
+                            <button
+                              onClick={() =>
+                                handleCopy(
+                                  correctedEnglish,
+                                  'corrected-english'
+                                )
+                              }
+                              className="flex-shrink-0 w-8 h-8 rounded-full bg-white text-slate-400 hover:bg-amber-100 hover:text-amber-700 transition-all flex items-center justify-center shadow-sm"
+                              title="교정 문장 복사"
+                            >
+                              {copiedId ===
+                              'corrected-english' ? (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  viewBox="0 0 24 24"
+                                  fill="currentColor"
+                                  className="w-4 h-4 text-emerald-500"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              ) : (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  strokeWidth={2.5}
+                                  stroke="currentColor"
+                                  className="w-4 h-4"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75"
+                                  />
+                                </svg>
+                              )}
+                            </button>
+                          </div>
+                        )}
+
                         {/* 🌟 2. 번역 결과 표시 (라벨 동적 변경) */}
                         <div className="flex items-start gap-3">
                           <span className={`text-[13px] md:text-[15px] font-bold whitespace-nowrap mt-1 ${isReference ? 'text-orange-600' : 'text-blue-700/80'}`}>

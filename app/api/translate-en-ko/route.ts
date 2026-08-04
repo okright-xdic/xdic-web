@@ -8084,6 +8084,6227 @@ const twoProTranslateMathematicsDifficultyV1347 = (
   };
 };
 
+// ============================================================================
+// ☆ TwoPro v13.48-safe:
+//   The cold of this year
+//   + is/was/will be
+//   + severe/severer
+//   + [than that of last year]
+//
+// 지원 예:
+// - The cold of this year is severe
+// - The cold of this year was severe
+// - The cold of this year will be severe
+// - The cold of this year is severer
+// - The cold of this year is severer than that of last year
+// - The cold of this year will be more severe than that of last year
+//
+// 안전 조건:
+// - 날씨의 추위를 뜻하는 고정 주어 "The cold of this year"에만 적용합니다.
+// - cold는 이 문맥에서 불가산 단수이므로 is/was/will be만 허용합니다.
+// - severer/more severe + than that of last year를 가장 긴 비교 술어부로 먼저 처리합니다.
+// - severe와 비교 대상이 없는 severer는 각각 "심하다"로 처리해 기존 데이터와 호환합니다.
+// - I/We/You/He/She/They와 cold/colds 일반 명사에는 기계적으로 확장하지 않습니다.
+// - of/than을 전역 PHRASES로 등록하지 않아 다른 소유·비교 문맥에 영향을 주지 않습니다.
+// - DB 검색 전에 실행하여 정확 일치에서도 번역 블록과 참고 표현을 표시합니다.
+// ============================================================================
+type TwoProColdSeverityResultV1348 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProColdSeverityTenseV1348 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslateColdSeverityV1348 = (
+  value: unknown
+): TwoProColdSeverityResultV1348 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 더 긴 비교 구문을 먼저 검사하여 짧은 severe/severer가 선점하지 않게 합니다.
+  const comparativeMatch = source.match(
+    /^(The\s+cold\s+of\s+this\s+year)\s+(is|was|will\s+be)\s+(severer|more\s+severe)\s+than\s+that\s+of\s+last\s+year[.!?]?$/i
+  );
+
+  const simpleMatch = source.match(
+    /^(The\s+cold\s+of\s+this\s+year)\s+(is|was|will\s+be)\s+(severe|severer)[.!?]?$/i
+  );
+
+  const activeMatch =
+    comparativeMatch || simpleMatch;
+
+  if (!activeMatch) {
+    return null;
+  }
+
+  const subjectSource = String(
+    activeMatch[1] || ''
+  )
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const beSource = String(
+    activeMatch[2] || ''
+  )
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let tense: TwoProColdSeverityTenseV1348;
+
+  if (beSource === 'is') {
+    tense = 'present';
+  } else if (beSource === 'was') {
+    tense = 'past';
+  } else if (beSource === 'will be') {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  const simplePredicateMap: Record<
+    TwoProColdSeverityTenseV1348,
+    string
+  > = {
+    present: '심하다',
+    past: '심했다',
+    future: '심할 것이다',
+  };
+
+  const comparativePredicateMap: Record<
+    TwoProColdSeverityTenseV1348,
+    string
+  > = {
+    present: '작년 추위보다 심하다',
+    past: '작년 추위보다 심했다',
+    future: '작년 추위보다 심할 것이다',
+  };
+
+  const predicateTarget = comparativeMatch
+    ? comparativePredicateMap[tense]
+    : simplePredicateMap[tense];
+
+  const predicateSource = comparativeMatch
+    ? [
+        comparativeMatch[2],
+        comparativeMatch[3],
+        'than that of last year',
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+    : [
+        simpleMatch?.[2],
+        simpleMatch?.[3],
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+  return {
+    targetText: [
+      '금년 추위는',
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: '금년 추위는',
+        candidates: [
+          '금년 추위는',
+        ],
+        slot: 'COLD_OF_THIS_YEAR_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [
+          predicateTarget,
+        ],
+        slot: comparativeMatch
+          ? 'COLD_SEVERITY_COMPARATIVE_PREDICATE'
+          : 'COLD_SEVERITY_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.49-safe:
+//   This/That/The novel, These/Those/The novels, It
+//   + is/are/was/were/will be
+//   + [very] interesting
+//   + [for me/us/you/him/her/them]
+//
+// 지원 예:
+// - This novel is very interesting for us
+// - This novel is interesting for them
+// - This novel was very interesting for me
+// - These novels are interesting for us
+// - Those novels were very interesting
+// - The novels will be interesting for them
+// - It is very interesting for us
+// - It will be interesting
+//
+// 안전 조건:
+// - 소설 단수·복수 또는 사물 대명사 It이 주어인 2형식 문형에만 적용합니다.
+// - 사람 주어 I/We/You/He/She/They에는 적용하지 않습니다.
+//   사람을 interesting이라고 할 때는 "흥미로운 사람이다/재미있다" 등 문맥이 달라질 수 있습니다.
+// - for 뒤에는 목적격 me/us/you/him/her/them만 허용합니다.
+// - 현재·과거·미래와 단수·복수 be 동사의 일치를 검사합니다.
+// - "be + very interesting + for 목적격" 전체를 가장 긴 술어부로 묶어
+//   짧은 interesting 또는 for가 먼저 선택되지 않게 합니다.
+// - interesting/for를 전역 PHRASES로 등록하지 않아 다른 문맥에 영향을 주지 않습니다.
+// - DB 검색 전에 실행하여 정확 일치에서도 번역 블록과 참고 표현을 표시합니다.
+// ============================================================================
+type TwoProInterestingComplementResultV1349 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProInterestingComplementTenseV1349 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+type TwoProInterestingComplementSubjectV1349 = {
+  target: string;
+  number: 'singular' | 'plural';
+};
+
+const twoProTranslateInterestingComplementV1349 = (
+  value: unknown
+): TwoProInterestingComplementResultV1349 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 목적격이 붙은 가장 긴 문형을 먼저 검사합니다.
+  const withObjectMatch = source.match(
+    /^(This\s+novel|That\s+novel|The\s+novel|These\s+novels|Those\s+novels|The\s+novels|It)\s+(is|are|was|were|will\s+be)\s+(very\s+interesting|interesting)\s+for\s+(me|us|you|him|her|them)[.!?]?$/i
+  );
+
+  const simpleMatch = source.match(
+    /^(This\s+novel|That\s+novel|The\s+novel|These\s+novels|Those\s+novels|The\s+novels|It)\s+(is|are|was|were|will\s+be)\s+(very\s+interesting|interesting)[.!?]?$/i
+  );
+
+  const activeMatch = withObjectMatch || simpleMatch;
+
+  if (!activeMatch) {
+    return null;
+  }
+
+  const subjectSource = String(activeMatch[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectKey = subjectSource.toLowerCase();
+
+  const subjectMap: Record<
+    string,
+    TwoProInterestingComplementSubjectV1349
+  > = {
+    'this novel': {
+      target: '이 소설은',
+      number: 'singular',
+    },
+    'that novel': {
+      target: '그 소설은',
+      number: 'singular',
+    },
+    'the novel': {
+      target: '그 소설은',
+      number: 'singular',
+    },
+    'these novels': {
+      target: '이 소설들은',
+      number: 'plural',
+    },
+    'those novels': {
+      target: '저 소설들은',
+      number: 'plural',
+    },
+    'the novels': {
+      target: '그 소설들은',
+      number: 'plural',
+    },
+    it: {
+      target: '그것은',
+      number: 'singular',
+    },
+  };
+
+  const subjectConfig = subjectMap[subjectKey];
+
+  if (!subjectConfig) {
+    return null;
+  }
+
+  const beSource = String(activeMatch[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let tense: TwoProInterestingComplementTenseV1349;
+
+  if (beSource === 'will be') {
+    tense = 'future';
+  } else if (
+    beSource === 'is' ||
+    beSource === 'are'
+  ) {
+    tense = 'present';
+  } else if (
+    beSource === 'was' ||
+    beSource === 'were'
+  ) {
+    tense = 'past';
+  } else {
+    return null;
+  }
+
+  const allowedBeByNumber: Record<
+    'singular' | 'plural',
+    string[]
+  > = {
+    singular: ['is', 'was', 'will be'],
+    plural: ['are', 'were', 'will be'],
+  };
+
+  if (
+    !allowedBeByNumber[
+      subjectConfig.number
+    ].includes(beSource)
+  ) {
+    return null;
+  }
+
+  const adjectiveSource = String(
+    activeMatch[3] || ''
+  )
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const isVery =
+    adjectiveSource ===
+    'very interesting';
+
+  if (
+    adjectiveSource !== 'interesting' &&
+    !isVery
+  ) {
+    return null;
+  }
+
+  const adjectiveTargetMap: Record<
+    TwoProInterestingComplementTenseV1349,
+    string
+  > = {
+    present: isVery
+      ? '매우 흥미롭다'
+      : '흥미롭다',
+    past: isVery
+      ? '매우 흥미로웠다'
+      : '흥미로웠다',
+    future: isVery
+      ? '매우 흥미로울 것이다'
+      : '흥미로울 것이다',
+  };
+
+  const objectSource = withObjectMatch
+    ? String(withObjectMatch[4] || '')
+        .toLowerCase()
+        .trim()
+    : '';
+
+  const objectTargetMap: Record<
+    string,
+    string
+  > = {
+    me: '나에게',
+    us: '우리들에게',
+    you: '너에게',
+    him: '그에게',
+    her: '그녀에게',
+    them: '그들에게',
+  };
+
+  const objectTarget = objectSource
+    ? objectTargetMap[objectSource]
+    : '';
+
+  if (objectSource && !objectTarget) {
+    return null;
+  }
+
+  const adjectiveTarget =
+    adjectiveTargetMap[tense];
+
+  const predicateTarget = [
+    objectTarget,
+    adjectiveTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const predicateSource = withObjectMatch
+    ? [
+        withObjectMatch[2],
+        withObjectMatch[3],
+        'for',
+        withObjectMatch[4],
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+    : [
+        simpleMatch?.[2],
+        simpleMatch?.[3],
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+  return {
+    targetText: [
+      subjectConfig.target,
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected:
+          subjectConfig.target,
+        candidates: [
+          subjectConfig.target,
+        ],
+        slot:
+          'INTERESTING_COMPLEMENT_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [
+          predicateTarget,
+        ],
+        slot: withObjectMatch
+          ? 'INTERESTING_COMPLEMENT_WITH_OBJECT'
+          : 'INTERESTING_COMPLEMENT_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.50-safe:
+//   Rome + is/will be
+//   + a [small] town
+//   + [of a [small] kingdom]
+//   + [in the beginning]
+//
+// 이번 추가 지원:
+// - Rome is a small town of a small kingdom in the beginning
+// - Rome will be a small town of a small kingdom
+//
+// 기존 과거형 보존:
+// - Rome was ... 문장은 기존 2형식 예문6 처리에 그대로 맡깁니다.
+//   이미 정상인 과거형 경로와 결과를 새 코드가 가로채지 않습니다.
+//
+// 안전 조건:
+// - 고유명사 Rome이 주어인 역사 서술형 2형식 문형에만 적용합니다.
+// - 주어를 I/We/You/He/She/They로 대체하지 않습니다.
+//   사람·복수 주어를 "도시"와 동일시하면 문법과 의미가 깨지기 때문입니다.
+// - 단수 고유명사 Rome에는 is/will be만 허용합니다.
+// - a/an/the를 전역 PHRASES로 등록하지 않고, 이 문형 내부에서만 해석합니다.
+// - of와 in의 조사는 각각 "~의", "초기에"로 문맥 고정 처리합니다.
+// - 전체 술어부를 가장 긴 참고 표현 하나로 묶어 짧은 town/kingdom/in이
+//   먼저 선택되지 않게 합니다.
+// - DB 검색 전에 실행하여 정확 일치에서도 번역 블록과 참고 표현을 표시합니다.
+// ============================================================================
+type TwoProRomeTownComplementResultV1350 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProRomeTownTenseV1350 =
+  | 'present'
+  | 'future';
+
+const twoProTranslateRomeTownComplementV1350 = (
+  value: unknown
+): TwoProRomeTownComplementResultV1350 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^(Rome)\s+(is|will\s+be)\s+(a\s+small\s+town|a\s+town)(?:\s+of\s+(a\s+small\s+kingdom|a\s+kingdom))?(?:\s+(in\s+the\s+beginning))?[.!?]?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (subjectSource.toLowerCase() !== 'rome') {
+    return null;
+  }
+
+  const beSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let tense: TwoProRomeTownTenseV1350;
+
+  if (beSource === 'is') {
+    tense = 'present';
+  } else if (beSource === 'will be') {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  const townSource = String(match[3] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const townTargetMap: Record<string, string> = {
+    'a small town': '작은 도시',
+    'a town': '도시',
+  };
+
+  const townTarget = townTargetMap[townSource];
+
+  if (!townTarget) {
+    return null;
+  }
+
+  const kingdomSource = String(match[4] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const kingdomTargetMap: Record<string, string> = {
+    'a small kingdom': '조그마한 왕국',
+    'a kingdom': '왕국',
+  };
+
+  const kingdomTarget = kingdomSource
+    ? kingdomTargetMap[kingdomSource]
+    : '';
+
+  if (kingdomSource && !kingdomTarget) {
+    return null;
+  }
+
+  const timeSource = String(match[5] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    timeSource &&
+    timeSource !== 'in the beginning'
+  ) {
+    return null;
+  }
+
+  const complementTarget = kingdomTarget
+    ? `${kingdomTarget}의 ${townTarget}`
+    : townTarget;
+
+  const predicateCoreTargetMap: Record<
+    TwoProRomeTownTenseV1350,
+    string
+  > = {
+    present: `${complementTarget}이다`,
+    future: `${complementTarget}일 것이다`,
+  };
+
+  const predicateTarget = [
+    timeSource ? '초기에' : '',
+    predicateCoreTargetMap[tense],
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  return {
+    targetText: [
+      '로마는',
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: '로마는',
+        candidates: [
+          '로마는',
+        ],
+        slot: 'ROME_TOWN_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [
+          predicateTarget,
+        ],
+        slot: 'ROME_TOWN_COMPLEMENT_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.51-safe:
+//   This/That/The detective story, This/That/The story
+//   These/Those/The detective stories, These/Those/The stories
+//   + is/are/was/were/will be
+//   + [very] interesting
+//   + [for me/us/you/him/her/them]
+//
+// 지원 예:
+// - This detective story is very interesting for us
+// - This detective story is interesting for her
+// - This story is very interesting for you
+// - This detective story will be interesting
+// - This story was interesting
+// - Those detective stories were very interesting for them
+//
+// 안전 조건:
+// - detective story/story 명사구가 주어인 2형식 문형에만 적용합니다.
+// - 사람 주어 I/We/You/He/She/They에는 적용하지 않습니다.
+// - for 뒤에는 목적격 me/us/you/him/her/them만 허용합니다.
+// - 현재·과거·미래와 단수·복수 be 동사의 일치를 검사합니다.
+// - 전체 술어부를 가장 긴 참고 표현 하나로 묶어
+//   짧은 detective story, interesting, for가 먼저 선택되지 않게 합니다.
+// - detective story/interesting/for를 전역 PHRASES로 등록하지 않아
+//   다른 문맥과 기존 100개 PHRASES에 영향을 주지 않습니다.
+// - DB 검색 전에 실행하여 정확 일치에서도 번역 블록과 참고 표현을 표시합니다.
+// ============================================================================
+type TwoProDetectiveStoryInterestingResultV1351 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProDetectiveStoryInterestingTenseV1351 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+type TwoProDetectiveStoryInterestingSubjectV1351 = {
+  target: string;
+  number: 'singular' | 'plural';
+};
+
+const twoProTranslateDetectiveStoryInterestingV1351 = (
+  value: unknown
+): TwoProDetectiveStoryInterestingResultV1351 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 목적격이 붙은 가장 긴 문형을 먼저 검사합니다.
+  const withObjectMatch = source.match(
+    /^(This\s+detective\s+story|That\s+detective\s+story|The\s+detective\s+story|This\s+story|That\s+story|The\s+story|These\s+detective\s+stories|Those\s+detective\s+stories|The\s+detective\s+stories|These\s+stories|Those\s+stories|The\s+stories)\s+(is|are|was|were|will\s+be)\s+(very\s+interesting|interesting)\s+for\s+(me|us|you|him|her|them)[.!?]?$/i
+  );
+
+  const simpleMatch = source.match(
+    /^(This\s+detective\s+story|That\s+detective\s+story|The\s+detective\s+story|This\s+story|That\s+story|The\s+story|These\s+detective\s+stories|Those\s+detective\s+stories|The\s+detective\s+stories|These\s+stories|Those\s+stories|The\s+stories)\s+(is|are|was|were|will\s+be)\s+(very\s+interesting|interesting)[.!?]?$/i
+  );
+
+  const activeMatch = withObjectMatch || simpleMatch;
+
+  if (!activeMatch) {
+    return null;
+  }
+
+  const subjectSource = String(activeMatch[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectKey = subjectSource.toLowerCase();
+
+  const subjectMap: Record<
+    string,
+    TwoProDetectiveStoryInterestingSubjectV1351
+  > = {
+    'this detective story': {
+      target: '이러한 탐정 소설은',
+      number: 'singular',
+    },
+    'that detective story': {
+      target: '그 탐정 소설은',
+      number: 'singular',
+    },
+    'the detective story': {
+      target: '그 탐정 소설은',
+      number: 'singular',
+    },
+    'this story': {
+      target: '이 이야기는',
+      number: 'singular',
+    },
+    'that story': {
+      target: '그 이야기는',
+      number: 'singular',
+    },
+    'the story': {
+      target: '그 이야기는',
+      number: 'singular',
+    },
+    'these detective stories': {
+      target: '이러한 탐정 소설들은',
+      number: 'plural',
+    },
+    'those detective stories': {
+      target: '저 탐정 소설들은',
+      number: 'plural',
+    },
+    'the detective stories': {
+      target: '그 탐정 소설들은',
+      number: 'plural',
+    },
+    'these stories': {
+      target: '이 이야기들은',
+      number: 'plural',
+    },
+    'those stories': {
+      target: '저 이야기들은',
+      number: 'plural',
+    },
+    'the stories': {
+      target: '그 이야기들은',
+      number: 'plural',
+    },
+  };
+
+  const subjectConfig = subjectMap[subjectKey];
+
+  if (!subjectConfig) {
+    return null;
+  }
+
+  const beSource = String(activeMatch[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let tense: TwoProDetectiveStoryInterestingTenseV1351;
+
+  if (beSource === 'will be') {
+    tense = 'future';
+  } else if (
+    beSource === 'is' ||
+    beSource === 'are'
+  ) {
+    tense = 'present';
+  } else if (
+    beSource === 'was' ||
+    beSource === 'were'
+  ) {
+    tense = 'past';
+  } else {
+    return null;
+  }
+
+  const allowedBeByNumber: Record<
+    'singular' | 'plural',
+    string[]
+  > = {
+    singular: ['is', 'was', 'will be'],
+    plural: ['are', 'were', 'will be'],
+  };
+
+  if (
+    !allowedBeByNumber[
+      subjectConfig.number
+    ].includes(beSource)
+  ) {
+    return null;
+  }
+
+  const adjectiveSource = String(
+    activeMatch[3] || ''
+  )
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const isVery =
+    adjectiveSource === 'very interesting';
+
+  if (
+    adjectiveSource !== 'interesting' &&
+    !isVery
+  ) {
+    return null;
+  }
+
+  const adjectiveTargetMap: Record<
+    TwoProDetectiveStoryInterestingTenseV1351,
+    string
+  > = {
+    present: isVery
+      ? '대단히 흥미롭다'
+      : '흥미롭다',
+    past: isVery
+      ? '대단히 흥미로웠다'
+      : '흥미로웠다',
+    future: isVery
+      ? '대단히 흥미로울 것이다'
+      : '흥미로울 것이다',
+  };
+
+  const objectSource = withObjectMatch
+    ? String(withObjectMatch[4] || '')
+        .toLowerCase()
+        .trim()
+    : '';
+
+  const objectTargetMap: Record<
+    string,
+    string
+  > = {
+    me: '나에게',
+    us: '우리들에게',
+    you: '너에게',
+    him: '그에게',
+    her: '그녀에게',
+    them: '그들에게',
+  };
+
+  const objectTarget = objectSource
+    ? objectTargetMap[objectSource]
+    : '';
+
+  if (objectSource && !objectTarget) {
+    return null;
+  }
+
+  const adjectiveTarget =
+    adjectiveTargetMap[tense];
+
+  const predicateTarget = [
+    objectTarget,
+    adjectiveTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  return {
+    targetText: [
+      subjectConfig.target,
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectConfig.target,
+        candidates: [
+          subjectConfig.target,
+        ],
+        slot:
+          'DETECTIVE_STORY_INTERESTING_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [
+          predicateTarget,
+        ],
+        slot: withObjectMatch
+          ? 'DETECTIVE_STORY_INTERESTING_WITH_OBJECT'
+          : 'DETECTIVE_STORY_INTERESTING_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.52-safe:
+//   I/We/You/He/She/They
+//   + laugh/laughs/laughed/will laugh
+//   + at + me/us/you/him/her/them
+//
+// 지원 예:
+// - He laughed at me
+// - He laughs at me
+// - They laughed at her
+// - She will laugh at them
+//
+// 안전 조건:
+// - laugh at 뒤가 사람 목적격 인칭대명사인 경우에만 "비웃다"로 처리합니다.
+// - laugh at a joke / laugh at it / laugh with me 같은 다른 의미에는 적용하지 않습니다.
+// - 현재형의 주어·동사 수 일치를 검사합니다.
+// - 과거형과 미래형을 분리하여 한국어 종결어미를 정확하게 만듭니다.
+// - 주어부와 전체 목적어 술어부를 각각 가장 긴 참고 표현으로 표시합니다.
+// - laugh/laughed/laughs/at를 전역 PHRASES로 등록하지 않아
+//   기존 문맥과 100개 PHRASES에 영향을 주지 않습니다.
+// - DB 검색 전에 실행하여 정확 일치에서도 번역 블록과 참고 표현을 표시합니다.
+// ============================================================================
+type TwoProLaughAtPronounResultV1352 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProLaughAtPronounTenseV1352 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslateLaughAtPronounV1352 = (
+  value: unknown
+): TwoProLaughAtPronounResultV1352 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^(I|We|You|He|She|They)\s+(laughed|laughs|laugh|will\s+laugh)\s+at\s+(me|us|you|him|her|them)[.!?]?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .trim();
+
+  const subjectKey = subjectSource.toLowerCase();
+
+  const subjectTargetMap: Record<
+    string,
+    string
+  > = {
+    i: '나는',
+    we: '우리는',
+    you: '너는',
+    he: '그는',
+    she: '그녀는',
+    they: '그들은',
+  };
+
+  const subjectTarget =
+    subjectTargetMap[subjectKey];
+
+  if (!subjectTarget) {
+    return null;
+  }
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let tense: TwoProLaughAtPronounTenseV1352;
+
+  if (verbSource === 'laughed') {
+    tense = 'past';
+  } else if (verbSource === 'will laugh') {
+    tense = 'future';
+  } else if (
+    verbSource === 'laugh' ||
+    verbSource === 'laughs'
+  ) {
+    tense = 'present';
+  } else {
+    return null;
+  }
+
+  if (tense === 'present') {
+    const requiresThirdPersonSingular =
+      subjectKey === 'he' ||
+      subjectKey === 'she';
+
+    if (
+      requiresThirdPersonSingular &&
+      verbSource !== 'laughs'
+    ) {
+      return null;
+    }
+
+    if (
+      !requiresThirdPersonSingular &&
+      verbSource !== 'laugh'
+    ) {
+      return null;
+    }
+  }
+
+  const objectSource = String(match[3] || '')
+    .toLowerCase()
+    .trim();
+
+  const objectTargetMap: Record<
+    string,
+    string
+  > = {
+    me: '나를',
+    us: '우리를',
+    you: '너를',
+    him: '그를',
+    her: '그녀를',
+    them: '그들을',
+  };
+
+  const objectTarget =
+    objectTargetMap[objectSource];
+
+  if (!objectTarget) {
+    return null;
+  }
+
+  const verbTargetMap: Record<
+    TwoProLaughAtPronounTenseV1352,
+    string
+  > = {
+    present: '비웃는다',
+    past: '비웃었다',
+    future: '비웃을 것이다',
+  };
+
+  const verbTarget = verbTargetMap[tense];
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  const predicateTarget = [
+    objectTarget,
+    verbTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [
+          subjectTarget,
+        ],
+        slot: 'LAUGH_AT_PRONOUN_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [
+          predicateTarget,
+        ],
+        slot: 'LAUGH_AT_PRONOUN_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.53-safe:
+//   I/We/You/He/She/They
+//   + must / have to / has to / had to / will have to
+//   + take care of
+//   + 사람 목적격 대명사 또는 baby/babies 명사구
+//
+// 지원 예:
+// - You must take care of the baby
+// - He must take care of the baby
+// - She must take care of them
+// - They must take care of her
+// - I had to take care of my baby
+// - We will have to take care of the babies
+//
+// 안전 조건:
+// - take care of it / the matter처럼 "처리하다"가 될 수 있는 사물 목적어는 제외합니다.
+// - 사람 목적격 대명사와 baby/babies 명사구에만 "보살피다"를 적용합니다.
+// - have to / has to의 현재형 주어·동사 수 일치를 검사합니다.
+// - 현재 의무, 과거 의무, 미래 의무의 한국어 종결어미를 분리합니다.
+// - a/the와 단수·복수, 소유격 한정사를 목적어 명사구 안에서 처리합니다.
+// - 주어부와 전체 술어부를 가장 긴 참고 표현으로 표시합니다.
+// - take care of를 전역 PHRASES로 등록하지 않아 다른 뜻의 문맥을 침범하지 않습니다.
+// - DB 검색 전에 실행하여 정확 일치에서도 번역 블록과 참고 표현을 표시합니다.
+// ============================================================================
+type TwoProTakeCareOfResultV1353 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProTakeCareOfTenseV1353 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslateTakeCareOfV1353 = (
+  value: unknown
+): TwoProTakeCareOfResultV1353 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^(I|We|You|He|She|They)\s+(must|have\s+to|has\s+to|had\s+to|will\s+have\s+to)\s+take\s+care\s+of\s+((?:(?:the|a|my|our|your|his|her|their)\s+)?(?:baby|babies)|me|us|you|him|her|them)[.!?]?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .trim();
+
+  const subjectKey = subjectSource.toLowerCase();
+
+  const subjectTargetMap: Record<
+    string,
+    string
+  > = {
+    i: '나는',
+    we: '우리는',
+    you: '너는',
+    he: '그는',
+    she: '그녀는',
+    they: '그들은',
+  };
+
+  const subjectTarget =
+    subjectTargetMap[subjectKey];
+
+  if (!subjectTarget) {
+    return null;
+  }
+
+  const modalSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let tense: TwoProTakeCareOfTenseV1353;
+
+  if (
+    modalSource === 'must' ||
+    modalSource === 'have to' ||
+    modalSource === 'has to'
+  ) {
+    tense = 'present';
+  } else if (modalSource === 'had to') {
+    tense = 'past';
+  } else if (modalSource === 'will have to') {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  if (modalSource === 'has to') {
+    if (
+      subjectKey !== 'he' &&
+      subjectKey !== 'she'
+    ) {
+      return null;
+    }
+  }
+
+  if (modalSource === 'have to') {
+    if (
+      subjectKey === 'he' ||
+      subjectKey === 'she'
+    ) {
+      return null;
+    }
+  }
+
+  const objectSource = String(match[3] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const objectPronounTargetMap: Record<
+    string,
+    string
+  > = {
+    me: '나를',
+    us: '우리를',
+    you: '너를',
+    him: '그를',
+    her: '그녀를',
+    them: '그들을',
+  };
+
+  let objectTarget =
+    objectPronounTargetMap[objectSource] || '';
+
+  if (!objectTarget) {
+    const babyMatch = objectSource.match(
+      /^(?:(the|a|my|our|your|his|her|their)\s+)?(baby|babies)$/i
+    );
+
+    if (!babyMatch) {
+      return null;
+    }
+
+    const determiner = String(
+      babyMatch[1] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const noun = String(
+      babyMatch[2] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const isPlural = noun === 'babies';
+
+    // a babies는 문법적으로 맞지 않으므로 적용하지 않습니다.
+    if (determiner === 'a' && isPlural) {
+      return null;
+    }
+
+    const determinerTargetMap: Record<
+      string,
+      string
+    > = {
+      '': '',
+      the: '그',
+      a: '한',
+      my: '내',
+      our: '우리',
+      your: '네',
+      his: '그의',
+      her: '그녀의',
+      their: '그들의',
+    };
+
+    const determinerTarget =
+      determinerTargetMap[determiner];
+
+    if (determinerTarget === undefined) {
+      return null;
+    }
+
+    const nounTarget = isPlural
+      ? '아기들을'
+      : '아기를';
+
+    objectTarget = [
+      determinerTarget,
+      nounTarget,
+    ]
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  const verbTargetMap: Record<
+    TwoProTakeCareOfTenseV1353,
+    string
+  > = {
+    present: '보살펴야 한다',
+    past: '보살펴야 했다',
+    future: '보살펴야 할 것이다',
+  };
+
+  const verbTarget = verbTargetMap[tense];
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  const predicateTarget = [
+    objectTarget,
+    verbTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [
+          subjectTarget,
+        ],
+        slot: 'TAKE_CARE_OF_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [
+          predicateTarget,
+        ],
+        slot: 'TAKE_CARE_OF_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.54-safe:
+//   I/We/You/He/She/They
+//   + remember / remembers / remembered / will remember
+//   + 소유격 한정사(my/our/your/his/her/their)
+//   + name / names
+//   + 선택적 well
+//
+// 지원 예:
+// - I remember his name well
+// - I remember his name
+// - We remember his name well
+// - She remembered her name
+// - She remembers his name well
+// - They remember my name
+// - They will remember our names well
+//
+// 안전 조건:
+// - remember의 모든 목적어로 일반화하지 않고 name/names 명사구에만 적용합니다.
+// - 현재형 remember/remembers의 주어·동사 수 일치를 검사합니다.
+// - 과거형 remembered와 미래형 will remember를 분리합니다.
+// - my/our/your/his/her/their의 소유격 역할을 목적어 명사구 안에서 처리합니다.
+// - name/names의 단수·복수를 목적격 조사와 함께 처리합니다.
+// - well이 있을 때 한국어 목적어 뒤, 서술어 앞에 배치합니다.
+// - 주어부와 전체 술어부를 가장 긴 참고 표현으로 표시합니다.
+// - remember를 전역 PHRASES로 추가하지 않아 다른 목적어·용법을 침범하지 않습니다.
+// - DB 검색 전에 실행하여 정확 일치에서도 번역 블록과 참고 표현을 표시합니다.
+// ============================================================================
+type TwoProRememberNameResultV1354 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProRememberNameTenseV1354 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslateRememberNameV1354 = (
+  value: unknown
+): TwoProRememberNameResultV1354 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^(I|We|You|He|She|They)\s+(remember|remembers|remembered|will\s+remember)\s+(my|our|your|his|her|their)\s+(name|names)(?:\s+(well))?[.!?]?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .trim();
+
+  const subjectKey = subjectSource.toLowerCase();
+
+  const subjectTargetMap: Record<
+    string,
+    string
+  > = {
+    i: '나는',
+    we: '우리는',
+    you: '너는',
+    he: '그는',
+    she: '그녀는',
+    they: '그들은',
+  };
+
+  const subjectTarget =
+    subjectTargetMap[subjectKey];
+
+  if (!subjectTarget) {
+    return null;
+  }
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let tense: TwoProRememberNameTenseV1354;
+
+  if (
+    verbSource === 'remember' ||
+    verbSource === 'remembers'
+  ) {
+    tense = 'present';
+  } else if (verbSource === 'remembered') {
+    tense = 'past';
+  } else if (verbSource === 'will remember') {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  // 현재형 주어·동사 수 일치 검사
+  if (verbSource === 'remembers') {
+    if (
+      subjectKey !== 'he' &&
+      subjectKey !== 'she'
+    ) {
+      return null;
+    }
+  }
+
+  if (verbSource === 'remember') {
+    if (
+      subjectKey === 'he' ||
+      subjectKey === 'she'
+    ) {
+      return null;
+    }
+  }
+
+  const possessiveSource = String(match[3] || '')
+    .toLowerCase()
+    .trim();
+
+  const possessiveTargetMap: Record<
+    string,
+    string
+  > = {
+    my: '나의',
+    our: '우리의',
+    your: '너의',
+    his: '그의',
+    her: '그녀의',
+    their: '그들의',
+  };
+
+  const possessiveTarget =
+    possessiveTargetMap[possessiveSource];
+
+  if (!possessiveTarget) {
+    return null;
+  }
+
+  const nounSource = String(match[4] || '')
+    .toLowerCase()
+    .trim();
+
+  const nounTarget = nounSource === 'names'
+    ? '이름들을'
+    : nounSource === 'name'
+      ? '이름을'
+      : '';
+
+  if (!nounTarget) {
+    return null;
+  }
+
+  const hasWell =
+    String(match[5] || '')
+      .toLowerCase()
+      .trim() === 'well';
+
+  const verbTargetMap: Record<
+    TwoProRememberNameTenseV1354,
+    string
+  > = {
+    present: '기억하고 있다',
+    past: '기억했다',
+    future: '기억할 것이다',
+  };
+
+  const verbTarget = verbTargetMap[tense];
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  const predicateTarget = [
+    possessiveTarget,
+    nounTarget,
+    hasWell ? '잘' : '',
+    verbTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [
+          subjectTarget,
+        ],
+        slot: 'REMEMBER_NAME_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [
+          predicateTarget,
+        ],
+        slot: 'REMEMBER_NAME_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+
+
+// ============================================================================
+// ☆ TwoPro v13.57-safe:
+//   주격 인칭대명사 + meet / meets / met / will meet
+//   + 목적격 인칭대명사
+//   + 선택적 in the park
+//   + 선택적 on a fine morning / on a morning
+//
+// 지원 예:
+// - I met her in the park on a fine morning
+// - I met her in the park
+// - I met her on a fine morning
+// - I met her on a morning
+// - I met her
+// - He met them in the park on a fine morning
+// - You met me in the park
+// - They met you on a fine morning
+// - I meet him on a morning
+// - She meets them
+// - She will meet them
+//
+// 안전 조건:
+// - meet의 모든 목적어·장소·시간 표현으로 일반화하지 않고,
+//   사람 목적격 대명사와 지정된 공원/아침 표현에만 적용합니다.
+// - 현재형 meet/meets의 주어·동사 수 일치를 검사합니다.
+// - 과거형 met와 미래형 will meet를 분리합니다.
+// - in the park는 장소 조사 "에서", on a ... morning은 시간 조사 "에"로 처리합니다.
+// - 주어부와 전체 술어부를 가장 긴 참고 표현으로 표시합니다.
+// - DB 검색 전에 실행하여 정확 일치에서도 번역 블록과 참고 표현을 표시합니다.
+// - 문법적으로 잘못된 She meet them 같은 형태는 전용 규칙에서 제외합니다.
+// ============================================================================
+type TwoProMeetPronounResultV1357 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProMeetPronounTenseV1357 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslateMeetPronounV1357 = (
+  value: unknown
+): TwoProMeetPronounResultV1357 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^(I|We|You|He|She|They)\s+(meet|meets|met|will\s+meet)\s+(me|us|you|him|her|them)(?:\s+(in\s+the\s+park))?(?:\s+(on\s+(?:a\s+fine\s+morning|a\s+morning)))?[.!?]?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .trim();
+
+  const subjectKey = subjectSource.toLowerCase();
+
+  const subjectTargetMap: Record<
+    string,
+    string
+  > = {
+    i: '나는',
+    we: '우리는',
+    you: '너는',
+    he: '그는',
+    she: '그녀는',
+    they: '그들은',
+  };
+
+  const subjectTarget =
+    subjectTargetMap[subjectKey];
+
+  if (!subjectTarget) {
+    return null;
+  }
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let tense: TwoProMeetPronounTenseV1357;
+
+  if (
+    verbSource === 'meet' ||
+    verbSource === 'meets'
+  ) {
+    tense = 'present';
+  } else if (verbSource === 'met') {
+    tense = 'past';
+  } else if (verbSource === 'will meet') {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  // 현재형 주어·동사 수 일치 검사
+  if (verbSource === 'meets') {
+    if (
+      subjectKey !== 'he' &&
+      subjectKey !== 'she'
+    ) {
+      return null;
+    }
+  }
+
+  if (verbSource === 'meet') {
+    if (
+      subjectKey === 'he' ||
+      subjectKey === 'she'
+    ) {
+      return null;
+    }
+  }
+
+  const objectSource = String(match[3] || '')
+    .toLowerCase()
+    .trim();
+
+  const objectTargetMap: Record<
+    string,
+    string
+  > = {
+    me: '나를',
+    us: '우리를',
+    you: '너를',
+    him: '그를',
+    her: '그녀를',
+    them: '그들을',
+  };
+
+  const objectTarget =
+    objectTargetMap[objectSource];
+
+  if (!objectTarget) {
+    return null;
+  }
+
+  const placeSource = String(match[4] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const placeTarget = placeSource === 'in the park'
+    ? '공원에서'
+    : '';
+
+  const timeSource = String(match[5] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const timeTargetMap: Record<
+    string,
+    string
+  > = {
+    'on a fine morning': '어느 맑은 아침에',
+    'on a morning': '어느 아침에',
+  };
+
+  const timeTarget = timeSource
+    ? timeTargetMap[timeSource]
+    : '';
+
+  if (timeSource && !timeTarget) {
+    return null;
+  }
+
+  const verbTargetMap: Record<
+    TwoProMeetPronounTenseV1357,
+    string
+  > = {
+    present: '만난다',
+    past: '만났다',
+    future: '만날 것이다',
+  };
+
+  const verbTarget = verbTargetMap[tense];
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  // 한국어에서는 시간 → 장소 → 목적어 → 서술어 순으로 자연스럽게 배열합니다.
+  const predicateTarget = [
+    timeTarget,
+    placeTarget,
+    objectTarget,
+    verbTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [
+          subjectTarget,
+        ],
+        slot: 'MEET_PRONOUN_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [
+          predicateTarget,
+        ],
+        slot: 'MEET_PRONOUN_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.60-safe:
+//   주격 인칭대명사 + hear 계열
+//   + cry / cries 또는 animal's cry / animals' cries
+//   + 선택적 in + 소유격 + house / houses
+//
+// 지원 예:
+// - He can not hear the animals' cries in his house
+// - He cannot hear the cries in his house
+// - He can't hear the cries in his house
+// - He can hear the animals' cries
+// - They could hear the animals' cries in his house
+// - They will hear the cries in his house
+// - He hears the cries
+// - They heard the animals' cries
+//
+// 안전 조건:
+// - hear의 모든 목적어로 일반화하지 않고 cry/cries 목적어에만 적용합니다.
+// - 주어는 I/We/You/He/She/They로 제한합니다.
+// - 단순 현재 hear/hears의 주어·동사 수 일치를 검사합니다.
+// - can/could/will 및 단순 현재·과거를 분리합니다.
+// - can not/cannot/can't를 기존 회귀 문장의 "들을 수 없었다"로 통일합니다.
+// - could not/couldnot/couldn't도 과거 능력 부정으로 제한 지원합니다.
+// - will not/won't hear는 미래 부정으로 제한 지원합니다.
+// - 동물 소유격과 일반 cry/cries를 구별합니다.
+// - in은 이 문형 내부에서만 장소 조사 "에서"로 처리합니다.
+// - my/our/your/his/her/their는 장소 명사구 안에서만 소유격으로 처리합니다.
+// - house/houses의 영어 수는 인식하되 한국어에서는 불필요한 "집들"을 만들지 않습니다.
+// - 주어부와 전체 술어부를 가장 긴 참고 표현으로 표시합니다.
+// - DB 검색 전에 실행하여 정확 일치에서도 번역 블록과 참고 표현을 표시합니다.
+// - hear, cries, in the house를 전역 PHRASES로 추가하지 않습니다.
+// ============================================================================
+type TwoProHearCriesResultV1360 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProHearCriesVerbKindV1360 =
+  | 'simple-present'
+  | 'simple-past'
+  | 'can-positive'
+  | 'can-negative-regression'
+  | 'could-positive'
+  | 'could-negative'
+  | 'future-positive'
+  | 'future-negative';
+
+const twoProTranslateHearCriesV1360 = (
+  value: unknown
+): TwoProHearCriesResultV1360 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^(I|We|You|He|She|They)\s+(can\s+not\s+hear|cannot\s+hear|can't\s+hear|could\s+not\s+hear|couldnot\s+hear|couldn't\s+hear|will\s+not\s+hear|won't\s+hear|can\s+hear|could\s+hear|will\s+hear|hear|hears|heard)\s+((?:(?:the\s+)?animal's\s+cry)|(?:(?:the\s+)?animals'\s+cries)|(?:(?:the\s+)?cr(?:y|ies)))(?:\s+in\s+(my|our|your|his|her|their|the)\s+(house|houses))?[.!?]?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '').trim();
+  const subjectKey = subjectSource.toLowerCase();
+
+  const subjectTargetMap: Record<string, string> = {
+    i: '나는',
+    we: '우리는',
+    you: '너는',
+    he: '그는',
+    she: '그녀는',
+    they: '그들은',
+  };
+
+  const subjectTarget = subjectTargetMap[subjectKey];
+
+  if (!subjectTarget) {
+    return null;
+  }
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let verbKind: TwoProHearCriesVerbKindV1360;
+
+  if (
+    verbSource === 'can not hear' ||
+    verbSource === 'cannot hear' ||
+    verbSource === "can't hear"
+  ) {
+    // 기존 교재 회귀 기준의 "들을 수 없었다"를 유지합니다.
+    verbKind = 'can-negative-regression';
+  } else if (
+    verbSource === 'could not hear' ||
+    verbSource === 'couldnot hear' ||
+    verbSource === "couldn't hear"
+  ) {
+    verbKind = 'could-negative';
+  } else if (
+    verbSource === 'will not hear' ||
+    verbSource === "won't hear"
+  ) {
+    verbKind = 'future-negative';
+  } else if (verbSource === 'can hear') {
+    verbKind = 'can-positive';
+  } else if (verbSource === 'could hear') {
+    verbKind = 'could-positive';
+  } else if (verbSource === 'will hear') {
+    verbKind = 'future-positive';
+  } else if (
+    verbSource === 'hear' ||
+    verbSource === 'hears'
+  ) {
+    verbKind = 'simple-present';
+  } else if (verbSource === 'heard') {
+    verbKind = 'simple-past';
+  } else {
+    return null;
+  }
+
+  // 단순 현재의 주어·동사 수 일치 검사
+  if (verbSource === 'hears') {
+    if (
+      subjectKey !== 'he' &&
+      subjectKey !== 'she'
+    ) {
+      return null;
+    }
+  }
+
+  if (verbSource === 'hear') {
+    if (
+      subjectKey === 'he' ||
+      subjectKey === 'she'
+    ) {
+      return null;
+    }
+  }
+
+  const objectSource = String(match[3] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const isAnimalCry =
+    objectSource.includes("animal's") ||
+    objectSource.includes("animals'");
+
+  const objectTarget = isAnimalCry
+    ? '동물의 울음소리를'
+    : '울음소리를';
+
+  const locationPossessiveSource = String(match[4] || '')
+    .toLowerCase()
+    .trim();
+
+  const houseSource = String(match[5] || '')
+    .toLowerCase()
+    .trim();
+
+  let locationTarget = '';
+
+  if (locationPossessiveSource || houseSource) {
+    if (!locationPossessiveSource || !houseSource) {
+      return null;
+    }
+
+    if (
+      houseSource !== 'house' &&
+      houseSource !== 'houses'
+    ) {
+      return null;
+    }
+
+    const locationPossessiveTargetMap: Record<
+      string,
+      string
+    > = {
+      my: '나의',
+      our: '우리의',
+      your: '너의',
+      his: '그의',
+      her: '그녀의',
+      their: '그들의',
+      the: '그',
+    };
+
+    const locationPossessiveTarget =
+      locationPossessiveTargetMap[
+        locationPossessiveSource
+      ];
+
+    if (!locationPossessiveTarget) {
+      return null;
+    }
+
+    locationTarget = [
+      locationPossessiveTarget,
+      '집에서',
+    ].join(' ');
+  }
+
+  const verbTargetMap: Record<
+    TwoProHearCriesVerbKindV1360,
+    string
+  > = {
+    'simple-present': '듣는다',
+    'simple-past': '들었다',
+    'can-positive': '들을 수 있다',
+    'can-negative-regression': '들을 수 없었다',
+    'could-positive': '들을 수 있었다',
+    'could-negative': '들을 수 없었다',
+    'future-positive': '들을 것이다',
+    'future-negative': '듣지 못할 것이다',
+  };
+
+  const verbTarget = verbTargetMap[verbKind];
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  const predicateTarget = [
+    locationTarget,
+    objectTarget,
+    verbTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [subjectTarget],
+        slot: 'HEAR_CRIES_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [predicateTarget],
+        slot: 'HEAR_CRIES_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.62-safe:
+//   이순신 장군 또는 주격 인칭대명사
+//   + defeat / defeats / defeated / will defeat
+//   + (powerful) invader / invaders
+//   + 선택적 한국 남해안 장소구
+//   + 선택적 철갑선 수단구
+//
+// 지원 예:
+// - Adm. Lee Soon Shin defeated the powerful invaders in the South Shore
+//   of Korea with the first iron-clad ships
+// - Lee Soon Shin defeated the invaders
+// - He defeats the invader
+// - They defeat the powerful invaders
+// - He will defeat the invaders
+//
+// 안전 조건:
+// - defeat의 모든 문장으로 일반화하지 않습니다.
+// - 주어는 Adm. Lee Soon Shin / Lee Soon Shin 또는
+//   I/We/You/He/She/They로 제한합니다.
+// - 목적어는 invader/invaders 계열로 제한합니다.
+// - 현재형 defeat/defeats의 주어·동사 수 일치를 검사합니다.
+// - in은 지정된 해안 장소구 안에서만 "에서"로 처리합니다.
+// - with는 지정된 철갑선 수단구 안에서만 "으로"로 처리합니다.
+// - invader/invaders의 단수·복수를 한국어 목적어에 반영합니다.
+// - 주어부와 전체 술어부를 가장 긴 참고 표현으로 표시합니다.
+// - DB 정확 일치 및 일반 RBMT보다 먼저 실행합니다.
+// - 전역 PHRASES를 추가하지 않습니다.
+// ============================================================================
+type TwoProLeeSoonShinDefeatResultV1362 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProLeeSoonShinDefeatTenseV1362 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslateLeeSoonShinDefeatV1362 = (
+  value: unknown
+): TwoProLeeSoonShinDefeatResultV1362 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^(Adm\.\s+Lee\s+Soon\s+Shin|Lee\s+Soon\s+Shin|I|We|You|He|She|They)\s+(defeat|defeats|defeated|will\s+defeat)\s+((?:the\s+)?(?:powerful\s+)?invaders?)(?:\s+(in\s+(?:the\s+South\s+Shore(?:\s+of\s+Korea)?|the\s+Shore\s+of\s+Korea)))?(?:\s+(with\s+(?:the\s+first\s+|the\s+)?iron-clad\s+ships?))?[.!?]?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectKey = subjectSource
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectTargetMap: Record<string, string> = {
+    'adm. lee soon shin': '이순신 장군은',
+    'lee soon shin': '이순신 장군은',
+    i: '나는',
+    we: '우리는',
+    you: '너는',
+    he: '그는',
+    she: '그녀는',
+    they: '그들은',
+  };
+
+  const subjectTarget = subjectTargetMap[subjectKey];
+
+  if (!subjectTarget) {
+    return null;
+  }
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let tense: TwoProLeeSoonShinDefeatTenseV1362;
+
+  if (
+    verbSource === 'defeat' ||
+    verbSource === 'defeats'
+  ) {
+    tense = 'present';
+  } else if (verbSource === 'defeated') {
+    tense = 'past';
+  } else if (verbSource === 'will defeat') {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  const isThirdPersonSingularSubject =
+    subjectKey === 'adm. lee soon shin' ||
+    subjectKey === 'lee soon shin' ||
+    subjectKey === 'he' ||
+    subjectKey === 'she';
+
+  // 현재형 주어·동사 수 일치
+  if (
+    verbSource === 'defeats' &&
+    !isThirdPersonSingularSubject
+  ) {
+    return null;
+  }
+
+  if (
+    verbSource === 'defeat' &&
+    isThirdPersonSingularSubject
+  ) {
+    return null;
+  }
+
+  const objectSource = String(match[3] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const isPowerful =
+    /\bpowerful\b/i.test(objectSource);
+
+  const isPluralObject =
+    /\binvaders$/i.test(objectSource);
+
+  const objectTarget = [
+    isPowerful ? '강력한' : '',
+    isPluralObject
+      ? '침략자들을'
+      : '침략자를',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const locationSource = String(match[4] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const locationTargetMap: Record<string, string> = {
+    'in the south shore of korea':
+      '한국의 남해안에서',
+    'in the south shore':
+      '남해안에서',
+    'in the shore of korea':
+      '한국의 해안에서',
+  };
+
+  const locationTarget = locationSource
+    ? locationTargetMap[locationSource]
+    : '';
+
+  if (
+    locationSource &&
+    !locationTarget
+  ) {
+    return null;
+  }
+
+  const instrumentSource = String(match[5] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let instrumentTarget = '';
+
+  if (instrumentSource) {
+    if (
+      /^with the first iron-clad ships?$/.test(
+        instrumentSource
+      )
+    ) {
+      instrumentTarget = '최초의 철갑선으로';
+    } else if (
+      /^with (?:the )?iron-clad ships?$/.test(
+        instrumentSource
+      )
+    ) {
+      instrumentTarget = '철갑선으로';
+    } else {
+      return null;
+    }
+  }
+
+  const verbTargetMap: Record<
+    TwoProLeeSoonShinDefeatTenseV1362,
+    string
+  > = {
+    present: '물리친다',
+    past: '물리쳤다',
+    future: '물리칠 것이다',
+  };
+
+  const verbTarget = verbTargetMap[tense];
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  // 한국어 어순: 수단 → 장소 → 목적어 → 서술어
+  const predicateTarget = [
+    instrumentTarget,
+    locationTarget,
+    objectTarget,
+    verbTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [subjectTarget],
+        slot: 'LEE_SOON_SHIN_DEFEAT_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [predicateTarget],
+        slot: 'LEE_SOON_SHIN_DEFEAT_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.63-safe:
+//   제한된 주어 + live / lives / lived / will live
+//   + a happy life / a life
+//   + 선택적 in the quiet country
+//   + 선택적 with 소유격 family / families
+//
+// 지원 예:
+// - The old man lived a happy life in the quiet country with his family
+// - The man lived a life
+// - I lived a life with my family
+// - He lives a life with my family
+// - She will live a life with her family
+// - They will live a life with their family
+//
+// 안전 조건:
+// - live의 모든 문장으로 일반화하지 않습니다.
+// - 목적어가 a happy life 또는 a life인 문장에만 적용합니다.
+// - 주어는 The old man / The man / The old men / The men 또는
+//   I/We/You/He/She/They로 제한합니다.
+// - 현재형 live/lives의 주어·동사 수 일치를 검사합니다.
+// - in은 in the quiet country 안에서만 "조용한 시골에서"로 처리합니다.
+// - with는 소유격 + family/families 안에서만 "가족과 함께"로 처리합니다.
+// - 실제 소유격을 그대로 반영하며 주어와 소유격의 강제 일치는 하지 않습니다.
+//   예: He lives ... with my family → 그는 나의 가족과 함께 ...
+// - 주어부와 전체 술어부를 가장 긴 참고 표현으로 표시합니다.
+// - DB 정확 일치 및 일반 RBMT보다 먼저 실행합니다.
+// - 전역 PHRASES를 추가하지 않습니다.
+// ============================================================================
+type TwoProLiveALifeResultV1363 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProLiveALifeTenseV1363 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslateLiveALifeV1363 = (
+  value: unknown
+): TwoProLiveALifeResultV1363 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^(The\s+old\s+man|The\s+man|The\s+old\s+men|The\s+men|I|We|You|He|She|They)\s+(live|lives|lived|will\s+live)\s+(a\s+happy\s+life|a\s+life)(?:\s+(in\s+the\s+quiet\s+country))?(?:\s+(with\s+(my|our|your|his|her|their)\s+(family|families)))?[.!?]?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectKey = subjectSource
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectTargetMap: Record<string, string> = {
+    'the old man': '그 노인은',
+    'the man': '그 남자는',
+    'the old men': '그 노인들은',
+    'the men': '그 남자들은',
+    i: '나는',
+    we: '우리는',
+    you: '너는',
+    he: '그는',
+    she: '그녀는',
+    they: '그들은',
+  };
+
+  const subjectTarget = subjectTargetMap[subjectKey];
+
+  if (!subjectTarget) {
+    return null;
+  }
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let tense: TwoProLiveALifeTenseV1363;
+
+  if (
+    verbSource === 'live' ||
+    verbSource === 'lives'
+  ) {
+    tense = 'present';
+  } else if (verbSource === 'lived') {
+    tense = 'past';
+  } else if (verbSource === 'will live') {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  const isThirdPersonSingularSubject =
+    subjectKey === 'the old man' ||
+    subjectKey === 'the man' ||
+    subjectKey === 'he' ||
+    subjectKey === 'she';
+
+  // 현재형 주어·동사 수 일치
+  if (
+    verbSource === 'lives' &&
+    !isThirdPersonSingularSubject
+  ) {
+    return null;
+  }
+
+  if (
+    verbSource === 'live' &&
+    isThirdPersonSingularSubject
+  ) {
+    return null;
+  }
+
+  const objectSource = String(match[3] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const objectTargetMap: Record<string, string> = {
+    'a happy life': '행복한 삶을',
+    'a life': '삶을',
+  };
+
+  const objectTarget =
+    objectTargetMap[objectSource];
+
+  if (!objectTarget) {
+    return null;
+  }
+
+  const locationSource = String(match[4] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const locationTarget =
+    locationSource === 'in the quiet country'
+      ? '조용한 시골에서'
+      : '';
+
+  if (
+    locationSource &&
+    !locationTarget
+  ) {
+    return null;
+  }
+
+  const accompanimentSource = String(match[5] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const possessiveSource = String(match[6] || '')
+    .toLowerCase()
+    .trim();
+
+  const familySource = String(match[7] || '')
+    .toLowerCase()
+    .trim();
+
+  const possessiveTargetMap: Record<string, string> = {
+    my: '나의',
+    our: '우리의',
+    your: '너의',
+    his: '그의',
+    her: '그녀의',
+    their: '그들의',
+  };
+
+  let accompanimentTarget = '';
+
+  if (accompanimentSource) {
+    const possessiveTarget =
+      possessiveTargetMap[possessiveSource];
+
+    if (!possessiveTarget) {
+      return null;
+    }
+
+    const familyTarget =
+      familySource === 'families'
+        ? '가족들과 함께'
+        : familySource === 'family'
+          ? '가족과 함께'
+          : '';
+
+    if (!familyTarget) {
+      return null;
+    }
+
+    accompanimentTarget = [
+      possessiveTarget,
+      familyTarget,
+    ].join(' ');
+  }
+
+  const verbTargetMap: Record<
+    TwoProLiveALifeTenseV1363,
+    string
+  > = {
+    present: '산다',
+    past: '살았다',
+    future: '살 것이다',
+  };
+
+  const verbTarget = verbTargetMap[tense];
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  // 한국어 어순: 장소 → 동반자 → 목적어 → 서술어
+  const predicateTarget = [
+    locationTarget,
+    accompanimentTarget,
+    objectTarget,
+    verbTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [subjectTarget],
+        slot: 'LIVE_A_LIFE_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [predicateTarget],
+        slot: 'LIVE_A_LIFE_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.64-safe:
+//   주격 인칭대명사 + discuss / discusses / discussed / will discuss
+//   + a/the/소유격 plan / plans
+//   + 선택적 for + 소유격 + winter vacation
+//   + 선택적 with + 소유격 + friend(s) 또는 목적격 인칭대명사
+//
+// 지원 예:
+// - They discussed the plan for their winter vacation with their friends
+// - He discusses the plan for his winter vacation
+// - They will discuss the plan with their friends
+// - I will discuss the plan
+// - We discuss our plans with them
+//
+// 안전 조건:
+// - discuss는 이 문형 안에서만 타동사로 처리하며 about을 붙이지 않습니다.
+// - 현재형 discuss/discusses의 주어·동사 수·인칭 일치를 검사합니다.
+// - a plan은 단수만 허용하고 a plans / an plan은 허용하지 않습니다.
+// - plan/plans와 friend/friends의 단수·복수를 한국어에 반영합니다.
+// - my/our/your/his/her/their는 명사 앞에서만 소유격으로 처리합니다.
+// - me/us/you/him/her/them은 with 뒤에서만 목적격으로 처리합니다.
+// - their는 목적격이 아니므로 with their 단독 형태를 허용하지 않습니다.
+// - for는 이 문형에서만 "겨울방학에 대한"으로 처리합니다.
+// - with는 이 문형에서만 "와/과 함께"로 처리합니다.
+// - 주어부와 전체 술어부를 가장 긴 참고 표현으로 표시합니다.
+// - DB 정확 일치 및 일반 RBMT보다 먼저 실행합니다.
+// - 전역 PHRASES를 추가하지 않습니다.
+// ============================================================================
+type TwoProDiscussPlanResultV1364 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProDiscussPlanTenseV1364 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslateDiscussPlanV1364 = (
+  value: unknown
+): TwoProDiscussPlanResultV1364 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^(I|We|You|He|She|They)\s+(discuss|discusses|discussed|will\s+discuss)\s+((?:a|the|my|our|your|his|her|their)\s+plans?)(?:\s+(for\s+(?:(my|our|your|his|her|their)\s+)?winter\s+vacation))?(?:\s+(with\s+((?:(my|our|your|his|her|their)\s+friends?)|me|us|you|him|her|them)))?[.!?]?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectKey = subjectSource.toLowerCase();
+
+  const subjectTargetMap: Record<string, string> = {
+    i: '나는',
+    we: '우리는',
+    you: '너는',
+    he: '그는',
+    she: '그녀는',
+    they: '그들은',
+  };
+
+  const subjectTarget = subjectTargetMap[subjectKey];
+
+  if (!subjectTarget) {
+    return null;
+  }
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let tense: TwoProDiscussPlanTenseV1364;
+
+  if (
+    verbSource === 'discuss' ||
+    verbSource === 'discusses'
+  ) {
+    tense = 'present';
+  } else if (verbSource === 'discussed') {
+    tense = 'past';
+  } else if (verbSource === 'will discuss') {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  const isThirdPersonSingular =
+    subjectKey === 'he' ||
+    subjectKey === 'she';
+
+  // 단순 현재의 주어·동사 수·인칭 일치
+  if (tense === 'present') {
+    if (
+      isThirdPersonSingular &&
+      verbSource !== 'discusses'
+    ) {
+      return null;
+    }
+
+    if (
+      !isThirdPersonSingular &&
+      verbSource !== 'discuss'
+    ) {
+      return null;
+    }
+  }
+
+  const objectSource = String(match[3] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const objectMatch = objectSource.match(
+    /^(a|the|my|our|your|his|her|their)\s+(plan|plans)$/i
+  );
+
+  if (!objectMatch) {
+    return null;
+  }
+
+  const objectDeterminer =
+    String(objectMatch[1] || '').toLowerCase();
+
+  const objectNoun =
+    String(objectMatch[2] || '').toLowerCase();
+
+  const objectIsPlural = objectNoun === 'plans';
+
+  // 부정관사 a는 단수 plan에만 허용합니다.
+  if (objectDeterminer === 'a' && objectIsPlural) {
+    return null;
+  }
+
+  const possessiveTargetMap: Record<string, string> = {
+    my: '나의',
+    our: '우리의',
+    your: '너의',
+    his: '그의',
+    her: '그녀의',
+    their: '그들의',
+  };
+
+  let objectCoreTarget = objectIsPlural
+    ? '계획들을'
+    : '계획을';
+
+  if (objectDeterminer === 'a') {
+    objectCoreTarget = '한 계획을';
+  } else if (
+    Object.prototype.hasOwnProperty.call(
+      possessiveTargetMap,
+      objectDeterminer
+    )
+  ) {
+    objectCoreTarget =
+      `${possessiveTargetMap[objectDeterminer]} ` +
+      objectCoreTarget;
+  }
+
+  const vacationPhraseSource =
+    String(match[4] || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  const vacationPossessive =
+    String(match[5] || '')
+      .toLowerCase()
+      .trim();
+
+  let objectTarget = objectCoreTarget;
+
+  if (vacationPhraseSource) {
+    const vacationOwnerTarget =
+      vacationPossessive
+        ? `${possessiveTargetMap[vacationPossessive]} `
+        : '';
+
+    objectTarget =
+      `${vacationOwnerTarget}겨울방학에 대한 ` +
+      objectCoreTarget;
+  }
+
+  const companionPhraseSource =
+    String(match[6] || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  const companionBody =
+    String(match[7] || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  const companionPossessive =
+    String(match[8] || '')
+      .toLowerCase()
+      .trim();
+
+  let companionTarget = '';
+
+  if (companionPhraseSource) {
+    if (companionPossessive) {
+      const friendIsPlural =
+        /friends$/i.test(companionBody);
+
+      const friendTarget =
+        friendIsPlural
+          ? '친구들과 함께'
+          : '친구와 함께';
+
+      const isThirdPersonReflexive =
+        (
+          subjectKey === 'he' &&
+          companionPossessive === 'his'
+        ) ||
+        (
+          subjectKey === 'she' &&
+          companionPossessive === 'her'
+        ) ||
+        (
+          subjectKey === 'they' &&
+          companionPossessive === 'their'
+        );
+
+      const ownerTarget =
+        isThirdPersonReflexive
+          ? '자기'
+          : possessiveTargetMap[
+              companionPossessive
+            ];
+
+      if (!ownerTarget) {
+        return null;
+      }
+
+      companionTarget =
+        `${ownerTarget} ${friendTarget}`;
+    } else {
+      const objectPronounTargetMap:
+        Record<string, string> = {
+          me: '나와 함께',
+          us: '우리와 함께',
+          you: '너와 함께',
+          him: '그와 함께',
+          her: '그녀와 함께',
+          them: '그들과 함께',
+        };
+
+      companionTarget =
+        objectPronounTargetMap[companionBody];
+
+      if (!companionTarget) {
+        return null;
+      }
+    }
+  }
+
+  const verbTarget =
+    tense === 'past'
+      ? '의논했다'
+      : tense === 'future'
+        ? '의논할 것이다'
+        : '의논한다';
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  // 한국어 어순: 동반자 → 목적어(겨울방학 수식 포함) → 서술어
+  const predicateTarget = [
+    companionTarget,
+    objectTarget,
+    verbTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [subjectTarget],
+        slot: 'DISCUSS_PLAN_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [predicateTarget],
+        slot: 'DISCUSS_PLAN_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.65-safe:
+//   Einstein 또는 주격 인칭대명사
+//   + develop / develops / developed / will develop
+//   + a/the/소유격 theory / theories
+//   + 선택적 through 사고·수학적 추리 수단구
+//
+// 지원 예:
+// - Einstein developed his theory through deep thought and complex mathematical reasoning
+// - Einstein developed his theory through complex mathematical reasoning
+// - Einstein developed his theory
+// - Einstein develops his theory through complex mathematical reasoning
+// - He develops his theory
+// - Einstein will develop his theory through deep thought and mathematical reasoning
+// - We develop our theories through thought and reasoning
+//
+// 안전 조건:
+// - develop는 theory/theories 목적어가 있는 이 제한 문형에서만
+//   "발전시키다"로 처리합니다.
+// - 현재형 develop/develops의 주어·동사 수·인칭 일치를 검사합니다.
+// - a theory는 단수만 허용하고 a theories / an theory는 허용하지 않습니다.
+// - bare singular theory는 허용하지 않고 bare plural theories만 허용합니다.
+// - my/our/your/his/her/their는 theory/theories 앞의 소유격으로만 처리합니다.
+// - me/us/you/him/her/them은 이 문형의 목적어가 아니므로 확장하지 않습니다.
+// - through는 이 문형에서만 "~을 통해"로 처리합니다.
+// - 가장 긴 수단구를 먼저 판별하고 주어부와 전체 술어부를 참고 표현으로 표시합니다.
+// - DB 정확 일치 및 일반 RBMT보다 먼저 실행합니다.
+// - 전역 PHRASES를 추가하지 않습니다.
+// ============================================================================
+type TwoProDevelopTheoryResultV1365 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProDevelopTheoryTenseV1365 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslateDevelopTheoryV1365 = (
+  value: unknown
+): TwoProDevelopTheoryResultV1365 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^(Einstein|I|We|You|He|She|They)\s+(develop|develops|developed|will\s+develop)\s+((?:(?:a|the|my|our|your|his|her|their)\s+(?:theory|theories)|theories))(?:\s+(through\s+(deep\s+thought(?:\s+and\s+(?:complex\s+)?mathematical\s+reasoning)?|thought(?:\s+and\s+reasoning)?|(?:complex\s+)?mathematical\s+reasoning|reasoning)))?[.!?]?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectKey = subjectSource.toLowerCase();
+
+  const subjectTargetMap: Record<string, string> = {
+    einstein: '아인슈타인은',
+    i: '나는',
+    we: '우리는',
+    you: '너는',
+    he: '그는',
+    she: '그녀는',
+    they: '그들은',
+  };
+
+  const subjectTarget = subjectTargetMap[subjectKey];
+
+  if (!subjectTarget) {
+    return null;
+  }
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let tense: TwoProDevelopTheoryTenseV1365;
+
+  if (
+    verbSource === 'develop' ||
+    verbSource === 'develops'
+  ) {
+    tense = 'present';
+  } else if (verbSource === 'developed') {
+    tense = 'past';
+  } else if (verbSource === 'will develop') {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  const isThirdPersonSingular =
+    subjectKey === 'einstein' ||
+    subjectKey === 'he' ||
+    subjectKey === 'she';
+
+  // 단순 현재의 주어·동사 수·인칭 일치
+  if (tense === 'present') {
+    if (
+      isThirdPersonSingular &&
+      verbSource !== 'develops'
+    ) {
+      return null;
+    }
+
+    if (
+      !isThirdPersonSingular &&
+      verbSource !== 'develop'
+    ) {
+      return null;
+    }
+  }
+
+  const objectSource = String(match[3] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const objectMatch = objectSource.match(
+    /^(?:(a|the|my|our|your|his|her|their)\s+)?(theory|theories)$/i
+  );
+
+  if (!objectMatch) {
+    return null;
+  }
+
+  const objectDeterminer =
+    String(objectMatch[1] || '')
+      .toLowerCase()
+      .trim();
+
+  const objectNoun =
+    String(objectMatch[2] || '')
+      .toLowerCase()
+      .trim();
+
+  const objectIsPlural = objectNoun === 'theories';
+
+  // a는 단수 theory에만 허용합니다.
+  if (objectDeterminer === 'a' && objectIsPlural) {
+    return null;
+  }
+
+  // 관사·소유격 없는 단수 theory는 영어 문법상 이 문형에서 제외합니다.
+  if (!objectDeterminer && !objectIsPlural) {
+    return null;
+  }
+
+  const possessiveTargetMap: Record<string, string> = {
+    my: '나의',
+    our: '우리의',
+    your: '너의',
+    his: '그의',
+    her: '그녀의',
+    their: '그들의',
+  };
+
+  let objectTarget = objectIsPlural
+    ? '이론들을'
+    : '이론을';
+
+  if (objectDeterminer === 'a') {
+    objectTarget = '한 이론을';
+  } else if (objectDeterminer === 'the') {
+    objectTarget = objectIsPlural
+      ? '그 이론들을'
+      : '그 이론을';
+  } else if (
+    Object.prototype.hasOwnProperty.call(
+      possessiveTargetMap,
+      objectDeterminer
+    )
+  ) {
+    objectTarget =
+      `${possessiveTargetMap[objectDeterminer]} ` +
+      objectTarget;
+  }
+
+  const meansPhraseSource = String(match[4] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const meansBody = meansPhraseSource
+    .replace(/^through\s+/i, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const meansTargetMap: Record<string, string> = {
+    'deep thought and complex mathematical reasoning':
+      '깊은 사고와 복잡한 수학적 추리를 통해',
+    'deep thought and mathematical reasoning':
+      '깊은 사고와 수학적 추리를 통해',
+    'thought and reasoning':
+      '사고와 추리를 통해',
+    'deep thought':
+      '깊은 사고를 통해',
+    thought:
+      '사고를 통해',
+    'complex mathematical reasoning':
+      '복잡한 수학적 추리를 통해',
+    'mathematical reasoning':
+      '수학적 추리를 통해',
+    reasoning:
+      '추리를 통해',
+  };
+
+  let meansTarget = '';
+
+  if (meansPhraseSource) {
+    meansTarget = meansTargetMap[meansBody];
+
+    if (!meansTarget) {
+      return null;
+    }
+  }
+
+  const verbTargetMap: Record<
+    TwoProDevelopTheoryTenseV1365,
+    string
+  > = {
+    present: '발전시킨다',
+    past: '발전시켰다',
+    future: '발전시킬 것이다',
+  };
+
+  const verbTarget = verbTargetMap[tense];
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const predicateSource = sourceWithoutPunctuation
+    .slice(subjectSource.length)
+    .trim();
+
+  // 한국어 어순: 수단구 → 목적어 → 서술어
+  const predicateTarget = [
+    meansTarget,
+    objectTarget,
+    verbTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [subjectTarget],
+        slot: 'DEVELOP_THEORY_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [predicateTarget],
+        slot: 'DEVELOP_THEORY_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.66-safe:
+//   Mahatma Gandi/Gandhi, Gandi/Gandhi 또는 주격 인칭대명사
+//   + say / says / said / will say
+//   + that + India/주격 인칭대명사 + would/will attain
+//   + complete independence / independence
+//   + 선택적 when 절
+//   + feel/feels/felt/will feel
+//   + can/could/will be able to improve one's lot
+//   + 선택적 by one's own effort(s)
+//   + 선택적 and that ... shape one's destiny/destinies
+//   + 선택적 the way ... like/likes/liked/will like
+//
+// 지원 예:
+// - Mahatma Gandi once said that India would attain complete independence
+//   when the masses feel (that) they can improve their lot by their own effort
+//   and that they can shape their destiny the way they like
+// - Mahatma Gandi said that India would attain independence
+// - Gandi said that India would attain independence when the masses feel
+//   (that) they can improve their lot
+// - She says that he will attain independence when he feels that he can
+//   improve his lot
+// - We said that they would attain independence when they felt that they
+//   could improve their lot and that they could shape their destinies
+//
+// 안전 조건:
+// - Gandi(원문 표기)와 Gandhi(일반 표기)를 모두 인식하고 한국어는 "간디"로 통일합니다.
+// - 현재형 say/says, feel/feels, like/likes의 주어·동사 수·인칭을 검사합니다.
+// - 과거 보고 said에는 would attain, 현재·미래 보고에는 will attain을 사용합니다.
+// - once는 이 문형에서 said와 함께 쓰일 때만 허용합니다.
+// - the masses/people은 they/their, I는 I/my 등 주격·소유격 호응을 검사합니다.
+// - 목적격 me/us/him/her/them은 이 문형에 목적격 사람 슬롯이 없으므로 확장하지 않습니다.
+// - their는 목적격이 아니며 소유격으로만 처리합니다.
+// - complete은 independence 앞에서만 "완전한"으로 처리합니다.
+// - by는 이 문형에서만 "~의 노력으로", the way는 "~가 원하는 방식으로" 처리합니다.
+// - 긴 전체 문형을 전역 PHRASES로 추가하지 않고 route.ts의 제한 문형으로만 처리합니다.
+// - 주어부와 가장 긴 전체 술어부를 참고 표현으로 반환합니다.
+// - DB 정확 일치 및 일반 RBMT보다 먼저 실행합니다.
+// ============================================================================
+type TwoProGandhiIndependenceResultV1366 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProGandhiReportTenseV1366 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+type TwoProGandhiFeelTenseV1366 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+type TwoProGandhiAbilityV1366 =
+  | 'can'
+  | 'could'
+  | 'will be able to';
+
+const twoProTranslateGandhiIndependenceV1366 = (
+  value: unknown
+): TwoProGandhiIndependenceResultV1366 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const mainMatch = sourceWithoutPunctuation.match(
+    /^(Mahatma\s+(?:Gandi|Gandhi)|Gandi|Gandhi|I|We|You|He|She|They)\s+(?:(once)\s+)?(say|says|said|will\s+say)\s+that\s+(India|I|We|You|He|She|They)\s+(would\s+attain|will\s+attain)\s+(?:(complete)\s+)?independence(?:\s+(when\s+.+))?$/i
+  );
+
+  if (!mainMatch) {
+    return null;
+  }
+
+  const reportSubjectSource = String(
+    mainMatch[1] || ''
+  )
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const reportSubjectKey =
+    reportSubjectSource
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  const onceSource = String(mainMatch[2] || '')
+    .toLowerCase()
+    .trim();
+
+  const reportVerbSource = String(
+    mainMatch[3] || ''
+  )
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const embeddedSubjectSource = String(
+    mainMatch[4] || ''
+  )
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const embeddedSubjectKey =
+    embeddedSubjectSource.toLowerCase();
+
+  const attainSource = String(
+    mainMatch[5] || ''
+  )
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const isComplete =
+    String(mainMatch[6] || '')
+      .toLowerCase()
+      .trim() === 'complete';
+
+  const conditionSource = String(
+    mainMatch[7] || ''
+  )
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const reportSubjectTargetMap:
+    Record<string, string> = {
+      'mahatma gandi': '마하트마 간디는',
+      'mahatma gandhi': '마하트마 간디는',
+      gandi: '간디는',
+      gandhi: '간디는',
+      i: '나는',
+      we: '우리는',
+      you: '너는',
+      he: '그는',
+      she: '그녀는',
+      they: '그들은',
+    };
+
+  const reportSubjectTarget =
+    reportSubjectTargetMap[reportSubjectKey];
+
+  if (!reportSubjectTarget) {
+    return null;
+  }
+
+  const reportSubjectIsThirdSingular =
+    reportSubjectKey === 'mahatma gandi' ||
+    reportSubjectKey === 'mahatma gandhi' ||
+    reportSubjectKey === 'gandi' ||
+    reportSubjectKey === 'gandhi' ||
+    reportSubjectKey === 'he' ||
+    reportSubjectKey === 'she';
+
+  let reportTense:
+    TwoProGandhiReportTenseV1366;
+
+  if (
+    reportVerbSource === 'say' ||
+    reportVerbSource === 'says'
+  ) {
+    reportTense = 'present';
+  } else if (reportVerbSource === 'said') {
+    reportTense = 'past';
+  } else if (reportVerbSource === 'will say') {
+    reportTense = 'future';
+  } else {
+    return null;
+  }
+
+  if (reportTense === 'present') {
+    if (
+      reportSubjectIsThirdSingular &&
+      reportVerbSource !== 'says'
+    ) {
+      return null;
+    }
+
+    if (
+      !reportSubjectIsThirdSingular &&
+      reportVerbSource !== 'say'
+    ) {
+      return null;
+    }
+  }
+
+  // once는 과거의 said와 함께 쓰이는 회귀 문형만 지원합니다.
+  if (onceSource && reportVerbSource !== 'said') {
+    return null;
+  }
+
+  // 시제 일치:
+  // said → would attain
+  // say/says/will say → will attain
+  if (
+    reportTense === 'past' &&
+    attainSource !== 'would attain'
+  ) {
+    return null;
+  }
+
+  if (
+    reportTense !== 'past' &&
+    attainSource !== 'will attain'
+  ) {
+    return null;
+  }
+
+  const embeddedSubjectTargetMap:
+    Record<string, string> = {
+      india: '인도가',
+      i: '내가',
+      we: '우리가',
+      you: '네가',
+      he: '그가',
+      she: '그녀가',
+      they: '그들이',
+    };
+
+  const embeddedSubjectTarget =
+    embeddedSubjectTargetMap[
+      embeddedSubjectKey
+    ];
+
+  if (!embeddedSubjectTarget) {
+    return null;
+  }
+
+  const independenceTarget = isComplete
+    ? '완전한 독립을'
+    : '독립을';
+
+  const attainTarget =
+    attainSource === 'would attain'
+      ? '달성할 수 있을 것이라고'
+      : '달성할 것이라고';
+
+  const embeddedClauseTarget = [
+    embeddedSubjectTarget,
+    independenceTarget,
+    attainTarget,
+  ].join(' ');
+
+  let conditionTarget = '';
+
+  if (conditionSource) {
+    const conditionMatch = conditionSource.match(
+      /^when\s+(the\s+masses|people|I|We|You|He|She|They)\s+(feel|feels|felt|will\s+feel)\s+(?:(?:\(\s*that\s*\)|that)\s+)?(I|We|You|He|She|They)\s+(can|could|will\s+be\s+able\s+to)\s+improve\s+(my|our|your|his|her|their)\s+lot(?:\s+by\s+(my|our|your|his|her|their)\s+own\s+(effort|efforts))?(?:\s+and\s+that\s+(I|We|You|He|She|They)\s+(can|could|will\s+be\s+able\s+to)\s+shape\s+(my|our|your|his|her|their)\s+(destiny|destinies)(?:\s+the\s+way\s+(I|We|You|He|She|They)\s+(like|likes|liked|will\s+like))?)?$/i
+    );
+
+    if (!conditionMatch) {
+      return null;
+    }
+
+    const conditionSubjectSource = String(
+      conditionMatch[1] || ''
+    )
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const feelVerbSource = String(
+      conditionMatch[2] || ''
+    )
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const improvePronoun = String(
+      conditionMatch[3] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const improveAbilitySource = String(
+      conditionMatch[4] || ''
+    )
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const lotPossessive = String(
+      conditionMatch[5] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const effortPossessive = String(
+      conditionMatch[6] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const effortNoun = String(
+      conditionMatch[7] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const shapePronoun = String(
+      conditionMatch[8] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const shapeAbilitySource = String(
+      conditionMatch[9] || ''
+    )
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const destinyPossessive = String(
+      conditionMatch[10] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const destinyNoun = String(
+      conditionMatch[11] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const wayPronoun = String(
+      conditionMatch[12] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const likeVerbSource = String(
+      conditionMatch[13] || ''
+    )
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const conditionSubjectTargetMap:
+      Record<string, string> = {
+        'the masses': '일반 대중이',
+        people: '사람들이',
+        i: '내가',
+        we: '우리가',
+        you: '네가',
+        he: '그가',
+        she: '그녀가',
+        they: '그들이',
+      };
+
+    const conditionSubjectTarget =
+      conditionSubjectTargetMap[
+        conditionSubjectSource
+      ];
+
+    if (!conditionSubjectTarget) {
+      return null;
+    }
+
+    const expectedPronounMap:
+      Record<string, string> = {
+        'the masses': 'they',
+        people: 'they',
+        i: 'i',
+        we: 'we',
+        you: 'you',
+        he: 'he',
+        she: 'she',
+        they: 'they',
+      };
+
+    const expectedPossessiveMap:
+      Record<string, string> = {
+        i: 'my',
+        we: 'our',
+        you: 'your',
+        he: 'his',
+        she: 'her',
+        they: 'their',
+      };
+
+    const expectedPronoun =
+      expectedPronounMap[
+        conditionSubjectSource
+      ];
+
+    const expectedPossessive =
+      expectedPossessiveMap[
+        expectedPronoun
+      ];
+
+    if (
+      !expectedPronoun ||
+      !expectedPossessive ||
+      improvePronoun !== expectedPronoun ||
+      lotPossessive !== expectedPossessive
+    ) {
+      return null;
+    }
+
+    const conditionSubjectIsThirdSingular =
+      conditionSubjectSource === 'he' ||
+      conditionSubjectSource === 'she';
+
+    let feelTense:
+      TwoProGandhiFeelTenseV1366;
+
+    if (
+      feelVerbSource === 'feel' ||
+      feelVerbSource === 'feels'
+    ) {
+      feelTense = 'present';
+    } else if (feelVerbSource === 'felt') {
+      feelTense = 'past';
+    } else if (
+      feelVerbSource === 'will feel'
+    ) {
+      feelTense = 'future';
+    } else {
+      return null;
+    }
+
+    if (feelTense === 'present') {
+      if (
+        conditionSubjectIsThirdSingular &&
+        feelVerbSource !== 'feels'
+      ) {
+        return null;
+      }
+
+      if (
+        !conditionSubjectIsThirdSingular &&
+        feelVerbSource !== 'feel'
+      ) {
+        return null;
+      }
+    }
+
+    const normalizeAbility = (
+      valueToNormalize: string
+    ): TwoProGandhiAbilityV1366 | null => {
+      if (valueToNormalize === 'can') {
+        return 'can';
+      }
+
+      if (valueToNormalize === 'could') {
+        return 'could';
+      }
+
+      if (
+        valueToNormalize ===
+        'will be able to'
+      ) {
+        return 'will be able to';
+      }
+
+      return null;
+    };
+
+    const improveAbility =
+      normalizeAbility(
+        improveAbilitySource
+      );
+
+    if (!improveAbility) {
+      return null;
+    }
+
+    const reflexivePossessiveTargetMap:
+      Record<string, string> = {
+        i: '내',
+        we: '우리의',
+        you: '너의',
+        he: '자신의',
+        she: '자신의',
+        they: '자신들의',
+      };
+
+    const reflexiveWaySubjectTargetMap:
+      Record<string, string> = {
+        i: '내가',
+        we: '우리가',
+        you: '네가',
+        he: '자신이',
+        she: '자신이',
+        they: '자신들이',
+      };
+
+    const reflexivePossessiveTarget =
+      reflexivePossessiveTargetMap[
+        expectedPronoun
+      ];
+
+    if (!reflexivePossessiveTarget) {
+      return null;
+    }
+
+    let effortTarget = '';
+
+    if (effortPossessive || effortNoun) {
+      if (
+        effortPossessive !==
+        expectedPossessive
+      ) {
+        return null;
+      }
+
+      effortTarget =
+        effortNoun === 'efforts'
+          ? `${reflexivePossessiveTarget} 여러 노력으로`
+          : `${reflexivePossessiveTarget} 노력으로`;
+    }
+
+    const improveFinalMap:
+      Record<
+        TwoProGandhiAbilityV1366,
+        string
+      > = {
+        can: '처지를 개선할 수 있다고',
+        could:
+          '처지를 개선할 수 있었다고',
+        'will be able to':
+          '처지를 개선할 수 있게 될 것이라고',
+      };
+
+    const improveConnectiveMap:
+      Record<
+        TwoProGandhiAbilityV1366,
+        string
+      > = {
+        can: '처지를 개선할 수 있고',
+        could:
+          '처지를 개선할 수 있었고',
+        'will be able to':
+          '처지를 개선할 수 있게 될 것이고',
+      };
+
+    let complementOfFeelTarget = '';
+
+    if (shapePronoun) {
+      if (
+        shapePronoun !== expectedPronoun ||
+        destinyPossessive !==
+          expectedPossessive
+      ) {
+        return null;
+      }
+
+      const shapeAbility =
+        normalizeAbility(
+          shapeAbilitySource
+        );
+
+      if (
+        !shapeAbility ||
+        shapeAbility !== improveAbility
+      ) {
+        return null;
+      }
+
+      if (
+        wayPronoun &&
+        wayPronoun !== expectedPronoun
+      ) {
+        return null;
+      }
+
+      if (likeVerbSource) {
+        const waySubjectIsThirdSingular =
+          expectedPronoun === 'he' ||
+          expectedPronoun === 'she';
+
+        if (
+          likeVerbSource === 'likes' &&
+          !waySubjectIsThirdSingular
+        ) {
+          return null;
+        }
+
+        if (
+          likeVerbSource === 'like' &&
+          waySubjectIsThirdSingular
+        ) {
+          return null;
+        }
+      }
+
+      const wayTargetMap:
+        Record<string, string> = {
+          like: '원하는 방식으로',
+          likes: '원하는 방식으로',
+          liked: '원했던 방식으로',
+          'will like':
+            '원하게 될 방식으로',
+        };
+
+      let wayTarget = '';
+
+      if (wayPronoun) {
+        const waySubjectTarget =
+          reflexiveWaySubjectTargetMap[
+            expectedPronoun
+          ];
+
+        const wayPredicateTarget =
+          wayTargetMap[likeVerbSource];
+
+        if (
+          !waySubjectTarget ||
+          !wayPredicateTarget
+        ) {
+          return null;
+        }
+
+        wayTarget =
+          `${waySubjectTarget} ` +
+          wayPredicateTarget;
+      }
+
+      const destinyTarget =
+        destinyNoun === 'destinies'
+          ? `${reflexivePossessiveTarget} 운명들을`
+          : `${reflexivePossessiveTarget} 운명을`;
+
+      const shapeFinalMap:
+        Record<
+          TwoProGandhiAbilityV1366,
+          string
+        > = {
+          can: '형성할 수 있다고',
+          could:
+            '형성할 수 있었다고',
+          'will be able to':
+            '형성할 수 있게 될 것이라고',
+        };
+
+      const improveTarget = [
+        effortTarget,
+        reflexivePossessiveTarget,
+        improveConnectiveMap[
+          improveAbility
+        ],
+      ]
+        .filter(Boolean)
+        .join(' ');
+
+      const shapeTarget = [
+        wayTarget,
+        destinyTarget,
+        shapeFinalMap[shapeAbility],
+      ]
+        .filter(Boolean)
+        .join(' ');
+
+      complementOfFeelTarget = [
+        improveTarget,
+        shapeTarget,
+      ].join(' ');
+    } else {
+      const improveTarget = [
+        effortTarget,
+        reflexivePossessiveTarget,
+        improveFinalMap[
+          improveAbility
+        ],
+      ]
+        .filter(Boolean)
+        .join(' ');
+
+      complementOfFeelTarget =
+        improveTarget;
+    }
+
+    const feelTargetMap:
+      Record<
+        TwoProGandhiFeelTenseV1366,
+        string
+      > = {
+        present: '느낄 때',
+        past: '느꼈을 때',
+        future: '느끼게 될 때',
+      };
+
+    conditionTarget = [
+      conditionSubjectTarget,
+      complementOfFeelTarget,
+      feelTargetMap[feelTense],
+    ]
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  const reportVerbTargetMap:
+    Record<
+      TwoProGandhiReportTenseV1366,
+      string
+    > = {
+      present: '말한다',
+      past: '말했다',
+      future: '말할 것이다',
+    };
+
+  const onceTarget =
+    onceSource ? '한때' : '';
+
+  const predicateTarget = [
+    onceTarget,
+    conditionTarget,
+    embeddedClauseTarget,
+    reportVerbTargetMap[reportTense],
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(reportSubjectSource.length)
+      .trim();
+
+  return {
+    targetText: [
+      reportSubjectTarget,
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    referenceWords: [
+      {
+        source: reportSubjectSource,
+        selected: reportSubjectTarget,
+        candidates: [reportSubjectTarget],
+        slot:
+          'GANDHI_INDEPENDENCE_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [predicateTarget],
+        slot:
+          'GANDHI_INDEPENDENCE_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.67-safe:
+//   주격 인칭대명사 또는 소유격 + uncle(s)
+//   + make / makes / made / will make
+//   + 목적격 인칭대명사
+//   + a/the/소유격 + 선택적 pretty + toy-ship(s)
+//
+// 지원 예:
+// - My uncle made me a pretty toy-ship
+// - My uncle made me a toy-ship
+// - I made him a toy-ship
+// - I make her a toy-ship
+// - They will make her a toy-ship
+// - Our uncles make us pretty toy-ships
+//
+// 안전 조건:
+// - 현재형 make/makes의 주어·동사 수·인칭 일치를 검사합니다.
+// - I/We/You/He/She/They는 주격으로만 처리합니다.
+// - me/us/you/him/her/them은 간접목적어 목적격으로만 처리합니다.
+// - my/our/your/his/her/their는 uncle(s) 또는 toy-ship(s) 앞의 소유격으로만 처리합니다.
+// - their는 목적격이 아니며, they의 목적격은 them입니다.
+// - a는 단수 toy-ship에만 허용합니다.
+// - 무관사 단수 toy-ship은 허용하지 않고, 복수 toy-ships는 무관사를 허용합니다.
+// - toy-ship/toy ship 및 toy-ships/toy ships 표기를 모두 인식합니다.
+// - uncle(s)가 주어이면 기존 예문의 높임을 유지하여
+//   만들어 주신다/주셨다/주실 것이다를 사용합니다.
+// - 대명사 주어에는 일반 한다체를 사용합니다.
+// - 가장 긴 전체 술어부를 하나의 참고 표현으로 반환합니다.
+// - DB 정확 일치 및 일반 RBMT보다 먼저 실행합니다.
+// - 전역 PHRASES를 추가하지 않습니다.
+// ============================================================================
+type TwoProMakeToyShipResultV1367 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProMakeToyShipTenseV1367 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslateMakeToyShipV1367 = (
+  value: unknown
+): TwoProMakeToyShipResultV1367 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const match = sourceWithoutPunctuation.match(
+    /^((?:(?:My|Our|Your|His|Her|Their|The)\s+uncles?)|I|We|You|He|She|They)\s+(make|makes|made|will\s+make)\s+(me|us|you|him|her|them)\s+(?:(a|the|my|our|your|his|her|their)\s+)?(?:(pretty)\s+)?(toy(?:-|\s)ships?)$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectKey = subjectSource
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const indirectObjectSource = String(
+    match[3] || ''
+  )
+    .toLowerCase()
+    .trim();
+
+  const directDeterminer = String(
+    match[4] || ''
+  )
+    .toLowerCase()
+    .trim();
+
+  const prettySource = String(match[5] || '')
+    .toLowerCase()
+    .trim();
+
+  const directNounSource = String(
+    match[6] || ''
+  )
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const pronounSubjectTargetMap:
+    Record<string, string> = {
+      i: '나는',
+      we: '우리는',
+      you: '너는',
+      he: '그는',
+      she: '그녀는',
+      they: '그들은',
+    };
+
+  const possessiveTargetMap:
+    Record<string, string> = {
+      my: '나의',
+      our: '우리의',
+      your: '너의',
+      his: '그의',
+      her: '그녀의',
+      their: '그들의',
+    };
+
+  let subjectTarget = '';
+  let subjectIsThirdSingular = false;
+  let subjectUsesHonorific = false;
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      pronounSubjectTargetMap,
+      subjectKey
+    )
+  ) {
+    subjectTarget =
+      pronounSubjectTargetMap[subjectKey];
+
+    subjectIsThirdSingular =
+      subjectKey === 'he' ||
+      subjectKey === 'she';
+  } else {
+    const uncleMatch = subjectKey.match(
+      /^(my|our|your|his|her|their|the)\s+(uncle|uncles)$/
+    );
+
+    if (!uncleMatch) {
+      return null;
+    }
+
+    const uncleDeterminer = String(
+      uncleMatch[1] || ''
+    ).toLowerCase();
+
+    const uncleNoun = String(
+      uncleMatch[2] || ''
+    ).toLowerCase();
+
+    const uncleIsPlural =
+      uncleNoun === 'uncles';
+
+    const ownerTarget =
+      uncleDeterminer === 'the'
+        ? '그'
+        : possessiveTargetMap[
+            uncleDeterminer
+          ];
+
+    if (!ownerTarget) {
+      return null;
+    }
+
+    subjectTarget = uncleIsPlural
+      ? `${ownerTarget} 아저씨들이`
+      : `${ownerTarget} 아저씨가`;
+
+    subjectIsThirdSingular =
+      !uncleIsPlural;
+
+    subjectUsesHonorific = true;
+  }
+
+  let tense: TwoProMakeToyShipTenseV1367;
+
+  if (
+    verbSource === 'make' ||
+    verbSource === 'makes'
+  ) {
+    tense = 'present';
+  } else if (verbSource === 'made') {
+    tense = 'past';
+  } else if (verbSource === 'will make') {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  if (tense === 'present') {
+    if (
+      subjectIsThirdSingular &&
+      verbSource !== 'makes'
+    ) {
+      return null;
+    }
+
+    if (
+      !subjectIsThirdSingular &&
+      verbSource !== 'make'
+    ) {
+      return null;
+    }
+  }
+
+  const indirectObjectTargetMap:
+    Record<string, string> = {
+      me: '나에게',
+      us: '우리에게',
+      you: '너에게',
+      him: '그에게',
+      her: '그녀에게',
+      them: '그들에게',
+    };
+
+  const indirectObjectTarget =
+    indirectObjectTargetMap[
+      indirectObjectSource
+    ];
+
+  if (!indirectObjectTarget) {
+    return null;
+  }
+
+  const directObjectIsPlural =
+    /ships$/i.test(
+      directNounSource
+        .replace(/\s+/g, '')
+    );
+
+  // a는 단수에만 허용합니다.
+  if (
+    directDeterminer === 'a' &&
+    directObjectIsPlural
+  ) {
+    return null;
+  }
+
+  // 무관사 단수는 허용하지 않습니다.
+  if (
+    !directDeterminer &&
+    !directObjectIsPlural
+  ) {
+    return null;
+  }
+
+  let directDeterminerTarget = '';
+
+  if (directDeterminer === 'the') {
+    directDeterminerTarget = '그';
+  } else if (
+    Object.prototype.hasOwnProperty.call(
+      possessiveTargetMap,
+      directDeterminer
+    )
+  ) {
+    directDeterminerTarget =
+      possessiveTargetMap[
+        directDeterminer
+      ];
+  }
+
+  const directNounTarget =
+    directObjectIsPlural
+      ? '장난감-배들을'
+      : '장난감-배를';
+
+  const directObjectTarget = [
+    directDeterminerTarget,
+    prettySource ? '예쁜' : '',
+    directNounTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const normalVerbTargetMap:
+    Record<
+      TwoProMakeToyShipTenseV1367,
+      string
+    > = {
+      present: '만들어 준다',
+      past: '만들어 주었다',
+      future: '만들어 줄 것이다',
+    };
+
+  const honorificVerbTargetMap:
+    Record<
+      TwoProMakeToyShipTenseV1367,
+      string
+    > = {
+      present: '만들어 주신다',
+      past: '만들어 주셨다',
+      future: '만들어 주실 것이다',
+    };
+
+  const verbTarget = subjectUsesHonorific
+    ? honorificVerbTargetMap[tense]
+    : normalVerbTargetMap[tense];
+
+  const predicateTarget = [
+    indirectObjectTarget,
+    directObjectTarget,
+    verbTarget,
+  ].join(' ');
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ].join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [subjectTarget],
+        slot: 'MAKE_TOY_SHIP_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [predicateTarget],
+        slot: 'MAKE_TOY_SHIP_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.68-safe:
+//   주격 인칭대명사
+//   + lend / lends / lent / will lend
+//   + 시민 명사 또는 목적격 인칭대명사
+//   + book(s)
+//   + 선택적 during this/that/the (reading) week
+//
+// 지원 예:
+// - We lent citizens many books during this reading week
+// - We lent citizens books during this week
+// - I lent citizens many books
+// - We lend citizens books during this week
+// - She lends citizens many books
+// - He will lend citizens books
+// - They will lend us their books during this week
+//
+// 안전 조건:
+// - 현재형 lend/lends의 주어·동사 수·인칭 일치를 검사합니다.
+// - I/We/You/He/She/They는 주격으로만 처리합니다.
+// - me/us/you/him/her/them은 간접목적어 목적격으로만 처리합니다.
+// - my/our/your/his/her/their는 book(s) 앞의 소유격으로만 처리합니다.
+// - their는 목적격이 아니며, they의 목적격은 them입니다.
+// - citizens, a citizen, the citizen(s)를 생물 간접목적어로 처리합니다.
+// - 무관사 단수 citizen은 허용하지 않습니다.
+// - many는 복수 books에만 허용합니다.
+// - a는 단수 book에만 허용합니다.
+// - 무관사 단수 book은 허용하지 않고, 복수 books는 무관사를 허용합니다.
+// - during은 이 문형에서 시간 부사구로만 처리하며 한국어 문장 앞쪽에 둡니다.
+// - 가장 긴 전체 술어부를 하나의 참고 표현으로 반환합니다.
+// - DB 정확 일치 및 일반 RBMT보다 먼저 실행합니다.
+// - 전역 PHRASES를 추가하지 않습니다.
+// ============================================================================
+type TwoProLendBooksResultV1368 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProLendBooksTenseV1368 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslateLendBooksV1368 = (
+  value: unknown
+): TwoProLendBooksResultV1368 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const match = sourceWithoutPunctuation.match(
+    /^(I|We|You|He|She|They)\s+(lend|lends|lent|will\s+lend)\s+((?:(?:a|the)\s+citizens?)|citizens|me|us|you|him|her|them)\s+((?:many\s+books)|(?:(?:a|the|my|our|your|his|her|their)\s+books?)|books)(?:\s+(during\s+(this|that|the)\s+(reading\s+)?week))?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .trim();
+
+  const subjectKey = subjectSource
+    .toLowerCase();
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const recipientSource = String(match[3] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const directObjectSource = String(match[4] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const durationSource = String(match[5] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const durationDeterminer = String(
+    match[6] || ''
+  )
+    .toLowerCase()
+    .trim();
+
+  const durationHasReading =
+    Boolean(String(match[7] || '').trim());
+
+  const subjectTargetMap:
+    Record<string, string> = {
+      i: '나는',
+      we: '우리는',
+      you: '너는',
+      he: '그는',
+      she: '그녀는',
+      they: '그들은',
+    };
+
+  const subjectTarget =
+    subjectTargetMap[subjectKey];
+
+  if (!subjectTarget) {
+    return null;
+  }
+
+  const subjectIsThirdSingular =
+    subjectKey === 'he' ||
+    subjectKey === 'she';
+
+  let tense: TwoProLendBooksTenseV1368;
+
+  if (
+    verbSource === 'lend' ||
+    verbSource === 'lends'
+  ) {
+    tense = 'present';
+  } else if (verbSource === 'lent') {
+    tense = 'past';
+  } else if (verbSource === 'will lend') {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  if (tense === 'present') {
+    if (
+      subjectIsThirdSingular &&
+      verbSource !== 'lends'
+    ) {
+      return null;
+    }
+
+    if (
+      !subjectIsThirdSingular &&
+      verbSource !== 'lend'
+    ) {
+      return null;
+    }
+  }
+
+  const recipientPronounTargetMap:
+    Record<string, string> = {
+      me: '나에게',
+      us: '우리에게',
+      you: '너에게',
+      him: '그에게',
+      her: '그녀에게',
+      them: '그들에게',
+    };
+
+  let recipientTarget = '';
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      recipientPronounTargetMap,
+      recipientSource
+    )
+  ) {
+    recipientTarget =
+      recipientPronounTargetMap[
+        recipientSource
+      ];
+  } else {
+    const citizenMatch = recipientSource.match(
+      /^(?:(a|the)\s+)?(citizen|citizens)$/
+    );
+
+    if (!citizenMatch) {
+      return null;
+    }
+
+    const citizenDeterminer = String(
+      citizenMatch[1] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const citizenNoun = String(
+      citizenMatch[2] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const citizenIsPlural =
+      citizenNoun === 'citizens';
+
+    // 무관사 단수 citizen은 허용하지 않습니다.
+    if (
+      !citizenDeterminer &&
+      !citizenIsPlural
+    ) {
+      return null;
+    }
+
+    // a citizens는 허용하지 않습니다.
+    if (
+      citizenDeterminer === 'a' &&
+      citizenIsPlural
+    ) {
+      return null;
+    }
+
+    if (citizenDeterminer === 'a') {
+      recipientTarget = '한 시민에게';
+    } else if (
+      citizenDeterminer === 'the'
+    ) {
+      recipientTarget = citizenIsPlural
+        ? '그 시민들에게'
+        : '그 시민에게';
+    } else {
+      recipientTarget = '시민들에게';
+    }
+  }
+
+  const possessiveTargetMap:
+    Record<string, string> = {
+      my: '나의',
+      our: '우리의',
+      your: '너의',
+      his: '그의',
+      her: '그녀의',
+      their: '그들의',
+    };
+
+  let directObjectTarget = '';
+
+  if (directObjectSource === 'many books') {
+    directObjectTarget = '많은 책을';
+  } else if (directObjectSource === 'books') {
+    directObjectTarget = '책들을';
+  } else {
+    const bookMatch = directObjectSource.match(
+      /^(a|the|my|our|your|his|her|their)\s+(book|books)$/
+    );
+
+    if (!bookMatch) {
+      return null;
+    }
+
+    const bookDeterminer = String(
+      bookMatch[1] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const bookNoun = String(
+      bookMatch[2] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const bookIsPlural =
+      bookNoun === 'books';
+
+    // a books는 허용하지 않습니다.
+    if (
+      bookDeterminer === 'a' &&
+      bookIsPlural
+    ) {
+      return null;
+    }
+
+    if (bookDeterminer === 'a') {
+      directObjectTarget = '책 한 권을';
+    } else if (bookDeterminer === 'the') {
+      directObjectTarget = bookIsPlural
+        ? '그 책들을'
+        : '그 책을';
+    } else {
+      const ownerTarget =
+        possessiveTargetMap[
+          bookDeterminer
+        ];
+
+      if (!ownerTarget) {
+        return null;
+      }
+
+      directObjectTarget = bookIsPlural
+        ? `${ownerTarget} 책들을`
+        : `${ownerTarget} 책을`;
+    }
+  }
+
+  let durationTarget = '';
+
+  if (durationSource) {
+    if (durationDeterminer === 'this') {
+      durationTarget = durationHasReading
+        ? '이번 독서 주간에'
+        : '이번 주에';
+    } else if (
+      durationDeterminer === 'that' ||
+      durationDeterminer === 'the'
+    ) {
+      durationTarget = durationHasReading
+        ? '그 독서 주간에'
+        : '그 주에';
+    } else {
+      return null;
+    }
+  }
+
+  const verbTargetMap:
+    Record<
+      TwoProLendBooksTenseV1368,
+      string
+    > = {
+      present: '빌려준다',
+      past: '빌려주었다',
+      future: '빌려줄 것이다',
+    };
+
+  const predicateTarget = [
+    durationTarget,
+    recipientTarget,
+    directObjectTarget,
+    verbTargetMap[tense],
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ].join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [subjectTarget],
+        slot: 'LEND_BOOKS_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [predicateTarget],
+        slot: 'LEND_BOOKS_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.69-safe:
+//   소유격 + friend(s) + 선택적 in London 또는 주격 인칭대명사
+//   + send / sends / sent / will send
+//   + 목적격 인칭대명사
+//   + a/the/소유격/many + 선택적 pretty + picture postcard(s)/postcard(s)
+//
+// 지원 예:
+// - My friend in London sent me a pretty picture postcard
+// - My friend sent me a picture postcard
+// - His friend in London sent her a pretty picture postcard
+// - Her friend in London sends her a postcard
+// - You will send him a postcard
+// - Their friends send us many picture postcards
+//
+// 안전 조건:
+// - 현재형 send/sends의 주어·동사 수·인칭 일치를 검사합니다.
+// - I/We/You/He/She/They는 주격으로만 처리합니다.
+// - me/us/you/him/her/them은 간접목적어 목적격으로만 처리합니다.
+// - my/our/your/his/her/their는 friend(s) 또는 postcard(s) 앞의
+//   소유격으로만 처리합니다.
+// - their는 목적격이 아니며, they의 목적격은 them입니다.
+// - a는 단수 postcard에만 허용합니다.
+// - many는 복수 postcards에만 허용합니다.
+// - 무관사 단수 postcard/picture postcard는 허용하지 않습니다.
+// - in London은 주어 명사구를 수식하는 경우에만
+//   "런던에 있는"으로 처리합니다.
+// - will sent는 잘못된 영어이므로 허용하지 않고 will send만 처리합니다.
+// - They friend도 잘못된 영어이므로 허용하지 않습니다.
+//   Their friend 또는 They send가 올바른 형태입니다.
+// - 가장 긴 전체 술어부를 하나의 참고 표현으로 반환합니다.
+// - DB 정확 일치 및 일반 RBMT보다 먼저 실행합니다.
+// - 전역 PHRASES를 추가하지 않습니다.
+// ============================================================================
+type TwoProSendPostcardResultV1369 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProSendPostcardTenseV1369 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslateSendPostcardV1369 = (
+  value: unknown
+): TwoProSendPostcardResultV1369 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const match = sourceWithoutPunctuation.match(
+    /^((?:(?:My|Our|Your|His|Her|Their|The)\s+friends?(?:\s+in\s+London)?)|I|We|You|He|She|They)\s+(send|sends|sent|will\s+send)\s+(me|us|you|him|her|them)\s+((?:(?:a|the|my|our|your|his|her|their|many)\s+)?(?:pretty\s+)?(?:picture\s+)?postcards?)$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectKey = subjectSource
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const indirectObjectSource = String(
+    match[3] || ''
+  )
+    .toLowerCase()
+    .trim();
+
+  const directObjectSource = String(
+    match[4] || ''
+  )
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const pronounSubjectTargetMap:
+    Record<string, string> = {
+      i: '나는',
+      we: '우리는',
+      you: '너는',
+      he: '그는',
+      she: '그녀는',
+      they: '그들은',
+    };
+
+  const possessiveSubjectTargetMap:
+    Record<string, string> = {
+      my: '내',
+      our: '우리의',
+      your: '너의',
+      his: '그의',
+      her: '그녀의',
+      their: '그들의',
+      the: '그',
+    };
+
+  const possessiveObjectTargetMap:
+    Record<string, string> = {
+      my: '내',
+      our: '우리의',
+      your: '너의',
+      his: '그의',
+      her: '그녀의',
+      their: '그들의',
+    };
+
+  let subjectTarget = '';
+  let subjectIsThirdSingular = false;
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      pronounSubjectTargetMap,
+      subjectKey
+    )
+  ) {
+    subjectTarget =
+      pronounSubjectTargetMap[subjectKey];
+
+    subjectIsThirdSingular =
+      subjectKey === 'he' ||
+      subjectKey === 'she';
+  } else {
+    const friendMatch = subjectKey.match(
+      /^(my|our|your|his|her|their|the)\s+(friend|friends)(?:\s+in\s+london)?$/
+    );
+
+    if (!friendMatch) {
+      return null;
+    }
+
+    const friendDeterminer = String(
+      friendMatch[1] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const friendNoun = String(
+      friendMatch[2] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const friendIsPlural =
+      friendNoun === 'friends';
+
+    const hasLondon =
+      /\s+in\s+london$/i.test(
+        subjectKey
+      );
+
+    const ownerTarget =
+      possessiveSubjectTargetMap[
+        friendDeterminer
+      ];
+
+    if (!ownerTarget) {
+      return null;
+    }
+
+    const friendTarget =
+      friendIsPlural
+        ? '친구들이'
+        : '친구가';
+
+    const subjectCoreTarget = [
+      ownerTarget,
+      friendTarget,
+    ].join(' ');
+
+    subjectTarget = hasLondon
+      ? `런던에 있는 ${subjectCoreTarget}`
+      : subjectCoreTarget;
+
+    subjectIsThirdSingular =
+      !friendIsPlural;
+  }
+
+  let tense: TwoProSendPostcardTenseV1369;
+
+  if (
+    verbSource === 'send' ||
+    verbSource === 'sends'
+  ) {
+    tense = 'present';
+  } else if (verbSource === 'sent') {
+    tense = 'past';
+  } else if (verbSource === 'will send') {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  if (tense === 'present') {
+    if (
+      subjectIsThirdSingular &&
+      verbSource !== 'sends'
+    ) {
+      return null;
+    }
+
+    if (
+      !subjectIsThirdSingular &&
+      verbSource !== 'send'
+    ) {
+      return null;
+    }
+  }
+
+  const indirectObjectTargetMap:
+    Record<string, string> = {
+      me: '나에게',
+      us: '우리에게',
+      you: '너에게',
+      him: '그에게',
+      her: '그녀에게',
+      them: '그들에게',
+    };
+
+  const indirectObjectTarget =
+    indirectObjectTargetMap[
+      indirectObjectSource
+    ];
+
+  if (!indirectObjectTarget) {
+    return null;
+  }
+
+  const directObjectMatch =
+    directObjectSource.match(
+      /^(?:(a|the|my|our|your|his|her|their|many)\s+)?(?:(pretty)\s+)?(?:(picture)\s+)?(postcard|postcards)$/
+    );
+
+  if (!directObjectMatch) {
+    return null;
+  }
+
+  const directDeterminer = String(
+    directObjectMatch[1] || ''
+  )
+    .toLowerCase()
+    .trim();
+
+  const directIsPretty =
+    Boolean(
+      String(
+        directObjectMatch[2] || ''
+      ).trim()
+    );
+
+  const directIsPicture =
+    Boolean(
+      String(
+        directObjectMatch[3] || ''
+      ).trim()
+    );
+
+  const directNoun = String(
+    directObjectMatch[4] || ''
+  )
+    .toLowerCase()
+    .trim();
+
+  const directIsPlural =
+    directNoun === 'postcards';
+
+  // 무관사 단수는 허용하지 않습니다.
+  if (
+    !directDeterminer &&
+    !directIsPlural
+  ) {
+    return null;
+  }
+
+  // a는 단수에만 허용합니다.
+  if (
+    directDeterminer === 'a' &&
+    directIsPlural
+  ) {
+    return null;
+  }
+
+  // many는 복수에만 허용합니다.
+  if (
+    directDeterminer === 'many' &&
+    !directIsPlural
+  ) {
+    return null;
+  }
+
+  let directDeterminerTarget = '';
+
+  if (directDeterminer === 'the') {
+    directDeterminerTarget = '그';
+  } else if (
+    directDeterminer === 'many'
+  ) {
+    directDeterminerTarget = '많은';
+  } else if (
+    Object.prototype.hasOwnProperty.call(
+      possessiveObjectTargetMap,
+      directDeterminer
+    )
+  ) {
+    directDeterminerTarget =
+      possessiveObjectTargetMap[
+        directDeterminer
+      ];
+  }
+
+  const directNounTarget =
+    directIsPicture
+      ? (
+          directIsPlural
+            ? '그림엽서들을'
+            : '그림엽서를'
+        )
+      : (
+          directIsPlural
+            ? '엽서들을'
+            : '엽서를'
+        );
+
+  const directObjectTarget = [
+    directDeterminerTarget,
+    directIsPretty ? '예쁜' : '',
+    directNounTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const verbTargetMap:
+    Record<
+      TwoProSendPostcardTenseV1369,
+      string
+    > = {
+      present: '보내준다',
+      past: '보내주었다',
+      future: '보내줄 것이다',
+    };
+
+  const predicateTarget = [
+    indirectObjectTarget,
+    directObjectTarget,
+    verbTargetMap[tense],
+  ].join(' ');
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ].join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [subjectTarget],
+        slot: 'SEND_POSTCARD_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [predicateTarget],
+        slot: 'SEND_POSTCARD_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.70-safe:
+//   send + postcard 제한 문형의 고신뢰 문법 교정 계층
+//
+// 교정 대상:
+// 1) 주격 인칭대명사 + friend(s)
+//    - They friend send ... → Their friend sends ...
+//    - She friends send ... → Her friends send ...
+// 2) will + 과거형 sent
+//    - You will sent ... → You will send ...
+//
+// 안전 조건:
+// - 잘못된 영어를 정상 PHRASES나 정상 문법 규칙으로 등록하지 않습니다.
+// - send + 목적격 인칭대명사 + postcard(s) 문형 안에서만 교정합니다.
+// - I/We/You/He/She/They + friend(s)는 각각
+//   My/Our/Your/His/Her/Their friend(s)로만 교정합니다.
+// - friend 단수는 현재형 sends, friends 복수는 send로 교정합니다.
+// - will sent는 will send로만 교정합니다.
+// - 교정한 문장은 v13.69 정규 처리기로 다시 검증합니다.
+// - 화면에는 원문을 그대로 두고 "영어 교정" 줄로 정규 문장을 표시합니다.
+// - DB 검색과 일반 RBMT보다 먼저 실행하여 잘못된 슬롯 추출을 막습니다.
+// ============================================================================
+type TwoProSendPostcardRepairResultV1370 = {
+  correctedSource: string;
+  correctionReason: string;
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+const twoProRepairSendPostcardV1370 = (
+  value: unknown
+): TwoProSendPostcardRepairResultV1370 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const match = sourceWithoutPunctuation.match(
+    /^((?:(I|We|You|He|She|They)\s+(friend|friends)(?:\s+in\s+London)?)|(?:(?:My|Our|Your|His|Her|Their|The)\s+friends?(?:\s+in\s+London)?)|I|We|You|He|She|They)\s+(send|sends|sent|will\s+send|will\s+sent)\s+(me|us|you|him|her|them)\s+((?:(?:a|the|my|our|your|his|her|their|many)\s+)?(?:pretty\s+)?(?:picture\s+)?postcards?)$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const rawSubject = String(match[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const malformedSubjectPronoun = String(
+    match[2] || ''
+  )
+    .toLowerCase()
+    .trim();
+
+  const malformedFriendNoun = String(
+    match[3] || ''
+  )
+    .toLowerCase()
+    .trim();
+
+  const rawVerb = String(match[4] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const indirectObject = String(
+    match[5] || ''
+  )
+    .toLowerCase()
+    .trim();
+
+  const directObject = String(match[6] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const possessiveSourceMap:
+    Record<string, string> = {
+      i: 'My',
+      we: 'Our',
+      you: 'Your',
+      he: 'His',
+      she: 'Her',
+      they: 'Their',
+    };
+
+  let correctedSubject = rawSubject;
+  let correctedSubjectIsThirdSingular =
+    /^(He|She)$/i.test(rawSubject);
+
+  const correctionReasons: string[] = [];
+
+  if (
+    malformedSubjectPronoun &&
+    malformedFriendNoun
+  ) {
+    const possessiveSource =
+      possessiveSourceMap[
+        malformedSubjectPronoun
+      ];
+
+    if (!possessiveSource) {
+      return null;
+    }
+
+    const hasLondon =
+      /\s+in\s+London$/i.test(
+        rawSubject
+      );
+
+    correctedSubject = [
+      possessiveSource,
+      malformedFriendNoun,
+      hasLondon ? 'in London' : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    correctedSubjectIsThirdSingular =
+      malformedFriendNoun === 'friend';
+
+    correctionReasons.push(
+      '주격 인칭대명사를 friend(s) 앞의 소유격으로 교정'
+    );
+  } else {
+    const normalizedSubject =
+      rawSubject
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    if (
+      /^(?:my|our|your|his|her|their|the)\s+friend(?:\s+in\s+london)?$/i.test(
+        normalizedSubject
+      )
+    ) {
+      correctedSubjectIsThirdSingular = true;
+    } else if (
+      /^(?:my|our|your|his|her|their|the)\s+friends(?:\s+in\s+london)?$/i.test(
+        normalizedSubject
+      )
+    ) {
+      correctedSubjectIsThirdSingular = false;
+    }
+  }
+
+  let correctedVerb = rawVerb;
+
+  if (rawVerb === 'will sent') {
+    correctedVerb = 'will send';
+    correctionReasons.push(
+      '조동사 will 뒤의 과거형 sent를 동사원형 send로 교정'
+    );
+  } else if (
+    malformedSubjectPronoun &&
+    (
+      rawVerb === 'send' ||
+      rawVerb === 'sends'
+    )
+  ) {
+    correctedVerb =
+      correctedSubjectIsThirdSingular
+        ? 'sends'
+        : 'send';
+
+    if (correctedVerb !== rawVerb) {
+      correctionReasons.push(
+        'friend(s)의 단수·복수에 맞게 현재형 동사를 교정'
+      );
+    }
+  }
+
+  if (correctionReasons.length === 0) {
+    return null;
+  }
+
+  const correctedSource = [
+    correctedSubject,
+    correctedVerb,
+    indirectObject,
+    directObject,
+  ].join(' ');
+
+  const translated =
+    twoProTranslateSendPostcardV1369(
+      correctedSource
+    );
+
+  if (!translated) {
+    return null;
+  }
+
+  return {
+    correctedSource,
+    correctionReason:
+      correctionReasons.join(', '),
+    targetText: translated.targetText,
+    referenceWords:
+      translated.referenceWords,
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.71-safe:
+//   주격 인칭대명사 또는 소유격 + carpenter(s)
+//   + build / builds / built / will build
+//   + 시민 명사구 또는 목적격 인칭대명사
+//   + house(s)
+//   + 선택적 in + valley 명사구
+//
+// 지원 예:
+// - The charitable carpenter built the poor citizens without the houses
+//   the grand houses in the silent valley
+// - The carpenter built the citizens the houses
+// - I build them a house
+// - He builds her a grand house in the valley
+// - They will build us many houses in the silent valley
+//
+// 안전 조건:
+// - 현재형 build/builds의 주어·동사 수·인칭 일치를 검사합니다.
+// - I/We/You/He/She/They는 주격으로만 처리합니다.
+// - me/us/you/him/her/them은 간접목적어 목적격으로만 처리합니다.
+// - my/our/your/his/her/their는 carpenter(s), house(s), valley 앞의
+//   소유격으로만 처리합니다.
+// - their는 목적격이 아니며, they의 목적격은 them입니다.
+// - citizen(s)는 생물 간접목적어, house(s)는 무생물 직접목적어로 처리합니다.
+// - 무관사 단수 citizen/house는 허용하지 않습니다.
+// - a citizens / a houses / many house를 허용하지 않습니다.
+// - without (the) house(s)는 이 제한 문형 안에서만 "집 없는"으로 처리합니다.
+// - in the (silent) valley는 이 제한 문형 안에서만 장소 부사구로 처리합니다.
+// - 영어의 위치구를 한국어에서는 주어 뒤, 간접목적어 앞에 배치합니다.
+// - 가장 긴 전체 술어부를 하나의 참고 표현으로 반환합니다.
+// - DB 정확 일치 및 일반 RBMT보다 먼저 실행합니다.
+// - 전역 PHRASES를 추가하지 않습니다.
+// ============================================================================
+type TwoProBuildHousesResultV1371 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProBuildHousesTenseV1371 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslateBuildHousesV1371 = (
+  value: unknown
+): TwoProBuildHousesResultV1371 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const match = sourceWithoutPunctuation.match(
+    /^((?:(?:My|Our|Your|His|Her|Their|The)\s+(?:charitable\s+)?carpenters?)|I|We|You|He|She|They)\s+(build|builds|built|will\s+build)\s+((?:(?:(?:a|the)\s+)?(?:poor\s+)?citizens?(?:\s+without\s+(?:(?:a|the|my|our|your|his|her|their)\s+)?houses?)?)|me|us|you|him|her|them)\s+((?:(?:a|the|my|our|your|his|her|their|many)\s+)?(?:grand\s+)?houses?)(?:\s+(in\s+(this|that|the|my|our|your|his|her|their)\s+(?:(silent)\s+)?(valley|valleys)))?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectKey = subjectSource
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const recipientSource = String(match[3] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const directObjectSource = String(match[4] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const locationSource = String(match[5] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const locationDeterminer = String(
+    match[6] || ''
+  )
+    .toLowerCase()
+    .trim();
+
+  const locationIsSilent =
+    Boolean(String(match[7] || '').trim());
+
+  const locationNoun = String(match[8] || '')
+    .toLowerCase()
+    .trim();
+
+  const pronounSubjectTargetMap:
+    Record<string, string> = {
+      i: '나는',
+      we: '우리는',
+      you: '너는',
+      he: '그는',
+      she: '그녀는',
+      they: '그들은',
+    };
+
+  const possessiveTargetMap:
+    Record<string, string> = {
+      my: '나의',
+      our: '우리의',
+      your: '너의',
+      his: '그의',
+      her: '그녀의',
+      their: '그들의',
+    };
+
+  let subjectTarget = '';
+  let subjectIsThirdSingular = false;
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      pronounSubjectTargetMap,
+      subjectKey
+    )
+  ) {
+    subjectTarget =
+      pronounSubjectTargetMap[subjectKey];
+
+    subjectIsThirdSingular =
+      subjectKey === 'he' ||
+      subjectKey === 'she';
+  } else {
+    const carpenterMatch = subjectKey.match(
+      /^(my|our|your|his|her|their|the)\s+(?:(charitable)\s+)?(carpenter|carpenters)$/
+    );
+
+    if (!carpenterMatch) {
+      return null;
+    }
+
+    const carpenterDeterminer = String(
+      carpenterMatch[1] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const carpenterIsCharitable =
+      Boolean(String(carpenterMatch[2] || '').trim());
+
+    const carpenterNoun = String(
+      carpenterMatch[3] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const carpenterIsPlural =
+      carpenterNoun === 'carpenters';
+
+    const ownerTarget =
+      carpenterDeterminer === 'the'
+        ? '그'
+        : possessiveTargetMap[
+            carpenterDeterminer
+          ];
+
+    if (!ownerTarget) {
+      return null;
+    }
+
+    const carpenterTarget =
+      carpenterIsPlural
+        ? '목수들은'
+        : '목수는';
+
+    subjectTarget = [
+      ownerTarget,
+      carpenterIsCharitable
+        ? '인자한'
+        : '',
+      carpenterTarget,
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    subjectIsThirdSingular =
+      !carpenterIsPlural;
+  }
+
+  let tense: TwoProBuildHousesTenseV1371;
+
+  if (
+    verbSource === 'build' ||
+    verbSource === 'builds'
+  ) {
+    tense = 'present';
+  } else if (verbSource === 'built') {
+    tense = 'past';
+  } else if (verbSource === 'will build') {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  if (tense === 'present') {
+    if (
+      subjectIsThirdSingular &&
+      verbSource !== 'builds'
+    ) {
+      return null;
+    }
+
+    if (
+      !subjectIsThirdSingular &&
+      verbSource !== 'build'
+    ) {
+      return null;
+    }
+  }
+
+  const recipientPronounTargetMap:
+    Record<string, string> = {
+      me: '나에게',
+      us: '우리에게',
+      you: '너에게',
+      him: '그에게',
+      her: '그녀에게',
+      them: '그들에게',
+    };
+
+  let recipientTarget = '';
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      recipientPronounTargetMap,
+      recipientSource
+    )
+  ) {
+    recipientTarget =
+      recipientPronounTargetMap[
+        recipientSource
+      ];
+  } else {
+    const citizenMatch = recipientSource.match(
+      /^(?:(a|the)\s+)?(?:(poor)\s+)?(citizen|citizens)(?:\s+without\s+(?:(a|the|my|our|your|his|her|their)\s+)?(house|houses))?$/
+    );
+
+    if (!citizenMatch) {
+      return null;
+    }
+
+    const citizenDeterminer = String(
+      citizenMatch[1] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const citizenIsPoor =
+      Boolean(String(citizenMatch[2] || '').trim());
+
+    const citizenNoun = String(
+      citizenMatch[3] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const withoutDeterminer = String(
+      citizenMatch[4] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const withoutHouseNoun = String(
+      citizenMatch[5] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const citizenIsPlural =
+      citizenNoun === 'citizens';
+
+    if (
+      !citizenDeterminer &&
+      !citizenIsPlural
+    ) {
+      return null;
+    }
+
+    if (
+      citizenDeterminer === 'a' &&
+      citizenIsPlural
+    ) {
+      return null;
+    }
+
+    if (withoutHouseNoun) {
+      const withoutHouseIsPlural =
+        withoutHouseNoun === 'houses';
+
+      if (
+        !withoutDeterminer &&
+        !withoutHouseIsPlural
+      ) {
+        return null;
+      }
+
+      if (
+        withoutDeterminer === 'a' &&
+        withoutHouseIsPlural
+      ) {
+        return null;
+      }
+    }
+
+    let citizenCoreTarget = '';
+
+    if (citizenIsPlural) {
+      // 영어의 복수 the는 한국어에서 불필요한 "그"를 생략합니다.
+      citizenCoreTarget = citizenIsPoor
+        ? '가련한 시민들에게'
+        : '시민들에게';
+    } else if (citizenDeterminer === 'a') {
+      citizenCoreTarget = citizenIsPoor
+        ? '한 가련한 시민에게'
+        : '한 시민에게';
+    } else {
+      citizenCoreTarget = citizenIsPoor
+        ? '그 가련한 시민에게'
+        : '그 시민에게';
+    }
+
+    recipientTarget = withoutHouseNoun
+      ? `집 없는 ${citizenCoreTarget}`
+      : citizenCoreTarget;
+  }
+
+  const directObjectMatch =
+    directObjectSource.match(
+      /^(?:(a|the|my|our|your|his|her|their|many)\s+)?(?:(grand)\s+)?(house|houses)$/
+    );
+
+  if (!directObjectMatch) {
+    return null;
+  }
+
+  const directDeterminer = String(
+    directObjectMatch[1] || ''
+  )
+    .toLowerCase()
+    .trim();
+
+  const directIsGrand =
+    Boolean(String(directObjectMatch[2] || '').trim());
+
+  const directNoun = String(
+    directObjectMatch[3] || ''
+  )
+    .toLowerCase()
+    .trim();
+
+  const directIsPlural =
+    directNoun === 'houses';
+
+  if (
+    !directDeterminer &&
+    !directIsPlural
+  ) {
+    return null;
+  }
+
+  if (
+    directDeterminer === 'a' &&
+    directIsPlural
+  ) {
+    return null;
+  }
+
+  if (
+    directDeterminer === 'many' &&
+    !directIsPlural
+  ) {
+    return null;
+  }
+
+  let directObjectTarget = '';
+
+  if (directDeterminer === 'a') {
+    directObjectTarget = directIsGrand
+      ? '큰 집 한 채를'
+      : '집 한 채를';
+  } else {
+    let determinerTarget = '';
+
+    if (
+      directDeterminer === 'the' &&
+      !directIsGrand
+    ) {
+      determinerTarget = '그';
+    } else if (
+      directDeterminer === 'many'
+    ) {
+      determinerTarget = '많은';
+    } else if (
+      Object.prototype.hasOwnProperty.call(
+        possessiveTargetMap,
+        directDeterminer
+      )
+    ) {
+      determinerTarget =
+        possessiveTargetMap[
+          directDeterminer
+        ];
+    }
+
+    const houseTarget =
+      directIsPlural
+        ? '집들을'
+        : '집을';
+
+    directObjectTarget = [
+      determinerTarget,
+      directIsGrand ? '큰' : '',
+      houseTarget,
+    ]
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  let locationTarget = '';
+
+  if (locationSource) {
+    const locationIsPlural =
+      locationNoun === 'valleys';
+
+    let locationOwnerTarget = '';
+
+    if (locationDeterminer === 'this') {
+      locationOwnerTarget = '이';
+    } else if (locationDeterminer === 'that') {
+      locationOwnerTarget = '그';
+    } else if (
+      Object.prototype.hasOwnProperty.call(
+        possessiveTargetMap,
+        locationDeterminer
+      )
+    ) {
+      locationOwnerTarget =
+        possessiveTargetMap[
+          locationDeterminer
+        ];
+    }
+
+    // the valley는 한국어에서 불필요한 "그"를 생략합니다.
+    const valleyTarget =
+      locationIsPlural
+        ? '계곡들에'
+        : '계곡에';
+
+    locationTarget = [
+      locationOwnerTarget,
+      locationIsSilent ? '조용한' : '',
+      valleyTarget,
+    ]
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  const verbTargetMap:
+    Record<
+      TwoProBuildHousesTenseV1371,
+      string
+    > = {
+      present: '지어준다',
+      past: '지어주었다',
+      future: '지어줄 것이다',
+    };
+
+  const predicateTarget = [
+    locationTarget,
+    recipientTarget,
+    directObjectTarget,
+    verbTargetMap[tense],
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ].join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [subjectTarget],
+        slot: 'BUILD_HOUSES_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [predicateTarget],
+        slot: 'BUILD_HOUSES_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.59-safe:
+//   주격 인칭대명사 + devote / devotes / devoted / will devote
+//   + 소유격 한정사(my/our/your/his/her/their)
+//   + life / lives
+//   + 선택적 to the welfare (of mankind) / to (the) mankind
+//
+// 지원 예:
+// - He devoted his life to the welfare of mankind
+// - He devoted his life to the welfare
+// - He devoted his life to the mankind
+// - He devoted his life
+// - She devoted her life to the welfare
+// - He devotes his life to the welfare of mankind
+// - He will devote his life to the mankind
+// - They devoted their lives to the welfare of mankind
+//
+// 안전 조건:
+// - devote의 모든 목적어로 일반화하지 않고 life/lives 목적어에만 적용합니다.
+// - 현재형 devote/devotes의 주어·동사 수 일치를 검사합니다.
+// - 과거형 devoted와 미래형 will devote를 분리합니다.
+// - 소유격은 목적어 명사구 안에서만 처리합니다.
+// - to는 이 문형 내부에서만 "복지를 위해/인류를 위해"로 처리합니다.
+// - mankind와 비표준형 the mankind는 회귀 호환을 위해 같은 뜻으로 제한 지원합니다.
+// - life/lives를 모두 인식하되 한국어 관용상 "일생"의 불필요한 복수 표지는 생략합니다.
+// - 주어부와 전체 술어부를 가장 긴 참고 표현으로 표시합니다.
+// - DB 검색 전에 실행하여 정확 일치에서도 번역 블록과 참고 표현을 표시합니다.
+// - devote, welfare, mankind를 전역 PHRASES로 추가하지 않습니다.
+// ============================================================================
+type TwoProDevoteLifeResultV1359 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProDevoteLifeTenseV1359 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslateDevoteLifeV1359 = (
+  value: unknown
+): TwoProDevoteLifeResultV1359 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^(I|We|You|He|She|They)\s+(devote|devotes|devoted|will\s+devote)\s+(my|our|your|his|her|their)\s+(life|lives)(?:\s+(to\s+(?:(?:the\s+)?welfare(?:\s+of\s+(?:the\s+)?mankind)?|(?:the\s+)?mankind)))?[.!?]?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .trim();
+
+  const subjectKey = subjectSource.toLowerCase();
+
+  const subjectTargetMap: Record<
+    string,
+    string
+  > = {
+    i: '나는',
+    we: '우리는',
+    you: '너는',
+    he: '그는',
+    she: '그녀는',
+    they: '그들은',
+  };
+
+  const subjectTarget =
+    subjectTargetMap[subjectKey];
+
+  if (!subjectTarget) {
+    return null;
+  }
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let tense: TwoProDevoteLifeTenseV1359;
+
+  if (
+    verbSource === 'devote' ||
+    verbSource === 'devotes'
+  ) {
+    tense = 'present';
+  } else if (verbSource === 'devoted') {
+    tense = 'past';
+  } else if (verbSource === 'will devote') {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  // 현재형 주어·동사 수 일치 검사
+  if (verbSource === 'devotes') {
+    if (
+      subjectKey !== 'he' &&
+      subjectKey !== 'she'
+    ) {
+      return null;
+    }
+  }
+
+  if (verbSource === 'devote') {
+    if (
+      subjectKey === 'he' ||
+      subjectKey === 'she'
+    ) {
+      return null;
+    }
+  }
+
+  const possessiveSource = String(match[3] || '')
+    .toLowerCase()
+    .trim();
+
+  const possessiveTargetMap: Record<
+    string,
+    string
+  > = {
+    my: '나의',
+    our: '우리의',
+    your: '너의',
+    his: '그의',
+    her: '그녀의',
+    their: '그들의',
+  };
+
+  const possessiveTarget =
+    possessiveTargetMap[possessiveSource];
+
+  if (!possessiveTarget) {
+    return null;
+  }
+
+  const lifeSource = String(match[4] || '')
+    .toLowerCase()
+    .trim();
+
+  if (
+    lifeSource !== 'life' &&
+    lifeSource !== 'lives'
+  ) {
+    return null;
+  }
+
+  // "their lives"도 한국어에서는 보통 "그들의 일생을"처럼
+  // 복수 표지를 생략하는 것이 자연스럽습니다.
+  const objectTarget = [
+    possessiveTarget,
+    '일생을',
+  ].join(' ');
+
+  const complementSource = String(match[5] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let purposeTarget = '';
+
+  if (
+    /^to\s+(?:the\s+)?welfare\s+of\s+(?:the\s+)?mankind$/i.test(
+      complementSource
+    )
+  ) {
+    purposeTarget = '인류의 복지를 위해';
+  } else if (
+    /^to\s+(?:the\s+)?welfare$/i.test(
+      complementSource
+    )
+  ) {
+    purposeTarget = '복지를 위해';
+  } else if (
+    /^to\s+(?:the\s+)?mankind$/i.test(
+      complementSource
+    )
+  ) {
+    purposeTarget = '인류를 위해';
+  } else if (complementSource) {
+    return null;
+  }
+
+  const verbTargetMap: Record<
+    TwoProDevoteLifeTenseV1359,
+    string
+  > = {
+    present: '바친다',
+    past: '바쳤다',
+    future: '바칠 것이다',
+  };
+
+  const verbTarget = verbTargetMap[tense];
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  const predicateTarget = [
+    purposeTarget,
+    objectTarget,
+    verbTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [
+          subjectTarget,
+        ],
+        slot: 'DEVOTE_LIFE_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [
+          predicateTarget,
+        ],
+        slot: 'DEVOTE_LIFE_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.55-safe:
+//   old man / old men + plant 계열 + tree / trees
+//   + 선택적 once upon a time
+//
+// 지원 예:
+// - An old man planted a little tree once upon a time
+// - An old man planted a little tree
+// - An old man planted a tree once upon a time
+// - An old man planted a tree
+// - An old man plants a little tree once upon a time
+// - An old man will plant a little tree
+// - Old men plant trees
+// - The old men planted little trees
+//
+// 안전 조건:
+// - plant를 전역 PHRASES로 추가하지 않고 old man/men + tree/trees 문형에만 적용합니다.
+// - plant가 명사(식물·공장)인 문맥과 다른 목적어에는 적용하지 않습니다.
+// - 현재형 plant/plants의 주어·동사 수 일치를 검사합니다.
+// - planted / will plant를 과거·미래로 분리합니다.
+// - a/an/the와 tree/trees 단수·복수를 문형 안에서 처리합니다.
+// - once upon a time은 선택적 시간부사구로 처리하고 한국어에서는 술어 앞에 배치합니다.
+// - 주어부와 전체 술어부를 가장 긴 참고 표현으로 표시합니다.
+// - DB 검색 전에 실행하여 정확 일치에서도 번역 블록과 참고 표현을 표시합니다.
+// ============================================================================
+type TwoProPlantTreeResultV1355 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProPlantTreeTenseV1355 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslatePlantTreeV1355 = (
+  value: unknown
+): TwoProPlantTreeResultV1355 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = source.match(
+    /^(An old man|The old man|Old men|The old men)\s+(plant|plants|planted|will\s+plant)\s+(a little tree|a tree|little trees|trees)(?:\s+(once upon a time))?[.!?]?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectKey = subjectSource.toLowerCase();
+
+  const subjectInfoMap: Record<
+    string,
+    {
+      target: string;
+      isPlural: boolean;
+    }
+  > = {
+    'an old man': {
+      target: '한 노인이',
+      isPlural: false,
+    },
+    'the old man': {
+      target: '그 노인이',
+      isPlural: false,
+    },
+    'old men': {
+      target: '노인들이',
+      isPlural: true,
+    },
+    'the old men': {
+      target: '그 노인들이',
+      isPlural: true,
+    },
+  };
+
+  const subjectInfo =
+    subjectInfoMap[subjectKey];
+
+  if (!subjectInfo) {
+    return null;
+  }
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let tense: TwoProPlantTreeTenseV1355;
+
+  if (
+    verbSource === 'plant' ||
+    verbSource === 'plants'
+  ) {
+    tense = 'present';
+  } else if (verbSource === 'planted') {
+    tense = 'past';
+  } else if (verbSource === 'will plant') {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  // 현재형 주어·동사 수 일치 검사
+  if (
+    verbSource === 'plants' &&
+    subjectInfo.isPlural
+  ) {
+    return null;
+  }
+
+  if (
+    verbSource === 'plant' &&
+    !subjectInfo.isPlural
+  ) {
+    return null;
+  }
+
+  const objectSource = String(match[3] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const objectTargetMap: Record<
+    string,
+    string
+  > = {
+    'a little tree': '작은 나무를',
+    'a tree': '나무를',
+    'little trees': '작은 나무들을',
+    'trees': '나무들을',
+  };
+
+  const objectTarget =
+    objectTargetMap[objectSource];
+
+  if (!objectTarget) {
+    return null;
+  }
+
+  const hasOnceUponATime =
+    String(match[4] || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim() === 'once upon a time';
+
+  const verbTargetMap: Record<
+    TwoProPlantTreeTenseV1355,
+    string
+  > = {
+    present: '심습니다',
+    past: '심었습니다',
+    future: '심을 것입니다',
+  };
+
+  const verbTarget = verbTargetMap[tense];
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  const predicateTarget = [
+    hasOnceUponATime ? '옛날에' : '',
+    objectTarget,
+    verbTarget,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return {
+    targetText: [
+      subjectInfo.target,
+      predicateTarget,
+    ]
+      .filter(Boolean)
+      .join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectInfo.target,
+        candidates: [
+          subjectInfo.target,
+        ],
+        slot: 'PLANT_TREE_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [
+          predicateTarget,
+        ],
+        slot: 'PLANT_TREE_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
 type TemplateSlotTranslation = {
   // 실제 한국어 문장 생성에 넣는 값입니다.
   // this/that/these/those가 있으면 이/그가 결합될 수 있습니다.
@@ -10010,7 +16231,419 @@ export async function POST(request: Request) {
 
     let originalText = q.trim().replace(/[.!]+$/, ''); 
     const cleanSearchTextWithSpace = originalText.replace(/[?.,!]/g, '').trim().toLowerCase();
+
+
+    // =================================================================
+    // ☆ TwoPro v13.56-safe: plant/tree 최우선 진입 가드
+    // =================================================================
+    // v13.55 전용 문형을 POST 진입 직후 한 번 더 검사합니다.
+    // DB 정확 일치·참고 문장·일반 RBMT보다 반드시 먼저 실행하여
+    // 현재형 plants와 미래형 will plant도 파란 번역 블록으로 반환합니다.
+    // 기존 v13.55 본문 호출은 보존하며 삭제하거나 이동하지 않습니다.
+    const twoProPlantTreeFrontGuardV1356 =
+      twoProTranslatePlantTreeV1355(
+        originalText
+      );
+
+    if (twoProPlantTreeFrontGuardV1356) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProPlantTreeFrontGuardV1356.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProPlantTreeFrontGuardV1356.referenceWords,
+          engine:
+            'plant-tree-front-guard-v13.56',
+        },
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.57-safe: meet + 사람 목적격 + 공원/아침 최우선 가드
+    // =================================================================
+    // DB 정확 일치·참고 문장·일반 RBMT보다 먼저 실행하여
+    // 시제, 현재형 수 일치, 목적격 역할, 장소/시간 조사를 보존합니다.
+    const twoProMeetPronounFrontGuardV1357 =
+      twoProTranslateMeetPronounV1357(
+        originalText
+      );
+
+    if (twoProMeetPronounFrontGuardV1357) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProMeetPronounFrontGuardV1357.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProMeetPronounFrontGuardV1357.referenceWords,
+          engine:
+            'meet-pronoun-place-time-v13.57',
+        },
+      });
+    }
     
+    // =================================================================
+    // ☆ TwoPro v13.60-safe: hear + cry/cries 최우선 가드
+    // =================================================================
+    // DB 정확 일치·참고 문장·일반 RBMT보다 먼저 실행하여
+    // 조동사 부정형, 현재·과거·미래, 주어 수 일치,
+    // 동물 소유격, 장소 소유격과 조사를 보존합니다.
+    const twoProHearCriesFrontGuardV1360 =
+      twoProTranslateHearCriesV1360(
+        originalText
+      );
+
+    if (twoProHearCriesFrontGuardV1360) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProHearCriesFrontGuardV1360.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProHearCriesFrontGuardV1360.referenceWords,
+          engine:
+            'hear-cries-place-v13.60',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.62-safe: 이순신/defeat 문형 최우선 가드
+    // =================================================================
+    // DB 정확 일치·참고 문장·일반 RBMT보다 먼저 실행하여
+    // 현재·과거·미래, 주어 수 일치, 목적어 단수·복수,
+    // 해안 장소 조사와 철갑선 수단 조사를 보존합니다.
+    const twoProLeeSoonShinDefeatFrontGuardV1362 =
+      twoProTranslateLeeSoonShinDefeatV1362(
+        originalText
+      );
+
+    if (twoProLeeSoonShinDefeatFrontGuardV1362) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProLeeSoonShinDefeatFrontGuardV1362.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProLeeSoonShinDefeatFrontGuardV1362.referenceWords,
+          engine:
+            'lee-soon-shin-defeat-v13.62',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.63-safe: live a life 문형 최우선 가드
+    // =================================================================
+    // DB 정확 일치·참고 문장·일반 RBMT보다 먼저 실행하여
+    // 현재·과거·미래, 주어 수 일치, 소유격, 장소·동반 표현을 보존합니다.
+    const twoProLiveALifeFrontGuardV1363 =
+      twoProTranslateLiveALifeV1363(
+        originalText
+      );
+
+    if (twoProLiveALifeFrontGuardV1363) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProLiveALifeFrontGuardV1363.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProLiveALifeFrontGuardV1363.referenceWords,
+          engine:
+            'live-a-life-family-v13.63',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.64-safe: discuss the plan 문형 최우선 가드
+    // =================================================================
+    // DB 정확 일치·참고 문장·일반 RBMT보다 먼저 실행하여
+    // 현재·과거·미래, 주어 수 일치, 목적어 단수·복수,
+    // 소유격·목적격 인칭대명사와 for/with의 조사를 보존합니다.
+    const twoProDiscussPlanFrontGuardV1364 =
+      twoProTranslateDiscussPlanV1364(
+        originalText
+      );
+
+    if (twoProDiscussPlanFrontGuardV1364) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProDiscussPlanFrontGuardV1364.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProDiscussPlanFrontGuardV1364.referenceWords,
+          engine:
+            'discuss-plan-pronoun-tense-v13.64',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.65-safe: develop one's theory 문형 최우선 가드
+    // =================================================================
+    // DB 정확 일치·참고 문장·일반 RBMT보다 먼저 실행하여
+    // 현재·과거·미래, 주어 수 일치, 목적어 단수·복수,
+    // 소유격과 through 수단구의 조사·어순을 보존합니다.
+    const twoProDevelopTheoryFrontGuardV1365 =
+      twoProTranslateDevelopTheoryV1365(
+        originalText
+      );
+
+    if (twoProDevelopTheoryFrontGuardV1365) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProDevelopTheoryFrontGuardV1365.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProDevelopTheoryFrontGuardV1365.referenceWords,
+          engine:
+            'develop-theory-pronoun-tense-v13.65',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.66-safe: Gandhi independence 복합절 최우선 가드
+    // =================================================================
+    // DB 정확 일치·참고 문장·일반 RBMT보다 먼저 실행하여
+    // 보고동사 시제, would/will attain, when 절, 인칭대명사,
+    // 주어·동사 수 일치, 소유격 호응과 복합절 한국어 어순을 보존합니다.
+    const twoProGandhiIndependenceFrontGuardV1366 =
+      twoProTranslateGandhiIndependenceV1366(
+        originalText
+      );
+
+    if (
+      twoProGandhiIndependenceFrontGuardV1366
+    ) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProGandhiIndependenceFrontGuardV1366
+              .targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProGandhiIndependenceFrontGuardV1366
+              .referenceWords,
+          engine:
+            'gandhi-independence-clauses-v13.66',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.67-safe: make + 간접목적어 + toy-ship 최우선 가드
+    // =================================================================
+    // DB 정확 일치·참고 문장·일반 RBMT보다 먼저 실행하여
+    // 주어·동사 수 일치, 목적격, 관사, 소유격, 단복수,
+    // 수여 의미와 uncle 주어의 높임말을 보존합니다.
+    const twoProMakeToyShipFrontGuardV1367 =
+      twoProTranslateMakeToyShipV1367(
+        originalText
+      );
+
+    if (twoProMakeToyShipFrontGuardV1367) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProMakeToyShipFrontGuardV1367
+              .targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProMakeToyShipFrontGuardV1367
+              .referenceWords,
+          engine:
+            'make-toy-ship-ditransitive-v13.67',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.68-safe: lend + 간접목적어 + book(s) 최우선 가드
+    // =================================================================
+    // DB 정확 일치·참고 문장·일반 RBMT보다 먼저 실행하여
+    // 주어·동사 수 일치, 목적격, 관사, 소유격, 단복수,
+    // during 시간구와 4형식 수여 의미를 보존합니다.
+    const twoProLendBooksFrontGuardV1368 =
+      twoProTranslateLendBooksV1368(
+        originalText
+      );
+
+    if (twoProLendBooksFrontGuardV1368) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProLendBooksFrontGuardV1368
+              .targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProLendBooksFrontGuardV1368
+              .referenceWords,
+          engine:
+            'lend-books-ditransitive-v13.68',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.70-safe: send/postcard 고신뢰 문법 교정 가드
+    // =================================================================
+    // They friend, will sent처럼 문법적으로 잘못되었지만
+    // 의도가 명확한 제한 문형만 정규 영어로 교정한 뒤 번역합니다.
+    // 잘못된 문장을 정상 규칙으로 등록하지 않고 교정 사실을 응답에 표시합니다.
+    const twoProSendPostcardRepairV1370 =
+      twoProRepairSendPostcardV1370(
+        originalText
+      );
+
+    if (twoProSendPostcardRepairV1370) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          corrected_source_text:
+            twoProSendPostcardRepairV1370
+              .correctedSource,
+          correction:
+            twoProSendPostcardRepairV1370
+              .correctionReason,
+          target_text:
+            twoProSendPostcardRepairV1370
+              .targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProSendPostcardRepairV1370
+              .referenceWords,
+          engine:
+            'send-postcard-grammar-repair-v13.70',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.69-safe: send + 간접목적어 + postcard 최우선 가드
+    // =================================================================
+    // DB 정확 일치·참고 문장·일반 RBMT보다 먼저 실행하여
+    // friend(s) 주어의 소유격, in London 수식, 현재형 수 일치,
+    // 목적격, 관사, 단복수와 4형식 수여 의미를 보존합니다.
+    const twoProSendPostcardFrontGuardV1369 =
+      twoProTranslateSendPostcardV1369(
+        originalText
+      );
+
+    if (twoProSendPostcardFrontGuardV1369) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProSendPostcardFrontGuardV1369
+              .targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProSendPostcardFrontGuardV1369
+              .referenceWords,
+          engine:
+            'send-postcard-ditransitive-v13.69',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.71-safe: build + 간접목적어 + house(s) 최우선 가드
+    // =================================================================
+    // DB 정확 일치·참고 문장·일반 RBMT보다 먼저 실행하여
+    // carpenter(s) 주어, 시민 간접목적어, house(s) 직접목적어,
+    // without 수식, in valley 장소구와 시제·단복수를 보존합니다.
+    const twoProBuildHousesFrontGuardV1371 =
+      twoProTranslateBuildHousesV1371(
+        originalText
+      );
+
+    if (twoProBuildHousesFrontGuardV1371) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProBuildHousesFrontGuardV1371
+              .targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProBuildHousesFrontGuardV1371
+              .referenceWords,
+          engine:
+            'build-houses-ditransitive-v13.71',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.59-safe: devote one's life 최우선 가드
+    // =================================================================
+    // DB 정확 일치·참고 문장·일반 RBMT보다 먼저 실행하여
+    // 현재·과거·미래, 소유격, life/lives, 목적 표현을 보존합니다.
+    const twoProDevoteLifeFrontGuardV1359 =
+      twoProTranslateDevoteLifeV1359(
+        originalText
+      );
+
+    if (twoProDevoteLifeFrontGuardV1359) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProDevoteLifeFrontGuardV1359.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProDevoteLifeFrontGuardV1359.referenceWords,
+          engine:
+            'devote-life-purpose-v13.59',
+        },
+      });
+    }
+
 let dbFallbackText = '';
     let templateReferenceWords:
       TemplateReferenceWord[] = [];
@@ -11223,6 +17856,264 @@ let dbFallbackText = '';
       });
     }
 
+    // =================================================================
+    // ☆ TwoPro v13.48-safe:
+    //   The cold of this year + severe/severer
+    //   + [than that of last year]
+    //
+    // 날씨의 추위를 뜻하는 고정 2형식 문형으로 제한합니다.
+    // 현재·과거·미래를 구분하고, 가장 긴 비교 술어부를 먼저 처리합니다.
+    // DB 검색 전에 적용하여 정확 일치에서도 번역 블록과
+    // 긴 참고 표현을 안정적으로 표시합니다.
+    // =================================================================
+    const twoProColdSeverityResultV1348 =
+      twoProTranslateColdSeverityV1348(
+        originalText
+      );
+
+    if (twoProColdSeverityResultV1348) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProColdSeverityResultV1348.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProColdSeverityResultV1348.referenceWords,
+          engine:
+            'cold-this-year-severity-pattern-v13.48',
+        },
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.49-safe:
+    //   소설 단수·복수 또는 It
+    //   + be 동사
+    //   + [very] interesting
+    //   + [for 목적격 대명사]
+    //
+    // 현재·과거·미래와 단수·복수 일치를 검사하고,
+    // 가장 긴 술어부를 하나의 참고 표현으로 표시합니다.
+    // 사람 주어에는 확장하지 않으며 DB 검색 전에 적용합니다.
+    // =================================================================
+    const twoProInterestingComplementResultV1349 =
+      twoProTranslateInterestingComplementV1349(
+        originalText
+      );
+
+    if (twoProInterestingComplementResultV1349) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProInterestingComplementResultV1349.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProInterestingComplementResultV1349.referenceWords,
+          engine:
+            'interesting-complement-pattern-v13.49',
+        },
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.50-safe:
+    //   Rome + is/will be + a [small] town
+    //   + [of a [small] kingdom] + [in the beginning]
+    //
+    // 기존 Rome was 과거형 경로는 건드리지 않고,
+    // 현재·미래형만 DB 검색 전에 제한적으로 보완합니다.
+    // 전체 술어부를 가장 긴 참고 표현으로 표시합니다.
+    // =================================================================
+    const twoProRomeTownComplementResultV1350 =
+      twoProTranslateRomeTownComplementV1350(
+        originalText
+      );
+
+    if (twoProRomeTownComplementResultV1350) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProRomeTownComplementResultV1350.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProRomeTownComplementResultV1350.referenceWords,
+          engine:
+            'rome-town-complement-pattern-v13.50',
+        },
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.51-safe:
+    //   detective story/story 단수·복수
+    //   + be 동사 + [very] interesting
+    //   + [for 목적격 대명사]
+    //
+    // 현재·과거·미래와 단수·복수 일치를 검사하고,
+    // 가장 긴 술어부를 하나의 참고 표현으로 표시합니다.
+    // 사람 주어와 전역 PHRASES에는 확장하지 않으며 DB 검색 전에 적용합니다.
+    // =================================================================
+    const twoProDetectiveStoryInterestingResultV1351 =
+      twoProTranslateDetectiveStoryInterestingV1351(
+        originalText
+      );
+
+    if (twoProDetectiveStoryInterestingResultV1351) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProDetectiveStoryInterestingResultV1351.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProDetectiveStoryInterestingResultV1351.referenceWords,
+          engine:
+            'detective-story-interesting-pattern-v13.51',
+        },
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.52-safe:
+    //   주격 인칭대명사 + laugh at + 목적격 인칭대명사
+    //
+    // 현재·과거·미래와 현재형 주어·동사 일치를 검사하고,
+    // 전체 목적어 술어부를 가장 긴 참고 표현 하나로 표시합니다.
+    // 사람 목적격 대명사 이외의 laugh at 문맥에는 적용하지 않습니다.
+    // =================================================================
+    const twoProLaughAtPronounResultV1352 =
+      twoProTranslateLaughAtPronounV1352(
+        originalText
+      );
+
+    if (twoProLaughAtPronounResultV1352) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProLaughAtPronounResultV1352.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProLaughAtPronounResultV1352.referenceWords,
+          engine:
+            'laugh-at-pronoun-pattern-v13.52',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.53-safe:
+    //   주격 인칭대명사 + 의무 표현 + take care of
+    //   + 사람 목적격 대명사 또는 baby/babies 명사구
+    //
+    // take care of의 다의성을 피하기 위해 목적어 범위를 제한하고,
+    // 현재·과거·미래, 관사·소유격, 단수·복수를 함께 처리합니다.
+    // 전체 술어부를 가장 긴 참고 표현 하나로 표시합니다.
+    // =================================================================
+    const twoProTakeCareOfResultV1353 =
+      twoProTranslateTakeCareOfV1353(
+        originalText
+      );
+
+    if (twoProTakeCareOfResultV1353) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProTakeCareOfResultV1353.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProTakeCareOfResultV1353.referenceWords,
+          engine:
+            'take-care-of-pattern-v13.53',
+        },
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.54-safe:
+    //   주격 인칭대명사 + remember 계열 + 소유격 + name/names
+    //   + 선택적 well
+    //
+    // 현재·과거·미래와 현재형 주어·동사 일치를 검사하고,
+    // 소유격 역할 및 name/names 단수·복수를 함께 처리합니다.
+    // 전체 술어부를 가장 긴 참고 표현 하나로 표시합니다.
+    // =================================================================
+    const twoProRememberNameResultV1354 =
+      twoProTranslateRememberNameV1354(
+        originalText
+      );
+
+    if (twoProRememberNameResultV1354) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProRememberNameResultV1354.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProRememberNameResultV1354.referenceWords,
+          engine:
+            'remember-name-pattern-v13.54',
+        },
+      });
+    }
+
+
+
+    // =================================================================
+    // ☆ TwoPro v13.55-safe:
+    //   old man/men + plant/plants/planted/will plant
+    //   + tree/trees + 선택적 once upon a time
+    //
+    // plant의 명사 용법과 다른 목적어를 침범하지 않도록
+    // old man/men + tree/trees 문형에만 제한합니다.
+    // 현재형 수 일치, 시제, 관사, 단수·복수를 함께 처리하고
+    // DB 검색 전에 가장 긴 참고 표현을 표시합니다.
+    // =================================================================
+    const twoProPlantTreeResultV1355 =
+      twoProTranslatePlantTreeV1355(
+        originalText
+      );
+
+    if (twoProPlantTreeResultV1355) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProPlantTreeResultV1355.targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProPlantTreeResultV1355.referenceWords,
+          engine:
+            'plant-tree-pattern-v13.55',
+        },
+      });
+    }
     // =================================================================
     // 🌟 [수프로 핵심 마법] 무적의 DB 선제적 검색 (정규화/퍼지/사오정 삼중 폭격)
     // =================================================================
