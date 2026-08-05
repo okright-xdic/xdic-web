@@ -900,6 +900,22 @@ const isSentenceLikeQuery = (value: string): boolean => {
     return true;
   }
 
+  // ================================================================
+  // ☆ TwoPro v13.73-safe: consider + king 목적보어 문장 판별
+  // ================================================================
+  // Many people/People처럼 일반 대명사로 시작하지 않는 주어와
+  // consider/considers/considered 및 제한적 교정 후보를
+  // 반드시 /api/translate-en-ko로 전달합니다.
+  // 실제 번역·교정·수·인칭 검증은 route.ts가 담당합니다.
+  const isTwoProConsiderKingSentenceV1373 =
+    /^(Many\s+people|People|I|We|You|He|She|They)\s+(consider|considers|considered|will\s+consider|will\s+considered|will\s+considers)\s+(King\s+Sejong|Sejong|me|us|you|him|her|them)\s+((?:a\s+king)|(?:the\s+(?:greatest\s+)?king)|(?:(?:my|our|your|his|her|their)\s+(?:greatest\s+)?kings?)|(?:the\s+(?:greatest\s+)?kings)|kings)[.!?]?$/i.test(
+      text
+    );
+
+  if (isTwoProConsiderKingSentenceV1373) {
+    return true;
+  }
+
   const hasEnglishPredicate =
     /\b(am|is|are|was|were|be|been|being|do|does|did|have|has|had|can|could|will|would|shall|should|may|might|must|cannot|couldnot|need|needs|needed|want|wants|wanted|like|likes|liked|love|loves|loved|know|knows|knew|think|thinks|thought|go|goes|went|get|gets|got|getting|gather|gathers|gathered|gathering|come|comes|came|check|checks|checked|show|shows|showed|tell|tells|told|teach|teaches|taught|teaching|give|gives|gave|take|takes|took|make|makes|made|find|finds|found|help|helps|helped|hear|hears|heard|hearing|thank|thanks|please|let|lets|look|looks|stop|stops|wait|waits|try|tries|tried|use|uses|used|work|works|worked|sell|sells|sold|selling|sing|sings|sang|play|plays|played|playing|visit|visits|visited|visiting|live|lives|lived|stay|stays|stayed|feel|feels|felt|seem|seems|seemed|mean|means|meant|ask|asks|asked|buy|buys|bought|break|breaks|broke|breaking|bring|brings|brought|send|sends|sent|call|calls|called|open|opens|opened|close|closes|closed|start|starts|started|finish|finishes|finished|lose|loses|lost|meet|meets|met|devote|devotes|devoted|remember|remembers|remembered|remembering|plant|plants|planted|planting|laugh|laughs|laughed|throw|throws|threw|throwing|ride|rides|rode|riding)\b/i.test(
       lowerText

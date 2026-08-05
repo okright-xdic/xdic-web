@@ -13846,6 +13846,1195 @@ const twoProTranslateBuildHousesV1371 = (
 };
 
 // ============================================================================
+// ☆ TwoPro v13.72-safe:
+//   주격 인칭대명사
+//   + think / thinks / thought / will think
+//   + 목적격 인칭대명사
+//   + a boy / an honest boy / boys / honest boys
+//
+// 지원 예:
+// - I think him an honest boy
+// - I think him a boy
+// - They think him a boy
+// - We will think him an honest boy
+// - We thought him an honest boy
+// - I think them honest boys
+//
+// 안전 조건:
+// - 현재형 think/thinks의 주어·동사 수·인칭 일치를 검사합니다.
+// - I/We/You/He/She/They는 주격으로만 처리합니다.
+// - me/us/you/him/her/them은 목적격으로만 처리합니다.
+// - their는 목적격이 아니며, they의 목적격은 them입니다.
+// - 단수 목적어 me/him/her는 단수 보어와만 결합합니다.
+// - 복수 목적어 us/them은 복수 보어와만 결합합니다.
+// - you는 단수·복수 양쪽 가능성이 있어 두 보어를 모두 허용합니다.
+// - an honest boy와 a boy를 구분하고,
+//   복수는 무관사 honest boys / boys만 허용합니다.
+// - the boy는 특정 인물의 동일성 판단이므로 이번 "소년으로 생각하다"
+//   분류 문형에는 일반화하지 않습니다.
+// - 가장 긴 전체 술어부를 하나의 참고 표현으로 반환합니다.
+// - DB 정확 일치 및 일반 RBMT보다 먼저 실행합니다.
+// - 전역 PHRASES를 추가하지 않습니다.
+// ============================================================================
+type TwoProThinkBoyResultV1372 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProThinkBoyTenseV1372 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslateThinkBoyV1372 = (
+  value: unknown
+): TwoProThinkBoyResultV1372 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const match = sourceWithoutPunctuation.match(
+    /^(I|We|You|He|She|They)\s+(think|thinks|thought|will\s+think)\s+(me|us|you|him|her|them)\s+(an\s+honest\s+boy|a\s+boy|honest\s+boys|boys)$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .trim();
+
+  const subjectKey = subjectSource
+    .toLowerCase();
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const objectSource = String(match[3] || '')
+    .toLowerCase()
+    .trim();
+
+  const complementSource = String(match[4] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectTargetMap:
+    Record<string, string> = {
+      i: '나는',
+      we: '우리는',
+      you: '너는',
+      he: '그는',
+      she: '그녀는',
+      they: '그들은',
+    };
+
+  const subjectTarget =
+    subjectTargetMap[subjectKey];
+
+  if (!subjectTarget) {
+    return null;
+  }
+
+  const subjectIsThirdSingular =
+    subjectKey === 'he' ||
+    subjectKey === 'she';
+
+  let tense: TwoProThinkBoyTenseV1372;
+
+  if (
+    verbSource === 'think' ||
+    verbSource === 'thinks'
+  ) {
+    tense = 'present';
+  } else if (verbSource === 'thought') {
+    tense = 'past';
+  } else if (verbSource === 'will think') {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  if (tense === 'present') {
+    if (
+      subjectIsThirdSingular &&
+      verbSource !== 'thinks'
+    ) {
+      return null;
+    }
+
+    if (
+      !subjectIsThirdSingular &&
+      verbSource !== 'think'
+    ) {
+      return null;
+    }
+  }
+
+  const objectTargetMap:
+    Record<string, string> = {
+      me: '나를',
+      us: '우리를',
+      you: '너를',
+      him: '그를',
+      her: '그녀를',
+      them: '그들을',
+    };
+
+  const objectTarget =
+    objectTargetMap[objectSource];
+
+  if (!objectTarget) {
+    return null;
+  }
+
+  const complementIsPlural =
+    complementSource === 'boys' ||
+    complementSource === 'honest boys';
+
+  const singularObject =
+    objectSource === 'me' ||
+    objectSource === 'him' ||
+    objectSource === 'her';
+
+  const pluralObject =
+    objectSource === 'us' ||
+    objectSource === 'them';
+
+  if (
+    singularObject &&
+    complementIsPlural
+  ) {
+    return null;
+  }
+
+  if (
+    pluralObject &&
+    !complementIsPlural
+  ) {
+    return null;
+  }
+
+  const complementTargetMap:
+    Record<string, string> = {
+      'an honest boy': '정직한 소년으로',
+      'a boy': '소년으로',
+      'honest boys': '정직한 소년들로',
+      boys: '소년들로',
+    };
+
+  const complementTarget =
+    complementTargetMap[
+      complementSource
+    ];
+
+  if (!complementTarget) {
+    return null;
+  }
+
+  const verbTargetMap:
+    Record<
+      TwoProThinkBoyTenseV1372,
+      string
+    > = {
+      present: '생각한다',
+      past: '생각했다',
+      future: '생각할 것이다',
+    };
+
+  const predicateTarget = [
+    objectTarget,
+    complementTarget,
+    verbTargetMap[tense],
+  ].join(' ');
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ].join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [subjectTarget],
+        slot: 'THINK_BOY_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [predicateTarget],
+        slot: 'THINK_BOY_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.72-safe:
+//   think + 목적격 + boy 보어 문형의 고신뢰 문법 교정
+//
+// 교정 예:
+// - She think him an honest boy
+//   → She thinks him an honest boy
+// - They thinks him a boy
+//   → They think him a boy
+// - You will thought him a boy
+//   → You will think him a boy
+//
+// 안전 조건:
+// - 위 v13.72 제한 문형 안에서만 교정합니다.
+// - 잘못된 영어를 정상 PHRASES나 정상 시제 규칙으로 등록하지 않습니다.
+// - 교정된 문장은 정상 처리기로 다시 검증합니다.
+// - 교정 사실은 SearchPage의 기존 "영어 교정" 줄에 표시됩니다.
+// ============================================================================
+type TwoProThinkBoyRepairResultV1372 = {
+  correctedSource: string;
+  correctionReason: string;
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+const twoProRepairThinkBoyV1372 = (
+  value: unknown
+): TwoProThinkBoyRepairResultV1372 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const match = sourceWithoutPunctuation.match(
+    /^(I|We|You|He|She|They)\s+(think|thinks|thought|will\s+think|will\s+thought|will\s+thinks)\s+(me|us|you|him|her|them)\s+(an\s+honest\s+boy|a\s+boy|honest\s+boys|boys)$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .trim();
+
+  const subjectKey = subjectSource
+    .toLowerCase();
+
+  const rawVerb = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const objectSource = String(match[3] || '')
+    .toLowerCase()
+    .trim();
+
+  const complementSource = String(match[4] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectIsThirdSingular =
+    subjectKey === 'he' ||
+    subjectKey === 'she';
+
+  let correctedVerb = rawVerb;
+  let correctionReason = '';
+
+  if (
+    rawVerb === 'think' ||
+    rawVerb === 'thinks'
+  ) {
+    correctedVerb =
+      subjectIsThirdSingular
+        ? 'thinks'
+        : 'think';
+
+    if (correctedVerb !== rawVerb) {
+      correctionReason =
+        '현재형 주어·동사 수·인칭 일치 교정';
+    }
+  } else if (
+    rawVerb === 'will thought' ||
+    rawVerb === 'will thinks'
+  ) {
+    correctedVerb = 'will think';
+    correctionReason =
+      '조동사 will 뒤의 동사를 원형 think로 교정';
+  }
+
+  if (!correctionReason) {
+    return null;
+  }
+
+  const correctedSource = [
+    subjectSource,
+    correctedVerb,
+    objectSource,
+    complementSource,
+  ].join(' ');
+
+  const translated =
+    twoProTranslateThinkBoyV1372(
+      correctedSource
+    );
+
+  if (!translated) {
+    return null;
+  }
+
+  return {
+    correctedSource,
+    correctionReason,
+    targetText: translated.targetText,
+    referenceWords:
+      translated.referenceWords,
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.73-safe:
+//   Many people / People / 주격 인칭대명사
+//   + consider / considers / considered / will consider
+//   + King Sejong / Sejong / 목적격 인칭대명사
+//   + 명사 목적보어 king(s)
+//
+// 지원 예:
+// - Many people consider King Sejong our greatest king
+// - Many people consider Sejong our king
+// - He considers Sejong his king
+// - They considered King Sejong their greatest king
+// - We will consider Sejong our king
+// - They consider them their kings
+//
+// 안전 조건:
+// - 현재형 consider/considers의 주어·동사 수·인칭 일치를 검사합니다.
+// - I/We/You/He/She/They는 주격으로만 처리합니다.
+// - me/us/you/him/her/them은 목적격으로만 처리합니다.
+// - my/our/your/his/her/their는 king(s) 앞의 소유격으로만 처리합니다.
+// - their는 목적격이 아니며, they의 목적격은 them입니다.
+// - King Sejong/Sejong과 me/him/her는 단수 king 보어와만 결합합니다.
+// - us/them은 복수 kings 보어와만 결합합니다.
+// - you는 단수·복수 양쪽 가능성이 있어 두 보어를 모두 허용합니다.
+// - a king / the king / the greatest king / 소유격 king(s) / kings를 지원합니다.
+// - an king, a kings, 무관사 단수 king은 허용하지 않습니다.
+// - 가장 긴 전체 술어부를 하나의 참고 표현으로 반환합니다.
+// - DB 정확 일치 및 일반 RBMT보다 먼저 실행합니다.
+// - 전역 PHRASES를 추가하지 않습니다.
+// ============================================================================
+type TwoProConsiderKingResultV1373 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProConsiderKingTenseV1373 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+const twoProTranslateConsiderKingV1373 = (
+  value: unknown
+): TwoProConsiderKingResultV1373 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const match = sourceWithoutPunctuation.match(
+    /^(Many\s+people|People|I|We|You|He|She|They)\s+(consider|considers|considered|will\s+consider)\s+(King\s+Sejong|Sejong|me|us|you|him|her|them)\s+((?:a\s+king)|(?:the\s+(?:greatest\s+)?king)|(?:(?:my|our|your|his|her|their)\s+(?:greatest\s+)?kings?)|(?:the\s+(?:greatest\s+)?kings)|kings)$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectKey = subjectSource
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const objectSource = String(match[3] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const objectKey = objectSource
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const complementSource = String(match[4] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectTargetMap:
+    Record<string, string> = {
+      'many people': '많은 사람들이',
+      people: '사람들은',
+      i: '나는',
+      we: '우리는',
+      you: '너는',
+      he: '그는',
+      she: '그녀는',
+      they: '그들은',
+    };
+
+  const subjectTarget =
+    subjectTargetMap[subjectKey];
+
+  if (!subjectTarget) {
+    return null;
+  }
+
+  const subjectIsThirdSingular =
+    subjectKey === 'he' ||
+    subjectKey === 'she';
+
+  let tense: TwoProConsiderKingTenseV1373;
+
+  if (
+    verbSource === 'consider' ||
+    verbSource === 'considers'
+  ) {
+    tense = 'present';
+  } else if (
+    verbSource === 'considered'
+  ) {
+    tense = 'past';
+  } else if (
+    verbSource === 'will consider'
+  ) {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  if (tense === 'present') {
+    if (
+      subjectIsThirdSingular &&
+      verbSource !== 'considers'
+    ) {
+      return null;
+    }
+
+    if (
+      !subjectIsThirdSingular &&
+      verbSource !== 'consider'
+    ) {
+      return null;
+    }
+  }
+
+  const objectTargetMap:
+    Record<string, string> = {
+      'king sejong': '세종대왕을',
+      sejong: '세종을',
+      me: '나를',
+      us: '우리를',
+      you: '너를',
+      him: '그를',
+      her: '그녀를',
+      them: '그들을',
+    };
+
+  const objectTarget =
+    objectTargetMap[objectKey];
+
+  if (!objectTarget) {
+    return null;
+  }
+
+  const complementIsPlural =
+    /kings$/i.test(complementSource);
+
+  const singularObject =
+    objectKey === 'king sejong' ||
+    objectKey === 'sejong' ||
+    objectKey === 'me' ||
+    objectKey === 'him' ||
+    objectKey === 'her';
+
+  const pluralObject =
+    objectKey === 'us' ||
+    objectKey === 'them';
+
+  if (
+    singularObject &&
+    complementIsPlural
+  ) {
+    return null;
+  }
+
+  if (
+    pluralObject &&
+    !complementIsPlural
+  ) {
+    return null;
+  }
+
+  const possessiveTargetMap:
+    Record<string, string> = {
+      my: '나의',
+      our: '우리의',
+      your: '너의',
+      his: '그의',
+      her: '그녀의',
+      their: '그들의',
+    };
+
+  let complementTarget = '';
+
+  if (complementSource === 'a king') {
+    complementTarget = '왕이라고';
+  } else if (
+    complementSource === 'the king'
+  ) {
+    complementTarget = '그 왕이라고';
+  } else if (
+    complementSource ===
+    'the greatest king'
+  ) {
+    complementTarget =
+      '가장 위대한 왕이라고';
+  } else if (
+    complementSource === 'kings'
+  ) {
+    complementTarget = '왕들이라고';
+  } else if (
+    complementSource === 'the kings'
+  ) {
+    complementTarget = '그 왕들이라고';
+  } else if (
+    complementSource ===
+    'the greatest kings'
+  ) {
+    complementTarget =
+      '가장 위대한 왕들이라고';
+  } else {
+    const possessiveMatch =
+      complementSource.match(
+        /^(my|our|your|his|her|their)\s+(?:(greatest)\s+)?(king|kings)$/
+      );
+
+    if (!possessiveMatch) {
+      return null;
+    }
+
+    const possessiveSource = String(
+      possessiveMatch[1] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const isGreatest =
+      Boolean(
+        String(
+          possessiveMatch[2] || ''
+        ).trim()
+      );
+
+    const kingNoun = String(
+      possessiveMatch[3] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const ownerTarget =
+      possessiveTargetMap[
+        possessiveSource
+      ];
+
+    if (!ownerTarget) {
+      return null;
+    }
+
+    const kingTarget =
+      kingNoun === 'kings'
+        ? '왕들이라고'
+        : '왕이라고';
+
+    complementTarget = [
+      ownerTarget,
+      isGreatest
+        ? '가장 위대한'
+        : '',
+      kingTarget,
+    ]
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  const verbTargetMap:
+    Record<
+      TwoProConsiderKingTenseV1373,
+      string
+    > = {
+      present: '생각한다',
+      past: '생각했다',
+      future: '생각할 것이다',
+    };
+
+  const predicateTarget = [
+    objectTarget,
+    complementTarget,
+    verbTargetMap[tense],
+  ].join(' ');
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ].join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [subjectTarget],
+        slot:
+          'CONSIDER_KING_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [predicateTarget],
+        slot:
+          'CONSIDER_KING_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.73-safe:
+//   consider + king 목적보어 문형의 고신뢰 문법 교정
+//
+// 교정 예:
+// - He consider Sejong his king
+//   → He considers Sejong his king
+// - People considers King Sejong our king
+//   → People consider King Sejong our king
+// - They will considered him their king
+//   → They will consider him their king
+//
+// 안전 조건:
+// - 위 v13.73 제한 문형 안에서만 교정합니다.
+// - 잘못된 영어를 정상 PHRASES나 정상 시제 규칙으로 등록하지 않습니다.
+// - 교정된 문장은 정상 처리기로 다시 검증합니다.
+// - 교정 사실은 SearchPage의 기존 "영어 교정" 줄에 표시됩니다.
+// ============================================================================
+type TwoProConsiderKingRepairResultV1373 = {
+  correctedSource: string;
+  correctionReason: string;
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+const twoProRepairConsiderKingV1373 = (
+  value: unknown
+): TwoProConsiderKingRepairResultV1373 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const match = sourceWithoutPunctuation.match(
+    /^(Many\s+people|People|I|We|You|He|She|They)\s+(consider|considers|considered|will\s+consider|will\s+considered|will\s+considers)\s+(King\s+Sejong|Sejong|me|us|you|him|her|them)\s+((?:a\s+king)|(?:the\s+(?:greatest\s+)?king)|(?:(?:my|our|your|his|her|their)\s+(?:greatest\s+)?kings?)|(?:the\s+(?:greatest\s+)?kings)|kings)$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectKey = subjectSource
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const rawVerb = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const objectSource = String(match[3] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const complementSource = String(match[4] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectIsThirdSingular =
+    subjectKey === 'he' ||
+    subjectKey === 'she';
+
+  let correctedVerb = rawVerb;
+  let correctionReason = '';
+
+  if (
+    rawVerb === 'consider' ||
+    rawVerb === 'considers'
+  ) {
+    correctedVerb =
+      subjectIsThirdSingular
+        ? 'considers'
+        : 'consider';
+
+    if (correctedVerb !== rawVerb) {
+      correctionReason =
+        '현재형 주어·동사 수·인칭 일치 교정';
+    }
+  } else if (
+    rawVerb === 'will considered' ||
+    rawVerb === 'will considers'
+  ) {
+    correctedVerb = 'will consider';
+    correctionReason =
+      '조동사 will 뒤의 동사를 원형 consider로 교정';
+  }
+
+  if (!correctionReason) {
+    return null;
+  }
+
+  const correctedSource = [
+    subjectSource,
+    correctedVerb,
+    objectSource,
+    complementSource,
+  ].join(' ');
+
+  const translated =
+    twoProTranslateConsiderKingV1373(
+      correctedSource
+    );
+
+  if (!translated) {
+    return null;
+  }
+
+  return {
+    correctedSource,
+    correctionReason,
+    targetText: translated.targetText,
+    referenceWords:
+      translated.referenceWords,
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.74-safe:
+//   Modern science / Science / 주격 인칭대명사
+//   + make / makes / made / has made / have made / will make
+//   + life 명사구 또는 목적격 인칭대명사
+//   + 형용사 목적보어
+//   + 선택적 in many ways
+//
+// 지원 예:
+// - Modern science has made life easier and more comfortable in many ways
+// - Science has made life easier
+// - Science makes life comfortable
+// - Science will make life easier
+// - I make my life easier
+// - We made our lives easier and more comfortable in many ways
+// - She has made her life more comfortable
+// - I make him comfortable
+// - He has made it easier
+//
+// 안전 조건:
+// - 현재형 make/makes 및 현재완료 has/have made의 주어 일치를 검사합니다.
+// - I/We/You/He/She/It/They는 주격으로만 처리합니다.
+// - me/us/you/him/her/it/them은 목적격으로만 처리합니다.
+// - my/our/your/his/her/its/their는 life/lives 앞의 소유격으로만 처리합니다.
+// - their는 목적격이 아니며, they의 목적격은 them입니다.
+// - a는 단수 life에만 허용합니다.
+// - an life, a lives는 허용하지 않습니다.
+// - easier가 포함된 보어는 life/lives, it, them에만 허용하여
+//   "make him easier" 같은 과잉 적용을 막습니다.
+// - comfortable / more comfortable은 사람 목적격에도 허용합니다.
+// - in many ways는 이 문형 안에서만 "여러 면에서"로 처리합니다.
+// - 영어의 위치구를 한국어에서는 주어 뒤에 배치합니다.
+// - "Science has made more comfortable"처럼 목적어가 빠진 문장은
+//   기존 경로를 보존하고 이 일반 문형에는 흡수하지 않습니다.
+// - 가장 긴 전체 술어부를 하나의 참고 표현으로 반환합니다.
+// - DB 정확 일치 및 일반 RBMT보다 먼저 실행합니다.
+// - 전역 PHRASES를 추가하지 않습니다.
+// ============================================================================
+type TwoProMakeLifeResultV1374 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+};
+
+type TwoProMakeLifeTenseV1374 =
+  | 'present'
+  | 'past'
+  | 'presentPerfect'
+  | 'future';
+
+const twoProTranslateMakeLifeV1374 = (
+  value: unknown
+): TwoProMakeLifeResultV1374 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const sourceWithoutPunctuation = source
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const match = sourceWithoutPunctuation.match(
+    /^(Modern\s+science|Science|I|We|You|He|She|It|They)\s+(make|makes|made|has\s+made|have\s+made|will\s+make)\s+((?:(?:a|the|my|our|your|his|her|its|their)\s+)?(?:life|lives)|me|us|you|him|her|it|them)\s+(easier\s+and\s+more\s+comfortable|easier|more\s+comfortable|comfortable)(?:\s+(in\s+many\s+ways))?$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectSource = String(match[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectKey = subjectSource
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const verbSource = String(match[2] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const objectSource = String(match[3] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const complementSource = String(match[4] || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const hasManyWays =
+    Boolean(String(match[5] || '').trim());
+
+  const subjectTargetMap:
+    Record<string, string> = {
+      'modern science': '현대 과학은',
+      science: '과학은',
+      i: '나는',
+      we: '우리는',
+      you: '너는',
+      he: '그는',
+      she: '그녀는',
+      it: '그것은',
+      they: '그들은',
+    };
+
+  const subjectTarget =
+    subjectTargetMap[subjectKey];
+
+  if (!subjectTarget) {
+    return null;
+  }
+
+  const subjectIsThirdSingular =
+    subjectKey === 'modern science' ||
+    subjectKey === 'science' ||
+    subjectKey === 'he' ||
+    subjectKey === 'she' ||
+    subjectKey === 'it';
+
+  let tense: TwoProMakeLifeTenseV1374;
+
+  if (
+    verbSource === 'make' ||
+    verbSource === 'makes'
+  ) {
+    tense = 'present';
+  } else if (verbSource === 'made') {
+    tense = 'past';
+  } else if (
+    verbSource === 'has made' ||
+    verbSource === 'have made'
+  ) {
+    tense = 'presentPerfect';
+  } else if (
+    verbSource === 'will make'
+  ) {
+    tense = 'future';
+  } else {
+    return null;
+  }
+
+  if (tense === 'present') {
+    if (
+      subjectIsThirdSingular &&
+      verbSource !== 'makes'
+    ) {
+      return null;
+    }
+
+    if (
+      !subjectIsThirdSingular &&
+      verbSource !== 'make'
+    ) {
+      return null;
+    }
+  }
+
+  if (tense === 'presentPerfect') {
+    if (
+      subjectIsThirdSingular &&
+      verbSource !== 'has made'
+    ) {
+      return null;
+    }
+
+    if (
+      !subjectIsThirdSingular &&
+      verbSource !== 'have made'
+    ) {
+      return null;
+    }
+  }
+
+  const possessiveTargetMap:
+    Record<string, string> = {
+      my: '나의',
+      our: '우리의',
+      your: '너의',
+      his: '그의',
+      her: '그녀의',
+      its: '그것의',
+      their: '그들의',
+    };
+
+  const objectPronounTargetMap:
+    Record<string, string> = {
+      me: '나를',
+      us: '우리를',
+      you: '너를',
+      him: '그를',
+      her: '그녀를',
+      it: '그것을',
+      them: '그들을',
+    };
+
+  const complementContainsEasier =
+    complementSource === 'easier' ||
+    complementSource ===
+      'easier and more comfortable';
+
+  let objectTarget = '';
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      objectPronounTargetMap,
+      objectSource
+    )
+  ) {
+    if (
+      complementContainsEasier &&
+      !(
+        objectSource === 'it' ||
+        objectSource === 'them'
+      )
+    ) {
+      return null;
+    }
+
+    if (
+      objectSource === 'them' &&
+      complementContainsEasier
+    ) {
+      objectTarget = '그것들을';
+    } else {
+      objectTarget =
+        objectPronounTargetMap[
+          objectSource
+        ];
+    }
+  } else {
+    const lifeMatch = objectSource.match(
+      /^(?:(a|the|my|our|your|his|her|its|their)\s+)?(life|lives)$/
+    );
+
+    if (!lifeMatch) {
+      return null;
+    }
+
+    const determiner = String(
+      lifeMatch[1] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const lifeNoun = String(
+      lifeMatch[2] || ''
+    )
+      .toLowerCase()
+      .trim();
+
+    const isPlural =
+      lifeNoun === 'lives';
+
+    if (
+      determiner === 'a' &&
+      isPlural
+    ) {
+      return null;
+    }
+
+    if (determiner === 'a') {
+      objectTarget = '한 삶을';
+    } else if (
+      determiner === 'the'
+    ) {
+      objectTarget = isPlural
+        ? '그 삶들을'
+        : '그 삶을';
+    } else if (
+      Object.prototype.hasOwnProperty.call(
+        possessiveTargetMap,
+        determiner
+      )
+    ) {
+      const ownerTarget =
+        possessiveTargetMap[
+          determiner
+        ];
+
+      objectTarget = isPlural
+        ? `${ownerTarget} 삶들을`
+        : `${ownerTarget} 삶을`;
+    } else {
+      objectTarget = isPlural
+        ? '삶들을'
+        : '삶을';
+    }
+  }
+
+  const complementTargetMap:
+    Record<string, string> = {
+      easier: '더 쉽게',
+      comfortable: '편안하게',
+      'more comfortable': '더 편안하게',
+      'easier and more comfortable':
+        '더 쉽고 더 편안하게',
+    };
+
+  const complementTarget =
+    complementTargetMap[
+      complementSource
+    ];
+
+  if (!complementTarget) {
+    return null;
+  }
+
+  const verbTargetMap:
+    Record<
+      TwoProMakeLifeTenseV1374,
+      string
+    > = {
+      present: '한다',
+      past: '했다',
+      presentPerfect: '했다',
+      future: '할 것이다',
+    };
+
+  const predicateTarget = [
+    hasManyWays ? '여러 면에서' : '',
+    objectTarget,
+    complementTarget,
+    verbTargetMap[tense],
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const predicateSource =
+    sourceWithoutPunctuation
+      .slice(subjectSource.length)
+      .trim();
+
+  return {
+    targetText: [
+      subjectTarget,
+      predicateTarget,
+    ].join(' '),
+
+    referenceWords: [
+      {
+        source: subjectSource,
+        selected: subjectTarget,
+        candidates: [subjectTarget],
+        slot:
+          'MAKE_LIFE_SUBJECT',
+        confidence: 1,
+      },
+      {
+        source: predicateSource,
+        selected: predicateTarget,
+        candidates: [predicateTarget],
+        slot:
+          'MAKE_LIFE_PREDICATE',
+        confidence: 1,
+      },
+    ],
+  };
+};
+
+// ============================================================================
 // ☆ TwoPro v13.59-safe:
 //   주격 인칭대명사 + devote / devotes / devoted / will devote
 //   + 소유격 한정사(my/our/your/his/her/their)
@@ -16613,6 +17802,163 @@ export async function POST(request: Request) {
               .referenceWords,
           engine:
             'build-houses-ditransitive-v13.71',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.72-safe: think + 목적격 + boy 문법 교정 가드
+    // =================================================================
+    const twoProThinkBoyRepairV1372 =
+      twoProRepairThinkBoyV1372(
+        originalText
+      );
+
+    if (twoProThinkBoyRepairV1372) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          corrected_source_text:
+            twoProThinkBoyRepairV1372
+              .correctedSource,
+          correction:
+            twoProThinkBoyRepairV1372
+              .correctionReason,
+          target_text:
+            twoProThinkBoyRepairV1372
+              .targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProThinkBoyRepairV1372
+              .referenceWords,
+          engine:
+            'think-boy-grammar-repair-v13.72',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.72-safe: think + 목적격 + boy 목적보어 최우선 가드
+    // =================================================================
+    // DB 정확 일치·참고 문장·일반 RBMT보다 먼저 실행하여
+    // 주어·동사 수 일치, 목적격, 보어의 관사·단복수와
+    // 5형식 "목적어를 ~으로 생각하다" 의미를 보존합니다.
+    const twoProThinkBoyFrontGuardV1372 =
+      twoProTranslateThinkBoyV1372(
+        originalText
+      );
+
+    if (twoProThinkBoyFrontGuardV1372) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProThinkBoyFrontGuardV1372
+              .targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProThinkBoyFrontGuardV1372
+              .referenceWords,
+          engine:
+            'think-boy-object-complement-v13.72',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.73-safe: consider + king 문법 교정 가드
+    // =================================================================
+    const twoProConsiderKingRepairV1373 =
+      twoProRepairConsiderKingV1373(
+        originalText
+      );
+
+    if (twoProConsiderKingRepairV1373) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          corrected_source_text:
+            twoProConsiderKingRepairV1373
+              .correctedSource,
+          correction:
+            twoProConsiderKingRepairV1373
+              .correctionReason,
+          target_text:
+            twoProConsiderKingRepairV1373
+              .targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProConsiderKingRepairV1373
+              .referenceWords,
+          engine:
+            'consider-king-grammar-repair-v13.73',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.73-safe: consider + king 명사 목적보어 최우선 가드
+    // =================================================================
+    // DB 정확 일치·참고 문장·일반 RBMT보다 먼저 실행하여
+    // 주어·동사 수 일치, 목적격, 소유격, 관사·단복수와
+    // 5형식 "목적어를 왕이라고 생각하다" 의미를 보존합니다.
+    const twoProConsiderKingFrontGuardV1373 =
+      twoProTranslateConsiderKingV1373(
+        originalText
+      );
+
+    if (twoProConsiderKingFrontGuardV1373) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProConsiderKingFrontGuardV1373
+              .targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProConsiderKingFrontGuardV1373
+              .referenceWords,
+          engine:
+            'consider-king-object-complement-v13.73',
+        },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.74-safe: make + 목적어 + 형용사 목적보어 최우선 가드
+    // =================================================================
+    // DB 정확 일치·참고 문장·일반 RBMT보다 먼저 실행하여
+    // Science/Modern science 및 인칭대명사 주어,
+    // 현재·과거·현재완료·미래, 목적격·소유격,
+    // life/lives 단복수와 형용사 목적보어를 보존합니다.
+    const twoProMakeLifeFrontGuardV1374 =
+      twoProTranslateMakeLifeV1374(
+        originalText
+      );
+
+    if (twoProMakeLifeFrontGuardV1374) {
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProMakeLifeFrontGuardV1374
+              .targetText,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProMakeLifeFrontGuardV1374
+              .referenceWords,
+          engine:
+            'make-life-adjective-complement-v13.74',
         },
       });
     }
