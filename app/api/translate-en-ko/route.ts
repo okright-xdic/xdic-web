@@ -486,6 +486,57 @@ const twoProBuildEnKoPhraseReferencesV130 = (
       confidence: 1,
     }));
 
+
+// ============================================================================
+// ☆ TwoPro v13.75-safe: PHRASES 전체 입력 정확 일치 전용
+//
+// - 입력 전체가 rules-en-ko-phrases.json의 영어 key와 정확히 일치하면
+//   DB 유사 문장 검색보다 먼저 평면형 PHRASES 번역을 직접 반환합니다.
+// - exact phrase는 참고 문장이 아니므로 isReference=false로 반환합니다.
+// - referenceWords를 비워 같은 표현을 다시 참고 표현으로 표시하지 않습니다.
+// - 문장형 한국어 종결어미가 있으면 마침표만 보강합니다.
+// ============================================================================
+const twoProFindExactEnKoPhraseV1375 = (
+  value: unknown
+): TwoProEnKoPhraseEntryV130 | null => {
+  const normalized =
+    twoProNormalizePhraseEnV130(value);
+
+  if (!normalized) {
+    return null;
+  }
+
+  return (
+    TWO_PRO_EN_KO_PHRASE_ENTRIES_V130.find(
+      (entry) =>
+        entry.normalizedEn === normalized
+    ) || null
+  );
+};
+
+const twoProFinalizeExactEnKoPhraseTargetV1375 = (
+  value: unknown
+): string => {
+  const target = String(value || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!target || /[.!?。]$/.test(target)) {
+    return target;
+  }
+
+  if (
+    /(?:다|요|니다|습니다|했다|한다|된다|있다|없다|않다)$/.test(
+      target
+    )
+  ) {
+    return `${target}.`;
+  }
+
+  return target;
+};
+
 // ============================================================================
 // ☆ TwoPro v13.1-safe: 주어 인칭대명사 + had to work 문형
 //
@@ -17420,6 +17471,38 @@ export async function POST(request: Request) {
 
     let originalText = q.trim().replace(/[.!]+$/, ''); 
     const cleanSearchTextWithSpace = originalText.replace(/[?.,!]/g, '').trim().toLowerCase();
+
+
+    // =================================================================
+    // ☆ TwoPro v13.75-safe: PHRASES exact match 최우선 반환
+    // =================================================================
+    // break the ice처럼 입력 전체가 PHRASES key와 일치하면
+    // DB의 유사 병렬문장을 참고 문장으로 반환하지 않습니다.
+    const twoProExactPhraseV1375 =
+      twoProFindExactEnKoPhraseV1375(
+        originalText
+      );
+
+    if (twoProExactPhraseV1375) {
+      const exactPhraseTargetV1375 =
+        twoProFinalizeExactEnKoPhraseTargetV1375(
+          twoProExactPhraseV1375.ko
+        );
+
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: exactPhraseTargetV1375,
+          isReference: false,
+          analysis: [],
+          referenceWords: [],
+          engine:
+            'phrases-en-ko-exact-v13.75',
+        },
+        referenceWords: [],
+      });
+    }
 
 
     // =================================================================
