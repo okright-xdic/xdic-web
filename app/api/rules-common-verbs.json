@@ -1,0 +1,7226 @@
+{
+  "schemaVersion": "1.0",
+  "entries": {
+    "accelerate": {
+      "ko": "가속하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "accelerates"
+        ],
+        "past": [
+          "accelerated"
+        ],
+        "pastParticiple": [
+          "accelerated"
+        ],
+        "ing": [
+          "accelerating"
+        ]
+      }
+    },
+    "accept": {
+      "ko": "받아들이다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "accepts"
+        ],
+        "past": [
+          "accepted"
+        ],
+        "pastParticiple": [
+          "accepted"
+        ],
+        "ing": [
+          "accepting"
+        ]
+      }
+    },
+    "achieve": {
+      "ko": "달성하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "achieves"
+        ],
+        "past": [
+          "achieved"
+        ],
+        "pastParticiple": [
+          "achieved"
+        ],
+        "ing": [
+          "achieving"
+        ]
+      }
+    },
+    "act": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "acts"
+        ],
+        "past": [
+          "acted"
+        ],
+        "pastParticiple": [
+          "acted"
+        ],
+        "ing": [
+          "acting"
+        ]
+      }
+    },
+    "add": {
+      "ko": "추가하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "adds"
+        ],
+        "past": [
+          "added"
+        ],
+        "pastParticiple": [
+          "added"
+        ],
+        "ing": [
+          "adding"
+        ]
+      }
+    },
+    "admit": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "admits"
+        ],
+        "past": [
+          "admitted"
+        ],
+        "pastParticiple": [
+          "admitted"
+        ],
+        "ing": [
+          "admitting"
+        ]
+      }
+    },
+    "advise": {
+      "ko": "조언하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "advises"
+        ],
+        "past": [
+          "advised"
+        ],
+        "pastParticiple": [
+          "advised"
+        ],
+        "ing": [
+          "advising"
+        ]
+      }
+    },
+    "agree": {
+      "ko": "동의하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "agrees"
+        ],
+        "past": [
+          "agreed"
+        ],
+        "pastParticiple": [
+          "agreed"
+        ],
+        "ing": [
+          "agreeing"
+        ]
+      }
+    },
+    "allow": {
+      "ko": "허용하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "allows"
+        ],
+        "past": [
+          "allowed"
+        ],
+        "pastParticiple": [
+          "allowed"
+        ],
+        "ing": [
+          "allowing"
+        ]
+      }
+    },
+    "analyze": {
+      "ko": "분석하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "analyzes"
+        ],
+        "past": [
+          "analyzed"
+        ],
+        "pastParticiple": [
+          "analyzed"
+        ],
+        "ing": [
+          "analyzing"
+        ]
+      }
+    },
+    "announce": {
+      "ko": "발표하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "announces"
+        ],
+        "past": [
+          "announced"
+        ],
+        "pastParticiple": [
+          "announced"
+        ],
+        "ing": [
+          "announcing"
+        ]
+      }
+    },
+    "answer": {
+      "ko": "대답하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "answers"
+        ],
+        "past": [
+          "answered"
+        ],
+        "pastParticiple": [
+          "answered"
+        ],
+        "ing": [
+          "answering"
+        ]
+      }
+    },
+    "apologize": {
+      "ko": "사과하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "apologizes"
+        ],
+        "past": [
+          "apologized"
+        ],
+        "pastParticiple": [
+          "apologized"
+        ],
+        "ing": [
+          "apologizing"
+        ]
+      }
+    },
+    "appeal": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "appeals"
+        ],
+        "past": [
+          "appealed"
+        ],
+        "pastParticiple": [
+          "appealed"
+        ],
+        "ing": [
+          "appealing"
+        ]
+      }
+    },
+    "appear": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "appears"
+        ],
+        "past": [
+          "appeared"
+        ],
+        "pastParticiple": [
+          "appeared"
+        ],
+        "ing": [
+          "appearing"
+        ]
+      }
+    },
+    "apply": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "applies"
+        ],
+        "past": [
+          "applied"
+        ],
+        "pastParticiple": [
+          "applied"
+        ],
+        "ing": [
+          "applying"
+        ]
+      }
+    },
+    "appreciate": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "appreciates"
+        ],
+        "past": [
+          "appreciated"
+        ],
+        "pastParticiple": [
+          "appreciated"
+        ],
+        "ing": [
+          "appreciating"
+        ]
+      }
+    },
+    "approach": {
+      "ko": "접근하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "approaches"
+        ],
+        "past": [
+          "approached"
+        ],
+        "pastParticiple": [
+          "approached"
+        ],
+        "ing": [
+          "approaching"
+        ]
+      }
+    },
+    "approve": {
+      "ko": "승인하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "approves"
+        ],
+        "past": [
+          "approved"
+        ],
+        "pastParticiple": [
+          "approved"
+        ],
+        "ing": [
+          "approving"
+        ]
+      }
+    },
+    "argue": {
+      "ko": "논쟁하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "argues"
+        ],
+        "past": [
+          "argued"
+        ],
+        "pastParticiple": [
+          "argued"
+        ],
+        "ing": [
+          "arguing"
+        ]
+      }
+    },
+    "arrange": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "arranges"
+        ],
+        "past": [
+          "arranged"
+        ],
+        "pastParticiple": [
+          "arranged"
+        ],
+        "ing": [
+          "arranging"
+        ]
+      }
+    },
+    "arrive": {
+      "ko": "도착하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "arrives"
+        ],
+        "past": [
+          "arrived"
+        ],
+        "pastParticiple": [
+          "arrived"
+        ],
+        "ing": [
+          "arriving"
+        ]
+      }
+    },
+    "ask": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "asks"
+        ],
+        "past": [
+          "asked"
+        ],
+        "pastParticiple": [
+          "asked"
+        ],
+        "ing": [
+          "asking"
+        ]
+      }
+    },
+    "assign": {
+      "ko": "할당하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "assigns"
+        ],
+        "past": [
+          "assigned"
+        ],
+        "pastParticiple": [
+          "assigned"
+        ],
+        "ing": [
+          "assigning"
+        ]
+      }
+    },
+    "associate": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "associates"
+        ],
+        "past": [
+          "associated"
+        ],
+        "pastParticiple": [
+          "associated"
+        ],
+        "ing": [
+          "associating"
+        ]
+      }
+    },
+    "assume": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "assumes"
+        ],
+        "past": [
+          "assumed"
+        ],
+        "pastParticiple": [
+          "assumed"
+        ],
+        "ing": [
+          "assuming"
+        ]
+      }
+    },
+    "attack": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "attacks"
+        ],
+        "past": [
+          "attacked"
+        ],
+        "pastParticiple": [
+          "attacked"
+        ],
+        "ing": [
+          "attacking"
+        ]
+      }
+    },
+    "attend": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "attends"
+        ],
+        "past": [
+          "attended"
+        ],
+        "pastParticiple": [
+          "attended"
+        ],
+        "ing": [
+          "attending"
+        ]
+      }
+    },
+    "attract": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "attracts"
+        ],
+        "past": [
+          "attracted"
+        ],
+        "pastParticiple": [
+          "attracted"
+        ],
+        "ing": [
+          "attracting"
+        ]
+      }
+    },
+    "avoid": {
+      "ko": "피하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "avoids"
+        ],
+        "past": [
+          "avoided"
+        ],
+        "pastParticiple": [
+          "avoided"
+        ],
+        "ing": [
+          "avoiding"
+        ]
+      }
+    },
+    "award": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "awards"
+        ],
+        "past": [
+          "awarded"
+        ],
+        "pastParticiple": [
+          "awarded"
+        ],
+        "ing": [
+          "awarding"
+        ]
+      }
+    },
+    "bake": {
+      "ko": "굽다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "bakes"
+        ],
+        "past": [
+          "baked"
+        ],
+        "pastParticiple": [
+          "baked"
+        ],
+        "ing": [
+          "baking"
+        ]
+      }
+    },
+    "bear": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "bears"
+        ],
+        "past": [
+          "bore"
+        ],
+        "pastParticiple": [
+          "borne",
+          "born"
+        ],
+        "ing": [
+          "bearing"
+        ]
+      }
+    },
+    "become": {
+      "ko": "되다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "becomes"
+        ],
+        "past": [
+          "became"
+        ],
+        "pastParticiple": [
+          "become"
+        ],
+        "ing": [
+          "becoming"
+        ]
+      }
+    },
+    "behave": {
+      "ko": "행동하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "behaves"
+        ],
+        "past": [
+          "behaved"
+        ],
+        "pastParticiple": [
+          "behaved"
+        ],
+        "ing": [
+          "behaving"
+        ]
+      }
+    },
+    "believe": {
+      "ko": "믿다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "believes"
+        ],
+        "past": [
+          "believed"
+        ],
+        "pastParticiple": [
+          "believed"
+        ],
+        "ing": [
+          "believing"
+        ]
+      }
+    },
+    "belong": {
+      "ko": "속하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "belongs"
+        ],
+        "past": [
+          "belonged"
+        ],
+        "pastParticiple": [
+          "belonged"
+        ],
+        "ing": [
+          "belonging"
+        ]
+      }
+    },
+    "bend": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "bends"
+        ],
+        "past": [
+          "bent"
+        ],
+        "pastParticiple": [
+          "bent"
+        ],
+        "ing": [
+          "bending"
+        ]
+      }
+    },
+    "betray": {
+      "ko": "배반하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "betrays"
+        ],
+        "past": [
+          "betrayed"
+        ],
+        "pastParticiple": [
+          "betrayed"
+        ],
+        "ing": [
+          "betraying"
+        ]
+      }
+    },
+    "blame": {
+      "ko": "비난하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "blames"
+        ],
+        "past": [
+          "blamed"
+        ],
+        "pastParticiple": [
+          "blamed"
+        ],
+        "ing": [
+          "blaming"
+        ]
+      }
+    },
+    "blow": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "blows"
+        ],
+        "past": [
+          "blew"
+        ],
+        "pastParticiple": [
+          "blown"
+        ],
+        "ing": [
+          "blowing"
+        ]
+      }
+    },
+    "borrow": {
+      "ko": "빌리다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "borrows"
+        ],
+        "past": [
+          "borrowed"
+        ],
+        "pastParticiple": [
+          "borrowed"
+        ],
+        "ing": [
+          "borrowing"
+        ]
+      }
+    },
+    "break": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "breaks"
+        ],
+        "past": [
+          "broke"
+        ],
+        "pastParticiple": [
+          "broken"
+        ],
+        "ing": [
+          "breaking"
+        ]
+      }
+    },
+    "breathe": {
+      "ko": "숨쉬다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "breathes"
+        ],
+        "past": [
+          "breathed"
+        ],
+        "pastParticiple": [
+          "breathed"
+        ],
+        "ing": [
+          "breathing"
+        ]
+      }
+    },
+    "bring": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "brings"
+        ],
+        "past": [
+          "brought"
+        ],
+        "pastParticiple": [
+          "brought"
+        ],
+        "ing": [
+          "bringing"
+        ]
+      }
+    },
+    "broadcast": {
+      "ko": "방송하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "broadcasts"
+        ],
+        "past": [
+          "broadcast",
+          "broadcasted"
+        ],
+        "pastParticiple": [
+          "broadcast",
+          "broadcasted"
+        ],
+        "ing": [
+          "broadcasting"
+        ]
+      }
+    },
+    "brush": {
+      "ko": "솔질하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "brushes"
+        ],
+        "past": [
+          "brushed"
+        ],
+        "pastParticiple": [
+          "brushed"
+        ],
+        "ing": [
+          "brushing"
+        ]
+      }
+    },
+    "build": {
+      "ko": "건설하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "builds"
+        ],
+        "past": [
+          "built"
+        ],
+        "pastParticiple": [
+          "built"
+        ],
+        "ing": [
+          "building"
+        ]
+      }
+    },
+    "burn": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "burns"
+        ],
+        "past": [
+          "burned",
+          "burnt"
+        ],
+        "pastParticiple": [
+          "burned",
+          "burnt"
+        ],
+        "ing": [
+          "burning"
+        ]
+      }
+    },
+    "buy": {
+      "ko": "사다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "buys"
+        ],
+        "past": [
+          "bought"
+        ],
+        "pastParticiple": [
+          "bought"
+        ],
+        "ing": [
+          "buying"
+        ]
+      }
+    },
+    "calculate": {
+      "ko": "계산하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "calculates"
+        ],
+        "past": [
+          "calculated"
+        ],
+        "pastParticiple": [
+          "calculated"
+        ],
+        "ing": [
+          "calculating"
+        ]
+      }
+    },
+    "call": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "calls"
+        ],
+        "past": [
+          "called"
+        ],
+        "pastParticiple": [
+          "called"
+        ],
+        "ing": [
+          "calling"
+        ]
+      }
+    },
+    "cancel": {
+      "ko": "취소하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "cancels"
+        ],
+        "past": [
+          "canceled",
+          "cancelled"
+        ],
+        "pastParticiple": [
+          "canceled",
+          "cancelled"
+        ],
+        "ing": [
+          "canceling",
+          "cancelling"
+        ]
+      }
+    },
+    "care": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "cares"
+        ],
+        "past": [
+          "cared"
+        ],
+        "pastParticiple": [
+          "cared"
+        ],
+        "ing": [
+          "caring"
+        ]
+      }
+    },
+    "carry": {
+      "ko": "운반하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "carries"
+        ],
+        "past": [
+          "carried"
+        ],
+        "pastParticiple": [
+          "carried"
+        ],
+        "ing": [
+          "carrying"
+        ]
+      }
+    },
+    "cast": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "casts"
+        ],
+        "past": [
+          "cast"
+        ],
+        "pastParticiple": [
+          "cast"
+        ],
+        "ing": [
+          "casting"
+        ]
+      }
+    },
+    "catch": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "catches"
+        ],
+        "past": [
+          "caught"
+        ],
+        "pastParticiple": [
+          "caught"
+        ],
+        "ing": [
+          "catching"
+        ]
+      }
+    },
+    "cause": {
+      "ko": "야기하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "causes"
+        ],
+        "past": [
+          "caused"
+        ],
+        "pastParticiple": [
+          "caused"
+        ],
+        "ing": [
+          "causing"
+        ]
+      }
+    },
+    "celebrate": {
+      "ko": "축하하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "celebrates"
+        ],
+        "past": [
+          "celebrated"
+        ],
+        "pastParticiple": [
+          "celebrated"
+        ],
+        "ing": [
+          "celebrating"
+        ]
+      }
+    },
+    "challenge": {
+      "ko": "도전하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "challenges"
+        ],
+        "past": [
+          "challenged"
+        ],
+        "pastParticiple": [
+          "challenged"
+        ],
+        "ing": [
+          "challenging"
+        ]
+      }
+    },
+    "change": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "changes"
+        ],
+        "past": [
+          "changed"
+        ],
+        "pastParticiple": [
+          "changed"
+        ],
+        "ing": [
+          "changing"
+        ]
+      }
+    },
+    "check": {
+      "ko": "점검하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "checks"
+        ],
+        "past": [
+          "checked"
+        ],
+        "pastParticiple": [
+          "checked"
+        ],
+        "ing": [
+          "checking"
+        ]
+      }
+    },
+    "choose": {
+      "ko": "고르다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "chooses"
+        ],
+        "past": [
+          "chose"
+        ],
+        "pastParticiple": [
+          "chosen"
+        ],
+        "ing": [
+          "choosing"
+        ]
+      }
+    },
+    "claim": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "claims"
+        ],
+        "past": [
+          "claimed"
+        ],
+        "pastParticiple": [
+          "claimed"
+        ],
+        "ing": [
+          "claiming"
+        ]
+      }
+    },
+    "clean": {
+      "ko": "청소하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "cleans"
+        ],
+        "past": [
+          "cleaned"
+        ],
+        "pastParticiple": [
+          "cleaned"
+        ],
+        "ing": [
+          "cleaning"
+        ]
+      }
+    },
+    "climb": {
+      "ko": "오르다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "climbs"
+        ],
+        "past": [
+          "climbed"
+        ],
+        "pastParticiple": [
+          "climbed"
+        ],
+        "ing": [
+          "climbing"
+        ]
+      }
+    },
+    "cling": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "clings"
+        ],
+        "past": [
+          "clung"
+        ],
+        "pastParticiple": [
+          "clung"
+        ],
+        "ing": [
+          "clinging"
+        ]
+      }
+    },
+    "close": {
+      "ko": "닫다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "closes"
+        ],
+        "past": [
+          "closed"
+        ],
+        "pastParticiple": [
+          "closed"
+        ],
+        "ing": [
+          "closing"
+        ]
+      }
+    },
+    "collect": {
+      "ko": "수집하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "collects"
+        ],
+        "past": [
+          "collected"
+        ],
+        "pastParticiple": [
+          "collected"
+        ],
+        "ing": [
+          "collecting"
+        ]
+      }
+    },
+    "come": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "comes"
+        ],
+        "past": [
+          "came"
+        ],
+        "pastParticiple": [
+          "come"
+        ],
+        "ing": [
+          "coming"
+        ]
+      }
+    },
+    "comfort": {
+      "ko": "위로하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "comforts"
+        ],
+        "past": [
+          "comforted"
+        ],
+        "pastParticiple": [
+          "comforted"
+        ],
+        "ing": [
+          "comforting"
+        ]
+      }
+    },
+    "command": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "commands"
+        ],
+        "past": [
+          "commanded"
+        ],
+        "pastParticiple": [
+          "commanded"
+        ],
+        "ing": [
+          "commanding"
+        ]
+      }
+    },
+    "commit": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "commits"
+        ],
+        "past": [
+          "committed"
+        ],
+        "pastParticiple": [
+          "committed"
+        ],
+        "ing": [
+          "committing"
+        ]
+      }
+    },
+    "compare": {
+      "ko": "비교하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "compares"
+        ],
+        "past": [
+          "compared"
+        ],
+        "pastParticiple": [
+          "compared"
+        ],
+        "ing": [
+          "comparing"
+        ]
+      }
+    },
+    "complain": {
+      "ko": "불평하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "complains"
+        ],
+        "past": [
+          "complained"
+        ],
+        "pastParticiple": [
+          "complained"
+        ],
+        "ing": [
+          "complaining"
+        ]
+      }
+    },
+    "complete": {
+      "ko": "완료하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "completes"
+        ],
+        "past": [
+          "completed"
+        ],
+        "pastParticiple": [
+          "completed"
+        ],
+        "ing": [
+          "completing"
+        ]
+      }
+    },
+    "compose": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "composes"
+        ],
+        "past": [
+          "composed"
+        ],
+        "pastParticiple": [
+          "composed"
+        ],
+        "ing": [
+          "composing"
+        ]
+      }
+    },
+    "concentrate": {
+      "ko": "집중하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "concentrates"
+        ],
+        "past": [
+          "concentrated"
+        ],
+        "pastParticiple": [
+          "concentrated"
+        ],
+        "ing": [
+          "concentrating"
+        ]
+      }
+    },
+    "condemn": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "condemns"
+        ],
+        "past": [
+          "condemned"
+        ],
+        "pastParticiple": [
+          "condemned"
+        ],
+        "ing": [
+          "condemning"
+        ]
+      }
+    },
+    "confirm": {
+      "ko": "확인하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "confirms"
+        ],
+        "past": [
+          "confirmed"
+        ],
+        "pastParticiple": [
+          "confirmed"
+        ],
+        "ing": [
+          "confirming"
+        ]
+      }
+    },
+    "confuse": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "confuses"
+        ],
+        "past": [
+          "confused"
+        ],
+        "pastParticiple": [
+          "confused"
+        ],
+        "ing": [
+          "confusing"
+        ]
+      }
+    },
+    "connect": {
+      "ko": "연결하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "connects"
+        ],
+        "past": [
+          "connected"
+        ],
+        "pastParticiple": [
+          "connected"
+        ],
+        "ing": [
+          "connecting"
+        ]
+      }
+    },
+    "consider": {
+      "ko": "고려하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "considers"
+        ],
+        "past": [
+          "considered"
+        ],
+        "pastParticiple": [
+          "considered"
+        ],
+        "ing": [
+          "considering"
+        ]
+      }
+    },
+    "contain": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "contains"
+        ],
+        "past": [
+          "contained"
+        ],
+        "pastParticiple": [
+          "contained"
+        ],
+        "ing": [
+          "containing"
+        ]
+      }
+    },
+    "continue": {
+      "ko": "계속하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "continues"
+        ],
+        "past": [
+          "continued"
+        ],
+        "pastParticiple": [
+          "continued"
+        ],
+        "ing": [
+          "continuing"
+        ]
+      }
+    },
+    "contrast": {
+      "ko": "대조하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "contrasts"
+        ],
+        "past": [
+          "contrasted"
+        ],
+        "pastParticiple": [
+          "contrasted"
+        ],
+        "ing": [
+          "contrasting"
+        ]
+      }
+    },
+    "control": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "controls"
+        ],
+        "past": [
+          "controlled"
+        ],
+        "pastParticiple": [
+          "controlled"
+        ],
+        "ing": [
+          "controlling"
+        ]
+      }
+    },
+    "convey": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "conveys"
+        ],
+        "past": [
+          "conveyed"
+        ],
+        "pastParticiple": [
+          "conveyed"
+        ],
+        "ing": [
+          "conveying"
+        ]
+      }
+    },
+    "cook": {
+      "ko": "요리하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "cooks"
+        ],
+        "past": [
+          "cooked"
+        ],
+        "pastParticiple": [
+          "cooked"
+        ],
+        "ing": [
+          "cooking"
+        ]
+      }
+    },
+    "copy": {
+      "ko": "복사하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "copies"
+        ],
+        "past": [
+          "copied"
+        ],
+        "pastParticiple": [
+          "copied"
+        ],
+        "ing": [
+          "copying"
+        ]
+      }
+    },
+    "correct": {
+      "ko": "수정하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "corrects"
+        ],
+        "past": [
+          "corrected"
+        ],
+        "pastParticiple": [
+          "corrected"
+        ],
+        "ing": [
+          "correcting"
+        ]
+      }
+    },
+    "correspond": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "corresponds"
+        ],
+        "past": [
+          "corresponded"
+        ],
+        "pastParticiple": [
+          "corresponded"
+        ],
+        "ing": [
+          "corresponding"
+        ]
+      }
+    },
+    "count": {
+      "ko": "세다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "counts"
+        ],
+        "past": [
+          "counted"
+        ],
+        "pastParticiple": [
+          "counted"
+        ],
+        "ing": [
+          "counting"
+        ]
+      }
+    },
+    "cover": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "covers"
+        ],
+        "past": [
+          "covered"
+        ],
+        "pastParticiple": [
+          "covered"
+        ],
+        "ing": [
+          "covering"
+        ]
+      }
+    },
+    "create": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "creates"
+        ],
+        "past": [
+          "created"
+        ],
+        "pastParticiple": [
+          "created"
+        ],
+        "ing": [
+          "creating"
+        ]
+      }
+    },
+    "cross": {
+      "ko": "건너다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "crosses"
+        ],
+        "past": [
+          "crossed"
+        ],
+        "pastParticiple": [
+          "crossed"
+        ],
+        "ing": [
+          "crossing"
+        ]
+      }
+    },
+    "cry": {
+      "ko": "울다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "cries"
+        ],
+        "past": [
+          "cried"
+        ],
+        "pastParticiple": [
+          "cried"
+        ],
+        "ing": [
+          "crying"
+        ]
+      }
+    },
+    "cut": {
+      "ko": "자르다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "cuts"
+        ],
+        "past": [
+          "cut"
+        ],
+        "pastParticiple": [
+          "cut"
+        ],
+        "ing": [
+          "cutting"
+        ]
+      }
+    },
+    "damage": {
+      "ko": "손상시키다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "damages"
+        ],
+        "past": [
+          "damaged"
+        ],
+        "pastParticiple": [
+          "damaged"
+        ],
+        "ing": [
+          "damaging"
+        ]
+      }
+    },
+    "dance": {
+      "ko": "춤추다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "dances"
+        ],
+        "past": [
+          "danced"
+        ],
+        "pastParticiple": [
+          "danced"
+        ],
+        "ing": [
+          "dancing"
+        ]
+      }
+    },
+    "deal": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "deals"
+        ],
+        "past": [
+          "dealt"
+        ],
+        "pastParticiple": [
+          "dealt"
+        ],
+        "ing": [
+          "dealing"
+        ]
+      }
+    },
+    "decide": {
+      "ko": "결정하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "decides"
+        ],
+        "past": [
+          "decided"
+        ],
+        "pastParticiple": [
+          "decided"
+        ],
+        "ing": [
+          "deciding"
+        ]
+      }
+    },
+    "declare": {
+      "ko": "선언하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "declares"
+        ],
+        "past": [
+          "declared"
+        ],
+        "pastParticiple": [
+          "declared"
+        ],
+        "ing": [
+          "declaring"
+        ]
+      }
+    },
+    "decrease": {
+      "ko": "감소하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "decreases"
+        ],
+        "past": [
+          "decreased"
+        ],
+        "pastParticiple": [
+          "decreased"
+        ],
+        "ing": [
+          "decreasing"
+        ]
+      }
+    },
+    "defend": {
+      "ko": "방어하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "defends"
+        ],
+        "past": [
+          "defended"
+        ],
+        "pastParticiple": [
+          "defended"
+        ],
+        "ing": [
+          "defending"
+        ]
+      }
+    },
+    "deliver": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "delivers"
+        ],
+        "past": [
+          "delivered"
+        ],
+        "pastParticiple": [
+          "delivered"
+        ],
+        "ing": [
+          "delivering"
+        ]
+      }
+    },
+    "demand": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "demands"
+        ],
+        "past": [
+          "demanded"
+        ],
+        "pastParticiple": [
+          "demanded"
+        ],
+        "ing": [
+          "demanding"
+        ]
+      }
+    },
+    "deny": {
+      "ko": "부인하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "denies"
+        ],
+        "past": [
+          "denied"
+        ],
+        "pastParticiple": [
+          "denied"
+        ],
+        "ing": [
+          "denying"
+        ]
+      }
+    },
+    "depend": {
+      "ko": "의존하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "depends"
+        ],
+        "past": [
+          "depended"
+        ],
+        "pastParticiple": [
+          "depended"
+        ],
+        "ing": [
+          "depending"
+        ]
+      }
+    },
+    "describe": {
+      "ko": "묘사하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "describes"
+        ],
+        "past": [
+          "described"
+        ],
+        "pastParticiple": [
+          "described"
+        ],
+        "ing": [
+          "describing"
+        ]
+      }
+    },
+    "desert": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "deserts"
+        ],
+        "past": [
+          "deserted"
+        ],
+        "pastParticiple": [
+          "deserted"
+        ],
+        "ing": [
+          "deserting"
+        ]
+      }
+    },
+    "deserve": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "deserves"
+        ],
+        "past": [
+          "deserved"
+        ],
+        "pastParticiple": [
+          "deserved"
+        ],
+        "ing": [
+          "deserving"
+        ]
+      }
+    },
+    "design": {
+      "ko": "설계하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "designs"
+        ],
+        "past": [
+          "designed"
+        ],
+        "pastParticiple": [
+          "designed"
+        ],
+        "ing": [
+          "designing"
+        ]
+      }
+    },
+    "destroy": {
+      "ko": "파괴하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "destroys"
+        ],
+        "past": [
+          "destroyed"
+        ],
+        "pastParticiple": [
+          "destroyed"
+        ],
+        "ing": [
+          "destroying"
+        ]
+      }
+    },
+    "develop": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "develops"
+        ],
+        "past": [
+          "developed"
+        ],
+        "pastParticiple": [
+          "developed"
+        ],
+        "ing": [
+          "developing"
+        ]
+      }
+    },
+    "devote": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "devotes"
+        ],
+        "past": [
+          "devoted"
+        ],
+        "pastParticiple": [
+          "devoted"
+        ],
+        "ing": [
+          "devoting"
+        ]
+      }
+    },
+    "die": {
+      "ko": "죽다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "dies"
+        ],
+        "past": [
+          "died"
+        ],
+        "pastParticiple": [
+          "died"
+        ],
+        "ing": [
+          "dying"
+        ]
+      }
+    },
+    "disappear": {
+      "ko": "사라지다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "disappears"
+        ],
+        "past": [
+          "disappeared"
+        ],
+        "pastParticiple": [
+          "disappeared"
+        ],
+        "ing": [
+          "disappearing"
+        ]
+      }
+    },
+    "disappoint": {
+      "ko": "실망시키다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "disappoints"
+        ],
+        "past": [
+          "disappointed"
+        ],
+        "pastParticiple": [
+          "disappointed"
+        ],
+        "ing": [
+          "disappointing"
+        ]
+      }
+    },
+    "discover": {
+      "ko": "발견하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "discovers"
+        ],
+        "past": [
+          "discovered"
+        ],
+        "pastParticiple": [
+          "discovered"
+        ],
+        "ing": [
+          "discovering"
+        ]
+      }
+    },
+    "discuss": {
+      "ko": "논의하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "discusses"
+        ],
+        "past": [
+          "discussed"
+        ],
+        "pastParticiple": [
+          "discussed"
+        ],
+        "ing": [
+          "discussing"
+        ]
+      }
+    },
+    "display": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "displays"
+        ],
+        "past": [
+          "displayed"
+        ],
+        "pastParticiple": [
+          "displayed"
+        ],
+        "ing": [
+          "displaying"
+        ]
+      }
+    },
+    "distinguish": {
+      "ko": "구별하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "distinguishes"
+        ],
+        "past": [
+          "distinguished"
+        ],
+        "pastParticiple": [
+          "distinguished"
+        ],
+        "ing": [
+          "distinguishing"
+        ]
+      }
+    },
+    "distribute": {
+      "ko": "분배하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "distributes"
+        ],
+        "past": [
+          "distributed"
+        ],
+        "pastParticiple": [
+          "distributed"
+        ],
+        "ing": [
+          "distributing"
+        ]
+      }
+    },
+    "divide": {
+      "ko": "나누다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "divides"
+        ],
+        "past": [
+          "divided"
+        ],
+        "pastParticiple": [
+          "divided"
+        ],
+        "ing": [
+          "dividing"
+        ]
+      }
+    },
+    "do": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "does"
+        ],
+        "past": [
+          "did"
+        ],
+        "pastParticiple": [
+          "done"
+        ],
+        "ing": [
+          "doing"
+        ]
+      }
+    },
+    "download": {
+      "ko": "다운로드하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "downloads"
+        ],
+        "past": [
+          "downloaded"
+        ],
+        "pastParticiple": [
+          "downloaded"
+        ],
+        "ing": [
+          "downloading"
+        ]
+      }
+    },
+    "draw": {
+      "ko": "그리다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "draws"
+        ],
+        "past": [
+          "drew"
+        ],
+        "pastParticiple": [
+          "drawn"
+        ],
+        "ing": [
+          "drawing"
+        ]
+      }
+    },
+    "dream": {
+      "ko": "꿈꾸다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "dreams"
+        ],
+        "past": [
+          "dreamed",
+          "dreamt"
+        ],
+        "pastParticiple": [
+          "dreamed",
+          "dreamt"
+        ],
+        "ing": [
+          "dreaming"
+        ]
+      }
+    },
+    "drink": {
+      "ko": "마시다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "drinks"
+        ],
+        "past": [
+          "drank"
+        ],
+        "pastParticiple": [
+          "drunk"
+        ],
+        "ing": [
+          "drinking"
+        ]
+      }
+    },
+    "drive": {
+      "ko": "운전하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "drives"
+        ],
+        "past": [
+          "drove"
+        ],
+        "pastParticiple": [
+          "driven"
+        ],
+        "ing": [
+          "driving"
+        ]
+      }
+    },
+    "drop": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "drops"
+        ],
+        "past": [
+          "dropped"
+        ],
+        "pastParticiple": [
+          "dropped"
+        ],
+        "ing": [
+          "dropping"
+        ]
+      }
+    },
+    "eat": {
+      "ko": "먹다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "eats"
+        ],
+        "past": [
+          "ate"
+        ],
+        "pastParticiple": [
+          "eaten"
+        ],
+        "ing": [
+          "eating"
+        ]
+      }
+    },
+    "educate": {
+      "ko": "교육하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "educates"
+        ],
+        "past": [
+          "educated"
+        ],
+        "pastParticiple": [
+          "educated"
+        ],
+        "ing": [
+          "educating"
+        ]
+      }
+    },
+    "elect": {
+      "ko": "선출하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "elects"
+        ],
+        "past": [
+          "elected"
+        ],
+        "pastParticiple": [
+          "elected"
+        ],
+        "ing": [
+          "electing"
+        ]
+      }
+    },
+    "embrace": {
+      "ko": "포옹하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "embraces"
+        ],
+        "past": [
+          "embraced"
+        ],
+        "pastParticiple": [
+          "embraced"
+        ],
+        "ing": [
+          "embracing"
+        ]
+      }
+    },
+    "employ": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "employs"
+        ],
+        "past": [
+          "employed"
+        ],
+        "pastParticiple": [
+          "employed"
+        ],
+        "ing": [
+          "employing"
+        ]
+      }
+    },
+    "enable": {
+      "ko": "가능하게 하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "enables"
+        ],
+        "past": [
+          "enabled"
+        ],
+        "pastParticiple": [
+          "enabled"
+        ],
+        "ing": [
+          "enabling"
+        ]
+      }
+    },
+    "enclose": {
+      "ko": "동봉하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "encloses"
+        ],
+        "past": [
+          "enclosed"
+        ],
+        "pastParticiple": [
+          "enclosed"
+        ],
+        "ing": [
+          "enclosing"
+        ]
+      }
+    },
+    "encourage": {
+      "ko": "격려하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "encourages"
+        ],
+        "past": [
+          "encouraged"
+        ],
+        "pastParticiple": [
+          "encouraged"
+        ],
+        "ing": [
+          "encouraging"
+        ]
+      }
+    },
+    "end": {
+      "ko": "종료하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "ends"
+        ],
+        "past": [
+          "ended"
+        ],
+        "pastParticiple": [
+          "ended"
+        ],
+        "ing": [
+          "ending"
+        ]
+      }
+    },
+    "enjoy": {
+      "ko": "즐기다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "enjoys"
+        ],
+        "past": [
+          "enjoyed"
+        ],
+        "pastParticiple": [
+          "enjoyed"
+        ],
+        "ing": [
+          "enjoying"
+        ]
+      }
+    },
+    "enter": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "enters"
+        ],
+        "past": [
+          "entered"
+        ],
+        "pastParticiple": [
+          "entered"
+        ],
+        "ing": [
+          "entering"
+        ]
+      }
+    },
+    "escape": {
+      "ko": "탈출하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "escapes"
+        ],
+        "past": [
+          "escaped"
+        ],
+        "pastParticiple": [
+          "escaped"
+        ],
+        "ing": [
+          "escaping"
+        ]
+      }
+    },
+    "establish": {
+      "ko": "설립하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "establishes"
+        ],
+        "past": [
+          "established"
+        ],
+        "pastParticiple": [
+          "established"
+        ],
+        "ing": [
+          "establishing"
+        ]
+      }
+    },
+    "examine": {
+      "ko": "검사하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "examines"
+        ],
+        "past": [
+          "examined"
+        ],
+        "pastParticiple": [
+          "examined"
+        ],
+        "ing": [
+          "examining"
+        ]
+      }
+    },
+    "exchange": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "exchanges"
+        ],
+        "past": [
+          "exchanged"
+        ],
+        "pastParticiple": [
+          "exchanged"
+        ],
+        "ing": [
+          "exchanging"
+        ]
+      }
+    },
+    "exclude": {
+      "ko": "제외하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "excludes"
+        ],
+        "past": [
+          "excluded"
+        ],
+        "pastParticiple": [
+          "excluded"
+        ],
+        "ing": [
+          "excluding"
+        ]
+      }
+    },
+    "execute": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "executes"
+        ],
+        "past": [
+          "executed"
+        ],
+        "pastParticiple": [
+          "executed"
+        ],
+        "ing": [
+          "executing"
+        ]
+      }
+    },
+    "exercise": {
+      "ko": "운동하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "exercises"
+        ],
+        "past": [
+          "exercised"
+        ],
+        "pastParticiple": [
+          "exercised"
+        ],
+        "ing": [
+          "exercising"
+        ]
+      }
+    },
+    "exhibit": {
+      "ko": "전시하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "exhibits"
+        ],
+        "past": [
+          "exhibited"
+        ],
+        "pastParticiple": [
+          "exhibited"
+        ],
+        "ing": [
+          "exhibiting"
+        ]
+      }
+    },
+    "exist": {
+      "ko": "존재하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "exists"
+        ],
+        "past": [
+          "existed"
+        ],
+        "pastParticiple": [
+          "existed"
+        ],
+        "ing": [
+          "existing"
+        ]
+      }
+    },
+    "expect": {
+      "ko": "기대하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "expects"
+        ],
+        "past": [
+          "expected"
+        ],
+        "pastParticiple": [
+          "expected"
+        ],
+        "ing": [
+          "expecting"
+        ]
+      }
+    },
+    "expel": {
+      "ko": "추방하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "expels"
+        ],
+        "past": [
+          "expelled"
+        ],
+        "pastParticiple": [
+          "expelled"
+        ],
+        "ing": [
+          "expelling"
+        ]
+      }
+    },
+    "explain": {
+      "ko": "설명하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "explains"
+        ],
+        "past": [
+          "explained"
+        ],
+        "pastParticiple": [
+          "explained"
+        ],
+        "ing": [
+          "explaining"
+        ]
+      }
+    },
+    "express": {
+      "ko": "표현하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "expresses"
+        ],
+        "past": [
+          "expressed"
+        ],
+        "pastParticiple": [
+          "expressed"
+        ],
+        "ing": [
+          "expressing"
+        ]
+      }
+    },
+    "extend": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "extends"
+        ],
+        "past": [
+          "extended"
+        ],
+        "pastParticiple": [
+          "extended"
+        ],
+        "ing": [
+          "extending"
+        ]
+      }
+    },
+    "face": {
+      "ko": "직면하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "faces"
+        ],
+        "past": [
+          "faced"
+        ],
+        "pastParticiple": [
+          "faced"
+        ],
+        "ing": [
+          "facing"
+        ]
+      }
+    },
+    "fail": {
+      "ko": "실패하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "fails"
+        ],
+        "past": [
+          "failed"
+        ],
+        "pastParticiple": [
+          "failed"
+        ],
+        "ing": [
+          "failing"
+        ]
+      }
+    },
+    "fall": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "falls"
+        ],
+        "past": [
+          "fell"
+        ],
+        "pastParticiple": [
+          "fallen"
+        ],
+        "ing": [
+          "falling"
+        ]
+      }
+    },
+    "fear": {
+      "ko": "두려워하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "fears"
+        ],
+        "past": [
+          "feared"
+        ],
+        "pastParticiple": [
+          "feared"
+        ],
+        "ing": [
+          "fearing"
+        ]
+      }
+    },
+    "feed": {
+      "ko": "먹이다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "feeds"
+        ],
+        "past": [
+          "fed"
+        ],
+        "pastParticiple": [
+          "fed"
+        ],
+        "ing": [
+          "feeding"
+        ]
+      }
+    },
+    "feel": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "feels"
+        ],
+        "past": [
+          "felt"
+        ],
+        "pastParticiple": [
+          "felt"
+        ],
+        "ing": [
+          "feeling"
+        ]
+      }
+    },
+    "fight": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "fights"
+        ],
+        "past": [
+          "fought"
+        ],
+        "pastParticiple": [
+          "fought"
+        ],
+        "ing": [
+          "fighting"
+        ]
+      }
+    },
+    "fill": {
+      "ko": "채우다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "fills"
+        ],
+        "past": [
+          "filled"
+        ],
+        "pastParticiple": [
+          "filled"
+        ],
+        "ing": [
+          "filling"
+        ]
+      }
+    },
+    "find": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "finds"
+        ],
+        "past": [
+          "found"
+        ],
+        "pastParticiple": [
+          "found"
+        ],
+        "ing": [
+          "finding"
+        ]
+      }
+    },
+    "finish": {
+      "ko": "마치다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "finishes"
+        ],
+        "past": [
+          "finished"
+        ],
+        "pastParticiple": [
+          "finished"
+        ],
+        "ing": [
+          "finishing"
+        ]
+      }
+    },
+    "fix": {
+      "ko": "고치다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "fixes"
+        ],
+        "past": [
+          "fixed"
+        ],
+        "pastParticiple": [
+          "fixed"
+        ],
+        "ing": [
+          "fixing"
+        ]
+      }
+    },
+    "fly": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "flies"
+        ],
+        "past": [
+          "flew"
+        ],
+        "pastParticiple": [
+          "flown"
+        ],
+        "ing": [
+          "flying"
+        ]
+      }
+    },
+    "focus": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "focuses"
+        ],
+        "past": [
+          "focused",
+          "focussed"
+        ],
+        "pastParticiple": [
+          "focused",
+          "focussed"
+        ],
+        "ing": [
+          "focusing",
+          "focussing"
+        ]
+      }
+    },
+    "force": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "forces"
+        ],
+        "past": [
+          "forced"
+        ],
+        "pastParticiple": [
+          "forced"
+        ],
+        "ing": [
+          "forcing"
+        ]
+      }
+    },
+    "forget": {
+      "ko": "잊다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "forgets"
+        ],
+        "past": [
+          "forgot"
+        ],
+        "pastParticiple": [
+          "forgotten"
+        ],
+        "ing": [
+          "forgetting"
+        ]
+      }
+    },
+    "forgive": {
+      "ko": "용서하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "forgives"
+        ],
+        "past": [
+          "forgave"
+        ],
+        "pastParticiple": [
+          "forgiven"
+        ],
+        "ing": [
+          "forgiving"
+        ]
+      }
+    },
+    "freeze": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "freezes"
+        ],
+        "past": [
+          "froze"
+        ],
+        "pastParticiple": [
+          "frozen"
+        ],
+        "ing": [
+          "freezing"
+        ]
+      }
+    },
+    "gain": {
+      "ko": "얻어내다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "gains"
+        ],
+        "past": [
+          "gained"
+        ],
+        "pastParticiple": [
+          "gained"
+        ],
+        "ing": [
+          "gaining"
+        ]
+      }
+    },
+    "gather": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "gathers"
+        ],
+        "past": [
+          "gathered"
+        ],
+        "pastParticiple": [
+          "gathered"
+        ],
+        "ing": [
+          "gathering"
+        ]
+      }
+    },
+    "get": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "gets"
+        ],
+        "past": [
+          "got"
+        ],
+        "pastParticiple": [
+          "got",
+          "gotten"
+        ],
+        "ing": [
+          "getting"
+        ]
+      }
+    },
+    "give": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "gives"
+        ],
+        "past": [
+          "gave"
+        ],
+        "pastParticiple": [
+          "given"
+        ],
+        "ing": [
+          "giving"
+        ]
+      }
+    },
+    "go": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "goes"
+        ],
+        "past": [
+          "went"
+        ],
+        "pastParticiple": [
+          "gone"
+        ],
+        "ing": [
+          "going"
+        ]
+      }
+    },
+    "govern": {
+      "ko": "통치하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "governs"
+        ],
+        "past": [
+          "governed"
+        ],
+        "pastParticiple": [
+          "governed"
+        ],
+        "ing": [
+          "governing"
+        ]
+      }
+    },
+    "graduate": {
+      "ko": "졸업하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "graduates"
+        ],
+        "past": [
+          "graduated"
+        ],
+        "pastParticiple": [
+          "graduated"
+        ],
+        "ing": [
+          "graduating"
+        ]
+      }
+    },
+    "grow": {
+      "ko": "자라다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "grows"
+        ],
+        "past": [
+          "grew"
+        ],
+        "pastParticiple": [
+          "grown"
+        ],
+        "ing": [
+          "growing"
+        ]
+      }
+    },
+    "guarantee": {
+      "ko": "보증하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "guarantees"
+        ],
+        "past": [
+          "guaranteed"
+        ],
+        "pastParticiple": [
+          "guaranteed"
+        ],
+        "ing": [
+          "guaranteeing"
+        ]
+      }
+    },
+    "guess": {
+      "ko": "추측하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "guesses"
+        ],
+        "past": [
+          "guessed"
+        ],
+        "pastParticiple": [
+          "guessed"
+        ],
+        "ing": [
+          "guessing"
+        ]
+      }
+    },
+    "happen": {
+      "ko": "발생하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "happens"
+        ],
+        "past": [
+          "happened"
+        ],
+        "pastParticiple": [
+          "happened"
+        ],
+        "ing": [
+          "happening"
+        ]
+      }
+    },
+    "hate": {
+      "ko": "싫어하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "hates"
+        ],
+        "past": [
+          "hated"
+        ],
+        "pastParticiple": [
+          "hated"
+        ],
+        "ing": [
+          "hating"
+        ]
+      }
+    },
+    "have": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "has"
+        ],
+        "past": [
+          "had"
+        ],
+        "pastParticiple": [
+          "had"
+        ],
+        "ing": [
+          "having"
+        ]
+      }
+    },
+    "hear": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "hears"
+        ],
+        "past": [
+          "heard"
+        ],
+        "pastParticiple": [
+          "heard"
+        ],
+        "ing": [
+          "hearing"
+        ]
+      }
+    },
+    "help": {
+      "ko": "돕다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "helps"
+        ],
+        "past": [
+          "helped"
+        ],
+        "pastParticiple": [
+          "helped"
+        ],
+        "ing": [
+          "helping"
+        ]
+      }
+    },
+    "hide": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "hides"
+        ],
+        "past": [
+          "hid"
+        ],
+        "pastParticiple": [
+          "hidden"
+        ],
+        "ing": [
+          "hiding"
+        ]
+      }
+    },
+    "hit": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "hits"
+        ],
+        "past": [
+          "hit"
+        ],
+        "pastParticiple": [
+          "hit"
+        ],
+        "ing": [
+          "hitting"
+        ]
+      }
+    },
+    "hold": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "holds"
+        ],
+        "past": [
+          "held"
+        ],
+        "pastParticiple": [
+          "held"
+        ],
+        "ing": [
+          "holding"
+        ]
+      }
+    },
+    "hope": {
+      "ko": "바라다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "hopes"
+        ],
+        "past": [
+          "hoped"
+        ],
+        "pastParticiple": [
+          "hoped"
+        ],
+        "ing": [
+          "hoping"
+        ]
+      }
+    },
+    "hurry": {
+      "ko": "서두르다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "hurries"
+        ],
+        "past": [
+          "hurried"
+        ],
+        "pastParticiple": [
+          "hurried"
+        ],
+        "ing": [
+          "hurrying"
+        ]
+      }
+    },
+    "identify": {
+      "ko": "식별하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "identifies"
+        ],
+        "past": [
+          "identified"
+        ],
+        "pastParticiple": [
+          "identified"
+        ],
+        "ing": [
+          "identifying"
+        ]
+      }
+    },
+    "imagine": {
+      "ko": "상상하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "imagines"
+        ],
+        "past": [
+          "imagined"
+        ],
+        "pastParticiple": [
+          "imagined"
+        ],
+        "ing": [
+          "imagining"
+        ]
+      }
+    },
+    "imply": {
+      "ko": "암시하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "implies"
+        ],
+        "past": [
+          "implied"
+        ],
+        "pastParticiple": [
+          "implied"
+        ],
+        "ing": [
+          "implying"
+        ]
+      }
+    },
+    "impose": {
+      "ko": "부과하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "imposes"
+        ],
+        "past": [
+          "imposed"
+        ],
+        "pastParticiple": [
+          "imposed"
+        ],
+        "ing": [
+          "imposing"
+        ]
+      }
+    },
+    "improve": {
+      "ko": "개선하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "improves"
+        ],
+        "past": [
+          "improved"
+        ],
+        "pastParticiple": [
+          "improved"
+        ],
+        "ing": [
+          "improving"
+        ]
+      }
+    },
+    "include": {
+      "ko": "포함하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "includes"
+        ],
+        "past": [
+          "included"
+        ],
+        "pastParticiple": [
+          "included"
+        ],
+        "ing": [
+          "including"
+        ]
+      }
+    },
+    "increase": {
+      "ko": "증가하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "increases"
+        ],
+        "past": [
+          "increased"
+        ],
+        "pastParticiple": [
+          "increased"
+        ],
+        "ing": [
+          "increasing"
+        ]
+      }
+    },
+    "inform": {
+      "ko": "알리다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "informs"
+        ],
+        "past": [
+          "informed"
+        ],
+        "pastParticiple": [
+          "informed"
+        ],
+        "ing": [
+          "informing"
+        ]
+      }
+    },
+    "inherit": {
+      "ko": "상속하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "inherits"
+        ],
+        "past": [
+          "inherited"
+        ],
+        "pastParticiple": [
+          "inherited"
+        ],
+        "ing": [
+          "inheriting"
+        ]
+      }
+    },
+    "insult": {
+      "ko": "모욕하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "insults"
+        ],
+        "past": [
+          "insulted"
+        ],
+        "pastParticiple": [
+          "insulted"
+        ],
+        "ing": [
+          "insulting"
+        ]
+      }
+    },
+    "intend": {
+      "ko": "의도하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "intends"
+        ],
+        "past": [
+          "intended"
+        ],
+        "pastParticiple": [
+          "intended"
+        ],
+        "ing": [
+          "intending"
+        ]
+      }
+    },
+    "interpret": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "interprets"
+        ],
+        "past": [
+          "interpreted"
+        ],
+        "pastParticiple": [
+          "interpreted"
+        ],
+        "ing": [
+          "interpreting"
+        ]
+      }
+    },
+    "interrupt": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "interrupts"
+        ],
+        "past": [
+          "interrupted"
+        ],
+        "pastParticiple": [
+          "interrupted"
+        ],
+        "ing": [
+          "interrupting"
+        ]
+      }
+    },
+    "introduce": {
+      "ko": "소개하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "introduces"
+        ],
+        "past": [
+          "introduced"
+        ],
+        "pastParticiple": [
+          "introduced"
+        ],
+        "ing": [
+          "introducing"
+        ]
+      }
+    },
+    "invent": {
+      "ko": "발명하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "invents"
+        ],
+        "past": [
+          "invented"
+        ],
+        "pastParticiple": [
+          "invented"
+        ],
+        "ing": [
+          "inventing"
+        ]
+      }
+    },
+    "invite": {
+      "ko": "초대하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "invites"
+        ],
+        "past": [
+          "invited"
+        ],
+        "pastParticiple": [
+          "invited"
+        ],
+        "ing": [
+          "inviting"
+        ]
+      }
+    },
+    "involve": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "involves"
+        ],
+        "past": [
+          "involved"
+        ],
+        "pastParticiple": [
+          "involved"
+        ],
+        "ing": [
+          "involving"
+        ]
+      }
+    },
+    "join": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "joins"
+        ],
+        "past": [
+          "joined"
+        ],
+        "pastParticiple": [
+          "joined"
+        ],
+        "ing": [
+          "joining"
+        ]
+      }
+    },
+    "judge": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "judges"
+        ],
+        "past": [
+          "judged"
+        ],
+        "pastParticiple": [
+          "judged"
+        ],
+        "ing": [
+          "judging"
+        ]
+      }
+    },
+    "jump": {
+      "ko": "뛰어오르다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "jumps"
+        ],
+        "past": [
+          "jumped"
+        ],
+        "pastParticiple": [
+          "jumped"
+        ],
+        "ing": [
+          "jumping"
+        ]
+      }
+    },
+    "keep": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "keeps"
+        ],
+        "past": [
+          "kept"
+        ],
+        "pastParticiple": [
+          "kept"
+        ],
+        "ing": [
+          "keeping"
+        ]
+      }
+    },
+    "kill": {
+      "ko": "죽이다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "kills"
+        ],
+        "past": [
+          "killed"
+        ],
+        "pastParticiple": [
+          "killed"
+        ],
+        "ing": [
+          "killing"
+        ]
+      }
+    },
+    "kiss": {
+      "ko": "키스하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "kisses"
+        ],
+        "past": [
+          "kissed"
+        ],
+        "pastParticiple": [
+          "kissed"
+        ],
+        "ing": [
+          "kissing"
+        ]
+      }
+    },
+    "knock": {
+      "ko": "두드리다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "knocks"
+        ],
+        "past": [
+          "knocked"
+        ],
+        "pastParticiple": [
+          "knocked"
+        ],
+        "ing": [
+          "knocking"
+        ]
+      }
+    },
+    "know": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "knows"
+        ],
+        "past": [
+          "knew"
+        ],
+        "pastParticiple": [
+          "known"
+        ],
+        "ing": [
+          "knowing"
+        ]
+      }
+    },
+    "laugh": {
+      "ko": "웃다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "laughs"
+        ],
+        "past": [
+          "laughed"
+        ],
+        "pastParticiple": [
+          "laughed"
+        ],
+        "ing": [
+          "laughing"
+        ]
+      }
+    },
+    "lead": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "leads"
+        ],
+        "past": [
+          "led"
+        ],
+        "pastParticiple": [
+          "led"
+        ],
+        "ing": [
+          "leading"
+        ]
+      }
+    },
+    "leak": {
+      "ko": "새다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "leaks"
+        ],
+        "past": [
+          "leaked"
+        ],
+        "pastParticiple": [
+          "leaked"
+        ],
+        "ing": [
+          "leaking"
+        ]
+      }
+    },
+    "learn": {
+      "ko": "배우다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "learns"
+        ],
+        "past": [
+          "learned",
+          "learnt"
+        ],
+        "pastParticiple": [
+          "learned",
+          "learnt"
+        ],
+        "ing": [
+          "learning"
+        ]
+      }
+    },
+    "lease": {
+      "ko": "임대하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "leases"
+        ],
+        "past": [
+          "leased"
+        ],
+        "pastParticiple": [
+          "leased"
+        ],
+        "ing": [
+          "leasing"
+        ]
+      }
+    },
+    "leave": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "leaves"
+        ],
+        "past": [
+          "left"
+        ],
+        "pastParticiple": [
+          "left"
+        ],
+        "ing": [
+          "leaving"
+        ]
+      }
+    },
+    "lend": {
+      "ko": "빌려주다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "lends"
+        ],
+        "past": [
+          "lent"
+        ],
+        "pastParticiple": [
+          "lent"
+        ],
+        "ing": [
+          "lending"
+        ]
+      }
+    },
+    "like": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "likes"
+        ],
+        "past": [
+          "liked"
+        ],
+        "pastParticiple": [
+          "liked"
+        ],
+        "ing": [
+          "liking"
+        ]
+      }
+    },
+    "listen": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "listens"
+        ],
+        "past": [
+          "listened"
+        ],
+        "pastParticiple": [
+          "listened"
+        ],
+        "ing": [
+          "listening"
+        ]
+      }
+    },
+    "live": {
+      "ko": "살다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "lives"
+        ],
+        "past": [
+          "lived"
+        ],
+        "pastParticiple": [
+          "lived"
+        ],
+        "ing": [
+          "living"
+        ]
+      }
+    },
+    "lock": {
+      "ko": "잠그다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "locks"
+        ],
+        "past": [
+          "locked"
+        ],
+        "pastParticiple": [
+          "locked"
+        ],
+        "ing": [
+          "locking"
+        ]
+      }
+    },
+    "look": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "looks"
+        ],
+        "past": [
+          "looked"
+        ],
+        "pastParticiple": [
+          "looked"
+        ],
+        "ing": [
+          "looking"
+        ]
+      }
+    },
+    "lose": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "loses"
+        ],
+        "past": [
+          "lost"
+        ],
+        "pastParticiple": [
+          "lost"
+        ],
+        "ing": [
+          "losing"
+        ]
+      }
+    },
+    "love": {
+      "ko": "사랑하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "loves"
+        ],
+        "past": [
+          "loved"
+        ],
+        "pastParticiple": [
+          "loved"
+        ],
+        "ing": [
+          "loving"
+        ]
+      }
+    },
+    "maintain": {
+      "ko": "유지하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "maintains"
+        ],
+        "past": [
+          "maintained"
+        ],
+        "pastParticiple": [
+          "maintained"
+        ],
+        "ing": [
+          "maintaining"
+        ]
+      }
+    },
+    "make": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "makes"
+        ],
+        "past": [
+          "made"
+        ],
+        "pastParticiple": [
+          "made"
+        ],
+        "ing": [
+          "making"
+        ]
+      }
+    },
+    "manage": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "manages"
+        ],
+        "past": [
+          "managed"
+        ],
+        "pastParticiple": [
+          "managed"
+        ],
+        "ing": [
+          "managing"
+        ]
+      }
+    },
+    "marry": {
+      "ko": "결혼하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "marries"
+        ],
+        "past": [
+          "married"
+        ],
+        "pastParticiple": [
+          "married"
+        ],
+        "ing": [
+          "marrying"
+        ]
+      }
+    },
+    "matter": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "matters"
+        ],
+        "past": [
+          "mattered"
+        ],
+        "pastParticiple": [
+          "mattered"
+        ],
+        "ing": [
+          "mattering"
+        ]
+      }
+    },
+    "mean": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "means"
+        ],
+        "past": [
+          "meant"
+        ],
+        "pastParticiple": [
+          "meant"
+        ],
+        "ing": [
+          "meaning"
+        ]
+      }
+    },
+    "measure": {
+      "ko": "측정하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "measures"
+        ],
+        "past": [
+          "measured"
+        ],
+        "pastParticiple": [
+          "measured"
+        ],
+        "ing": [
+          "measuring"
+        ]
+      }
+    },
+    "meet": {
+      "ko": "만나다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "meets"
+        ],
+        "past": [
+          "met"
+        ],
+        "pastParticiple": [
+          "met"
+        ],
+        "ing": [
+          "meeting"
+        ]
+      }
+    },
+    "memorize": {
+      "ko": "암기하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "memorizes"
+        ],
+        "past": [
+          "memorized"
+        ],
+        "pastParticiple": [
+          "memorized"
+        ],
+        "ing": [
+          "memorizing"
+        ]
+      }
+    },
+    "mention": {
+      "ko": "언급하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "mentions"
+        ],
+        "past": [
+          "mentioned"
+        ],
+        "pastParticiple": [
+          "mentioned"
+        ],
+        "ing": [
+          "mentioning"
+        ]
+      }
+    },
+    "mind": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "minds"
+        ],
+        "past": [
+          "minded"
+        ],
+        "pastParticiple": [
+          "minded"
+        ],
+        "ing": [
+          "minding"
+        ]
+      }
+    },
+    "miss": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "misses"
+        ],
+        "past": [
+          "missed"
+        ],
+        "pastParticiple": [
+          "missed"
+        ],
+        "ing": [
+          "missing"
+        ]
+      }
+    },
+    "mourn": {
+      "ko": "슬퍼하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "mourns"
+        ],
+        "past": [
+          "mourned"
+        ],
+        "pastParticiple": [
+          "mourned"
+        ],
+        "ing": [
+          "mourning"
+        ]
+      }
+    },
+    "move": {
+      "ko": "움직이다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "moves"
+        ],
+        "past": [
+          "moved"
+        ],
+        "pastParticiple": [
+          "moved"
+        ],
+        "ing": [
+          "moving"
+        ]
+      }
+    },
+    "need": {
+      "ko": "필요하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "needs"
+        ],
+        "past": [
+          "needed"
+        ],
+        "pastParticiple": [
+          "needed"
+        ],
+        "ing": [
+          "needing"
+        ]
+      }
+    },
+    "notice": {
+      "ko": "알아차리다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "notices"
+        ],
+        "past": [
+          "noticed"
+        ],
+        "pastParticiple": [
+          "noticed"
+        ],
+        "ing": [
+          "noticing"
+        ]
+      }
+    },
+    "obey": {
+      "ko": "복종하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "obeys"
+        ],
+        "past": [
+          "obeyed"
+        ],
+        "pastParticiple": [
+          "obeyed"
+        ],
+        "ing": [
+          "obeying"
+        ]
+      }
+    },
+    "observe": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "observes"
+        ],
+        "past": [
+          "observed"
+        ],
+        "pastParticiple": [
+          "observed"
+        ],
+        "ing": [
+          "observing"
+        ]
+      }
+    },
+    "offer": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "offers"
+        ],
+        "past": [
+          "offered"
+        ],
+        "pastParticiple": [
+          "offered"
+        ],
+        "ing": [
+          "offering"
+        ]
+      }
+    },
+    "open": {
+      "ko": "열다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "opens"
+        ],
+        "past": [
+          "opened"
+        ],
+        "pastParticiple": [
+          "opened"
+        ],
+        "ing": [
+          "opening"
+        ]
+      }
+    },
+    "operate": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "operates"
+        ],
+        "past": [
+          "operated"
+        ],
+        "pastParticiple": [
+          "operated"
+        ],
+        "ing": [
+          "operating"
+        ]
+      }
+    },
+    "order": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "orders"
+        ],
+        "past": [
+          "ordered"
+        ],
+        "pastParticiple": [
+          "ordered"
+        ],
+        "ing": [
+          "ordering"
+        ]
+      }
+    },
+    "organize": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "organizes"
+        ],
+        "past": [
+          "organized"
+        ],
+        "pastParticiple": [
+          "organized"
+        ],
+        "ing": [
+          "organizing"
+        ]
+      }
+    },
+    "overcome": {
+      "ko": "극복하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "overcomes"
+        ],
+        "past": [
+          "overcame"
+        ],
+        "pastParticiple": [
+          "overcome"
+        ],
+        "ing": [
+          "overcoming"
+        ]
+      }
+    },
+    "own": {
+      "ko": "소유하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "owns"
+        ],
+        "past": [
+          "owned"
+        ],
+        "pastParticiple": [
+          "owned"
+        ],
+        "ing": [
+          "owning"
+        ]
+      }
+    },
+    "paint": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "paints"
+        ],
+        "past": [
+          "painted"
+        ],
+        "pastParticiple": [
+          "painted"
+        ],
+        "ing": [
+          "painting"
+        ]
+      }
+    },
+    "pass": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "passes"
+        ],
+        "past": [
+          "passed"
+        ],
+        "pastParticiple": [
+          "passed"
+        ],
+        "ing": [
+          "passing"
+        ]
+      }
+    },
+    "pay": {
+      "ko": "지불하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "pays"
+        ],
+        "past": [
+          "paid"
+        ],
+        "pastParticiple": [
+          "paid"
+        ],
+        "ing": [
+          "paying"
+        ]
+      }
+    },
+    "perceive": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "perceives"
+        ],
+        "past": [
+          "perceived"
+        ],
+        "pastParticiple": [
+          "perceived"
+        ],
+        "ing": [
+          "perceiving"
+        ]
+      }
+    },
+    "perform": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "performs"
+        ],
+        "past": [
+          "performed"
+        ],
+        "pastParticiple": [
+          "performed"
+        ],
+        "ing": [
+          "performing"
+        ]
+      }
+    },
+    "plan": {
+      "ko": "계획하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "plans"
+        ],
+        "past": [
+          "planned"
+        ],
+        "pastParticiple": [
+          "planned"
+        ],
+        "ing": [
+          "planning"
+        ]
+      }
+    },
+    "plant": {
+      "ko": "심다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "plants"
+        ],
+        "past": [
+          "planted"
+        ],
+        "pastParticiple": [
+          "planted"
+        ],
+        "ing": [
+          "planting"
+        ]
+      }
+    },
+    "play": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "plays"
+        ],
+        "past": [
+          "played"
+        ],
+        "pastParticiple": [
+          "played"
+        ],
+        "ing": [
+          "playing"
+        ]
+      }
+    },
+    "pour": {
+      "ko": "붓다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "pours"
+        ],
+        "past": [
+          "poured"
+        ],
+        "pastParticiple": [
+          "poured"
+        ],
+        "ing": [
+          "pouring"
+        ]
+      }
+    },
+    "practice": {
+      "ko": "연습하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "practices"
+        ],
+        "past": [
+          "practiced"
+        ],
+        "pastParticiple": [
+          "practiced"
+        ],
+        "ing": [
+          "practicing"
+        ]
+      }
+    },
+    "preach": {
+      "ko": "설교하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "preaches"
+        ],
+        "past": [
+          "preached"
+        ],
+        "pastParticiple": [
+          "preached"
+        ],
+        "ing": [
+          "preaching"
+        ]
+      }
+    },
+    "prefer": {
+      "ko": "선호하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "prefers"
+        ],
+        "past": [
+          "preferred"
+        ],
+        "pastParticiple": [
+          "preferred"
+        ],
+        "ing": [
+          "preferring"
+        ]
+      }
+    },
+    "prepare": {
+      "ko": "준비하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "prepares"
+        ],
+        "past": [
+          "prepared"
+        ],
+        "pastParticiple": [
+          "prepared"
+        ],
+        "ing": [
+          "preparing"
+        ]
+      }
+    },
+    "preserve": {
+      "ko": "보존하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "preserves"
+        ],
+        "past": [
+          "preserved"
+        ],
+        "pastParticiple": [
+          "preserved"
+        ],
+        "ing": [
+          "preserving"
+        ]
+      }
+    },
+    "press": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "presses"
+        ],
+        "past": [
+          "pressed"
+        ],
+        "pastParticiple": [
+          "pressed"
+        ],
+        "ing": [
+          "pressing"
+        ]
+      }
+    },
+    "prevent": {
+      "ko": "막다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "prevents"
+        ],
+        "past": [
+          "prevented"
+        ],
+        "pastParticiple": [
+          "prevented"
+        ],
+        "ing": [
+          "preventing"
+        ]
+      }
+    },
+    "print": {
+      "ko": "인쇄하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "prints"
+        ],
+        "past": [
+          "printed"
+        ],
+        "pastParticiple": [
+          "printed"
+        ],
+        "ing": [
+          "printing"
+        ]
+      }
+    },
+    "proceed": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "proceeds"
+        ],
+        "past": [
+          "proceeded"
+        ],
+        "pastParticiple": [
+          "proceeded"
+        ],
+        "ing": [
+          "proceeding"
+        ]
+      }
+    },
+    "produce": {
+      "ko": "생산하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "produces"
+        ],
+        "past": [
+          "produced"
+        ],
+        "pastParticiple": [
+          "produced"
+        ],
+        "ing": [
+          "producing"
+        ]
+      }
+    },
+    "promise": {
+      "ko": "약속하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "promises"
+        ],
+        "past": [
+          "promised"
+        ],
+        "pastParticiple": [
+          "promised"
+        ],
+        "ing": [
+          "promising"
+        ]
+      }
+    },
+    "propose": {
+      "ko": "제안하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "proposes"
+        ],
+        "past": [
+          "proposed"
+        ],
+        "pastParticiple": [
+          "proposed"
+        ],
+        "ing": [
+          "proposing"
+        ]
+      }
+    },
+    "protect": {
+      "ko": "보호하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "protects"
+        ],
+        "past": [
+          "protected"
+        ],
+        "pastParticiple": [
+          "protected"
+        ],
+        "ing": [
+          "protecting"
+        ]
+      }
+    },
+    "protest": {
+      "ko": "항의하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "protests"
+        ],
+        "past": [
+          "protested"
+        ],
+        "pastParticiple": [
+          "protested"
+        ],
+        "ing": [
+          "protesting"
+        ]
+      }
+    },
+    "prove": {
+      "ko": "증명하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "proves"
+        ],
+        "past": [
+          "proved"
+        ],
+        "pastParticiple": [
+          "proved",
+          "proven"
+        ],
+        "ing": [
+          "proving"
+        ]
+      }
+    },
+    "provide": {
+      "ko": "제공하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "provides"
+        ],
+        "past": [
+          "provided"
+        ],
+        "pastParticiple": [
+          "provided"
+        ],
+        "ing": [
+          "providing"
+        ]
+      }
+    },
+    "publish": {
+      "ko": "출판하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "publishes"
+        ],
+        "past": [
+          "published"
+        ],
+        "pastParticiple": [
+          "published"
+        ],
+        "ing": [
+          "publishing"
+        ]
+      }
+    },
+    "pull": {
+      "ko": "당기다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "pulls"
+        ],
+        "past": [
+          "pulled"
+        ],
+        "pastParticiple": [
+          "pulled"
+        ],
+        "ing": [
+          "pulling"
+        ]
+      }
+    },
+    "purchase": {
+      "ko": "구입하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "purchases"
+        ],
+        "past": [
+          "purchased"
+        ],
+        "pastParticiple": [
+          "purchased"
+        ],
+        "ing": [
+          "purchasing"
+        ]
+      }
+    },
+    "push": {
+      "ko": "밀다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "pushes"
+        ],
+        "past": [
+          "pushed"
+        ],
+        "pastParticiple": [
+          "pushed"
+        ],
+        "ing": [
+          "pushing"
+        ]
+      }
+    },
+    "put": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "puts"
+        ],
+        "past": [
+          "put"
+        ],
+        "pastParticiple": [
+          "put"
+        ],
+        "ing": [
+          "putting"
+        ]
+      }
+    },
+    "raise": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "raises"
+        ],
+        "past": [
+          "raised"
+        ],
+        "pastParticiple": [
+          "raised"
+        ],
+        "ing": [
+          "raising"
+        ]
+      }
+    },
+    "reach": {
+      "ko": "도달하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "reaches"
+        ],
+        "past": [
+          "reached"
+        ],
+        "pastParticiple": [
+          "reached"
+        ],
+        "ing": [
+          "reaching"
+        ]
+      }
+    },
+    "read": {
+      "ko": "읽다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "reads"
+        ],
+        "past": [
+          "read"
+        ],
+        "pastParticiple": [
+          "read"
+        ],
+        "ing": [
+          "reading"
+        ]
+      }
+    },
+    "realize": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "realizes"
+        ],
+        "past": [
+          "realized"
+        ],
+        "pastParticiple": [
+          "realized"
+        ],
+        "ing": [
+          "realizing"
+        ]
+      }
+    },
+    "receive": {
+      "ko": "받다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "receives"
+        ],
+        "past": [
+          "received"
+        ],
+        "pastParticiple": [
+          "received"
+        ],
+        "ing": [
+          "receiving"
+        ]
+      }
+    },
+    "recognize": {
+      "ko": "인식하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "recognizes"
+        ],
+        "past": [
+          "recognized"
+        ],
+        "pastParticiple": [
+          "recognized"
+        ],
+        "ing": [
+          "recognizing"
+        ]
+      }
+    },
+    "recommend": {
+      "ko": "추천하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "recommends"
+        ],
+        "past": [
+          "recommended"
+        ],
+        "pastParticiple": [
+          "recommended"
+        ],
+        "ing": [
+          "recommending"
+        ]
+      }
+    },
+    "record": {
+      "ko": "기록하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "records"
+        ],
+        "past": [
+          "recorded"
+        ],
+        "pastParticiple": [
+          "recorded"
+        ],
+        "ing": [
+          "recording"
+        ]
+      }
+    },
+    "reduce": {
+      "ko": "줄이다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "reduces"
+        ],
+        "past": [
+          "reduced"
+        ],
+        "pastParticiple": [
+          "reduced"
+        ],
+        "ing": [
+          "reducing"
+        ]
+      }
+    },
+    "refer": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "refers"
+        ],
+        "past": [
+          "referred"
+        ],
+        "pastParticiple": [
+          "referred"
+        ],
+        "ing": [
+          "referring"
+        ]
+      }
+    },
+    "reflect": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "reflects"
+        ],
+        "past": [
+          "reflected"
+        ],
+        "pastParticiple": [
+          "reflected"
+        ],
+        "ing": [
+          "reflecting"
+        ]
+      }
+    },
+    "reform": {
+      "ko": "개혁하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "reforms"
+        ],
+        "past": [
+          "reformed"
+        ],
+        "pastParticiple": [
+          "reformed"
+        ],
+        "ing": [
+          "reforming"
+        ]
+      }
+    },
+    "refuse": {
+      "ko": "거절하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "refuses"
+        ],
+        "past": [
+          "refused"
+        ],
+        "pastParticiple": [
+          "refused"
+        ],
+        "ing": [
+          "refusing"
+        ]
+      }
+    },
+    "register": {
+      "ko": "등록하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "registers"
+        ],
+        "past": [
+          "registered"
+        ],
+        "pastParticiple": [
+          "registered"
+        ],
+        "ing": [
+          "registering"
+        ]
+      }
+    },
+    "regret": {
+      "ko": "후회하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "regrets"
+        ],
+        "past": [
+          "regretted"
+        ],
+        "pastParticiple": [
+          "regretted"
+        ],
+        "ing": [
+          "regretting"
+        ]
+      }
+    },
+    "relax": {
+      "ko": "휴식하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "relaxes"
+        ],
+        "past": [
+          "relaxed"
+        ],
+        "pastParticiple": [
+          "relaxed"
+        ],
+        "ing": [
+          "relaxing"
+        ]
+      }
+    },
+    "remain": {
+      "ko": "남아 있다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "remains"
+        ],
+        "past": [
+          "remained"
+        ],
+        "pastParticiple": [
+          "remained"
+        ],
+        "ing": [
+          "remaining"
+        ]
+      }
+    },
+    "remember": {
+      "ko": "기억하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "remembers"
+        ],
+        "past": [
+          "remembered"
+        ],
+        "pastParticiple": [
+          "remembered"
+        ],
+        "ing": [
+          "remembering"
+        ]
+      }
+    },
+    "remove": {
+      "ko": "제거하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "removes"
+        ],
+        "past": [
+          "removed"
+        ],
+        "pastParticiple": [
+          "removed"
+        ],
+        "ing": [
+          "removing"
+        ]
+      }
+    },
+    "repair": {
+      "ko": "수리하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "repairs"
+        ],
+        "past": [
+          "repaired"
+        ],
+        "pastParticiple": [
+          "repaired"
+        ],
+        "ing": [
+          "repairing"
+        ]
+      }
+    },
+    "repeat": {
+      "ko": "반복하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "repeats"
+        ],
+        "past": [
+          "repeated"
+        ],
+        "pastParticiple": [
+          "repeated"
+        ],
+        "ing": [
+          "repeating"
+        ]
+      }
+    },
+    "replace": {
+      "ko": "교체하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "replaces"
+        ],
+        "past": [
+          "replaced"
+        ],
+        "pastParticiple": [
+          "replaced"
+        ],
+        "ing": [
+          "replacing"
+        ]
+      }
+    },
+    "reply": {
+      "ko": "답장하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "replies"
+        ],
+        "past": [
+          "replied"
+        ],
+        "pastParticiple": [
+          "replied"
+        ],
+        "ing": [
+          "replying"
+        ]
+      }
+    },
+    "report": {
+      "ko": "보고하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "reports"
+        ],
+        "past": [
+          "reported"
+        ],
+        "pastParticiple": [
+          "reported"
+        ],
+        "ing": [
+          "reporting"
+        ]
+      }
+    },
+    "require": {
+      "ko": "요구하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "requires"
+        ],
+        "past": [
+          "required"
+        ],
+        "pastParticiple": [
+          "required"
+        ],
+        "ing": [
+          "requiring"
+        ]
+      }
+    },
+    "reserve": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "reserves"
+        ],
+        "past": [
+          "reserved"
+        ],
+        "pastParticiple": [
+          "reserved"
+        ],
+        "ing": [
+          "reserving"
+        ]
+      }
+    },
+    "resist": {
+      "ko": "저항하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "resists"
+        ],
+        "past": [
+          "resisted"
+        ],
+        "pastParticiple": [
+          "resisted"
+        ],
+        "ing": [
+          "resisting"
+        ]
+      }
+    },
+    "respond": {
+      "ko": "응답하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "responds"
+        ],
+        "past": [
+          "responded"
+        ],
+        "pastParticiple": [
+          "responded"
+        ],
+        "ing": [
+          "responding"
+        ]
+      }
+    },
+    "rest": {
+      "ko": "쉬다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "rests"
+        ],
+        "past": [
+          "rested"
+        ],
+        "pastParticiple": [
+          "rested"
+        ],
+        "ing": [
+          "resting"
+        ]
+      }
+    },
+    "retire": {
+      "ko": "은퇴하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "retires"
+        ],
+        "past": [
+          "retired"
+        ],
+        "pastParticiple": [
+          "retired"
+        ],
+        "ing": [
+          "retiring"
+        ]
+      }
+    },
+    "return": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "returns"
+        ],
+        "past": [
+          "returned"
+        ],
+        "pastParticiple": [
+          "returned"
+        ],
+        "ing": [
+          "returning"
+        ]
+      }
+    },
+    "reveal": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "reveals"
+        ],
+        "past": [
+          "revealed"
+        ],
+        "pastParticiple": [
+          "revealed"
+        ],
+        "ing": [
+          "revealing"
+        ]
+      }
+    },
+    "ride": {
+      "ko": "타다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "rides"
+        ],
+        "past": [
+          "rode"
+        ],
+        "pastParticiple": [
+          "ridden"
+        ],
+        "ing": [
+          "riding"
+        ]
+      }
+    },
+    "rise": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "rises"
+        ],
+        "past": [
+          "rose"
+        ],
+        "pastParticiple": [
+          "risen"
+        ],
+        "ing": [
+          "rising"
+        ]
+      }
+    },
+    "run": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "runs"
+        ],
+        "past": [
+          "ran"
+        ],
+        "pastParticiple": [
+          "run"
+        ],
+        "ing": [
+          "running"
+        ]
+      }
+    },
+    "save": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "saves"
+        ],
+        "past": [
+          "saved"
+        ],
+        "pastParticiple": [
+          "saved"
+        ],
+        "ing": [
+          "saving"
+        ]
+      }
+    },
+    "say": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "says"
+        ],
+        "past": [
+          "said"
+        ],
+        "pastParticiple": [
+          "said"
+        ],
+        "ing": [
+          "saying"
+        ]
+      }
+    },
+    "search": {
+      "ko": "검색하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "searches"
+        ],
+        "past": [
+          "searched"
+        ],
+        "pastParticiple": [
+          "searched"
+        ],
+        "ing": [
+          "searching"
+        ]
+      }
+    },
+    "see": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "sees"
+        ],
+        "past": [
+          "saw"
+        ],
+        "pastParticiple": [
+          "seen"
+        ],
+        "ing": [
+          "seeing"
+        ]
+      }
+    },
+    "seem": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "seems"
+        ],
+        "past": [
+          "seemed"
+        ],
+        "pastParticiple": [
+          "seemed"
+        ],
+        "ing": [
+          "seeming"
+        ]
+      }
+    },
+    "sell": {
+      "ko": "팔다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "sells"
+        ],
+        "past": [
+          "sold"
+        ],
+        "pastParticiple": [
+          "sold"
+        ],
+        "ing": [
+          "selling"
+        ]
+      }
+    },
+    "send": {
+      "ko": "보내다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "sends"
+        ],
+        "past": [
+          "sent"
+        ],
+        "pastParticiple": [
+          "sent"
+        ],
+        "ing": [
+          "sending"
+        ]
+      }
+    },
+    "separate": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "separates"
+        ],
+        "past": [
+          "separated"
+        ],
+        "pastParticiple": [
+          "separated"
+        ],
+        "ing": [
+          "separating"
+        ]
+      }
+    },
+    "serve": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "serves"
+        ],
+        "past": [
+          "served"
+        ],
+        "pastParticiple": [
+          "served"
+        ],
+        "ing": [
+          "serving"
+        ]
+      }
+    },
+    "set": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "sets"
+        ],
+        "past": [
+          "set"
+        ],
+        "pastParticiple": [
+          "set"
+        ],
+        "ing": [
+          "setting"
+        ]
+      }
+    },
+    "share": {
+      "ko": "공유하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "shares"
+        ],
+        "past": [
+          "shared"
+        ],
+        "pastParticiple": [
+          "shared"
+        ],
+        "ing": [
+          "sharing"
+        ]
+      }
+    },
+    "shoot": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "shoots"
+        ],
+        "past": [
+          "shot"
+        ],
+        "pastParticiple": [
+          "shot"
+        ],
+        "ing": [
+          "shooting"
+        ]
+      }
+    },
+    "shout": {
+      "ko": "외치다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "shouts"
+        ],
+        "past": [
+          "shouted"
+        ],
+        "pastParticiple": [
+          "shouted"
+        ],
+        "ing": [
+          "shouting"
+        ]
+      }
+    },
+    "show": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "shows"
+        ],
+        "past": [
+          "showed"
+        ],
+        "pastParticiple": [
+          "shown",
+          "showed"
+        ],
+        "ing": [
+          "showing"
+        ]
+      }
+    },
+    "sing": {
+      "ko": "노래하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "sings"
+        ],
+        "past": [
+          "sang"
+        ],
+        "pastParticiple": [
+          "sung"
+        ],
+        "ing": [
+          "singing"
+        ]
+      }
+    },
+    "sit": {
+      "ko": "앉다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "sits"
+        ],
+        "past": [
+          "sat"
+        ],
+        "pastParticiple": [
+          "sat"
+        ],
+        "ing": [
+          "sitting"
+        ]
+      }
+    },
+    "sleep": {
+      "ko": "자다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "sleeps"
+        ],
+        "past": [
+          "slept"
+        ],
+        "pastParticiple": [
+          "slept"
+        ],
+        "ing": [
+          "sleeping"
+        ]
+      }
+    },
+    "slide": {
+      "ko": "미끄러지다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "slides"
+        ],
+        "past": [
+          "slid"
+        ],
+        "pastParticiple": [
+          "slid"
+        ],
+        "ing": [
+          "sliding"
+        ]
+      }
+    },
+    "smile": {
+      "ko": "미소 짓다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "smiles"
+        ],
+        "past": [
+          "smiled"
+        ],
+        "pastParticiple": [
+          "smiled"
+        ],
+        "ing": [
+          "smiling"
+        ]
+      }
+    },
+    "solve": {
+      "ko": "해결하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "solves"
+        ],
+        "past": [
+          "solved"
+        ],
+        "pastParticiple": [
+          "solved"
+        ],
+        "ing": [
+          "solving"
+        ]
+      }
+    },
+    "speak": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "speaks"
+        ],
+        "past": [
+          "spoke"
+        ],
+        "pastParticiple": [
+          "spoken"
+        ],
+        "ing": [
+          "speaking"
+        ]
+      }
+    },
+    "spend": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "spends"
+        ],
+        "past": [
+          "spent"
+        ],
+        "pastParticiple": [
+          "spent"
+        ],
+        "ing": [
+          "spending"
+        ]
+      }
+    },
+    "stand": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "stands"
+        ],
+        "past": [
+          "stood"
+        ],
+        "pastParticiple": [
+          "stood"
+        ],
+        "ing": [
+          "standing"
+        ]
+      }
+    },
+    "stare": {
+      "ko": "응시하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "stares"
+        ],
+        "past": [
+          "stared"
+        ],
+        "pastParticiple": [
+          "stared"
+        ],
+        "ing": [
+          "staring"
+        ]
+      }
+    },
+    "start": {
+      "ko": "시작하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "starts"
+        ],
+        "past": [
+          "started"
+        ],
+        "pastParticiple": [
+          "started"
+        ],
+        "ing": [
+          "starting"
+        ]
+      }
+    },
+    "stay": {
+      "ko": "머무르다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "stays"
+        ],
+        "past": [
+          "stayed"
+        ],
+        "pastParticiple": [
+          "stayed"
+        ],
+        "ing": [
+          "staying"
+        ]
+      }
+    },
+    "steal": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "steals"
+        ],
+        "past": [
+          "stole"
+        ],
+        "pastParticiple": [
+          "stolen"
+        ],
+        "ing": [
+          "stealing"
+        ]
+      }
+    },
+    "stir": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "stirs"
+        ],
+        "past": [
+          "stirred"
+        ],
+        "pastParticiple": [
+          "stirred"
+        ],
+        "ing": [
+          "stirring"
+        ]
+      }
+    },
+    "stop": {
+      "ko": "멈추다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "stops"
+        ],
+        "past": [
+          "stopped"
+        ],
+        "pastParticiple": [
+          "stopped"
+        ],
+        "ing": [
+          "stopping"
+        ]
+      }
+    },
+    "study": {
+      "ko": "공부하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "studies"
+        ],
+        "past": [
+          "studied"
+        ],
+        "pastParticiple": [
+          "studied"
+        ],
+        "ing": [
+          "studying"
+        ]
+      }
+    },
+    "submit": {
+      "ko": "제출하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "submits"
+        ],
+        "past": [
+          "submitted"
+        ],
+        "pastParticiple": [
+          "submitted"
+        ],
+        "ing": [
+          "submitting"
+        ]
+      }
+    },
+    "succeed": {
+      "ko": "성공하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "succeeds"
+        ],
+        "past": [
+          "succeeded"
+        ],
+        "pastParticiple": [
+          "succeeded"
+        ],
+        "ing": [
+          "succeeding"
+        ]
+      }
+    },
+    "suggest": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "suggests"
+        ],
+        "past": [
+          "suggested"
+        ],
+        "pastParticiple": [
+          "suggested"
+        ],
+        "ing": [
+          "suggesting"
+        ]
+      }
+    },
+    "supply": {
+      "ko": "공급하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "supplies"
+        ],
+        "past": [
+          "supplied"
+        ],
+        "pastParticiple": [
+          "supplied"
+        ],
+        "ing": [
+          "supplying"
+        ]
+      }
+    },
+    "support": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "supports"
+        ],
+        "past": [
+          "supported"
+        ],
+        "pastParticiple": [
+          "supported"
+        ],
+        "ing": [
+          "supporting"
+        ]
+      }
+    },
+    "suppose": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "supposes"
+        ],
+        "past": [
+          "supposed"
+        ],
+        "pastParticiple": [
+          "supposed"
+        ],
+        "ing": [
+          "supposing"
+        ]
+      }
+    },
+    "survive": {
+      "ko": "생존하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "survives"
+        ],
+        "past": [
+          "survived"
+        ],
+        "pastParticiple": [
+          "survived"
+        ],
+        "ing": [
+          "surviving"
+        ]
+      }
+    },
+    "suspend": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "suspends"
+        ],
+        "past": [
+          "suspended"
+        ],
+        "pastParticiple": [
+          "suspended"
+        ],
+        "ing": [
+          "suspending"
+        ]
+      }
+    },
+    "swim": {
+      "ko": "수영하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "swims"
+        ],
+        "past": [
+          "swam"
+        ],
+        "pastParticiple": [
+          "swum"
+        ],
+        "ing": [
+          "swimming"
+        ]
+      }
+    },
+    "take": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "takes"
+        ],
+        "past": [
+          "took"
+        ],
+        "pastParticiple": [
+          "taken"
+        ],
+        "ing": [
+          "taking"
+        ]
+      }
+    },
+    "talk": {
+      "ko": "이야기하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "talks"
+        ],
+        "past": [
+          "talked"
+        ],
+        "pastParticiple": [
+          "talked"
+        ],
+        "ing": [
+          "talking"
+        ]
+      }
+    },
+    "teach": {
+      "ko": "가르치다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "teaches"
+        ],
+        "past": [
+          "taught"
+        ],
+        "pastParticiple": [
+          "taught"
+        ],
+        "ing": [
+          "teaching"
+        ]
+      }
+    },
+    "tell": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "tells"
+        ],
+        "past": [
+          "told"
+        ],
+        "pastParticiple": [
+          "told"
+        ],
+        "ing": [
+          "telling"
+        ]
+      }
+    },
+    "test": {
+      "ko": "시험하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "tests"
+        ],
+        "past": [
+          "tested"
+        ],
+        "pastParticiple": [
+          "tested"
+        ],
+        "ing": [
+          "testing"
+        ]
+      }
+    },
+    "thank": {
+      "ko": "감사하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "thanks"
+        ],
+        "past": [
+          "thanked"
+        ],
+        "pastParticiple": [
+          "thanked"
+        ],
+        "ing": [
+          "thanking"
+        ]
+      }
+    },
+    "think": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "thinks"
+        ],
+        "past": [
+          "thought"
+        ],
+        "pastParticiple": [
+          "thought"
+        ],
+        "ing": [
+          "thinking"
+        ]
+      }
+    },
+    "throw": {
+      "ko": "던지다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "throws"
+        ],
+        "past": [
+          "threw"
+        ],
+        "pastParticiple": [
+          "thrown"
+        ],
+        "ing": [
+          "throwing"
+        ]
+      }
+    },
+    "tie": {
+      "ko": "묶다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "ties"
+        ],
+        "past": [
+          "tied"
+        ],
+        "pastParticiple": [
+          "tied"
+        ],
+        "ing": [
+          "tying"
+        ]
+      }
+    },
+    "touch": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "touches"
+        ],
+        "past": [
+          "touched"
+        ],
+        "pastParticiple": [
+          "touched"
+        ],
+        "ing": [
+          "touching"
+        ]
+      }
+    },
+    "train": {
+      "ko": "훈련하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "trains"
+        ],
+        "past": [
+          "trained"
+        ],
+        "pastParticiple": [
+          "trained"
+        ],
+        "ing": [
+          "training"
+        ]
+      }
+    },
+    "translate": {
+      "ko": "번역하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "translates"
+        ],
+        "past": [
+          "translated"
+        ],
+        "pastParticiple": [
+          "translated"
+        ],
+        "ing": [
+          "translating"
+        ]
+      }
+    },
+    "transport": {
+      "ko": "수송하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "transports"
+        ],
+        "past": [
+          "transported"
+        ],
+        "pastParticiple": [
+          "transported"
+        ],
+        "ing": [
+          "transporting"
+        ]
+      }
+    },
+    "travel": {
+      "ko": "여행하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "travels"
+        ],
+        "past": [
+          "traveled",
+          "travelled"
+        ],
+        "pastParticiple": [
+          "traveled",
+          "travelled"
+        ],
+        "ing": [
+          "traveling",
+          "travelling"
+        ]
+      }
+    },
+    "treat": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "treats"
+        ],
+        "past": [
+          "treated"
+        ],
+        "pastParticiple": [
+          "treated"
+        ],
+        "ing": [
+          "treating"
+        ]
+      }
+    },
+    "trust": {
+      "ko": "신뢰하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "trusts"
+        ],
+        "past": [
+          "trusted"
+        ],
+        "pastParticiple": [
+          "trusted"
+        ],
+        "ing": [
+          "trusting"
+        ]
+      }
+    },
+    "try": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "tries"
+        ],
+        "past": [
+          "tried"
+        ],
+        "pastParticiple": [
+          "tried"
+        ],
+        "ing": [
+          "trying"
+        ]
+      }
+    },
+    "turn": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "turns"
+        ],
+        "past": [
+          "turned"
+        ],
+        "pastParticiple": [
+          "turned"
+        ],
+        "ing": [
+          "turning"
+        ]
+      }
+    },
+    "understand": {
+      "ko": "이해하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "understands"
+        ],
+        "past": [
+          "understood"
+        ],
+        "pastParticiple": [
+          "understood"
+        ],
+        "ing": [
+          "understanding"
+        ]
+      }
+    },
+    "upload": {
+      "ko": "업로드하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "uploads"
+        ],
+        "past": [
+          "uploaded"
+        ],
+        "pastParticiple": [
+          "uploaded"
+        ],
+        "ing": [
+          "uploading"
+        ]
+      }
+    },
+    "upset": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "upsets"
+        ],
+        "past": [
+          "upset"
+        ],
+        "pastParticiple": [
+          "upset"
+        ],
+        "ing": [
+          "upsetting"
+        ]
+      }
+    },
+    "use": {
+      "ko": "사용하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "uses"
+        ],
+        "past": [
+          "used"
+        ],
+        "pastParticiple": [
+          "used"
+        ],
+        "ing": [
+          "using"
+        ]
+      }
+    },
+    "visit": {
+      "ko": "방문하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "visits"
+        ],
+        "past": [
+          "visited"
+        ],
+        "pastParticiple": [
+          "visited"
+        ],
+        "ing": [
+          "visiting"
+        ]
+      }
+    },
+    "vote": {
+      "ko": "투표하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "votes"
+        ],
+        "past": [
+          "voted"
+        ],
+        "pastParticiple": [
+          "voted"
+        ],
+        "ing": [
+          "voting"
+        ]
+      }
+    },
+    "wait": {
+      "ko": "기다리다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "waits"
+        ],
+        "past": [
+          "waited"
+        ],
+        "pastParticiple": [
+          "waited"
+        ],
+        "ing": [
+          "waiting"
+        ]
+      }
+    },
+    "wake": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "wakes"
+        ],
+        "past": [
+          "woke"
+        ],
+        "pastParticiple": [
+          "woken"
+        ],
+        "ing": [
+          "waking"
+        ]
+      }
+    },
+    "walk": {
+      "ko": "걷다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "walks"
+        ],
+        "past": [
+          "walked"
+        ],
+        "pastParticiple": [
+          "walked"
+        ],
+        "ing": [
+          "walking"
+        ]
+      }
+    },
+    "want": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "wants"
+        ],
+        "past": [
+          "wanted"
+        ],
+        "pastParticiple": [
+          "wanted"
+        ],
+        "ing": [
+          "wanting"
+        ]
+      }
+    },
+    "wash": {
+      "ko": "씻다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "washes"
+        ],
+        "past": [
+          "washed"
+        ],
+        "pastParticiple": [
+          "washed"
+        ],
+        "ing": [
+          "washing"
+        ]
+      }
+    },
+    "waste": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "wastes"
+        ],
+        "past": [
+          "wasted"
+        ],
+        "pastParticiple": [
+          "wasted"
+        ],
+        "ing": [
+          "wasting"
+        ]
+      }
+    },
+    "watch": {
+      "ko": null,
+      "mode": "EN_LEMMA_ONLY",
+      "forms": {
+        "third": [
+          "watches"
+        ],
+        "past": [
+          "watched"
+        ],
+        "pastParticiple": [
+          "watched"
+        ],
+        "ing": [
+          "watching"
+        ]
+      }
+    },
+    "wear": {
+      "ko": "착용하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "wears"
+        ],
+        "past": [
+          "wore"
+        ],
+        "pastParticiple": [
+          "worn"
+        ],
+        "ing": [
+          "wearing"
+        ]
+      }
+    },
+    "win": {
+      "ko": "이기다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "wins"
+        ],
+        "past": [
+          "won"
+        ],
+        "pastParticiple": [
+          "won"
+        ],
+        "ing": [
+          "winning"
+        ]
+      }
+    },
+    "witness": {
+      "ko": "목격하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "witnesses"
+        ],
+        "past": [
+          "witnessed"
+        ],
+        "pastParticiple": [
+          "witnessed"
+        ],
+        "ing": [
+          "witnessing"
+        ]
+      }
+    },
+    "wonder": {
+      "ko": "궁금해하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "wonders"
+        ],
+        "past": [
+          "wondered"
+        ],
+        "pastParticiple": [
+          "wondered"
+        ],
+        "ing": [
+          "wondering"
+        ]
+      }
+    },
+    "work": {
+      "ko": "일하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "works"
+        ],
+        "past": [
+          "worked"
+        ],
+        "pastParticiple": [
+          "worked"
+        ],
+        "ing": [
+          "working"
+        ]
+      }
+    },
+    "worry": {
+      "ko": "걱정하다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "worries"
+        ],
+        "past": [
+          "worried"
+        ],
+        "pastParticiple": [
+          "worried"
+        ],
+        "ing": [
+          "worrying"
+        ]
+      }
+    },
+    "write": {
+      "ko": "쓰다",
+      "mode": "SAFE",
+      "forms": {
+        "third": [
+          "writes"
+        ],
+        "past": [
+          "wrote"
+        ],
+        "pastParticiple": [
+          "written"
+        ],
+        "ing": [
+          "writing"
+        ]
+      }
+    }
+  }
+}
