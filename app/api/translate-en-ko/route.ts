@@ -12,6 +12,16 @@ import {
   twoProLookupEnglishCommonAdjectiveV1,
   TWO_PRO_COMMON_ADJECTIVE_STATS_V1,
 } from '../common-adjectives';
+import {
+  twoProIsBlockedEnglishCommonNounSurfaceV1,
+  twoProLookupEnglishCommonNounV1,
+  TWO_PRO_COMMON_NOUN_STATS_V1,
+} from '../common-nouns';
+import {
+  twoProIsBlockedEnglishCommonAdverbSurfaceV1,
+  twoProLookupEnglishCommonAdverbV1,
+  TWO_PRO_COMMON_ADVERB_STATS_V1,
+} from '../common-adverbs';
 
 // 🌟 TwoPro v3.4: this/that/these/those 지시 한정사와 핵심 슬롯 어휘 분리
 // ============================================================================
@@ -748,6 +758,228 @@ const twoProTryCommonAdjectiveExactEnKoV1380 = (
   // 동일 영어 surface가 common verb에도 존재하면 standalone 품사를 확정하지 않습니다.
   if (
     twoProLookupEnglishCommonVerbV1(
+      value
+    )
+  ) {
+    return null;
+  }
+
+  const degreeSet =
+    new Set(hit.degrees);
+
+  let degree:
+    | 'base'
+    | 'comparative'
+    | 'superlative' = 'base';
+
+  if (degreeSet.has('base')) {
+    degree = 'base';
+  } else if (
+    degreeSet.has('comparative')
+  ) {
+    degree = 'comparative';
+  } else if (
+    degreeSet.has('superlative')
+  ) {
+    degree = 'superlative';
+  } else {
+    return null;
+  }
+
+  const targetText =
+    degree === 'comparative'
+      ? `더 ${hit.entry.ko}`
+      : degree === 'superlative'
+        ? `가장 ${hit.entry.ko}`
+        : hit.entry.ko;
+
+  return {
+    surface: hit.surface,
+    lemma: hit.entry.lemma,
+    degree,
+    targetText,
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.81-safe: common nouns SAFE whole-input exact
+//
+// - raw PHRASES / BE PHRASES / common verbs / common adjectives 뒤에서만 실행합니다.
+// - 전체 입력이 SAFE noun base/plural surface일 때만 직접 번역합니다.
+// - CONTEXT noun은 직접 번역하지 않습니다.
+// - plural이면 한국어에 '들'을 자동 강제하지 않습니다.
+// - a/an/the를 삭제하거나 생성하지 않습니다.
+// - 같은 영어 surface가 common verb/adjective에도 존재하면 품사 문맥이 없으므로 보류합니다.
+// - book a seat 같은 multiword 입력은 loader lookup 자체가 실패하므로 기존 PHRASES/RBMT가 처리합니다.
+// ============================================================================
+type TwoProCommonNounExactEnKoNumberV1381 =
+  | 'base'
+  | 'plural'
+  | 'base-or-plural';
+
+type TwoProCommonNounExactEnKoResultV1381 = {
+  surface: string;
+  lemma: string;
+  number: TwoProCommonNounExactEnKoNumberV1381;
+  countability:
+    | 'COUNT'
+    | 'MASS'
+    | 'BOTH'
+    | 'CONTEXT';
+  targetText: string;
+};
+
+const twoProTryCommonNounExactEnKoV1381 = (
+  value: unknown
+): TwoProCommonNounExactEnKoResultV1381 | null => {
+  if (
+    twoProIsBlockedEnglishCommonNounSurfaceV1(
+      value
+    )
+  ) {
+    return null;
+  }
+
+  const hit =
+    twoProLookupEnglishCommonNounV1(
+      value
+    );
+
+  if (
+    !hit ||
+    hit.entry.mode !== 'SAFE' ||
+    !hit.entry.ko
+  ) {
+    return null;
+  }
+
+  // 영어 surface가 common verb와도 겹치면 standalone 품사를 확정하지 않습니다.
+  if (
+    twoProLookupEnglishCommonVerbV1(
+      value
+    )
+  ) {
+    return null;
+  }
+
+  // 영어 surface가 common adjective와도 겹치거나 adjective 내부 충돌 surface면 보류합니다.
+  if (
+    twoProLookupEnglishCommonAdjectiveV1(
+      value
+    ) ||
+    twoProIsBlockedEnglishCommonAdjectiveSurfaceV1(
+      value
+    )
+  ) {
+    return null;
+  }
+
+  const numberSet =
+    new Set(hit.numbers);
+
+  let number:
+    TwoProCommonNounExactEnKoNumberV1381 =
+      'base';
+
+  if (
+    numberSet.has('base') &&
+    numberSet.has('plural')
+  ) {
+    number = 'base-or-plural';
+  } else if (
+    numberSet.has('plural')
+  ) {
+    number = 'plural';
+  } else if (
+    numberSet.has('base')
+  ) {
+    number = 'base';
+  } else {
+    return null;
+  }
+
+  return {
+    surface: hit.surface,
+    lemma: hit.entry.lemma,
+    number,
+    countability:
+      hit.entry.countability,
+    targetText:
+      hit.entry.ko,
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.83-safe: common adverbs SAFE whole-input exact
+//
+// - raw PHRASES / BE PHRASES / common verbs / common adjectives / common nouns 뒤에서만 실행합니다.
+// - 전체 입력이 SAFE adverb base/comparative/superlative surface일 때만 직접 번역합니다.
+// - CONTEXT adverb는 직접 번역하지 않습니다.
+// - degree surface는 더/가장 + SAFE 한국어 대표부사로만 렌더링합니다.
+// - 같은 영어 surface가 verb/adjective/noun에도 존재하면 품사 문맥이 없으므로 보류합니다.
+// - daily처럼 adjective/adverb 동형인 surface도 standalone direct에서 차단합니다.
+// ============================================================================
+type TwoProCommonAdverbExactEnKoResultV1383 = {
+  surface: string;
+  lemma: string;
+  degree:
+    | 'base'
+    | 'comparative'
+    | 'superlative';
+  targetText: string;
+};
+
+const twoProTryCommonAdverbExactEnKoV1383 = (
+  value: unknown
+): TwoProCommonAdverbExactEnKoResultV1383 | null => {
+  if (
+    twoProIsBlockedEnglishCommonAdverbSurfaceV1(
+      value
+    )
+  ) {
+    return null;
+  }
+
+  const hit =
+    twoProLookupEnglishCommonAdverbV1(
+      value
+    );
+
+  if (
+    !hit ||
+    hit.entry.mode !== 'SAFE' ||
+    !hit.entry.ko
+  ) {
+    return null;
+  }
+
+  // 다른 common POS와 겹치는 standalone surface는 adverb로 단정하지 않습니다.
+  if (
+    twoProLookupEnglishCommonVerbV1(
+      value
+    )
+  ) {
+    return null;
+  }
+
+  if (
+    twoProLookupEnglishCommonAdjectiveV1(
+      value
+    ) ||
+    twoProIsBlockedEnglishCommonAdjectiveSurfaceV1(
+      value
+    )
+  ) {
+    return null;
+  }
+
+  if (
+    twoProLookupEnglishCommonNounV1(
+      value
+    ) ||
+    twoProIsBlockedEnglishCommonNounSurfaceV1(
       value
     )
   ) {
@@ -18206,6 +18438,111 @@ export async function POST(request: Request) {
       });
     }
 
+
+
+    // =================================================================
+    // ☆ TwoPro v13.81-safe: common nouns SAFE whole-input exact
+    // =================================================================
+    const twoProCommonNounExactV1381 =
+      twoProTryCommonNounExactEnKoV1381(
+        originalText
+      );
+
+    if (twoProCommonNounExactV1381) {
+      // =============================================================
+      // ☆ TwoPro v13.82-safe: children의 명시적 복수 의미 보존
+      //
+      // common-nouns 기본 정책은 영어 복수형이라고 한국어 '들'을
+      // 전역 강제하지 않지만, children ↔ 아이들은 양방향 exact에서
+      // 이미 명시적인 불규칙 복수 대응이므로 standalone 결과만
+      // '아이들'로 보정합니다.
+      //
+      // child -> 아이 / children -> 아이들
+      // 아이 -> child / 아이들 -> children
+      // =============================================================
+      if (
+        twoProCommonNounExactV1381.surface ===
+          'children' &&
+        twoProCommonNounExactV1381.lemma ===
+          'child' &&
+        twoProCommonNounExactV1381.number ===
+          'plural'
+      ) {
+        twoProCommonNounExactV1381.targetText =
+          '아이들';
+      }
+
+      const targetV1381 =
+        twoProFinalizeExactEnKoPhraseTargetV1375(
+          twoProCommonNounExactV1381.targetText
+        );
+
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: targetV1381,
+          isReference: false,
+          analysis: [],
+          referenceWords: [],
+          engine:
+            'common-nouns-en-ko-exact-v13.81',
+          commonNounLemma:
+            twoProCommonNounExactV1381.lemma,
+          commonNounSurface:
+            twoProCommonNounExactV1381.surface,
+          commonNounNumber:
+            twoProCommonNounExactV1381.number,
+          commonNounCountability:
+            twoProCommonNounExactV1381.countability,
+          commonNounStats:
+            TWO_PRO_COMMON_NOUN_STATS_V1,
+        },
+        referenceWords: [],
+      });
+    }
+
+
+
+    // =================================================================
+    // ☆ TwoPro v13.83-safe: common adverbs SAFE whole-input exact
+    //
+    // PHRASES / BE / verbs / adjectives / nouns가 모두 실패한 뒤에만 실행합니다.
+    // CONTEXT와 cross-POS surface는 기존 RBMT/DB 흐름으로 넘깁니다.
+    // =================================================================
+    const twoProCommonAdverbExactV1383 =
+      twoProTryCommonAdverbExactEnKoV1383(
+        originalText
+      );
+
+    if (twoProCommonAdverbExactV1383) {
+      const targetV1383 =
+        twoProFinalizeExactEnKoPhraseTargetV1375(
+          twoProCommonAdverbExactV1383.targetText
+        );
+
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: targetV1383,
+          isReference: false,
+          analysis: [],
+          referenceWords: [],
+          engine:
+            'common-adverbs-en-ko-exact-v13.83',
+          commonAdverbLemma:
+            twoProCommonAdverbExactV1383.lemma,
+          commonAdverbSurface:
+            twoProCommonAdverbExactV1383.surface,
+          commonAdverbDegree:
+            twoProCommonAdverbExactV1383.degree,
+          commonAdverbStats:
+            TWO_PRO_COMMON_ADVERB_STATS_V1,
+        },
+        referenceWords: [],
+      });
+    }
 
     // =================================================================
     // ☆ TwoPro v13.56-safe: plant/tree 최우선 진입 가드

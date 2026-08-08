@@ -1184,6 +1184,30 @@ useEffect(() => {
     );
 
   // ================================================================
+  // ☆ TwoPro v1.10-safe: English PHRASES 2~6어절 probe
+  //
+  // book a seat / on the ground of처럼 문장 판별에는 걸리지 않지만
+  // rules-en-ko-phrases.json exact key일 수 있는 영어 다어절 검색을
+  // /api/translate-en-ko에 확인 요청합니다.
+  //
+  // 현재 영->한 PHRASES의 최대 영어 어절 수가 6이므로 2~6어절만
+  // probe합니다. 실제 화면 표시는 기존 direct PHRASES/common engine
+  // 판정을 그대로 사용하므로 일반 다어절 DB 결과가 파란 블록으로
+  // 승격되지는 않습니다.
+  // ================================================================
+  const commonEnglishPhraseWords =
+    !hasKorean
+      ? normalizedQuery.match(
+          /[A-Za-z]+(?:['’-][A-Za-z]+)*/g
+        ) || []
+      : [];
+
+  const commonEnglishPhraseProbeCandidate =
+    !hasKorean &&
+    commonEnglishPhraseWords.length >= 2 &&
+    commonEnglishPhraseWords.length <= 6;
+
+  // ================================================================
   // ☆ TwoPro v1.3-safe:
   // translate-search API가 참고 문장을 반환하지 못하더라도,
   // 이미 검색된 일반 결과 중 가장 가까운 한·영 병렬문장을
@@ -1253,6 +1277,7 @@ useEffect(() => {
       !sentenceLike &&
       !phraseCandidate &&
       !commonVerbEnglishProbeCandidate &&
+      !commonEnglishPhraseProbeCandidate &&
       !commonAdjectiveDegreeEnglishProbeCandidate
     )
   ) {
@@ -1289,6 +1314,8 @@ useEffect(() => {
           );
 
         const isDirectPhraseResult =
+          responseEngine ===
+            'phrases-en-ko-exact-v13.75' ||
           responseEngine.startsWith(
             'phrase-sequence-ko-en-'
           ) ||
@@ -1332,6 +1359,33 @@ useEffect(() => {
           responseEngine ===
             'common-adjectives-ko-en-exact-v9.86';
 
+        // ============================================================
+        // ☆ TwoPro v1.9-additive-safe: common nouns 직접 결과 표시
+        //
+        // 기존 common verbs/adjectives 표시 조건은 그대로 보존합니다.
+        // SAFE whole-input common noun exact engine 두 개만 추가 허용합니다.
+        // CONTEXT / DB / 일반 rules 결과는 기존 단어 검색 화면을 유지합니다.
+        // ============================================================
+        const isDirectCommonNounResult =
+          responseEngine ===
+            'common-nouns-en-ko-exact-v13.81' ||
+          responseEngine ===
+            'common-nouns-ko-en-exact-v9.87';
+
+
+        // ============================================================
+        // ☆ TwoPro v1.12-additive-safe: common adverbs 직접 결과 표시
+        //
+        // 기존 verb/adjective/noun 표시 조건은 그대로 보존합니다.
+        // SAFE common adverb exact engine 두 개만 추가 허용합니다.
+        // CONTEXT / cross-POS / DB / 일반 rules 결과는 기존 화면을 유지합니다.
+        // ============================================================
+        const isDirectCommonAdverbResult =
+          responseEngine ===
+            'common-adverbs-en-ko-exact-v13.83' ||
+          responseEngine ===
+            'common-adverbs-ko-en-exact-v9.88';
+
         // 문장이 아닌 한 어절·구 검색어는
         // PHRASES 직접 번역 또는 common-verbs SAFE 직접 번역일 때만
         // 파란 번역 블록을 표시합니다.
@@ -1339,6 +1393,8 @@ useEffect(() => {
           !sentenceLike &&
           !isDirectPhraseResult &&
           !isDirectCommonVerbResult &&
+          !isDirectCommonNounResult &&
+          !isDirectCommonAdverbResult &&
           !isDirectCommonAdjectiveResult
         ) {
           clearTranslationBox();

@@ -1,0 +1,3631 @@
+{
+  "schemaVersion": "1.0",
+  "entries": {
+    "about": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "above": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "absolutely": {
+      "ko": "절대적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "academically": {
+      "ko": "학문적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more academically"
+        ],
+        "superlative": [
+          "most academically"
+        ]
+      }
+    },
+    "accidentally": {
+      "ko": "우연히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "accordingly": {
+      "ko": "상응하여",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "accurately": {
+      "ko": "정확하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more accurately"
+        ],
+        "superlative": [
+          "most accurately"
+        ]
+      }
+    },
+    "across": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "actively": {
+      "ko": "적극적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more actively"
+        ],
+        "superlative": [
+          "most actively"
+        ]
+      }
+    },
+    "actually": {
+      "ko": "실제로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "after": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "afterwards": {
+      "ko": "나중에",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "again": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "ago": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "ahead": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "almost": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "alone": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "along": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "already": {
+      "ko": "이미",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "also": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "always": {
+      "ko": "항상",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "angrily": {
+      "ko": "화나게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more angrily"
+        ],
+        "superlative": [
+          "most angrily"
+        ]
+      }
+    },
+    "annually": {
+      "ko": "연례로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "anxiously": {
+      "ko": "근심하여",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "anyhow": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "anyway": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "anywhere": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "apart": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "apparently": {
+      "ko": "겉보기에는",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "approximately": {
+      "ko": "대략",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "around": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "aside": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "automatically": {
+      "ko": "자동으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "away": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "awfully": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "back": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "badly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "worse"
+        ],
+        "superlative": [
+          "worst"
+        ]
+      }
+    },
+    "barely": {
+      "ko": "간신히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "beautifully": {
+      "ko": "아름답게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more beautifully"
+        ],
+        "superlative": [
+          "most beautifully"
+        ]
+      }
+    },
+    "before": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "beforehand": {
+      "ko": "미리",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "behind": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "below": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "besides": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "bravely": {
+      "ko": "용감하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more bravely"
+        ],
+        "superlative": [
+          "most bravely"
+        ]
+      }
+    },
+    "briefly": {
+      "ko": "간단히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "brightly": {
+      "ko": "밝게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more brightly"
+        ],
+        "superlative": [
+          "most brightly"
+        ]
+      }
+    },
+    "brilliantly": {
+      "ko": "번쩍번쩍",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more brilliantly"
+        ],
+        "superlative": [
+          "most brilliantly"
+        ]
+      }
+    },
+    "briskly": {
+      "ko": "활기차게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more briskly"
+        ],
+        "superlative": [
+          "most briskly"
+        ]
+      }
+    },
+    "calmly": {
+      "ko": "침착하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more calmly"
+        ],
+        "superlative": [
+          "most calmly"
+        ]
+      }
+    },
+    "carefully": {
+      "ko": "조심스럽게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more carefully"
+        ],
+        "superlative": [
+          "most carefully"
+        ]
+      }
+    },
+    "cautiously": {
+      "ko": "신중하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more cautiously"
+        ],
+        "superlative": [
+          "most cautiously"
+        ]
+      }
+    },
+    "certainly": {
+      "ko": "확실히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "cheerfully": {
+      "ko": "쾌활하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more cheerfully"
+        ],
+        "superlative": [
+          "most cheerfully"
+        ]
+      }
+    },
+    "chiefly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "clearly": {
+      "ko": "명확하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more clearly"
+        ],
+        "superlative": [
+          "most clearly"
+        ]
+      }
+    },
+    "cleverly": {
+      "ko": "영리하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "close": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "closer"
+        ],
+        "superlative": [
+          "closest"
+        ]
+      }
+    },
+    "coldly": {
+      "ko": "냉정하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more coldly"
+        ],
+        "superlative": [
+          "most coldly"
+        ]
+      }
+    },
+    "collectively": {
+      "ko": "집단적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "comfortably": {
+      "ko": "편안하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more comfortably"
+        ],
+        "superlative": [
+          "most comfortably"
+        ]
+      }
+    },
+    "comparatively": {
+      "ko": "비교적",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "completely": {
+      "ko": "완전히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "considerably": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "constantly": {
+      "ko": "끊임없이",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "continually": {
+      "ko": "계속해서",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "continuously": {
+      "ko": "연속적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "correctly": {
+      "ko": "올바르게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more correctly"
+        ],
+        "superlative": [
+          "most correctly"
+        ]
+      }
+    },
+    "culturally": {
+      "ko": "문화적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more culturally"
+        ],
+        "superlative": [
+          "most culturally"
+        ]
+      }
+    },
+    "curiously": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "currently": {
+      "ko": "현재",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "daily": {
+      "ko": "매일",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "dangerously": {
+      "ko": "위험하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more dangerously"
+        ],
+        "superlative": [
+          "most dangerously"
+        ]
+      }
+    },
+    "darkly": {
+      "ko": "어둡게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more darkly"
+        ],
+        "superlative": [
+          "most darkly"
+        ]
+      }
+    },
+    "decisively": {
+      "ko": "결정적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "deep": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "deeper"
+        ],
+        "superlative": [
+          "deepest"
+        ]
+      }
+    },
+    "deeply": {
+      "ko": "깊이",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more deeply"
+        ],
+        "superlative": [
+          "most deeply"
+        ]
+      }
+    },
+    "definitely": {
+      "ko": "분명히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "deliberately": {
+      "ko": "의도적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "differently": {
+      "ko": "다르게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "dimly": {
+      "ko": "희미하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more dimly"
+        ],
+        "superlative": [
+          "most dimly"
+        ]
+      }
+    },
+    "directly": {
+      "ko": "직접적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "doubly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "down": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "dramatically": {
+      "ko": "극적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more dramatically"
+        ],
+        "superlative": [
+          "most dramatically"
+        ]
+      }
+    },
+    "drastically": {
+      "ko": "과감하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "early": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "earlier"
+        ],
+        "superlative": [
+          "earliest"
+        ]
+      }
+    },
+    "easily": {
+      "ko": "쉽게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more easily"
+        ],
+        "superlative": [
+          "most easily"
+        ]
+      }
+    },
+    "east": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "economically": {
+      "ko": "경제적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more economically"
+        ],
+        "superlative": [
+          "most economically"
+        ]
+      }
+    },
+    "effectively": {
+      "ko": "효과적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more effectively"
+        ],
+        "superlative": [
+          "most effectively"
+        ]
+      }
+    },
+    "efficiently": {
+      "ko": "효율적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more efficiently"
+        ],
+        "superlative": [
+          "most efficiently"
+        ]
+      }
+    },
+    "either": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "else": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "emotionally": {
+      "ko": "감정적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more emotionally"
+        ],
+        "superlative": [
+          "most emotionally"
+        ]
+      }
+    },
+    "enough": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "entirely": {
+      "ko": "전적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "equally": {
+      "ko": "동등하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "especially": {
+      "ko": "특히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "essentially": {
+      "ko": "본질적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "even": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "evenly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "eventually": {
+      "ko": "결국",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "ever": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "exactly": {
+      "ko": "정확히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "exceedingly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "exceptionally": {
+      "ko": "유난히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "excitedly": {
+      "ko": "흥분하여",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "exclusively": {
+      "ko": "배타적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "extensively": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "extremely": {
+      "ko": "극도로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "faintly": {
+      "ko": "힘없이",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more faintly"
+        ],
+        "superlative": [
+          "most faintly"
+        ]
+      }
+    },
+    "fairly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "falsely": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "far": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "farther",
+          "further"
+        ],
+        "superlative": [
+          "farthest",
+          "furthest"
+        ]
+      }
+    },
+    "fast": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "faster"
+        ],
+        "superlative": [
+          "fastest"
+        ]
+      }
+    },
+    "favorably": {
+      "ko": "호의적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "fiercely": {
+      "ko": "사납게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "finally": {
+      "ko": "마침내",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "financially": {
+      "ko": "재정적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more financially"
+        ],
+        "superlative": [
+          "most financially"
+        ]
+      }
+    },
+    "first": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "foolishly": {
+      "ko": "어리석게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "formerly": {
+      "ko": "예전에",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "forth": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "fortunately": {
+      "ko": "다행히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "frequently": {
+      "ko": "빈번하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "fully": {
+      "ko": "충분히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "furthermore": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "generally": {
+      "ko": "일반적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "gently": {
+      "ko": "상냥하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more gently"
+        ],
+        "superlative": [
+          "most gently"
+        ]
+      }
+    },
+    "genuinely": {
+      "ko": "순수하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "gladly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "globally": {
+      "ko": "세계적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more globally"
+        ],
+        "superlative": [
+          "most globally"
+        ]
+      }
+    },
+    "gradually": {
+      "ko": "점차",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "happily": {
+      "ko": "행복하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more happily"
+        ],
+        "superlative": [
+          "most happily"
+        ]
+      }
+    },
+    "hard": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "harder"
+        ],
+        "superlative": [
+          "hardest"
+        ]
+      }
+    },
+    "hastily": {
+      "ko": "급히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more hastily"
+        ],
+        "superlative": [
+          "most hastily"
+        ]
+      }
+    },
+    "healthily": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "heavily": {
+      "ko": "심하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more heavily"
+        ],
+        "superlative": [
+          "most heavily"
+        ]
+      }
+    },
+    "hence": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "here": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "hesitatingly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "high": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "higher"
+        ],
+        "superlative": [
+          "highest"
+        ]
+      }
+    },
+    "highly": {
+      "ko": "대단히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "historically": {
+      "ko": "역사적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more historically"
+        ],
+        "superlative": [
+          "most historically"
+        ]
+      }
+    },
+    "home": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "honestly": {
+      "ko": "정직하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more honestly"
+        ],
+        "superlative": [
+          "most honestly"
+        ]
+      }
+    },
+    "hourly": {
+      "ko": "매시간",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "how": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "however": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "hungrily": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "hurriedly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "illegally": {
+      "ko": "불법적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "immediately": {
+      "ko": "즉시",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "immensely": {
+      "ko": "막대하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more immensely"
+        ],
+        "superlative": [
+          "most immensely"
+        ]
+      }
+    },
+    "improperly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "inadvertently": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "incorrectly": {
+      "ko": "틀리게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more incorrectly"
+        ],
+        "superlative": [
+          "most incorrectly"
+        ]
+      }
+    },
+    "incredibly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "indeed": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "indefinitely": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "independently": {
+      "ko": "독립적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "indirectly": {
+      "ko": "간접적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "individually": {
+      "ko": "개별적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "inevitably": {
+      "ko": "불가피하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "inherently": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "initially": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "inside": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "instantly": {
+      "ko": "즉각적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "instead": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "intentionally": {
+      "ko": "고의로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "interestingly": {
+      "ko": "흥미롭게도",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "internationally": {
+      "ko": "국제적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more internationally"
+        ],
+        "superlative": [
+          "most internationally"
+        ]
+      }
+    },
+    "inward": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "irregularly": {
+      "ko": "불규칙적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "jointly": {
+      "ko": "공동으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "just": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "justly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "kindly": {
+      "ko": "친절하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more kindly"
+        ],
+        "superlative": [
+          "most kindly"
+        ]
+      }
+    },
+    "knowingly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "largely": {
+      "ko": "대체로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "last": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "lastly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "late": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "later"
+        ],
+        "superlative": [
+          "latest"
+        ]
+      }
+    },
+    "lately": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "legally": {
+      "ko": "합법적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "leisurely": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "lightly": {
+      "ko": "가볍게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more lightly"
+        ],
+        "superlative": [
+          "most lightly"
+        ]
+      }
+    },
+    "little": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "less"
+        ],
+        "superlative": [
+          "least"
+        ]
+      }
+    },
+    "locally": {
+      "ko": "지역적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more locally"
+        ],
+        "superlative": [
+          "most locally"
+        ]
+      }
+    },
+    "logically": {
+      "ko": "논리적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more logically"
+        ],
+        "superlative": [
+          "most logically"
+        ]
+      }
+    },
+    "long": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "longer"
+        ],
+        "superlative": [
+          "longest"
+        ]
+      }
+    },
+    "loudly": {
+      "ko": "큰소리로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more loudly"
+        ],
+        "superlative": [
+          "most loudly"
+        ]
+      }
+    },
+    "low": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "lower"
+        ],
+        "superlative": [
+          "lowest"
+        ]
+      }
+    },
+    "luckily": {
+      "ko": "운좋게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "mainly": {
+      "ko": "주로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "manually": {
+      "ko": "수작업으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "mathematically": {
+      "ko": "수학적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more mathematically"
+        ],
+        "superlative": [
+          "most mathematically"
+        ]
+      }
+    },
+    "maybe": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "meanwhile": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "mentally": {
+      "ko": "정신적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more mentally"
+        ],
+        "superlative": [
+          "most mentally"
+        ]
+      }
+    },
+    "merely": {
+      "ko": "단지",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "modestly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "monthly": {
+      "ko": "매월",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "moreover": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "mostly": {
+      "ko": "대부분",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "much": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more"
+        ],
+        "superlative": [
+          "most"
+        ]
+      }
+    },
+    "mutually": {
+      "ko": "상호간에",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "namely": {
+      "ko": "즉",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "narrowly": {
+      "ko": "근소하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more narrowly"
+        ],
+        "superlative": [
+          "most narrowly"
+        ]
+      }
+    },
+    "nationally": {
+      "ko": "전국적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more nationally"
+        ],
+        "superlative": [
+          "most nationally"
+        ]
+      }
+    },
+    "naturally": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "near": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "nearer"
+        ],
+        "superlative": [
+          "nearest"
+        ]
+      }
+    },
+    "nearly": {
+      "ko": "거의",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "neatly": {
+      "ko": "깔끔하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more neatly"
+        ],
+        "superlative": [
+          "most neatly"
+        ]
+      }
+    },
+    "necessarily": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "neither": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "never": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "nevertheless": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "next": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "nightly": {
+      "ko": "매일밤",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "nonetheless": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "normally": {
+      "ko": "보통",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "north": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "nowadays": {
+      "ko": "요즘",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "obviously": {
+      "ko": "명백히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "occasionally": {
+      "ko": "가끔씩",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "off": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "officially": {
+      "ko": "공식적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "often": {
+      "ko": "자주",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "on": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "once": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "only": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "openly": {
+      "ko": "공공연하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more openly"
+        ],
+        "superlative": [
+          "most openly"
+        ]
+      }
+    },
+    "orally": {
+      "ko": "구두로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "ordinarily": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "originally": {
+      "ko": "원래",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "otherwise": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "out": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "outside": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "outward": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "over": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "partially": {
+      "ko": "일부만",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "particularly": {
+      "ko": "특별히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "partly": {
+      "ko": "부분적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "passively": {
+      "ko": "수동적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more passively"
+        ],
+        "superlative": [
+          "most passively"
+        ]
+      }
+    },
+    "perfectly": {
+      "ko": "완벽하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more perfectly"
+        ],
+        "superlative": [
+          "most perfectly"
+        ]
+      }
+    },
+    "perhaps": {
+      "ko": "아마",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "periodically": {
+      "ko": "주기적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "permanently": {
+      "ko": "영구적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "personally": {
+      "ko": "개인적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "physically": {
+      "ko": "신체적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more physically"
+        ],
+        "superlative": [
+          "most physically"
+        ]
+      }
+    },
+    "plainly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "politely": {
+      "ko": "공손하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more politely"
+        ],
+        "superlative": [
+          "most politely"
+        ]
+      }
+    },
+    "politically": {
+      "ko": "정치적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more politically"
+        ],
+        "superlative": [
+          "most politically"
+        ]
+      }
+    },
+    "poorly": {
+      "ko": "형편없이",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more poorly"
+        ],
+        "superlative": [
+          "most poorly"
+        ]
+      }
+    },
+    "possibly": {
+      "ko": "어쩌면",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "potentially": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "practically": {
+      "ko": "실용적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more practically"
+        ],
+        "superlative": [
+          "most practically"
+        ]
+      }
+    },
+    "presently": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "presumably": {
+      "ko": "추측컨대",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "pretty": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "previously": {
+      "ko": "앞서",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "primarily": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "privately": {
+      "ko": "비공개로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "probably": {
+      "ko": "아마도",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "productively": {
+      "ko": "생산적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more productively"
+        ],
+        "superlative": [
+          "most productively"
+        ]
+      }
+    },
+    "professionally": {
+      "ko": "전문적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more professionally"
+        ],
+        "superlative": [
+          "most professionally"
+        ]
+      }
+    },
+    "promptly": {
+      "ko": "신속히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "properly": {
+      "ko": "제대로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more properly"
+        ],
+        "superlative": [
+          "most properly"
+        ]
+      }
+    },
+    "publicly": {
+      "ko": "공개적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "quarterly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "quickly": {
+      "ko": "빨리",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more quickly"
+        ],
+        "superlative": [
+          "most quickly"
+        ]
+      }
+    },
+    "quietly": {
+      "ko": "조용히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more quietly"
+        ],
+        "superlative": [
+          "most quietly"
+        ]
+      }
+    },
+    "quite": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "radically": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "randomly": {
+      "ko": "무작위로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "rapidly": {
+      "ko": "급속히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more rapidly"
+        ],
+        "superlative": [
+          "most rapidly"
+        ]
+      }
+    },
+    "rarely": {
+      "ko": "드물게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "rather": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "readily": {
+      "ko": "선뜻",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "really": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "recently": {
+      "ko": "최근에",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "regrettably": {
+      "ko": "유감스럽게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "regularly": {
+      "ko": "규칙적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "relatively": {
+      "ko": "상대적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "reliably": {
+      "ko": "믿음직하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more reliably"
+        ],
+        "superlative": [
+          "most reliably"
+        ]
+      }
+    },
+    "remarkably": {
+      "ko": "현저히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more remarkably"
+        ],
+        "superlative": [
+          "most remarkably"
+        ]
+      }
+    },
+    "remotely": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "repeatedly": {
+      "ko": "반복해서",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "respectively": {
+      "ko": "각각",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "right": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "rightfully": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "roughly": {
+      "ko": "대강",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "rudely": {
+      "ko": "무례하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more rudely"
+        ],
+        "superlative": [
+          "most rudely"
+        ]
+      }
+    },
+    "sadly": {
+      "ko": "슬프게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more sadly"
+        ],
+        "superlative": [
+          "most sadly"
+        ]
+      }
+    },
+    "safely": {
+      "ko": "안전하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more safely"
+        ],
+        "superlative": [
+          "most safely"
+        ]
+      }
+    },
+    "scarcely": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "scientifically": {
+      "ko": "과학적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more scientifically"
+        ],
+        "superlative": [
+          "most scientifically"
+        ]
+      }
+    },
+    "seemingly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "seldom": {
+      "ko": "좀처럼",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "separately": {
+      "ko": "따로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "sequentially": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "seriously": {
+      "ko": "진지하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more seriously"
+        ],
+        "superlative": [
+          "most seriously"
+        ]
+      }
+    },
+    "severely": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "sharply": {
+      "ko": "급격하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more sharply"
+        ],
+        "superlative": [
+          "most sharply"
+        ]
+      }
+    },
+    "significantly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "similarly": {
+      "ko": "비슷하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "simply": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "simultaneously": {
+      "ko": "동시에",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "sincerely": {
+      "ko": "진심으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more sincerely"
+        ],
+        "superlative": [
+          "most sincerely"
+        ]
+      }
+    },
+    "singly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "slightly": {
+      "ko": "약간",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more slightly"
+        ],
+        "superlative": [
+          "most slightly"
+        ]
+      }
+    },
+    "slowly": {
+      "ko": "천천히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more slowly"
+        ],
+        "superlative": [
+          "most slowly"
+        ]
+      }
+    },
+    "smoothly": {
+      "ko": "순조롭게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more smoothly"
+        ],
+        "superlative": [
+          "most smoothly"
+        ]
+      }
+    },
+    "so": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "socially": {
+      "ko": "사회적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more socially"
+        ],
+        "superlative": [
+          "most socially"
+        ]
+      }
+    },
+    "softly": {
+      "ko": "부드럽게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more softly"
+        ],
+        "superlative": [
+          "most softly"
+        ]
+      }
+    },
+    "solely": {
+      "ko": "오로지",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "somehow": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "sometimes": {
+      "ko": "때때로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "somewhat": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "soon": {
+      "ko": "곧",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "soundly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "south": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "sparsely": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "spontaneously": {
+      "ko": "자발적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "steadily": {
+      "ko": "꾸준히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more steadily"
+        ],
+        "superlative": [
+          "most steadily"
+        ]
+      }
+    },
+    "still": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "straight": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "straighter"
+        ],
+        "superlative": [
+          "straightest"
+        ]
+      }
+    },
+    "strangely": {
+      "ko": "이상하게도",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "strikingly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "strongly": {
+      "ko": "강하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more strongly"
+        ],
+        "superlative": [
+          "most strongly"
+        ]
+      }
+    },
+    "subsequently": {
+      "ko": "이후에",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "substantially": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "successfully": {
+      "ko": "성공적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "such": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "suddenly": {
+      "ko": "갑자기",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "surely": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "surprisingly": {
+      "ko": "놀랍게도",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "technically": {
+      "ko": "기술적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more technically"
+        ],
+        "superlative": [
+          "most technically"
+        ]
+      }
+    },
+    "temporarily": {
+      "ko": "일시적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "tenderly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "terribly": {
+      "ko": "끔찍하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more terribly"
+        ],
+        "superlative": [
+          "most terribly"
+        ]
+      }
+    },
+    "then": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "theoretically": {
+      "ko": "이론적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more theoretically"
+        ],
+        "superlative": [
+          "most theoretically"
+        ]
+      }
+    },
+    "there": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "thereafter": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "thereby": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "therefore": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "therein": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "thoroughly": {
+      "ko": "철저히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more thoroughly"
+        ],
+        "superlative": [
+          "most thoroughly"
+        ]
+      }
+    },
+    "though": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "throughout": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "thus": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "tightly": {
+      "ko": "단단히",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more tightly"
+        ],
+        "superlative": [
+          "most tightly"
+        ]
+      }
+    },
+    "today": {
+      "ko": "오늘",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "together": {
+      "ko": "함께",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "tomorrow": {
+      "ko": "내일",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "tonight": {
+      "ko": "오늘밤",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "too": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "totally": {
+      "ko": "모조리",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "truly": {
+      "ko": "진정으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "ultimately": {
+      "ko": "궁극적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "under": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "underneath": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "undoubtedly": {
+      "ko": "틀림없이",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "unexpectedly": {
+      "ko": "뜻밖에",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "unfortunately": {
+      "ko": "불행히도",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "uniformly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "universally": {
+      "ko": "보편적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more universally"
+        ],
+        "superlative": [
+          "most universally"
+        ]
+      }
+    },
+    "unlawfully": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "unusually": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "up": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "usually": {
+      "ko": "대개",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "utterly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "vaguely": {
+      "ko": "불분명하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more vaguely"
+        ],
+        "superlative": [
+          "most vaguely"
+        ]
+      }
+    },
+    "very": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "virtually": {
+      "ko": "실질적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "warmly": {
+      "ko": "따뜻하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more warmly"
+        ],
+        "superlative": [
+          "most warmly"
+        ]
+      }
+    },
+    "weakly": {
+      "ko": "약하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more weakly"
+        ],
+        "superlative": [
+          "most weakly"
+        ]
+      }
+    },
+    "weekly": {
+      "ko": "매주",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "well": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "better"
+        ],
+        "superlative": [
+          "best"
+        ]
+      }
+    },
+    "west": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "whatever": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "when": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "whenever": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "where": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "whereby": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "wherein": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "wherever": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "whoever": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "wholly": {
+      "ko": "전체적으로",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "why": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "widely": {
+      "ko": "널리",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more widely"
+        ],
+        "superlative": [
+          "most widely"
+        ]
+      }
+    },
+    "wisely": {
+      "ko": "현명하게",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "wrong": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "yearly": {
+      "ko": "매년",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "yesterday": {
+      "ko": "어제",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "yet": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    }
+  }
+}

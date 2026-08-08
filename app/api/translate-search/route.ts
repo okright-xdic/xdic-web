@@ -13,6 +13,16 @@ import {
   TWO_PRO_COMMON_ADJECTIVE_STATS_V1,
   twoProNormalizeKoreanCommonAdjectiveSurfaceV1,
 } from '../common-adjectives';
+import {
+  TWO_PRO_COMMON_NOUN_STATS_V1,
+  twoProLookupKoreanSafeCommonNounV1,
+  twoProNormalizeKoreanCommonNounSurfaceV1,
+} from '../common-nouns';
+import {
+  TWO_PRO_COMMON_ADVERB_STATS_V1,
+  twoProLookupKoreanSafeCommonAdverbV1,
+  twoProNormalizeKoreanCommonAdverbSurfaceV1,
+} from '../common-adverbs';
 
 // ☆ TwoPro v9.79-safe: v9.78 유지 + 4형식 인형 구매 문형의 주격·간접목적격·소유격·관사를 정확히 처리
 
@@ -3542,6 +3552,257 @@ const twoProRenderCommonAdjectiveEnglishV985 = (
 
   if (hit.tense === 'future') {
     return `will be ${lemma}`;
+  }
+
+  return lemma;
+};
+
+
+// ============================================================================
+// ☆ TwoPro v9.87-safe: common nouns 한국어 SAFE whole-input exact
+//
+// - raw KO PHRASES exact가 먼저 끝난 뒤에만 호출합니다.
+// - SAFE 한국어 대표명사 기본형과, COUNT/BOTH의 단독 '들' 복수형만 처리합니다.
+// - article(a/an/the)은 여기서 만들지 않습니다.
+// - 조사 제거는 하지 않습니다.
+// - CONTEXT noun은 직접 번역하지 않습니다.
+// - 많은 책 / 생일 같은 PHRASES는 이 함수보다 앞에서 처리됩니다.
+// ============================================================================
+type TwoProCommonNounKoEnNumberV987 =
+  | 'singular'
+  | 'plural';
+
+type TwoProCommonNounKoEnHitV987 = {
+  entry: any;
+  number: TwoProCommonNounKoEnNumberV987;
+  sourceSurface: string;
+};
+
+const twoProTryCommonNounExactKoEnV987 = (
+  value: unknown
+): TwoProCommonNounKoEnHitV987 | null => {
+  const surface =
+    twoProNormalizeKoreanCommonNounSurfaceV1(
+      value
+    );
+
+  if (!surface) {
+    return null;
+  }
+
+  const exactEntry =
+    twoProLookupKoreanSafeCommonNounV1(
+      surface
+    );
+
+  if (exactEntry) {
+    return {
+      entry: exactEntry,
+      number: 'singular',
+      sourceSurface: surface,
+    };
+  }
+
+  // 한국어 단독 '들' 복수형만 제한적으로 허용합니다.
+  // 조사까지 함께 붙은 형태는 이 exact 계층에서 다루지 않습니다.
+  if (
+    !surface.endsWith('들') ||
+    surface.length <= 1
+  ) {
+    return null;
+  }
+
+  const stem =
+    surface.slice(0, -1);
+
+  const pluralEntry =
+    twoProLookupKoreanSafeCommonNounV1(
+      stem
+    );
+
+  if (
+    !pluralEntry ||
+    (
+      pluralEntry.countability !== 'COUNT' &&
+      pluralEntry.countability !== 'BOTH'
+    ) ||
+    !Array.isArray(
+      pluralEntry.forms?.plural
+    ) ||
+    !pluralEntry.forms.plural.length
+  ) {
+    return null;
+  }
+
+  return {
+    entry: pluralEntry,
+    number: 'plural',
+    sourceSurface: surface,
+  };
+};
+
+const twoProRenderCommonNounEnglishV987 = (
+  hit: TwoProCommonNounKoEnHitV987
+): string | null => {
+  const lemma =
+    String(
+      hit.entry?.lemma || ''
+    ).trim();
+
+  if (!lemma) {
+    return null;
+  }
+
+  if (
+    hit.number === 'plural'
+  ) {
+    const plural =
+      hit.entry?.forms?.plural?.[0];
+
+    return plural
+      ? String(plural).trim()
+      : null;
+  }
+
+  // standalone noun에서는 a/an/the를 자동 생성하지 않습니다.
+  return lemma;
+};
+
+
+// ============================================================================
+// ☆ TwoPro v9.88-safe: common adverbs 한국어 SAFE whole-input exact
+//
+// - raw KO PHRASES가 먼저 끝난 뒤에만 실제 handler에서 호출합니다.
+// - SAFE 한국어 대표부사 기본형 exact를 처리합니다.
+// - 더 + SAFE 부사 / 가장 + SAFE 부사는 해당 영어 degree form이 있을 때만 처리합니다.
+// - CONTEXT adverb와 일반 문장 내부 부사는 이 계층에서 직접 번역하지 않습니다.
+// - 한국어 활용형은 생성하지 않습니다.
+// ============================================================================
+type TwoProCommonAdverbKoEnDegreeV988 =
+  | 'base'
+  | 'comparative'
+  | 'superlative';
+
+type TwoProCommonAdverbKoEnHitV988 = {
+  entry: any;
+  degree: TwoProCommonAdverbKoEnDegreeV988;
+  sourceSurface: string;
+};
+
+const twoProTryCommonAdverbExactKoEnV988 = (
+  value: unknown
+): TwoProCommonAdverbKoEnHitV988 | null => {
+  const surface =
+    twoProNormalizeKoreanCommonAdverbSurfaceV1(
+      value
+    );
+
+  if (!surface) {
+    return null;
+  }
+
+  const exactEntry =
+    twoProLookupKoreanSafeCommonAdverbV1(
+      surface
+    );
+
+  if (exactEntry) {
+    return {
+      entry: exactEntry,
+      degree: 'base',
+      sourceSurface: surface,
+    };
+  }
+
+  const degreeMatch =
+    surface.match(
+      /^(더|가장)\s+(.+)$/u
+    );
+
+  if (!degreeMatch) {
+    return null;
+  }
+
+  const marker =
+    degreeMatch[1];
+
+  const baseSurface =
+    twoProNormalizeKoreanCommonAdverbSurfaceV1(
+      degreeMatch[2]
+    );
+
+  const degreeEntry =
+    twoProLookupKoreanSafeCommonAdverbV1(
+      baseSurface
+    );
+
+  if (!degreeEntry) {
+    return null;
+  }
+
+  if (
+    marker === '더' &&
+    Array.isArray(
+      degreeEntry.forms?.comparative
+    ) &&
+    degreeEntry.forms.comparative.length
+  ) {
+    return {
+      entry: degreeEntry,
+      degree: 'comparative',
+      sourceSurface: surface,
+    };
+  }
+
+  if (
+    marker === '가장' &&
+    Array.isArray(
+      degreeEntry.forms?.superlative
+    ) &&
+    degreeEntry.forms.superlative.length
+  ) {
+    return {
+      entry: degreeEntry,
+      degree: 'superlative',
+      sourceSurface: surface,
+    };
+  }
+
+  return null;
+};
+
+const twoProRenderCommonAdverbEnglishV988 = (
+  hit: TwoProCommonAdverbKoEnHitV988
+): string | null => {
+  const lemma =
+    String(
+      hit.entry?.lemma || ''
+    ).trim();
+
+  if (!lemma) {
+    return null;
+  }
+
+  if (
+    hit.degree === 'comparative'
+  ) {
+    const comparative =
+      hit.entry?.forms?.comparative?.[0];
+
+    return comparative
+      ? String(comparative).trim()
+      : null;
+  }
+
+  if (
+    hit.degree === 'superlative'
+  ) {
+    const superlative =
+      hit.entry?.forms?.superlative?.[0];
+
+    return superlative
+      ? String(superlative).trim()
+      : null;
   }
 
   return lemma;
@@ -33039,6 +33300,112 @@ export async function POST(request: Request) {
               twoProCommonAdjectiveBaseBeforeJsonV986.sourceSurface,
             commonAdjectiveStats:
               TWO_PRO_COMMON_ADJECTIVE_STATS_V1,
+          },
+          referenceWords: [],
+        });
+      }
+    }
+
+    // =================================================================
+    // ☆ TwoPro v9.87-safe: SAFE common noun 기본형/단독 '들' exact 선행
+    //
+    // PHRASES는 이미 이 지점보다 앞에서 처리되었습니다.
+    // rules-ko-en.json에 오래된 단일명사 exact가 있어도 common-nouns
+    // SAFE whole-input exact를 먼저 보여 주기 위한 좁은 가드입니다.
+    // article은 생성하지 않고, CONTEXT/조사 결합형은 기존 흐름으로 넘깁니다.
+    // =================================================================
+    const twoProCommonNounExactV987 =
+      twoProTryCommonNounExactKoEnV987(
+        originalText
+      );
+
+    if (twoProCommonNounExactV987) {
+      const renderedNounV987 =
+        twoProRenderCommonNounEnglishV987(
+          twoProCommonNounExactV987
+        );
+
+      if (renderedNounV987) {
+        const finalizedNounV987 =
+          twoProFinalizeEnglish(
+            renderedNounV987,
+            originalText
+          );
+
+        return twoProRespondWithPhraseDiagnosticsV915({
+          ok: true,
+          best: {
+            source_text: originalText,
+            target_text: finalizedNounV987,
+            isReference: false,
+            analysis: [],
+            referenceWords: [],
+            engine:
+              'common-nouns-ko-en-exact-v9.87',
+            commonNounLemma:
+              twoProCommonNounExactV987.entry.lemma,
+            commonNounKo:
+              twoProCommonNounExactV987.entry.ko,
+            commonNounNumber:
+              twoProCommonNounExactV987.number,
+            commonNounSurface:
+              twoProCommonNounExactV987.sourceSurface,
+            commonNounCountability:
+              twoProCommonNounExactV987.entry.countability,
+            commonNounStats:
+              TWO_PRO_COMMON_NOUN_STATS_V1,
+          },
+          referenceWords: [],
+        });
+      }
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v9.88-safe: SAFE common adverb 기본형/degree exact
+    //
+    // PHRASES는 이 지점보다 앞에서 이미 처리되었습니다.
+    // 매일 -> Every day 같은 exact PHRASE가 존재하면 PHRASES가 먼저 이깁니다.
+    // CONTEXT는 직접 번역하지 않고 기존 rules/RBMT/DB로 넘깁니다.
+    // =================================================================
+    const twoProCommonAdverbExactV988 =
+      twoProTryCommonAdverbExactKoEnV988(
+        originalText
+      );
+
+    if (twoProCommonAdverbExactV988) {
+      const renderedAdverbV988 =
+        twoProRenderCommonAdverbEnglishV988(
+          twoProCommonAdverbExactV988
+        );
+
+      if (renderedAdverbV988) {
+        const finalizedAdverbV988 =
+          twoProFinalizeEnglish(
+            renderedAdverbV988,
+            originalText
+          );
+
+        return twoProRespondWithPhraseDiagnosticsV915({
+          ok: true,
+          best: {
+            source_text: originalText,
+            target_text: finalizedAdverbV988,
+            isReference: false,
+            analysis: [],
+            referenceWords: [],
+            engine:
+              'common-adverbs-ko-en-exact-v9.88',
+            commonAdverbLemma:
+              twoProCommonAdverbExactV988.entry.lemma,
+            commonAdverbKo:
+              twoProCommonAdverbExactV988.entry.ko,
+            commonAdverbDegree:
+              twoProCommonAdverbExactV988.degree,
+            commonAdverbSurface:
+              twoProCommonAdverbExactV988.sourceSurface,
+            commonAdverbStats:
+              TWO_PRO_COMMON_ADVERB_STATS_V1,
           },
           referenceWords: [],
         });
