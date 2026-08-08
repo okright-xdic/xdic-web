@@ -8,6 +8,11 @@ import {
   TWO_PRO_COMMON_VERB_STATS_V1,
   twoProNormalizeKoreanCommonVerbSurfaceV1,
 } from '../common-verbs';
+import {
+  TWO_PRO_COMMON_SAFE_ADJECTIVE_ENTRIES_V1,
+  TWO_PRO_COMMON_ADJECTIVE_STATS_V1,
+  twoProNormalizeKoreanCommonAdjectiveSurfaceV1,
+} from '../common-adjectives';
 
 // ☆ TwoPro v9.79-safe: v9.78 유지 + 4형식 인형 구매 문형의 주격·간접목적격·소유격·관사를 정확히 처리
 
@@ -3177,6 +3182,366 @@ const twoProRenderCommonVerbEnglishV984 = (
 
   if (hit.tense === 'future') {
     return `will ${lemma}`;
+  }
+
+  return lemma;
+};
+
+
+// ============================================================================
+// ☆ TwoPro v9.85-safe: common adjectives 한국어 SAFE exact loader
+//
+// - PHRASES / rules JSON exact / 기존 common verb exact보다 앞서지 않습니다.
+// - SAFE 한국어 대표형과 검증 가능한 평서형 과거/미래만 exact 인덱싱합니다.
+// - 더/가장 + SAFE 대표형은 JSON 비교급/최상급 surface가 있을 때만 생성합니다.
+// - CONTEXT는 직접 영어 형용사 하나로 강제하지 않습니다.
+// - 문장 내부 전역 치환은 하지 않습니다.
+// ============================================================================
+type TwoProCommonAdjectiveKoEnTenseV985 =
+  | 'present'
+  | 'past'
+  | 'future';
+
+type TwoProCommonAdjectiveKoEnDegreeV985 =
+  | 'base'
+  | 'comparative'
+  | 'superlative';
+
+type TwoProCommonAdjectiveKoEnHitV985 = {
+  sourceSurface: string;
+  tense: TwoProCommonAdjectiveKoEnTenseV985;
+  degree: TwoProCommonAdjectiveKoEnDegreeV985;
+  entry: any;
+};
+
+const TWO_PRO_COMMON_ADJECTIVE_KO_SURFACE_INDEX_V985 =
+  new Map<
+    string,
+    TwoProCommonAdjectiveKoEnHitV985
+  >();
+
+const TWO_PRO_COMMON_ADJECTIVE_KO_AMBIGUOUS_SURFACES_V985 =
+  new Set<string>();
+
+const twoProAddCommonAdjectiveKoSurfaceV985 = (
+  surfaceValue: unknown,
+  tense: TwoProCommonAdjectiveKoEnTenseV985,
+  degree: TwoProCommonAdjectiveKoEnDegreeV985,
+  entry: any
+) => {
+  const surface =
+    twoProNormalizeKoreanCommonAdjectiveSurfaceV1(
+      surfaceValue
+    );
+
+  if (!surface) {
+    return;
+  }
+
+  const existing =
+    TWO_PRO_COMMON_ADJECTIVE_KO_SURFACE_INDEX_V985.get(
+      surface
+    );
+
+  if (
+    existing &&
+    existing.entry?.lemma !== entry?.lemma
+  ) {
+    TWO_PRO_COMMON_ADJECTIVE_KO_AMBIGUOUS_SURFACES_V985.add(
+      surface
+    );
+    TWO_PRO_COMMON_ADJECTIVE_KO_SURFACE_INDEX_V985.delete(
+      surface
+    );
+    return;
+  }
+
+  if (
+    TWO_PRO_COMMON_ADJECTIVE_KO_AMBIGUOUS_SURFACES_V985.has(
+      surface
+    )
+  ) {
+    return;
+  }
+
+  if (existing) {
+    // 같은 lemma의 동일 표면형은 base/present를 우선합니다.
+    const existingRank =
+      existing.degree === 'base' &&
+      existing.tense === 'present'
+        ? 0
+        : existing.degree === 'base'
+          ? 1
+          : 2;
+
+    const nextRank =
+      degree === 'base' &&
+      tense === 'present'
+        ? 0
+        : degree === 'base'
+          ? 1
+          : 2;
+
+    if (nextRank < existingRank) {
+      TWO_PRO_COMMON_ADJECTIVE_KO_SURFACE_INDEX_V985.set(
+        surface,
+        {
+          sourceSurface: surface,
+          tense,
+          degree,
+          entry,
+        }
+      );
+    }
+
+    return;
+  }
+
+  TWO_PRO_COMMON_ADJECTIVE_KO_SURFACE_INDEX_V985.set(
+    surface,
+    {
+      sourceSurface: surface,
+      tense,
+      degree,
+      entry,
+    }
+  );
+};
+
+for (
+  const entry of
+  TWO_PRO_COMMON_SAFE_ADJECTIVE_ENTRIES_V1
+) {
+  const koLemma = String(
+    entry.ko || ''
+  ).trim();
+
+  if (!koLemma) {
+    continue;
+  }
+
+  twoProAddCommonAdjectiveKoSurfaceV985(
+    koLemma,
+    'present',
+    'base',
+    entry
+  );
+
+  const plainPair =
+    TWO_PRO_COMMON_PLAIN_KO_CONJUGATION_V984[
+      koLemma
+    ];
+
+  if (plainPair) {
+    twoProAddCommonAdjectiveKoSurfaceV985(
+      plainPair[0],
+      'past',
+      'base',
+      entry
+    );
+
+    twoProAddCommonAdjectiveKoSurfaceV985(
+      plainPair[1],
+      'future',
+      'base',
+      entry
+    );
+  }
+
+  const mappedPast =
+    getKoreanConjugation(
+      koLemma,
+      'past'
+    );
+
+  if (
+    mappedPast &&
+    mappedPast !== koLemma
+  ) {
+    twoProAddCommonAdjectiveKoSurfaceV985(
+      mappedPast,
+      'past',
+      'base',
+      entry
+    );
+
+    if (mappedPast.endsWith('습니다')) {
+      twoProAddCommonAdjectiveKoSurfaceV985(
+        mappedPast.replace(
+          /습니다$/u,
+          '다'
+        ),
+        'past',
+        'base',
+        entry
+      );
+    }
+  }
+
+  const mappedFuture =
+    getKoreanConjugation(
+      koLemma,
+      'future'
+    );
+
+  if (
+    mappedFuture &&
+    mappedFuture !== koLemma
+  ) {
+    twoProAddCommonAdjectiveKoSurfaceV985(
+      mappedFuture,
+      'future',
+      'base',
+      entry
+    );
+
+    if (mappedFuture.endsWith('겠습니다')) {
+      twoProAddCommonAdjectiveKoSurfaceV985(
+        mappedFuture.replace(
+          /겠습니다$/u,
+          '겠다'
+        ),
+        'future',
+        'base',
+        entry
+      );
+    }
+  }
+
+  // -하다 / -이다 계열의 평서형 과거·미래를 보수적으로 보완합니다.
+  if (koLemma.endsWith('하다')) {
+    const stem =
+      koLemma.slice(
+        0,
+        -'하다'.length
+      );
+
+    twoProAddCommonAdjectiveKoSurfaceV985(
+      `${stem}했다`,
+      'past',
+      'base',
+      entry
+    );
+
+    twoProAddCommonAdjectiveKoSurfaceV985(
+      `${stem}하겠다`,
+      'future',
+      'base',
+      entry
+    );
+  }
+
+  if (koLemma.endsWith('이다')) {
+    const stem =
+      koLemma.slice(
+        0,
+        -'이다'.length
+      );
+
+    twoProAddCommonAdjectiveKoSurfaceV985(
+      `${stem}이었다`,
+      'past',
+      'base',
+      entry
+    );
+
+    twoProAddCommonAdjectiveKoSurfaceV985(
+      `${stem}이겠다`,
+      'future',
+      'base',
+      entry
+    );
+  }
+
+  if (
+    Array.isArray(
+      entry.forms?.comparative
+    ) &&
+    entry.forms.comparative.length > 0
+  ) {
+    twoProAddCommonAdjectiveKoSurfaceV985(
+      `더 ${koLemma}`,
+      'present',
+      'comparative',
+      entry
+    );
+  }
+
+  if (
+    Array.isArray(
+      entry.forms?.superlative
+    ) &&
+    entry.forms.superlative.length > 0
+  ) {
+    twoProAddCommonAdjectiveKoSurfaceV985(
+      `가장 ${koLemma}`,
+      'present',
+      'superlative',
+      entry
+    );
+  }
+}
+
+const twoProTryCommonAdjectiveExactKoEnV985 = (
+  value: unknown
+): TwoProCommonAdjectiveKoEnHitV985 | null => {
+  const surface =
+    twoProNormalizeKoreanCommonAdjectiveSurfaceV1(
+      value
+    );
+
+  if (
+    !surface ||
+    TWO_PRO_COMMON_ADJECTIVE_KO_AMBIGUOUS_SURFACES_V985.has(
+      surface
+    )
+  ) {
+    return null;
+  }
+
+  return (
+    TWO_PRO_COMMON_ADJECTIVE_KO_SURFACE_INDEX_V985.get(
+      surface
+    ) || null
+  );
+};
+
+const twoProRenderCommonAdjectiveEnglishV985 = (
+  hit: TwoProCommonAdjectiveKoEnHitV985
+): string | null => {
+  const lemma =
+    String(
+      hit.entry?.lemma || ''
+    ).trim();
+
+  if (!lemma) {
+    return null;
+  }
+
+  if (hit.degree === 'comparative') {
+    const comparative =
+      hit.entry?.forms?.comparative?.[0];
+
+    return comparative
+      ? String(comparative).trim()
+      : null;
+  }
+
+  if (hit.degree === 'superlative') {
+    const superlative =
+      hit.entry?.forms?.superlative?.[0];
+
+    return superlative
+      ? String(superlative).trim()
+      : null;
+  }
+
+  if (hit.tense === 'past') {
+    return `was ${lemma}`;
+  }
+
+  if (hit.tense === 'future') {
+    return `will be ${lemma}`;
   }
 
   return lemma;
@@ -32606,6 +32971,80 @@ export async function POST(request: Request) {
     const normalizedOriginalForJson =
       normalizeKoJsonExact(originalText);
 
+    // =================================================================
+    // ☆ TwoPro v9.86-safe: SAFE common adjective 기본형 단독 exact 선행
+    //
+    // 문제:
+    // rules-ko-en.json에 "쉽다" -> "It is easy" 같은 오래된 exact 항목이
+    // 있으면 아래 json-exact가 먼저 반환되어 common-adjectives v9.85가
+    // 도달하지 못합니다. SearchPage는 비문장 일반 json-exact를
+    // 파란 번역 블록으로 표시하지 않으므로 "쉽다"만 블록이 사라집니다.
+    //
+    // 해결:
+    // - PHRASES는 이 지점보다 앞에서 이미 처리되므로 우선순위 유지.
+    // - 전체 입력이 SAFE 형용사의 한국어 대표 기본형과 정확히 같을 때만
+    //   common-adjectives를 json-exact보다 먼저 허용합니다.
+    // - 비교급/최상급/과거/미래는 기존 v9.85 위치를 그대로 사용합니다.
+    // - CONTEXT는 절대 여기서 직접 번역하지 않습니다.
+    // =================================================================
+    const twoProCommonAdjectiveBaseBeforeJsonV986 =
+      twoProTryCommonAdjectiveExactKoEnV985(
+        originalText
+      );
+
+    if (
+      twoProCommonAdjectiveBaseBeforeJsonV986 &&
+      twoProCommonAdjectiveBaseBeforeJsonV986.degree ===
+        'base' &&
+      twoProCommonAdjectiveBaseBeforeJsonV986.tense ===
+        'present' &&
+      twoProNormalizeKoreanCommonAdjectiveSurfaceV1(
+        originalText
+      ) ===
+        twoProNormalizeKoreanCommonAdjectiveSurfaceV1(
+          twoProCommonAdjectiveBaseBeforeJsonV986.entry.ko
+        )
+    ) {
+      const renderedBaseV986 =
+        twoProRenderCommonAdjectiveEnglishV985(
+          twoProCommonAdjectiveBaseBeforeJsonV986
+        );
+
+      if (renderedBaseV986) {
+        const finalizedBaseV986 =
+          twoProFinalizeEnglish(
+            renderedBaseV986,
+            originalText
+          );
+
+        return twoProRespondWithPhraseDiagnosticsV915({
+          ok: true,
+          best: {
+            source_text: originalText,
+            target_text: finalizedBaseV986,
+            isReference: false,
+            analysis: [],
+            referenceWords: [],
+            engine:
+              'common-adjectives-ko-en-exact-v9.86',
+            commonAdjectiveLemma:
+              twoProCommonAdjectiveBaseBeforeJsonV986.entry.lemma,
+            commonAdjectiveKo:
+              twoProCommonAdjectiveBaseBeforeJsonV986.entry.ko,
+            commonAdjectiveTense:
+              twoProCommonAdjectiveBaseBeforeJsonV986.tense,
+            commonAdjectiveDegree:
+              twoProCommonAdjectiveBaseBeforeJsonV986.degree,
+            commonAdjectiveSurface:
+              twoProCommonAdjectiveBaseBeforeJsonV986.sourceSurface,
+            commonAdjectiveStats:
+              TWO_PRO_COMMON_ADJECTIVE_STATS_V1,
+          },
+          referenceWords: [],
+        });
+      }
+    }
+
     const exactJsonRuleKey =
       Object.keys(customRules).find(
         (key) =>
@@ -32801,6 +33240,57 @@ export async function POST(request: Request) {
               twoProCommonVerbExactV984.sourceSurface,
             commonVerbStats:
               TWO_PRO_COMMON_VERB_STATS_V1,
+          },
+          referenceWords: [],
+        });
+      }
+    }
+
+
+
+    // =================================================================
+    // ☆ TwoPro v9.85-safe: common adjectives SAFE 단독 exact
+    // =================================================================
+    const twoProCommonAdjectiveExactV985 =
+      twoProTryCommonAdjectiveExactKoEnV985(
+        originalText
+      );
+
+    if (twoProCommonAdjectiveExactV985) {
+      const renderedV985 =
+        twoProRenderCommonAdjectiveEnglishV985(
+          twoProCommonAdjectiveExactV985
+        );
+
+      if (renderedV985) {
+        const finalizedV985 =
+          twoProFinalizeEnglish(
+            renderedV985,
+            originalText
+          );
+
+        return twoProRespondWithPhraseDiagnosticsV915({
+          ok: true,
+          best: {
+            source_text: originalText,
+            target_text: finalizedV985,
+            isReference: false,
+            analysis: [],
+            referenceWords: [],
+            engine:
+              'common-adjectives-ko-en-exact-v9.85',
+            commonAdjectiveLemma:
+              twoProCommonAdjectiveExactV985.entry.lemma,
+            commonAdjectiveKo:
+              twoProCommonAdjectiveExactV985.entry.ko,
+            commonAdjectiveTense:
+              twoProCommonAdjectiveExactV985.tense,
+            commonAdjectiveDegree:
+              twoProCommonAdjectiveExactV985.degree,
+            commonAdjectiveSurface:
+              twoProCommonAdjectiveExactV985.sourceSurface,
+            commonAdjectiveStats:
+              TWO_PRO_COMMON_ADJECTIVE_STATS_V1,
           },
           referenceWords: [],
         });

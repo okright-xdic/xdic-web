@@ -1,0 +1,4331 @@
+{
+  "schemaVersion": "1.0",
+  "entries": {
+    "able": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more able"
+        ],
+        "superlative": [
+          "most able"
+        ]
+      }
+    },
+    "abnormal": {
+      "ko": "비정상적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more abnormal"
+        ],
+        "superlative": [
+          "most abnormal"
+        ]
+      }
+    },
+    "absent": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "absolute": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "abstract": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "abundant": {
+      "ko": "풍부하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more abundant"
+        ],
+        "superlative": [
+          "most abundant"
+        ]
+      }
+    },
+    "academic": {
+      "ko": "학문적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "accurate": {
+      "ko": "정확하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more accurate"
+        ],
+        "superlative": [
+          "most accurate"
+        ]
+      }
+    },
+    "active": {
+      "ko": "활동적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more active"
+        ],
+        "superlative": [
+          "most active"
+        ]
+      }
+    },
+    "additional": {
+      "ko": "추가적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "adequate": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "administrative": {
+      "ko": "행정적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "advanced": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "afraid": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more afraid"
+        ],
+        "superlative": [
+          "most afraid"
+        ]
+      }
+    },
+    "aggressive": {
+      "ko": "공격적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more aggressive"
+        ],
+        "superlative": [
+          "most aggressive"
+        ]
+      }
+    },
+    "agricultural": {
+      "ko": "농업적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "alive": {
+      "ko": "살아 있다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "alone": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more alone"
+        ],
+        "superlative": [
+          "most alone"
+        ]
+      }
+    },
+    "amazing": {
+      "ko": "놀랍다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more amazing"
+        ],
+        "superlative": [
+          "most amazing"
+        ]
+      }
+    },
+    "ancient": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "angry": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more angry"
+        ],
+        "superlative": [
+          "most angry"
+        ]
+      }
+    },
+    "anxious": {
+      "ko": "불안하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more anxious"
+        ],
+        "superlative": [
+          "most anxious"
+        ]
+      }
+    },
+    "appropriate": {
+      "ko": "적절하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more appropriate"
+        ],
+        "superlative": [
+          "most appropriate"
+        ]
+      }
+    },
+    "artificial": {
+      "ko": "인공적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "asleep": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "attractive": {
+      "ko": "매력적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more attractive"
+        ],
+        "superlative": [
+          "most attractive"
+        ]
+      }
+    },
+    "automatic": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "available": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more available"
+        ],
+        "superlative": [
+          "most available"
+        ]
+      }
+    },
+    "average": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more average"
+        ],
+        "superlative": [
+          "most average"
+        ]
+      }
+    },
+    "awake": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "aware": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "bad": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "worse"
+        ],
+        "superlative": [
+          "worst"
+        ]
+      }
+    },
+    "basic": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more basic"
+        ],
+        "superlative": [
+          "most basic"
+        ]
+      }
+    },
+    "beautiful": {
+      "ko": "아름답다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more beautiful"
+        ],
+        "superlative": [
+          "most beautiful"
+        ]
+      }
+    },
+    "beneficial": {
+      "ko": "유익하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more beneficial"
+        ],
+        "superlative": [
+          "most beneficial"
+        ]
+      }
+    },
+    "big": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "bigger"
+        ],
+        "superlative": [
+          "biggest"
+        ]
+      }
+    },
+    "biological": {
+      "ko": "생물학적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "bitter": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more bitter"
+        ],
+        "superlative": [
+          "most bitter"
+        ]
+      }
+    },
+    "black": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more black"
+        ],
+        "superlative": [
+          "most black"
+        ]
+      }
+    },
+    "blind": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more blind"
+        ],
+        "superlative": [
+          "most blind"
+        ]
+      }
+    },
+    "blue": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more blue"
+        ],
+        "superlative": [
+          "most blue"
+        ]
+      }
+    },
+    "bold": {
+      "ko": "대담하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more bold"
+        ],
+        "superlative": [
+          "most bold"
+        ]
+      }
+    },
+    "bored": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "boring": {
+      "ko": "지루하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more boring"
+        ],
+        "superlative": [
+          "most boring"
+        ]
+      }
+    },
+    "brave": {
+      "ko": "용감하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more brave"
+        ],
+        "superlative": [
+          "most brave"
+        ]
+      }
+    },
+    "brief": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more brief"
+        ],
+        "superlative": [
+          "most brief"
+        ]
+      }
+    },
+    "bright": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "brighter"
+        ],
+        "superlative": [
+          "brightest"
+        ]
+      }
+    },
+    "broad": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "broader"
+        ],
+        "superlative": [
+          "broadest"
+        ]
+      }
+    },
+    "broken": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "brown": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more brown"
+        ],
+        "superlative": [
+          "most brown"
+        ]
+      }
+    },
+    "busy": {
+      "ko": "바쁘다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "busier"
+        ],
+        "superlative": [
+          "busiest"
+        ]
+      }
+    },
+    "calm": {
+      "ko": "차분하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more calm"
+        ],
+        "superlative": [
+          "most calm"
+        ]
+      }
+    },
+    "capable": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more capable"
+        ],
+        "superlative": [
+          "most capable"
+        ]
+      }
+    },
+    "careful": {
+      "ko": "주의 깊다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more careful"
+        ],
+        "superlative": [
+          "most careful"
+        ]
+      }
+    },
+    "careless": {
+      "ko": "부주의하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more careless"
+        ],
+        "superlative": [
+          "most careless"
+        ]
+      }
+    },
+    "central": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more central"
+        ],
+        "superlative": [
+          "most central"
+        ]
+      }
+    },
+    "certain": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more certain"
+        ],
+        "superlative": [
+          "most certain"
+        ]
+      }
+    },
+    "cheap": {
+      "ko": "저렴하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "cheaper"
+        ],
+        "superlative": [
+          "cheapest"
+        ]
+      }
+    },
+    "cheerful": {
+      "ko": "명랑하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more cheerful"
+        ],
+        "superlative": [
+          "most cheerful"
+        ]
+      }
+    },
+    "chemical": {
+      "ko": "화학적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "chief": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "civil": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more civil"
+        ],
+        "superlative": [
+          "most civil"
+        ]
+      }
+    },
+    "classical": {
+      "ko": "고전적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more classical"
+        ],
+        "superlative": [
+          "most classical"
+        ]
+      }
+    },
+    "clean": {
+      "ko": "깨끗하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "cleaner"
+        ],
+        "superlative": [
+          "cleanest"
+        ]
+      }
+    },
+    "clear": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "clearer"
+        ],
+        "superlative": [
+          "clearest"
+        ]
+      }
+    },
+    "clever": {
+      "ko": "영리하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "cleverer",
+          "more clever"
+        ],
+        "superlative": [
+          "cleverest",
+          "most clever"
+        ]
+      }
+    },
+    "clinical": {
+      "ko": "임상적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "close": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "closer"
+        ],
+        "superlative": [
+          "closest"
+        ]
+      }
+    },
+    "closed": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "cold": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "colder"
+        ],
+        "superlative": [
+          "coldest"
+        ]
+      }
+    },
+    "comfortable": {
+      "ko": "편안하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more comfortable"
+        ],
+        "superlative": [
+          "most comfortable"
+        ]
+      }
+    },
+    "commercial": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "common": {
+      "ko": "흔하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more common"
+        ],
+        "superlative": [
+          "most common"
+        ]
+      }
+    },
+    "competitive": {
+      "ko": "경쟁적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more competitive"
+        ],
+        "superlative": [
+          "most competitive"
+        ]
+      }
+    },
+    "complete": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more complete"
+        ],
+        "superlative": [
+          "most complete"
+        ]
+      }
+    },
+    "complex": {
+      "ko": "복잡하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more complex"
+        ],
+        "superlative": [
+          "most complex"
+        ]
+      }
+    },
+    "comprehensive": {
+      "ko": "포괄적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more comprehensive"
+        ],
+        "superlative": [
+          "most comprehensive"
+        ]
+      }
+    },
+    "concerned": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "confident": {
+      "ko": "자신 있다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more confident"
+        ],
+        "superlative": [
+          "most confident"
+        ]
+      }
+    },
+    "confused": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "conscious": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more conscious"
+        ],
+        "superlative": [
+          "most conscious"
+        ]
+      }
+    },
+    "constant": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "constitutional": {
+      "ko": "헌법적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "contemporary": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more contemporary"
+        ],
+        "superlative": [
+          "most contemporary"
+        ]
+      }
+    },
+    "convenient": {
+      "ko": "편리하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more convenient"
+        ],
+        "superlative": [
+          "most convenient"
+        ]
+      }
+    },
+    "cool": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "cooler"
+        ],
+        "superlative": [
+          "coolest"
+        ]
+      }
+    },
+    "correct": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more correct"
+        ],
+        "superlative": [
+          "most correct"
+        ]
+      }
+    },
+    "creative": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more creative"
+        ],
+        "superlative": [
+          "most creative"
+        ]
+      }
+    },
+    "criminal": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "critical": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more critical"
+        ],
+        "superlative": [
+          "most critical"
+        ]
+      }
+    },
+    "crucial": {
+      "ko": "결정적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more crucial"
+        ],
+        "superlative": [
+          "most crucial"
+        ]
+      }
+    },
+    "cruel": {
+      "ko": "잔인하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "crueler",
+          "more cruel"
+        ],
+        "superlative": [
+          "cruelest",
+          "most cruel"
+        ]
+      }
+    },
+    "cultural": {
+      "ko": "문화적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "curious": {
+      "ko": "호기심 많다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more curious"
+        ],
+        "superlative": [
+          "most curious"
+        ]
+      }
+    },
+    "current": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more current"
+        ],
+        "superlative": [
+          "most current"
+        ]
+      }
+    },
+    "cute": {
+      "ko": "귀엽다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "cuter"
+        ],
+        "superlative": [
+          "cutest"
+        ]
+      }
+    },
+    "daily": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "dangerous": {
+      "ko": "위험하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more dangerous"
+        ],
+        "superlative": [
+          "most dangerous"
+        ]
+      }
+    },
+    "dark": {
+      "ko": "어둡다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "darker"
+        ],
+        "superlative": [
+          "darkest"
+        ]
+      }
+    },
+    "dead": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "dear": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "dearer"
+        ],
+        "superlative": [
+          "dearest"
+        ]
+      }
+    },
+    "deep": {
+      "ko": "깊다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "deeper"
+        ],
+        "superlative": [
+          "deepest"
+        ]
+      }
+    },
+    "delicious": {
+      "ko": "맛있다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more delicious"
+        ],
+        "superlative": [
+          "most delicious"
+        ]
+      }
+    },
+    "delighted": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "dependent": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more dependent"
+        ],
+        "superlative": [
+          "most dependent"
+        ]
+      }
+    },
+    "desirable": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more desirable"
+        ],
+        "superlative": [
+          "most desirable"
+        ]
+      }
+    },
+    "destructive": {
+      "ko": "파괴적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more destructive"
+        ],
+        "superlative": [
+          "most destructive"
+        ]
+      }
+    },
+    "different": {
+      "ko": "다르다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more different"
+        ],
+        "superlative": [
+          "most different"
+        ]
+      }
+    },
+    "difficult": {
+      "ko": "어렵다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more difficult"
+        ],
+        "superlative": [
+          "most difficult"
+        ]
+      }
+    },
+    "digital": {
+      "ko": "디지털적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "direct": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more direct"
+        ],
+        "superlative": [
+          "most direct"
+        ]
+      }
+    },
+    "dirty": {
+      "ko": "더럽다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "dirtier"
+        ],
+        "superlative": [
+          "dirtiest"
+        ]
+      }
+    },
+    "diverse": {
+      "ko": "다양하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more diverse"
+        ],
+        "superlative": [
+          "most diverse"
+        ]
+      }
+    },
+    "domestic": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "dramatic": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more dramatic"
+        ],
+        "superlative": [
+          "most dramatic"
+        ]
+      }
+    },
+    "dry": {
+      "ko": "건조하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "drier"
+        ],
+        "superlative": [
+          "driest"
+        ]
+      }
+    },
+    "dynamic": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more dynamic"
+        ],
+        "superlative": [
+          "most dynamic"
+        ]
+      }
+    },
+    "early": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "earlier"
+        ],
+        "superlative": [
+          "earliest"
+        ]
+      }
+    },
+    "easy": {
+      "ko": "쉽다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "easier"
+        ],
+        "superlative": [
+          "easiest"
+        ]
+      }
+    },
+    "economic": {
+      "ko": "경제적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "educational": {
+      "ko": "교육적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "effective": {
+      "ko": "효과적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more effective"
+        ],
+        "superlative": [
+          "most effective"
+        ]
+      }
+    },
+    "efficient": {
+      "ko": "효율적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more efficient"
+        ],
+        "superlative": [
+          "most efficient"
+        ]
+      }
+    },
+    "elderly": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "electrical": {
+      "ko": "전기적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "electronic": {
+      "ko": "전자적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "elegant": {
+      "ko": "우아하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more elegant"
+        ],
+        "superlative": [
+          "most elegant"
+        ]
+      }
+    },
+    "emotional": {
+      "ko": "감정적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more emotional"
+        ],
+        "superlative": [
+          "most emotional"
+        ]
+      }
+    },
+    "empty": {
+      "ko": "비어 있다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more empty"
+        ],
+        "superlative": [
+          "most empty"
+        ]
+      }
+    },
+    "enormous": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more enormous"
+        ],
+        "superlative": [
+          "most enormous"
+        ]
+      }
+    },
+    "environmental": {
+      "ko": "환경적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "equal": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more equal"
+        ],
+        "superlative": [
+          "most equal"
+        ]
+      }
+    },
+    "essential": {
+      "ko": "필수적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more essential"
+        ],
+        "superlative": [
+          "most essential"
+        ]
+      }
+    },
+    "ethical": {
+      "ko": "윤리적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more ethical"
+        ],
+        "superlative": [
+          "most ethical"
+        ]
+      }
+    },
+    "excellent": {
+      "ko": "탁월하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more excellent"
+        ],
+        "superlative": [
+          "most excellent"
+        ]
+      }
+    },
+    "exceptional": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "excited": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "expensive": {
+      "ko": "비싸다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more expensive"
+        ],
+        "superlative": [
+          "most expensive"
+        ]
+      }
+    },
+    "experienced": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "external": {
+      "ko": "외부적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "extreme": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more extreme"
+        ],
+        "superlative": [
+          "most extreme"
+        ]
+      }
+    },
+    "fair": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "fairer"
+        ],
+        "superlative": [
+          "fairest"
+        ]
+      }
+    },
+    "familiar": {
+      "ko": "익숙하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more familiar"
+        ],
+        "superlative": [
+          "most familiar"
+        ]
+      }
+    },
+    "famous": {
+      "ko": "유명하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more famous"
+        ],
+        "superlative": [
+          "most famous"
+        ]
+      }
+    },
+    "far": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "farther",
+          "further"
+        ],
+        "superlative": [
+          "farthest",
+          "furthest"
+        ]
+      }
+    },
+    "fast": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "faster"
+        ],
+        "superlative": [
+          "fastest"
+        ]
+      }
+    },
+    "favorable": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more favorable"
+        ],
+        "superlative": [
+          "most favorable"
+        ]
+      }
+    },
+    "favorite": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "federal": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "female": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "final": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "financial": {
+      "ko": "재정적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "fine": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "finer"
+        ],
+        "superlative": [
+          "finest"
+        ]
+      }
+    },
+    "flat": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more flat"
+        ],
+        "superlative": [
+          "most flat"
+        ]
+      }
+    },
+    "foolish": {
+      "ko": "어리석다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more foolish"
+        ],
+        "superlative": [
+          "most foolish"
+        ]
+      }
+    },
+    "foreign": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "formal": {
+      "ko": "격식적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more formal"
+        ],
+        "superlative": [
+          "most formal"
+        ]
+      }
+    },
+    "former": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "free": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "freer"
+        ],
+        "superlative": [
+          "freest"
+        ]
+      }
+    },
+    "frequent": {
+      "ko": "빈번하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more frequent"
+        ],
+        "superlative": [
+          "most frequent"
+        ]
+      }
+    },
+    "fresh": {
+      "ko": "신선하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more fresh"
+        ],
+        "superlative": [
+          "most fresh"
+        ]
+      }
+    },
+    "friendly": {
+      "ko": "친근하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "friendlier",
+          "more friendly"
+        ],
+        "superlative": [
+          "friendliest",
+          "most friendly"
+        ]
+      }
+    },
+    "front": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "full": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "fuller"
+        ],
+        "superlative": [
+          "fullest"
+        ]
+      }
+    },
+    "fundamental": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more fundamental"
+        ],
+        "superlative": [
+          "most fundamental"
+        ]
+      }
+    },
+    "funny": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "funnier"
+        ],
+        "superlative": [
+          "funniest"
+        ]
+      }
+    },
+    "general": {
+      "ko": "일반적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more general"
+        ],
+        "superlative": [
+          "most general"
+        ]
+      }
+    },
+    "generous": {
+      "ko": "관대하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more generous"
+        ],
+        "superlative": [
+          "most generous"
+        ]
+      }
+    },
+    "gentle": {
+      "ko": "온화하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "gentler"
+        ],
+        "superlative": [
+          "gentlest"
+        ]
+      }
+    },
+    "glad": {
+      "ko": "기쁘다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more glad"
+        ],
+        "superlative": [
+          "most glad"
+        ]
+      }
+    },
+    "global": {
+      "ko": "세계적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more global"
+        ],
+        "superlative": [
+          "most global"
+        ]
+      }
+    },
+    "golden": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "good": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "better"
+        ],
+        "superlative": [
+          "best"
+        ]
+      }
+    },
+    "grateful": {
+      "ko": "고맙다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more grateful"
+        ],
+        "superlative": [
+          "most grateful"
+        ]
+      }
+    },
+    "gray": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "grayer",
+          "greyer"
+        ],
+        "superlative": [
+          "grayest",
+          "greyest"
+        ]
+      }
+    },
+    "great": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "greater"
+        ],
+        "superlative": [
+          "greatest"
+        ]
+      }
+    },
+    "green": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "greener"
+        ],
+        "superlative": [
+          "greenest"
+        ]
+      }
+    },
+    "guilty": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "guiltier"
+        ],
+        "superlative": [
+          "guiltiest"
+        ]
+      }
+    },
+    "handsome": {
+      "ko": "잘생기다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more handsome"
+        ],
+        "superlative": [
+          "most handsome"
+        ]
+      }
+    },
+    "happy": {
+      "ko": "행복하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "happier"
+        ],
+        "superlative": [
+          "happiest"
+        ]
+      }
+    },
+    "hard": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "harder"
+        ],
+        "superlative": [
+          "hardest"
+        ]
+      }
+    },
+    "harmful": {
+      "ko": "해롭다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more harmful"
+        ],
+        "superlative": [
+          "most harmful"
+        ]
+      }
+    },
+    "harmless": {
+      "ko": "해롭지 않다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more harmless"
+        ],
+        "superlative": [
+          "most harmless"
+        ]
+      }
+    },
+    "harmonious": {
+      "ko": "조화롭다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more harmonious"
+        ],
+        "superlative": [
+          "most harmonious"
+        ]
+      }
+    },
+    "healthy": {
+      "ko": "건강하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "healthier"
+        ],
+        "superlative": [
+          "healthiest"
+        ]
+      }
+    },
+    "heavy": {
+      "ko": "무겁다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "heavier"
+        ],
+        "superlative": [
+          "heaviest"
+        ]
+      }
+    },
+    "helpful": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more helpful"
+        ],
+        "superlative": [
+          "most helpful"
+        ]
+      }
+    },
+    "historical": {
+      "ko": "역사적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "honest": {
+      "ko": "정직하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more honest"
+        ],
+        "superlative": [
+          "most honest"
+        ]
+      }
+    },
+    "hopeful": {
+      "ko": "희망적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more hopeful"
+        ],
+        "superlative": [
+          "most hopeful"
+        ]
+      }
+    },
+    "hot": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "hotter"
+        ],
+        "superlative": [
+          "hottest"
+        ]
+      }
+    },
+    "huge": {
+      "ko": "거대하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more huge"
+        ],
+        "superlative": [
+          "most huge"
+        ]
+      }
+    },
+    "human": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "hungry": {
+      "ko": "배고프다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "hungrier"
+        ],
+        "superlative": [
+          "hungriest"
+        ]
+      }
+    },
+    "illegal": {
+      "ko": "불법적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more illegal"
+        ],
+        "superlative": [
+          "most illegal"
+        ]
+      }
+    },
+    "immediate": {
+      "ko": "즉각적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more immediate"
+        ],
+        "superlative": [
+          "most immediate"
+        ]
+      }
+    },
+    "important": {
+      "ko": "중요하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more important"
+        ],
+        "superlative": [
+          "most important"
+        ]
+      }
+    },
+    "impossible": {
+      "ko": "불가능하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more impossible"
+        ],
+        "superlative": [
+          "most impossible"
+        ]
+      }
+    },
+    "independent": {
+      "ko": "독립적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more independent"
+        ],
+        "superlative": [
+          "most independent"
+        ]
+      }
+    },
+    "individual": {
+      "ko": "개별적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more individual"
+        ],
+        "superlative": [
+          "most individual"
+        ]
+      }
+    },
+    "industrial": {
+      "ko": "산업적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "initial": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "inner": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "innocent": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more innocent"
+        ],
+        "superlative": [
+          "most innocent"
+        ]
+      }
+    },
+    "intellectual": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more intellectual"
+        ],
+        "superlative": [
+          "most intellectual"
+        ]
+      }
+    },
+    "interested": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "interesting": {
+      "ko": "흥미롭다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more interesting"
+        ],
+        "superlative": [
+          "most interesting"
+        ]
+      }
+    },
+    "internal": {
+      "ko": "내부적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more internal"
+        ],
+        "superlative": [
+          "most internal"
+        ]
+      }
+    },
+    "international": {
+      "ko": "국제적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "kind": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more kind"
+        ],
+        "superlative": [
+          "most kind"
+        ]
+      }
+    },
+    "known": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "large": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "larger"
+        ],
+        "superlative": [
+          "largest"
+        ]
+      }
+    },
+    "last": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "late": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "later"
+        ],
+        "superlative": [
+          "latest"
+        ]
+      }
+    },
+    "latter": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "lazy": {
+      "ko": "게으르다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "lazier"
+        ],
+        "superlative": [
+          "laziest"
+        ]
+      }
+    },
+    "leading": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "legal": {
+      "ko": "법적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "light": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "lighter"
+        ],
+        "superlative": [
+          "lightest"
+        ]
+      }
+    },
+    "likely": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "likelier",
+          "more likely"
+        ],
+        "superlative": [
+          "likeliest",
+          "most likely"
+        ]
+      }
+    },
+    "little": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "living": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "local": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "logical": {
+      "ko": "논리적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more logical"
+        ],
+        "superlative": [
+          "most logical"
+        ]
+      }
+    },
+    "lonely": {
+      "ko": "외롭다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "lonelier"
+        ],
+        "superlative": [
+          "loneliest"
+        ]
+      }
+    },
+    "long": {
+      "ko": "길다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "longer"
+        ],
+        "superlative": [
+          "longest"
+        ]
+      }
+    },
+    "loud": {
+      "ko": "시끄럽다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "louder"
+        ],
+        "superlative": [
+          "loudest"
+        ]
+      }
+    },
+    "low": {
+      "ko": "낮다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "lower"
+        ],
+        "superlative": [
+          "lowest"
+        ]
+      }
+    },
+    "lower": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "loyal": {
+      "ko": "충실하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more loyal"
+        ],
+        "superlative": [
+          "most loyal"
+        ]
+      }
+    },
+    "main": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "major": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "male": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "many": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "married": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "mature": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more mature"
+        ],
+        "superlative": [
+          "most mature"
+        ]
+      }
+    },
+    "maximum": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "mean": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "meaningful": {
+      "ko": "의미 있다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more meaningful"
+        ],
+        "superlative": [
+          "most meaningful"
+        ]
+      }
+    },
+    "meaningless": {
+      "ko": "무의미하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more meaningless"
+        ],
+        "superlative": [
+          "most meaningless"
+        ]
+      }
+    },
+    "medical": {
+      "ko": "의학적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "mental": {
+      "ko": "정신적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more mental"
+        ],
+        "superlative": [
+          "most mental"
+        ]
+      }
+    },
+    "military": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "minimum": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "miserable": {
+      "ko": "비참하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more miserable"
+        ],
+        "superlative": [
+          "most miserable"
+        ]
+      }
+    },
+    "modern": {
+      "ko": "현대적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more modern"
+        ],
+        "superlative": [
+          "most modern"
+        ]
+      }
+    },
+    "modest": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more modest"
+        ],
+        "superlative": [
+          "most modest"
+        ]
+      }
+    },
+    "much": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "mysterious": {
+      "ko": "신비롭다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more mysterious"
+        ],
+        "superlative": [
+          "most mysterious"
+        ]
+      }
+    },
+    "narrow": {
+      "ko": "좁다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "narrower"
+        ],
+        "superlative": [
+          "narrowest"
+        ]
+      }
+    },
+    "national": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "native": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "natural": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more natural"
+        ],
+        "superlative": [
+          "most natural"
+        ]
+      }
+    },
+    "naval": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "near": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "nearer"
+        ],
+        "superlative": [
+          "nearest"
+        ]
+      }
+    },
+    "necessary": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more necessary"
+        ],
+        "superlative": [
+          "most necessary"
+        ]
+      }
+    },
+    "negative": {
+      "ko": "부정적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more negative"
+        ],
+        "superlative": [
+          "most negative"
+        ]
+      }
+    },
+    "new": {
+      "ko": "새롭다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "newer"
+        ],
+        "superlative": [
+          "newest"
+        ]
+      }
+    },
+    "nice": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more nice"
+        ],
+        "superlative": [
+          "most nice"
+        ]
+      }
+    },
+    "normal": {
+      "ko": "정상적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more normal"
+        ],
+        "superlative": [
+          "most normal"
+        ]
+      }
+    },
+    "objective": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "obvious": {
+      "ko": "명백하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more obvious"
+        ],
+        "superlative": [
+          "most obvious"
+        ]
+      }
+    },
+    "official": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "old": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "older"
+        ],
+        "superlative": [
+          "oldest"
+        ]
+      }
+    },
+    "open": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more open"
+        ],
+        "superlative": [
+          "most open"
+        ]
+      }
+    },
+    "ordinary": {
+      "ko": "평범하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more ordinary"
+        ],
+        "superlative": [
+          "most ordinary"
+        ]
+      }
+    },
+    "outer": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "particular": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more particular"
+        ],
+        "superlative": [
+          "most particular"
+        ]
+      }
+    },
+    "patient": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more patient"
+        ],
+        "superlative": [
+          "most patient"
+        ]
+      }
+    },
+    "peaceful": {
+      "ko": "평화롭다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more peaceful"
+        ],
+        "superlative": [
+          "most peaceful"
+        ]
+      }
+    },
+    "perfect": {
+      "ko": "완벽하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "permanent": {
+      "ko": "영구적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "personal": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more personal"
+        ],
+        "superlative": [
+          "most personal"
+        ]
+      }
+    },
+    "physical": {
+      "ko": "신체적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "plain": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "plainer"
+        ],
+        "superlative": [
+          "plainest"
+        ]
+      }
+    },
+    "pleasant": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more pleasant"
+        ],
+        "superlative": [
+          "most pleasant"
+        ]
+      }
+    },
+    "polite": {
+      "ko": "공손하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more polite"
+        ],
+        "superlative": [
+          "most polite"
+        ]
+      }
+    },
+    "political": {
+      "ko": "정치적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "poor": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "poorer"
+        ],
+        "superlative": [
+          "poorest"
+        ]
+      }
+    },
+    "popular": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more popular"
+        ],
+        "superlative": [
+          "most popular"
+        ]
+      }
+    },
+    "positive": {
+      "ko": "긍정적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more positive"
+        ],
+        "superlative": [
+          "most positive"
+        ]
+      }
+    },
+    "possible": {
+      "ko": "가능하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more possible"
+        ],
+        "superlative": [
+          "most possible"
+        ]
+      }
+    },
+    "potential": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "powerful": {
+      "ko": "강력하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more powerful"
+        ],
+        "superlative": [
+          "most powerful"
+        ]
+      }
+    },
+    "practical": {
+      "ko": "실용적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more practical"
+        ],
+        "superlative": [
+          "most practical"
+        ]
+      }
+    },
+    "prepared": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "present": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "pretty": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "prettier"
+        ],
+        "superlative": [
+          "prettiest"
+        ]
+      }
+    },
+    "primary": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "prime": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "principal": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "private": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more private"
+        ],
+        "superlative": [
+          "most private"
+        ]
+      }
+    },
+    "professional": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more professional"
+        ],
+        "superlative": [
+          "most professional"
+        ]
+      }
+    },
+    "proper": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more proper"
+        ],
+        "superlative": [
+          "most proper"
+        ]
+      }
+    },
+    "proud": {
+      "ko": "자랑스럽다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more proud"
+        ],
+        "superlative": [
+          "most proud"
+        ]
+      }
+    },
+    "psychological": {
+      "ko": "심리적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "public": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more public"
+        ],
+        "superlative": [
+          "most public"
+        ]
+      }
+    },
+    "quick": {
+      "ko": "신속하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more quick"
+        ],
+        "superlative": [
+          "most quick"
+        ]
+      }
+    },
+    "quiet": {
+      "ko": "조용하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "quieter"
+        ],
+        "superlative": [
+          "quietest"
+        ]
+      }
+    },
+    "rare": {
+      "ko": "드물다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "rarer"
+        ],
+        "superlative": [
+          "rarest"
+        ]
+      }
+    },
+    "raw": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "rawer"
+        ],
+        "superlative": [
+          "rawest"
+        ]
+      }
+    },
+    "ready": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "real": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more real"
+        ],
+        "superlative": [
+          "most real"
+        ]
+      }
+    },
+    "reasonable": {
+      "ko": "합리적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more reasonable"
+        ],
+        "superlative": [
+          "most reasonable"
+        ]
+      }
+    },
+    "red": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "redder"
+        ],
+        "superlative": [
+          "reddest"
+        ]
+      }
+    },
+    "regular": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more regular"
+        ],
+        "superlative": [
+          "most regular"
+        ]
+      }
+    },
+    "relative": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more relative"
+        ],
+        "superlative": [
+          "most relative"
+        ]
+      }
+    },
+    "reliable": {
+      "ko": "믿을 만하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more reliable"
+        ],
+        "superlative": [
+          "most reliable"
+        ]
+      }
+    },
+    "religious": {
+      "ko": "종교적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "remote": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "remoter",
+          "more remote"
+        ],
+        "superlative": [
+          "remotest",
+          "most remote"
+        ]
+      }
+    },
+    "responsible": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more responsible"
+        ],
+        "superlative": [
+          "most responsible"
+        ]
+      }
+    },
+    "rich": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more rich"
+        ],
+        "superlative": [
+          "most rich"
+        ]
+      }
+    },
+    "right": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "rough": {
+      "ko": "거칠다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "rougher"
+        ],
+        "superlative": [
+          "roughest"
+        ]
+      }
+    },
+    "round": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more round"
+        ],
+        "superlative": [
+          "most round"
+        ]
+      }
+    },
+    "rude": {
+      "ko": "무례하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more rude"
+        ],
+        "superlative": [
+          "most rude"
+        ]
+      }
+    },
+    "rural": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "sad": {
+      "ko": "슬프다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "sadder"
+        ],
+        "superlative": [
+          "saddest"
+        ]
+      }
+    },
+    "safe": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more safe"
+        ],
+        "superlative": [
+          "most safe"
+        ]
+      }
+    },
+    "same": {
+      "ko": "같다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more same"
+        ],
+        "superlative": [
+          "most same"
+        ]
+      }
+    },
+    "scientific": {
+      "ko": "과학적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "sensitive": {
+      "ko": "민감하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more sensitive"
+        ],
+        "superlative": [
+          "most sensitive"
+        ]
+      }
+    },
+    "serious": {
+      "ko": "심각하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more serious"
+        ],
+        "superlative": [
+          "most serious"
+        ]
+      }
+    },
+    "severe": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more severe"
+        ],
+        "superlative": [
+          "most severe"
+        ]
+      }
+    },
+    "sharp": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "sharper"
+        ],
+        "superlative": [
+          "sharpest"
+        ]
+      }
+    },
+    "short": {
+      "ko": "짧다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "shorter"
+        ],
+        "superlative": [
+          "shortest"
+        ]
+      }
+    },
+    "shy": {
+      "ko": "수줍다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "shyer"
+        ],
+        "superlative": [
+          "shyest"
+        ]
+      }
+    },
+    "sick": {
+      "ko": "아프다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more sick"
+        ],
+        "superlative": [
+          "most sick"
+        ]
+      }
+    },
+    "significant": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more significant"
+        ],
+        "superlative": [
+          "most significant"
+        ]
+      }
+    },
+    "silent": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more silent"
+        ],
+        "superlative": [
+          "most silent"
+        ]
+      }
+    },
+    "similar": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more similar"
+        ],
+        "superlative": [
+          "most similar"
+        ]
+      }
+    },
+    "simple": {
+      "ko": "단순하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "simpler"
+        ],
+        "superlative": [
+          "simplest"
+        ]
+      }
+    },
+    "sincere": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more sincere"
+        ],
+        "superlative": [
+          "most sincere"
+        ]
+      }
+    },
+    "single": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "sleepy": {
+      "ko": "졸리다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "sleepier"
+        ],
+        "superlative": [
+          "sleepiest"
+        ]
+      }
+    },
+    "slow": {
+      "ko": "느리다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "slower"
+        ],
+        "superlative": [
+          "slowest"
+        ]
+      }
+    },
+    "small": {
+      "ko": "작다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "smaller"
+        ],
+        "superlative": [
+          "smallest"
+        ]
+      }
+    },
+    "smart": {
+      "ko": "똑똑하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more smart"
+        ],
+        "superlative": [
+          "most smart"
+        ]
+      }
+    },
+    "smooth": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "smoother"
+        ],
+        "superlative": [
+          "smoothest"
+        ]
+      }
+    },
+    "social": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "soft": {
+      "ko": "부드럽다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "softer"
+        ],
+        "superlative": [
+          "softest"
+        ]
+      }
+    },
+    "solid": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more solid"
+        ],
+        "superlative": [
+          "most solid"
+        ]
+      }
+    },
+    "special": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more special"
+        ],
+        "superlative": [
+          "most special"
+        ]
+      }
+    },
+    "specific": {
+      "ko": "구체적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more specific"
+        ],
+        "superlative": [
+          "most specific"
+        ]
+      }
+    },
+    "square": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "standard": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "straight": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "straighter"
+        ],
+        "superlative": [
+          "straightest"
+        ]
+      }
+    },
+    "strange": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more strange"
+        ],
+        "superlative": [
+          "most strange"
+        ]
+      }
+    },
+    "strict": {
+      "ko": "엄격하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more strict"
+        ],
+        "superlative": [
+          "most strict"
+        ]
+      }
+    },
+    "strong": {
+      "ko": "강하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "stronger"
+        ],
+        "superlative": [
+          "strongest"
+        ]
+      }
+    },
+    "successful": {
+      "ko": "성공적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more successful"
+        ],
+        "superlative": [
+          "most successful"
+        ]
+      }
+    },
+    "sudden": {
+      "ko": "갑작스럽다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more sudden"
+        ],
+        "superlative": [
+          "most sudden"
+        ]
+      }
+    },
+    "surprised": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "sweet": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "sweeter"
+        ],
+        "superlative": [
+          "sweetest"
+        ]
+      }
+    },
+    "tall": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "taller"
+        ],
+        "superlative": [
+          "tallest"
+        ]
+      }
+    },
+    "technical": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "temporary": {
+      "ko": "일시적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "terrible": {
+      "ko": "끔찍하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more terrible"
+        ],
+        "superlative": [
+          "most terrible"
+        ]
+      }
+    },
+    "thick": {
+      "ko": "두껍다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "thicker"
+        ],
+        "superlative": [
+          "thickest"
+        ]
+      }
+    },
+    "thin": {
+      "ko": "얇다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "thinner"
+        ],
+        "superlative": [
+          "thinnest"
+        ]
+      }
+    },
+    "thirsty": {
+      "ko": "목마르다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more thirsty"
+        ],
+        "superlative": [
+          "most thirsty"
+        ]
+      }
+    },
+    "tiny": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "tinier"
+        ],
+        "superlative": [
+          "tiniest"
+        ]
+      }
+    },
+    "tired": {
+      "ko": "피곤하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more tired"
+        ],
+        "superlative": [
+          "most tired"
+        ]
+      }
+    },
+    "traditional": {
+      "ko": "전통적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "true": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "typical": {
+      "ko": "전형적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more typical"
+        ],
+        "superlative": [
+          "most typical"
+        ]
+      }
+    },
+    "ugly": {
+      "ko": "못생기다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more ugly"
+        ],
+        "superlative": [
+          "most ugly"
+        ]
+      }
+    },
+    "unfair": {
+      "ko": "불공평하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more unfair"
+        ],
+        "superlative": [
+          "most unfair"
+        ]
+      }
+    },
+    "unhappy": {
+      "ko": "불행하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "unhappier"
+        ],
+        "superlative": [
+          "unhappiest"
+        ]
+      }
+    },
+    "unique": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "unnecessary": {
+      "ko": "불필요하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "unpleasant": {
+      "ko": "불쾌하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more unpleasant"
+        ],
+        "superlative": [
+          "most unpleasant"
+        ]
+      }
+    },
+    "unusual": {
+      "ko": "이례적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more unusual"
+        ],
+        "superlative": [
+          "most unusual"
+        ]
+      }
+    },
+    "upper": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "urban": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "useful": {
+      "ko": "유용하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more useful"
+        ],
+        "superlative": [
+          "most useful"
+        ]
+      }
+    },
+    "valid": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "valuable": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more valuable"
+        ],
+        "superlative": [
+          "most valuable"
+        ]
+      }
+    },
+    "vast": {
+      "ko": "광대하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "vaster"
+        ],
+        "superlative": [
+          "vastest"
+        ]
+      }
+    },
+    "violent": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more violent"
+        ],
+        "superlative": [
+          "most violent"
+        ]
+      }
+    },
+    "visual": {
+      "ko": "시각적이다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "vivid": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more vivid"
+        ],
+        "superlative": [
+          "most vivid"
+        ]
+      }
+    },
+    "warm": {
+      "ko": "따뜻하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "warmer"
+        ],
+        "superlative": [
+          "warmest"
+        ]
+      }
+    },
+    "weak": {
+      "ko": "약하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "weaker"
+        ],
+        "superlative": [
+          "weakest"
+        ]
+      }
+    },
+    "wealthy": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "wealthier"
+        ],
+        "superlative": [
+          "wealthiest"
+        ]
+      }
+    },
+    "wet": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "wetter"
+        ],
+        "superlative": [
+          "wettest"
+        ]
+      }
+    },
+    "white": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "whiter"
+        ],
+        "superlative": [
+          "whitest"
+        ]
+      }
+    },
+    "whole": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "wide": {
+      "ko": "넓다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "wider"
+        ],
+        "superlative": [
+          "widest"
+        ]
+      }
+    },
+    "wild": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "wilder"
+        ],
+        "superlative": [
+          "wildest"
+        ]
+      }
+    },
+    "willing": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more willing"
+        ],
+        "superlative": [
+          "most willing"
+        ]
+      }
+    },
+    "wise": {
+      "ko": "현명하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "wiser"
+        ],
+        "superlative": [
+          "wisest"
+        ]
+      }
+    },
+    "wonderful": {
+      "ko": "경이롭다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more wonderful"
+        ],
+        "superlative": [
+          "most wonderful"
+        ]
+      }
+    },
+    "wooden": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "worried": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "worthwhile": {
+      "ko": "가치 있다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "more worthwhile"
+        ],
+        "superlative": [
+          "most worthwhile"
+        ]
+      }
+    },
+    "wrong": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more wrong"
+        ],
+        "superlative": [
+          "most wrong"
+        ]
+      }
+    },
+    "wrongful": {
+      "ko": "부당하다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [],
+        "superlative": []
+      }
+    },
+    "yellow": {
+      "ko": null,
+      "mode": "CONTEXT",
+      "forms": {
+        "comparative": [
+          "more yellow"
+        ],
+        "superlative": [
+          "most yellow"
+        ]
+      }
+    },
+    "young": {
+      "ko": "젊다",
+      "mode": "SAFE",
+      "forms": {
+        "comparative": [
+          "younger"
+        ],
+        "superlative": [
+          "youngest"
+        ]
+      }
+    }
+  }
+}

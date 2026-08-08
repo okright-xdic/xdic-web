@@ -146,25 +146,138 @@ const isSentenceLikeQuery = (value: string): boolean => {
       .filter(Boolean).length;
 
     // ============================================================
-    // ☆ TwoPro v1.2: 한국어 문장 종결형 판별 보강
+    // ☆ TwoPro v1.6: 한국어 문장 종결형 판별 보강
     // '큽니다/갑니다/옵니다'처럼 공통 끝부분이 '니다'인 문장과
     // '커요/작아요/좋아요' 같은 2어절 이상의 해요체를 인식합니다.
     // ============================================================
     const hasKoreanFormalEnding =
-      /(습니다|습니까|니다|니까|입니다|인가요|나요|까요|세요|십시오|해요|했어요|했습니까|했다|한다|된다|됐다|이다|아니다|있다|없다|싶다|좋아해요|좋아하세요|주세요|줘요|죠|군요|네요)$/u.test(
+      /(습니다|습니까|니다|니까|입니다|인가요|나요|까요|세요|십시오|시오|아요|어요|예요|에요|게요|데요|래요|거든요|잖아요|지요|해요|했어요|했습니까|했다|한다|된다|됐다|이다|아니다|있다|없다|싶다|있어|없어|같아|겠어|했어|았어|었어|거야|잖아|구나|좋아해요|좋아하세요|주세요|줘요|죠|군요|네요|합시다|읍시다)$/u.test(
         withoutEndingPunctuation
       );
 
     const hasKoreanConversationalEnding =
       wordCount >= 2 &&
-      /(요|다|죠|군요|네요)$/u.test(
+      /(요|다|죠|군요|네요|필요해|좋아해|싫어해|사랑해|미안해|고마워|괜찮아|같아|싶어|있어|없어|됐어|돼|할 거야|해야 해|해줘|할게|갈게|줄게|보자|가자|하자|맞아|몰라|알아|잖아|구나)$/u.test(
         withoutEndingPunctuation
+      );
+
+    // ============================================================
+    // ☆ TwoPro v1.6-safe: xTemp14(3) 종결형 보강
+    //
+    // -가요?는 계신가요/으신가요/비싼가요를 포괄하지만
+    // 평서형 '학교에 가요.'와 충돌하므로 '?'가 있을 때만 인정합니다.
+    // -까?도 '?'가 있을 때만 추가 인정합니다.
+    //
+    // 갑니까/됩니까/하십니까처럼 종성 ㅂ + '니까'인
+    // 정식 -(으)ㅂ니까와,
+    // 갑시다/봅시다/먹읍시다 같은 -(으)ㅂ시다도
+    // Hangul 종성을 확인하여 인식합니다.
+    // ============================================================
+    const twoProHasFinalJongseongBV16 = (
+      value: string
+    ): boolean => {
+      const char = String(value || '');
+
+      if (!/^[가-힣]$/u.test(char)) {
+        return false;
+      }
+
+      const code =
+        char.charCodeAt(0) - 0xac00;
+
+      return (
+        code >= 0 &&
+        code <= 11171 &&
+        code % 28 === 17
+      );
+    };
+
+    const twoProHasFusedBEndingV16 = (
+      source: string,
+      tail: string
+    ): boolean => {
+      if (!source.endsWith(tail)) {
+        return false;
+      }
+
+      const prefix =
+        source.slice(
+          0,
+          -tail.length
+        );
+
+      if (!prefix) {
+        return false;
+      }
+
+      return twoProHasFinalJongseongBV16(
+        prefix.slice(-1)
+      );
+    };
+
+    const hasKoreanCorpusQuestionEnding =
+      /[?？]$/u.test(text) &&
+      /(?:가요|까)$/u.test(
+        withoutEndingPunctuation
+      );
+
+    const hasKoreanBnikkaEnding =
+      twoProHasFusedBEndingV16(
+        withoutEndingPunctuation,
+        '니까'
+      );
+
+    const hasKoreanBshipdaEnding =
+      /읍시다$/u.test(
+        withoutEndingPunctuation
+      ) ||
+      twoProHasFusedBEndingV16(
+        withoutEndingPunctuation,
+        '시다'
+      );
+
+
+    // ============================================================
+    // ☆ TwoPro v1.5-safe: 친구 사이 반말 의문형·청유형
+    //
+    // 물음표가 있을 때만 한 단어 종결형을 문장으로 인정합니다.
+    // '야', '래' 등을 무구두점 일반 명사로 오인하지 않게 합니다.
+    //
+    // 잘못 입력되기 쉬운 표기는 수록하지 않고
+    // 올바른 '겠습니까'만 인식합니다.
+    // ============================================================
+    const hasKoreanFriendQuestionEnding =
+      /\?$/u.test(text) &&
+      /(하시겠습니까|되겠니|한지요|겠습니까|아니|알아|알지|래요|이야|나요|어요|니|래|야)$/u.test(
+        withoutEndingPunctuation
+      );
+
+    // '보라'는 색상명과 충돌할 수 있으므로
+    // 목적어가 있거나 느낌표가 있을 때만 명령문으로 봅니다.
+    // '해라'는 단독 명령형도 허용합니다.
+    const hasKoreanImperativeEnding =
+      /해라$/u.test(
+        withoutEndingPunctuation
+      ) ||
+      (
+        /보라$/u.test(
+          withoutEndingPunctuation
+        ) &&
+        (
+          wordCount >= 2 ||
+          /!$/u.test(text)
+        )
       );
 
     return (
       hasKoreanFormalEnding ||
       hasKoreanConversationalEnding ||
-      (wordCount >= 2 && /[?!]$/.test(text))
+      hasKoreanCorpusQuestionEnding ||
+      hasKoreanBnikkaEnding ||
+      hasKoreanBshipdaEnding ||
+      hasKoreanFriendQuestionEnding ||
+      hasKoreanImperativeEnding ||
+      (wordCount >= 2 && /[.!?。！？]$/.test(text))
     );
   }
 
@@ -1040,9 +1153,108 @@ useEffect(() => {
     hasKorean &&
     koreanWordCount >= 1;
 
+  // ================================================================
+  // ☆ TwoPro v1.7-safe: common verbs 단일 영어 동사 probe
+  //
+  // 기존에는 영어 한 단어가 isSentenceLikeQuery()에서 false가 되어
+  // /api/translate-en-ko에 도달하지 못했습니다.
+  //
+  // 영어 한 단어는 서버에 확인 요청만 보내고,
+  // 실제 화면 표시는 common-verbs-en-ko-exact 엔진일 때만 허용합니다.
+  // 따라서 일반 사전 단어/전문용어가 파란 번역 블록으로 승격되지 않습니다.
+  // ================================================================
+  const commonVerbEnglishProbeCandidate =
+    !hasKorean &&
+    /^[A-Za-z][A-Za-z'’-]*$/u.test(
+      normalizedQuery
+    );
+
+  // ================================================================
+  // ☆ TwoPro v1.8-additive-safe: common adjectives degree probe
+  //
+  // 기존 commonVerbEnglishProbeCandidate는 그대로 보존합니다.
+  // 영어 단일 형용사는 이미 위 단일어 probe를 통과하므로,
+  // 여기서는 more/most + adjective 두 어절만 추가로 API에 보냅니다.
+  // 실제 화면 표시는 common-adjectives SAFE direct engine일 때만 허용합니다.
+  // ================================================================
+  const commonAdjectiveDegreeEnglishProbeCandidate =
+    !hasKorean &&
+    /^(?:more|most)\s+[A-Za-z][A-Za-z'’-]*$/iu.test(
+      normalizedQuery
+    );
+
+  // ================================================================
+  // ☆ TwoPro v1.3-safe:
+  // translate-search API가 참고 문장을 반환하지 못하더라도,
+  // 이미 검색된 일반 결과 중 가장 가까운 한·영 병렬문장을
+  // 번역 블록의 '참고 문장'으로 사용하는 2차 안전 경로입니다.
+  // ================================================================
+  const applyGeneralResultReference = (): boolean => {
+    if (!sentenceLike || !hasKorean) {
+      return false;
+    }
+
+    const normalizedNeedle = normalizedQuery
+      .replace(/[.!?]+$/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const bilingualResults = results.filter(
+      (item) => {
+        const lineText = String(
+          item?.line_text || ''
+        ).trim();
+
+        return (
+          lineText.length > 0 &&
+          /[가-힣]/u.test(lineText) &&
+          /[A-Za-z]/.test(lineText)
+        );
+      }
+    );
+
+    const matchedResult =
+      bilingualResults.find((item) => {
+        const normalizedLine = String(
+          item?.line_text || ''
+        )
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        return (
+          normalizedNeedle.length > 0 &&
+          normalizedLine.includes(
+            normalizedNeedle
+          )
+        );
+      }) ||
+      bilingualResults[0];
+
+    const fallbackText = String(
+      matchedResult?.line_text || ''
+    ).trim();
+
+    if (!fallbackText) {
+      return false;
+    }
+
+    setAiTranslation(fallbackText);
+    setAiAnalysis(null);
+    setIsReference(true);
+    setReferenceWords([]);
+    setCorrectedEnglish(null);
+
+    return true;
+  };
+
   if (
     normalizedQuery.length < 2 ||
-    (!sentenceLike && !phraseCandidate)
+    (
+      !sentenceLike &&
+      !phraseCandidate &&
+      !commonVerbEnglishProbeCandidate &&
+      !commonAdjectiveDegreeEnglishProbeCandidate
+    )
   ) {
     clearTranslationBox();
     return;
@@ -1089,19 +1301,64 @@ useEffect(() => {
             )
           );
 
+        // ============================================================
+        // ☆ TwoPro v1.7-safe: common verbs 직접 결과 표시 허용
+        //
+        // - EN->KO: common-verbs-en-ko-exact-v13.79
+        // - KO->EN: common-verbs-ko-en-exact-v9.84
+        //
+        // 위 두 엔진만 비문장 단일어의 파란 번역 블록을 허용합니다.
+        // DB exact/reference, 일반 rules, EN_LEMMA_ONLY fallthrough는
+        // 기존 단어 검색 화면을 유지하도록 여기서 허용하지 않습니다.
+        // ============================================================
+        const isDirectCommonVerbResult =
+          responseEngine ===
+            'common-verbs-en-ko-exact-v13.79' ||
+          responseEngine ===
+            'common-verbs-ko-en-exact-v9.84';
+
+        // ============================================================
+        // ☆ TwoPro v1.8-additive-safe: common adjectives 직접 결과 표시
+        //
+        // 기존 common verbs 표시 조건은 그대로 보존합니다.
+        // SAFE common adjective exact engine 두 개만 추가로 허용합니다.
+        // CONTEXT / DB / 일반 rules 결과는 기존 단어 검색 화면을 유지합니다.
+        // ============================================================
+        const isDirectCommonAdjectiveResult =
+          responseEngine ===
+            'common-adjectives-en-ko-exact-v13.80' ||
+          responseEngine ===
+            'common-adjectives-ko-en-exact-v9.85' ||
+          responseEngine ===
+            'common-adjectives-ko-en-exact-v9.86';
+
         // 문장이 아닌 한 어절·구 검색어는
-        // rules-ko-en-phrases.json이 직접 번역한 경우에만
+        // PHRASES 직접 번역 또는 common-verbs SAFE 직접 번역일 때만
         // 파란 번역 블록을 표시합니다.
         if (
           !sentenceLike &&
-          !isDirectPhraseResult
+          !isDirectPhraseResult &&
+          !isDirectCommonVerbResult &&
+          !isDirectCommonAdjectiveResult
         ) {
           clearTranslationBox();
           return;
         }
 
+        const nextTargetText =
+          String(
+            data.best.target_text || ''
+          ).trim();
+
+        if (!nextTargetText) {
+          if (!applyGeneralResultReference()) {
+            clearTranslationBox();
+          }
+          return;
+        }
+
         setAiTranslation(
-          data.best.target_text || null
+          nextTargetText
         );
 
         setAiAnalysis(
@@ -1191,7 +1448,9 @@ useEffect(() => {
             )
         );
       } else {
-        clearTranslationBox();
+        if (!applyGeneralResultReference()) {
+          clearTranslationBox();
+        }
       }
     })
     .catch((error) => {
@@ -1199,13 +1458,15 @@ useEffect(() => {
         return;
       }
 
-      clearTranslationBox();
+      if (!applyGeneralResultReference()) {
+        clearTranslationBox();
+      }
     });
 
   return () => {
     controller.abort();
   };
-}, [query]);
+}, [query, results]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

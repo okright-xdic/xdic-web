@@ -7,6 +7,11 @@ import {
   twoProLookupEnglishCommonVerbV1,
   TWO_PRO_COMMON_VERB_STATS_V1,
 } from '../common-verbs';
+import {
+  twoProIsBlockedEnglishCommonAdjectiveSurfaceV1,
+  twoProLookupEnglishCommonAdjectiveV1,
+  TWO_PRO_COMMON_ADJECTIVE_STATS_V1,
+} from '../common-adjectives';
 
 // 🌟 TwoPro v3.4: this/that/these/those 지시 한정사와 핵심 슬롯 어휘 분리
 // ============================================================================
@@ -692,6 +697,98 @@ const twoProTryCommonVerbExactEnKoV1379 = (
 
   // pastParticiple-only / ing는 문장 문맥 없이 시제를 확정하지 않습니다.
   return null;
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.80-safe: common adjectives exact degree guard
+//
+// - raw PHRASES exact / BE PHRASES / 기존 common verb exact 뒤에서만 실행합니다.
+// - SAFE adjective의 전체 입력 exact만 direct 번역합니다.
+// - CONTEXT는 direct 번역하지 않습니다.
+// - comparative/superlative는 JSON에 검증된 surface만 사용합니다.
+// - lower처럼 adjective 내부 cross-lemma surface 충돌은 loader에서 차단합니다.
+// - clean/closed/married처럼 common verb surface와 겹치면 POS 문맥이 없으므로
+//   standalone direct 번역을 보류하고 기존 rules/RBMT/DB로 넘깁니다.
+// ============================================================================
+type TwoProCommonAdjectiveExactEnKoResultV1380 = {
+  surface: string;
+  lemma: string;
+  degree:
+    | 'base'
+    | 'comparative'
+    | 'superlative';
+  targetText: string;
+};
+
+const twoProTryCommonAdjectiveExactEnKoV1380 = (
+  value: unknown
+): TwoProCommonAdjectiveExactEnKoResultV1380 | null => {
+  if (
+    twoProIsBlockedEnglishCommonAdjectiveSurfaceV1(
+      value
+    )
+  ) {
+    return null;
+  }
+
+  const hit =
+    twoProLookupEnglishCommonAdjectiveV1(
+      value
+    );
+
+  if (
+    !hit ||
+    hit.entry.mode !== 'SAFE' ||
+    !hit.entry.ko
+  ) {
+    return null;
+  }
+
+  // 동일 영어 surface가 common verb에도 존재하면 standalone 품사를 확정하지 않습니다.
+  if (
+    twoProLookupEnglishCommonVerbV1(
+      value
+    )
+  ) {
+    return null;
+  }
+
+  const degreeSet =
+    new Set(hit.degrees);
+
+  let degree:
+    | 'base'
+    | 'comparative'
+    | 'superlative' = 'base';
+
+  if (degreeSet.has('base')) {
+    degree = 'base';
+  } else if (
+    degreeSet.has('comparative')
+  ) {
+    degree = 'comparative';
+  } else if (
+    degreeSet.has('superlative')
+  ) {
+    degree = 'superlative';
+  } else {
+    return null;
+  }
+
+  const targetText =
+    degree === 'comparative'
+      ? `더 ${hit.entry.ko}`
+      : degree === 'superlative'
+        ? `가장 ${hit.entry.ko}`
+        : hit.entry.ko;
+
+  return {
+    surface: hit.surface,
+    lemma: hit.entry.lemma,
+    degree,
+    targetText,
+  };
 };
 
 // ============================================================================
@@ -18022,10 +18119,22 @@ export async function POST(request: Request) {
     // PHRASES exact와 BE PHRASES 활용이 먼저 끝난 뒤에만 실행합니다.
     // SAFE 단일 동사만 직접 결과로 승격하고, LEMMA_ONLY는 기존 흐름으로 넘깁니다.
     // =================================================================
-    const twoProCommonVerbExactV1379 =
-      twoProTryCommonVerbExactEnKoV1379(
+    const twoProCommonAdjectivePosOverlapV1380 =
+      Boolean(
+        twoProLookupEnglishCommonAdjectiveV1(
+          originalText
+        )
+      ) ||
+      twoProIsBlockedEnglishCommonAdjectiveSurfaceV1(
         originalText
       );
+
+    const twoProCommonVerbExactV1379 =
+      twoProCommonAdjectivePosOverlapV1380
+        ? null
+        : twoProTryCommonVerbExactEnKoV1379(
+            originalText
+          );
 
     if (twoProCommonVerbExactV1379) {
       const targetV1379 =
@@ -18053,6 +18162,45 @@ export async function POST(request: Request) {
             twoProCommonVerbExactV1379.tense,
           commonVerbStats:
             TWO_PRO_COMMON_VERB_STATS_V1,
+        },
+        referenceWords: [],
+      });
+    }
+
+
+
+    // =================================================================
+    // ☆ TwoPro v13.80-safe: common adjectives SAFE exact
+    // =================================================================
+    const twoProCommonAdjectiveExactV1380 =
+      twoProTryCommonAdjectiveExactEnKoV1380(
+        originalText
+      );
+
+    if (twoProCommonAdjectiveExactV1380) {
+      const targetV1380 =
+        twoProFinalizeExactEnKoPhraseTargetV1375(
+          twoProCommonAdjectiveExactV1380.targetText
+        );
+
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: targetV1380,
+          isReference: false,
+          analysis: [],
+          referenceWords: [],
+          engine:
+            'common-adjectives-en-ko-exact-v13.80',
+          commonAdjectiveLemma:
+            twoProCommonAdjectiveExactV1380.lemma,
+          commonAdjectiveSurface:
+            twoProCommonAdjectiveExactV1380.surface,
+          commonAdjectiveDegree:
+            twoProCommonAdjectiveExactV1380.degree,
+          commonAdjectiveStats:
+            TWO_PRO_COMMON_ADJECTIVE_STATS_V1,
         },
         referenceWords: [],
       });
