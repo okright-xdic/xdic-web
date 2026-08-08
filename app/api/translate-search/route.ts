@@ -23,6 +23,10 @@ import {
   twoProLookupKoreanSafeCommonAdverbV1,
   twoProNormalizeKoreanCommonAdverbSurfaceV1,
 } from '../common-adverbs';
+import {
+  twoProFindSlotSimilarityTier2TranslationV1,
+  twoProRunSlotSimilarityShadowV1,
+} from '../slot-similarity';
 
 // ☆ TwoPro v9.79-safe: v9.78 유지 + 4형식 인형 구매 문형의 주격·간접목적격·소유격·관사를 정확히 처리
 
@@ -34668,6 +34672,308 @@ export async function POST(request: Request) {
       });
     }
 
+
+
+    // =================================================================
+    // ☆ TwoPro Slot Similarity v1 — Stage 8B Tier 2 Limited Promotion
+    //
+    // 기존 JSON 슬롯 결과가 없을 때만 실행합니다.
+    // 최초 승격은 polite request의 "좀" 저위험 차이 + 높은 구조/슬롯 신뢰도만 허용합니다.
+    // =================================================================
+    if (!twoProTemplateResult) {
+      const tier2BundleMapV1 =
+        new Map<
+          string,
+          TwoProKoEnCandidateBundleV5
+        >();
+
+      let twoProTier2SupabaseV1:
+        any = undefined;
+
+      const twoProTier2ResultV1 =
+        await twoProFindSlotSimilarityTier2TranslationV1({
+          direction: 'KO_EN',
+          inputText: originalText,
+          resolveSlotConfidence: async (
+            tier2Slot
+          ) => {
+            if (
+              twoProTier2SupabaseV1 ===
+              undefined
+            ) {
+              const tier2SupabaseUrl =
+                process.env
+                  .NEXT_PUBLIC_SUPABASE_URL;
+
+              const tier2SupabaseKey =
+                process.env
+                  .NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+              twoProTier2SupabaseV1 =
+                tier2SupabaseUrl &&
+                tier2SupabaseKey
+                  ? createClient(
+                      tier2SupabaseUrl,
+                      tier2SupabaseKey
+                    )
+                  : null;
+            }
+
+            const bundle =
+              await twoProTranslateKoEnSlotV5(
+                tier2Slot.slotId,
+                tier2Slot.value,
+                twoProTier2SupabaseV1,
+                originalText
+              );
+
+            if (bundle) {
+              tier2BundleMapV1.set(
+                `${tier2Slot.slotId}:${tier2Slot.occurrence}`,
+                bundle
+              );
+            }
+
+            return {
+              resolved:
+                Boolean(bundle),
+              confidence:
+                Number(
+                  bundle?.confidence || 0
+                ),
+              selected:
+                bundle?.selected || null,
+              origin:
+                (bundle as any)?.origin ||
+                null,
+              candidateCount:
+                bundle?.candidates?.length ||
+                0,
+            };
+          },
+        });
+
+      if (twoProTier2ResultV1) {
+        const slotResults:
+          Array<
+            TwoProKoEnSlotResult & {
+              bundle:
+                TwoProKoEnCandidateBundleV5;
+            }
+          > = [];
+
+        let tier2RenderFailedV1 = false;
+
+        for (
+          const slot
+          of twoProTier2ResultV1.resolvedSlots
+        ) {
+          const bundle =
+            tier2BundleMapV1.get(
+              `${slot.slotId}:${slot.occurrence}`
+            );
+
+          if (!bundle) {
+            tier2RenderFailedV1 = true;
+            break;
+          }
+
+          const baseTranslatedValue =
+            bundle.renderedValue ||
+            bundle.selected;
+
+          const articleAdjustedValue =
+            twoProApplyJsonSlotArticleV65(
+              twoProTier2ResultV1.sourcePattern,
+              twoProTier2ResultV1.targetTemplate,
+              slot.slotId,
+              bundle.source,
+              baseTranslatedValue
+            );
+
+          slotResults.push({
+            token: slot.slotId,
+            source: bundle.source,
+            target:
+              articleAdjustedValue,
+            slotType:
+              twoProBaseSlotType(
+                slot.slotId
+              ),
+            bundle,
+          });
+        }
+
+        if (!tier2RenderFailedV1) {
+          const rendered =
+            twoProRenderEnglishTemplate(
+              twoProTier2ResultV1.targetTemplate,
+              slotResults
+            );
+
+          if (rendered) {
+            const renderedWithSubjectAgreement =
+              twoProApplySubordinateSubjectAgreementV66Safe(
+                twoProTier2ResultV1.targetTemplate,
+                rendered,
+                slotResults
+              );
+
+            const targetText =
+              twoProFinalizeEnglish(
+                renderedWithSubjectAgreement,
+                originalText
+              );
+
+            const referenceWords =
+              slotResults
+                .map((slot) =>
+                  twoProReferenceWordV5(
+                    slot.bundle
+                  )
+                )
+                .filter(
+                  (
+                    item
+                  ): item is TwoProKoEnReferenceWordV5 =>
+                    Boolean(item)
+                );
+
+            console.log(
+              '[TwoPro Slot Similarity Tier2 KO->EN 성공 v1]',
+              {
+                input: originalText,
+                matchedRule:
+                  twoProTier2ResultV1.sourcePattern,
+                result: targetText,
+                patternScore:
+                  twoProTier2ResultV1.patternScore,
+                slotConfidence:
+                  twoProTier2ResultV1.slotConfidence,
+                finalConfidence:
+                  twoProTier2ResultV1.finalConfidence,
+                patternMargin:
+                  twoProTier2ResultV1.patternMargin,
+                lowRiskChanges:
+                  twoProTier2ResultV1.lowRiskChanges,
+              }
+            );
+
+            return twoProRespondWithPhraseDiagnosticsV915({
+              ok: true,
+              best: {
+                source_text:
+                  originalText,
+                target_text:
+                  twoProCapitalizeEnglishSentenceStartV93(
+                    targetText
+                  ),
+                isReference: false,
+                analysis:
+                  slotResults.map(
+                    (slot) => ({
+                      ko:
+                        slot.bundle.source,
+                      en:
+                        `${slot.bundle.selected} [${slot.slotType}]`,
+                    })
+                  ),
+                referenceWords,
+                confidence:
+                  Number(
+                    twoProTier2ResultV1.finalConfidence.toFixed(
+                      2
+                    )
+                  ),
+                engine:
+                  'slot-similarity-tier2-safe-v1',
+                matchedRule:
+                  twoProTier2ResultV1.sourcePattern,
+                slotSimilarityTier: 2,
+                patternScore:
+                  twoProTier2ResultV1.patternScore,
+                patternMargin:
+                  twoProTier2ResultV1.patternMargin,
+                slotConfidence:
+                  twoProTier2ResultV1.slotConfidence,
+                finalConfidence:
+                  twoProTier2ResultV1.finalConfidence,
+                lowRiskChanges:
+                  twoProTier2ResultV1.lowRiskChanges,
+              },
+              referenceWords,
+            });
+          }
+        }
+      }
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro Slot Similarity v1 — Stage 7 Shadow Mode
+    //
+    // 기존 JSON 슬롯 템플릿이 결과를 만들지 못했을 때만 실행합니다.
+    // helper/DB 조회가 실패해도 기존 번역 route에는 영향을 주지 않습니다.
+    // =================================================================
+    if (!twoProTemplateResult) {
+      let twoProShadowSupabaseV1:
+        any = undefined;
+
+      await twoProRunSlotSimilarityShadowV1({
+        direction: 'KO_EN',
+        inputText: originalText,
+        resolveSlotConfidence: async (
+          shadowSlot
+        ) => {
+          if (
+            twoProShadowSupabaseV1 ===
+            undefined
+          ) {
+            const shadowSupabaseUrl =
+              process.env
+                .NEXT_PUBLIC_SUPABASE_URL;
+
+            const shadowSupabaseKey =
+              process.env
+                .NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+            twoProShadowSupabaseV1 =
+              shadowSupabaseUrl &&
+              shadowSupabaseKey
+                ? createClient(
+                    shadowSupabaseUrl,
+                    shadowSupabaseKey
+                  )
+                : null;
+          }
+
+          const bundle =
+            await twoProTranslateKoEnSlotV5(
+              shadowSlot.slotId,
+              shadowSlot.value,
+              twoProShadowSupabaseV1,
+              originalText
+            );
+
+          return {
+            resolved:
+              Boolean(bundle),
+            confidence:
+              Number(
+                bundle?.confidence || 0
+              ),
+            selected:
+              bundle?.selected || null,
+            origin:
+              (bundle as any)?.origin ||
+              null,
+            candidateCount:
+              bundle?.candidates?.length ||
+              0,
+          };
+        },
+      });
+    }
 
     // =================================================================
     // 🎯 0.4단계: 한국어 조사 문맥 번역 v5.8

@@ -31,6 +31,23 @@ interface TranslationReferenceWord {
   confidence?: number;
 }
 
+interface SlotSimilarityTier3Reference {
+  direction: 'KO_EN' | 'EN_KO';
+  sourcePattern: string;
+  targetTemplate: string;
+  patternScore?: number;
+  patternMargin?: number;
+  semanticSafety?: 'PASS' | 'REVIEW';
+  budgetStatus?:
+    | 'PASS_TIER1'
+    | 'PASS_TIER2_CANDIDATE'
+    | 'REVIEW';
+  referenceOnly: true;
+  generatedUserTranslation: false;
+  engine:
+    'slot-similarity-tier3-reference-v1';
+}
+
 interface SearchPageProps {
   query: string;
   results?: SearchResult[];
@@ -1080,6 +1097,7 @@ const router = useRouter();
   const [supabase] = useState(() => createClientComponentClient());
 
   const [aiTranslation, setAiTranslation] = useState<string | null>(null);
+  const [aiTranslationEngine, setAiTranslationEngine] = useState<string | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<{ko: string, en: string}[] | null>(null);
   
   // 🌟 [수프로 엣지] 백엔드에서 보낸 '참고용' 비밀 신호를 담을 상태 추가!
@@ -1089,6 +1107,19 @@ const router = useRouter();
   const [referenceWords, setReferenceWords] = useState<
     TranslationReferenceWord[]
   >([]);
+
+  // ================================================================
+  // ☆ TwoPro v1.13 — Slot Similarity Tier 3 "유사 문형 참고"
+  //
+  // 사용자 문장을 새로 생성 번역하지 않고,
+  // 서버가 선택한 기존 슬롯 규칙 + 기존 번역 템플릿만 표시합니다.
+  // ================================================================
+  const [
+    slotSimilarityReference,
+    setSlotSimilarityReference,
+  ] = useState<
+    SlotSimilarityTier3Reference | null
+  >(null);
 
   // ☆ TwoPro v13.70: 문법 교정이 적용된 정규 영어 문장
   const [correctedEnglish, setCorrectedEnglish] = useState<
@@ -1121,6 +1152,7 @@ useEffect(() => {
 
   const clearTranslationBox = () => {
     setAiTranslation(null);
+    setAiTranslationEngine(null);
     setAiAnalysis(null);
     setIsReference(false);
     setReferenceWords([]);
@@ -1386,6 +1418,11 @@ useEffect(() => {
           responseEngine ===
             'common-adverbs-ko-en-exact-v9.88';
 
+        // ☆ TwoPro v1.14: Stage 8B Tier 2 안전 근접 슬롯 직접 결과
+        const isDirectSlotSimilarityTier2Result =
+          responseEngine ===
+            'slot-similarity-tier2-safe-v1';
+
         // 문장이 아닌 한 어절·구 검색어는
         // PHRASES 직접 번역 또는 common-verbs SAFE 직접 번역일 때만
         // 파란 번역 블록을 표시합니다.
@@ -1395,7 +1432,8 @@ useEffect(() => {
           !isDirectCommonVerbResult &&
           !isDirectCommonNounResult &&
           !isDirectCommonAdverbResult &&
-          !isDirectCommonAdjectiveResult
+          !isDirectCommonAdjectiveResult &&
+          !isDirectSlotSimilarityTier2Result
         ) {
           clearTranslationBox();
           return;
@@ -1415,6 +1453,10 @@ useEffect(() => {
 
         setAiTranslation(
           nextTargetText
+        );
+
+        setAiTranslationEngine(
+          responseEngine || null
         );
 
         setAiAnalysis(
@@ -1523,6 +1565,153 @@ useEffect(() => {
     controller.abort();
   };
 }, [query, results]);
+
+  // ================================================================
+  // ☆ TwoPro v1.13 — Tier 3 유사 문형 참고 전용 비차단 probe
+  //
+  // 기존 translate API와 독립적인 supplemental 요청입니다.
+  // 실패/지연되어도 추천 문장 번역과 일반 검색 결과에는 영향이 없습니다.
+  // 단일 단어는 보내지 않고 문장형 입력만 확인합니다.
+  // ================================================================
+  useEffect(() => {
+    const normalizedQuery =
+      String(query || '').trim();
+
+    setSlotSimilarityReference(null);
+
+    if (
+      normalizedQuery.length < 2 ||
+      !isSentenceLikeQuery(
+        normalizedQuery
+      )
+    ) {
+      return;
+    }
+
+    const controller =
+      new AbortController();
+
+    fetch(
+      '/api/slot-similarity-reference',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type':
+            'application/json',
+        },
+        body: JSON.stringify({
+          q: normalizedQuery,
+        }),
+        signal: controller.signal,
+        cache: 'no-store',
+      }
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        const reference =
+          data?.ok
+            ? data?.reference
+            : null;
+
+        if (
+          !reference ||
+          reference.referenceOnly !==
+            true ||
+          reference
+            .generatedUserTranslation !==
+            false ||
+          String(
+            reference.engine || ''
+          ) !==
+            'slot-similarity-tier3-reference-v1'
+        ) {
+          setSlotSimilarityReference(
+            null
+          );
+          return;
+        }
+
+        const sourcePattern =
+          String(
+            reference.sourcePattern ||
+              ''
+          ).trim();
+
+        const targetTemplate =
+          String(
+            reference.targetTemplate ||
+              ''
+          ).trim();
+
+        if (
+          !sourcePattern ||
+          !targetTemplate
+        ) {
+          setSlotSimilarityReference(
+            null
+          );
+          return;
+        }
+
+        setSlotSimilarityReference({
+          direction:
+            reference.direction ===
+            'KO_EN'
+              ? 'KO_EN'
+              : 'EN_KO',
+          sourcePattern,
+          targetTemplate,
+          patternScore:
+            Number.isFinite(
+              Number(
+                reference.patternScore
+              )
+            )
+              ? Number(
+                  reference.patternScore
+                )
+              : undefined,
+          patternMargin:
+            Number.isFinite(
+              Number(
+                reference.patternMargin
+              )
+            )
+              ? Number(
+                  reference.patternMargin
+                )
+              : undefined,
+          semanticSafety:
+            reference.semanticSafety ===
+              'PASS' ||
+            reference.semanticSafety ===
+              'REVIEW'
+              ? reference.semanticSafety
+              : undefined,
+          budgetStatus:
+            reference.budgetStatus,
+          referenceOnly: true,
+          generatedUserTranslation:
+            false,
+          engine:
+            'slot-similarity-tier3-reference-v1',
+        });
+      })
+      .catch((error) => {
+        if (
+          error?.name ===
+          'AbortError'
+        ) {
+          return;
+        }
+
+        setSlotSimilarityReference(null);
+      });
+
+    return () => {
+      controller.abort();
+    };
+  }, [query]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -2018,7 +2207,11 @@ const displayResults = React.useMemo(() => {
                 <div className="py-32 text-center text-slate-400 text-xl font-light italic animate-in fade-in slide-in-from-bottom-2 duration-300">
                   단어는 <span style={{ color: '#ea580c', fontWeight: 'bold' }}>두 글자 이상</span> 입력해 주세요.
                 </div>
-              ) : (displayResults.length > 0 || Boolean(aiTranslation)) ? (
+              ) : (
+                displayResults.length > 0 ||
+                Boolean(aiTranslation) ||
+                Boolean(slotSimilarityReference)
+              ) ? (
                 <div className="space-y-6">
 
                   {/* 🌟 [수프로 마법] 번역 박스 + 스피커 및 검색 문장 표시 UI 반영 */}
@@ -2127,6 +2320,13 @@ const displayResults = React.useMemo(() => {
                         </div>
                       </div>
 
+                    {aiTranslationEngine ===
+                      'slot-similarity-tier2-safe-v1' && (
+                      <p className="text-[12px] md:text-[13px] mt-3 pl-1 font-semibold text-emerald-700">
+                        안전 기준을 통과한 근접 슬롯 문형으로 생성한 번역입니다.
+                      </p>
+                    )}
+
                     {referenceWords.length > 0 && (
                       <div className="mt-3 pt-3 border-t border-blue-200/80 space-y-1.5">
                         {referenceWords.map((item, index) => {
@@ -2203,6 +2403,45 @@ const displayResults = React.useMemo(() => {
                     )}
                   </div>
                 )}
+
+                  {slotSimilarityReference &&
+                    aiTranslationEngine !==
+                      'slot-similarity-tier2-safe-v1' && (
+                    <div className="bg-amber-50/80 border border-amber-300 rounded-2xl p-4 mb-5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-500">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl">
+                          💡
+                        </span>
+                        <h3 className="text-amber-800 font-extrabold text-[16px] md:text-lg tracking-tight">
+                          유사 문형 참고
+                        </h3>
+                      </div>
+
+                      <p className="text-[12px] md:text-[13px] text-amber-800/80 font-medium mb-3 leading-relaxed">
+                        입력하신 문장과 구조가 비슷한 등록 문형입니다. 아래 내용은 확정 번역이 아니라 참고용입니다.
+                      </p>
+
+                      <div className="space-y-2 pl-1">
+                        <div className="flex items-start gap-3">
+                          <span className="text-[13px] md:text-[14px] font-bold text-amber-700 whitespace-nowrap mt-0.5">
+                            등록 문형:
+                          </span>
+                          <p className="text-[15px] md:text-[17px] font-extrabold text-slate-800 leading-snug flex-1 break-words">
+                            {slotSimilarityReference.sourcePattern}
+                          </p>
+                        </div>
+
+                        <div className="flex items-start gap-3">
+                          <span className="text-[13px] md:text-[14px] font-bold text-amber-700 whitespace-nowrap mt-0.5">
+                            참고 번역:
+                          </span>
+                          <p className="text-[15px] md:text-[17px] font-bold text-slate-800 leading-snug flex-1 break-words">
+                            {slotSimilarityReference.targetTemplate}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
 {!aiTranslation &&
   isPartialMatch &&

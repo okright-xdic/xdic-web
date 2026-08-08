@@ -22,6 +22,10 @@ import {
   twoProLookupEnglishCommonAdverbV1,
   TWO_PRO_COMMON_ADVERB_STATS_V1,
 } from '../common-adverbs';
+import {
+  twoProFindSlotSimilarityTier2TranslationV1,
+  twoProRunSlotSimilarityShadowV1,
+} from '../slot-similarity';
 
 // 🌟 TwoPro v3.4: this/that/these/those 지시 한정사와 핵심 슬롯 어휘 분리
 // ============================================================================
@@ -21366,6 +21370,225 @@ for (const item of uniqueItems) {
         }
       }
     }
+
+    // =================================================================
+    // ☆ TwoPro Slot Similarity v1 — Stage 8B Tier 2 Limited Promotion
+    //
+    // exact JSON 슬롯 패턴이 없을 때만 실행합니다.
+    // 최초 승격은 request의 please 저위험 차이 + 높은 구조/슬롯 신뢰도만 허용합니다.
+    // =================================================================
+    if (!extractedTemplate) {
+      const twoProTier2ResultV1 =
+        await twoProFindSlotSimilarityTier2TranslationV1({
+          direction: 'EN_KO',
+          inputText: originalText,
+          resolveSlotConfidence: async (
+            tier2Slot
+          ) => {
+            const slotResult =
+              await translateTemplateSlotDetailed(
+                tier2Slot.slotId,
+                tier2Slot.value,
+                originalText
+              );
+
+            return {
+              resolved:
+                Boolean(slotResult.value),
+              confidence:
+                Number(
+                  slotResult.confidence || 0
+                ),
+              selected:
+                slotResult.value,
+              origin:
+                slotResult.selectedBy,
+              candidateCount:
+                slotResult.candidates?.length ||
+                0,
+            };
+          },
+        });
+
+      if (twoProTier2ResultV1) {
+        const translatedSlotValues:
+          Record<string, string[]> = {};
+
+        for (
+          const slot
+          of twoProTier2ResultV1.resolvedSlots
+        ) {
+          if (
+            !translatedSlotValues[
+              slot.slotId
+            ]
+          ) {
+            translatedSlotValues[
+              slot.slotId
+            ] = [];
+          }
+
+          translatedSlotValues[
+            slot.slotId
+          ].push(
+            slot.selectedValue
+          );
+        }
+
+        const useCount:
+          Record<string, number> = {};
+
+        let generatedKorean =
+          twoProTier2ResultV1.targetTemplate.replace(
+            /\[([A-Z][A-Z0-9_]*)\]/g,
+            (
+              originalPlaceholder,
+              slotName: string
+            ) => {
+              const values =
+                translatedSlotValues[
+                  slotName
+                ];
+
+              if (
+                !values ||
+                values.length === 0
+              ) {
+                return originalPlaceholder;
+              }
+
+              const index =
+                useCount[slotName] || 0;
+
+              useCount[slotName] =
+                index + 1;
+
+              return values[
+                Math.min(
+                  index,
+                  values.length - 1
+                )
+              ];
+            }
+          );
+
+        generatedKorean =
+          resolveTemplateParticles(
+            generatedKorean
+          )
+            .replace(/\s+/g, ' ')
+            .replace(/\s+([?.!,])/g, '$1')
+            .trim();
+
+        if (
+          generatedKorean &&
+          !/\[[A-Z][A-Z0-9_]*\]/.test(
+            generatedKorean
+          )
+        ) {
+          console.log(
+            '[TwoPro Slot Similarity Tier2 EN->KO 성공 v1]',
+            {
+              input: originalText,
+              matchedRule:
+                twoProTier2ResultV1.sourcePattern,
+              result: generatedKorean,
+              patternScore:
+                twoProTier2ResultV1.patternScore,
+              slotConfidence:
+                twoProTier2ResultV1.slotConfidence,
+              finalConfidence:
+                twoProTier2ResultV1.finalConfidence,
+              patternMargin:
+                twoProTier2ResultV1.patternMargin,
+              lowRiskChanges:
+                twoProTier2ResultV1.lowRiskChanges,
+            }
+          );
+
+          return NextResponse.json({
+            ok: true,
+            best: {
+              source_text: originalText,
+              target_text:
+                generatedKorean,
+              isReference: false,
+              analysis:
+                twoProTier2ResultV1.resolvedSlots.map(
+                  (slot) => ({
+                    en: slot.sourceValue,
+                    ko: slot.selectedValue,
+                  })
+                ),
+              confidence:
+                Number(
+                  twoProTier2ResultV1.finalConfidence.toFixed(
+                    2
+                  )
+                ),
+              referenceWords: [],
+              engine:
+                'slot-similarity-tier2-safe-v1',
+              matchedPattern:
+                twoProTier2ResultV1.sourcePattern,
+              slotSimilarityTier: 2,
+              patternScore:
+                twoProTier2ResultV1.patternScore,
+              patternMargin:
+                twoProTier2ResultV1.patternMargin,
+              slotConfidence:
+                twoProTier2ResultV1.slotConfidence,
+              finalConfidence:
+                twoProTier2ResultV1.finalConfidence,
+              lowRiskChanges:
+                twoProTier2ResultV1.lowRiskChanges,
+            },
+          });
+        }
+      }
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro Slot Similarity v1 — Stage 7 Shadow Mode
+    //
+    // exact JSON 슬롯 패턴 자체가 없을 때만 Near-Slot 후보를 진단합니다.
+    // 반환값은 사용하지 않으며 기존 API 결과/우선순위를 절대 변경하지 않습니다.
+    // =================================================================
+    if (!extractedTemplate) {
+      await twoProRunSlotSimilarityShadowV1({
+        direction: 'EN_KO',
+        inputText: originalText,
+        resolveSlotConfidence: async (
+          shadowSlot
+        ) => {
+          const slotResult =
+            await translateTemplateSlotDetailed(
+              shadowSlot.slotId,
+              shadowSlot.value,
+              originalText
+            );
+
+          return {
+            resolved:
+              Boolean(
+                slotResult.value
+              ),
+            confidence:
+              Number(
+                slotResult.confidence || 0
+              ),
+            selected:
+              slotResult.value,
+            origin:
+              slotResult.selectedBy,
+            candidateCount:
+              slotResult.candidates?.length || 0,
+          };
+        },
+      });
+    }
+
 
     // 템플릿 구조는 맞았지만 슬롯 후보의 신뢰도가 낮으면
     // 억지로 생성하지 않고 DB 참고 문장 + 참고 단어를 반환합니다.
