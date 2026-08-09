@@ -139,6 +139,326 @@ const escapeHighlightRegExp = (value: string): string =>
 
 
 // ================================================================
+// ☆ TwoPro v1.16-safe: 참고 문장 병렬 구분부호 화면 정리
+//
+// DB 원문에
+//   한국어 문장.: English sentence.
+//   한국어 문장?: English sentence.
+// 처럼 저장된 경우, 사용자 화면에서는 구분용 ':'만 제거합니다.
+//
+// 일반 영어 문장 내부의 콜론은 건드리지 않습니다.
+// ================================================================
+const twoProFormatTranslationDisplayV116 = (
+  value: string,
+  isReference: boolean
+): string => {
+  let text = String(value || '')
+    .replace(/\.{2,}/g, '.')
+    .trim();
+
+  if (!isReference || !text) {
+    return text;
+  }
+
+  return text
+    .replace(
+      /([가-힣][.!?。！？]?)\s*:\s*(?=[A-Za-z])/gu,
+      '$1 '
+    )
+    .trim();
+};
+
+
+// ================================================================
+// ☆ TwoPro v1.17-safe: 검색 결과 기반 "참고 표현" 보강
+//
+// 목적:
+// - 번역 API가 referenceWords를 주지 못하거나 참고 문장만 반환한 경우에도
+//   이미 화면에 로드된 dictionary_lines 결과에서 짧은 1:1 / 1:N
+//   한·영 대응 표현을 찾아 번역 블록 아래에 보조 정보로 표시합니다.
+// - 추가 DB/API 호출을 하지 않으므로 timeout을 늘리지 않습니다.
+// - 긴 병렬문장/예문은 제외하고 짧은 용어·단어·구만 사용합니다.
+// ================================================================
+type TwoProSearchReferenceExpressionV117 =
+  TranslationReferenceWord & {
+    categoryId?: number;
+  };
+
+const twoProStripKoreanParticlesV117 = (
+  value: string
+): string =>
+  String(value || '')
+    .normalize('NFC')
+    .replace(
+      /(께서|에게서|한테서|으로부터|에서부터|으로|에게|한테|까지|부터|보다|처럼|만큼|하고|랑|이랑|은|는|이|가|을|를|의|에|로|와|과|도|만)$/u,
+      ''
+    )
+    .trim();
+
+// ================================================================
+// ☆ TwoPro v1.18-safe: 참고 표현 전용 '가벼운 조사' 정규화
+//
+// v1.17의 폭넓은 조사 제거는 검색용으로는 유용하지만,
+// "아직까지"와 "아직은"처럼 의미가 다른 표현까지 같은 어근으로
+// 취급할 수 있었습니다.
+//
+// 참고 표현 후보 판정에서는 주제/주격/목적격 등 최소 조사만 제거하고
+// 까지/부터/에서/에게/으로 등 의미를 바꾸는 조사는 보존합니다.
+// ================================================================
+const twoProStripLightReferenceParticlesV118 = (
+  value: string
+): string =>
+  String(value || '')
+    .normalize('NFC')
+    .replace(
+      /(께서|은|는|이|가|을|를|의|도|만)$/u,
+      ''
+    )
+    .trim();
+
+const twoProNormalizeReferenceTokenV118 = (
+  value: string
+): string =>
+  String(value || '')
+    .normalize('NFC')
+    .replace(
+      /^[\s.,:;!?()[\]{}"'“”‘’]+|[\s.,:;!?()[\]{}"'“”‘’]+$/g,
+      ''
+    )
+    .trim();
+
+const twoProIsShortReferenceKoreanV117 = (
+  value: string
+): boolean => {
+  const text = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!text || text.length > 28) {
+    return false;
+  }
+
+  const words = text
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (words.length > 4) {
+    return false;
+  }
+
+  // 완성 문장은 "참고 표현" 후보에서 제외합니다.
+  if (
+    /(습니다|습니까|입니다|인가요|나요|까요|세요|십시오|아요|어요|예요|에요|게요|데요|래요|거든요|잖아요|지요|해요|했어요|했다|한다|된다|됐다|이다|아니다|있다|없다|싶다|있어|없어|같아|겠어|했어|았어|었어|거야|잖아|구나|군요|네요|합시다|읍시다)$/u.test(
+      text
+    )
+  ) {
+    return false;
+  }
+
+  return /[가-힣]/u.test(text);
+};
+
+const twoProSplitReferenceCandidatesV117 = (
+  value: string
+): string[] => {
+  const clean = String(value || '')
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s:：→=\-–—]+|[\s:：→=\-–—]+$/g, '')
+    .trim();
+
+  if (!clean || clean.length > 100) {
+    return [];
+  }
+
+  // 문장형 영어 예문은 제외합니다.
+  if (
+    /[.!?]\s*(?:$|[A-Z])/u.test(clean) &&
+    clean.split(/\s+/).length > 7
+  ) {
+    return [];
+  }
+
+  return [
+    ...new Set(
+      clean
+        .split(/\s*(?:,|;|\/|\|)\s*/g)
+        .map((candidate) =>
+          candidate
+            .replace(/\s+/g, ' ')
+            .trim()
+        )
+        .filter(
+          (candidate) =>
+            Boolean(candidate) &&
+            /[A-Za-z]/.test(candidate) &&
+            candidate.length <= 45 &&
+            candidate.split(/\s+/).length <= 6
+        )
+    ),
+  ].slice(0, 5);
+};
+
+const twoProParseSearchReferenceV117 = (
+  lineText: string,
+  categoryId: number,
+  normalizedQuery: string
+): TwoProSearchReferenceExpressionV117 | null => {
+  const line = String(lineText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !line ||
+    line.length > 130 ||
+    !/[가-힣]/u.test(line) ||
+    !/[A-Za-z]/.test(line)
+  ) {
+    return null;
+  }
+
+  // 한국어가 앞, 영어가 뒤인 짧은 사전형 데이터
+  // 예: 정보 information
+  //     조언 advice, counsel
+  const koFirst = line.match(
+    /^([^A-Za-z]{1,40}?)[\s:：→=\-–—]+([A-Za-z].{0,100})$/u
+  );
+
+  // 영어가 앞, 한국어가 뒤인 짧은 사전형 데이터
+  // 예: money 돈
+  const enFirst = line.match(
+    /^([A-Za-z][^가-힣]{0,100}?)[\s:：→=\-–—]+([가-힣].{0,40})$/u
+  );
+
+  let source = '';
+  let english = '';
+
+  if (koFirst) {
+    source = String(koFirst[1] || '')
+      .replace(/^[\s·•※]+|[\s·•※]+$/g, '')
+      .trim();
+    english = String(koFirst[2] || '').trim();
+  } else if (enFirst) {
+    source = String(enFirst[2] || '')
+      .replace(/^[\s·•※]+|[\s·•※]+$/g, '')
+      .trim();
+    english = String(enFirst[1] || '').trim();
+  } else {
+    return null;
+  }
+
+  if (!twoProIsShortReferenceKoreanV117(source)) {
+    return null;
+  }
+
+  const candidates =
+    twoProSplitReferenceCandidatesV117(
+      english
+    );
+
+  if (!candidates.length) {
+    return null;
+  }
+
+  const queryBody = String(normalizedQuery || '')
+    .replace(/[.!?。！？]+$/u, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const queryTokens =
+    queryBody
+      .split(/\s+/)
+      .map(
+        twoProNormalizeReferenceTokenV118
+      )
+      .filter(Boolean);
+
+  const normalizedSource =
+    twoProNormalizeReferenceTokenV118(
+      source
+    );
+
+  const lightSource =
+    twoProStripLightReferenceParticlesV118(
+      normalizedSource
+    );
+
+  let matchedQueryToken = '';
+  let exactSurfaceMatch = false;
+
+  for (const token of queryTokens) {
+    if (token === normalizedSource) {
+      matchedQueryToken = token;
+      exactSurfaceMatch = true;
+      break;
+    }
+
+    const lightToken =
+      twoProStripLightReferenceParticlesV118(
+        token
+      );
+
+    if (
+      lightSource.length >= 2 &&
+      lightToken.length >= 2 &&
+      lightSource === lightToken
+    ) {
+      matchedQueryToken = token;
+      break;
+    }
+  }
+
+  if (!matchedQueryToken) {
+    return null;
+  }
+
+  // 화면에는 가능하면 사용자가 실제 입력한 표면형에 가까운 표현을 보여줍니다.
+  // 예: DB "오늘은" + 입력 "오늘" -> "오늘 → today"
+  //     DB "당신" + 입력 "당신이" -> "당신 → you"
+  let displaySource = normalizedSource;
+
+  if (!exactSurfaceMatch) {
+    const sourceHadLightParticle =
+      normalizedSource !== lightSource;
+
+    const lightMatchedToken =
+      twoProStripLightReferenceParticlesV118(
+        matchedQueryToken
+      );
+
+    if (
+      sourceHadLightParticle &&
+      matchedQueryToken ===
+        lightMatchedToken
+    ) {
+      displaySource =
+        matchedQueryToken;
+    } else if (
+      !sourceHadLightParticle
+    ) {
+      displaySource =
+        normalizedSource;
+    } else {
+      displaySource =
+        lightSource;
+    }
+  }
+
+  return {
+    source: displaySource,
+    selected: null,
+    candidates,
+    slot: 'SEARCH_REFERENCE',
+    confidence:
+      categoryId === 1
+        ? 0.94
+        : 0.88,
+    categoryId,
+  };
+};
+
+
+// ================================================================
 // 단어·전문용어와 번역할 문장을 구분합니다.
 // ================================================================
 const isSentenceLikeQuery = (value: string): boolean => {
@@ -1109,6 +1429,137 @@ const router = useRouter();
   >([]);
 
   // ================================================================
+  // ☆ TwoPro v1.17-safe: API 참고 표현 + 검색 결과 1:1/1:N 표현 병합
+  //
+  // API/슬롯 엔진이 제공한 referenceWords를 항상 최우선으로 보존합니다.
+  // 부족한 경우에만 이미 로드된 검색 결과에서 짧은 사전형 대응을
+  // 최대 4개 보충합니다. 추가 네트워크 요청은 없습니다.
+  // ================================================================
+  const supplementalReferenceWords =
+    useMemo(() => {
+      const normalizedQuery =
+        String(query || '')
+          .normalize('NFC')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+      if (
+        !normalizedQuery ||
+        !/[가-힣]/u.test(normalizedQuery)
+      ) {
+        return [] as TwoProSearchReferenceExpressionV117[];
+      }
+
+      const collected =
+        results
+          .map((item) =>
+            twoProParseSearchReferenceV117(
+              String(item?.line_text || ''),
+              Number(item?.category_id || 0),
+              normalizedQuery
+            )
+          )
+          .filter(
+            (
+              item
+            ): item is TwoProSearchReferenceExpressionV117 =>
+              Boolean(item)
+          )
+          .sort((left, right) =>
+            Number(right.categoryId === 1) -
+              Number(left.categoryId === 1) ||
+            (right.confidence || 0) -
+              (left.confidence || 0) ||
+            right.source.length -
+              left.source.length
+          );
+
+      const unique =
+        new Map<
+          string,
+          TwoProSearchReferenceExpressionV117
+        >();
+
+      for (const item of collected) {
+        const key =
+          twoProStripLightReferenceParticlesV118(
+            item.source
+          )
+            .replace(/\s+/g, '')
+            .toLocaleLowerCase();
+
+        if (
+          !key ||
+          unique.has(key)
+        ) {
+          continue;
+        }
+
+        unique.set(key, item);
+
+        if (unique.size >= 4) {
+          break;
+        }
+      }
+
+      return Array.from(
+        unique.values()
+      );
+    }, [query, results]);
+
+  const displayReferenceWords =
+    useMemo(() => {
+      const merged:
+        TranslationReferenceWord[] = [];
+
+      const seen =
+        new Set<string>();
+
+      const pushIfNew = (
+        item: TranslationReferenceWord
+      ) => {
+        const source =
+          String(
+            item?.source || ''
+          )
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        const key =
+          twoProStripLightReferenceParticlesV118(
+            source
+          )
+            .replace(/\s+/g, '')
+            .toLocaleLowerCase();
+
+        if (
+          !source ||
+          !key ||
+          seen.has(key)
+        ) {
+          return;
+        }
+
+        seen.add(key);
+        merged.push(item);
+      };
+
+      // 슬롯/PHRASES/API가 준 정보는 가장 신뢰도가 높으므로 먼저.
+      referenceWords.forEach(
+        pushIfNew
+      );
+
+      supplementalReferenceWords.forEach(
+        pushIfNew
+      );
+
+      return merged.slice(0, 6);
+    }, [
+      referenceWords,
+      supplementalReferenceWords,
+    ]);
+
+  // ================================================================
   // ☆ TwoPro v1.13 — Slot Similarity Tier 3 "유사 문형 참고"
   //
   // 사용자 문장을 새로 생성 번역하지 않고,
@@ -1269,22 +1720,98 @@ useEffect(() => {
       }
     );
 
-    const matchedResult =
-      bilingualResults.find((item) => {
-        const normalizedLine = String(
-          item?.line_text || ''
+    // ============================================================
+    // ☆ TwoPro v1.16-safe: 참고 문장 fallback 의미 안전도 보강
+    //
+    // 예전에는 검색어 전체가 포함된 결과가 없으면 bilingualResults[0]을
+    // 무조건 참고 문장으로 사용했습니다.
+    // 이 때문에
+    //   "아직은 당신이 필요해."
+    //     -> "아직은 수동으로 하고 있습니다..."
+    //   "내일까지 시간이 거의 없어요."
+    //     -> "내일까지 기다려야 하네요..."
+    // 같은 표면어 1개짜리 오참고가 발생할 수 있었습니다.
+    //
+    // 이제는:
+    // 1) 검색어 전체가 포함된 병렬문장을 최우선
+    // 2) 전체 포함이 아니면 검색어 토큰 2개 이상 + 75% 이상 일치
+    // 3) 기준 미달이면 참고 문장 자체를 만들지 않음
+    //
+    // 따라서 "아직은 시간이 필요해"처럼 실제 구가 그대로 포함된
+    // 좋은 참고 문장은 기존처럼 유지됩니다.
+    // ============================================================
+    const fallbackQueryTokens =
+      normalizedNeedle
+        .split(/\s+/)
+        .map((token) =>
+          token
+            .replace(
+              /^[.,:;!?()[\]{}"'“”‘’]+|[.,:;!?()[\]{}"'“”‘’]+$/g,
+              ''
+            )
+            .trim()
         )
-          .replace(/\s+/g, ' ')
-          .trim();
-
-        return (
-          normalizedNeedle.length > 0 &&
-          normalizedLine.includes(
-            normalizedNeedle
-          )
+        .filter(
+          (token) => token.length >= 2
         );
-      }) ||
-      bilingualResults[0];
+
+    const scoredReferenceResults =
+      bilingualResults
+        .map((item) => {
+          const normalizedLine = String(
+            item?.line_text || ''
+          )
+            .replace(/\s+/g, ' ')
+            .trim();
+
+          const fullQueryMatch =
+            normalizedNeedle.length > 0 &&
+            normalizedLine.includes(
+              normalizedNeedle
+            );
+
+          const matchedTokenCount =
+            fallbackQueryTokens.filter(
+              (token) =>
+                normalizedLine.includes(
+                  token
+                )
+            ).length;
+
+          const matchRatio =
+            fallbackQueryTokens.length > 0
+              ? matchedTokenCount /
+                fallbackQueryTokens.length
+              : 0;
+
+          return {
+            item,
+            normalizedLine,
+            fullQueryMatch,
+            matchedTokenCount,
+            matchRatio,
+          };
+        })
+        .filter((entry) =>
+          entry.fullQueryMatch ||
+          (
+            entry.matchedTokenCount >= 2 &&
+            entry.matchRatio >= 0.75
+          )
+        )
+        .sort((left, right) =>
+          Number(right.fullQueryMatch) -
+            Number(left.fullQueryMatch) ||
+          right.matchRatio -
+            left.matchRatio ||
+          right.matchedTokenCount -
+            left.matchedTokenCount ||
+          left.normalizedLine.length -
+            right.normalizedLine.length
+        );
+
+    const matchedResult =
+      scoredReferenceResults[0]?.item;
 
     const fallbackText = String(
       matchedResult?.line_text || ''
@@ -2311,15 +2838,15 @@ const displayResults = React.useMemo(() => {
                           <span className={`text-[13px] md:text-[15px] font-bold whitespace-nowrap mt-1 ${isReference ? 'text-orange-600' : 'text-blue-700/80'}`}>
                             {isReference ? '참고 문장:' : '검색 결과:'}
                           </span>
-                          <p className="text-[18px] md:text-[20px] font-black text-slate-900 leading-snug flex-1">{aiTranslation.replace(/\.{2,}/g, '.')}</p>
+                          <p className="text-[18px] md:text-[20px] font-black text-slate-900 leading-snug flex-1">{twoProFormatTranslationDisplayV116(aiTranslation, isReference)}</p>
                           
                           <div className="flex items-center gap-1.5 mt-0.5">
                             {/* 🌟 번역 결과 듣기(스피커) 버튼 */}
-                            <button onClick={() => handleSpeak(aiTranslation)} className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
+                            <button onClick={() => handleSpeak(twoProFormatTranslationDisplayV116(aiTranslation, isReference))} className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
                               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
                             </button>
                             {/* 복사 버튼 */}
-                            <button onClick={() => handleCopy(aiTranslation.replace(/\.{2,}/g, '.'), 'translation')} className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm" title="복사">
+                            <button onClick={() => handleCopy(twoProFormatTranslationDisplayV116(aiTranslation, isReference), 'translation')} className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm" title="복사">
                               {copiedId === 'translation' ? (
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-emerald-500"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>
                               ) : (
@@ -2337,9 +2864,9 @@ const displayResults = React.useMemo(() => {
                       </p>
                     )}
 
-                    {referenceWords.length > 0 && (
+                    {displayReferenceWords.length > 0 && (
                       <div className="mt-3 pt-3 border-t border-blue-200/80 space-y-1.5">
-                        {referenceWords.map((item, index) => {
+                        {displayReferenceWords.map((item, index) => {
                           const selected =
                             item.selected || '';
 
@@ -2411,6 +2938,20 @@ const displayResults = React.useMemo(() => {
                         엑스딕이 추천하는 전문가 번역 데이터 중 가장 자연스러운 문장입니다.
                       </p>
                     )}
+
+                    {/* =====================================================
+                        ☆ TwoPro v1.19-safe
+                        문장 번역 블록 맨 하단의 미래 UI/콘텐츠 전용 placeholder.
+                        현재는 화면에 아무것도 표시하지 않습니다.
+                        내일 관련 표현·학습 콘텐츠·분야별 정보 등의
+                        publisher-content를 이 위치에 안전하게 연결할 수 있습니다.
+                        AdSense 광고 코드를 이 빈 placeholder 자체에 넣지는 않습니다.
+                       ===================================================== */}
+                    <div
+                      id="xdic-translation-footer-placeholder"
+                      data-xdic-placeholder="translation-footer"
+                      aria-hidden="true"
+                    />
                   </div>
                 )}
 
@@ -2448,6 +2989,58 @@ const displayResults = React.useMemo(() => {
                           <p className="text-[15px] md:text-[17px] font-bold text-slate-800 leading-snug flex-1 break-words">
                             {slotSimilarityReference.targetTemplate}
                           </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+{!aiTranslation &&
+  displayReferenceWords.length > 0 && (
+                    <div className="bg-sky-50/70 border border-sky-200 rounded-xl p-4 mb-4 shadow-sm animate-in fade-in slide-in-from-top-2">
+                      <div className="flex items-start gap-3">
+                        <span className="text-lg mt-0.5">💡</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[14px] md:text-[15px] font-extrabold text-slate-800 mb-2">
+                            참고 표현
+                          </p>
+                          <div className="space-y-1.5">
+                            {displayReferenceWords.map(
+                              (item, index) => {
+                                const orderedCandidates = [
+                                  item.selected || '',
+                                  ...item.candidates,
+                                ].filter(
+                                  (
+                                    value,
+                                    candidateIndex,
+                                    values
+                                  ) =>
+                                    Boolean(value) &&
+                                    values.indexOf(value) ===
+                                      candidateIndex
+                                );
+
+                                return (
+                                  <div
+                                    key={`standalone-${item.source}-${index}`}
+                                    className="flex items-start gap-2"
+                                  >
+                                    <span className="font-extrabold text-slate-900 text-[13px] md:text-[14px]">
+                                      {item.source}
+                                    </span>
+                                    <span className="text-slate-400">
+                                      →
+                                    </span>
+                                    <p className="text-[13px] md:text-[14px] text-slate-700 leading-relaxed break-words">
+                                      {orderedCandidates.join(
+                                        ', '
+                                      )}
+                                    </p>
+                                  </div>
+                                );
+                              }
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
