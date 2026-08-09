@@ -6709,13 +6709,11 @@
       }
     },
     "money": {
-      "ko": null,
-      "mode": "CONTEXT",
-      "countability": "BOTH",
+      "ko": "돈",
+      "mode": "SAFE",
+      "countability": "MASS",
       "forms": {
-        "plural": [
-          "moneys"
-        ]
+        "plural": []
       }
     },
     "monitor": {

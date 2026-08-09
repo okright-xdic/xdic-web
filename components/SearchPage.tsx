@@ -1423,11 +1423,24 @@ useEffect(() => {
           responseEngine ===
             'slot-similarity-tier2-safe-v1';
 
+        // ============================================================
+        // ☆ TwoPro v1.15-additive-safe: v13.84 다의어 초단문 직접 결과 표시
+        //
+        // Pick up the book / Book a room / File a complaint처럼
+        // 기존 일반 영어 문장 판별에는 걸리지 않는 제한 문형도
+        // route.ts의 v13.84 전용 엔진이 성공한 경우에만 파란 번역 블록을 허용합니다.
+        // 다른 DB/reference/일반 RBMT 결과는 기존 비문장 차단 정책을 그대로 유지합니다.
+        // ============================================================
+        const isDirectPolysemyMiniSentenceResult =
+          responseEngine ===
+            'polysemy-mini-sentence-v13.84';
+
         // 문장이 아닌 한 어절·구 검색어는
         // PHRASES 직접 번역 또는 common-verbs SAFE 직접 번역일 때만
         // 파란 번역 블록을 표시합니다.
         if (
           !sentenceLike &&
+          !isDirectPolysemyMiniSentenceResult &&
           !isDirectPhraseResult &&
           !isDirectCommonVerbResult &&
           !isDirectCommonNounResult &&
@@ -1792,17 +1805,14 @@ useEffect(() => {
           <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="X-DIC Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
         </a>
         <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer hover:opacity-80 transition-opacity">
-          <h1 className="text-[22px] md:text-[26px] font-extrabold text-slate-800 leading-tight">한영/영한사전 – 복합어(합성어) 전문 엑스딕!</h1>
+          <h1 className="text-[22px] md:text-[26px] font-extrabold text-black leading-tight">무료 실용 번역사전 엑스딕!</h1>
         </a>
         <div className="flex flex-col items-center w-full mt-1 mb-2">
-          <p className="text-[11px] md:text-[13px] text-slate-400 font-semibold mb-3">Korean-English/English-Korean Dictionary – Compound Terminology</p>
+          <p className="text-[13px] md:text-[15px] text-slate-500 font-semibold mb-3">Korean-English/English-Korean Dictionary – Contextual Phrase Dictionary</p>
           <div className="w-full max-w-[95%] md:max-w-3xl bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 md:py-3 shadow-sm">
             <p className="text-[12px] md:text-[14px] text-slate-700 font-bold leading-snug break-keep text-center">
-              <span className="text-blue-600 mr-1">💡 전문용어 검색 특화:</span>
-              의학용어 · 교육용어 · 기계용어 · 무역경제용어 · 자동차용어 · 전자용어 · 컴퓨터용어 등
-            </p>
-            <p className="text-[10px] md:text-[11px] text-slate-400 font-medium leading-tight mt-1.5 px-2 break-keep text-center">
-              Specialized search for terminology such as medical, educational, mechanical, trade, economic, automobile, electronic, computer, etc.
+              <span className="text-sky-500 mr-1">전문용어(Terminology):</span>
+              의학(Medical Science)·기계(Machinery)·무역경제(Trade&Economy)·컴퓨터(Computer)
             </p>
           </div>
         </div>
@@ -2159,14 +2169,14 @@ const displayResults = React.useMemo(() => {
                 </div>
                 <div className="flex flex-col gap-1 w-full max-w-2xl items-center md:items-start">
                     <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer hover:opacity-80 transition-opacity">
-                        <h1 className="text-xl md:text-[24px] font-extrabold text-slate-800 leading-tight">한영/영한사전 – 복합어(합성어) 전문 엑스딕!</h1>
+                        <h1 className="text-xl md:text-[24px] font-extrabold text-black leading-tight">무료 실용 번역사전 엑스딕!</h1>
                     </a>
-                    <p className="text-[11px] md:text-[13px] text-slate-400 font-semibold leading-tight hidden md:block mb-1">Korean-English/English-Korean Dictionary – Compound Terminology</p>
+                    <p className="text-[11px] md:text-[13px] text-slate-500 font-semibold leading-tight hidden md:block mb-1">Korean-English/English-Korean Dictionary – Contextual Phrase Dictionary</p>
                     
                     <div className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 shadow-sm text-center md:text-left">
                         <p className="text-[11px] md:text-[13px] text-slate-700 font-bold leading-tight break-keep">
-                            <span className="text-blue-600 mr-1">💡 전문용어 특화:</span>
-                            의학용어 · 교육용어 · 기계용어 · 무역경제용어 · 자동차용어 · 전자용어 · 컴퓨터용어 등
+                            <span className="text-sky-500 mr-1">전문용어(Terminology):</span>
+                            의학(Medical Science)·기계(Machinery)·무역경제(Trade&Economy)·컴퓨터(Computer)
                         </p>
                     </div>
                 </div>
@@ -2197,7 +2207,7 @@ const displayResults = React.useMemo(() => {
                 <div className="w-full mb-4 animate-in fade-in slide-in-from-top-2 duration-500">
                   <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 shadow-sm text-center">
                     <p className="text-[14px] md:text-[15px] font-bold text-slate-700 leading-snug break-keep">
-                      📱 휴대폰 앱 다운방법: <span className="text-blue-600 font-extrabold">갤럭시폰</span>은 <span className="text-orange-500 font-extrabold">Play 스토어</span>에서, <span className="text-blue-600 font-extrabold">iPhone</span>은 <span className="text-orange-500 font-extrabold">App Store</span>에서 <span className="text-purple-600 font-extrabold">x-dic</span>으로 검색!
+                      📱 휴대폰 앱(App) Download <span className="text-purple-600 font-extrabold">'x-dic'</span> 검색(Search): <span className="text-sky-500 font-extrabold">갤럭시(Galaxy)</span>는 <span className="text-orange-500 font-extrabold">Play 스토어</span>, <span className="text-sky-500 font-extrabold">아이폰(iPhone)</span>은 <span className="text-orange-500 font-extrabold">App Store</span>
                     </p>
                   </div>
                 </div>

@@ -6595,6 +6595,53 @@ const twoProGetParticleBundleV58 = async (
   slotType: 'N' | 'V' | 'ADJ' | 'PLACE',
   supabase: any
 ): Promise<TwoProKoEnCandidateBundleV5 | null> => {
+  // =================================================================
+  // ☆ TwoPro v9.91-safe: v5.8 조사 엔진의 명사 슬롯에서
+  // 기존 로컬 대표명사를 최우선으로 보존하고,
+  // 그 다음 rules-common-nouns.json의 SAFE 한국어 역색인을 사용합니다.
+  //
+  // 목적:
+  // - '돈'처럼 로컬 맵에는 없지만 common-nouns SAFE에는 있는 명사가
+  //   DB 후보(oof/argentus 등)로 내려가기 전에 대표 lemma(money)를 선택.
+  // - 기존 TWO_PRO_KO_EN_COMMON_NOUNS의 결과는 전혀 바꾸지 않음.
+  // - SAFE가 없으면 기존 DB 후보 검색 흐름을 그대로 유지.
+  // =================================================================
+  if (slotType === 'N') {
+    const existingDirect =
+      twoProBuildDirectParticleBundleV58(
+        source,
+        slotType
+      );
+
+    if (existingDirect) {
+      return existingDirect;
+    }
+
+    const safeCommonNoun =
+      twoProLookupKoreanSafeCommonNounV1(
+        source
+      );
+
+    const safeLemma =
+      String(
+        safeCommonNoun?.lemma || ''
+      ).trim();
+
+    if (safeLemma) {
+      return {
+        source:
+          twoProNormalizeKoreanNounV5(
+            source
+          ),
+        selected: safeLemma,
+        candidates: [safeLemma],
+        referenceCandidates: [safeLemma],
+        confidence: 0.995,
+        slotType,
+      };
+    }
+  }
+
   return (
     twoProBuildDirectParticleBundleV58(source, slotType) ||
     await twoProLookupBasicEnglishCandidatesV5(
@@ -29790,6 +29837,857 @@ const twoProTryKnowFriendQuestionV981 = (
   );
 };
 
+// ============================================================================
+// ☆ TwoPro v9.89-safe: 한국어 다의어 문맥 1차 회귀 엔진
+//
+// - 눈/말/배/차처럼 표면형 하나에 여러 뜻이 있는 명사를
+//   조사만 보지 않고 주변 술어·명사구와 함께 제한적으로 판별합니다.
+// - 현재 회귀 테스트에서 오역/DB 참고문장 오염이 확인된 문형만 직접 처리합니다.
+// - 이미 결과가 좋았던 "눈이 아파요", "눈이 와요"는 이 엔진이 가로채지 않습니다.
+// - 문장 전체를 rules-ko-en-phrases.json에 추가하지 않습니다.
+// - 데이터 중심 exact-context 표로 두어 다음 다의어 세트도 안전하게 추가할 수 있습니다.
+// ============================================================================
+type TwoProKoEnPolysemyReferenceV989 = {
+  source: string;
+  selected: string;
+  candidates: string[];
+  slot: 'N' | 'V' | 'ADV' | 'SUBJECT' | 'PREDICATE';
+  confidence: number;
+  origin: 'polysemy-context-ko-en-v9.89';
+};
+
+type TwoProKoEnPolysemyContextResultV989 = {
+  targetText: string;
+  referenceWords: TwoProKoEnPolysemyReferenceV989[];
+  patternId: string;
+};
+
+const twoProKoEnPolysemyReferenceV989 = (
+  source: string,
+  selected: string,
+  candidates: string[],
+  slot: TwoProKoEnPolysemyReferenceV989['slot'],
+  confidence = 1
+): TwoProKoEnPolysemyReferenceV989 => ({
+  source,
+  selected,
+  candidates,
+  slot,
+  confidence,
+  origin: 'polysemy-context-ko-en-v9.89',
+});
+
+const TWO_PRO_KO_EN_POLYSEMY_CONTEXT_V989:
+  Readonly<Record<string, TwoProKoEnPolysemyContextResultV989>> = {
+    '눈을 감으세요': {
+      targetText: 'Close your eyes.',
+      patternId: 'eye-close-imperative',
+      referenceWords: [
+        twoProKoEnPolysemyReferenceV989(
+          '눈을',
+          'your eyes',
+          ['your eyes', 'eyes'],
+          'N'
+        ),
+        twoProKoEnPolysemyReferenceV989(
+          '감으세요',
+          'close',
+          ['close'],
+          'V'
+        ),
+      ],
+    },
+
+    '눈이 많이 쌓였어요': {
+      targetText: 'A lot of snow has piled up.',
+      patternId: 'snow-pile-up',
+      referenceWords: [
+        twoProKoEnPolysemyReferenceV989(
+          '눈이 많이',
+          'a lot of snow',
+          ['a lot of snow', 'much snow'],
+          'N'
+        ),
+        twoProKoEnPolysemyReferenceV989(
+          '쌓였어요',
+          'has piled up',
+          ['has piled up', 'has accumulated'],
+          'V'
+        ),
+      ],
+    },
+
+    '말을 탔어요': {
+      targetText: 'I rode a horse.',
+      patternId: 'horse-ride',
+      referenceWords: [
+        twoProKoEnPolysemyReferenceV989(
+          '말을',
+          'a horse',
+          ['a horse', 'horse'],
+          'N'
+        ),
+        twoProKoEnPolysemyReferenceV989(
+          '탔어요',
+          'rode',
+          ['rode'],
+          'V'
+        ),
+      ],
+    },
+
+    '그가 말을 했어요': {
+      targetText: 'He spoke.',
+      patternId: 'speech-speak',
+      referenceWords: [
+        twoProKoEnPolysemyReferenceV989(
+          '그가',
+          'he',
+          ['he'],
+          'SUBJECT'
+        ),
+        twoProKoEnPolysemyReferenceV989(
+          '말을 했어요',
+          'spoke',
+          ['spoke', 'said something'],
+          'PREDICATE'
+        ),
+      ],
+    },
+
+    '그의 말이 맞아요': {
+      targetText: 'What he said is right.',
+      patternId: 'statement-right',
+      referenceWords: [
+        twoProKoEnPolysemyReferenceV989(
+          '그의 말이',
+          'what he said',
+          ['what he said', 'his words'],
+          'N'
+        ),
+        twoProKoEnPolysemyReferenceV989(
+          '맞아요',
+          'is right',
+          ['is right', 'is correct'],
+          'PREDICATE'
+        ),
+      ],
+    },
+
+    '배를 탔어요': {
+      targetText: 'I took a boat.',
+      patternId: 'boat-take',
+      referenceWords: [
+        twoProKoEnPolysemyReferenceV989(
+          '배를',
+          'a boat',
+          ['a boat', 'a ship'],
+          'N'
+        ),
+        twoProKoEnPolysemyReferenceV989(
+          '탔어요',
+          'took',
+          ['took', 'rode'],
+          'V'
+        ),
+      ],
+    },
+
+    '배를 먹었어요': {
+      targetText: 'I ate a pear.',
+      patternId: 'pear-eat',
+      referenceWords: [
+        twoProKoEnPolysemyReferenceV989(
+          '배를',
+          'a pear',
+          ['a pear', 'pear'],
+          'N'
+        ),
+        twoProKoEnPolysemyReferenceV989(
+          '먹었어요',
+          'ate',
+          ['ate'],
+          'V'
+        ),
+      ],
+    },
+
+    '배가 아파요': {
+      targetText: 'My stomach hurts.',
+      patternId: 'stomach-hurt',
+      referenceWords: [
+        twoProKoEnPolysemyReferenceV989(
+          '배가',
+          'my stomach',
+          ['my stomach', 'stomach'],
+          'N'
+        ),
+        twoProKoEnPolysemyReferenceV989(
+          '아파요',
+          'hurts',
+          ['hurts', 'aches'],
+          'PREDICATE'
+        ),
+      ],
+    },
+
+    '차를 운전해요': {
+      targetText: 'I drive a car.',
+      patternId: 'car-drive',
+      referenceWords: [
+        twoProKoEnPolysemyReferenceV989(
+          '차를',
+          'a car',
+          ['a car', 'car'],
+          'N'
+        ),
+        twoProKoEnPolysemyReferenceV989(
+          '운전해요',
+          'drive',
+          ['drive'],
+          'V'
+        ),
+      ],
+    },
+
+    '차를 마셔요': {
+      targetText: 'I drink tea.',
+      patternId: 'tea-drink',
+      referenceWords: [
+        twoProKoEnPolysemyReferenceV989(
+          '차를',
+          'tea',
+          ['tea'],
+          'N'
+        ),
+        twoProKoEnPolysemyReferenceV989(
+          '마셔요',
+          'drink',
+          ['drink'],
+          'V'
+        ),
+      ],
+    },
+
+    '두 값의 차가 커요': {
+      targetText:
+        'The difference between the two values is large.',
+      patternId: 'value-difference-large-cha',
+      referenceWords: [
+        twoProKoEnPolysemyReferenceV989(
+          '두 값의 차가',
+          'the difference between the two values',
+          ['the difference between the two values'],
+          'N'
+        ),
+        twoProKoEnPolysemyReferenceV989(
+          '커요',
+          'is large',
+          ['is large', 'is big'],
+          'PREDICATE'
+        ),
+      ],
+    },
+
+    '두 값의 차이가 커요': {
+      targetText:
+        'The difference between the two values is large.',
+      patternId: 'value-difference-large-cha-i',
+      referenceWords: [
+        twoProKoEnPolysemyReferenceV989(
+          '두 값의 차이가',
+          'the difference between the two values',
+          ['the difference between the two values'],
+          'N'
+        ),
+        twoProKoEnPolysemyReferenceV989(
+          '커요',
+          'is large',
+          ['is large', 'is big'],
+          'PREDICATE'
+        ),
+      ],
+    },
+  };
+
+const twoProTryKoEnPolysemyContextV989 = (
+  value: unknown
+): TwoProKoEnPolysemyContextResultV989 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/\s+/gu, ' ')
+    .replace(/[.!?。！？]+$/u, '')
+    .trim();
+
+  if (!source) {
+    return null;
+  }
+
+  return (
+    TWO_PRO_KO_EN_POLYSEMY_CONTEXT_V989[
+      source
+    ] || null
+  );
+};
+
+// ============================================================================
+// ☆ TwoPro v9.90-safe: 관사·단복수·가산/불가산 명사구 1차 회귀 엔진
+//
+// 기존 PHRASES/rules/조사/일반 문장 엔진이 실패한 짧은 기본 문장만 보완합니다.
+// - 그 + N      -> the N
+// - N들         -> plural
+// - N + 수량+분류사 -> explicit number + plural
+// - MASS noun   -> 무관사
+// - bare COUNT  -> 첫 언급 기본값 a/an
+// - generic topic -> bare plural
+// 문장 전체를 PHRASES에 저장하지 않고 명사구 해석 + 안전 술어 조립으로 처리합니다.
+// ============================================================================
+
+type TwoProNounPhraseRoleV990 =
+  | 'subject'
+  | 'object'
+  | 'generic'
+  | 'existential'
+  | 'need';
+
+type TwoProNounPhraseRenderV990 = {
+  source: string;
+  selected: string;
+  baseKo: string;
+  lemma: string;
+  plural: string;
+  countability: 'COUNT' | 'BOTH' | 'MASS';
+  number: 'singular' | 'plural' | 'mass';
+  definite: boolean;
+};
+
+type TwoProArticleNumberClauseResultV990 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+  matchedRule: string;
+};
+
+const TWO_PRO_KO_EN_NOUN_FALLBACK_V990:
+  Readonly<Record<string, {
+    lemma: string;
+    plural?: string;
+    countability: 'COUNT' | 'BOTH' | 'MASS';
+  }>> = {
+    '학생': { lemma: 'student', plural: 'students', countability: 'COUNT' },
+    '책': { lemma: 'book', plural: 'books', countability: 'COUNT' },
+    '사과': { lemma: 'apple', plural: 'apples', countability: 'COUNT' },
+    '병원': { lemma: 'hospital', plural: 'hospitals', countability: 'COUNT' },
+    '물': { lemma: 'water', countability: 'MASS' },
+    '정보': { lemma: 'information', countability: 'MASS' },
+    '조언': { lemma: 'advice', countability: 'MASS' },
+    '가구': { lemma: 'furniture', countability: 'MASS' },
+    '돈': { lemma: 'money', countability: 'MASS' },
+  };
+
+const TWO_PRO_KO_EN_SAFE_OBJECT_PREDICATES_V990:
+  Readonly<Record<string, {
+    baseKo: string;
+    english: string;
+    tense: TwoProKoEnSimpleTenseV52;
+  }>> = {
+    '삽니다': { baseKo: '사다', english: 'buy', tense: 'present' },
+    '사요': { baseKo: '사다', english: 'buy', tense: 'present' },
+    '샀습니다': { baseKo: '사다', english: 'buy', tense: 'past' },
+    '샀어요': { baseKo: '사다', english: 'buy', tense: 'past' },
+    '샀다': { baseKo: '사다', english: 'buy', tense: 'past' },
+    '먹습니다': { baseKo: '먹다', english: 'eat', tense: 'present' },
+    '먹어요': { baseKo: '먹다', english: 'eat', tense: 'present' },
+    '먹었습니다': { baseKo: '먹다', english: 'eat', tense: 'past' },
+    '먹었어요': { baseKo: '먹다', english: 'eat', tense: 'past' },
+    '먹었다': { baseKo: '먹다', english: 'eat', tense: 'past' },
+    '마십니다': { baseKo: '마시다', english: 'drink', tense: 'present' },
+    '마셔요': { baseKo: '마시다', english: 'drink', tense: 'present' },
+    '마셨습니다': { baseKo: '마시다', english: 'drink', tense: 'past' },
+    '마셨어요': { baseKo: '마시다', english: 'drink', tense: 'past' },
+    '마셨다': { baseKo: '마시다', english: 'drink', tense: 'past' },
+  };
+
+const TWO_PRO_KO_EN_COME_FORMS_V990:
+  Readonly<Record<string, {
+    english: string;
+    tense: TwoProKoEnSimpleTenseV52;
+  }>> = {
+    '옵니다': { english: 'come', tense: 'present' },
+    '와요': { english: 'come', tense: 'present' },
+    '온다': { english: 'come', tense: 'present' },
+    '왔습니다': { english: 'come', tense: 'past' },
+    '왔어요': { english: 'come', tense: 'past' },
+    '왔다': { english: 'come', tense: 'past' },
+  };
+
+const twoProStripEnglishDeterminerV990 = (
+  value: unknown
+): string =>
+  String(value || '')
+    .trim()
+    .replace(/^(?:a|an|the)\s+/i, '')
+    .trim();
+
+const twoProNumberInfoV990 = (
+  sourceNumber: string
+): { digit: string; word: string } | null => {
+  const digit =
+    twoProKoreanNumberToDigit(sourceNumber) ||
+    (/^\d+$/.test(sourceNumber) ? sourceNumber : '');
+
+  if (!digit) return null;
+
+  return {
+    digit,
+    word:
+      TWO_PRO_KO_EN_NATIVE_NUMBER_WORDS_V54[sourceNumber] ||
+      TWO_PRO_ENGLISH_SMALL_CARDINALS_V928[digit] ||
+      digit,
+  };
+};
+
+const twoProRenderNounPhraseV990 = (
+  value: unknown,
+  role: TwoProNounPhraseRoleV990
+): TwoProNounPhraseRenderV990 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  if (!source) return null;
+
+  let body = source;
+  let definite = false;
+
+  if (/^그\s+/u.test(body)) {
+    definite = true;
+    body = body.replace(/^그\s+/u, '').trim();
+  }
+
+  let explicitNumber: string | null = null;
+  const classifierMatch = body.match(
+    /^(.+?)\s+(\d+|한|하나|두|둘|세|셋|네|넷|다섯|여섯|일곱|여덟|아홉|열)\s*(명|권|개)$/u
+  );
+
+  if (classifierMatch) {
+    body = classifierMatch[1].trim();
+    explicitNumber = classifierMatch[2];
+  }
+
+  let explicitPlural = false;
+
+  if (!explicitNumber && body.endsWith('들') && body.length > 1) {
+    explicitPlural = true;
+    body = body.slice(0, -1).trim();
+  }
+
+  if (!body) return null;
+
+  const commonEntry =
+    twoProLookupKoreanSafeCommonNounV1(body);
+  const fallback =
+    TWO_PRO_KO_EN_NOUN_FALLBACK_V990[body];
+
+  const lemma =
+    twoProStripEnglishDeterminerV990(
+      commonEntry?.lemma ||
+      TWO_PRO_KO_EN_COMMON_NOUNS[body] ||
+      fallback?.lemma ||
+      ''
+    );
+
+  if (!lemma) return null;
+
+  const rawCountability =
+    String(commonEntry?.countability || '').toUpperCase();
+
+  const countability: 'COUNT' | 'BOTH' | 'MASS' =
+    fallback?.countability === 'MASS' ||
+    TWO_PRO_KO_EN_UNCOUNTABLE_NOUNS.has(lemma.toLowerCase()) ||
+    (
+      rawCountability &&
+      rawCountability !== 'COUNT' &&
+      rawCountability !== 'BOTH'
+    )
+      ? 'MASS'
+      : rawCountability === 'BOTH'
+        ? 'BOTH'
+        : 'COUNT';
+
+  const plural =
+    twoProStripEnglishDeterminerV990(
+      (
+        Array.isArray(commonEntry?.forms?.plural) &&
+        commonEntry.forms.plural.length
+          ? commonEntry.forms.plural[0]
+          : fallback?.plural
+      ) ||
+      twoProPluralizeEnglishV5(lemma)
+    );
+
+  if (explicitNumber) {
+    if (countability === 'MASS') return null;
+    const numberInfo =
+      twoProNumberInfoV990(explicitNumber);
+    if (!numberInfo) return null;
+
+    const selected =
+      `${numberInfo.word} ${
+        numberInfo.digit === '1' ? lemma : plural
+      }`;
+
+    return {
+      source,
+      selected: definite ? `the ${selected}` : selected,
+      baseKo: body,
+      lemma,
+      plural,
+      countability,
+      number:
+        numberInfo.digit === '1' ? 'singular' : 'plural',
+      definite,
+    };
+  }
+
+  if (explicitPlural) {
+    if (countability === 'MASS') return null;
+    return {
+      source,
+      selected: definite ? `the ${plural}` : plural,
+      baseKo: body,
+      lemma,
+      plural,
+      countability,
+      number: 'plural',
+      definite,
+    };
+  }
+
+  if (countability === 'MASS') {
+    return {
+      source,
+      selected: definite ? `the ${lemma}` : lemma,
+      baseKo: body,
+      lemma,
+      plural,
+      countability,
+      number: 'mass',
+      definite,
+    };
+  }
+
+  if (role === 'generic' && !definite) {
+    return {
+      source,
+      selected: plural,
+      baseKo: body,
+      lemma,
+      plural,
+      countability,
+      number: 'plural',
+      definite: false,
+    };
+  }
+
+  return {
+    source,
+    selected:
+      definite
+        ? `the ${lemma}`
+        : `${twoProStartsWithVowelSound(lemma) ? 'an' : 'a'} ${lemma}`,
+    baseKo: body,
+    lemma,
+    plural,
+    countability,
+    number: 'singular',
+    definite,
+  };
+};
+
+const twoProNounPhraseReferenceV990 = (
+  nounPhrase: TwoProNounPhraseRenderV990
+): TwoProKoEnReferenceWordV5 => ({
+  source: nounPhrase.source,
+  selected: nounPhrase.selected,
+  candidates: Array.from(
+    new Set([
+      nounPhrase.selected,
+      nounPhrase.number === 'plural'
+        ? nounPhrase.plural
+        : nounPhrase.lemma,
+    ])
+  ),
+  slot: 'N',
+  confidence: 1,
+  origin: 'noun-phrase-article-number-ko-en-v9.90',
+} as any);
+
+const twoProTryKoEnArticleNumberClauseV990 = (
+  originalText: string
+): TwoProArticleNumberClauseResultV990 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  if (!normalized) return null;
+
+  const finish = (
+    targetText: string,
+    analysis: Array<{ ko: string; en: string }>,
+    referenceWords: TwoProKoEnReferenceWordV5[],
+    engine: string,
+    matchedRule: string
+  ): TwoProArticleNumberClauseResultV990 => ({
+    targetText: twoProFinalizeEnglish(targetText, originalText),
+    analysis,
+    referenceWords,
+    engine,
+    matchedRule,
+  });
+
+  const verbRef = (
+    ko: string,
+    en: string
+  ) => twoProEmbeddedReferenceWordV90(ko, en, 'V');
+
+  // 1) 병원 목적지: 명시 단서가 있는 경우부터 관사를 확정합니다.
+  let match = normalized.match(
+    /^사고\s+후\s+(그\s+)?병원에\s+(갔습니다|갔어요|갔다)$/u
+  );
+
+  if (match) {
+    return finish(
+      'I went to the hospital after the accident',
+      [
+        { ko: '사고 후', en: 'after the accident [TIME]' },
+        { ko: match[1] ? '그 병원' : '병원', en: 'the hospital [PLACE]' },
+        { ko: '가다', en: 'went [V]' },
+      ],
+      [
+        twoProEmbeddedReferenceWordV90(
+          match[1] ? '그 병원' : '병원',
+          'the hospital',
+          'PLACE'
+        ),
+        verbRef('가다', 'go'),
+      ],
+      'article-number-hospital-destination-ko-en-v9.90',
+      'AFTER_ACCIDENT_HOSPITAL_V990'
+    );
+  }
+
+  match = normalized.match(
+    /^근처\s+병원\s+하나에\s+(갔습니다|갔어요|갔다)$/u
+  );
+
+  if (match) {
+    return finish(
+      'I went to a nearby hospital',
+      [
+        { ko: '근처 병원 하나', en: 'a nearby hospital [PLACE]' },
+        { ko: '가다', en: 'went [V]' },
+      ],
+      [
+        twoProEmbeddedReferenceWordV90(
+          '근처 병원 하나',
+          'a nearby hospital',
+          'PLACE'
+        ),
+        verbRef('가다', 'go'),
+      ],
+      'article-number-hospital-destination-ko-en-v9.90',
+      'A_NEARBY_HOSPITAL_V990'
+    );
+  }
+
+  match = normalized.match(
+    /^(그\s+병원|병원\s+하나)에\s+(갔습니다|갔어요|갔다)$/u
+  );
+
+  if (match) {
+    const hospitalPhrase =
+      match[1] === '그 병원'
+        ? 'the hospital'
+        : 'a hospital';
+
+    return finish(
+      `I went to ${hospitalPhrase}`,
+      [
+        { ko: match[1], en: `${hospitalPhrase} [PLACE]` },
+        { ko: '가다', en: 'went [V]' },
+      ],
+      [
+        twoProEmbeddedReferenceWordV90(
+          match[1],
+          hospitalPhrase,
+          'PLACE'
+        ),
+        verbRef('가다', 'go'),
+      ],
+      'article-number-hospital-destination-ko-en-v9.90',
+      'HOSPITAL_DESTINATION_DETERMINER_V990'
+    );
+  }
+
+  // 2) N이/가 오다
+  match = normalized.match(
+    /^(.+?)(?:이|가)\s+(옵니다|와요|온다|왔습니다|왔어요|왔다)$/u
+  );
+
+  if (match) {
+    const nounPhrase =
+      twoProRenderNounPhraseV990(match[1], 'subject');
+    const verbInfo =
+      TWO_PRO_KO_EN_COME_FORMS_V990[match[2]];
+
+    if (nounPhrase && verbInfo) {
+      const agreement =
+        nounPhrase.number === 'plural' ? 'they' : 'it';
+      const verbEn =
+        twoProConjugateEnglishVerbV52(
+          verbInfo.english,
+          verbInfo.tense,
+          agreement
+        );
+
+      return finish(
+        `${nounPhrase.selected} ${verbEn}`,
+        [
+          { ko: nounPhrase.source, en: `${nounPhrase.selected} [SUBJECT]` },
+          { ko: match[2], en: `${verbEn} [V]` },
+        ],
+        [
+          twoProNounPhraseReferenceV990(nounPhrase),
+          verbRef('오다', verbInfo.english),
+        ],
+        'article-number-subject-come-ko-en-v9.90',
+        'NOUN_PHRASE_COME_V990'
+      );
+    }
+  }
+
+  // 3) N이/가 있다. 특정명사는 existential there 문맥이 불안정하므로 제외합니다.
+  match = normalized.match(
+    /^(.+?)(?:이|가)\s+(있습니다|있어요|있다)$/u
+  );
+
+  if (match) {
+    const nounPhrase =
+      twoProRenderNounPhraseV990(match[1], 'existential');
+
+    if (nounPhrase && !nounPhrase.definite) {
+      const beVerb =
+        nounPhrase.number === 'plural' ? 'are' : 'is';
+
+      return finish(
+        `There ${beVerb} ${nounPhrase.selected}`,
+        [
+          { ko: nounPhrase.source, en: `${nounPhrase.selected} [EXISTENTIAL-NOUN]` },
+          { ko: match[2], en: `${beVerb} [EXISTENTIAL]` },
+        ],
+        [twoProNounPhraseReferenceV990(nounPhrase)],
+        'article-number-existential-ko-en-v9.90',
+        'NOUN_PHRASE_EXISTENTIAL_V990'
+      );
+    }
+  }
+
+  // 4) N이/가 필요하다
+  match = normalized.match(
+    /^(.+?)(?:이|가)\s+(필요합니다|필요해요|필요하다)$/u
+  );
+
+  if (match) {
+    const nounPhrase =
+      twoProRenderNounPhraseV990(match[1], 'need');
+
+    if (nounPhrase) {
+      return finish(
+        `I need ${nounPhrase.selected}`,
+        [
+          { ko: nounPhrase.source, en: `${nounPhrase.selected} [OBJECT]` },
+          { ko: match[2], en: 'need [V]' },
+        ],
+        [
+          twoProNounPhraseReferenceV990(nounPhrase),
+          verbRef('필요하다', 'need'),
+        ],
+        'article-number-need-ko-en-v9.90',
+        'NOUN_PHRASE_NEED_V990'
+      );
+    }
+  }
+
+  // 5) N은/는 공부해야 하다: 무표지 일반명사는 generic plural을 기본값으로 둡니다.
+  match = normalized.match(
+    /^(.+?)(?:은|는)\s+공부해야\s+(해요|합니다|한다)$/u
+  );
+
+  if (match) {
+    const nounPhrase =
+      twoProRenderNounPhraseV990(match[1], 'generic');
+
+    if (nounPhrase) {
+      return finish(
+        `${nounPhrase.selected} should study`,
+        [
+          { ko: nounPhrase.source, en: `${nounPhrase.selected} [GENERIC-SUBJECT]` },
+          { ko: '공부해야 하다', en: 'should study [PREDICATE]' },
+        ],
+        [
+          twoProNounPhraseReferenceV990(nounPhrase),
+          verbRef('공부하다', 'study'),
+        ],
+        'article-number-generic-subject-ko-en-v9.90',
+        'GENERIC_SUBJECT_SHOULD_STUDY_V990'
+      );
+    }
+  }
+
+  // 6) 생략 주어 + 목적어 + 안전 동사
+  match = normalized.match(
+    /^(.+?)(?:을|를)\s+(삽니다|사요|샀습니다|샀어요|샀다|먹습니다|먹어요|먹었습니다|먹었어요|먹었다|마십니다|마셔요|마셨습니다|마셨어요|마셨다)$/u
+  );
+
+  if (match) {
+    const predicateInfo =
+      TWO_PRO_KO_EN_SAFE_OBJECT_PREDICATES_V990[match[2]];
+    const nounPhrase =
+      twoProRenderNounPhraseV990(match[1], 'object');
+
+    if (predicateInfo && nounPhrase) {
+      const verbEn =
+        twoProConjugateEnglishVerbV52(
+          predicateInfo.english,
+          predicateInfo.tense,
+          'I'
+        );
+
+      return finish(
+        `I ${verbEn} ${nounPhrase.selected}`,
+        [
+          { ko: '(생략된 주어)', en: 'I [SUBJECT]' },
+          { ko: nounPhrase.source, en: `${nounPhrase.selected} [OBJECT]` },
+          { ko: predicateInfo.baseKo, en: `${verbEn} [V]` },
+        ],
+        [
+          twoProNounPhraseReferenceV990(nounPhrase),
+          verbRef(predicateInfo.baseKo, predicateInfo.english),
+        ],
+        'article-number-object-clause-ko-en-v9.90',
+        'IMPLICIT_I_OBJECT_PREDICATE_V990'
+      );
+    }
+  }
+
+  return null;
+};
+
 // 💡 메인 POST 함수 시작
 // =========================================================================
 export async function POST(request: Request) {
@@ -32941,6 +33839,59 @@ export async function POST(request: Request) {
     }
 
     // =================================================================
+    // =================================================================
+    // ☆ TwoPro v9.89-safe: 한국어 다의어 문맥 회귀 가드
+    //
+    // PHRASES 직접 조립은 기존 우선순위를 그대로 보존합니다.
+    // 그 다음, rules-ko-en.json exact·일반 DB 참고문장보다 먼저
+    // 제한된 다의어 문맥 표와 정확히 맞는 경우만 직접 반환합니다.
+    // 이미 정상인 "눈이 아파요", "눈이 와요"는 표에 없으므로 기존 흐름을 유지합니다.
+    // =================================================================
+    const twoProPolysemyContextV989 =
+      twoProTryKoEnPolysemyContextV989(
+        originalText
+      );
+
+    if (twoProPolysemyContextV989) {
+      console.log(
+        '[한영 다의어 문맥 성공 v9.89]',
+        {
+          query: originalText,
+          result:
+            twoProPolysemyContextV989.targetText,
+          patternId:
+            twoProPolysemyContextV989.patternId,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProPolysemyContextV989.targetText,
+          isReference: false,
+          analysis:
+            twoProPolysemyContextV989.referenceWords.map(
+              (reference) => ({
+                ko: reference.source,
+                en:
+                  `${reference.selected} ` +
+                  `[${reference.slot}]`,
+              })
+            ),
+          referenceWords:
+            twoProPolysemyContextV989.referenceWords,
+          engine:
+            'polysemy-context-ko-en-v9.89',
+          matchedRule:
+            twoProPolysemyContextV989.patternId,
+        },
+        referenceWords:
+          twoProPolysemyContextV989.referenceWords,
+      });
+    }
+
     // 🎯 0단계: rules-ko-en.json 완전 일치
     // =================================================================
     // DB 유사 검색보다 먼저 검사하여,
@@ -35140,6 +36091,44 @@ export async function POST(request: Request) {
     }
 
     // =================================================================
+    // =================================================================
+    // 🎯 0.9단계: 관사·단복수·가산/불가산 명사구 보완 v9.90
+    //
+    // 기존 PHRASES/rules/조사/일반 문장 엔진이 모두 실패한 경우에만 실행하고,
+    // DB 유사 참고문장이 핵심 명사구를 다른 문맥으로 바꾸기 전에 직접 조립합니다.
+    // =================================================================
+    const twoProArticleNumberResultV990 =
+      twoProTryKoEnArticleNumberClauseV990(originalText);
+
+    if (twoProArticleNumberResultV990) {
+      console.log(
+        '[한영 관사·단복수 명사구 성공 v9.90]',
+        {
+          query: originalText,
+          result: twoProArticleNumberResultV990.targetText,
+          engine: twoProArticleNumberResultV990.engine,
+          matchedRule: twoProArticleNumberResultV990.matchedRule,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProArticleNumberResultV990.targetText
+            ),
+          isReference: false,
+          analysis: twoProArticleNumberResultV990.analysis,
+          referenceWords: twoProArticleNumberResultV990.referenceWords,
+          engine: twoProArticleNumberResultV990.engine,
+          matchedRule: twoProArticleNumberResultV990.matchedRule,
+        },
+        referenceWords: twoProArticleNumberResultV990.referenceWords,
+      });
+    }
+
     // 🌟 [수프로 핵심 마법] 235만 대용량 DB 선제적 사오정 검색! 
     // =================================================================
     try {

@@ -16346,6 +16346,205 @@ const twoProTranslatePlantTreeV1355 = (
   };
 };
 
+
+// ============================================================================
+// ☆ TwoPro v13.84-safe: 다의어 초단문 역할 분리 엔진
+//
+// - book/file/plant처럼 명사·동사가 같은 표면형을 문장 위치로 구분합니다.
+// - Pick up처럼 다어절 동사는 가장 긴 동사구를 먼저 묶습니다.
+// - 허용한 동사구+목적어 조합만 처리하여 기존 일반 RBMT/DB를 침범하지 않습니다.
+// - 문장 전체를 PHRASES로 추가하지 않고 역할·조사·명령형을 여기서 결정합니다.
+// ============================================================================
+type TwoProPolysemyMiniSentenceResultV1384 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+  patternId: string;
+};
+
+type TwoProPolysemyImperativeConfigV1384 = {
+  patternId: string;
+  verbSelected: string;
+  verbCandidates: string[];
+  verbConfidence: number;
+  objectIndefinite: string;
+  objectDefinite: string;
+  objectCandidatesIndefinite: string[];
+  objectCandidatesDefinite: string[];
+  objectConfidence: number;
+  imperativeTarget: string;
+};
+
+const TWO_PRO_POLYSEMY_IMPERATIVE_V1384:
+  Record<string, TwoProPolysemyImperativeConfigV1384> = {
+    'pick up|book': {
+      patternId: 'pick-up-book',
+      verbSelected: '집어 들다',
+      verbCandidates: ['집어 들다'],
+      verbConfidence: 1,
+      objectIndefinite: '책을',
+      objectDefinite: '그 책을',
+      objectCandidatesIndefinite: ['책을'],
+      objectCandidatesDefinite: ['그 책을'],
+      objectConfidence: 1,
+      imperativeTarget: '집어 드세요',
+    },
+    'book|room': {
+      patternId: 'book-room',
+      verbSelected: '예약하다',
+      verbCandidates: ['예약하다'],
+      verbConfidence: 1,
+      objectIndefinite: '방을',
+      objectDefinite: '그 방을',
+      objectCandidatesIndefinite: ['방을'],
+      objectCandidatesDefinite: ['그 방을'],
+      objectConfidence: 1,
+      imperativeTarget: '예약하세요',
+    },
+    'file|complaint': {
+      patternId: 'file-complaint',
+      verbSelected: '제기하다',
+      verbCandidates: ['제기하다', '제출하다'],
+      verbConfidence: 0.98,
+      objectIndefinite: '불만을',
+      objectDefinite: '그 불만을',
+      objectCandidatesIndefinite: ['불만을', '민원을'],
+      objectCandidatesDefinite: ['그 불만을', '그 민원을'],
+      objectConfidence: 0.94,
+      imperativeTarget: '제기하세요',
+    },
+    'open|file': {
+      patternId: 'open-file',
+      verbSelected: '열다',
+      verbCandidates: ['열다'],
+      verbConfidence: 1,
+      objectIndefinite: '파일을',
+      objectDefinite: '그 파일을',
+      objectCandidatesIndefinite: ['파일을'],
+      objectCandidatesDefinite: ['그 파일을'],
+      objectConfidence: 1,
+      imperativeTarget: '여세요',
+    },
+    'plant|tree': {
+      patternId: 'plant-tree-imperative',
+      verbSelected: '심다',
+      verbCandidates: ['심다'],
+      verbConfidence: 1,
+      objectIndefinite: '나무를',
+      objectDefinite: '그 나무를',
+      objectCandidatesIndefinite: ['나무를'],
+      objectCandidatesDefinite: ['그 나무를'],
+      objectConfidence: 1,
+      imperativeTarget: '심으세요',
+    },
+  };
+
+const twoProTranslatePolysemyMiniSentenceV1384 = (
+  value: unknown
+): TwoProPolysemyMiniSentenceResultV1384 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  if (!source) {
+    return null;
+  }
+
+  // The plant is large:
+  // plant의 품사는 명사로 확정되지만 식물/공장/설비 의미는
+  // 추가 문맥 없이는 완전히 확정할 수 없으므로 명사 후보만 남깁니다.
+  if (/^the\s+plant\s+is\s+large$/i.test(source)) {
+    return {
+      targetText: '그 식물은 큽니다',
+      patternId: 'plant-copular-large',
+      referenceWords: [
+        {
+          source: 'plant',
+          selected: '식물',
+          candidates: ['식물', '공장', '설비'],
+          slot: 'POLYSEMY_NOUN',
+          confidence: 0.62,
+        },
+        {
+          source: 'is large',
+          selected: '큽니다',
+          candidates: ['큽니다'],
+          slot: 'COPULAR_PREDICATE',
+          confidence: 1,
+        },
+      ],
+    };
+  }
+
+  const match = source.match(
+    /^(pick\s+up|book|file|open|plant)\s+(a|the)\s+(book|room|complaint|file|tree)$/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const verbSource = String(match[1] || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const articleSource = String(match[2] || '')
+    .toLowerCase();
+  const nounSource = String(match[3] || '')
+    .trim();
+
+  const key =
+    `${verbSource.toLowerCase()}|${nounSource.toLowerCase()}`;
+
+  const config =
+    TWO_PRO_POLYSEMY_IMPERATIVE_V1384[key];
+
+  if (!config) {
+    return null;
+  }
+
+  const isDefinite =
+    articleSource === 'the';
+
+  const objectTarget =
+    isDefinite
+      ? config.objectDefinite
+      : config.objectIndefinite;
+
+  const objectCandidates =
+    isDefinite
+      ? config.objectCandidatesDefinite
+      : config.objectCandidatesIndefinite;
+
+  return {
+    targetText:
+      `${objectTarget} ${config.imperativeTarget}`,
+    patternId: config.patternId,
+    referenceWords: [
+      {
+        source: verbSource,
+        selected: config.verbSelected,
+        candidates: config.verbCandidates,
+        slot:
+          verbSource.toLowerCase() === 'pick up'
+            ? 'POLYSEMY_VERB_PHRASE'
+            : 'POLYSEMY_VERB',
+        confidence: config.verbConfidence,
+      },
+      {
+        source:
+          `${articleSource} ${nounSource}`,
+        selected: objectTarget,
+        candidates: objectCandidates,
+        slot: 'POLYSEMY_OBJECT_NOUN',
+        confidence: config.objectConfidence,
+      },
+    ],
+  };
+};
+
+
 type TemplateSlotTranslation = {
   // 실제 한국어 문장 생성에 넣는 값입니다.
   // this/that/these/those가 있으면 이/그가 결합될 수 있습니다.
@@ -18547,6 +18746,43 @@ export async function POST(request: Request) {
         referenceWords: [],
       });
     }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.84-safe: 다의어 초단문 역할 분리 최우선 가드
+    // =================================================================
+    // PHRASES/common POS exact가 실패한 뒤, DB 유사문장보다 먼저 실행합니다.
+    // 이 제한 문형 밖에서는 기존 엔진으로 그대로 넘깁니다.
+    const twoProPolysemyMiniSentenceV1384 =
+      twoProTranslatePolysemyMiniSentenceV1384(
+        originalText
+      );
+
+    if (twoProPolysemyMiniSentenceV1384) {
+      const targetV1384 =
+        twoProFinalizeExactEnKoPhraseTargetV1375(
+          twoProPolysemyMiniSentenceV1384.targetText
+        );
+
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: targetV1384,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProPolysemyMiniSentenceV1384.referenceWords,
+          engine:
+            'polysemy-mini-sentence-v13.84',
+          patternId:
+            twoProPolysemyMiniSentenceV1384.patternId,
+        },
+        referenceWords:
+          twoProPolysemyMiniSentenceV1384.referenceWords,
+      });
+    }
+
 
     // =================================================================
     // ☆ TwoPro v13.56-safe: plant/tree 최우선 진입 가드
