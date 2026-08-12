@@ -20,5 +20,34 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route === '' ? 1 : 0.8,  // 메인은 우선순위 1, 나머지는 0.8
   }));
 
-  return [...routes];
+  // 2. 분야별 허브와 실용 콘텐츠
+  const hubRoutes = [
+    '/engineering',
+    '/trade-economy',
+    '/computer',
+    '/travel',
+    '/business',
+    '/sitemap',
+  ].map((route) => ({
+    url: `${baseUrl}${route}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }));
+
+  // 3. X-DIC 안내 · 신뢰 정보
+  const trustRoutes = [
+    '/about',
+    '/data-policy',
+    '/guide',
+    '/contact',
+    '/privacy',
+  ].map((route) => ({
+    url: `${baseUrl}${route}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+
+  return [...routes, ...hubRoutes, ...trustRoutes];
 }

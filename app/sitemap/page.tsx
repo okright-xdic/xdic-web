@@ -4,6 +4,9 @@ import Link from 'next/link';
 export const metadata = {
   title: '사이트맵 | 엑스딕(X-DIC)',
   description: '엑스딕의 모든 메뉴와 서비스를 한눈에 확인하실 수 있습니다.',
+  alternates: {
+    canonical: 'https://www.x-dic.com/sitemap',
+  },
 };
 
 export default function SitemapPage() {
@@ -31,12 +34,38 @@ export default function SitemapPage() {
       ]
     },
     {
-      title: "전문가 섹션",
+      title: "전문용어 허브",
       icon: "🩺",
       bgColor: "bg-rose-50",
       textColor: "text-rose-600",
       links: [
-        { name: "의료진 특화 사전", href: "/medical", desc: "의사/간호사용 실무 용어" },
+        { name: "의학 · Medical", href: "/medical", desc: "질환·진단·검사·약물·해부 관련 용어" },
+        { name: "기계·전기·전자", href: "/engineering", desc: "기계요소·재료·전력·전자·제어 용어" },
+        { name: "무역·경제", href: "/trade-economy", desc: "무역서류·결제·환율·경제지표 관련 용어" },
+        { name: "컴퓨터 · Computer", href: "/computer", desc: "소프트웨어·시스템·네트워크·데이터 용어" },
+      ]
+    },
+    {
+      title: "실용 영어 허브",
+      icon: "💼",
+      bgColor: "bg-amber-50",
+      textColor: "text-amber-600",
+      links: [
+        { name: "X-DIC Travel", href: "/travel", desc: "공항·호텔·식당·쇼핑·길찾기 여행 영어" },
+        { name: "X-DIC Business", href: "/business", desc: "이메일·회의·전화·일정·보고·협상 실무 영어" },
+      ]
+    },
+    {
+      title: "X-DIC 안내 · 신뢰 정보",
+      icon: "🛡️",
+      bgColor: "bg-violet-50",
+      textColor: "text-violet-600",
+      links: [
+        { name: "About X-DIC", href: "/about", desc: "X-DIC의 서비스 목적과 방향" },
+        { name: "데이터·편집 원칙", href: "/data-policy", desc: "검색 데이터의 구성·채택·보류·수정 기준" },
+        { name: "이용 안내", href: "/guide", desc: "검색·음성검색·결과와 허브 이용 방법" },
+        { name: "Contact", href: "/contact", desc: "서비스 문의와 데이터·번역 오류 제보" },
+        { name: "Privacy", href: "/privacy", desc: "개인정보 안내와 정식 정책 문서 연결" },
       ]
     },
     {

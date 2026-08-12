@@ -1,18 +1,20 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { SpeechRecognition } from '@capgo/capacitor-speech-recognition';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import PopularKeywords from '@/components/PopularKeywords'; 
 import RecentKeywords from '@/components/RecentKeywords'; 
 import KakaoAdFit from '@/components/ads/KakaoAdFit'; 
 import NuanceWidget from '@/components/NuanceWidget'; 
-import TodaysConversation from '@/components/TodaysConversation'; 
-import AppTodaysConversation from '@/components/AppTodaysConversation'; 
+import { XDIC_DAILY_EXPRESSIONS } from '@/app/_data/xdic-daily-expressions';
+import AppTodaysConversation from '@/components/AppTodaysConversation';
+import AppPromoBanner from '@/components/AppPromoBanner'; 
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 
@@ -22,6 +24,19 @@ interface SearchResult {
   line_text: string;
   source_order?: number;
 }
+
+type XdicAppState = { isActive: boolean };
+type XdicPluginListenerHandle = { remove: () => Promise<void> | void };
+
+interface XdicAppLifecyclePlugin {
+  addListener(
+    eventName: 'appStateChange',
+    listener: (state: XdicAppState) => void
+  ): Promise<XdicPluginListenerHandle> | XdicPluginListenerHandle;
+}
+
+const XdicNativeAppLifecycle =
+  registerPlugin<XdicAppLifecyclePlugin>('App');
 
 interface TranslationReferenceWord {
   source: string;
@@ -1392,6 +1407,99 @@ const isSentenceLikeQuery = (value: string): boolean => {
   );
 };
 
+// ================================================================
+// ☆ TwoPro v1.31-safe: 오늘의 영어회화 자동 게시
+//
+// - AI가 새 문장을 생성하지 않습니다.
+// - 기존 conversation_lines의 검증된 콘텐츠 중 하나를 날짜별로 선택합니다.
+// - Asia/Seoul 날짜가 바뀌면 같은 페이지를 열어 둔 상태에서도 자동 교체됩니다.
+// - 날짜 + 기존 행 ID를 이용한 안정적인 해시 선택으로 매일 한 항목을 게시합니다.
+// ================================================================
+const twoProGetKoreaDateKeyV131 = (): string => {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(new Date());
+
+    const value = (type: string) =>
+      parts.find((part) => part.type === type)?.value || '';
+
+    const year = value('year');
+    const month = value('month');
+    const day = value('day');
+
+    return year && month && day
+      ? `${year}-${month}-${day}`
+      : '';
+  } catch {
+    return '';
+  }
+};
+
+const twoProDailyHashV131 = (value: string): number => {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
+};
+
+const twoProPickDailyConversationV131 = (
+  items: any[],
+  dateKey: string
+): any | null => {
+  if (!dateKey || !Array.isArray(items) || items.length === 0) {
+    return null;
+  }
+
+  const validItems = items.filter(
+    (item) =>
+      String(item?.en_text || '').trim() &&
+      String(item?.ko_text || '').trim()
+  );
+
+  if (validItems.length === 0) {
+    return null;
+  }
+
+  let selected = validItems[0];
+  let bestScore = -1;
+
+  for (const item of validItems) {
+    const stableId = String(
+      item?.id ||
+      item?.created_at ||
+      item?.en_text ||
+      ''
+    );
+
+    const score = twoProDailyHashV131(
+      `${dateKey}|${stableId}`
+    );
+
+    if (score > bestScore) {
+      bestScore = score;
+      selected = item;
+    }
+  }
+
+  return selected;
+};
+
+const twoProKoreanDateLabelV131 = (dateKey: string): string => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateKey);
+
+  if (!match) return '오늘';
+
+  return `${Number(match[2])}월 ${Number(match[3])}일`;
+};
+
   export default function SearchPage({
   query,
   results = [],
@@ -1411,6 +1519,7 @@ const router = useRouter();
   const [clientIsApp, setClientIsApp] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [previewData, setPreviewData] = useState<any[]>([]);
+  const [todayConversationKey, setTodayConversationKey] = useState('');
   const [copiedId, setCopiedId] = useState<string | number | null>(null);
 
   const [isMobileWeb, setIsMobileWeb] = useState(false);
@@ -1581,19 +1690,82 @@ const router = useRouter();
   const [isBoxListening, setIsBoxListening] = useState(false);
   const [boxMicLang, setBoxMicLang] = useState<'ko-KR' | 'en-US' | null>(null);
 
+  const boxVoiceSessionRef = useRef(0);
+  const nativeTtsSessionRef = useRef(0);
+  const appAudioActiveRef = useRef(true);
+
   useEffect(() => {
     setMounted(true);
+
+    const syncTodayConversationKey = () => {
+      setTodayConversationKey(twoProGetKoreaDateKeyV131());
+    };
+
+    syncTodayConversationKey();
+
+    const todayKeyTimer =
+      typeof window !== 'undefined'
+        ? window.setInterval(syncTodayConversationKey, 60 * 1000)
+        : null;
+
     if (typeof window !== 'undefined') {
       const ua = navigator.userAgent || '';
       const isNativeEnv = Capacitor.isNativePlatform() || ua.includes('wv') || ua.includes('Capacitor');
       if (isNativeEnv) setClientIsApp(true);
     }
+
     const fetchPreview = async () => {
-      const { data } = await supabase.from('conversation_lines').select('*').order('created_at', { ascending: false }).limit(3);
+      const { data } = await supabase
+        .from('conversation_lines')
+        .select('id, category, en_text, ko_text, description, created_at')
+        .order('created_at', { ascending: false })
+        .limit(90);
+
       if (data) setPreviewData(data);
     };
+
     fetchPreview();
+
+    return () => {
+      if (todayKeyTimer !== null) {
+        window.clearInterval(todayKeyTimer);
+      }
+    };
   }, [supabase]);
+
+  const dailyConversation = useMemo(
+    () =>
+      twoProPickDailyConversationV131(
+        previewData,
+        todayConversationKey
+      ),
+    [previewData, todayConversationKey]
+  );
+
+  const dailyConversationDateLabel = useMemo(
+    () => twoProKoreanDateLabelV131(todayConversationKey),
+    [todayConversationKey]
+  );
+
+  // ================================================================
+  // ☆ TwoPro v1.33-safe: 오늘의 표현 전용 소스
+  // - 영어회화 conversation_lines와 완전히 분리
+  // - 현재 X-DIC Travel / Business 허브에 이미 있는 표현만 사용
+  // - 같은 날짜에는 같은 표현, 다음 날 자동 교체
+  // - 관리 파일: app/_data/xdic-daily-expressions.ts
+  // ================================================================
+  const dailyExpression = useMemo(() => {
+    if (!todayConversationKey || XDIC_DAILY_EXPRESSIONS.length === 0) {
+      return null;
+    }
+
+    const index =
+      twoProDailyHashV131(
+        `${todayConversationKey}|xdic-daily-expression-v1`
+      ) % XDIC_DAILY_EXPRESSIONS.length;
+
+    return XDIC_DAILY_EXPRESSIONS[index];
+  }, [todayConversationKey]);
 
   // 🌟 [수프로 마법] 2. 번역 API 지능형 라우팅
 // 단어·전문용어는 번역 블록을 만들지 않고,
@@ -2263,6 +2435,97 @@ useEffect(() => {
 
   const displayIsApp = isApp || clientIsApp;
   const displayQuery = (query || '').trim();
+
+  // ================================================================
+  // ☆ TwoPro v1.52 — App Audio Lifecycle Shield
+  //
+  // 앱이 background/inactive가 되는 즉시:
+  // 1) Web SpeechSynthesis(TTS) 중지
+  // 2) 번역 박스 네이티브 SpeechRecognition 강제 중지
+  // 3) UI listening 상태 해제
+  // foreground 복귀 시 자동 재생/자동 녹음은 하지 않습니다.
+  // ================================================================
+  useEffect(() => {
+    if (typeof window === 'undefined' || !displayIsApp) return;
+
+    let nativeAppHandle: XdicPluginListenerHandle | null = null;
+    let cancelled = false;
+
+    const stopAllAppAudio = async () => {
+      appAudioActiveRef.current = false;
+      boxVoiceSessionRef.current += 1;
+      nativeTtsSessionRef.current += 1;
+
+      try {
+        window.speechSynthesis?.cancel();
+      } catch {}
+
+      // 설치형 Capacitor 앱에서는 Android/iOS native TTS도 즉시 정지합니다.
+      if (Capacitor.isNativePlatform()) {
+        try { await TextToSpeech.stop(); } catch {}
+      }
+
+      setIsBoxListening(false);
+      setBoxMicLang(null);
+
+      if (Capacitor.isNativePlatform()) {
+        const plugin = SpeechRecognition as any;
+        try {
+          if (typeof plugin.forceStop === 'function') {
+            await plugin.forceStop({ timeout: 350 });
+          } else {
+            await SpeechRecognition.stop();
+          }
+        } catch {
+          try { await SpeechRecognition.stop(); } catch {}
+        }
+      }
+    };
+
+    const onVisibility = () => {
+      const visible = document.visibilityState === 'visible';
+      appAudioActiveRef.current = visible;
+      if (!visible) void stopAllAppAudio();
+    };
+
+    const onPageHide = () => {
+      void stopAllAppAudio();
+    };
+
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', onPageHide);
+
+    if (Capacitor.isNativePlatform()) {
+      Promise.resolve(
+        XdicNativeAppLifecycle.addListener(
+          'appStateChange',
+          ({ isActive }) => {
+            appAudioActiveRef.current = isActive;
+            if (!isActive) void stopAllAppAudio();
+          }
+        )
+      )
+        .then((handle) => {
+          if (cancelled) {
+            void handle.remove();
+          } else {
+            nativeAppHandle = handle;
+          }
+        })
+        .catch(() => {
+          // App 플러그인이 없으면 visibility/pagehide로 계속 방어합니다.
+        });
+    }
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', onPageHide);
+      if (nativeAppHandle) void nativeAppHandle.remove();
+      void stopAllAppAudio();
+    };
+  }, [displayIsApp]);
+
   const isTooShort = displayQuery.length > 0 && displayQuery.replace(/\s+/g, '').length < 2;
 
   const handleBookmarkClick = () => {
@@ -2325,35 +2588,1565 @@ useEffect(() => {
     });
   }, [displayQuery, results, safeOrangeKeys]);
 
-  const UnifiedHeader = () => (
-    <header className="w-full pt-8 pb-0 md:pt-12 md:pb-0">
-      <div className="flex flex-col items-center justify-center text-center gap-2 mb-6 px-1 w-full">
-        <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer mb-2">
-          <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="X-DIC Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
-        </a>
-        <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer hover:opacity-80 transition-opacity">
-          <h1 className="text-[22px] md:text-[26px] font-extrabold text-black leading-tight">무료 실용 번역사전 엑스딕!</h1>
-        </a>
-        <div className="flex flex-col items-center w-full mt-1 mb-2">
-          <p className="text-[13px] md:text-[15px] text-slate-500 font-semibold mb-3">Korean-English/English-Korean Dictionary – Contextual Phrase Dictionary</p>
-          <div className="w-full max-w-[95%] md:max-w-3xl bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 md:py-3 shadow-sm">
-            <p className="text-[12px] md:text-[14px] text-slate-700 font-bold leading-snug break-keep text-center">
-              <span className="text-sky-500 mr-1">전문용어(Terminology):</span>
-              의학(Medical Science)·기계(Machinery)·무역경제(Trade&Economy)·컴퓨터(Computer)
-            </p>
+  // ================================================================
+  // ☆ TwoPro v1.21-safe: 메인페이지 1단계-A Hero + 핵심 기능 4카드
+  //
+  // 보호 원칙:
+  // - SearchInput 내부 검색/음성검색/KOR·ENG 버튼은 수정하지 않습니다.
+  // - 검색 결과 페이지(displayQuery 있음)는 기존 헤더를 그대로 사용합니다.
+  // - 웹/앱 메인(displayQuery 없음)에 같은 정체성 Hero와 4카드를 사용합니다.
+  // - 앱 전용 SearchInput/음성검색/와글와글/AppTodaysConversation 기능은 그대로 보존합니다.
+  // ================================================================
+  // ================================================================
+  // ☆ TwoPro v1.38-safe: 메인 빠른 메뉴 / 영어회화 미리보기 공용 렌더
+  // - 기존 링크/핸들러/previewData 로직을 그대로 재사용
+  // - 웹에서는 새 위치에, 앱에서는 기존 하단 위치에 유지
+  // ================================================================
+  const renderHomeQuickLinkButtons = () => (
+    <>
+<button
+  onClick={handleBookmarkClick}
+  className={
+    displayIsApp
+      ? "group w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-white border border-orange-200 shadow-sm hover:border-orange-400 hover:bg-orange-50 rounded-full text-[10.5px] min-[390px]:text-[11px] font-extrabold text-orange-600 hover:text-orange-800 transition-all duration-300"
+      : "group flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 bg-white border border-orange-200 shadow-sm hover:border-orange-400 hover:shadow-md hover:bg-orange-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-orange-600 hover:text-orange-800 transition-all duration-300"
+  }
+>
+  <span className="text-[14px] group-hover:scale-110 transition-transform">⭐</span> 
+  <span>즐겨찾기 <span className="font-semibold text-orange-400">· Save</span></span>
+</button>
+<Link
+  href="/conversation"
+  className={
+    displayIsApp
+      ? "group w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-white border border-blue-200 shadow-sm hover:border-blue-400 hover:bg-blue-50 rounded-full text-[10.5px] min-[390px]:text-[11px] font-extrabold text-blue-600 hover:text-blue-800 transition-all duration-300"
+      : "group flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 bg-white border border-blue-200 shadow-sm hover:border-blue-400 hover:shadow-md hover:bg-blue-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-blue-600 hover:text-blue-800 transition-all duration-300"
+  }
+>
+  <span className="text-[14px] group-hover:scale-110 transition-transform">📖</span> 
+  <span>영어회화 <span className="font-semibold text-blue-400">· English</span></span>
+</Link>
+<Link
+  href="/notice"
+  className={
+    displayIsApp
+      ? "group w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-white border border-slate-200 shadow-sm hover:border-slate-400 hover:bg-slate-50 rounded-full text-[10.5px] min-[390px]:text-[11px] font-extrabold text-slate-600 hover:text-slate-800 transition-all duration-300"
+      : "group flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 bg-white border border-slate-200 shadow-sm hover:border-slate-400 hover:shadow-md hover:bg-slate-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-slate-600 hover:text-slate-800 transition-all duration-300"
+  }
+>
+  <span className="text-[14px] group-hover:scale-110 transition-transform">📢</span> 
+  <span>공지사항 <span className="font-semibold text-slate-400">· FAQ</span></span>
+</Link>
+<Link
+  href="/sitemap"
+  className={
+    displayIsApp
+      ? "group w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-white border border-emerald-200 shadow-sm hover:border-emerald-400 hover:bg-emerald-50 rounded-full text-[10.5px] min-[390px]:text-[11px] font-extrabold text-emerald-600 hover:text-emerald-800 transition-all duration-300"
+      : "group flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 bg-white border border-emerald-200 shadow-sm hover:border-emerald-400 hover:shadow-md hover:bg-emerald-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-emerald-600 hover:text-emerald-800 transition-all duration-300"
+  }
+>
+  <span className="text-[14px] group-hover:scale-110 transition-transform">🗺️</span> 
+  <span>사이트맵 <span className="font-semibold text-emerald-400">· Sitemap</span></span>
+</Link>
+    </>
+  );
+
+  const renderConversationPreview = () => (
+<article
+  className={
+    displayIsApp
+      ? "bg-slate-50/80 rounded-xl p-2.5 border border-slate-200 text-slate-700 shadow-sm"
+      : "bg-slate-50/80 rounded-2xl p-3 md:p-4 border border-slate-200 text-slate-700 shadow-sm"
+  }
+>
+  <div className={
+    displayIsApp
+      ? "flex flex-col justify-between mb-2 border-b border-slate-200 pb-1.5 gap-1"
+      : "flex flex-col md:flex-row md:items-center justify-between mb-3 border-b border-slate-200 pb-2 gap-2"
+  }>
+    <div>
+      <h2 className={
+        displayIsApp
+          ? "text-[13.5px] font-extrabold text-slate-900 flex items-center gap-1.5"
+          : "text-sm md:text-base font-extrabold text-slate-900 flex items-center gap-2"
+      }>
+        <span>📖</span>
+        <span>
+          엑스딕 필수 영어회화
+          <span className={
+            displayIsApp
+              ? "ml-1 text-[9px] font-bold text-slate-400"
+              : "ml-1.5 text-[10px] md:text-[11px] font-bold text-slate-400"
+          }>
+            Essential English
+          </span>
+        </span>
+      </h2>
+      <p
+        className={
+          displayIsApp
+            ? "mt-0.5 text-[10px] text-slate-500"
+            : "mt-0.5 text-[11px] md:text-[12px] text-slate-500"
+        }
+      >
+        대표 표현 2개와 번역가 해설을 간단히 미리 봅니다.
+      </p>
+    </div>
+    <Link href="/conversation" className="hidden md:flex items-center gap-1 text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors whitespace-nowrap">전체 보기 · View <span>&gt;</span></Link>
+  </div>
+  
+  <div className={displayIsApp ? "grid grid-cols-1 gap-1.5" : "grid grid-cols-1 md:grid-cols-2 gap-2.5"}>
+    {previewData.length > 0 ? previewData.slice(0, 2).map((item, idx) => (
+      <div
+        key={idx}
+        className={
+          displayIsApp
+            ? "bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden"
+            : "bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
+        }
+      >
+        <div className={
+          displayIsApp
+            ? "bg-slate-800 px-2.5 py-0.5 flex justify-between items-center"
+            : "bg-slate-800 px-3 py-1 flex justify-between items-center"
+        }>
+          <h3 className={
+            displayIsApp
+              ? "text-[10.5px] font-bold text-white"
+              : "text-[11px] md:text-[12px] font-bold text-white"
+          }>{item.category}</h3>
+          <Link href={`/conversation?type=${item.category?.includes('여행') ? 'travel' : item.category?.includes('일상') ? 'casual' : item.category?.includes('비즈니스') ? 'business' : ''}`} className={
+            displayIsApp
+              ? "text-[9.5px] font-medium text-slate-300 hover:text-white transition-colors border border-slate-600 px-1.5 py-0.5 rounded-full"
+              : "text-[11px] font-medium text-slate-300 hover:text-white transition-colors border border-slate-600 px-2 py-0.5 rounded-full"
+          }>More &gt;</Link>
+        </div>
+        <div className={displayIsApp ? "p-2 hover:bg-slate-50 transition-colors" : "p-2.5 hover:bg-slate-50 transition-colors"}>
+          <div className={displayIsApp ? "flex items-start gap-1.5 mb-1" : "flex items-start gap-2 mb-1.5"}>
+            <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
+              {mounted && !displayIsApp && (
+                <button onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)} className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
+                </button>
+              )}
+              <button onClick={() => handleCopy(`${item.en_text} - ${item.ko_text}`, item.id || idx)} className={
+                displayIsApp
+                  ? "w-7 h-7 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm"
+                  : "w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm"
+              } title="문장 복사">
+                {copiedId === (item.id || idx) ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-emerald-500"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" /></svg>
+                )}
+              </button>
+            </div>
+            <div>
+              <h4 className={
+                displayIsApp
+                  ? "text-[12.5px] font-extrabold text-blue-700 mb-0.5 leading-snug"
+                  : "text-[13px] md:text-sm font-extrabold text-blue-700 mb-0.5 leading-snug"
+              }>{item.en_text}</h4>
+              <p className={
+                displayIsApp
+                  ? "text-[11px] font-bold text-slate-800 leading-snug"
+                  : "text-[11px] md:text-[12px] font-bold text-slate-800 leading-snug"
+              }>{item.ko_text}</p>
+            </div>
           </div>
+          <p
+            className={
+              displayIsApp
+                ? "ml-8 text-[10.5px] text-slate-600 leading-4 whitespace-nowrap overflow-hidden text-ellipsis"
+                : "ml-10 text-[11px] md:text-[12px] text-slate-600 leading-5 whitespace-nowrap overflow-hidden text-ellipsis"
+            }
+            title={item.description || ''}
+          >
+            <span className="font-extrabold text-blue-700 mr-1">💡 해설:</span>
+            {item.description}
+          </p>
         </div>
       </div>
+    )) : (
+      <div className="text-center py-8 text-slate-400 text-sm">데이터를 불러오는 중입니다...</div>
+    )}
+  </div>
+
+  <div className={displayIsApp ? "mt-2 flex justify-center" : "mt-3 flex justify-center"}>
+    <Link href="/conversation" className={
+      displayIsApp
+        ? "text-[10.5px] font-bold text-blue-600 hover:text-blue-800 transition-colors border border-blue-200 bg-white px-4 py-1 rounded-full shadow-sm"
+        : "text-[12px] md:text-[13px] font-bold text-blue-600 hover:text-blue-800 transition-colors border border-blue-200 bg-white px-5 py-1.5 rounded-full shadow-sm"
+    }>전체 보기 · View &gt;</Link>
+  </div>
+</article>
+  );
+
+  const UnifiedHeader = () => (
+    <header
+      className={
+        displayIsApp
+          ? "w-full pt-4 pb-0"
+          : "w-full pt-8 pb-0 md:pt-12 md:pb-0"
+      }
+    >
+      <div
+        className={
+          displayIsApp
+            ? "flex flex-col items-center justify-center text-center gap-1 mb-3 px-0.5 w-full"
+            : "flex flex-col items-center justify-center text-center gap-2 mb-5 md:mb-6 px-1 w-full"
+        }
+      >
+        <a
+          href={displayIsApp ? '/app' : '/'}
+          className={displayIsApp ? "cursor-pointer mb-0" : "cursor-pointer mb-2"}
+        >
+          <Image
+            src="/images/LOGO_01_ChatGPT_S.jpg"
+            alt="X-DIC Logo"
+            width={displayIsApp ? 112 : 150}
+            height={displayIsApp ? 56 : 75}
+            className="object-contain hover:opacity-90 transition-opacity"
+            priority
+          />
+        </a>
+
+        <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer hover:opacity-80 transition-opacity">
+          <h1
+            className={
+              displayIsApp
+                ? "text-[20px] min-[390px]:text-[22px] font-extrabold text-black leading-tight tracking-tight"
+                : "text-[24px] md:text-[30px] font-extrabold text-black leading-tight tracking-tight"
+            }
+          >
+            무료 실용 번역사전 엑스딕!
+          </h1>
+        </a>
+
+        <div
+          className={
+            displayIsApp
+              ? "flex flex-col items-center w-full mt-0.5 mb-1"
+              : "flex flex-col items-center w-full mt-1 mb-2"
+          }
+        >
+          <div className={displayIsApp ? "mb-1" : "mb-2 md:mb-2.5"}>
+            <p
+              className={
+                displayIsApp
+                  ? "text-[9px] min-[390px]:text-[10px] font-bold leading-snug tracking-tight whitespace-nowrap"
+                  : "text-[11px] sm:text-[12px] md:text-[13px] font-bold leading-snug tracking-tight whitespace-nowrap"
+              }
+            >
+              <span className="text-blue-600">Ko-En</span>
+              <span className="text-slate-400"> / </span>
+              <span className="text-emerald-600">En-Ko</span>
+              <span className="text-slate-700"> Dictionary </span>
+              {displayIsApp ? (
+                <>
+                  <span className="text-slate-300">· </span>
+                  <span className="text-violet-600">Translation</span>
+                  <span className="text-slate-400"> &amp; </span>
+                  <span className="text-sky-600">Terminology</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-slate-400">[</span>
+                  <span className="text-violet-600">Practical Translation</span>
+                  <span className="text-slate-400"> &amp; </span>
+                  <span className="text-sky-600">Terminology</span>
+                  <span className="text-slate-400">]</span>
+                </>
+              )}
+            </p>
+          </div>
+
+          <p
+            className={
+              displayIsApp
+                ? "max-w-md px-2 mb-1.5 text-[10.5px] min-[390px]:text-[11px] text-slate-600 font-medium leading-4 break-keep"
+                : "max-w-2xl px-3 mb-2.5 text-[12px] md:text-[14px] text-slate-700 font-medium leading-relaxed break-keep"
+            }
+          >
+            {displayIsApp
+              ? '전문용어와 한·영 병렬 데이터를 함께 검색하세요.'
+              : '전문용어와 실제 한·영 데이터를 기반으로 번역·용어·표현을 함께 찾아보세요.'}
+          </p>
+
+        </div>
+      </div>
+
       <div className="w-full">
+        {/* 기존 검색 기능과 KOR/ENG 음성검색 UI는 SearchInput 그대로 유지 */}
         <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
-        {displayIsApp && (
-          <div className="flex justify-end max-w-2xl mx-auto mt-2 mb-6 px-4 animate-in fade-in duration-500">
-            <a href="/app/waggle" className="animate-bounce bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-6 py-2.5 rounded-full shadow-lg border-2 border-white text-sm flex items-center gap-2 hover:scale-105 transition-transform">
-              <span className="text-xl">💬</span> 평가단 와글와글 입장!
-            </a>
+
+
+        {/* ================================================================
+            ☆ TwoPro v1.38-safe: 빠른 메뉴를 검색창 바로 아래로 이동
+            - 웹 메인에서만 새 위치 사용
+            - 즐겨찾기/영어회화/공지사항/사이트맵 기능은 기존 그대로
+           ================================================================ */}
+        {!displayIsApp && (
+          <nav
+            aria-label="X-DIC 빠른 메뉴"
+            className="mt-3 md:mt-4 mb-1 flex flex-wrap items-center justify-center gap-2 px-1"
+          >
+            {renderHomeQuickLinkButtons()}
+          </nav>
+        )}
+
+        {/* ================================================================
+            ☆ TwoPro v1.43-safe: 10단계 2차 — 핵심 기능 영역 최종 정리
+            - 비클릭 설명 카드 4개를 더 컴팩트한 Core Features 영역으로 정리
+            - 데스크톱 4열 / 모바일 2열
+            - 한국어 제목 + 짧은 영어 보조 라벨
+            - 검색/음성검색/API/링크 기능에는 영향 없음
+           ================================================================ */}
+        <section
+          aria-labelledby="xdic-main-capabilities-title"
+          className={displayIsApp ? "w-full mt-2" : "w-full mt-4 md:mt-5"}
+        >
+          <div
+            className={
+              displayIsApp
+                ? "mb-1 px-1 flex items-end justify-between gap-2"
+                : "mb-2.5 px-1 flex items-end justify-between gap-3"
+            }
+          >
+            <div>
+              {!displayIsApp && (
+                <p className="text-[9px] md:text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-400">
+                  X-DIC Core Features
+                </p>
+              )}
+              <h2
+                id="xdic-main-capabilities-title"
+                className={
+                  displayIsApp
+                    ? "text-[12.5px] min-[390px]:text-[13.5px] font-black text-slate-900"
+                    : "mt-0.5 text-[14px] md:text-[16px] font-black text-slate-900"
+                }
+              >
+                X-DIC에서 함께 확인하세요
+                <span className="ml-1.5 text-[9px] md:text-[10px] font-bold text-slate-400">
+                  Core Features
+                </span>
+              </h2>
+            </div>
+
+            {!displayIsApp && (
+              <p className="hidden md:block text-[10px] md:text-[11px] text-slate-400 font-medium">
+                검색 결과와 함께 확인하는 X-DIC의 핵심 정보입니다.
+              </p>
+            )}
+          </div>
+
+          <div
+            className={
+              displayIsApp
+                ? "grid grid-cols-2 gap-1 px-0.5"
+                : "grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-2.5 px-1"
+            }
+          >
+            <article className={
+              displayIsApp
+                ? "relative overflow-hidden rounded-xl border border-blue-100 bg-blue-50/45 px-2 py-1.5 shadow-sm"
+                : "relative min-h-[108px] md:min-h-[118px] overflow-hidden rounded-2xl border border-blue-100 bg-blue-50/45 px-3 py-3 md:px-3.5 md:py-3.5 shadow-sm"
+            }>
+              <div className="absolute inset-x-0 top-0 h-0.5 bg-blue-400/70" aria-hidden="true" />
+              <div className={displayIsApp ? "flex items-start gap-1.5" : "flex items-start gap-2"}>
+                <span
+                  className={
+                    displayIsApp
+                      ? "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-blue-100 bg-white text-[11px]"
+                      : "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-white text-[16px]"
+                  }
+                  aria-hidden="true"
+                >
+                  ✨
+                </span>
+                <div className="min-w-0">
+                  <h3 className={
+                    displayIsApp
+                      ? "text-[10.5px] min-[390px]:text-[11.5px] font-black text-slate-900 leading-tight"
+                      : "text-[12px] md:text-[13px] font-black text-slate-900 leading-tight"
+                  }>
+                    실용 문장 번역
+                  </h3>
+                  <span className={
+                    displayIsApp
+                      ? "mt-px block text-[7.5px] min-[390px]:text-[8px] font-bold text-blue-500 leading-none"
+                      : "mt-0.5 block text-[8.5px] md:text-[9.5px] font-bold text-blue-500"
+                  }>
+                    Sentence Translation
+                  </span>
+                </div>
+              </div>
+              <p
+                className={
+                  displayIsApp
+                    ? "mt-1 text-[9px] min-[390px]:text-[9.5px] font-semibold text-slate-500 leading-tight break-keep"
+                    : "mt-2 text-[10px] md:text-[11px] text-slate-600 leading-[1.55] break-keep"
+                }
+              >
+                {displayIsApp ? '시간이 필요해요. → I need some time.' : '한·영 문장을 검색해 추천 번역과 참고 표현을 함께 확인합니다.'}
+              </p>
+            </article>
+
+            <article className={
+              displayIsApp
+                ? "relative overflow-hidden rounded-xl border border-sky-100 bg-sky-50/45 px-2 py-1.5 shadow-sm"
+                : "relative min-h-[108px] md:min-h-[118px] overflow-hidden rounded-2xl border border-sky-100 bg-sky-50/45 px-3 py-3 md:px-3.5 md:py-3.5 shadow-sm"
+            }>
+              <div className="absolute inset-x-0 top-0 h-0.5 bg-sky-400/70" aria-hidden="true" />
+              <div className={displayIsApp ? "flex items-start gap-1.5" : "flex items-start gap-2"}>
+                <span
+                  className={
+                    displayIsApp
+                      ? "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-sky-100 bg-white text-[11px]"
+                      : "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-sky-100 bg-white text-[16px]"
+                  }
+                  aria-hidden="true"
+                >
+                  📚
+                </span>
+                <div className="min-w-0">
+                  <h3 className={
+                    displayIsApp
+                      ? "text-[10.5px] min-[390px]:text-[11.5px] font-black text-slate-900 leading-tight"
+                      : "text-[12px] md:text-[13px] font-black text-slate-900 leading-tight"
+                  }>
+                    전문용어 검색
+                  </h3>
+                  <span className={
+                    displayIsApp
+                      ? "mt-px block text-[7.5px] min-[390px]:text-[8px] font-bold text-sky-500 leading-none"
+                      : "mt-0.5 block text-[8.5px] md:text-[9.5px] font-bold text-sky-500"
+                  }>
+                    Terminology
+                  </span>
+                </div>
+              </div>
+              <p
+                className={
+                  displayIsApp
+                    ? "mt-1 text-[9px] min-[390px]:text-[9.5px] font-semibold text-slate-500 leading-tight break-keep"
+                    : "mt-2 text-[10px] md:text-[11px] text-slate-600 leading-[1.55] break-keep"
+                }
+              >
+                {displayIsApp ? '심근경색 ↔ myocardial infarction' : '의학·기계/전기/전자·무역/경제·컴퓨터 전문용어를 검색합니다.'}
+              </p>
+            </article>
+
+            <article className={
+              displayIsApp
+                ? "relative overflow-hidden rounded-xl border border-violet-100 bg-violet-50/30 px-2 py-1.5 shadow-sm"
+                : "relative min-h-[108px] md:min-h-[118px] overflow-hidden rounded-2xl border border-violet-100 bg-violet-50/30 px-3 py-3 md:px-3.5 md:py-3.5 shadow-sm"
+            }>
+              <div className="absolute inset-x-0 top-0 h-0.5 bg-violet-400/65" aria-hidden="true" />
+              <div className={displayIsApp ? "flex items-start gap-1.5" : "flex items-start gap-2"}>
+                <span
+                  className={
+                    displayIsApp
+                      ? "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-violet-100 bg-white text-[11px]"
+                      : "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-violet-100 bg-white text-[16px]"
+                  }
+                  aria-hidden="true"
+                >
+                  🔎
+                </span>
+                <div className="min-w-0">
+                  <h3 className={
+                    displayIsApp
+                      ? "text-[10.5px] min-[390px]:text-[11.5px] font-black text-slate-900 leading-tight"
+                      : "text-[12px] md:text-[13px] font-black text-slate-900 leading-tight"
+                  }>
+                    문맥별 뜻
+                  </h3>
+                  <span className={
+                    displayIsApp
+                      ? "mt-px block text-[7.5px] min-[390px]:text-[8px] font-bold text-violet-500 leading-none"
+                      : "mt-0.5 block text-[8.5px] md:text-[9.5px] font-bold text-violet-500"
+                  }>
+                    Contextual Meaning
+                  </span>
+                </div>
+              </div>
+              <p
+                className={
+                  displayIsApp
+                    ? "mt-1 text-[9px] min-[390px]:text-[9.5px] font-semibold text-slate-500 leading-tight break-keep"
+                    : "mt-2 text-[10px] md:text-[11px] text-slate-600 leading-[1.55] break-keep"
+                }
+              >
+                {displayIsApp ? 'right: 오른쪽 · 옳은 · 권리' : '문장 속 의미와 역할에 따라 적절한 뜻과 번역 후보를 비교합니다.'}
+              </p>
+            </article>
+
+            <article className={
+              displayIsApp
+                ? "relative overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50/30 px-2 py-1.5 shadow-sm"
+                : "relative min-h-[108px] md:min-h-[118px] overflow-hidden rounded-2xl border border-emerald-100 bg-emerald-50/30 px-3 py-3 md:px-3.5 md:py-3.5 shadow-sm"
+            }>
+              <div className="absolute inset-x-0 top-0 h-0.5 bg-emerald-400/65" aria-hidden="true" />
+              <div className={displayIsApp ? "flex items-start gap-1.5" : "flex items-start gap-2"}>
+                <span
+                  className={
+                    displayIsApp
+                      ? "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-emerald-100 bg-white text-[11px]"
+                      : "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-emerald-100 bg-white text-[16px]"
+                  }
+                  aria-hidden="true"
+                >
+                  📝
+                </span>
+                <div className="min-w-0">
+                  <h3 className={
+                    displayIsApp
+                      ? "text-[10.5px] min-[390px]:text-[11.5px] font-black text-slate-900 leading-tight"
+                      : "text-[12px] md:text-[13px] font-black text-slate-900 leading-tight"
+                  }>
+                    실제 병렬 예문
+                  </h3>
+                  <span className={
+                    displayIsApp
+                      ? "mt-px block text-[7.5px] min-[390px]:text-[8px] font-bold text-emerald-500 leading-none"
+                      : "mt-0.5 block text-[8.5px] md:text-[9.5px] font-bold text-emerald-500"
+                  }>
+                    Parallel Examples
+                  </span>
+                </div>
+              </div>
+              <p
+                className={
+                  displayIsApp
+                    ? "mt-1 text-[9px] min-[390px]:text-[9.5px] font-semibold text-slate-500 leading-tight break-keep"
+                    : "mt-2 text-[10px] md:text-[11px] text-slate-600 leading-[1.55] break-keep"
+                }
+              >
+                {displayIsApp ? '한·영 문장을 한 화면에서 함께 비교' : '한글·영어 병렬 데이터에서 단어와 표현의 실제 사용 예를 확인합니다.'}
+              </p>
+            </article>
+          </div>
+        </section>
+
+        {/* ================================================================
+            ☆ TwoPro v1.44-safe: 10단계 3차 — Live / Popular Search UI 정리
+            - RecentKeywords / PopularKeywords 데이터·링크·기능 유지
+            - 카드 높이와 여백만 컴팩트하게 조정
+            - 메인페이지의 한글 + 짧은 영어 보조 라벨 원칙 적용
+           ================================================================ */}
+        {mounted && !displayIsApp && (
+          <section
+            aria-labelledby="xdic-live-search-title"
+            className="w-full mt-4 md:mt-5"
+          >
+            <div className="mb-2 px-1 flex items-end justify-between gap-3">
+              <div>
+                <p className="text-[9px] md:text-[10px] font-extrabold uppercase tracking-[0.14em] text-sky-500">
+                  X-DIC Live &amp; Popular
+                </p>
+                <h2
+                  id="xdic-live-search-title"
+                  className="mt-0.5 text-[14px] md:text-[16px] font-black text-slate-900 leading-tight"
+                >
+                  지금 X-DIC에서 찾는 검색어
+                  <span className="ml-1.5 text-[9px] md:text-[10px] font-bold text-slate-400">
+                    Live Search
+                  </span>
+                </h2>
+              </div>
+
+              <p className="hidden md:block text-[10px] md:text-[11px] text-slate-400 font-medium">
+                실시간 검색 · 인기 검색어
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 md:gap-3">
+              <div className="relative h-[230px] md:h-[240px] overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm">
+                <div className="absolute inset-x-0 top-0 h-0.5 bg-sky-400/70" aria-hidden="true" />
+                <Link
+                  href="/recent"
+                  className="absolute top-3.5 right-3.5 z-10 rounded-full border border-sky-100 bg-white/90 px-2 py-1 text-[9px] md:text-[10px] font-bold text-sky-600 hover:bg-sky-50 transition-colors backdrop-blur-sm"
+                >
+                  전체보기 · View →
+                </Link>
+                <div className="w-full h-full p-1.5 pt-2">
+                  <RecentKeywords className="w-full h-full border-0 shadow-none bg-transparent" />
+                </div>
+              </div>
+
+              <div className="relative h-[230px] md:h-[240px] overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-sm">
+                <div className="absolute inset-x-0 top-0 h-0.5 bg-violet-400/70" aria-hidden="true" />
+                <Link
+                  href="/popular"
+                  className="absolute top-3.5 right-3.5 z-10 rounded-full border border-violet-100 bg-white/90 px-2 py-1 text-[9px] md:text-[10px] font-bold text-violet-600 hover:bg-violet-50 transition-colors backdrop-blur-sm"
+                >
+                  전체보기 · View →
+                </Link>
+                <div className="w-full h-full p-1.5 pt-2">
+                  <PopularKeywords className="w-full h-full border-0 shadow-none bg-transparent" />
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ================================================================
+            ☆ TwoPro v1.31-safe: 오늘의 영어회화
+            - X-DIC 전문용어 탐색 바로 위에 배치
+            - conversation_lines의 기존 검증 콘텐츠를 날짜별 자동 선택
+            - 설명은 한 줄만 노출하여 메인 화면을 컴팩트하게 유지
+           ================================================================ */}
+        {mounted && !displayIsApp && dailyConversation && (
+          <section
+            aria-labelledby="xdic-daily-conversation-title"
+            className="w-full mt-3.5 md:mt-4"
+          >
+            <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/70 via-white to-sky-50/40 shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between gap-2.5 px-3.5 md:px-4 py-2 border-b border-blue-100/80">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[15px]" aria-hidden="true">💡</span>
+                  <h2
+                    id="xdic-daily-conversation-title"
+                    className="text-[13px] md:text-[15px] font-extrabold text-blue-700 whitespace-nowrap"
+                  >
+                    오늘의 영어회화
+                    <span className="ml-1 text-[9px] md:text-[10px] font-bold text-blue-400">
+                      Daily English
+                    </span>
+                  </h2>
+                  <span className="hidden sm:inline text-[9px] md:text-[10px] font-bold text-slate-400">
+                    {dailyConversationDateLabel}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {dailyConversation.category && (
+                    <span className="hidden md:inline px-2 py-0.5 rounded-full bg-white border border-blue-100 text-[9px] font-bold text-slate-500">
+                      {dailyConversation.category}
+                    </span>
+                  )}
+                  <Link
+                    href="/conversation"
+                    className="text-[10px] md:text-[11px] font-bold text-blue-600 hover:text-blue-800 transition-colors whitespace-nowrap"
+                  >
+                    전체보기 · View →
+                  </Link>
+                </div>
+              </div>
+
+              <div className="px-3.5 py-3 md:px-4 md:py-3.5">
+                <div className="flex items-start gap-2.5">
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() =>
+                        handleSpeak(
+                          `${dailyConversation.en_text} ... ${dailyConversation.ko_text}`
+                        )
+                      }
+                      className="w-8 h-8 rounded-full bg-white border border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                      title="발음 듣기"
+                      aria-label="오늘의 영어회화 발음 듣기"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                        <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleCopy(
+                          `${dailyConversation.en_text} - ${dailyConversation.ko_text}`,
+                          `daily-${dailyConversation.id || todayConversationKey}`
+                        )
+                      }
+                      className="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm"
+                      title="문장 복사"
+                      aria-label="오늘의 영어회화 문장 복사"
+                    >
+                      {copiedId === `daily-${dailyConversation.id || todayConversationKey}` ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-emerald-500">
+                          <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[14px] md:text-[17px] font-black text-blue-700 leading-snug break-words">
+                      {dailyConversation.en_text}
+                    </p>
+                    <p className="mt-0.5 text-[12px] md:text-[14px] font-bold text-slate-800 leading-snug break-keep">
+                      {dailyConversation.ko_text}
+                    </p>
+
+                    {dailyConversation.description && (
+                      <p
+                        className="mt-1.5 text-[10px] md:text-[11px] text-slate-500 whitespace-nowrap overflow-hidden text-ellipsis"
+                        title={dailyConversation.description}
+                      >
+                        <span className="font-extrabold text-blue-600 mr-1">💡 해설:</span>
+                        {dailyConversation.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-3.5 md:px-4 py-1.5 border-t border-blue-100/70 bg-white/60 flex items-center justify-between gap-2">
+                <p className="text-[9px] md:text-[10px] text-slate-400 font-medium truncate">
+                  매일 자동 변경 · Daily Rotation
+                </p>
+                <Link
+                  href={`/?q=${encodeURIComponent(String(dailyConversation.en_text || ''))}`}
+                  className="shrink-0 text-[9px] md:text-[10px] font-bold text-blue-600 hover:text-blue-800"
+                >
+                  X-DIC에서 검색 · Search →
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ================================================================
+            ☆ TwoPro v1.38-safe: 필수 영어회화 & 번역가 해설 재배치
+            - 오늘의 영어회화 바로 아래
+            - 웹 메인에서만 새 위치 사용
+            - previewData/발음/복사/상세링크 기능은 기존 그대로
+           ================================================================ */}
+        {!displayIsApp && (
+          <div className="w-full mt-3 md:mt-4">
+            {renderConversationPreview()}
           </div>
         )}
-        {mounted && !displayIsApp && <TodaysConversation />}
+
+        {/* ================================================================
+            ☆ TwoPro v1.25-safe: 메인페이지 X-DIC 전문용어 허브
+            - 검색/음성검색/번역 기능과 독립된 정적 설명 콘텐츠
+            - Google/사용자가 검색 조작 없이도 분야별 정체성을 확인 가능
+            - 기존 /medical 페이지는 실제 링크로 연결
+            - 아직 별도 URL이 없는 분야는 깨진 링크를 만들지 않고 설명 카드로만 노출
+           ================================================================ */}
+        <section
+          aria-labelledby="xdic-terminology-hub-title"
+          className={displayIsApp ? "w-full mt-3" : "w-full mt-5 md:mt-6"}
+        >
+          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <div className={
+              displayIsApp
+                ? "px-3 py-2.5 border-b border-slate-100 bg-slate-50/70"
+                : "px-4 md:px-5 py-3 md:py-3.5 border-b border-slate-100 bg-slate-50/70"
+            }>
+              <div className={
+                displayIsApp
+                  ? "flex flex-col gap-1"
+                  : "flex flex-col md:flex-row md:items-end md:justify-between gap-2"
+              }>
+                <div>
+                  <p className={
+                    displayIsApp
+                      ? "text-[9.5px] font-bold text-sky-600 mb-0.5"
+                      : "text-[11px] md:text-[12px] font-bold text-sky-600 mb-1"
+                  }>
+                    Terminology Hub
+                  </p>
+                  <h2
+                    id="xdic-terminology-hub-title"
+                    className={
+                      displayIsApp
+                        ? "text-[15px] font-extrabold text-slate-900 leading-tight"
+                        : "text-[17px] md:text-[21px] font-extrabold text-slate-900"
+                    }
+                  >
+                    X-DIC 전문용어 탐색
+                    <span className={
+                      displayIsApp
+                        ? "ml-1 text-[8.5px] font-bold text-slate-400"
+                        : "ml-1.5 text-[10px] md:text-[11px] font-bold text-slate-400"
+                    }>
+                      Terminology
+                    </span>
+                  </h2>
+                  <p className={
+                    displayIsApp
+                      ? "mt-1 text-[10px] text-slate-500 leading-4 break-keep"
+                      : "mt-1 text-[11px] md:text-[12px] text-slate-600 leading-5 break-keep"
+                  }>
+                    분야별 한영·영한 전문용어와 실제 검색 데이터를 X-DIC에서 함께 살펴보세요.
+                  </p>
+                </div>
+
+                {!displayIsApp && (
+                  <p className="text-[11px] md:text-[12px] text-slate-400 font-medium">
+                    검색창을 사용하지 않아도 분야별 내용을 바로 탐색할 수 있습니다.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className={
+              displayIsApp
+                ? "grid grid-cols-2 gap-1.5 p-2"
+                : "grid grid-cols-1 sm:grid-cols-2 gap-2.5 md:gap-3 p-3 md:p-3.5"
+            }>
+              <Link
+                href="/medical"
+                className={
+                  displayIsApp
+                    ? "group rounded-xl border border-rose-100 bg-rose-50/35 px-2.5 py-2 hover:border-rose-200 hover:bg-rose-50/60 hover:shadow-sm transition-all"
+                    : "group rounded-xl border border-rose-100 bg-rose-50/35 px-4 py-3 md:px-4 md:py-3.5 hover:border-rose-200 hover:bg-rose-50/60 hover:shadow-sm transition-all"
+                }
+              >
+                <div className={
+                  displayIsApp
+                    ? "flex items-start justify-between gap-1.5"
+                    : "flex items-start justify-between gap-3"
+                }>
+                  <div>
+                    <div className={
+                      displayIsApp
+                        ? "flex items-start gap-1.5 mb-0"
+                        : "flex items-center gap-2 mb-1"
+                    }>
+                      <span className={displayIsApp ? "text-[15px] leading-none mt-0.5" : "text-xl"} aria-hidden="true">🩺</span>
+                      <h3 className={
+                        displayIsApp
+                          ? "text-[10.5px] min-[390px]:text-[11px] font-extrabold text-slate-900 leading-tight"
+                          : "text-[14px] md:text-[16px] font-extrabold text-slate-900 leading-tight"
+                      }>
+                        의학
+                        <span className={
+                          displayIsApp
+                            ? "block mt-0.5 text-[7.5px] min-[390px]:text-[8px] font-bold text-rose-600"
+                            : "ml-1 text-[10px] md:text-[11px] font-bold text-rose-600"
+                        }>
+                          Medical
+                        </span>
+                      </h3>
+                    </div>
+                    <p
+                      className={
+                        displayIsApp
+                          ? "mt-1.5 text-[8.5px] min-[390px]:text-[9px] font-semibold text-slate-500 leading-tight break-keep"
+                          : "text-[11px] md:text-[12px] text-slate-600 leading-5 break-keep"
+                      }
+                    >
+                      {displayIsApp ? '질환 · 진단 · 검사 · 약물' : '의학·건강 분야에서 사용하는 한영·영한 전문용어를 별도 페이지에서 탐색합니다.'}
+                    </p>
+                  </div>
+                  <span className="text-rose-500 font-extrabold group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
+                    →
+                  </span>
+                </div>
+                <p className={
+                  displayIsApp
+                    ? "hidden"
+                    : "mt-2 text-[10.5px] md:text-[11.5px] font-bold text-rose-600"
+                }>
+                  의학용어 페이지 보기
+                </p>
+              </Link>
+
+              <Link
+                href="/engineering"
+                className={
+                  displayIsApp
+                    ? "group rounded-xl border border-sky-100 bg-sky-50/35 px-2.5 py-2 hover:border-sky-200 hover:bg-sky-50/60 hover:shadow-sm transition-all"
+                    : "group rounded-xl border border-sky-100 bg-sky-50/35 px-4 py-3 md:px-4 md:py-3.5 hover:border-sky-200 hover:bg-sky-50/60 hover:shadow-sm transition-all"
+                }
+              >
+                <div className={
+                  displayIsApp
+                    ? "flex items-start justify-between gap-1.5"
+                    : "flex items-start justify-between gap-3"
+                }>
+                  <div>
+                    <div className={
+                      displayIsApp
+                        ? "flex items-start gap-1.5 mb-0"
+                        : "flex items-center gap-2 mb-1"
+                    }>
+                      <span className={displayIsApp ? "text-[15px] leading-none mt-0.5" : "text-xl"} aria-hidden="true">⚙️</span>
+                      <h3 className={
+                        displayIsApp
+                          ? "text-[10.5px] min-[390px]:text-[11px] font-extrabold text-slate-900 leading-tight"
+                          : "text-[14px] md:text-[16px] font-extrabold text-slate-900 leading-tight"
+                      }>
+                        기계/전기/전자
+                        <span className={
+                          displayIsApp
+                            ? "block mt-0.5 text-[7.5px] min-[390px]:text-[8px] font-bold text-sky-600"
+                            : "ml-1 text-[10px] md:text-[11px] font-bold text-sky-600"
+                        }>Mechatronics</span>
+                      </h3>
+                    </div>
+                    <p
+                      className={
+                        displayIsApp
+                          ? "mt-1.5 text-[8.5px] min-[390px]:text-[9px] font-semibold text-slate-500 leading-tight break-keep"
+                          : "text-[11px] md:text-[12px] text-slate-600 leading-5 break-keep"
+                      }
+                    >
+                      {displayIsApp ? '기계 · 전기 · 전자 · 제어' : '기계·재료·전기·전력·전자·제어 분야의 한영·영한 전문용어를 별도 페이지에서 탐색합니다.'}
+                    </p>
+                  </div>
+                  <span className="text-sky-500 font-extrabold group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
+                    →
+                  </span>
+                </div>
+                <p className={
+                  displayIsApp
+                    ? "hidden"
+                    : "mt-2 text-[10.5px] md:text-[11.5px] font-bold text-sky-600"
+                }>
+                  기술용어 페이지 보기
+                </p>
+              </Link>
+
+              <Link
+                href="/trade-economy"
+                className={
+                  displayIsApp
+                    ? "group rounded-xl border border-amber-100 bg-amber-50/35 px-2.5 py-2 hover:border-amber-200 hover:bg-amber-50/60 hover:shadow-sm transition-all"
+                    : "group rounded-xl border border-amber-100 bg-amber-50/35 px-4 py-3 md:px-4 md:py-3.5 hover:border-amber-200 hover:bg-amber-50/60 hover:shadow-sm transition-all"
+                }
+              >
+                <div className={
+                  displayIsApp
+                    ? "flex items-start justify-between gap-1.5"
+                    : "flex items-start justify-between gap-3"
+                }>
+                  <div>
+                    <div className={
+                      displayIsApp
+                        ? "flex items-start gap-1.5 mb-0"
+                        : "flex items-center gap-2 mb-1"
+                    }>
+                      <span className={displayIsApp ? "text-[15px] leading-none mt-0.5" : "text-xl"} aria-hidden="true">📊</span>
+                      <h3 className={
+                        displayIsApp
+                          ? "text-[10.5px] min-[390px]:text-[11px] font-extrabold text-slate-900 leading-tight"
+                          : "text-[14px] md:text-[16px] font-extrabold text-slate-900 leading-tight"
+                      }>
+                        무역/경제
+                        <span className={
+                          displayIsApp
+                            ? "block mt-0.5 text-[7.5px] min-[390px]:text-[8px] font-bold text-amber-600"
+                            : "ml-1 text-[10px] md:text-[11px] font-bold text-amber-600"
+                        }>Trade&amp;Economy</span>
+                      </h3>
+                    </div>
+                    <p
+                      className={
+                        displayIsApp
+                          ? "mt-1.5 text-[8.5px] min-[390px]:text-[9px] font-semibold text-slate-500 leading-tight break-keep"
+                          : "text-[11px] md:text-[12px] text-slate-600 leading-5 break-keep"
+                      }
+                    >
+                      {displayIsApp ? '무역 · 물류 · 금융 · 경제' : '무역서류·물류·계약·결제·환율·금융·경제지표의 한영·영한 전문용어를 별도 페이지에서 탐색합니다.'}
+                    </p>
+                  </div>
+                  <span className="text-amber-500 font-extrabold group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
+                    →
+                  </span>
+                </div>
+                <p className={
+                  displayIsApp
+                    ? "hidden"
+                    : "mt-2 text-[10.5px] md:text-[11.5px] font-bold text-amber-600"
+                }>
+                  무역·경제 용어 페이지 보기
+                </p>
+              </Link>
+
+              <Link
+                href="/computer"
+                className={
+                  displayIsApp
+                    ? "group rounded-xl border border-emerald-100 bg-emerald-50/35 px-2.5 py-2 hover:border-emerald-200 hover:bg-emerald-50/60 hover:shadow-sm transition-all"
+                    : "group rounded-xl border border-emerald-100 bg-emerald-50/35 px-4 py-3 md:px-4 md:py-3.5 hover:border-emerald-200 hover:bg-emerald-50/60 hover:shadow-sm transition-all"
+                }
+              >
+                <div className={
+                  displayIsApp
+                    ? "flex items-start justify-between gap-1.5"
+                    : "flex items-start justify-between gap-3"
+                }>
+                  <div>
+                    <div className={
+                      displayIsApp
+                        ? "flex items-start gap-1.5 mb-0"
+                        : "flex items-center gap-2 mb-1"
+                    }>
+                      <span className={displayIsApp ? "text-[15px] leading-none mt-0.5" : "text-xl"} aria-hidden="true">💻</span>
+                      <h3 className={
+                        displayIsApp
+                          ? "text-[10.5px] min-[390px]:text-[11px] font-extrabold text-slate-900 leading-tight"
+                          : "text-[14px] md:text-[16px] font-extrabold text-slate-900 leading-tight"
+                      }>
+                        컴퓨터
+                        <span className={
+                          displayIsApp
+                            ? "block mt-0.5 text-[7.5px] min-[390px]:text-[8px] font-bold text-emerald-600"
+                            : "ml-1 text-[10px] md:text-[11px] font-bold text-emerald-600"
+                        }>
+                          Computer
+                        </span>
+                      </h3>
+                    </div>
+                    <p
+                      className={
+                        displayIsApp
+                          ? "mt-1.5 text-[8.5px] min-[390px]:text-[9px] font-semibold text-slate-500 leading-tight break-keep"
+                          : "text-[11px] md:text-[12px] text-slate-600 leading-5 break-keep"
+                      }
+                    >
+                      {displayIsApp ? '소프트웨어 · 네트워크 · 데이터' : '소프트웨어·웹·시스템·클라우드·네트워크·데이터베이스 분야의 한영·영한 전문용어를 별도 페이지에서 탐색합니다.'}
+                    </p>
+                  </div>
+                  <span className="text-emerald-500 font-extrabold group-hover:translate-x-0.5 transition-transform" aria-hidden="true">
+                    →
+                  </span>
+                </div>
+                <p className={
+                  displayIsApp
+                    ? "hidden"
+                    : "mt-2 text-[10.5px] md:text-[11.5px] font-bold text-emerald-600"
+                }>
+                  컴퓨터 용어 페이지 보기
+                </p>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ================================================================
+            ☆ TwoPro v1.29-safe: 실용 영어 / X-DIC Travel 허브
+            - 기존 검색·음성검색·TodaysConversation 기능과 독립된 정적 콘텐츠
+            - /travel 독립 허브와 기존 /conversation?type=travel을 함께 연결
+           ================================================================ */}
+        <section
+          aria-labelledby="xdic-travel-hub-title"
+          className={displayIsApp ? "w-full mt-3" : "w-full mt-7 md:mt-9"}
+        >
+          <Link
+            href="/travel"
+            className={
+              displayIsApp
+                ? "group block rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50/70 via-white to-sky-50/60 p-3 shadow-sm hover:border-blue-200 hover:shadow-md transition-all"
+                : "group block rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/70 via-white to-sky-50/60 p-4 md:p-5 shadow-sm hover:border-blue-200 hover:shadow-md transition-all"
+            }
+          >
+            <div className={
+              displayIsApp
+                ? "flex flex-col gap-2.5"
+                : "flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+            }>
+              <div className="min-w-0">
+                <p className={
+                  displayIsApp
+                    ? "text-[9.5px] font-bold text-blue-600 mb-0.5"
+                    : "text-[11px] md:text-[12px] font-bold text-blue-600 mb-1"
+                }>
+                  Practical English Hub
+                </p>
+
+                <div className={displayIsApp ? "flex items-center gap-1.5" : "flex items-center gap-2"}>
+                  <span className={displayIsApp ? "text-[17px]" : "text-xl md:text-2xl"} aria-hidden="true">🧳</span>
+                  <h2
+                    id="xdic-travel-hub-title"
+                    className={
+                      displayIsApp
+                        ? "text-[15px] font-extrabold text-slate-900 leading-tight"
+                        : "text-[17px] md:text-[20px] font-extrabold text-slate-900"
+                    }
+                  >
+                    실용 영어 · X-DIC Travel
+                  </h2>
+                </div>
+
+                <p
+                  className={
+                    displayIsApp
+                      ? "mt-1.5 text-[10.5px] text-slate-600 leading-4 break-keep"
+                      : "mt-2 text-[12px] md:text-[14px] text-slate-600 leading-relaxed break-keep"
+                  }
+                >
+                  {displayIsApp ? (
+                    '공항·호텔·식당·쇼핑 등 여행 영어를 상황별로 살펴보세요.'
+                  ) : (
+                    <>
+                      공항·호텔·식당·쇼핑·길찾기·도움 요청에 필요한 여행 영어를 상황별 표현,
+                    정중한 요청과 짧은 대화로 살펴보세요.
+                    </>
+                  )}
+                </p>
+              </div>
+
+              <div className={
+                displayIsApp
+                  ? "shrink-0 grid grid-cols-3 gap-1"
+                  : "shrink-0 grid grid-cols-3 gap-1.5 md:gap-2"
+              }>
+                {[
+                  ['✈️', '공항'],
+                  ['🏨', '호텔'],
+                  ['🍽️', '식당'],
+                  ['🛍️', '쇼핑'],
+                  ['🗺️', '길찾기'],
+                  ['🆘', '도움'],
+                ].map(([icon, label]) => (
+                  <span
+                    key={label}
+                    className={
+                      displayIsApp
+                        ? "rounded-md border border-blue-100 bg-white px-1.5 py-1 text-[9px] font-bold text-slate-600 text-center"
+                        : "rounded-lg border border-blue-100 bg-white px-2.5 py-1.5 text-[10px] md:text-[11px] font-bold text-slate-600 text-center"
+                    }
+                  >
+                    <span className="mr-1" aria-hidden="true">{icon}</span>
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className={
+              displayIsApp
+                ? "mt-2 flex items-center justify-end border-t border-blue-100/70 pt-2"
+                : "mt-3 flex items-center justify-between border-t border-blue-100/70 pt-3"
+            }>
+              <p className={
+                displayIsApp
+                  ? "hidden"
+                  : "text-[11px] md:text-[12px] text-slate-500 font-medium"
+              }>
+                같은 의도를 여러 영어 표현으로 비교하고 X-DIC 검색 결과로 이어집니다.
+              </p>
+              <span className={
+                displayIsApp
+                  ? "shrink-0 text-[10.5px] font-extrabold text-blue-600 group-hover:translate-x-0.5 transition-transform"
+                  : "ml-3 shrink-0 text-[11px] md:text-[12px] font-extrabold text-blue-600 group-hover:translate-x-0.5 transition-transform"
+              }>
+                Travel 보기 →
+              </span>
+            </div>
+          </Link>
+        </section>
+
+        {/* ================================================================
+            ☆ TwoPro v1.30-safe: 실무 영어 / X-DIC Business 허브
+            - Travel 허브 다음에 배치하는 독립 정적 콘텐츠
+            - 기존 검색·음성검색·TodaysConversation 기능은 수정하지 않음
+           ================================================================ */}
+        <section
+          aria-labelledby="xdic-business-hub-title"
+          className={displayIsApp ? "w-full mt-3" : "w-full mt-3 md:mt-4"}
+        >
+          <Link
+            href="/business"
+            className={
+              displayIsApp
+                ? "group block rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50/70 via-white to-violet-50/50 p-3 shadow-sm hover:border-indigo-200 hover:shadow-md transition-all"
+                : "group block rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/70 via-white to-violet-50/50 p-4 md:p-5 shadow-sm hover:border-indigo-200 hover:shadow-md transition-all"
+            }
+          >
+            <div className={
+              displayIsApp
+                ? "flex flex-col gap-2.5"
+                : "flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+            }>
+              <div className="min-w-0">
+                <p className={
+                  displayIsApp
+                    ? "text-[9.5px] font-bold text-indigo-600 mb-0.5"
+                    : "text-[11px] md:text-[12px] font-bold text-indigo-600 mb-1"
+                }>
+                  Practical Business English Hub
+                </p>
+
+                <div className={displayIsApp ? "flex items-center gap-1.5" : "flex items-center gap-2"}>
+                  <span className={displayIsApp ? "text-[17px]" : "text-xl md:text-2xl"} aria-hidden="true">💼</span>
+                  <h2
+                    id="xdic-business-hub-title"
+                    className={
+                      displayIsApp
+                        ? "text-[15px] font-extrabold text-slate-900 leading-tight"
+                        : "text-[17px] md:text-[20px] font-extrabold text-slate-900"
+                    }
+                  >
+                    실무 영어 · X-DIC Business
+                  </h2>
+                </div>
+
+                <p
+                  className={
+                    displayIsApp
+                      ? "mt-1.5 text-[10.5px] text-slate-600 leading-4 break-keep"
+                      : "mt-2 text-[12px] md:text-[14px] text-slate-600 leading-relaxed break-keep"
+                  }
+                >
+                  {displayIsApp ? (
+                    '이메일·회의·전화·일정 등 실무 영어를 상황별로 살펴보세요.'
+                  ) : (
+                    <>
+                      이메일·회의·전화·일정·요청·보고·협상에 필요한 업무 영어를
+                    상황별 표현과 정중한 비즈니스 톤으로 살펴보세요.
+                    </>
+                  )}
+                </p>
+              </div>
+
+              <div className={
+                displayIsApp
+                  ? "shrink-0 grid grid-cols-3 gap-1"
+                  : "shrink-0 grid grid-cols-3 gap-1.5 md:gap-2"
+              }>
+                {[
+                  ['✉️', '이메일'],
+                  ['👥', '회의'],
+                  ['☎️', '전화'],
+                  ['📅', '일정'],
+                  ['📋', '보고'],
+                  ['🤝', '협상'],
+                ].map(([icon, label]) => (
+                  <span
+                    key={label}
+                    className={
+                      displayIsApp
+                        ? "rounded-md border border-indigo-100 bg-white px-1.5 py-1 text-[9px] font-bold text-slate-600 text-center"
+                        : "rounded-lg border border-indigo-100 bg-white px-2.5 py-1.5 text-[10px] md:text-[11px] font-bold text-slate-600 text-center"
+                    }
+                  >
+                    <span className="mr-1" aria-hidden="true">{icon}</span>
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className={
+              displayIsApp
+                ? "mt-2 flex items-center justify-end border-t border-indigo-100/70 pt-2"
+                : "mt-3 flex items-center justify-between border-t border-indigo-100/70 pt-3"
+            }>
+              <p className={
+                displayIsApp
+                  ? "hidden"
+                  : "text-[11px] md:text-[12px] text-slate-500 font-medium"
+              }>
+                업무 의도와 정중도를 비교하고 X-DIC 실제 검색 결과로 이어집니다.
+              </p>
+              <span className={
+                displayIsApp
+                  ? "shrink-0 text-[10.5px] font-extrabold text-indigo-600 group-hover:translate-x-0.5 transition-transform"
+                  : "ml-3 shrink-0 text-[11px] md:text-[12px] font-extrabold text-indigo-600 group-hover:translate-x-0.5 transition-transform"
+              }>
+                Business 보기 →
+              </span>
+            </div>
+          </Link>
+        </section>
+
+        {/* ================================================================
+            ☆ TwoPro v1.37-safe: X-DIC 모바일 앱 정식 홍보 배너
+            - 검색/트렌드/오늘의 영어회화보다 위에 두지 않음
+            - Travel/Business까지 서비스 가치를 보여준 뒤 노출
+            - 오늘의 표현·Nuance·숙어 앞의 중간 전환 지점에 배치
+            - 앱 화면(displayIsApp)에서는 노출하지 않음
+           ================================================================ */}
+        {mounted && !displayIsApp && (
+          <div className="w-full mt-5 md:mt-6">
+            <AppPromoBanner />
+          </div>
+        )}
+
+        {/* ================================================================
+            ☆ TwoPro v1.32-safe: 기존 표현 콘텐츠 재편
+            - 오늘의 표현: 기존 conversation_lines에서 날짜별 자동 선택
+            - NuanceWidget: 기존 영단어 뉘앙스/숙어 콘텐츠 기능 그대로 이동
+            - 동적 검색 트렌드보다 먼저 배치하여 읽을 수 있는 콘텐츠를 전면화
+           ================================================================ */}
+        {mounted && !displayIsApp && (
+          <section
+            aria-labelledby="xdic-expression-content-title"
+            className="w-full mt-7 md:mt-9"
+          >
+            <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/55 via-white to-amber-50/35 shadow-sm overflow-hidden">
+              <div className="px-4 md:px-5 py-4 border-b border-violet-100/80">
+                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-2">
+                  <div>
+                    <p className="text-[10px] md:text-[11px] font-extrabold uppercase tracking-[0.14em] text-violet-500">
+                      X-DIC Expression Guide
+                    </p>
+                    <h2
+                      id="xdic-expression-content-title"
+                      className="mt-1 text-[17px] md:text-[21px] font-black text-slate-900 tracking-tight"
+                    >
+                      오늘의 표현 · Nuance · 숙어
+                      <span className="block sm:inline sm:ml-2 mt-0.5 sm:mt-0 text-[9px] md:text-[10px] font-bold text-slate-400">
+                        Daily Expression · Idiom
+                      </span>
+                    </h2>
+                    <p className="mt-1 text-[11px] md:text-[13px] text-slate-500 leading-relaxed break-keep">
+                      X-DIC Travel·Business에 이미 있는 실용 표현과 기존 뉘앙스·숙어 해설을 한곳에서 이어서 살펴보세요.
+                    </p>
+                  </div>
+
+                  <div className="self-start md:self-auto flex items-center gap-2 shrink-0">
+                    <Link href="/travel" className="text-[10px] md:text-[11px] font-extrabold text-blue-600 hover:text-blue-800 transition-colors">
+                      Travel →
+                    </Link>
+                    <span className="text-slate-300 text-[10px]">·</span>
+                    <Link href="/business" className="text-[10px] md:text-[11px] font-extrabold text-indigo-600 hover:text-indigo-800 transition-colors">
+                      Business →
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {dailyExpression && (
+                <div className="p-4 md:p-5 border-b border-violet-100/80 bg-white/70">
+                  <div className="rounded-xl border border-amber-100 bg-amber-50/35 p-3.5 md:p-4">
+                    <div className="flex items-center justify-between gap-3 mb-2.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-lg" aria-hidden="true">✨</span>
+                        <h3 className="text-[14px] md:text-[16px] font-extrabold text-amber-700 whitespace-nowrap">
+                          오늘의 표현
+                        </h3>
+                        <span className="hidden sm:inline text-[10px] md:text-[11px] font-bold text-slate-400">
+                          {dailyConversationDateLabel}
+                        </span>
+                      </div>
+
+                      {dailyExpression.source && (
+                        <span className="hidden md:inline px-2 py-1 rounded-full bg-white border border-amber-100 text-[10px] font-bold text-slate-500 truncate max-w-[190px]">
+                          {dailyExpression.source === 'Travel' ? '🧳 X-DIC Travel' : '💼 X-DIC Business'}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          onClick={() =>
+                            handleSpeak(
+                              `${dailyExpression.en} ... ${dailyExpression.ko}`
+                            )
+                          }
+                          className="w-8 h-8 rounded-full bg-white border border-amber-100 text-amber-600 hover:bg-amber-500 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                          title="발음 듣기"
+                          aria-label="오늘의 표현 발음 듣기"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                            <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
+                          </svg>
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            handleCopy(
+                              `${dailyExpression.en} - ${dailyExpression.ko}`,
+                              `expression-${dailyExpression.id}`
+                            )
+                          }
+                          className="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm"
+                          title="표현 복사"
+                          aria-label="오늘의 표현 복사"
+                        >
+                          {copiedId === `expression-${dailyExpression.id}` ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-emerald-500">
+                              <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" />
+                            </svg>
+                          ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[14px] md:text-[17px] font-black text-blue-700 leading-snug break-words">
+                          {dailyExpression.en}
+                        </p>
+                        <p className="mt-1 text-[12px] md:text-[14px] font-bold text-slate-800 leading-snug break-keep">
+                          {dailyExpression.ko}
+                        </p>
+                        <p className="mt-2 text-[10px] md:text-[11px] text-slate-400 font-medium">
+                          기존 X-DIC {dailyExpression.source} 허브 · {dailyExpression.tag} 표현
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-end gap-3">
+                      <Link
+                        href={dailyExpression.href}
+                        className="text-[10px] md:text-[11px] font-bold text-slate-400 hover:text-slate-700 transition-colors"
+                      >
+                        원래 허브 보기 →
+                      </Link>
+                      <Link
+                        href={`/?q=${encodeURIComponent(dailyExpression.en)}`}
+                        className="text-[10px] md:text-[11px] font-extrabold text-amber-700 hover:text-amber-900 transition-colors"
+                      >
+                        X-DIC에서 검색 →
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ================================================================
+                  ☆ TwoPro v1.34-safe: 사전 콘텐츠 허브 외곽 컴팩트화
+                  - NuanceWidget 내부 기능/데이터는 변경하지 않음
+                  - 중복 제목과 설명을 제거하고 한 줄 사전형 헤더로 정리
+                 ================================================================ */}
+              <div className="px-2.5 md:px-3 py-2.5 md:py-3 bg-white/60">
+                <div className="mb-1.5 px-1 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-[14px] md:text-[15px]" aria-hidden="true">📚</span>
+                    <h3 className="text-[12px] md:text-[14px] font-extrabold text-slate-800 whitespace-nowrap">
+                      X-DIC 사전 해설
+                    </h3>
+                    <span className="hidden sm:inline text-[10px] md:text-[11px] text-slate-400 font-medium truncate">
+                      단어의 쓰임과 숙어 표현을 빠르게 비교합니다.
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="px-2 py-0.5 rounded-full border border-emerald-100 bg-emerald-50/70 text-[9px] md:text-[10px] font-extrabold text-emerald-700">
+                      Nuance
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full border border-blue-100 bg-blue-50/70 text-[9px] md:text-[10px] font-extrabold text-blue-700">
+                      Idiom
+                    </span>
+                  </div>
+                </div>
+
+                <div className="[&>*]:!mt-0">
+                  <NuanceWidget dailyRotation />
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+
+        {/* ================================================================
+            ☆ TwoPro v1.39-safe: 신뢰 페이지 5개 메인 최종 노출
+            - 웹 메인에서만 표시
+            - 검색/음성검색/API/앱 UI에는 영향 없음
+            - About / Data Policy / Guide / Contact / Privacy 내부링크 제공
+            - 메인 하단의 사전 콘텐츠 흐름을 해치지 않도록 컴팩트 배치
+           ================================================================ */}
+        {!displayIsApp && (
+          <section
+            aria-labelledby="xdic-trust-navigation-title"
+            className="w-full mt-7 md:mt-9"
+          >
+            <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50/90 via-white to-sky-50/35 px-4 py-4 md:px-5 md:py-5 shadow-sm">
+              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-2.5">
+                <div>
+                  <p className="text-[10px] md:text-[11px] font-extrabold uppercase tracking-[0.14em] text-slate-400">
+                    X-DIC Trust &amp; Information
+                  </p>
+                  <h2
+                    id="xdic-trust-navigation-title"
+                    className="mt-1 text-[16px] md:text-[19px] font-black text-slate-900"
+                  >
+                    X-DIC 안내 · 신뢰 정보
+                    <span className="ml-1.5 text-[10px] md:text-[11px] font-bold text-slate-400">
+                      Trust &amp; Info
+                    </span>
+                  </h2>
+                  <p className="mt-1 text-[11px] md:text-[12px] text-slate-500 leading-relaxed break-keep">
+                    서비스 소개, 데이터 편집 기준, 이용 방법과 운영·개인정보 안내를 확인할 수 있습니다.
+                  </p>
+                </div>
+
+                <Link
+                  href="/sitemap"
+                  className="self-start md:self-auto text-[10px] md:text-[11px] font-extrabold text-slate-500 hover:text-blue-700 transition-colors whitespace-nowrap"
+                >
+                  전체 사이트맵 →
+                </Link>
+              </div>
+
+              <nav
+                aria-label="X-DIC 안내 및 신뢰 정보"
+                className="mt-3 grid grid-cols-2 md:grid-cols-5 gap-2"
+              >
+                <Link
+                  href="/about"
+                  className="group rounded-xl border border-sky-100 bg-white px-3 py-3 hover:border-sky-200 hover:shadow-sm transition-all"
+                >
+                  <span className="text-[13px] md:text-[14px] font-black text-slate-800 group-hover:text-sky-700 transition-colors">
+                    About X-DIC
+                  </span>
+                  <span className="mt-0.5 block text-[9px] md:text-[10px] text-slate-400">
+                    서비스 소개 · About
+                  </span>
+                </Link>
+
+                <Link
+                  href="/data-policy"
+                  className="group rounded-xl border border-emerald-100 bg-white px-3 py-3 hover:border-emerald-200 hover:shadow-sm transition-all"
+                >
+                  <span className="text-[13px] md:text-[14px] font-black text-slate-800 group-hover:text-emerald-700 transition-colors">
+                    데이터·편집 원칙
+                  </span>
+                  <span className="mt-0.5 block text-[9px] md:text-[10px] text-slate-400">
+                    Editorial Principles
+                  </span>
+                </Link>
+
+                <Link
+                  href="/guide"
+                  className="group rounded-xl border border-blue-100 bg-white px-3 py-3 hover:border-blue-200 hover:shadow-sm transition-all"
+                >
+                  <span className="text-[13px] md:text-[14px] font-black text-slate-800 group-hover:text-blue-700 transition-colors">
+                    이용 안내
+                  </span>
+                  <span className="mt-0.5 block text-[9px] md:text-[10px] text-slate-400">
+                    User Guide
+                  </span>
+                </Link>
+
+                <Link
+                  href="/contact"
+                  className="group rounded-xl border border-rose-100 bg-white px-3 py-3 hover:border-rose-200 hover:shadow-sm transition-all"
+                >
+                  <span className="text-[13px] md:text-[14px] font-black text-slate-800 group-hover:text-rose-700 transition-colors">
+                    문의 · Contact
+                  </span>
+                  <span className="mt-0.5 block text-[9px] md:text-[10px] text-slate-400">
+                    문의 · Error Report
+                  </span>
+                </Link>
+
+                <Link
+                  href="/privacy"
+                  className="group col-span-2 md:col-span-1 rounded-xl border border-violet-100 bg-white px-3 py-3 hover:border-violet-200 hover:shadow-sm transition-all"
+                >
+                  <span className="text-[13px] md:text-[14px] font-black text-slate-800 group-hover:text-violet-700 transition-colors">
+                    개인정보 · Privacy
+                  </span>
+                  <span className="mt-0.5 block text-[9px] md:text-[10px] text-slate-400">
+                    Privacy Guide
+                  </span>
+                </Link>
+              </nav>
+            </div>
+          </section>
+        )}
+
+
+        {/* 앱 전용 오늘의 영어회화는 기존 AppTodaysConversation을 그대로 보존 */}
         {mounted && displayIsApp && <AppTodaysConversation />}
       </div>
     </header>
@@ -2391,6 +4184,71 @@ const displayResults = React.useMemo(() => {
     return categoryCount[catId] <= 5;
   });
 }, [results]);
+
+// ================================================================
+// ☆ TwoPro v1.23-safe: X-DIC Insight
+//
+// 목적:
+// - 현재 검색 결과에 이미 포함된 데이터를 작은 '사전 정보 허브'로 요약
+// - 설명을 새로 만들어내지 않고 실제 DB 결과만 재사용
+// - 추가 API/Supabase 호출 없음
+// - 기존 참고 표현/검색 결과 목록은 그대로 보존
+// ================================================================
+const xdicInsightData = React.useMemo(() => {
+  const professionalTerms = displayResults
+    .filter((item) => {
+      const catId = Number(item.category_id || 0);
+      const text = String(item.line_text || '').trim();
+
+      return (
+        catId >= 2 &&
+        catId <= 11 &&
+        text.length >= 3 &&
+        text.length <= 150
+      );
+    })
+    .slice(0, 2);
+
+  const professionalIds = new Set(
+    professionalTerms.map((item) =>
+      String(item.id)
+    )
+  );
+
+  const parallelExamples = displayResults
+    .filter((item) => {
+      const text = String(item.line_text || '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const hasKorean = /[가-힣]/u.test(text);
+      const hasEnglish = /[A-Za-z]/.test(text);
+      const looksLikeUsageExample =
+        text.length >= 18 &&
+        text.length <= 240 &&
+        (
+          /[.!?。！？]/u.test(text) ||
+          /(?:요|다|니다)[.!?。！？]?$/u.test(text)
+        );
+
+      return (
+        !professionalIds.has(String(item.id)) &&
+        hasKorean &&
+        hasEnglish &&
+        looksLikeUsageExample
+      );
+    })
+    .slice(0, 2);
+
+  return {
+    professionalTerms,
+    parallelExamples,
+  };
+}, [displayResults]);
+
+const hasXdicInsight =
+  xdicInsightData.professionalTerms.length > 0 ||
+  xdicInsightData.parallelExamples.length > 0;
 
   const handleExternalSearch = (site: 'google' | 'naver') => {
     if (!displayQuery) return;
@@ -2501,45 +4359,202 @@ const displayResults = React.useMemo(() => {
     }
   };
 
-  const handleSpeak = (text: string) => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); 
-      const voices = window.speechSynthesis.getVoices();
-      const enVoices = voices.filter(v => v.lang.startsWith('en'));
-      const koVoices = voices.filter(v => v.lang.startsWith('ko'));
-      const enVoice = enVoices.find(v => v.name.includes('Google US English Male')) || enVoices.find(v => v.name.includes('Google US English')) || enVoices[0];
-      const koVoice = koVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) || koVoices[0];
-      const parts: { lang: string; text: string }[] = [];
-      let currentLang = /[a-zA-Z]/.test(text.charAt(0)) ? 'en' : 'ko'; 
-      let currentText = '';
-      for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        if (/[a-zA-Z]/.test(char)) {
-          if (currentLang !== 'en' && currentText.trim().length > 0) { parts.push({ lang: currentLang, text: currentText }); currentText = ''; }
-          currentLang = 'en'; currentText += char;
-        } else if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(char)) {
-          if (currentLang !== 'ko' && currentText.trim().length > 0) { parts.push({ lang: currentLang, text: currentText }); currentText = ''; }
-          currentLang = 'ko'; currentText += char;
-        } else {
-          currentText += char;
+  type XdicTtsPart = {
+    lang: 'ko' | 'en';
+    text: string;
+  };
+
+  const splitTtsParts = (text: string): XdicTtsPart[] => {
+    const parts: XdicTtsPart[] = [];
+
+    let currentLang: 'ko' | 'en' =
+      /[a-zA-Z]/.test(text.charAt(0)) ? 'en' : 'ko';
+    let currentText = '';
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+
+      if (/[a-zA-Z]/.test(char)) {
+        if (currentLang !== 'en' && currentText.trim().length > 0) {
+          parts.push({ lang: currentLang, text: currentText });
+          currentText = '';
         }
+        currentLang = 'en';
+        currentText += char;
+      } else if (/[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(char)) {
+        if (currentLang !== 'ko' && currentText.trim().length > 0) {
+          parts.push({ lang: currentLang, text: currentText });
+          currentText = '';
+        }
+        currentLang = 'ko';
+        currentText += char;
+      } else {
+        currentText += char;
       }
-      if (currentText.trim().length > 0) parts.push({ lang: currentLang, text: currentText });
-      parts.forEach((part) => {
-        if (!/[a-zA-Z가-힣0-9]/.test(part.text)) return; 
-        const utterance = new SpeechSynthesisUtterance(part.text);
-        if (part.lang === 'ko') {
-          if (koVoice) utterance.voice = koVoice;
-          utterance.lang = koVoice ? koVoice.lang : 'ko-KR';
-          utterance.pitch = 1.0; utterance.rate = 1.05; utterance.volume = 1.0; 
-        } else {
-          if (enVoice) utterance.voice = enVoice;
-          utterance.lang = enVoice ? enVoice.lang : 'en-US';
-          utterance.pitch = 0.9; utterance.rate = 0.85; utterance.volume = 0.75; 
+    }
+
+    if (currentText.trim().length > 0) {
+      parts.push({ lang: currentLang, text: currentText });
+    }
+
+    return parts.filter((part) =>
+      /[a-zA-Z가-힣0-9]/.test(part.text)
+    );
+  };
+
+  const speakWithWebTts = (parts: XdicTtsPart[]) => {
+    if (
+      typeof window === 'undefined' ||
+      !('speechSynthesis' in window)
+    ) {
+      return false;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const voices = window.speechSynthesis.getVoices();
+    const enVoices = voices.filter((v) => v.lang.startsWith('en'));
+    const koVoices = voices.filter((v) => v.lang.startsWith('ko'));
+
+    const enVoice =
+      enVoices.find((v) => v.name.includes('Google US English Male')) ||
+      enVoices.find((v) => v.name.includes('Google US English')) ||
+      enVoices[0];
+
+    const koVoice =
+      koVoices.find(
+        (v) => v.name.includes('Google') && v.name.includes('Male')
+      ) ||
+      koVoices[0];
+
+    parts.forEach((part) => {
+      const utterance = new SpeechSynthesisUtterance(part.text.trim());
+
+      if (part.lang === 'ko') {
+        if (koVoice) utterance.voice = koVoice;
+        utterance.lang = koVoice ? koVoice.lang : 'ko-KR';
+        utterance.pitch = 1.0;
+        utterance.rate = 1.05;
+        utterance.volume = 1.0;
+      } else {
+        if (enVoice) utterance.voice = enVoice;
+        utterance.lang = enVoice ? enVoice.lang : 'en-US';
+        utterance.pitch = 0.9;
+        utterance.rate = 0.85;
+        utterance.volume = 0.75;
+      }
+
+      window.speechSynthesis.speak(utterance);
+    });
+
+    return true;
+  };
+
+  const handleSpeak = async (text: string) => {
+    if (
+      displayIsApp &&
+      typeof document !== 'undefined' &&
+      document.visibilityState !== 'visible'
+    ) {
+      return;
+    }
+
+    const parts = splitTtsParts(String(text || '').trim());
+    if (parts.length === 0) return;
+
+    appAudioActiveRef.current = true;
+
+    // ==============================================================
+    // ☆ TwoPro v1.53 — Native TTS
+    //
+    // 설치형 Capacitor 앱:
+    //   @capacitor-community/text-to-speech 사용
+    //
+    // 일반 웹 / localhost / 192.168 개발 브라우저:
+    //   기존 Web SpeechSynthesis 사용
+    //
+    // 새 🔊 버튼을 누르면 이전 발음을 중지하고 새 발음으로 교체합니다.
+    // ==============================================================
+    if (Capacitor.isNativePlatform()) {
+      const sessionId = nativeTtsSessionRef.current + 1;
+      nativeTtsSessionRef.current = sessionId;
+
+      const sessionStillValid = () =>
+        sessionId === nativeTtsSessionRef.current &&
+        appAudioActiveRef.current;
+
+      try {
+        // 이전 문장의 발음이 남아 있으면 먼저 끊습니다.
+        try { await TextToSpeech.stop(); } catch {}
+
+        for (const part of parts) {
+          if (!sessionStillValid()) return;
+
+          const lang = part.lang === 'ko' ? 'ko-KR' : 'en-US';
+
+          const languageResult =
+            await TextToSpeech.isLanguageSupported({ lang });
+
+          if (!languageResult?.supported) {
+            throw new Error(`TTS_LANGUAGE_NOT_SUPPORTED:${lang}`);
+          }
+
+          await TextToSpeech.speak({
+            text: part.text.trim(),
+            lang,
+            rate: part.lang === 'ko' ? 1.0 : 0.92,
+            pitch: part.lang === 'ko' ? 1.0 : 0.95,
+            volume: 1.0,
+            // QueueStrategy.Flush = 0
+            // 각 part는 await로 순차 실행하므로 섞이지 않습니다.
+            queueStrategy: 0,
+          });
         }
-        window.speechSynthesis.speak(utterance);
-      });
-    } else {
+
+        return;
+      } catch (err) {
+        console.warn('[X-DIC Native TTS]', err);
+
+        if (!sessionStillValid()) return;
+
+        // Native TTS가 예외를 낸 경우에만 Web SpeechSynthesis를 보조 경로로 시도합니다.
+        if (speakWithWebTts(parts)) return;
+
+        const message = String(
+          (err as any)?.message ||
+          err ||
+          ''
+        );
+
+        if (
+          Capacitor.getPlatform() === 'android' &&
+          message.includes('TTS_LANGUAGE_NOT_SUPPORTED')
+        ) {
+          const openTtsSettings =
+            typeof window !== 'undefined'
+              ? window.confirm(
+                  '휴대폰의 음성 데이터에서 이 언어를 사용할 수 없습니다.\n' +
+                  'Android 음성 데이터 설정을 확인하시겠습니까?'
+                )
+              : false;
+
+          if (openTtsSettings) {
+            try { await TextToSpeech.openInstall(); } catch {}
+          }
+
+          return;
+        }
+
+        alert(
+          '휴대폰의 음성 읽기 기능을 시작하지 못했습니다.\n' +
+          '기기의 TTS(텍스트 음성 변환) 설정을 확인해주세요.'
+        );
+        return;
+      }
+    }
+
+    // 브라우저는 기존 Web SpeechSynthesis 경로를 그대로 사용합니다.
+    if (!speakWithWebTts(parts)) {
       alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
     }
   };
@@ -2547,6 +4562,22 @@ const displayResults = React.useMemo(() => {
   // 🌟 번역 박스 전용 단발성 마이크 검색 로직
   const handleBoxVoiceSearch = async (lang: 'ko-KR' | 'en-US') => {
     if (isBoxListening) return;
+    if (
+      displayIsApp &&
+      typeof document !== 'undefined' &&
+      document.visibilityState !== 'visible'
+    ) {
+      return;
+    }
+
+    const sessionId = boxVoiceSessionRef.current + 1;
+    boxVoiceSessionRef.current = sessionId;
+    appAudioActiveRef.current = true;
+
+    const sessionStillValid = () =>
+      sessionId === boxVoiceSessionRef.current &&
+      appAudioActiveRef.current;
+
     setBoxMicLang(lang);
     setIsBoxListening(true);
 
@@ -2568,6 +4599,8 @@ const displayResults = React.useMemo(() => {
           perm = await SpeechRecognition.requestPermissions();
         }
 
+        if (!sessionStillValid()) return;
+
         if (perm.speechRecognition !== 'granted') {
           alert('마이크 권한이 필요합니다. 설정에서 권한을 허용해주세요.');
           setIsBoxListening(false);
@@ -2582,11 +4615,26 @@ const displayResults = React.useMemo(() => {
           popup: false,
         });
 
+        if (!sessionStillValid()) return;
+
         let transcript = String(result?.matches?.[0] || '').trim().replace(/[.,?!]/g, '');
+
+        // 검색 전에 네이티브 마이크부터 완전히 해제합니다.
+        const plugin = SpeechRecognition as any;
+        try {
+          if (typeof plugin.forceStop === 'function') {
+            await plugin.forceStop({ timeout: 350 });
+          } else {
+            await SpeechRecognition.stop();
+          }
+        } catch {
+          try { await SpeechRecognition.stop(); } catch {}
+        }
+
         setIsBoxListening(false);
         setBoxMicLang(null);
 
-        if (transcript) {
+        if (transcript && sessionStillValid()) {
           router.push(`${basePath}?q=${encodeURIComponent(transcript)}`);
         }
       } catch (e: any) {
@@ -2672,53 +4720,102 @@ const displayResults = React.useMemo(() => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div
+      className={
+        displayIsApp
+          ? "flex flex-col min-h-screen bg-white overflow-x-hidden"
+          : "flex flex-col min-h-screen bg-white"
+      }
+    >
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
         {!displayQuery && <UnifiedHeader />}
         {displayQuery && (
-          <header className={`w-full ${displayIsApp ? 'pt-8 pb-0' : 'pt-8 pb-0 md:pt-12 md:pb-0'}`}>
-            <div className="flex items-center justify-between w-full mb-6 px-1">
-              <button onClick={() => router.back()} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+          <header className={`w-full ${displayIsApp ? 'pt-3 pb-0' : 'pt-8 pb-0 md:pt-12 md:pb-0'}`}>
+            <div
+              className={
+                displayIsApp
+                  ? "flex items-center justify-between w-full mb-3 px-0"
+                  : "flex items-center justify-between w-full mb-6 px-1"
+              }
+            >
+              <button
+                onClick={() => router.back()}
+                className={
+                  displayIsApp
+                    ? "flex items-center gap-1 text-slate-500 hover:text-slate-800 font-bold text-[11px] transition-colors bg-white px-3 py-1.5 rounded-full shadow-sm border border-slate-200"
+                    : "flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200"
+                }
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
-                뒤로
+                {displayIsApp ? '뒤로 · Back' : '뒤로'}
               </button>
-              <a href={displayIsApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+              <a
+                href={displayIsApp ? '/app' : '/'}
+                className={
+                  displayIsApp
+                    ? "flex items-center gap-1 text-slate-500 hover:text-slate-800 font-bold text-[11px] transition-colors bg-white px-3 py-1.5 rounded-full shadow-sm border border-slate-200"
+                    : "flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200"
+                }
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
-                홈으로
+                {displayIsApp ? '홈 · Home' : '홈으로'}
               </a>
             </div>
             
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 mb-5 text-center w-full">
-                <div className="flex-shrink-0 mb-2 md:mb-0">
+            <div
+              className={
+                displayIsApp
+                  ? "flex flex-col items-center justify-center gap-1.5 mb-3 text-center w-full"
+                  : "flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 mb-5 text-center w-full"
+              }
+            >
+                <div className={displayIsApp ? "flex-shrink-0 mb-0" : "flex-shrink-0 mb-2 md:mb-0"}>
                     <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer">
-                        <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="X-DIC Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
+                        <Image
+                          src="/images/LOGO_01_ChatGPT_S.jpg"
+                          alt="X-DIC Logo"
+                          width={displayIsApp ? 92 : 140}
+                          height={displayIsApp ? 46 : 70}
+                          className="object-contain hover:opacity-90 transition-opacity"
+                          priority
+                        />
                     </a>
                 </div>
-                <div className="flex flex-col gap-1 w-full max-w-2xl items-center md:items-start">
+                <div
+                  className={
+                    displayIsApp
+                      ? "flex flex-col gap-0.5 w-full max-w-2xl items-center"
+                      : "flex flex-col gap-1 w-full max-w-2xl items-center md:items-start"
+                  }
+                >
                     <a href={displayIsApp ? '/app' : '/'} className="cursor-pointer hover:opacity-80 transition-opacity">
-                        <h1 className="text-xl md:text-[24px] font-extrabold text-black leading-tight">무료 실용 번역사전 엑스딕!</h1>
+                        <h1
+                          className={
+                            displayIsApp
+                              ? "text-[17px] min-[390px]:text-[18px] font-extrabold text-black leading-tight"
+                              : "text-xl md:text-[24px] font-extrabold text-black leading-tight"
+                          }
+                        >
+                          무료 실용 번역사전 엑스딕!
+                        </h1>
                     </a>
-                    <p className="text-[11px] md:text-[13px] text-slate-500 font-semibold leading-tight hidden md:block mb-1">Korean-English/English-Korean Dictionary – Contextual Phrase Dictionary</p>
-                    
-                    <div className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 shadow-sm text-center md:text-left">
-                        <p className="text-[11px] md:text-[13px] text-slate-700 font-bold leading-tight break-keep">
-                            <span className="text-sky-500 mr-1">전문용어(Terminology):</span>
-                            의학(Medical Science)·기계(Machinery)·무역경제(Trade&Economy)·컴퓨터(Computer)
-                        </p>
-                    </div>
+                    <p className="text-[10px] md:text-[12px] font-bold leading-tight hidden md:block mb-1 tracking-tight">
+                      <span className="text-blue-600">Ko-En</span>
+                      <span className="text-slate-400"> / </span>
+                      <span className="text-emerald-600">En-Ko</span>
+                      <span className="text-slate-700"> Dictionary </span>
+                      <span className="text-slate-400">[</span>
+                      <span className="text-violet-600">Practical Translation</span>
+                      <span className="text-slate-400"> &amp; </span>
+                      <span className="text-sky-600">Terminology</span>
+                      <span className="text-slate-400">]</span>
+                    </p>
                 </div>
             </div>
 
             <div className="w-full">
               <SearchInput initialQuery={displayQuery} isApp={displayIsApp} autoFocus={!displayQuery} />
               
-              {displayIsApp && (
-                <div className="flex justify-end max-w-2xl mx-auto mt-2 mb-2 px-4 animate-in fade-in duration-500">
-                  <a href="/app/waggle" className="animate-bounce bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-6 py-2.5 rounded-full shadow-lg border-2 border-white text-sm flex items-center gap-2 hover:scale-105 transition-transform">
-                    <span className="text-xl">💬</span> 평가단 와글와글 입장!
-                  </a>
-                </div>
-              )}
             </div>
           </header>
         )}
@@ -2749,21 +4846,43 @@ const displayResults = React.useMemo(() => {
                 Boolean(aiTranslation) ||
                 Boolean(slotSimilarityReference)
               ) ? (
-                <div className="space-y-6">
+                <div className={displayIsApp ? "space-y-4" : "space-y-6"}>
 
                   {/* 🌟 [수프로 마법] 번역 박스 + 스피커 및 검색 문장 표시 UI 반영 */}
                   {aiTranslation && (
-                    <div className="bg-blue-50 border-2 border-blue-300 rounded-2xl p-4 mb-5 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
-                      <div className="flex items-center gap-2 mb-2">
+                    <div
+  className={
+    displayIsApp
+      ? "bg-blue-50 border border-blue-300 rounded-xl p-3 mb-3 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500"
+      : "bg-blue-50 border-2 border-blue-300 rounded-2xl p-4 mb-5 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500"
+  }
+>
+                      <div className={displayIsApp ? "flex items-center gap-1.5 mb-1.5" : "flex items-center gap-2 mb-2"}>
                         <span className="text-xl drop-shadow-sm">✨</span>
-                        <h3 className="text-blue-800 font-extrabold text-[16px] md:text-lg tracking-tight"> 추천 문장 번역</h3>
+                        <h3
+  className={
+    displayIsApp
+      ? "text-blue-800 font-extrabold text-[14px] tracking-tight"
+      : "text-blue-800 font-extrabold text-[16px] md:text-lg tracking-tight"
+  }
+>
+  추천 문장 번역
+</h3>
                       </div>
                       
                       <div className="flex flex-col gap-2.5 pl-1 mb-0">
                         {/* 🌟 1. 사용자가 검색한 내용 표시 */}
-                        <div className="flex items-start gap-3">
+                        <div className={displayIsApp ? "flex items-start gap-2" : "flex items-start gap-3"}>
                           <span className="text-[13px] md:text-[15px] font-bold text-blue-700/80 whitespace-nowrap mt-1">검색 내용:</span>
-                          <p className="text-[16px] md:text-[18px] font-bold text-slate-800 leading-snug flex-1">{displayQuery}</p>
+                          <p
+  className={
+    displayIsApp
+      ? "text-[14px] font-bold text-slate-800 leading-snug flex-1 break-words"
+      : "text-[16px] md:text-[18px] font-bold text-slate-800 leading-snug flex-1"
+  }
+>
+  {displayQuery}
+</p>
                           
                           <div className="flex items-center gap-1.5 mt-0.5">
                             {/* 스피커 버튼 (발음 듣기) */}
@@ -2834,11 +4953,19 @@ const displayResults = React.useMemo(() => {
                         )}
 
                         {/* 🌟 2. 번역 결과 표시 (라벨 동적 변경) */}
-                        <div className="flex items-start gap-3">
+                        <div className={displayIsApp ? "flex items-start gap-2" : "flex items-start gap-3"}>
                           <span className={`text-[13px] md:text-[15px] font-bold whitespace-nowrap mt-1 ${isReference ? 'text-orange-600' : 'text-blue-700/80'}`}>
                             {isReference ? '참고 문장:' : '검색 결과:'}
                           </span>
-                          <p className="text-[18px] md:text-[20px] font-black text-slate-900 leading-snug flex-1">{twoProFormatTranslationDisplayV116(aiTranslation, isReference)}</p>
+                          <p
+  className={
+    displayIsApp
+      ? "text-[16px] font-black text-slate-900 leading-snug flex-1 break-words"
+      : "text-[18px] md:text-[20px] font-black text-slate-900 leading-snug flex-1"
+  }
+>
+  {twoProFormatTranslationDisplayV116(aiTranslation, isReference)}
+</p>
                           
                           <div className="flex items-center gap-1.5 mt-0.5">
                             {/* 🌟 번역 결과 듣기(스피커) 버튼 */}
@@ -2940,18 +5067,53 @@ const displayResults = React.useMemo(() => {
                     )}
 
                     {/* =====================================================
-                        ☆ TwoPro v1.19-safe
-                        문장 번역 블록 맨 하단의 미래 UI/콘텐츠 전용 placeholder.
-                        현재는 화면에 아무것도 표시하지 않습니다.
-                        내일 관련 표현·학습 콘텐츠·분야별 정보 등의
-                        publisher-content를 이 위치에 안전하게 연결할 수 있습니다.
-                        AdSense 광고 코드를 이 빈 placeholder 자체에 넣지는 않습니다.
+                        ☆ TwoPro v1.20-safe
+                        문장 번역 블록 맨 하단 Kakao AdFit 광고 영역.
+                        기존 페이지 하단에서 사용하던 Bottom 광고 단위를
+                        이 위치로 이동하여 중복 광고 단위 호출을 피합니다.
                        ===================================================== */}
-                    <div
-                      id="xdic-translation-footer-placeholder"
-                      data-xdic-placeholder="translation-footer"
-                      aria-hidden="true"
-                    />
+                    {!displayIsApp && (
+                      <div
+                        id="xdic-translation-footer-placeholder"
+                        data-xdic-placeholder="translation-footer-kakaoadfit"
+                        className="mt-4 pt-4 border-t border-slate-200"
+                      >
+                        <div className="w-full flex justify-center">
+                          <div
+                            className={`relative flex items-center justify-center w-full max-w-[728px] ${
+                              isMobileWeb
+                                ? 'min-h-[100px]'
+                                : 'min-h-[90px]'
+                            } bg-transparent rounded-lg overflow-hidden`}
+                          >
+                            <div className="relative z-10 flex justify-center w-full overflow-x-auto max-w-full">
+                              <KakaoAdFit
+                                key={
+                                  isMobileWeb
+                                    ? 'Translation-Footer-Mobile'
+                                    : 'Translation-Footer-PC'
+                                }
+                                unit={
+                                  isMobileWeb
+                                    ? 'DAN-rTmeRojhcQi9r19X'
+                                    : 'DAN-k31fweVZvecyVYdf'
+                                }
+                                width={
+                                  isMobileWeb
+                                    ? '320'
+                                    : '728'
+                                }
+                                height={
+                                  isMobileWeb
+                                    ? '100'
+                                    : '90'
+                                }
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -2973,7 +5135,7 @@ const displayResults = React.useMemo(() => {
                       </p>
 
                       <div className="space-y-2 pl-1">
-                        <div className="flex items-start gap-3">
+                        <div className={displayIsApp ? "flex items-start gap-2" : "flex items-start gap-3"}>
                           <span className="text-[13px] md:text-[14px] font-bold text-amber-700 whitespace-nowrap mt-0.5">
                             등록 문형:
                           </span>
@@ -2982,7 +5144,7 @@ const displayResults = React.useMemo(() => {
                           </p>
                         </div>
 
-                        <div className="flex items-start gap-3">
+                        <div className={displayIsApp ? "flex items-start gap-2" : "flex items-start gap-3"}>
                           <span className="text-[13px] md:text-[14px] font-bold text-amber-700 whitespace-nowrap mt-0.5">
                             참고 번역:
                           </span>
@@ -3060,6 +5222,85 @@ const displayResults = React.useMemo(() => {
                     </div>
                   )}
 
+                  {hasXdicInsight && (
+                    <section
+  className={
+    displayIsApp
+      ? "mb-3 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden"
+      : "mb-5 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"
+  }
+>
+                      <div
+  className={
+    displayIsApp
+      ? "px-3 py-2 border-b border-slate-100 bg-slate-50/70"
+      : "px-4 md:px-5 py-3 border-b border-slate-100 bg-slate-50/70"
+  }
+>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">📘</span>
+                          <h2 className="text-[15px] md:text-[17px] font-extrabold text-slate-900">
+                            X-DIC Insight
+                          </h2>
+                        </div>
+                        <p className="mt-1 text-[12px] md:text-[13px] text-slate-500">
+                          현재 검색 결과에서 바로 연결한 사전 정보입니다.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:divide-x divide-slate-100">
+                        {xdicInsightData.professionalTerms.length > 0 && (
+                          <div className={displayIsApp ? "p-3" : "p-4 md:p-5"}>
+                            <h3 className="text-[13px] md:text-[14px] font-extrabold text-blue-700 mb-2.5 flex items-center gap-1.5">
+                              <span>📚</span>
+                              관련 전문용어
+                            </h3>
+                            <div className="space-y-2">
+                              {xdicInsightData.professionalTerms.map(
+                                (item, index) => (
+                                  <div
+                                    key={`insight-term-${String(item.id)}-${index}`}
+                                    className={displayIsApp ? "rounded-lg bg-blue-50/45 border border-blue-100 px-2.5 py-1.5" : "rounded-lg bg-blue-50/45 border border-blue-100 px-3 py-2"}
+                                  >
+                                    <div className="text-[13px] md:text-[14px] leading-relaxed break-words">
+                                      {highlightMatch(item.line_text)}
+                                    </div>
+                                    <p className="mt-1 text-[10px] md:text-[11px] font-semibold text-slate-400">
+                                      {getCategoryName(item.category_id)}
+                                    </p>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {xdicInsightData.parallelExamples.length > 0 && (
+                          <div className={displayIsApp ? "p-3" : "p-4 md:p-5"}>
+                            <h3 className="text-[13px] md:text-[14px] font-extrabold text-emerald-700 mb-2.5 flex items-center gap-1.5">
+                              <span>📝</span>
+                              실제 병렬 예문
+                            </h3>
+                            <div className="space-y-2">
+                              {xdicInsightData.parallelExamples.map(
+                                (item, index) => (
+                                  <div
+                                    key={`insight-example-${String(item.id)}-${index}`}
+                                    className={displayIsApp ? "rounded-lg bg-emerald-50/35 border border-emerald-100 px-2.5 py-1.5" : "rounded-lg bg-emerald-50/35 border border-emerald-100 px-3 py-2"}
+                                  >
+                                    <div className="text-[13px] md:text-[14px] leading-relaxed break-words">
+                                      {highlightMatch(item.line_text)}
+                                    </div>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </section>
+                  )}
+
                   <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                     <span className="text-sm font-semibold text-slate-500">
                       {isSentenceSearch ? '관련 검색 결과' : '검색 결과'}{' '}
@@ -3070,18 +5311,41 @@ const displayResults = React.useMemo(() => {
                     </span>
                   </div>
 
-                  <ul className="space-y-1.5">
+                  <ul className={displayIsApp ? "space-y-1" : "space-y-1.5"}>
                     {currentItems.map((item, idx) => (
                       <React.Fragment key={String(item.id || idx)}>
-                        <li className="relative group bg-white rounded-lg px-3 py-2 md:px-4 md:py-2.5 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
-                          <div className="flex items-start gap-2.5">
+                        <li
+  className={
+    displayIsApp
+      ? "relative group bg-white rounded-lg px-2.5 py-1.5 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+      : "relative group bg-white rounded-lg px-3 py-2 md:px-4 md:py-2.5 border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+  }
+>
+                          <div className={displayIsApp ? "flex items-start gap-2" : "flex items-start gap-2.5"}>
                             <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
-                              {mounted && !displayIsApp && (
-                                <button onClick={() => handleSpeak(item.line_text)} className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
+                              {mounted && (
+                                <button
+                                  onClick={() => handleSpeak(item.line_text)}
+                                  className={
+                                    displayIsApp
+                                      ? "w-7 h-7 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                      : "w-8 h-8 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                  }
+                                  title="발음 듣기"
+                                  aria-label="검색 결과 발음 듣기"
+                                >
                                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
                                 </button>
                               )}
-                              <button onClick={() => handleCopy(item.line_text, item.id || idx)} className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm" title="텍스트 복사">
+                              <button
+  onClick={() => handleCopy(item.line_text, item.id || idx)}
+  className={
+    displayIsApp
+      ? "w-7 h-7 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm"
+      : "w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm"
+  }
+  title="텍스트 복사"
+>
                                 {copiedId === (item.id || idx) ? (
                                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-emerald-500"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>
                                 ) : (
@@ -3089,7 +5353,13 @@ const displayResults = React.useMemo(() => {
                                 )}
                               </button>
                             </div>
-                            <div className="flex-1 text-[16px] md:text-[18px] leading-snug break-keep pb-4 md:pb-5">
+                            <div
+  className={
+    displayIsApp
+      ? "flex-1 min-w-0 text-[14px] min-[390px]:text-[15px] leading-snug break-words pb-4"
+      : "flex-1 text-[16px] md:text-[18px] leading-snug break-keep pb-4 md:pb-5"
+  }
+>
                               {highlightMatch(item.line_text)}
                             </div>
                           </div>
@@ -3113,10 +5383,16 @@ const displayResults = React.useMemo(() => {
                   </ul>
 
                   {displayResults.length > itemsPerPage && (
-                    <div className="flex justify-center items-center gap-3 mt-12 mb-12 select-none font-sans">
+                    <div
+  className={
+    displayIsApp
+      ? "flex justify-start items-center gap-1 mt-6 mb-6 select-none font-sans overflow-x-auto max-w-full px-1 pb-1"
+      : "flex justify-center items-center gap-3 mt-12 mb-12 select-none font-sans"
+  }
+>
                       <button onClick={() => handlePageChange(1)} disabled={currentPage === 1} className="text-xs font-bold text-slate-400 hover:text-orange-600 px-2 py-1 rounded transition-colors disabled:opacity-30">&lt;&lt;</button>
                       <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="text-sm font-medium text-slate-500 hover:text-orange-600 px-2 py-1 transition-colors disabled:opacity-30">이전</button>
-                      <div className="flex items-center gap-2 mx-2">
+                      <div className={displayIsApp ? "flex items-center gap-1 mx-1" : "flex items-center gap-2 mx-2"}>
                         {Array.from({ length: totalPages }, (_, i) => i + 1).map((number, idx, arr) => (
                           <React.Fragment key={number}>
                             <button onClick={() => handlePageChange(number)} className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${currentPage === number ? 'bg-slate-800 text-white font-bold shadow-md transform scale-105' : 'text-slate-400 hover:bg-slate-100'}`}>{number}</button>
@@ -3130,7 +5406,13 @@ const displayResults = React.useMemo(() => {
                   )}
                   
                   {isPartialMatch && (
-                    <div className="flex flex-col items-center justify-center py-10 mt-8 border-t border-slate-100 text-center px-4">
+                    <div
+  className={
+    displayIsApp
+      ? "flex flex-col items-center justify-center py-6 mt-4 border-t border-slate-100 text-center px-2"
+      : "flex flex-col items-center justify-center py-10 mt-8 border-t border-slate-100 text-center px-4"
+  }
+>
                       <p className="text-slate-700 text-[15px] font-bold mb-5">
                         '<span style={{ color: '#ea580c' }}>{displayQuery}</span>'에 대해 더 검색을 원하시면, 아래 버튼을 클릭하세요.
                       </p>
@@ -3149,7 +5431,11 @@ const displayResults = React.useMemo(() => {
                      ===================================================== */}
                   <aside
                     aria-label="AI-Hub 데이터 활용 출처"
-                    className="w-full max-w-4xl mx-auto mt-8 mb-2 px-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-center shadow-sm"
+                    className={
+  displayIsApp
+    ? "w-full max-w-4xl mx-auto mt-5 mb-1 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-center shadow-sm"
+    : "w-full max-w-4xl mx-auto mt-8 mb-2 px-4 py-4 bg-slate-50 border border-slate-200 rounded-xl text-center shadow-sm"
+}
                   >
                     <p className="text-[11px] md:text-xs text-slate-500 leading-relaxed break-keep">
                       본 성과물은 2026년도 과학기술정보통신부 및 한국지능정보사회진흥원의
@@ -3166,7 +5452,7 @@ const displayResults = React.useMemo(() => {
                     </p>
                   </aside>
 
-                  {!displayIsApp && currentItems.length >= 10 && (
+                  {!displayIsApp && !aiTranslation && currentItems.length >= 10 && (
                     <div className="w-full flex justify-center mt-8 mb-2">
                       <div className={`relative flex items-center justify-center w-full max-w-[728px] ${isMobileWeb ? 'min-h-[100px]' : 'min-h-[90px]'} bg-transparent rounded-lg overflow-hidden`}>
                         <div className="relative z-10 flex justify-center w-full overflow-x-auto max-w-full">
@@ -3176,16 +5462,36 @@ const displayResults = React.useMemo(() => {
                     </div>
                   )}
 
-                  <div className="mt-12 mb-4"><NuanceWidget /></div>
+                  <div className={displayIsApp ? "mt-6 mb-2" : "mt-12 mb-4"}><NuanceWidget /></div>
                   
-                  <div className="flex items-center justify-between w-full mt-10 mb-6 px-1 pt-6 border-t border-slate-100">
-                    <button onClick={() => router.back()} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+                  <div
+                    className={
+                      displayIsApp
+                        ? "flex items-center justify-between w-full max-w-sm mx-auto mt-7 mb-3 px-1 pt-4 border-t border-slate-100"
+                        : "flex items-center justify-between w-full mt-10 mb-6 px-1 pt-6 border-t border-slate-100"
+                    }
+                  >
+                    <button
+                      onClick={() => router.back()}
+                      className={
+                        displayIsApp
+                          ? "flex items-center gap-1 text-slate-500 hover:text-slate-800 font-bold text-[11px] transition-colors bg-white px-3 py-1.5 rounded-full shadow-sm border border-slate-200"
+                          : "flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200"
+                      }
+                    >
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
-                      뒤로
+                      {displayIsApp ? '뒤로 · Back' : '뒤로'}
                     </button>
-                    <a href={displayIsApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+                    <a
+                      href={displayIsApp ? '/app' : '/'}
+                      className={
+                        displayIsApp
+                          ? "flex items-center gap-1 text-slate-500 hover:text-slate-800 font-bold text-[11px] transition-colors bg-white px-3 py-1.5 rounded-full shadow-sm border border-slate-200"
+                          : "flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200"
+                      }
+                    >
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
-                      홈으로
+                      {displayIsApp ? '홈 · Home' : '홈으로'}
                     </a>
                   </div>
                 </div>
@@ -3200,114 +5506,52 @@ const displayResults = React.useMemo(() => {
                     <button onClick={() => handleExternalSearch('google')} className="flex-1 py-3 px-4 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold shadow-sm">Google 검색</button>
                   </div>
                   
-                  <div className="flex items-center justify-between w-full max-w-md mt-12 px-1 pt-6 border-t border-slate-100">
-                    <button onClick={() => router.back()} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+                  <div
+                    className={
+                      displayIsApp
+                        ? "flex items-center justify-between w-full max-w-sm mt-7 px-1 pt-4 border-t border-slate-100"
+                        : "flex items-center justify-between w-full max-w-md mt-12 px-1 pt-6 border-t border-slate-100"
+                    }
+                  >
+                    <button
+                      onClick={() => router.back()}
+                      className={
+                        displayIsApp
+                          ? "flex items-center gap-1 text-slate-500 hover:text-slate-800 font-bold text-[11px] transition-colors bg-white px-3 py-1.5 rounded-full shadow-sm border border-slate-200"
+                          : "flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200"
+                      }
+                    >
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
-                      뒤로
+                      {displayIsApp ? '뒤로 · Back' : '뒤로'}
                     </button>
-                    <a href={displayIsApp ? '/app' : '/'} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200">
+                    <a
+                      href={displayIsApp ? '/app' : '/'}
+                      className={
+                        displayIsApp
+                          ? "flex items-center gap-1 text-slate-500 hover:text-slate-800 font-bold text-[11px] transition-colors bg-white px-3 py-1.5 rounded-full shadow-sm border border-slate-200"
+                          : "flex items-center gap-1.5 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors bg-white px-4 py-2 rounded-full shadow-sm border border-slate-200"
+                      }
+                    >
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
-                      홈으로
+                      {displayIsApp ? '홈 · Home' : '홈으로'}
                     </a>
                   </div>
                 </div>
               )}
             </div>
-          ) : (
-            <div className="mt-5 space-y-8 animate-in fade-in duration-500">
-              
-              <div className="flex flex-wrap items-center justify-end gap-2 -mb-3 md:-mb-5 pr-2 relative z-10">
-                <button onClick={handleBookmarkClick} className="group flex items-center gap-1.5 px-4 py-1.5 bg-white border border-orange-200 shadow-sm hover:border-orange-400 hover:shadow-md hover:bg-orange-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-orange-600 hover:text-orange-800 transition-all duration-300">
-                  <span className="text-[14px] group-hover:scale-110 transition-transform">⭐</span> 
-                  <span>즐겨찾기 추가</span>
-                </button>
-                <Link href="/conversation" className="group flex items-center gap-1.5 px-4 py-1.5 bg-white border border-blue-200 shadow-sm hover:border-blue-400 hover:shadow-md hover:bg-blue-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-blue-600 hover:text-blue-800 transition-all duration-300">
-                  <span className="text-[14px] group-hover:scale-110 transition-transform">📖</span> 
-                  <span>필수 영어회화</span>
-                </Link>
-                <Link href="/notice" className="group flex items-center gap-1.5 px-4 py-1.5 bg-white border border-slate-200 shadow-sm hover:border-slate-400 hover:shadow-md hover:bg-slate-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-slate-600 hover:text-slate-800 transition-all duration-300">
-                  <span className="text-[14px] group-hover:scale-110 transition-transform">📢</span> 
-                  <span>공지사항 / FAQ</span>
-                </Link>
-                <Link href="/sitemap" className="group flex items-center gap-1.5 px-4 py-1.5 bg-white border border-emerald-200 shadow-sm hover:border-emerald-400 hover:shadow-md hover:bg-emerald-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-emerald-600 hover:text-emerald-800 transition-all duration-300">
-                  <span className="text-[14px] group-hover:scale-110 transition-transform">🗺️</span> 
-                  <span>사이트맵</span>
-                </Link>
+          ) : displayIsApp ? (
+            <div className="mt-4 space-y-5 animate-in fade-in duration-500">
+              <div className="grid grid-cols-2 gap-2 w-full max-w-[340px] mx-auto relative z-10">
+                {renderHomeQuickLinkButtons()}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                <div className="relative bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-[300px]">
-                  <Link href="/recent" className="absolute top-5 right-5 text-[12px] font-bold text-slate-400 hover:text-slate-600 transition-colors z-10 bg-white/80 px-2 py-1 rounded backdrop-blur-sm">더보기 &gt;</Link>
-                  <div className="w-full h-full p-2"><RecentKeywords className="w-full h-full border-0 shadow-none bg-transparent" /></div>
-                </div>
-                <div className="relative bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-[300px]">
-                  <Link href="/popular" className="absolute top-5 right-5 text-[12px] font-bold text-slate-400 hover:text-slate-600 transition-colors z-10 bg-white/80 px-2 py-1 rounded backdrop-blur-sm">더보기 &gt;</Link>
-                  <div className="w-full h-full p-2"><PopularKeywords className="w-full h-full border-0 shadow-none bg-transparent" /></div>
-                </div>
-              </div>
-
-              <article className="bg-slate-50/80 rounded-2xl p-6 md:p-8 border border-slate-200 text-slate-700 shadow-sm mt-8">
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 border-b border-slate-200 pb-4 gap-4">
-                  <div>
-                    <h2 className="text-lg md:text-xl font-extrabold text-slate-900 flex items-center gap-2"><span>📖</span> 엑스딕 필수 영어회화 & 번역가 해설</h2>
-                    <p className="mt-2 text-sm text-slate-500">원어민들이 가장 자주 사용하는 핵심 문장과 뉘앙스를 확인하세요.</p>
-                  </div>
-                  <Link href="/conversation" className="hidden md:flex items-center gap-1 text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors whitespace-nowrap">전체 보기 <span>&gt;</span></Link>
-                </div>
-                
-                <div className="grid grid-cols-1 gap-5">
-                  {previewData.length > 0 ? previewData.map((item, idx) => (
-                    <div key={idx} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                      <div className="bg-slate-800 px-4 py-2 flex justify-between items-center">
-                        <h3 className="text-sm font-bold text-white">{item.category}</h3>
-                        <Link href={`/conversation?type=${item.category?.includes('여행') ? 'travel' : item.category?.includes('일상') ? 'casual' : item.category?.includes('비즈니스') ? 'business' : ''}`} className="text-[11px] font-medium text-slate-300 hover:text-white transition-colors border border-slate-600 px-2 py-0.5 rounded-full">더보기 &gt;</Link>
-                      </div>
-                      <div className="p-4 hover:bg-slate-50 transition-colors">
-                        <div className="flex items-start gap-3 mb-3">
-                          <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
-                            {mounted && !displayIsApp && (
-                              <button onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)} className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
-                              </button>
-                            )}
-                            <button onClick={() => handleCopy(`${item.en_text} - ${item.ko_text}`, item.id || idx)} className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm" title="문장 복사">
-                              {copiedId === (item.id || idx) ? (
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-emerald-500"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>
-                              ) : (
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" /></svg>
-                              )}
-                            </button>
-                          </div>
-                          <div>
-                            <h4 className="text-base md:text-lg font-extrabold text-blue-700 mb-0.5">{item.en_text}</h4>
-                            <p className="text-sm md:text-base font-bold text-slate-800">{item.ko_text}</p>
-                          </div>
-                        </div>
-                        <div className="ml-11 bg-slate-100 rounded-lg p-4 border border-slate-200 text-sm md:text-base text-slate-700 leading-relaxed whitespace-pre-wrap max-h-[160px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
-                          <span className="font-extrabold text-blue-700 mr-1.5">💡 해설: </span>{item.description}
-                        </div>
-                      </div>
-                    </div>
-                  )) : (
-                    <div className="text-center py-8 text-slate-400 text-sm">데이터를 불러오는 중입니다...</div>
-                  )}
-                </div>
-
-                <div className="mt-6 md:hidden flex justify-center">
-                  <Link href="/conversation" className="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors border border-blue-200 bg-white px-6 py-2 rounded-full shadow-sm">전체 보기 &gt;</Link>
-                </div>
-              </article>
-
-              <div className="w-full pt-4">
-                <NuanceWidget />
-              </div>
-
+              {renderConversationPreview()}
             </div>
-          )}
+          ) : null}
         </div>
       </main>
 
-      <div className="flex-grow py-[5vh]"></div>
+      <div className={displayIsApp ? "flex-grow py-3" : "flex-grow py-[5vh]"}></div>
       {!displayIsApp && <div className="flex-none"><Footer /></div>}
     </div>
   );

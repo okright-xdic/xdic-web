@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { SpeechRecognition } from '@capgo/capacitor-speech-recognition';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'; 
 
@@ -20,6 +20,21 @@ const UPDATED_EVENT = 'xdic_recent_searches_updated';
 const BANNED_WORDS = ['비속어', '욕설', 'badword', 'xxx', '도박', '성인'];
 
 type MicLang = 'ko-KR' | 'en-US' | null;
+
+type XdicAppState = { isActive: boolean };
+type XdicPluginListenerHandle = { remove: () => Promise<void> | void };
+
+interface XdicAppLifecyclePlugin {
+  addListener(
+    eventName: 'appStateChange',
+    listener: (state: XdicAppState) => void
+  ): Promise<XdicPluginListenerHandle> | XdicPluginListenerHandle;
+}
+
+// @capacitor/app이 native 프로젝트에 등록되어 있으면 사용하고,
+// 없으면 visibilitychange/pagehide 방어만 사용합니다.
+const XdicNativeAppLifecycle =
+  registerPlugin<XdicAppLifecyclePlugin>('App');
 
 // 🌟 [수프로 마스터] 검색엔진용 Normalize 사전 (종결 표현 전용 자동 복원 엔진)
 const expandKoreanAbbreviations = (text: string) => {
@@ -317,12 +332,20 @@ export default function SearchInput({
   const nativeRestartTimerRef = useRef<any>(null);
   const nativeRunningRef = useRef(false);
 
+  // 앱을 빠져나간 뒤 늦게 도착한 음성 결과를 폐기하기 위한 세션 번호.
+  const nativeSessionRef = useRef(0);
+  const appIsActiveRef = useRef(true);
+
   const checkIsNative = () => {
     return typeof window !== 'undefined' && Capacitor.isNativePlatform();
   };
 
-  // 🌟 흐르는 플레이스홀더 텍스트 (선생님의 오리지널 버전)
-  const marqueeText = "음성 검색은 우측의 KOR(한글) 또는 ENG(영어) 마이크 아이콘 클릭! ★ ♪ ♥ For voice search, click the KOR (Korean) or ENG (English) microphone icon on the right! ▶ ♬ ♣ ♩ ";
+  // 🌟 흐르는 플레이스홀더 텍스트
+  // - 앱: 요청하신 짧은 한·영 음성검색 안내
+  // - 웹: 기존 안내 문구 유지
+  const marqueeText = isApp
+    ? "♬ 음성 검색(Voice Search) : KOR(한글) ♥ ENG(영어)     "
+    : "음성 검색은 우측의 KOR(한글) 또는 ENG(영어) 마이크 아이콘 클릭! ★ ♪ ♥ For voice search, click the KOR (Korean) or ENG (English) microphone icon on the right! ▶ ♬ ♣ ♩ ";
   const { displayText: marqueePlaceholder, setIsHovered } = useMarquee(marqueeText, 150);
 
   useEffect(() => {
@@ -385,22 +408,36 @@ export default function SearchInput({
 
   useEffect(() => {
     isMountedRef.current = true;
+    appIsActiveRef.current =
+      typeof document === 'undefined'
+        ? true
+        : document.visibilityState === 'visible';
 
     if (typeof window !== 'undefined') {
-      const saved = sessionStorage.getItem(MIC_USER_ENABLED_KEY);
-      if (saved === 'true' || saved === 'ko-KR') {
-        micLangRef.current = 'ko-KR';
-        setMicLang('ko-KR');
-      } else if (saved === 'en-US') {
-        micLangRef.current = 'en-US';
-        setMicLang('en-US');
+      if (checkIsNative()) {
+        // 네이티브 앱은 이전 mic ON 상태를 절대 복원하지 않습니다.
+        try { sessionStorage.removeItem(MIC_USER_ENABLED_KEY); } catch {}
+        micLangRef.current = null;
+        setMicLang(null);
+      } else {
+        // 웹은 기존 사용성을 그대로 유지합니다.
+        const saved = sessionStorage.getItem(MIC_USER_ENABLED_KEY);
+        if (saved === 'true' || saved === 'ko-KR') {
+          micLangRef.current = 'ko-KR';
+          setMicLang('ko-KR');
+        } else if (saved === 'en-US') {
+          micLangRef.current = 'en-US';
+          setMicLang('en-US');
+        }
       }
     }
 
     return () => {
       isMountedRef.current = false;
+      appIsActiveRef.current = false;
+      micLangRef.current = null;
       stopWebLoop(true);
-      stopNativeLoop(true);
+      void stopNativeLoop(true);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -521,6 +558,16 @@ export default function SearchInput({
     return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
   };
 
+  // HTTP LAN 주소(예: http://192.168.x.x:3000) 같은 비보안 웹에서는
+  // 브라우저가 음성 인식을 다시 시작할 때 마이크 권한 팝업을 반복할 수 있습니다.
+  // 이런 환경만 1회성 음성검색으로 제한하고,
+  // localhost / HTTPS 웹 / 네이티브 앱의 기존 동작은 그대로 유지합니다.
+  const shouldUseOneShotWebVoice = () => {
+    if (typeof window === 'undefined') return false;
+    if (checkIsNative()) return false;
+    return window.isSecureContext === false;
+  };
+
   const clearWebTimer = () => {
     if (webRestartTimerRef.current) clearTimeout(webRestartTimerRef.current);
     webRestartTimerRef.current = null;
@@ -558,6 +605,7 @@ export default function SearchInput({
 
   const scheduleWebRestart = () => {
     if (!micLangRef.current || !isMountedRef.current) return;
+    if (shouldUseOneShotWebVoice()) return;
     if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
 
     clearWebTimer();
@@ -606,12 +654,23 @@ export default function SearchInput({
 
       setIsListening(false);
 
+      if (shouldUseOneShotWebVoice()) {
+        // 비보안 모바일/사설망 웹 테스트:
+        // 한 번 인식한 뒤 즉시 OFF로 바꿔 권한 팝업 재요청을 막습니다.
+        micLangRef.current = null;
+        setMicLang(null);
+        try { sessionStorage.removeItem(MIC_USER_ENABLED_KEY); } catch {}
+        clearWebTimer();
+      }
+
       if (transcript) {
         setQuery(transcript);
         setTimeout(() => { goSearch(transcript); }, 100);
       }
 
-      scheduleWebRestart();
+      if (!shouldUseOneShotWebVoice()) {
+        scheduleWebRestart();
+      }
     };
 
     recognition.onerror = (e: any) => {
@@ -627,12 +686,29 @@ export default function SearchInput({
         return;
       }
 
+      if (shouldUseOneShotWebVoice()) {
+        micLangRef.current = null;
+        setMicLang(null);
+        try { sessionStorage.removeItem(MIC_USER_ENABLED_KEY); } catch {}
+        clearWebTimer();
+        return;
+      }
+
       scheduleWebRestart();
     };
 
     recognition.onend = () => {
       if (!isMountedRef.current) return;
       setIsListening(false);
+
+      if (shouldUseOneShotWebVoice()) {
+        micLangRef.current = null;
+        setMicLang(null);
+        try { sessionStorage.removeItem(MIC_USER_ENABLED_KEY); } catch {}
+        clearWebTimer();
+        return;
+      }
+
       if (micLangRef.current) scheduleWebRestart();
     };
 
@@ -641,7 +717,15 @@ export default function SearchInput({
       recognition.start();
     } catch {
       webStartingRef.current = false;
-      scheduleWebRestart();
+
+      if (shouldUseOneShotWebVoice()) {
+        micLangRef.current = null;
+        setMicLang(null);
+        try { sessionStorage.removeItem(MIC_USER_ENABLED_KEY); } catch {}
+        clearWebTimer();
+      } else {
+        scheduleWebRestart();
+      }
     }
   };
 
@@ -668,20 +752,58 @@ export default function SearchInput({
     if (!checkIsNative()) return;
     if (!hard) return;
 
+    // 진행 중 start()의 늦은 결과를 무효화합니다.
+    nativeSessionRef.current += 1;
+
+    const plugin = SpeechRecognition as any;
+
+    // 최신 Capgo: forceStop() / 구버전: stop() fallback.
     try {
-      await SpeechRecognition.stop();
-      await SpeechRecognition.removeAllListeners();
+      if (typeof plugin.forceStop === 'function') {
+        await plugin.forceStop({ timeout: 350 });
+      } else {
+        await SpeechRecognition.stop();
+      }
+    } catch {
+      try { await SpeechRecognition.stop(); } catch {}
+    }
+
+    // 지원되는 버전에서는 실제 listening 상태까지 한 번 더 확인.
+    try {
+      if (typeof plugin.isListening === 'function') {
+        const state = await plugin.isListening();
+        if (state?.listening) {
+          if (typeof plugin.forceStop === 'function') {
+            await plugin.forceStop({ timeout: 250 });
+          } else {
+            await SpeechRecognition.stop();
+          }
+        }
+      }
     } catch {}
+
+    try { await SpeechRecognition.removeAllListeners(); } catch {}
   };
 
   const startNativeLoop = async () => {
     if (!checkIsNative() || !micLangRef.current || !isMountedRef.current) return;
+    if (!appIsActiveRef.current) return;
     if (nativeRunningRef.current) return;
 
+    const sessionId = nativeSessionRef.current + 1;
+    nativeSessionRef.current = sessionId;
     nativeRunningRef.current = true;
+
+    const sessionStillValid = () =>
+      sessionId === nativeSessionRef.current &&
+      appIsActiveRef.current &&
+      isMountedRef.current &&
+      Boolean(micLangRef.current);
 
     try {
       const { available } = await SpeechRecognition.available();
+      if (!sessionStillValid()) return;
+
       if (!available) {
         alert('이 기기에서는 음성 인식을 사용할 수 없습니다.');
         setMicLang(null);
@@ -694,6 +816,8 @@ export default function SearchInput({
         perm = await SpeechRecognition.requestPermissions();
       }
 
+      if (!sessionStillValid()) return;
+
       if (perm.speechRecognition !== 'granted') {
         alert('마이크 권한이 필요합니다. 스마트폰 설정에서 X-DIC 마이크 권한을 허용해주세요.');
         setMicLang(null);
@@ -704,8 +828,8 @@ export default function SearchInput({
 
       try { await SpeechRecognition.stop(); } catch(e) {}
 
-      if (!isMountedRef.current) return;
-      setIsListening(true); 
+      if (!sessionStillValid()) return;
+      setIsListening(true);
 
       const result = await SpeechRecognition.start({
         language: micLangRef.current,
@@ -715,8 +839,8 @@ export default function SearchInput({
         allowForSilence: 1800
       });
 
-      if (!isMountedRef.current) return;
-      setIsListening(false); 
+      if (!sessionStillValid()) return;
+      setIsListening(false);
 
       let transcript = String(result?.matches?.[0] || '').trim();
       transcript = transcript.replace(/[.,?!]/g, '').trim();
@@ -728,7 +852,13 @@ export default function SearchInput({
 
       nativeRunningRef.current = false;
 
-      if (micLangRef.current) scheduleNativeRestart(400);
+      if (
+        sessionStillValid() &&
+        micLangRef.current &&
+        appIsActiveRef.current
+      ) {
+        scheduleNativeRestart(400);
+      }
     } catch (e: any) {
       if (!isMountedRef.current) return;
       setIsListening(false);
@@ -743,7 +873,13 @@ export default function SearchInput({
         return;
       }
 
-      if (micLangRef.current) scheduleNativeRestart(600);
+      if (
+        sessionStillValid() &&
+        micLangRef.current &&
+        appIsActiveRef.current
+      ) {
+        scheduleNativeRestart(600);
+      }
     }
   };
 
@@ -751,47 +887,120 @@ export default function SearchInput({
     if (typeof window === 'undefined') return;
 
     if (!micLang) {
+      micLangRef.current = null;
       stopWebLoop(true);
-      stopNativeLoop(true);
+      void stopNativeLoop(true);
       return;
     }
 
-    try {
-      sessionStorage.setItem(MIC_USER_ENABLED_KEY, micLang);
-    } catch {}
+    micLangRef.current = micLang;
 
     if (checkIsNative()) {
+      // 앱에서는 ON 상태를 저장하지 않습니다.
+      try { sessionStorage.removeItem(MIC_USER_ENABLED_KEY); } catch {}
+
       stopWebLoop(true);
-      startNativeLoop();
+      void startNativeLoop();
     } else {
-      stopNativeLoop(true);
+      // 웹의 기존 동작은 유지합니다.
+      try {
+        sessionStorage.setItem(MIC_USER_ENABLED_KEY, micLang);
+      } catch {}
+
+      void stopNativeLoop(true);
       startWebLoop();
     }
 
+    // cleanup은 외부 recognizer만 정리하고 micLang state 자체는 바꾸지 않습니다.
     return () => {
       stopWebLoop(true);
-      stopNativeLoop(true);
+      void stopNativeLoop(true);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [micLang]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (checkIsNative()) return;
+
+    let nativeAppHandle: XdicPluginListenerHandle | null = null;
+    let cancelled = false;
+
+    const turnNativeMicOffForBackground = () => {
+      appIsActiveRef.current = false;
+      nativeSessionRef.current += 1;
+
+      // 앱을 빠져나가는 순간 UI 토글도 OFF로 확정합니다.
+      micLangRef.current = null;
+      try { sessionStorage.removeItem(MIC_USER_ENABLED_KEY); } catch {}
+
+      if (isMountedRef.current) {
+        setMicLang(null);
+        setIsListening(false);
+      }
+
+      void stopNativeLoop(true);
+    };
 
     const onVis = () => {
+      const visible = document.visibilityState === 'visible';
+      appIsActiveRef.current = visible;
+
+      if (checkIsNative()) {
+        if (!visible) turnNativeMicOffForBackground();
+        // foreground 복귀 시 자동 재시작하지 않습니다.
+        return;
+      }
+
+      // 웹은 기존 동작 유지.
       if (!micLangRef.current) return;
-      if (document.visibilityState === 'visible') scheduleWebRestart();
+      if (visible) scheduleWebRestart();
       else stopWebLoop(true);
     };
-    const onPageHide = () => stopWebLoop(true);
+
+    const onPageHide = () => {
+      if (checkIsNative()) {
+        turnNativeMicOffForBackground();
+      } else {
+        stopWebLoop(true);
+      }
+    };
 
     document.addEventListener('visibilitychange', onVis);
     window.addEventListener('pagehide', onPageHide);
 
+    if (checkIsNative()) {
+      Promise.resolve(
+        XdicNativeAppLifecycle.addListener(
+          'appStateChange',
+          ({ isActive }) => {
+            appIsActiveRef.current = isActive;
+            if (!isActive) {
+              turnNativeMicOffForBackground();
+            }
+            // foreground 복귀 시 mic는 OFF 상태 그대로 유지.
+          }
+        )
+      )
+        .then((handle) => {
+          if (cancelled) {
+            void handle.remove();
+          } else {
+            nativeAppHandle = handle;
+          }
+        })
+        .catch(() => {
+          // App plugin 미등록 환경에서는 visibility/pagehide만 사용.
+        });
+    }
+
     return () => {
+      cancelled = true;
       document.removeEventListener('visibilitychange', onVis);
       window.removeEventListener('pagehide', onPageHide);
+      if (nativeAppHandle) void nativeAppHandle.remove();
+
+      stopWebLoop(true);
+      void stopNativeLoop(true);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -800,13 +1009,27 @@ export default function SearchInput({
     if (typeof window === 'undefined') return;
 
     setMicLang((prev) => {
-      if (prev === targetLang) {
+      const next: MicLang = prev === targetLang ? null : targetLang;
+
+      // React effect를 기다리지 않고 즉시 ref를 바꿔
+      // 두 번째 탭이 현재 recognition/restart를 바로 끊도록 합니다.
+      micLangRef.current = next;
+
+      if (checkIsNative()) {
+        // 앱은 상태를 다음 화면/다음 실행에 넘기지 않습니다.
         try { sessionStorage.removeItem(MIC_USER_ENABLED_KEY); } catch {}
-        return null;
+      } else if (next) {
+        try { sessionStorage.setItem(MIC_USER_ENABLED_KEY, next); } catch {}
       } else {
-        try { sessionStorage.setItem(MIC_USER_ENABLED_KEY, targetLang); } catch {}
-        return targetLang;
+        try { sessionStorage.removeItem(MIC_USER_ENABLED_KEY); } catch {}
       }
+
+      if (!next) {
+        clearNativeTimer();
+        clearWebTimer();
+      }
+
+      return next;
     });
   };
 
@@ -842,15 +1065,27 @@ export default function SearchInput({
              />
              
              {!query && (
-               <div className="absolute inset-0 flex items-center px-3 md:px-6 pointer-events-none z-0 whitespace-nowrap overflow-hidden">
+               <div
+                 className={
+                   isApp
+                     ? "absolute inset-0 flex items-center px-2.5 pointer-events-none z-0 whitespace-nowrap overflow-hidden"
+                     : "absolute inset-0 flex items-center px-3 md:px-6 pointer-events-none z-0 whitespace-nowrap overflow-hidden"
+                 }
+               >
                  {micLang === 'ko-KR' ? (
                    <span className="text-[13px] md:text-base text-slate-400">🎙️ 한국어 음성 검색 (대기 중)</span>
                  ) : micLang === 'en-US' ? (
                    <span className="text-[13px] md:text-base text-slate-400">🎙️ 영어 음성 검색 (대기 중)</span>
+                 ) : isApp ? (
+                   <div className="text-[12px] text-slate-400 select-none">
+                     {renderBoldMarquee(marqueePlaceholder)}
+                   </div>
                  ) : (
                    <div className="text-[13px] md:text-base text-slate-400 select-none">
-                     {/* 🌟 여기서 renderBoldMarquee를 통해 5개 단어만 볼드체 적용! */}
-                     {renderBoldMarquee(marqueePlaceholder)}
+                     {/* 웹에서는 기존 흐르는 안내 문구를 그대로 유지합니다. */}
+                     {placeholder?.trim()
+                       ? placeholder
+                       : renderBoldMarquee(marqueePlaceholder)}
                    </div>
                  )}
                </div>
@@ -871,6 +1106,10 @@ export default function SearchInput({
               </button>
             )}
 
+            {/* 모바일에서는 inactive mic 버튼에 hover 배경을 적용하지 않습니다.
+                터치 브라우저의 sticky :hover 때문에 OFF인데도 KOR/ENG가
+                옅은 빨강/파랑으로 남아 보이는 현상을 방지합니다.
+                색상은 오직 micLang/isListening 상태만 의미합니다. */}
             <button
               type="button"
               onClick={() => handleMicToggle('ko-KR')}
@@ -881,7 +1120,7 @@ export default function SearchInput({
                     ? isListening
                       ? 'bg-red-600 text-white border-red-600 shadow-md animate-pulse'
                       : 'bg-red-50 text-red-600 border-red-200 ring-2 ring-red-200'
-                    : 'bg-white text-slate-400 border-slate-200 hover:text-red-600 hover:bg-red-50 hover:border-red-100'
+                    : 'bg-white text-slate-400 border-slate-200 md:hover:text-red-600 md:hover:bg-red-50 md:hover:border-red-100'
                 }`}
               title="한국어 음성 검색"
             >
@@ -901,7 +1140,7 @@ export default function SearchInput({
                     ? isListening
                       ? 'bg-blue-600 text-white border-blue-600 shadow-md animate-pulse'
                       : 'bg-blue-50 text-blue-600 border-blue-200 ring-2 ring-blue-200'
-                    : 'bg-white text-slate-400 border-slate-200 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-100'
+                    : 'bg-white text-slate-400 border-slate-200 md:hover:text-blue-600 md:hover:bg-blue-50 md:hover:border-blue-100'
                 }`}
               title="영어 음성 검색"
             >
