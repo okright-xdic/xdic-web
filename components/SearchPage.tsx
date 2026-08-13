@@ -5369,7 +5369,8 @@ const hasXdicInsight =
                             </span>
                           </div>
                         </li>
-                        {!displayIsApp && idx === Math.min(6, currentItems.length - 1) && (
+                        {/* Ads Review 안전화: 결과가 7건 미만이면 목록 중간 광고를 표시하지 않습니다. */}
+                        {!displayIsApp && currentItems.length >= 7 && idx === 6 && (
                           <div className="w-full flex justify-center my-6">
                             <div className={`relative flex items-center justify-center w-full max-w-[728px] ${isMobileWeb ? 'min-h-[100px]' : 'min-h-[90px]'} bg-transparent rounded-lg overflow-hidden`}>
                               <div className="relative z-10 flex justify-center w-full overflow-x-auto max-w-full">
