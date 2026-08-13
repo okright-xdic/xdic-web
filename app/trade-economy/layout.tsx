@@ -1,13 +1,14 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-const title = '무역·경제 용어 한영·영한 전문 검색 | X-DIC';
+const pageTitle = '무역·경제 용어 한영·영한 전문 검색';
+const socialTitle = '무역·경제 용어 한영·영한 전문 검색 | X-DIC 엑스딕';
 const description =
   '무역·경제 분야의 한영·영한 전문용어를 X-DIC에서 검색하세요. 무역서류·물류, 계약·결제, 환율·금융, 경제지표 용어와 관련 병렬 데이터를 함께 확인할 수 있습니다.';
 const canonicalUrl = 'https://www.x-dic.com/trade-economy';
 
 export const metadata: Metadata = {
-  title,
+  title: pageTitle,
   description,
   keywords: [
     '무역용어',
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title,
+    title: socialTitle,
     description,
     url: canonicalUrl,
     siteName: 'X-DIC',
@@ -38,7 +39,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title,
+    title: socialTitle,
     description,
   },
 };

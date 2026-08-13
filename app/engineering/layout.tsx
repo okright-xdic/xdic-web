@@ -1,13 +1,14 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-const title = '기계·전기·전자 용어 한영·영한 전문 검색 | X-DIC';
+const pageTitle = '기계·전기·전자 용어 한영·영한 전문 검색';
+const socialTitle = '기계·전기·전자 용어 한영·영한 전문 검색 | X-DIC 엑스딕';
 const description =
   '기계·전기·전자 분야의 한영·영한 전문용어를 X-DIC에서 검색하세요. 기계 요소, 재료·제조, 전기·전력, 전자·제어 용어와 관련 병렬 데이터를 함께 확인할 수 있습니다.';
 const canonicalUrl = 'https://www.x-dic.com/engineering';
 
 export const metadata: Metadata = {
-  title,
+  title: pageTitle,
   description,
   keywords: [
     '기계용어',
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title,
+    title: socialTitle,
     description,
     url: canonicalUrl,
     siteName: 'X-DIC',
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title,
+    title: socialTitle,
     description,
   },
 };

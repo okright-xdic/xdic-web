@@ -1,25 +1,22 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-const pageTitle = '의학용어 한영·영한 전문 검색';
-const socialTitle = '의학용어 한영·영한 전문 검색 | X-DIC 엑스딕';
-const description =
-  '의학·간호·건강 분야의 한영·영한 전문용어를 X-DIC에서 검색하세요. 질환·진단, 검사·소견, 약물·투약, 해부·처치 용어와 관련 병렬 데이터를 함께 확인할 수 있습니다.';
-const canonicalUrl = 'https://www.x-dic.com/medical';
+const pageTitle = "영단어 뉘앙스·의미 차이";
+const socialTitle = "영단어 뉘앙스·의미 차이 | X-DIC Nuance";
+const description = "비슷해 보이는 영어 단어와 표현의 의미·쓰임 차이를 비교하고 문맥에 맞는 뜻과 표현을 X-DIC에서 확인하세요.";
+const canonicalUrl = "https://www.x-dic.com/nuance";
 
 export const metadata: Metadata = {
   title: pageTitle,
   description,
   keywords: [
-    '의학용어',
-    '한영 의학사전',
-    '영한 의학사전',
-    '의학 영어',
-    '간호 영어',
-    'medical terminology',
-    'Korean English medical dictionary',
-    'X-DIC',
-  ],
+  "영단어 뉘앙스",
+  "영어 단어 차이",
+  "영어 의미 차이",
+  "영어 어휘",
+  "Nuance",
+  "X-DIC"
+],
   alternates: {
     canonical: canonicalUrl,
   },
@@ -55,13 +52,13 @@ const breadcrumbJsonLd = {
     {
       '@type': 'ListItem',
       position: 2,
-      name: '의학용어 한영·영한 전문 검색',
+      name: "영단어 Nuance",
       item: canonicalUrl,
     },
   ],
 };
 
-export default function MedicalLayout({
+export default function NuanceLayout({
   children,
 }: {
   children: ReactNode;

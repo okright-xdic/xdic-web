@@ -1,13 +1,14 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-const title = '비즈니스 실무 영어 표현·이메일·회의 | X-DIC Business';
+const pageTitle = '비즈니스 실무 영어 표현·이메일·회의';
+const socialTitle = '비즈니스 실무 영어 표현·이메일·회의 | X-DIC Business';
 const description =
   '이메일, 회의, 전화, 일정, 요청·보고, 협상·계약에서 자주 쓰는 실무 영어를 X-DIC에서 살펴보세요. 업무 상황별 표현, 정중도와 이메일 패턴을 한영·영한 검색과 함께 제공합니다.';
 const canonicalUrl = 'https://www.x-dic.com/business';
 
 export const metadata: Metadata = {
-  title,
+  title: pageTitle,
   description,
   keywords: [
     '비즈니스 영어',
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title,
+    title: socialTitle,
     description,
     url: canonicalUrl,
     siteName: 'X-DIC',
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title,
+    title: socialTitle,
     description,
   },
 };

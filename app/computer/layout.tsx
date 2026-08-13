@@ -1,13 +1,14 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-const title = '컴퓨터 용어 한영·영한 전문 검색 | X-DIC';
+const pageTitle = '컴퓨터 용어 한영·영한 전문 검색';
+const socialTitle = '컴퓨터 용어 한영·영한 전문 검색 | X-DIC 엑스딕';
 const description =
   '컴퓨터 분야의 한영·영한 전문용어를 X-DIC에서 검색하세요. 소프트웨어·웹, 시스템·클라우드, 네트워크·인터넷, 데이터·데이터베이스 용어와 관련 병렬 데이터를 함께 확인할 수 있습니다.';
 const canonicalUrl = 'https://www.x-dic.com/computer';
 
 export const metadata: Metadata = {
-  title,
+  title: pageTitle,
   description,
   keywords: [
     '컴퓨터용어',
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title,
+    title: socialTitle,
     description,
     url: canonicalUrl,
     siteName: 'X-DIC',
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title,
+    title: socialTitle,
     description,
   },
 };

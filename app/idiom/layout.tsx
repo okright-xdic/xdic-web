@@ -1,25 +1,22 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-const pageTitle = '의학용어 한영·영한 전문 검색';
-const socialTitle = '의학용어 한영·영한 전문 검색 | X-DIC 엑스딕';
-const description =
-  '의학·간호·건강 분야의 한영·영한 전문용어를 X-DIC에서 검색하세요. 질환·진단, 검사·소견, 약물·투약, 해부·처치 용어와 관련 병렬 데이터를 함께 확인할 수 있습니다.';
-const canonicalUrl = 'https://www.x-dic.com/medical';
+const pageTitle = "영어 숙어·관용 표현 해설";
+const socialTitle = "영어 숙어·관용 표현 해설 | X-DIC Idioms";
+const description = "자주 쓰이는 영어 숙어와 관용 표현의 뜻과 쓰임을 살펴보고 실제 문맥에서 어떻게 사용되는지 X-DIC에서 확인하세요.";
+const canonicalUrl = "https://www.x-dic.com/idiom";
 
 export const metadata: Metadata = {
   title: pageTitle,
   description,
   keywords: [
-    '의학용어',
-    '한영 의학사전',
-    '영한 의학사전',
-    '의학 영어',
-    '간호 영어',
-    'medical terminology',
-    'Korean English medical dictionary',
-    'X-DIC',
-  ],
+  "영어 숙어",
+  "영어 관용구",
+  "영어 관용 표현",
+  "숙어 해설",
+  "Idioms",
+  "X-DIC"
+],
   alternates: {
     canonical: canonicalUrl,
   },
@@ -55,13 +52,13 @@ const breadcrumbJsonLd = {
     {
       '@type': 'ListItem',
       position: 2,
-      name: '의학용어 한영·영한 전문 검색',
+      name: "필수 숙어 해설",
       item: canonicalUrl,
     },
   ],
 };
 
-export default function MedicalLayout({
+export default function IdiomLayout({
   children,
 }: {
   children: ReactNode;

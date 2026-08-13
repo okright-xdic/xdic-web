@@ -1,13 +1,14 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-const title = '실용 여행 영어 표현·회화 | X-DIC Travel';
+const pageTitle = '실용 여행 영어 표현·회화';
+const socialTitle = '실용 여행 영어 표현·회화 | X-DIC Travel';
 const description =
   '공항, 호텔, 식당, 쇼핑, 길찾기와 도움 요청에 필요한 실용 여행 영어를 X-DIC에서 살펴보세요. 상황별 영어 표현, 정중한 요청, 미니 대화와 한영·영한 검색을 함께 제공합니다.';
 const canonicalUrl = 'https://www.x-dic.com/travel';
 
 export const metadata: Metadata = {
-  title,
+  title: pageTitle,
   description,
   keywords: [
     '여행영어',
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
     follow: true,
   },
   openGraph: {
-    title,
+    title: socialTitle,
     description,
     url: canonicalUrl,
     siteName: 'X-DIC',
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title,
+    title: socialTitle,
     description,
   },
 };

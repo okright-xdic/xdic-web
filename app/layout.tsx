@@ -3,9 +3,14 @@ import Script from 'next/script';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: '엑스딕(X-DIC) - 복합어 전문 한영/영한사전',
+metadataBase: new URL('https://www.x-dic.com'),
+
+  title: {
+    default: 'X-DIC 엑스딕 | 한영·영한 실용 번역사전·전문용어',
+    template: '%s | X-DIC 엑스딕',
+  },
   description:
-    '전문용어 사전, 의학용어사전, 번역사전, 영한사전, 한영사전, 영어회화, 뉘앙스 수록',
+    '한영·영한 단어와 문장 번역, 음성검색, 실제 병렬 예문과 의학·기계·전기·전자·무역·경제·컴퓨터 전문용어를 함께 검색하는 실용 번역사전 X-DIC입니다.',
   manifest: '/manifest.json',
   icons: {
     icon: '/favicon.ico',

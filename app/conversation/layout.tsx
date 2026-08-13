@@ -1,25 +1,22 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-const pageTitle = '의학용어 한영·영한 전문 검색';
-const socialTitle = '의학용어 한영·영한 전문 검색 | X-DIC 엑스딕';
-const description =
-  '의학·간호·건강 분야의 한영·영한 전문용어를 X-DIC에서 검색하세요. 질환·진단, 검사·소견, 약물·투약, 해부·처치 용어와 관련 병렬 데이터를 함께 확인할 수 있습니다.';
-const canonicalUrl = 'https://www.x-dic.com/medical';
+const pageTitle = "필수 영어회화·실용 표현";
+const socialTitle = "필수 영어회화·실용 표현 | X-DIC Essential English";
+const description = "여행·일상·업무에서 활용할 수 있는 필수 영어회화와 한국어 번역, 번역가 해설을 X-DIC에서 함께 살펴보세요.";
+const canonicalUrl = "https://www.x-dic.com/conversation";
 
 export const metadata: Metadata = {
   title: pageTitle,
   description,
   keywords: [
-    '의학용어',
-    '한영 의학사전',
-    '영한 의학사전',
-    '의학 영어',
-    '간호 영어',
-    'medical terminology',
-    'Korean English medical dictionary',
-    'X-DIC',
-  ],
+  "필수 영어회화",
+  "실용 영어회화",
+  "영어 표현",
+  "영어회화 예문",
+  "Essential English",
+  "X-DIC"
+],
   alternates: {
     canonical: canonicalUrl,
   },
@@ -55,13 +52,13 @@ const breadcrumbJsonLd = {
     {
       '@type': 'ListItem',
       position: 2,
-      name: '의학용어 한영·영한 전문 검색',
+      name: "필수 영어회화",
       item: canonicalUrl,
     },
   ],
 };
 
-export default function MedicalLayout({
+export default function ConversationLayout({
   children,
 }: {
   children: ReactNode;
