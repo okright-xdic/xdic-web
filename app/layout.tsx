@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import AdSenseWebOnly from '@/components/AdSenseWebOnly';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -33,13 +34,8 @@ export default function RootLayout({
         {/* ✅ 네이버 서치어드바이저 소유권 확인 태그 */}
         <meta name="naver-site-verification" content="1b770031d6a3b92fa9cc725d68d2a8b81f3d40e1" />
 
-        {/* ✅ Google AdSense 전역 스크립트 (반드시 1회만) */}
-        <Script
-          async
-          strategy="afterInteractive"
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8555893885172220"
-          crossOrigin="anonymous"
-        />
+        {/* ✅ Google AdSense: 웹에서만 로드, 설치형 Capacitor 앱에서는 차단 */}
+        <AdSenseWebOnly />
 
         {/* ▼▼▼ 구글 애널리틱스 & 구글 애즈 통합 태그 시작 ▼▼▼ */}
         <Script

@@ -2,6 +2,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
 
 export default function AppTodaysConversation() {
 // 🌟 [수동 업데이트 영역] 매일매일 이곳의 글자만 바꿔주시면 됩니다!
@@ -54,6 +56,63 @@ export default function AppTodaysConversation() {
     } catch {}
   };
 
+  // ================================================================
+  // ☆ TwoPro v1.54-safe: 앱 오늘의 영어회화 발음 듣기
+  // - 설치형 앱은 Native TTS 사용
+  // - 일반 브라우저는 Web SpeechSynthesis 사용
+  // - 카드 펼침 onClick과 충돌하지 않도록 stopPropagation() 적용
+  // ================================================================
+  const handleSpeak = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    const parts = [
+      { text: todaysData.en_text, lang: 'en-US', rate: 0.92, pitch: 0.95 },
+      { text: todaysData.ko_text, lang: 'ko-KR', rate: 1.0, pitch: 1.0 },
+    ];
+
+    if (Capacitor.isNativePlatform()) {
+      try {
+        try { await TextToSpeech.stop(); } catch {}
+
+        for (const part of parts) {
+          const languageResult = await TextToSpeech.isLanguageSupported({
+            lang: part.lang,
+          });
+
+          if (!languageResult?.supported) {
+            throw new Error(`TTS_LANGUAGE_NOT_SUPPORTED:${part.lang}`);
+          }
+
+          await TextToSpeech.speak({
+            text: part.text,
+            lang: part.lang,
+            rate: part.rate,
+            pitch: part.pitch,
+            volume: 1.0,
+            queueStrategy: 0,
+          });
+        }
+
+        return;
+      } catch (err) {
+        console.warn('[X-DIC AppTodaysConversation Native TTS]', err);
+      }
+    }
+
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+
+      for (const part of parts) {
+        const utterance = new SpeechSynthesisUtterance(part.text);
+        utterance.lang = part.lang;
+        utterance.rate = part.rate;
+        utterance.pitch = part.pitch;
+        utterance.volume = 1.0;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+  };
+
   return (
     <div className="w-full max-w-2xl mx-auto mt-6 mb-2 px-2 animate-in fade-in duration-500">
       <div
@@ -69,7 +128,17 @@ export default function AppTodaysConversation() {
 
         <div className="flex items-start gap-3 mt-1 pt-1">
           <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
-            {/* 🌟 마이크 버튼 완전 삭제됨 (버그 원천 차단) 🌟 */}
+            {/* 🌟 마이크 버튼은 복원하지 않고, 발음 듣기 스피커만 추가 */}
+            <button
+              onClick={handleSpeak}
+              className="w-8 h-8 rounded-full bg-white text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+              title="발음 듣기"
+              aria-label="오늘의 영어회화 발음 듣기"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
+              </svg>
+            </button>
             <button
               onClick={handleCopy}
               className="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 hover:bg-slate-100 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm"

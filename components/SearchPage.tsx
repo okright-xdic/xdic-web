@@ -2724,9 +2724,21 @@ useEffect(() => {
         <div className={displayIsApp ? "p-2 hover:bg-slate-50 transition-colors" : "p-2.5 hover:bg-slate-50 transition-colors"}>
           <div className={displayIsApp ? "flex items-start gap-1.5 mb-1" : "flex items-start gap-2 mb-1.5"}>
             <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
-              {mounted && !displayIsApp && (
-                <button onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)} className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
+              {/* ☆ TwoPro v1.54-safe: 앱에서도 Native TTS 발음 버튼 표시 */}
+              {mounted && (
+                <button
+                  onClick={() => handleSpeak(`${item.en_text} ... ${item.ko_text}`)}
+                  className={
+                    displayIsApp
+                      ? "w-7 h-7 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                      : "w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                  }
+                  title="발음 듣기"
+                  aria-label="필수 영어회화 발음 듣기"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
+                  </svg>
                 </button>
               )}
               <button onClick={() => handleCopy(`${item.en_text} - ${item.ko_text}`, item.id || idx)} className={
@@ -5262,12 +5274,33 @@ const hasXdicInsight =
                                     key={`insight-term-${String(item.id)}-${index}`}
                                     className={displayIsApp ? "rounded-lg bg-blue-50/45 border border-blue-100 px-2.5 py-1.5" : "rounded-lg bg-blue-50/45 border border-blue-100 px-3 py-2"}
                                   >
-                                    <div className="text-[13px] md:text-[14px] leading-relaxed break-words">
-                                      {highlightMatch(item.line_text)}
+                                    <div className="flex items-start gap-2">
+                                      {/* ☆ TwoPro v1.54-safe: X-DIC Insight 전문용어 발음 */}
+                                      {mounted && (
+                                        <button
+                                          onClick={() => handleSpeak(item.line_text)}
+                                          className={
+                                            displayIsApp
+                                              ? "mt-0.5 w-7 h-7 shrink-0 rounded-full bg-white border border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                              : "mt-0.5 w-8 h-8 shrink-0 rounded-full bg-white border border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                          }
+                                          title="발음 듣기"
+                                          aria-label="관련 전문용어 발음 듣기"
+                                        >
+                                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                                            <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
+                                          </svg>
+                                        </button>
+                                      )}
+                                      <div className="min-w-0 flex-1">
+                                        <div className="text-[13px] md:text-[14px] leading-relaxed break-words">
+                                          {highlightMatch(item.line_text)}
+                                        </div>
+                                        <p className="mt-1 text-[10px] md:text-[11px] font-semibold text-slate-400">
+                                          {getCategoryName(item.category_id)}
+                                        </p>
+                                      </div>
                                     </div>
-                                    <p className="mt-1 text-[10px] md:text-[11px] font-semibold text-slate-400">
-                                      {getCategoryName(item.category_id)}
-                                    </p>
                                   </div>
                                 )
                               )}
@@ -5288,8 +5321,27 @@ const hasXdicInsight =
                                     key={`insight-example-${String(item.id)}-${index}`}
                                     className={displayIsApp ? "rounded-lg bg-emerald-50/35 border border-emerald-100 px-2.5 py-1.5" : "rounded-lg bg-emerald-50/35 border border-emerald-100 px-3 py-2"}
                                   >
-                                    <div className="text-[13px] md:text-[14px] leading-relaxed break-words">
-                                      {highlightMatch(item.line_text)}
+                                    <div className="flex items-start gap-2">
+                                      {/* ☆ TwoPro v1.54-safe: X-DIC Insight 병렬 예문 발음 */}
+                                      {mounted && (
+                                        <button
+                                          onClick={() => handleSpeak(item.line_text)}
+                                          className={
+                                            displayIsApp
+                                              ? "mt-0.5 w-7 h-7 shrink-0 rounded-full bg-white border border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                              : "mt-0.5 w-8 h-8 shrink-0 rounded-full bg-white border border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                                          }
+                                          title="발음 듣기"
+                                          aria-label="실제 병렬 예문 발음 듣기"
+                                        >
+                                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                                            <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
+                                          </svg>
+                                        </button>
+                                      )}
+                                      <div className="min-w-0 flex-1 text-[13px] md:text-[14px] leading-relaxed break-words">
+                                        {highlightMatch(item.line_text)}
+                                      </div>
                                     </div>
                                   </div>
                                 )
