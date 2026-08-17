@@ -113,8 +113,9 @@ export default function TodaysConversation() {
           <span className="text-xs font-extrabold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
             💡 오늘의 영어회화
           </span>
+          {/* TwoPro v1.58: 현재 오늘의 회화 id까지 넘겨 상세 페이지를 정확히 엽니다. */}
           <Link
-            href="/conversation?type=todays"
+            href={`/conversation?type=todays&id=${encodeURIComponent(String(item.id))}`}
             onClick={(e) => e.stopPropagation()}
             className="text-[11px] font-bold text-slate-400 hover:text-blue-600 transition-colors"
           >

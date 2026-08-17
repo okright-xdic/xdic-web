@@ -16545,6 +16545,217 @@ const twoProTranslatePolysemyMiniSentenceV1384 = (
 };
 
 
+// ============================================================================
+// ☆ TwoPro v13.85-safe: 실용영어·실무영어 고신뢰 문형 가드
+//
+// 1) I/We have a reservation under [NAME]
+//    - reservation + under + 이름을 "~라는 이름으로 예약"으로 해석합니다.
+//    - under를 일반 전치사 "아래에"로, Park를 일반명사 "공원"으로 분해하지 않습니다.
+//
+// 2) I/We would like to discuss the terms/conditions
+//    - would like to를 하나의 의향 문형 "~하고 싶다"로 처리합니다.
+//    - 협상·계약 문맥의 terms/conditions는 "조건"으로 해석합니다.
+//
+// - 문장 전체 PHRASE를 추가하지 않고, 재사용 가능한 제한 슬롯 문형으로 처리합니다.
+// - 허용 문형 밖에서는 기존 RBMT/DB 흐름으로 그대로 넘겨 과잉 매칭을 막습니다.
+// ============================================================================
+type TwoProPracticalBusinessResultV1385 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+  patternId: string;
+};
+
+const TWO_PRO_RESERVATION_SURNAME_KO_V1385:
+  Record<string, string> = {
+    park: '박',
+    kim: '김',
+    lee: '이',
+    choi: '최',
+    jung: '정',
+    jeong: '정',
+    kang: '강',
+    cho: '조',
+    jo: '조',
+    yoon: '윤',
+    jang: '장',
+    lim: '임',
+    im: '임',
+    han: '한',
+    shin: '신',
+  };
+
+const twoProHasKoreanFinalConsonantV1385 = (
+  value: string
+): boolean => {
+  const chars = Array.from(
+    String(value || '').trim()
+  );
+  const last = chars[chars.length - 1] || '';
+  const code = last.charCodeAt(0);
+
+  if (code < 0xac00 || code > 0xd7a3) {
+    return false;
+  }
+
+  return (code - 0xac00) % 28 !== 0;
+};
+
+const twoProReservationNameKoV1385 = (
+  value: string
+): string => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!source) {
+    return '';
+  }
+
+  const mapped =
+    TWO_PRO_RESERVATION_SURNAME_KO_V1385[
+      source.toLowerCase()
+    ];
+
+  return mapped || source;
+};
+
+const twoProReservationUnderNamePhraseV1385 = (
+  nameKo: string
+): string => {
+  if (!nameKo) {
+    return '';
+  }
+
+  const last = Array.from(nameKo).slice(-1)[0] || '';
+  const isHangul = /[가-힣]/.test(last);
+
+  if (!isHangul) {
+    return `${nameKo}라는 이름으로`;
+  }
+
+  return `${nameKo}${
+    twoProHasKoreanFinalConsonantV1385(nameKo)
+      ? '이라는'
+      : '라는'
+  } 이름으로`;
+};
+
+const twoProTranslatePracticalBusinessV1385 = (
+  value: unknown
+): TwoProPracticalBusinessResultV1385 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  if (!source) {
+    return null;
+  }
+
+  // ------------------------------------------------------------------------
+  // 예약 명의: I/We have a reservation under Park/John Smith
+  // ------------------------------------------------------------------------
+  const reservationMatch = source.match(
+    /^(I|We)\s+have\s+(?:a|the)\s+reservation\s+under\s+([A-Za-z][A-Za-z'-]*(?:\s+[A-Za-z][A-Za-z'-]*){0,2})$/i
+  );
+
+  if (reservationMatch) {
+    const nameSource = String(
+      reservationMatch[2] || ''
+    )
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const nameKo =
+      twoProReservationNameKoV1385(
+        nameSource
+      );
+
+    const underNameTarget =
+      twoProReservationUnderNamePhraseV1385(
+        nameKo
+      );
+
+    if (!underNameTarget) {
+      return null;
+    }
+
+    return {
+      targetText:
+        `${underNameTarget} 예약했습니다`,
+      patternId:
+        'reservation-under-name-v13.85',
+      referenceWords: [
+        {
+          source: 'have a reservation',
+          selected: '예약했습니다',
+          candidates: ['예약했습니다'],
+          slot: 'RESERVATION_PREDICATE',
+          confidence: 1,
+        },
+        {
+          source: `under ${nameSource}`,
+          selected: underNameTarget,
+          candidates: [underNameTarget],
+          slot: 'RESERVATION_NAME',
+          confidence: 1,
+        },
+      ],
+    };
+  }
+
+  // ------------------------------------------------------------------------
+  // 협상 의향: I/We would like to discuss the terms/conditions
+  // ------------------------------------------------------------------------
+  const discussTermsMatch = source.match(
+    /^(I|We)(?:\s+would|'d)\s+like\s+to\s+discuss\s+(?:the\s+)?(terms|conditions)$/i
+  );
+
+  if (discussTermsMatch) {
+    const termSource = String(
+      discussTermsMatch[2] || 'terms'
+    ).toLowerCase();
+
+    const predicateSource =
+      termSource === 'conditions'
+        ? 'discuss the conditions'
+        : 'discuss the terms';
+
+    return {
+      targetText:
+        '조건을 협의하고 싶습니다',
+      patternId:
+        'would-like-to-discuss-terms-v13.85',
+      referenceWords: [
+        {
+          source: 'would like to',
+          selected: '~하고 싶다',
+          candidates: ['~하고 싶다'],
+          slot: 'WOULD_LIKE_TO',
+          confidence: 1,
+        },
+        {
+          source: predicateSource,
+          selected: '조건을 협의하다',
+          candidates: [
+            '조건을 협의하다',
+            '조건을 논의하다',
+          ],
+          slot: 'BUSINESS_NEGOTIATION_PREDICATE',
+          confidence: 0.99,
+        },
+      ],
+    };
+  }
+
+  return null;
+};
+
+
 type TemplateSlotTranslation = {
   // 실제 한국어 문장 생성에 넣는 값입니다.
   // this/that/these/those가 있으면 이/그가 결합될 수 있습니다.
@@ -18780,6 +18991,43 @@ export async function POST(request: Request) {
         },
         referenceWords:
           twoProPolysemyMiniSentenceV1384.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.85-safe: 실용영어·실무영어 고신뢰 문형 최우선 가드
+    // =================================================================
+    // v13.84 다의어 초단문 이후, DB 유사문장/일반 RBMT보다 먼저 실행합니다.
+    // reservation under [NAME]과 would like to discuss the terms처럼
+    // 의미가 문형으로 확정되는 제한 조합만 직접 번역합니다.
+    const twoProPracticalBusinessV1385 =
+      twoProTranslatePracticalBusinessV1385(
+        originalText
+      );
+
+    if (twoProPracticalBusinessV1385) {
+      const targetV1385 =
+        twoProFinalizeExactEnKoPhraseTargetV1375(
+          twoProPracticalBusinessV1385.targetText
+        );
+
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: targetV1385,
+          isReference: false,
+          analysis: [],
+          referenceWords:
+            twoProPracticalBusinessV1385.referenceWords,
+          engine:
+            'practical-business-en-ko-v13.85',
+          patternId:
+            twoProPracticalBusinessV1385.patternId,
+        },
+        referenceWords:
+          twoProPracticalBusinessV1385.referenceWords,
       });
     }
 

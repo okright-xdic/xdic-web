@@ -149,8 +149,8 @@ export default function MedicalPage() {
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-4 md:px-6 pt-16 md:pt-20 pb-20">
-        <section className="text-center mb-4 md:mb-5 animate-in fade-in slide-in-from-top-4 duration-500">
+      <main className="max-w-5xl mx-auto px-4 md:px-6 pt-14 md:pt-16 pb-16">
+        <section className="text-center mb-3 md:mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
           <p className="text-[9px] md:text-[10px] font-extrabold tracking-[0.12em] text-blue-600 uppercase mb-1">
             X-DIC Medical Terminology
           </p>
@@ -173,7 +173,7 @@ export default function MedicalPage() {
           </p>
         </section>
 
-        <section aria-labelledby="medical-search-title" className="mb-5 md:mb-6">
+        <section aria-labelledby="medical-search-title" className="mb-4 md:mb-5">
           <h2 id="medical-search-title" className="sr-only">
             의학용어 한영·영한 검색
           </h2>
@@ -224,55 +224,55 @@ export default function MedicalPage() {
         </section>
 
         {/* 검색 없이 읽을 수 있는 정적 콘텐츠 */}
-        <section aria-labelledby="medical-guide-title" className="mb-8 md:mb-10">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 md:p-6">
-            <div className="mb-4">
-              <p className="text-[11px] md:text-xs font-bold text-sky-600 mb-1">
+        <section aria-labelledby="medical-guide-title" className="mb-3.5 md:mb-4">
+          <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 md:p-4">
+            <div className="mb-2.5">
+              <p className="text-[9px] md:text-[10px] font-bold text-sky-600 mb-1">
                 Medical Terminology Guide
               </p>
               <h2
                 id="medical-guide-title"
-                className="text-lg md:text-2xl font-black text-slate-900"
+                className="text-[16px] md:text-[18px] font-black text-slate-900 leading-tight"
               >
                 X-DIC에서 의학용어를 찾는 방법
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-              <article className="rounded-xl bg-white border border-slate-200 p-4">
-                <h3 className="font-extrabold text-slate-900 text-sm md:text-base mb-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <article className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 md:px-3.5 md:py-3">
+                <h3 className="font-extrabold text-slate-900 text-[12px] md:text-[13px] mb-1">
                   ① 한글·영어 용어 검색
                 </h3>
-                <p className="text-[12px] md:text-[13px] text-slate-600 leading-relaxed">
+                <p className="text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.5]">
                   질환명, 검사명, 처치명, 약물명 등 알고 싶은 용어를 한글 또는 영어로 입력하면
                   X-DIC 메인 검색 결과에서 관련 전문용어와 병렬 데이터를 확인할 수 있습니다.
                 </p>
               </article>
 
-              <article className="rounded-xl bg-white border border-slate-200 p-4">
-                <h3 className="font-extrabold text-slate-900 text-sm md:text-base mb-2">
+              <article className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 md:px-3.5 md:py-3">
+                <h3 className="font-extrabold text-slate-900 text-[12px] md:text-[13px] mb-1">
                   ② 한영·영한 표현 함께 확인
                 </h3>
-                <p className="text-[12px] md:text-[13px] text-slate-600 leading-relaxed">
+                <p className="text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.5]">
                   한 개의 표제어만 보는 대신 검색어가 포함된 한영·영한 데이터와 실제 문장형 결과를
                   함께 살펴보면 용어가 어떤 문맥에서 쓰이는지 비교하기 쉽습니다.
                 </p>
               </article>
 
-              <article className="rounded-xl bg-white border border-slate-200 p-4">
-                <h3 className="font-extrabold text-slate-900 text-sm md:text-base mb-2">
+              <article className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 md:px-3.5 md:py-3">
+                <h3 className="font-extrabold text-slate-900 text-[12px] md:text-[13px] mb-1">
                   ③ 관련 용어까지 이어서 탐색
                 </h3>
-                <p className="text-[12px] md:text-[13px] text-slate-600 leading-relaxed">
+                <p className="text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.5]">
                   추천 의학 실무 용어를 통해 질환·검사·처치·해부학 등 주변 개념으로 검색을 확장할 수 있습니다.
                 </p>
               </article>
 
-              <article className="rounded-xl bg-white border border-slate-200 p-4">
-                <h3 className="font-extrabold text-slate-900 text-sm md:text-base mb-2">
+              <article className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 md:px-3.5 md:py-3">
+                <h3 className="font-extrabold text-slate-900 text-[12px] md:text-[13px] mb-1">
                   ④ 개인 검색 기록 활용
                 </h3>
-                <p className="text-[12px] md:text-[13px] text-slate-600 leading-relaxed">
+                <p className="text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.5]">
                   이 페이지에서 검색한 최근 의학용어는 현재 브라우저의 보물창고에 저장되어
                   다시 찾아보기 쉽도록 도와줍니다.
                 </p>
@@ -282,19 +282,19 @@ export default function MedicalPage() {
         </section>
 
         {/* 대표 분야 */}
-        <section aria-labelledby="medical-fields-title" className="mb-8 md:mb-10">
-          <div className="flex items-end justify-between gap-3 mb-4">
+        <section aria-labelledby="medical-fields-title" className="mb-3.5 md:mb-4">
+          <div className="flex items-end justify-between gap-2 mb-2.5">
             <div>
-              <p className="text-[11px] md:text-xs font-bold text-blue-600 mb-1">
+              <p className="text-[9px] md:text-[10px] font-bold text-blue-600 mb-1">
                 Explore by field
               </p>
-              <h2 id="medical-fields-title" className="text-lg md:text-xl font-black text-slate-900">
+              <h2 id="medical-fields-title" className="text-[15px] md:text-[17px] font-black text-slate-900 leading-tight">
                 대표 의학용어 분야
               </h2>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {[
               ['🫀', '질환·진단', '심근경색, 고혈압, 패혈증 등', '#disease-diagnosis'],
               ['🧪', '검사·소견', '활력징후, 면역학적 이상소견 등', '#tests-findings'],
@@ -304,14 +304,14 @@ export default function MedicalPage() {
               <a
                 key={title}
                 href={href}
-                className="group rounded-xl border border-slate-200 bg-white p-3.5 md:p-4 hover:border-blue-200 hover:bg-blue-50/30 transition-colors"
+                className="group rounded-xl border border-slate-200 bg-white px-2.5 py-2.5 md:px-3 md:py-3 hover:border-blue-200 hover:bg-blue-50/30 transition-colors"
               >
-                <div className="text-xl mb-2" aria-hidden="true">{icon}</div>
-                <h3 className="font-extrabold text-slate-900 text-sm mb-1 group-hover:text-blue-700 transition-colors">
+                <div className="text-base md:text-lg mb-1" aria-hidden="true">{icon}</div>
+                <h3 className="font-extrabold text-slate-900 text-[11.5px] md:text-[12.5px] mb-0.5 group-hover:text-blue-700 transition-colors">
                   {title}
                 </h3>
-                <p className="text-[11px] md:text-[12px] text-slate-500 leading-relaxed">{desc}</p>
-                <p className="mt-2 text-[10px] md:text-[11px] font-bold text-blue-600">
+                <p className="text-[9.5px] md:text-[10.5px] text-slate-500 leading-snug">{desc}</p>
+                <p className="mt-1.5 text-[9px] md:text-[10px] font-bold text-blue-600">
                   대표 검색어 보기 ↓
                 </p>
               </a>
@@ -320,7 +320,7 @@ export default function MedicalPage() {
         </section>
 
         {/* 분야별 실제 검색 진입점 */}
-        <section aria-labelledby="medical-topic-terms-title" className="mb-8 md:mb-10">
+        <section aria-labelledby="medical-topic-terms-title" className="mb-5 md:mb-6">
           <div className="mb-4">
             <p className="text-[11px] md:text-xs font-bold text-indigo-600 mb-1">
               Browse Medical Search Examples
@@ -372,7 +372,7 @@ export default function MedicalPage() {
           </div>
         </section>
 
-        <div className="grid grid-cols-1 gap-7 md:gap-8">
+        <div className="grid grid-cols-1 gap-5 md:gap-6">
           {/* 나만의 보물창고 */}
           <section aria-labelledby="medical-treasure-title" className="animate-in fade-in duration-700">
             <div className="flex items-center justify-between gap-3 mb-3">
@@ -449,7 +449,7 @@ export default function MedicalPage() {
         </div>
 
         {/* 검색 기능과 데이터 이용 방식에 대한 정적 FAQ */}
-        <section aria-labelledby="medical-faq-title" className="mt-8 md:mt-10">
+        <section aria-labelledby="medical-faq-title" className="mt-5 md:mt-6">
           <div className="mb-3">
             <p className="text-[11px] md:text-xs font-bold text-sky-600 mb-1">
               Medical Search FAQ
@@ -503,7 +503,7 @@ export default function MedicalPage() {
         </section>
 
         {/* 신뢰/주의 안내 */}
-        <section aria-labelledby="medical-search-notice-title" className="mt-8 md:mt-10 rounded-2xl border border-amber-100 bg-amber-50/45 p-4 md:p-5">
+        <section aria-labelledby="medical-search-notice-title" className="mt-5 md:mt-6 rounded-2xl border border-amber-100 bg-amber-50/45 p-4 md:p-5">
           <h2 id="medical-search-notice-title" className="text-sm md:text-base font-extrabold text-slate-900 mb-2">
             X-DIC 의학용어 검색 이용 안내
           </h2>

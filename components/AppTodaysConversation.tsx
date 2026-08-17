@@ -2,10 +2,16 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Capacitor } from '@capacitor/core';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 
 export default function AppTodaysConversation() {
+  const router = useRouter();
+  const [supabase] = useState(() => createClientComponentClient());
+  const [openingDetail, setOpeningDetail] = useState(false);
+
 // 🌟 [수동 업데이트 영역] 매일매일 이곳의 글자만 바꿔주시면 됩니다!
   const todaysData = {
     en_text: "Could you cc my team leader on this email?",
@@ -57,24 +63,63 @@ export default function AppTodaysConversation() {
   };
 
   // ================================================================
-  // ☆ TwoPro v1.54-safe: 앱 오늘의 영어회화 발음 듣기
+  // ☆ TwoPro v1.67-safe: 앱 '전체보기'는 펼침 토글이 아니라
+  // 웹과 동일한 오늘의 영어회화 상세 + 번호 목록 페이지로 이동합니다.
+  // - 현재 앱의 수동 문장을 conversation_lines의 en_text와 정확히 대조
+  // - 일치하는 행이 있으면 해당 id를 붙여 같은 문장을 상세 상단에 표시
+  // - 일치 행을 못 찾으면 daily 목록 페이지로 안전하게 이동
+  // ================================================================
+  const handleOpenDetail = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (openingDetail) return;
+
+    setOpeningDetail(true);
+
+    let href = '/conversation?type=daily';
+
+    try {
+      const { data: matched, error } = await supabase
+        .from('conversation_lines')
+        .select('id')
+        .eq('en_text', todaysData.en_text)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!error && matched?.id != null) {
+        href = `/conversation?type=daily&id=${encodeURIComponent(String(matched.id))}`;
+      }
+    } catch (err) {
+      console.warn('[X-DIC AppTodaysConversation detail lookup]', err);
+    } finally {
+      router.push(href);
+      setOpeningDetail(false);
+    }
+  };
+
+  // ================================================================
+  // ☆ TwoPro v1.65-safe: 앱 오늘의 영어회화 + 해설 예문 발음 듣기
   // - 설치형 앱은 Native TTS 사용
   // - 일반 브라우저는 Web SpeechSynthesis 사용
-  // - 카드 펼침 onClick과 충돌하지 않도록 stopPropagation() 적용
+  // - 대표 문장은 기존처럼 영어 → 한국어
+  // - 해설 예문은 화면 원문 순서대로 한국어 → 영어
   // ================================================================
-  const handleSpeak = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  type SpeakPart = {
+    text: string;
+    lang: 'ko-KR' | 'en-US';
+    rate: number;
+    pitch: number;
+  };
 
-    const parts = [
-      { text: todaysData.en_text, lang: 'en-US', rate: 0.92, pitch: 0.95 },
-      { text: todaysData.ko_text, lang: 'ko-KR', rate: 1.0, pitch: 1.0 },
-    ];
+  const speakParts = async (parts: SpeakPart[]) => {
+    const safeParts = parts.filter((part) => String(part.text || '').trim());
+    if (safeParts.length === 0) return;
 
     if (Capacitor.isNativePlatform()) {
       try {
         try { await TextToSpeech.stop(); } catch {}
 
-        for (const part of parts) {
+        for (const part of safeParts) {
           const languageResult = await TextToSpeech.isLanguageSupported({
             lang: part.lang,
           });
@@ -102,7 +147,7 @@ export default function AppTodaysConversation() {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
 
-      for (const part of parts) {
+      for (const part of safeParts) {
         const utterance = new SpeechSynthesisUtterance(part.text);
         utterance.lang = part.lang;
         utterance.rate = part.rate;
@@ -113,18 +158,153 @@ export default function AppTodaysConversation() {
     }
   };
 
+  const handleSpeak = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    await speakParts([
+      { text: todaysData.en_text, lang: 'en-US', rate: 0.92, pitch: 0.95 },
+      { text: todaysData.ko_text, lang: 'ko-KR', rate: 1.0, pitch: 1.0 },
+    ]);
+  };
+
+  // "다음은 다양한 예문입니다. 참고하세요." 아래의
+  // "한국어 문장 + 영어 문장" 한 줄을 안전하게 분리합니다.
+  const splitBilingualExample = (line: string) => {
+    const normalized = String(line || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!normalized) return null;
+
+    // 일반형: "한국어 문장? English sentence."
+    // 호환형: "한국어 문장? , English sentence."
+    const boundary =
+      /[.!?。！？](?:\s*[,，]\s*|\s+)(?=["“‘']?[A-Z])/u.exec(normalized);
+
+    if (!boundary || typeof boundary.index !== 'number') return null;
+
+    const koreanEnd = boundary.index + 1;
+    const korean = normalized.slice(0, koreanEnd).trim();
+    const english = normalized
+      .slice(boundary.index + boundary[0].length)
+      .trim();
+
+    const englishWordCount =
+      english.match(/[A-Za-z]+(?:['’-][A-Za-z]+)*/g)?.length || 0;
+
+    if (
+      /[가-힣]/u.test(korean) &&
+      /^[“”"'‘’]?[A-Z]/u.test(english) &&
+      englishWordCount >= 2
+    ) {
+      return { korean, english };
+    }
+
+    return null;
+  };
+
+  const parseDescriptionExamples = (description: string) => {
+    const source = String(description || '').replace(/\r\n?/g, '\n');
+    const lines = source.split('\n');
+
+    const markerIndex = lines.findIndex((line) => {
+      const compact = String(line || '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      return compact.includes('다양한 예문') && compact.includes('참고하세요');
+    });
+
+    if (markerIndex < 0) {
+      return {
+        hasExamples: false,
+        intro: source,
+        marker: '',
+        examples: [] as Array<{
+          raw: string;
+          korean: string;
+          english: string;
+          speakable: boolean;
+        }>,
+      };
+    }
+
+    const intro = lines
+      .slice(0, markerIndex)
+      .join('\n')
+      .trimEnd();
+
+    const marker =
+      String(lines[markerIndex] || '').trim() ||
+      '다음은 다양한 예문입니다. 참고하세요.';
+
+    const examples = lines
+      .slice(markerIndex + 1)
+      .map((line) => String(line || '').trim())
+      .filter(Boolean)
+      .map((raw) => {
+        const parsed = splitBilingualExample(raw);
+
+        return parsed
+          ? {
+              raw,
+              korean: parsed.korean,
+              english: parsed.english,
+              speakable: true,
+            }
+          : {
+              raw,
+              korean: '',
+              english: '',
+              speakable: false,
+            };
+      });
+
+    return {
+      hasExamples: examples.length > 0,
+      intro,
+      marker,
+      examples,
+    };
+  };
+
+  const parsedDescription = parseDescriptionExamples(todaysData.description);
+
+  const handleExampleSpeak = async (
+    e: React.MouseEvent,
+    korean: string,
+    english: string,
+  ) => {
+    e.stopPropagation();
+
+    await speakParts([
+      { text: korean, lang: 'ko-KR', rate: 1.0, pitch: 1.0 },
+      { text: english, lang: 'en-US', rate: 0.92, pitch: 0.95 },
+    ]);
+  };
+
   return (
     <div className="w-full max-w-2xl mx-auto mt-6 mb-2 px-2 animate-in fade-in duration-500">
       <div
         onClick={() => setIsExpanded(!isExpanded)}
         className="group relative bg-blue-50/50 hover:bg-blue-50 border border-blue-100 rounded-2xl p-4 cursor-pointer transition-all shadow-sm hover:shadow-md"
       >
-        {/* 상단 라벨 (전체보기 링크 삭제됨) */}
+        {/* 상단 라벨 + 앱용 상세/목록 전체보기 버튼 */}
         <div className="absolute -top-3 left-4 bg-white px-2 flex items-center gap-2.5">
           <span className="text-xs font-extrabold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
             💡 오늘의 영어회화
           </span>
         </div>
+
+        <button
+          type="button"
+          onClick={handleOpenDetail}
+          disabled={openingDetail}
+          className="absolute -top-3 right-4 bg-white px-2 text-[11px] font-extrabold text-blue-600 hover:text-blue-800 disabled:opacity-50 transition-colors"
+          aria-label="오늘의 영어회화 전체보기 및 목록 보기"
+        >
+          {openingDetail ? '불러오는 중…' : '전체보기 · View →'}
+        </button>
 
         <div className="flex items-start gap-3 mt-1 pt-1">
           <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
@@ -168,9 +348,71 @@ export default function AppTodaysConversation() {
 
         {isExpanded && todaysData.description && (
           <div className="mt-4 pt-4 border-t border-blue-100/50 animate-in fade-in slide-in-from-top-2">
-            <div className="bg-white rounded-xl p-3.5 border border-blue-100 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-              <span className="font-extrabold text-blue-600 mr-1.5">👨‍🏫 해설:</span>
-              {todaysData.description}
+            <div className="bg-white rounded-xl p-3.5 border border-blue-100 text-sm text-slate-700 leading-relaxed">
+              {!parsedDescription.hasExamples ? (
+                <div className="whitespace-pre-wrap">
+                  <span className="font-extrabold text-blue-600 mr-1.5">👨‍🏫 해설:</span>
+                  {todaysData.description}
+                </div>
+              ) : (
+                <div>
+                  <div className="whitespace-pre-wrap">
+                    <span className="font-extrabold text-blue-600 mr-1.5">👨‍🏫 해설:</span>
+                    {parsedDescription.intro}
+                  </div>
+
+                  <p className="mt-4 mb-2 font-medium text-slate-700">
+                    {parsedDescription.marker}
+                  </p>
+
+                  <div className="space-y-1.5">
+                    {parsedDescription.examples.map((example, index) => (
+                      <div
+                        key={`app-today-example-${index}`}
+                        className="flex items-start gap-2"
+                      >
+                        {example.speakable ? (
+                          <button
+                            type="button"
+                            onClick={(e) =>
+                              handleExampleSpeak(
+                                e,
+                                example.korean,
+                                example.english,
+                              )
+                            }
+                            className="mt-0.5 w-7 h-7 shrink-0 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                            title="한국어·영어 예문 발음 듣기"
+                            aria-label={`한국어·영어 예문 ${index + 1} 발음 듣기`}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                              className="w-4 h-4"
+                            >
+                              <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
+                            </svg>
+                          </button>
+                        ) : (
+                          <span className="w-7 shrink-0" aria-hidden="true" />
+                        )}
+
+                        {example.speakable ? (
+                          <p className="min-w-0 flex-1 leading-relaxed">
+                            <span>{example.korean} </span>
+                            <span>{example.english}</span>
+                          </p>
+                        ) : (
+                          <p className="min-w-0 flex-1 leading-relaxed text-slate-600">
+                            {example.raw}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

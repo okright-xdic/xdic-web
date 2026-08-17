@@ -30649,7 +30649,100 @@ const twoProTryKoEnArticleNumberClauseV990 = (
     }
   }
 
-  // 6) 생략 주어 + 목적어 + 안전 동사
+  // ========================================================================
+  // ☆ TwoPro v9.91-safe: 하늘 + 목적격 + 보다 문맥 보강
+  //
+  // 목적:
+  // - "하늘을 봐요"처럼 주어가 생략된 짧은 해요체 문장도 번역 블록을 만듭니다.
+  // - 보다를 전역에서 look at으로 고정하지 않습니다.
+  //   (영화를 보다=watch, 사람을 보다=see 등 다의어 충돌 방지)
+  // - 하늘 문맥에서만 자연스러운 the sky + look at을 사용합니다.
+  // - 명시적 인칭대명사 주어가 있으면 기존 v6.2 주어 판별을 재사용합니다.
+  // - 보세요/보십시오/보라 같은 명령형은 기존 명령문 엔진에 맡깁니다.
+  // ========================================================================
+  const skyLookExplicitSubjectV991 =
+    twoProExtractLeadingSubjectV62(normalized);
+
+  const skyLookBodyV991 =
+    skyLookExplicitSubjectV991
+      ? skyLookExplicitSubjectV991.body
+      : normalized;
+
+  const skyLookMatchV991 = skyLookBodyV991.match(
+    /^하늘(?:을|를)\s+(봅니다|봐요|본다|봤습니다|봤어요|봤다|볼\s+거예요|볼\s+것이다|보겠습니다)$/u
+  );
+
+  if (skyLookMatchV991) {
+    const skyLookSurfaceV991 =
+      String(skyLookMatchV991[1] || '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    const skyLookTenseV991: TwoProKoEnSimpleTenseV52 =
+      /^(봤습니다|봤어요|봤다)$/u.test(
+        skyLookSurfaceV991
+      )
+        ? 'past'
+        : /^(볼 거예요|볼 것이다|보겠습니다)$/u.test(
+            skyLookSurfaceV991
+          )
+          ? 'future'
+          : 'present';
+
+    const skyLookSubjectV991 =
+      skyLookExplicitSubjectV991
+        ? twoProSubjectDisplayV62(
+            skyLookExplicitSubjectV991.pronoun
+          )
+        : 'I';
+
+    const skyLookVerbV991 =
+      twoProConjugateEnglishVerbV52(
+        'look at',
+        skyLookTenseV991,
+        skyLookSubjectV991
+      );
+
+    const skyLookSubjectSourceV991 =
+      skyLookExplicitSubjectV991?.source ||
+      '(생략된 주어)';
+
+    return finish(
+      `${skyLookSubjectV991} ${skyLookVerbV991} the sky`,
+      [
+        {
+          ko: skyLookSubjectSourceV991,
+          en: `${skyLookSubjectV991} [SUBJECT]`,
+        },
+        { ko: '하늘', en: 'the sky [OBJECT]' },
+        { ko: '보다', en: `${skyLookVerbV991} [V]` },
+      ],
+      [
+        {
+          source: '하늘',
+          selected: 'the sky',
+          candidates: ['the sky', 'sky'],
+          slot: 'N',
+          confidence: 1,
+          origin: 'sky-look-context-ko-en-v9.91',
+        } as any,
+        {
+          source: '보다',
+          selected: 'look at',
+          candidates: ['look at', 'see'],
+          slot: 'V',
+          confidence: 1,
+          origin: 'sky-look-context-ko-en-v9.91',
+        } as any,
+      ],
+      'sky-look-context-ko-en-v9.91',
+      skyLookExplicitSubjectV991
+        ? 'EXPLICIT_SUBJECT_LOOK_AT_SKY_V991'
+        : 'IMPLICIT_I_LOOK_AT_SKY_V991'
+    );
+  }
+
+  // 7) 생략 주어 + 목적어 + 안전 동사
   match = normalized.match(
     /^(.+?)(?:을|를)\s+(삽니다|사요|샀습니다|샀어요|샀다|먹습니다|먹어요|먹었습니다|먹었어요|먹었다|마십니다|마셔요|마셨습니다|마셨어요|마셨다)$/u
   );

@@ -1616,8 +1616,89 @@ const router = useRouter();
       );
     }, [query, results]);
 
+  // ================================================================
+  // ☆ TwoPro v1.56-safe: exact DB 일치 시 참고 표현 숨김
+  //
+  // 검색어가 dictionary_lines의 한·영 병렬 라인 한쪽과 정확히 일치하면
+  // 이미 정답 문장 자체가 화면에 있으므로 단어/구 참고 표현을 덧붙이지 않습니다.
+  //
+  // 예:
+  //   Where do I transfer? 어디서 갈아탑니까?
+  //   I am happy that my reputation is unsullied. 내 평판이 ...
+  //
+  // 부분 포함은 exact로 보지 않습니다.
+  //   transfer != Where do I transfer?
+  //   I have a reservation. != I have a reservation for two ...
+  // ================================================================
+  const hasExactBilingualSourceMatchV156 =
+    useMemo(() => {
+      const normalizeSide = (value: string) =>
+        String(value || '')
+          .normalize('NFC')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .replace(
+            /^[\s\"'“”‘’.,!?;:()\[\]{}]+|[\s\"'“”‘’.,!?;:()\[\]{}]+$/g,
+            ''
+          )
+          .toLocaleLowerCase();
+
+      const normalizedQuery =
+        normalizeSide(String(query || ''));
+
+      if (!normalizedQuery) {
+        return false;
+      }
+
+      const queryIsKorean =
+        /[가-힣]/u.test(normalizedQuery);
+
+      return results.some((item) => {
+        const line = String(
+          item?.line_text || ''
+        ).normalize('NFC');
+
+        if (!line) {
+          return false;
+        }
+
+        const candidateSides =
+          queryIsKorean
+            ? line.split(
+                /[A-Za-z]+(?:['’-][A-Za-z]+)*/g
+              )
+            : line.split(/[가-힣]+/gu);
+
+        return candidateSides.some((side) => {
+          const normalizedSide =
+            normalizeSide(side);
+
+          if (!normalizedSide) {
+            return false;
+          }
+
+          if (queryIsKorean) {
+            if (!/[가-힣]/u.test(normalizedSide)) {
+              return false;
+            }
+          } else if (!/[A-Za-z]/.test(normalizedSide)) {
+            return false;
+          }
+
+          return (
+            normalizedSide ===
+            normalizedQuery
+          );
+        });
+      });
+    }, [query, results]);
+
   const displayReferenceWords =
     useMemo(() => {
+      if (hasExactBilingualSourceMatchV156) {
+        return [] as TranslationReferenceWord[];
+      }
+
       const merged:
         TranslationReferenceWord[] = [];
 
@@ -1666,6 +1747,66 @@ const router = useRouter();
     }, [
       referenceWords,
       supplementalReferenceWords,
+      hasExactBilingualSourceMatchV156,
+    ]);
+
+  // ================================================================
+  // ☆ TwoPro v1.57-safe: exact 참고 문장은 반대 언어만 표시
+  //
+  // exact 병렬문장이 이미 검색 결과에 있을 때는
+  // "검색 내용"에 원문이 한 번 표시되므로 "참고 문장"에는
+  // 반대 언어 번역만 남깁니다.
+  //
+  // EN exact: Where do I transfer? 어디서 갈아탑니까?
+  //           -> 어디서 갈아탑니까?
+  // KO exact: 어디서 갈아탑니까? Where do I transfer?
+  //           -> Where do I transfer?
+  //
+  // exact가 아니거나 참고 문장이 아니면 기존 표시를 그대로 유지합니다.
+  // ================================================================
+  const displayTranslationTextV157 =
+    useMemo(() => {
+      const baseText =
+        twoProFormatTranslationDisplayV116(
+          String(aiTranslation || ''),
+          isReference
+        );
+
+      if (
+        !baseText ||
+        !isReference ||
+        !hasExactBilingualSourceMatchV156
+      ) {
+        return baseText;
+      }
+
+      const queryIsKorean =
+        /[가-힣]/u.test(String(query || ''));
+
+      const targetStartIndex =
+        queryIsKorean
+          ? baseText.search(/[A-Za-z]/)
+          : baseText.search(/[가-힣]/u);
+
+      if (targetStartIndex < 0) {
+        return baseText;
+      }
+
+      const targetOnly =
+        baseText
+          .slice(targetStartIndex)
+          .replace(
+            /^[\s:：→=\-–—]+/u,
+            ''
+          )
+          .trim();
+
+      return targetOnly || baseText;
+    }, [
+      aiTranslation,
+      isReference,
+      hasExactBilingualSourceMatchV156,
+      query,
     ]);
 
   // ================================================================
@@ -2784,7 +2925,13 @@ useEffect(() => {
     )}
   </div>
 
-  <div className={displayIsApp ? "mt-2 flex justify-center" : "mt-3 flex justify-center"}>
+  <div
+  className={
+    displayIsApp
+      ? "mt-2 flex justify-center"
+      : "mt-3 flex justify-center md:hidden"
+  }
+>
     <Link href="/conversation" className={
       displayIsApp
         ? "text-[10.5px] font-bold text-blue-600 hover:text-blue-800 transition-colors border border-blue-200 bg-white px-4 py-1 rounded-full shadow-sm"
@@ -3240,7 +3387,11 @@ useEffect(() => {
                     </span>
                   )}
                   <Link
-                    href="/conversation"
+                    href={
+                      dailyConversation.id != null
+                        ? `/conversation?type=daily&id=${encodeURIComponent(String(dailyConversation.id))}`
+                        : '/conversation?type=daily'
+                    }
                     className="text-[10px] md:text-[11px] font-bold text-blue-600 hover:text-blue-800 transition-colors whitespace-nowrap"
                   >
                     전체보기 · View →
@@ -4976,16 +5127,16 @@ const hasXdicInsight =
       : "text-[18px] md:text-[20px] font-black text-slate-900 leading-snug flex-1"
   }
 >
-  {twoProFormatTranslationDisplayV116(aiTranslation, isReference)}
+  {displayTranslationTextV157}
 </p>
                           
                           <div className="flex items-center gap-1.5 mt-0.5">
                             {/* 🌟 번역 결과 듣기(스피커) 버튼 */}
-                            <button onClick={() => handleSpeak(twoProFormatTranslationDisplayV116(aiTranslation, isReference))} className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
+                            <button onClick={() => handleSpeak(displayTranslationTextV157)} className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="발음 듣기">
                               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
                             </button>
                             {/* 복사 버튼 */}
-                            <button onClick={() => handleCopy(twoProFormatTranslationDisplayV116(aiTranslation, isReference), 'translation')} className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm" title="복사">
+                            <button onClick={() => handleCopy(displayTranslationTextV157, 'translation')} className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm" title="복사">
                               {copiedId === 'translation' ? (
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-emerald-500"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>
                               ) : (

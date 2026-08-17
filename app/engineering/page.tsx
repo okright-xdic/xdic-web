@@ -290,8 +290,8 @@ export default function EngineeringPage() {
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-4 md:px-6 pt-16 md:pt-20 pb-20">
-        <section className="text-center mb-4 md:mb-5 animate-in fade-in slide-in-from-top-4 duration-500">
+      <main className="max-w-5xl mx-auto px-4 md:px-6 pt-14 md:pt-16 pb-16">
+        <section className="text-center mb-3 md:mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
           <p className="text-[9px] md:text-[10px] font-extrabold tracking-[0.12em] text-sky-600 uppercase mb-1">
             X-DIC Engineering Terminology
           </p>
@@ -314,7 +314,7 @@ export default function EngineeringPage() {
           </p>
         </section>
 
-        <section aria-labelledby="engineering-search-title" className="mb-5 md:mb-6">
+        <section aria-labelledby="engineering-search-title" className="mb-4 md:mb-5">
           <h2 id="engineering-search-title" className="sr-only">
             기계·전기·전자 용어 한영·영한 검색
           </h2>
@@ -365,55 +365,55 @@ export default function EngineeringPage() {
         </section>
 
         {/* Static content */}
-        <section aria-labelledby="engineering-guide-title" className="mb-8 md:mb-10">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 md:p-6">
-            <div className="mb-4">
-              <p className="text-[11px] md:text-xs font-bold text-sky-600 mb-1">
+        <section aria-labelledby="engineering-guide-title" className="mb-3.5 md:mb-4">
+          <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 md:p-4">
+            <div className="mb-2.5">
+              <p className="text-[9px] md:text-[10px] font-bold text-sky-600 mb-1">
                 Engineering Terminology Guide
               </p>
               <h2
                 id="engineering-guide-title"
-                className="text-lg md:text-2xl font-black text-slate-900"
+                className="text-[16px] md:text-[18px] font-black text-slate-900 leading-tight"
               >
                 X-DIC에서 기술용어를 찾는 방법
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-              <article className="rounded-xl bg-white border border-slate-200 p-4">
-                <h3 className="font-extrabold text-slate-900 text-sm md:text-base mb-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <article className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 md:px-3.5 md:py-3">
+                <h3 className="font-extrabold text-slate-900 text-[12px] md:text-[13px] mb-1">
                   ① 한글·영어 전문용어 검색
                 </h3>
-                <p className="text-[12px] md:text-[13px] text-slate-600 leading-relaxed">
+                <p className="text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.5]">
                   기계부품, 재료 특성, 회로, 전력설비, 전자부품, 제어 관련 용어를 한글 또는 영어로 입력하면
                   X-DIC 메인 검색 결과에서 관련 한영·영한 데이터를 확인할 수 있습니다.
                 </p>
               </article>
 
-              <article className="rounded-xl bg-white border border-slate-200 p-4">
-                <h3 className="font-extrabold text-slate-900 text-sm md:text-base mb-2">
+              <article className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 md:px-3.5 md:py-3">
+                <h3 className="font-extrabold text-slate-900 text-[12px] md:text-[13px] mb-1">
                   ② 같은 용어의 여러 대응 표현 비교
                 </h3>
-                <p className="text-[12px] md:text-[13px] text-slate-600 leading-relaxed">
+                <p className="text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.5]">
                   기술용어는 분야와 문맥에 따라 한국어·영어 대응이 달라질 수 있습니다.
                   검색 결과의 여러 전문용어 및 병렬 데이터를 비교하여 실제 문맥에 맞는 표현을 확인하세요.
                 </p>
               </article>
 
-              <article className="rounded-xl bg-white border border-slate-200 p-4">
-                <h3 className="font-extrabold text-slate-900 text-sm md:text-base mb-2">
+              <article className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 md:px-3.5 md:py-3">
+                <h3 className="font-extrabold text-slate-900 text-[12px] md:text-[13px] mb-1">
                   ③ 분야별 대표 검색어로 확장
                 </h3>
-                <p className="text-[12px] md:text-[13px] text-slate-600 leading-relaxed">
+                <p className="text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.5]">
                   기계·재료, 전기·전력, 전자·제어 분야의 대표 검색어를 통해 주변 개념으로 탐색을 확장할 수 있습니다.
                 </p>
               </article>
 
-              <article className="rounded-xl bg-white border border-slate-200 p-4">
-                <h3 className="font-extrabold text-slate-900 text-sm md:text-base mb-2">
+              <article className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 md:px-3.5 md:py-3">
+                <h3 className="font-extrabold text-slate-900 text-[12px] md:text-[13px] mb-1">
                   ④ 개인 검색 기록 활용
                 </h3>
-                <p className="text-[12px] md:text-[13px] text-slate-600 leading-relaxed">
+                <p className="text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.5]">
                   이 페이지에서 직접 검색한 최근 기술용어는 현재 브라우저에 저장되어 다시 찾아보기 쉽도록 도와줍니다.
                 </p>
               </article>
@@ -422,20 +422,20 @@ export default function EngineeringPage() {
         </section>
 
         {/* Fields */}
-        <section aria-labelledby="engineering-fields-title" className="mb-8 md:mb-10">
-          <div className="mb-4">
-            <p className="text-[11px] md:text-xs font-bold text-sky-600 mb-1">
+        <section aria-labelledby="engineering-fields-title" className="mb-3.5 md:mb-4">
+          <div className="mb-2.5">
+            <p className="text-[9px] md:text-[10px] font-bold text-sky-600 mb-1">
               Explore by field
             </p>
             <h2
               id="engineering-fields-title"
-              className="text-lg md:text-xl font-black text-slate-900"
+              className="text-[15px] md:text-[17px] font-black text-slate-900 leading-tight"
             >
               대표 기술용어 분야
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {[
               ['⚙️', '기계·동력 전달', '베어링, 축, 기어비, 토크 등', '#mechanical-systems'],
               ['🛠️', '재료·제조·설비', '인장강도, 열팽창, 윤활, 유압 등', '#materials-manufacturing'],
@@ -445,14 +445,14 @@ export default function EngineeringPage() {
               <a
                 key={title}
                 href={href}
-                className="group rounded-xl border border-slate-200 bg-white p-3.5 md:p-4 hover:border-sky-200 hover:bg-sky-50/30 transition-colors"
+                className="group rounded-xl border border-slate-200 bg-white px-2.5 py-2.5 md:px-3 md:py-3 hover:border-sky-200 hover:bg-sky-50/30 transition-colors"
               >
-                <div className="text-xl mb-2" aria-hidden="true">{icon}</div>
-                <h3 className="font-extrabold text-slate-900 text-sm mb-1 group-hover:text-sky-700 transition-colors">
+                <div className="text-base md:text-lg mb-1" aria-hidden="true">{icon}</div>
+                <h3 className="font-extrabold text-slate-900 text-[11.5px] md:text-[12.5px] mb-0.5 group-hover:text-sky-700 transition-colors">
                   {title}
                 </h3>
-                <p className="text-[11px] md:text-[12px] text-slate-500 leading-relaxed">{desc}</p>
-                <p className="mt-2 text-[10px] md:text-[11px] font-bold text-sky-600">
+                <p className="text-[9.5px] md:text-[10.5px] text-slate-500 leading-snug">{desc}</p>
+                <p className="mt-1.5 text-[9px] md:text-[10px] font-bold text-sky-600">
                   대표 검색어 보기 ↓
                 </p>
               </a>
@@ -461,7 +461,7 @@ export default function EngineeringPage() {
         </section>
 
         {/* Search examples */}
-        <section aria-labelledby="engineering-topic-terms-title" className="mb-8 md:mb-10">
+        <section aria-labelledby="engineering-topic-terms-title" className="mb-5 md:mb-6">
           <div className="mb-4">
             <p className="text-[11px] md:text-xs font-bold text-indigo-600 mb-1">
               Browse Engineering Search Examples
@@ -514,7 +514,7 @@ export default function EngineeringPage() {
         </section>
 
         {/* 기술용어를 읽는 관점 */}
-        <section aria-labelledby="engineering-reading-guide-title" className="mb-8 md:mb-10">
+        <section aria-labelledby="engineering-reading-guide-title" className="mb-5 md:mb-6">
           <div className="mb-4">
             <p className="text-[11px] md:text-xs font-bold text-violet-600 mb-1">
               Engineering Terminology Notes
@@ -554,7 +554,7 @@ export default function EngineeringPage() {
         </section>
 
         {/* 핵심 기술용어 미니 해설 */}
-        <section aria-labelledby="engineering-mini-glossary-title" className="mb-8 md:mb-10">
+        <section aria-labelledby="engineering-mini-glossary-title" className="mb-5 md:mb-6">
           <div className="mb-4">
             <p className="text-[11px] md:text-xs font-bold text-emerald-600 mb-1">
               Engineering Mini Glossary
@@ -603,7 +603,7 @@ export default function EngineeringPage() {
         </section>
 
         {/* 연관 검색 경로 */}
-        <section aria-labelledby="engineering-search-paths-title" className="mb-8 md:mb-10">
+        <section aria-labelledby="engineering-search-paths-title" className="mb-5 md:mb-6">
           <div className="rounded-2xl border border-sky-100 bg-sky-50/35 p-4 md:p-6">
             <div className="mb-4">
               <p className="text-[11px] md:text-xs font-bold text-sky-600 mb-1">
@@ -657,7 +657,7 @@ export default function EngineeringPage() {
           </div>
         </section>
 
-        <div className="grid grid-cols-1 gap-7 md:gap-8">
+        <div className="grid grid-cols-1 gap-5 md:gap-6">
           {/* Treasure */}
           <section aria-labelledby="engineering-treasure-title" className="animate-in fade-in duration-700">
             <div className="flex items-center justify-between gap-3 mb-3">
@@ -741,7 +741,7 @@ export default function EngineeringPage() {
         </div>
 
         {/* FAQ */}
-        <section aria-labelledby="engineering-faq-title" className="mt-8 md:mt-10">
+        <section aria-labelledby="engineering-faq-title" className="mt-5 md:mt-6">
           <div className="mb-3">
             <p className="text-[11px] md:text-xs font-bold text-sky-600 mb-1">
               Engineering Search FAQ
@@ -817,7 +817,7 @@ export default function EngineeringPage() {
         {/* Notice */}
         <section
           aria-labelledby="engineering-search-notice-title"
-          className="mt-8 md:mt-10 rounded-2xl border border-amber-100 bg-amber-50/45 p-4 md:p-5"
+          className="mt-5 md:mt-6 rounded-2xl border border-amber-100 bg-amber-50/45 p-4 md:p-5"
         >
           <h2
             id="engineering-search-notice-title"

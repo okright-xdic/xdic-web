@@ -599,8 +599,8 @@ export default function ComputerPage() {
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-4 md:px-6 pt-16 md:pt-20 pb-20">
-        <section className="text-center mb-4 md:mb-5 animate-in fade-in slide-in-from-top-4 duration-500">
+      <main className="max-w-5xl mx-auto px-4 md:px-6 pt-14 md:pt-16 pb-16">
+        <section className="text-center mb-3 md:mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
           <p className="text-[9px] md:text-[10px] font-extrabold tracking-[0.12em] text-emerald-600 uppercase mb-1">
             X-DIC Computer Terminology
           </p>
@@ -624,7 +624,7 @@ export default function ComputerPage() {
           </p>
         </section>
 
-        <section aria-labelledby="computer-search-title" className="mb-5 md:mb-6">
+        <section aria-labelledby="computer-search-title" className="mb-4 md:mb-5">
           <h2 id="computer-search-title" className="sr-only">
             컴퓨터 용어 한영·영한 검색
           </h2>
@@ -674,55 +674,55 @@ export default function ComputerPage() {
           </div>
         </section>
 
-        <section aria-labelledby="computer-guide-title" className="mb-8 md:mb-10">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 md:p-6">
-            <div className="mb-4">
-              <p className="text-[11px] md:text-xs font-bold text-emerald-600 mb-1">
+        <section aria-labelledby="computer-guide-title" className="mb-3.5 md:mb-4">
+          <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 md:p-4">
+            <div className="mb-2.5">
+              <p className="text-[9px] md:text-[10px] font-bold text-emerald-600 mb-1">
                 Computer Terminology Guide
               </p>
               <h2
                 id="computer-guide-title"
-                className="text-lg md:text-2xl font-black text-slate-900"
+                className="text-[16px] md:text-[18px] font-black text-slate-900 leading-tight"
               >
                 X-DIC에서 컴퓨터 용어를 찾는 방법
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-              <article className="rounded-xl bg-white border border-slate-200 p-4">
-                <h3 className="font-extrabold text-slate-900 text-sm md:text-base mb-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <article className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 md:px-3.5 md:py-3">
+                <h3 className="font-extrabold text-slate-900 text-[12px] md:text-[13px] mb-1">
                   ① 한글·영어 전문용어 검색
                 </h3>
-                <p className="text-[12px] md:text-[13px] text-slate-600 leading-relaxed">
+                <p className="text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.5]">
                   소프트웨어, 서버, 네트워크, 데이터베이스 등 컴퓨터 분야 용어를 한글 또는 영어로 입력하면
                   X-DIC 메인 검색 결과에서 관련 한영·영한 데이터를 확인할 수 있습니다.
                 </p>
               </article>
 
-              <article className="rounded-xl bg-white border border-slate-200 p-4">
-                <h3 className="font-extrabold text-slate-900 text-sm md:text-base mb-2">
+              <article className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 md:px-3.5 md:py-3">
+                <h3 className="font-extrabold text-slate-900 text-[12px] md:text-[13px] mb-1">
                   ② 약어와 전체 표현을 함께 확인
                 </h3>
-                <p className="text-[12px] md:text-[13px] text-slate-600 leading-relaxed">
+                <p className="text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.5]">
                   API, DNS, DBMS처럼 약어가 널리 쓰이는 용어는 약어와 전체 영어 표현을 함께 검색하면
                   용어의 범위와 실제 사용 표현을 비교하기 쉽습니다.
                 </p>
               </article>
 
-              <article className="rounded-xl bg-white border border-slate-200 p-4">
-                <h3 className="font-extrabold text-slate-900 text-sm md:text-base mb-2">
+              <article className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 md:px-3.5 md:py-3">
+                <h3 className="font-extrabold text-slate-900 text-[12px] md:text-[13px] mb-1">
                   ③ 역할·흐름으로 연관 용어 탐색
                 </h3>
-                <p className="text-[12px] md:text-[13px] text-slate-600 leading-relaxed">
+                <p className="text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.5]">
                   client → server → API → database처럼 시스템에서 서로 연결되는 역할을 따라가며 주변 용어를 함께 탐색할 수 있습니다.
                 </p>
               </article>
 
-              <article className="rounded-xl bg-white border border-slate-200 p-4">
-                <h3 className="font-extrabold text-slate-900 text-sm md:text-base mb-2">
+              <article className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 md:px-3.5 md:py-3">
+                <h3 className="font-extrabold text-slate-900 text-[12px] md:text-[13px] mb-1">
                   ④ 개인 검색 기록 활용
                 </h3>
-                <p className="text-[12px] md:text-[13px] text-slate-600 leading-relaxed">
+                <p className="text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.5]">
                   이 페이지에서 직접 검색한 최근 컴퓨터 용어는 현재 브라우저에 저장되어 다시 찾아보기 쉽도록 도와줍니다.
                 </p>
               </article>
@@ -730,20 +730,20 @@ export default function ComputerPage() {
           </div>
         </section>
 
-        <section aria-labelledby="computer-fields-title" className="mb-8 md:mb-10">
-          <div className="mb-4">
-            <p className="text-[11px] md:text-xs font-bold text-emerald-600 mb-1">
+        <section aria-labelledby="computer-fields-title" className="mb-3.5 md:mb-4">
+          <div className="mb-2.5">
+            <p className="text-[9px] md:text-[10px] font-bold text-emerald-600 mb-1">
               Explore by field
             </p>
             <h2
               id="computer-fields-title"
-              className="text-lg md:text-xl font-black text-slate-900"
+              className="text-[15px] md:text-[17px] font-black text-slate-900 leading-tight"
             >
               대표 컴퓨터 용어 분야
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {[
               ['🧩', '소프트웨어·웹', '운영체제, 소스 코드, API, 프레임워크 등', '#software-web'],
               ['🖥️', '시스템·클라우드', '서버, 가상 머신, 컨테이너, 캐시 등', '#systems-cloud'],
@@ -753,14 +753,14 @@ export default function ComputerPage() {
               <a
                 key={title}
                 href={href}
-                className="group rounded-xl border border-slate-200 bg-white p-3.5 md:p-4 hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
+                className="group rounded-xl border border-slate-200 bg-white px-2.5 py-2.5 md:px-3 md:py-3 hover:border-emerald-200 hover:bg-emerald-50/30 transition-colors"
               >
-                <div className="text-xl mb-2" aria-hidden="true">{icon}</div>
-                <h3 className="font-extrabold text-slate-900 text-sm mb-1 group-hover:text-emerald-700 transition-colors">
+                <div className="text-base md:text-lg mb-1" aria-hidden="true">{icon}</div>
+                <h3 className="font-extrabold text-slate-900 text-[11.5px] md:text-[12.5px] mb-0.5 group-hover:text-emerald-700 transition-colors">
                   {title}
                 </h3>
-                <p className="text-[11px] md:text-[12px] text-slate-500 leading-relaxed">{desc}</p>
-                <p className="mt-2 text-[10px] md:text-[11px] font-bold text-emerald-600">
+                <p className="text-[9.5px] md:text-[10.5px] text-slate-500 leading-snug">{desc}</p>
+                <p className="mt-1.5 text-[9px] md:text-[10px] font-bold text-emerald-600">
                   대표 검색어 보기 ↓
                 </p>
               </a>
@@ -768,7 +768,7 @@ export default function ComputerPage() {
           </div>
         </section>
 
-        <section aria-labelledby="computer-topic-terms-title" className="mb-8 md:mb-10">
+        <section aria-labelledby="computer-topic-terms-title" className="mb-5 md:mb-6">
           <div className="mb-4">
             <p className="text-[11px] md:text-xs font-bold text-indigo-600 mb-1">
               Browse Computer Search Examples
@@ -820,7 +820,7 @@ export default function ComputerPage() {
           </div>
         </section>
 
-        <section aria-labelledby="computer-reading-notes-title" className="mb-8 md:mb-10">
+        <section aria-labelledby="computer-reading-notes-title" className="mb-5 md:mb-6">
           <div className="mb-4">
             <p className="text-[11px] md:text-xs font-bold text-violet-600 mb-1">
               Computer Terminology Notes
@@ -859,7 +859,7 @@ export default function ComputerPage() {
           </div>
         </section>
 
-        <section aria-labelledby="computer-context-meaning-title" className="mb-8 md:mb-10">
+        <section aria-labelledby="computer-context-meaning-title" className="mb-5 md:mb-6">
           <div className="mb-4">
             <p className="text-[11px] md:text-xs font-bold text-orange-600 mb-1">
               Contextual Computer Meanings
@@ -915,7 +915,7 @@ export default function ComputerPage() {
           </div>
         </section>
 
-        <section aria-labelledby="computer-mini-glossary-title" className="mb-8 md:mb-10">
+        <section aria-labelledby="computer-mini-glossary-title" className="mb-5 md:mb-6">
           <div className="mb-4">
             <p className="text-[11px] md:text-xs font-bold text-emerald-600 mb-1">
               Computer Mini Glossary
@@ -963,7 +963,7 @@ export default function ComputerPage() {
           </div>
         </section>
 
-        <section aria-labelledby="web-request-flow-title" className="mb-8 md:mb-10">
+        <section aria-labelledby="web-request-flow-title" className="mb-5 md:mb-6">
           <div className="mb-4">
             <p className="text-[11px] md:text-xs font-bold text-blue-600 mb-1">
               Web Request Flow
@@ -1017,7 +1017,7 @@ export default function ComputerPage() {
           </div>
         </section>
 
-        <section aria-labelledby="development-flow-title" className="mb-8 md:mb-10">
+        <section aria-labelledby="development-flow-title" className="mb-5 md:mb-6">
           <div className="mb-4">
             <p className="text-[11px] md:text-xs font-bold text-cyan-600 mb-1">
               Software Development Flow
@@ -1071,7 +1071,7 @@ export default function ComputerPage() {
           </div>
         </section>
 
-        <section aria-labelledby="computer-paired-terms-title" className="mb-8 md:mb-10">
+        <section aria-labelledby="computer-paired-terms-title" className="mb-5 md:mb-6">
           <div className="rounded-2xl border border-slate-200 bg-slate-50/55 p-4 md:p-6">
             <div className="mb-4">
               <p className="text-[11px] md:text-xs font-bold text-slate-500 mb-1">
@@ -1129,7 +1129,7 @@ export default function ComputerPage() {
           </div>
         </section>
 
-        <section aria-labelledby="computer-security-guide-title" className="mb-8 md:mb-10">
+        <section aria-labelledby="computer-security-guide-title" className="mb-5 md:mb-6">
           <div className="mb-4">
             <p className="text-[11px] md:text-xs font-bold text-red-600 mb-1">
               Security &amp; Access Terms
@@ -1181,7 +1181,7 @@ export default function ComputerPage() {
           </div>
         </section>
 
-        <section aria-labelledby="computer-search-paths-title" className="mb-8 md:mb-10">
+        <section aria-labelledby="computer-search-paths-title" className="mb-5 md:mb-6">
           <div className="rounded-2xl border border-emerald-100 bg-emerald-50/35 p-4 md:p-6">
             <div className="mb-4">
               <p className="text-[11px] md:text-xs font-bold text-emerald-600 mb-1">
@@ -1234,7 +1234,7 @@ export default function ComputerPage() {
           </div>
         </section>
 
-        <div className="grid grid-cols-1 gap-7 md:gap-8">
+        <div className="grid grid-cols-1 gap-5 md:gap-6">
           <section aria-labelledby="computer-treasure-title" className="animate-in fade-in duration-700">
             <div className="flex items-center justify-between gap-3 mb-3">
               <h2
@@ -1315,7 +1315,7 @@ export default function ComputerPage() {
           </section>
         </div>
 
-        <section aria-labelledby="computer-faq-title" className="mt-8 md:mt-10">
+        <section aria-labelledby="computer-faq-title" className="mt-5 md:mt-6">
           <div className="mb-3">
             <p className="text-[11px] md:text-xs font-bold text-emerald-600 mb-1">
               Computer Search FAQ
@@ -1393,7 +1393,7 @@ export default function ComputerPage() {
 
         <section
           aria-labelledby="computer-search-notice-title"
-          className="mt-8 md:mt-10 rounded-2xl border border-emerald-100 bg-emerald-50/35 p-4 md:p-5"
+          className="mt-5 md:mt-6 rounded-2xl border border-emerald-100 bg-emerald-50/35 p-4 md:p-5"
         >
           <h2
             id="computer-search-notice-title"
