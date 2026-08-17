@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Capacitor } from '@capacitor/core';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 // 🌟 'todays' 카테고리가 새롭게 추가되었습니다!
@@ -165,31 +166,97 @@ export default function ConversationClient({ initialData = [] }: { initialData: 
     }
   };
 
-  const handleSpeak = (enText: string, koText: string) => {
+  // ================================================================
+  // ☆ TwoPro v1.68-safe: 회화 상세 페이지 웹/앱 공용 TTS
+  // - 웹: SpeechSynthesis
+  // - 설치형 앱: @capacitor-community/text-to-speech Native TTS
+  // - 대표 문장: 영어 → 한국어
+  // - 번역가 해설 예문: 화면 원문 순서인 한국어 → 영어
+  // ================================================================
+  type ConversationSpeakPart = {
+    text: string;
+    lang: 'ko-KR' | 'en-US';
+    rate: number;
+    pitch: number;
+  };
+
+  const speakConversationParts = async (parts: ConversationSpeakPart[]) => {
+    const safeParts = parts.filter((part) => String(part.text || '').trim());
+    if (safeParts.length === 0) return;
+
+    if (Capacitor.isNativePlatform()) {
+      try {
+        try { await TextToSpeech.stop(); } catch {}
+
+        for (const part of safeParts) {
+          const languageResult = await TextToSpeech.isLanguageSupported({
+            lang: part.lang,
+          });
+
+          if (!languageResult?.supported) {
+            throw new Error(`TTS_LANGUAGE_NOT_SUPPORTED:${part.lang}`);
+          }
+
+          await TextToSpeech.speak({
+            text: part.text,
+            lang: part.lang,
+            rate: part.rate,
+            pitch: part.pitch,
+            volume: 1.0,
+            queueStrategy: 0,
+          });
+        }
+
+        return;
+      } catch (err) {
+        console.warn('[X-DIC ConversationClient Native TTS]', err);
+      }
+    }
+
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); 
+      window.speechSynthesis.cancel();
+
       const voices = window.speechSynthesis.getVoices();
       const enVoices = voices.filter(v => v.lang.startsWith('en'));
       const koVoices = voices.filter(v => v.lang.startsWith('ko'));
 
-      const enVoice = enVoices.find(v => v.name.includes('Google US English Male')) || enVoices.find(v => v.name.includes('Google US English')) || enVoices[0];
-      const koVoice = koVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) || koVoices[0];
+      for (const part of safeParts) {
+        const utterance = new SpeechSynthesisUtterance(part.text);
 
-      const enUtterance = new SpeechSynthesisUtterance(enText);
-      if (enVoice) enUtterance.voice = enVoice;
-      enUtterance.lang = enVoice ? enVoice.lang : 'en-US';
-      enUtterance.rate = 0.85;
+        if (part.lang === 'en-US') {
+          const enVoice =
+            enVoices.find(v => v.name.includes('Google US English Male')) ||
+            enVoices.find(v => v.name.includes('Google US English')) ||
+            enVoices[0];
 
-      const koUtterance = new SpeechSynthesisUtterance(koText);
-      if (koVoice) koUtterance.voice = koVoice;
-      koUtterance.lang = koVoice ? koVoice.lang : 'ko-KR';
-      koUtterance.rate = 1.05;
+          if (enVoice) utterance.voice = enVoice;
+          utterance.lang = enVoice ? enVoice.lang : 'en-US';
+        } else {
+          const koVoice =
+            koVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) ||
+            koVoices[0];
 
-      window.speechSynthesis.speak(enUtterance);
-      window.speechSynthesis.speak(koUtterance);
-    } else {
-      alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
+          if (koVoice) utterance.voice = koVoice;
+          utterance.lang = koVoice ? koVoice.lang : 'ko-KR';
+        }
+
+        utterance.rate = part.rate;
+        utterance.pitch = part.pitch;
+        utterance.volume = 1.0;
+        window.speechSynthesis.speak(utterance);
+      }
+
+      return;
     }
+
+    alert('이 기기에서는 음성 듣기를 사용할 수 없습니다.');
+  };
+
+  const handleSpeak = async (enText: string, koText: string) => {
+    await speakConversationParts([
+      { text: String(enText || '').trim(), lang: 'en-US', rate: 0.85, pitch: 0.95 },
+      { text: String(koText || '').trim(), lang: 'ko-KR', rate: 1.05, pitch: 1.0 },
+    ]);
   };
 
 
@@ -205,71 +272,25 @@ export default function ConversationClient({ initialData = [] }: { initialData: 
   // 형식일 때만 안전하게 분리하고, 한·영이 모두 있으면 원문 순서대로 한국어 → 영어 순서로 읽습니다.
   // 분리에 실패한 줄은 기존 일반 텍스트로 그대로 표시합니다.
   // ================================================================
-  const handleSpeakEnglishOnly = (enText: string) => {
-    const text = String(enText || '').trim();
-    if (!text) return;
+  const handleSpeakEnglishOnly = async (enText: string) => {
+    const english = String(enText || '').trim();
+    if (!english) return;
 
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-
-      const voices = window.speechSynthesis.getVoices();
-      const enVoices = voices.filter(v => v.lang.startsWith('en'));
-      const enVoice =
-        enVoices.find(v => v.name.includes('Google US English Male')) ||
-        enVoices.find(v => v.name.includes('Google US English')) ||
-        enVoices[0];
-
-      const utterance = new SpeechSynthesisUtterance(text);
-      if (enVoice) utterance.voice = enVoice;
-      utterance.lang = enVoice ? enVoice.lang : 'en-US';
-      utterance.rate = 0.85;
-
-      window.speechSynthesis.speak(utterance);
-    } else {
-      alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
-    }
+    await speakConversationParts([
+      { text: english, lang: 'en-US', rate: 0.85, pitch: 0.95 },
+    ]);
   };
 
   // 번역가 해설 예문은 DB 원문 표시 순서(한국어 → 영어)를 그대로 읽습니다.
-  const handleSpeakKoreanThenEnglish = (koText: string, enText: string) => {
+  const handleSpeakKoreanThenEnglish = async (koText: string, enText: string) => {
     const korean = String(koText || '').trim();
     const english = String(enText || '').trim();
     if (!korean && !english) return;
 
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-
-      const voices = window.speechSynthesis.getVoices();
-      const koVoices = voices.filter(v => v.lang.startsWith('ko'));
-      const enVoices = voices.filter(v => v.lang.startsWith('en'));
-
-      const koVoice =
-        koVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) ||
-        koVoices[0];
-
-      const enVoice =
-        enVoices.find(v => v.name.includes('Google US English Male')) ||
-        enVoices.find(v => v.name.includes('Google US English')) ||
-        enVoices[0];
-
-      if (korean) {
-        const koUtterance = new SpeechSynthesisUtterance(korean);
-        if (koVoice) koUtterance.voice = koVoice;
-        koUtterance.lang = koVoice ? koVoice.lang : 'ko-KR';
-        koUtterance.rate = 1.05;
-        window.speechSynthesis.speak(koUtterance);
-      }
-
-      if (english) {
-        const enUtterance = new SpeechSynthesisUtterance(english);
-        if (enVoice) enUtterance.voice = enVoice;
-        enUtterance.lang = enVoice ? enVoice.lang : 'en-US';
-        enUtterance.rate = 0.85;
-        window.speechSynthesis.speak(enUtterance);
-      }
-    } else {
-      alert('이 브라우저는 음성 듣기를 지원하지 않습니다.');
-    }
+    await speakConversationParts([
+      { text: korean, lang: 'ko-KR', rate: 1.05, pitch: 1.0 },
+      { text: english, lang: 'en-US', rate: 0.85, pitch: 0.95 },
+    ]);
   };
 
   const splitBilingualExampleV161 = (line: string) => {
@@ -410,7 +431,7 @@ export default function ConversationClient({ initialData = [] }: { initialData: 
               key={`${String(itemKey)}-example-${index}`}
               className="flex items-start gap-2"
             >
-              {example.speakable && !isApp ? (
+              {example.speakable ? (
                 <button
                   type="button"
                   onClick={() =>
@@ -501,11 +522,9 @@ export default function ConversationClient({ initialData = [] }: { initialData: 
         <article className="p-6 hover:bg-slate-50 transition-colors">
           <div className="flex items-start gap-4 mb-3">
             <div className="flex-shrink-0 flex items-center gap-1.5 mt-1">
-              {!isApp && (
-                <button onClick={() => handleSpeak(item.en_text, item.ko_text)} className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="원어민 발음 듣기">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
-                </button>
-              )}
+              <button onClick={() => handleSpeak(item.en_text, item.ko_text)} className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="원어민 발음 듣기">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" /></svg>
+              </button>
               <button onClick={() => handleCopy(`${item.en_text}\n${item.ko_text}`, item.id)} className="w-10 h-10 rounded-full bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all flex items-center justify-center shadow-sm" title="문장 복사">
                 {copiedId === item.id ? (
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-emerald-500"><path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" /></svg>
