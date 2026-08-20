@@ -17,6 +17,7 @@ interface SearchInputProps {
 const MIC_USER_ENABLED_KEY = 'xdic_mic_user_enabled_v1';
 const RECENT_KEY = 'xdic_recent_searches_v2'; 
 const UPDATED_EVENT = 'xdic_recent_searches_updated';
+const SEARCH_LOG_SOURCE_KEY = 'xdic_search_log_source_v1';
 const BANNED_WORDS = ['비속어', '욕설', 'badword', 'xxx', '도박', '성인'];
 
 type MicLang = 'ko-KR' | 'en-US' | null;
@@ -340,6 +341,26 @@ export default function SearchInput({
     return typeof window !== 'undefined' && Capacitor.isNativePlatform();
   };
 
+  // ☆ TwoPro Stage 12: 검색 로그 출처/표면 분리용 최소 보조 함수
+  const getSearchLogSource = (): 'user' | 'operator' => {
+    if (typeof window === 'undefined') return 'user';
+    return localStorage.getItem(SEARCH_LOG_SOURCE_KEY) === 'operator'
+      ? 'operator'
+      : 'user';
+  };
+
+  const getSearchLogSurface = (): 'web' | 'app' => {
+    return isApp || checkIsNative() ? 'app' : 'web';
+  };
+
+  const normalizeKeywordForLog = (value: string) => {
+    return String(value || '')
+      .normalize('NFKC')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLocaleLowerCase('en-US');
+  };
+
   // 🌟 흐르는 플레이스홀더 텍스트
   // - 앱: 요청하신 짧은 한·영 음성검색 안내
   // - 웹: 기존 안내 문구 유지
@@ -515,17 +536,16 @@ export default function SearchInput({
       saveToRecent(rawTrimmed); 
 
       try {
-        const res = await fetch('/api/save-search-keyword', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ keyword: rawTrimmed }),
-        });
-        
-        if (!res.ok) {
-          await supabase.from('search_logs').insert([{ keyword: rawTrimmed }]);
-        }
+        await supabase.from('search_logs').insert([
+          {
+            keyword: rawTrimmed,
+            source: getSearchLogSource(),
+            surface: getSearchLogSurface(),
+            normalized_keyword: normalizeKeywordForLog(rawTrimmed),
+          },
+        ]);
       } catch (error) {
-        try { await supabase.from('search_logs').insert([{ keyword: rawTrimmed }]); } catch(e) {}
+        // 검색 로그 저장 실패가 실제 검색을 막지 않도록 기존처럼 무시합니다.
       }
     }
 
