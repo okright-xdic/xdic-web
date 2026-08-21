@@ -1827,6 +1827,11 @@ const router = useRouter();
     string | null
   >(null);
 
+  // ☆ TwoPro CORE-safe 2026-08-20:
+  // 같은 query에서 DB results만 갱신될 때 번역 블록을 지웠다가 다시 그리지 않도록
+  // 마지막 번역 query를 기억합니다.
+  const translationBoxQueryRef = useRef('');
+
   // 🌟 번역 결과 박스 전용 마이크 상태
   const [isBoxListening, setIsBoxListening] = useState(false);
   const [boxMicLang, setBoxMicLang] = useState<'ko-KR' | 'en-US' | null>(null);
@@ -2077,6 +2082,54 @@ useEffect(() => {
             .replace(/\s+/g, ' ')
             .trim();
 
+          // ☆ TwoPro CORE-safe 2026-08-20:
+          // 참고 문장 fallback은 표면 토큰 일치만으로 긍정/부정 또는
+          // 조건절 유무가 뒤집히지 않도록 한국어 부분의 극성과 조건성을 비교합니다.
+          const koreanCandidateSide =
+            normalizedLine
+              .split(/[A-Za-z]/)[0]
+              .replace(/\s+/g, ' ')
+              .trim();
+
+          const hasNegativeMeaning = (
+            value: string
+          ): boolean =>
+            /(?:지\s*않|안\s*[가-힣]|못\s*[가-힣]|없(?:다|어요|습니다|었)|아니(?:다|에요|예요|었)|전혀|절대)/u.test(
+              value
+            );
+
+          const hasConditionalMeaning = (
+            value: string
+          ): boolean =>
+            /(?:으?면|다면|라면|거든|경우)/u.test(
+              value
+            );
+
+          const queryNegative =
+            hasNegativeMeaning(normalizedNeedle);
+
+          const candidateNegative =
+            hasNegativeMeaning(
+              koreanCandidateSide
+            );
+
+          const queryConditional =
+            hasConditionalMeaning(
+              normalizedNeedle
+            );
+
+          const candidateConditional =
+            hasConditionalMeaning(
+              koreanCandidateSide
+            );
+
+          const semanticShapeSafe =
+            queryNegative === candidateNegative &&
+            (
+              queryConditional ||
+              !candidateConditional
+            );
+
           const fullQueryMatch =
             normalizedNeedle.length > 0 &&
             normalizedLine.includes(
@@ -2103,13 +2156,17 @@ useEffect(() => {
             fullQueryMatch,
             matchedTokenCount,
             matchRatio,
+            semanticShapeSafe,
           };
         })
         .filter((entry) =>
-          entry.fullQueryMatch ||
+          entry.semanticShapeSafe &&
           (
-            entry.matchedTokenCount >= 2 &&
-            entry.matchRatio >= 0.75
+            entry.fullQueryMatch ||
+            (
+              entry.matchedTokenCount >= 2 &&
+              entry.matchRatio >= 0.75
+            )
           )
         )
         .sort((left, right) =>
@@ -2163,8 +2220,20 @@ useEffect(() => {
     ? '/api/translate-search'
     : '/api/translate-en-ko';
 
-  // 이전 검색 결과가 잠시 남는 현상 방지
-  clearTranslationBox();
+  // ☆ TwoPro CORE-safe 2026-08-20:
+  // 이 effect는 [query, results]에 의존하므로 같은 query에서도 DB results가
+  // 늦게 갱신되면 다시 실행됩니다. 이때 기존 번역 블록을 먼저 지우면
+  // "잠시 나왔다가 사라지는" 현상이 생길 수 있습니다.
+  // query 자체가 바뀐 경우에만 이전 번역 블록을 정리합니다.
+  const queryChanged =
+    translationBoxQueryRef.current !==
+    normalizedQuery;
+
+  if (queryChanged) {
+    translationBoxQueryRef.current =
+      normalizedQuery;
+    clearTranslationBox();
+  }
 
   fetch(endpoint, {
     method: 'POST',
@@ -2271,34 +2340,41 @@ useEffect(() => {
         // route.ts의 v13.84 전용 엔진이 성공한 경우에만 파란 번역 블록을 허용합니다.
         // 다른 DB/reference/일반 RBMT 결과는 기존 비문장 차단 정책을 그대로 유지합니다.
         // ============================================================
-        const isDirectPolysemyMiniSentenceResult =
-          responseEngine ===
-            'polysemy-mini-sentence-v13.84';
+const isDirectPolysemyMiniSentenceResult =
+  responseEngine ===
+    'polysemy-mini-sentence-v13.84';
+
+const isDirectPolysemyContextMiniResult =
+  responseEngine ===
+    'polysemy-context-mini-en-ko-v13.86';
 
         // 문장이 아닌 한 어절·구 검색어는
         // PHRASES 직접 번역 또는 common-verbs SAFE 직접 번역일 때만
         // 파란 번역 블록을 표시합니다.
-        if (
-          !sentenceLike &&
-          !isDirectPolysemyMiniSentenceResult &&
-          !isDirectPhraseResult &&
-          !isDirectCommonVerbResult &&
-          !isDirectCommonNounResult &&
-          !isDirectCommonAdverbResult &&
-          !isDirectCommonAdjectiveResult &&
-          !isDirectSlotSimilarityTier2Result
-        ) {
-          clearTranslationBox();
-          return;
-        }
-
+if (
+  !sentenceLike &&
+  !isDirectPolysemyMiniSentenceResult &&
+  !isDirectPolysemyContextMiniResult &&
+  !isDirectPhraseResult &&
+  !isDirectCommonVerbResult &&
+  !isDirectCommonNounResult &&
+  !isDirectCommonAdverbResult &&
+  !isDirectCommonAdjectiveResult &&
+  !isDirectSlotSimilarityTier2Result
+) {
+  clearTranslationBox();
+  return;
+}
         const nextTargetText =
           String(
             data.best.target_text || ''
           ).trim();
 
         if (!nextTargetText) {
-          if (!applyGeneralResultReference()) {
+          if (
+            !applyGeneralResultReference() &&
+            queryChanged
+          ) {
             clearTranslationBox();
           }
           return;
@@ -2399,7 +2475,10 @@ useEffect(() => {
             )
         );
       } else {
-        if (!applyGeneralResultReference()) {
+        if (
+          !applyGeneralResultReference() &&
+          queryChanged
+        ) {
           clearTranslationBox();
         }
       }
@@ -2409,7 +2488,10 @@ useEffect(() => {
         return;
       }
 
-      if (!applyGeneralResultReference()) {
+      if (
+        !applyGeneralResultReference() &&
+        queryChanged
+      ) {
         clearTranslationBox();
       }
     });
@@ -4994,7 +5076,7 @@ const hasXdicInsight =
                 <div className="w-full mb-4 animate-in fade-in slide-in-from-top-2 duration-500">
                   <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 shadow-sm text-center">
                     <p className="text-[14px] md:text-[15px] font-bold text-slate-700 leading-snug break-keep">
-                      📱 휴대폰 앱(App) Download <span className="text-purple-600 font-extrabold">'x-dic'</span> 검색(Search): <span className="text-sky-500 font-extrabold">갤럭시(Galaxy)</span>는 <span className="text-orange-500 font-extrabold">Play 스토어</span>, <span className="text-sky-500 font-extrabold">아이폰(iPhone)</span>은 <span className="text-orange-500 font-extrabold">App Store</span>
+                      📱 안드로이드 휴대폰 앱(App) Download: <span className="text-purple-600 font-extrabold">'엑스딕'</span> 또는 <span className="text-purple-600 font-extrabold">'xdic'</span> 검색(Search)
                     </p>
                   </div>
                 </div>

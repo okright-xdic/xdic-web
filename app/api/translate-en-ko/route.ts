@@ -16756,6 +16756,137 @@ const twoProTranslatePracticalBusinessV1385 = (
 };
 
 
+// ============================================================================
+// ☆ TwoPro v13.86-safe: charge/light/order/draft 다의어 초단문 문맥 보강
+// - 기존 v13.84/v13.85는 수정하지 않고, 확인된 문맥 결합만 별도 표로 처리합니다.
+// - PHRASES에는 문장 전체를 추가하지 않으며, 표에 없는 입력은 기존 흐름으로 넘깁니다.
+// ============================================================================
+type TwoProPolysemyContextMiniRefV1386 = readonly [
+  source: string,
+  selected: string,
+  candidates: readonly string[],
+  slot: string,
+  confidence: number,
+];
+
+type TwoProPolysemyContextMiniConfigV1386 = {
+  targetText: string;
+  patternId: string;
+  refs: readonly TwoProPolysemyContextMiniRefV1386[];
+};
+
+type TwoProPolysemyContextMiniResultV1386 = {
+  targetText: string;
+  referenceWords: TemplateReferenceWord[];
+  patternId: string;
+};
+
+const TWO_PRO_POLYSEMY_CONTEXT_MINI_V1386:
+  Readonly<Record<string, TwoProPolysemyContextMiniConfigV1386>> = {
+    'charge the battery': {
+      targetText: '배터리를 충전하세요',
+      patternId: 'charge-battery-imperative-v13.86',
+      refs: [
+        ['charge', '충전하다', ['충전하다', '요금을 부과하다', '고발하다'], 'POLYSEMY_VERB', 0.99],
+        ['the battery', '배터리를', ['배터리를'], 'OBJECT_NOUN', 1],
+      ],
+    },
+    'the charge is too high': {
+      targetText: '요금이 너무 높습니다',
+      patternId: 'charge-fee-too-high-v13.86',
+      refs: [
+        ['charge', '요금', ['요금', '청구액', '대금'], 'POLYSEMY_NOUN', 0.9],
+        ['is too high', '너무 높습니다', ['너무 높습니다'], 'COPULAR_PREDICATE', 1],
+      ],
+    },
+    'turn on the light': {
+      targetText: '불을 켜세요',
+      patternId: 'turn-on-light-imperative-v13.86',
+      refs: [
+        ['turn on', '켜다', ['켜다'], 'POLYSEMY_VERB_PHRASE', 1],
+        ['the light', '불을', ['불을', '조명을'], 'POLYSEMY_OBJECT_NOUN', 0.98],
+      ],
+    },
+    'this bag is light': {
+      targetText: '이 가방은 가볍습니다',
+      patternId: 'bag-light-weight-v13.86',
+      refs: [
+        ['bag', '가방', ['가방'], 'NOUN', 1],
+        ['light', '가볍습니다', ['가볍습니다', '가벼운'], 'POLYSEMY_ADJECTIVE', 0.99],
+      ],
+    },
+    'order a meal': {
+      targetText: '식사를 주문하세요',
+      patternId: 'order-meal-imperative-v13.86',
+      refs: [
+        ['order', '주문하다', ['주문하다'], 'POLYSEMY_VERB', 1],
+        ['a meal', '식사를', ['식사를', '한 끼를'], 'OBJECT_NOUN', 0.99],
+      ],
+    },
+    'the order was canceled': {
+      targetText: '주문이 취소되었습니다',
+      patternId: 'order-purchase-canceled-v13.86',
+      refs: [
+        ['order', '주문', ['주문', '명령', '순서'], 'POLYSEMY_NOUN', 0.97],
+        ['was canceled', '취소되었습니다', ['취소되었습니다'], 'PASSIVE_PAST_PREDICATE', 1],
+      ],
+    },
+    'the order was cancelled': {
+      targetText: '주문이 취소되었습니다',
+      patternId: 'order-purchase-cancelled-v13.86',
+      refs: [
+        ['order', '주문', ['주문', '명령', '순서'], 'POLYSEMY_NOUN', 0.97],
+        ['was cancelled', '취소되었습니다', ['취소되었습니다'], 'PASSIVE_PAST_PREDICATE', 1],
+      ],
+    },
+    'draft a letter': {
+      targetText: '편지 초안을 작성하세요',
+      patternId: 'draft-letter-imperative-v13.86',
+      refs: [
+        ['draft', '초안을 작성하다', ['초안을 작성하다', '초고를 작성하다'], 'POLYSEMY_VERB', 0.99],
+        ['a letter', '편지', ['편지'], 'OBJECT_NOUN', 1],
+      ],
+    },
+    'i read the first draft': {
+      targetText: '나는 첫 번째 초안을 읽었습니다',
+      patternId: 'read-first-draft-past-v13.86',
+      refs: [
+        ['read', '읽었습니다', ['읽었습니다', '읽습니다'], 'CONTEXTUAL_READ_TENSE', 0.78],
+        ['the first draft', '첫 번째 초안을', ['첫 번째 초안을', '첫 번째 초고를'], 'POLYSEMY_OBJECT_NOUN', 0.98],
+      ],
+    },
+  };
+
+const twoProTranslatePolysemyContextMiniV1386 = (
+  value: unknown
+): TwoProPolysemyContextMiniResultV1386 | null => {
+  const source = String(value || '')
+    .normalize('NFC')
+    .replace(/[’‘]/g, "'")
+    .replace(/\s+/g, ' ')
+    .replace(/[.!?]+$/g, '')
+    .trim()
+    .toLowerCase();
+
+  const config = TWO_PRO_POLYSEMY_CONTEXT_MINI_V1386[source];
+  if (!config) return null;
+
+  return {
+    targetText: config.targetText,
+    patternId: config.patternId,
+    referenceWords: config.refs.map(
+      ([refSource, selected, candidates, slot, confidence]) => ({
+        source: refSource,
+        selected,
+        candidates: [...candidates],
+        slot,
+        confidence,
+      })
+    ),
+  };
+};
+
+
 type TemplateSlotTranslation = {
   // 실제 한국어 문장 생성에 넣는 값입니다.
   // this/that/these/those가 있으면 이/그가 결합될 수 있습니다.
@@ -19030,6 +19161,35 @@ export async function POST(request: Request) {
           twoProPracticalBusinessV1385.referenceWords,
       });
     }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.86-safe: 다의어 초단문 문맥 보강 가드
+    // =================================================================
+    const twoProPolysemyContextMiniV1386 =
+      twoProTranslatePolysemyContextMiniV1386(originalText);
+
+    if (twoProPolysemyContextMiniV1386) {
+      const targetV1386 =
+        twoProFinalizeExactEnKoPhraseTargetV1375(
+          twoProPolysemyContextMiniV1386.targetText
+        );
+
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: targetV1386,
+          isReference: false,
+          analysis: [],
+          referenceWords: twoProPolysemyContextMiniV1386.referenceWords,
+          engine: 'polysemy-context-mini-en-ko-v13.86',
+          patternId: twoProPolysemyContextMiniV1386.patternId,
+        },
+        referenceWords: twoProPolysemyContextMiniV1386.referenceWords,
+      });
+    }
+
 
 
     // =================================================================
