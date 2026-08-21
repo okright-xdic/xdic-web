@@ -6083,6 +6083,7 @@ const TWO_PRO_KO_EN_IRREGULAR_PAST_V52: Record<
   eat: 'ate',
   find: 'found',
   get: 'got',
+  give: 'gave',
   go: 'went',
   have: 'had',
   lose: 'lost',
@@ -6215,6 +6216,8 @@ const TWO_PRO_KO_EN_DESTINATION_MOVEMENT_VERBS_V53 =
     '이동하다',
     '들어가다',
     '돌아가다',
+    // 장소로 되돌아가는 문맥에서는 return / go back으로 안전하게 처리합니다.
+    '되돌아가다',
     '내려가다',
     '올라가다',
     '출발하다',
@@ -6270,6 +6273,9 @@ const twoProPlacePhraseV53 = (
     '공항': 'to the airport',
     '회사': 'to the company',
     '사무실': 'to the office',
+    // 층수는 사전의 upstairs/downstairs 후보보다 실제 층 서수를 우선합니다.
+    '1층': 'to the first floor',
+    '2층': 'to the second floor',
   };
 
   // ☆ TwoPro v5.8: '도착하다'는 to가 아니라 장소 유형에 따라 at/in을 사용합니다.
@@ -9029,6 +9035,17 @@ const TWO_PRO_KO_EN_KNOWN_DESTINATIONS_V69 =
   new Set<string>([
     ...Object.keys(TWO_PRO_KO_EN_PLACES),
     '교회',
+    // TwoPro 2026-08-21: 로/으로 방향 이동에서 이미 안전하게
+    // 장소로 쓰이는 실내 목적지만 좁게 추가합니다.
+    // '방으로 돌아가다'를 허용하되 일반 수단/방법의 -로 오탐은 늘리지 않습니다.
+    '방',
+    '객실',
+    '교실',
+    '건물',
+    // TwoPro 2026-08-21: 층수 목적지는 로/으로 이동에서도 안전한 장소입니다.
+    // 현재 CORE 범위는 1층/2층으로 제한합니다.
+    '1층',
+    '2층',
   ]);
 
 // TwoPro 2026-08-20: 이동 목적지 문장에서 안전한 시간 부사 1칸만 허용합니다.
@@ -9039,6 +9056,44 @@ const TWO_PRO_KO_EN_MOVEMENT_TIME_ADVERBS_V610 =
     ['지금', 'now'],
     ['매일', 'every day'],
   ]);
+
+// TwoPro 2026-08-21: 출발지+목적지가 함께 있는 출발문에서 목적지는 for를 사용합니다.
+// 예: 학교에서 서울로 출발해요 -> depart from the school for Seoul
+// 단일 목적지 "서울로 출발해요"의 기존 to 경로는 건드리지 않습니다.
+const twoProDepartureDestinationForPhraseV612 = (
+  source: string,
+  selected: string
+): string => {
+  const cleanSource =
+    twoProNormalizeKoreanNounV5(source);
+  const cleanSelected =
+    String(selected || '').trim();
+
+  if (!cleanSelected) {
+    return '';
+  }
+
+  if (cleanSource === '집') {
+    return 'for home';
+  }
+
+  if (cleanSource === '학교') {
+    return 'for school';
+  }
+
+  if (cleanSource === '교회') {
+    return 'for church';
+  }
+
+  if (
+    /^(?:the\s+)/i.test(cleanSelected) ||
+    /^[A-Z]/.test(cleanSelected)
+  ) {
+    return `for ${cleanSelected}`;
+  }
+
+  return `for the ${cleanSelected}`;
+};
 
 const twoProTryKoEnMovementDestinationV69 = async (
   originalText: string
@@ -9054,10 +9109,212 @@ const twoProTryKoEnMovementDestinationV69 = async (
     .replace(/\s+/g, ' ')
     .trim();
 
-  // 명시적 주어 + (선택 시간 부사) + 장소(에/을/를) + 이동 동사
+  // TwoPro v6.12-safe: 출발지 + 목적지가 함께 있는 출발문을 우선 처리합니다.
+  // 학교에서 서울로 출발해요 -> depart from the school for Seoul
+  // 단일 장소 이동문보다 먼저 잡아 "학교에서 서울"이 한 장소로 합쳐지는 것을 막습니다.
+  const combinedDepartureMatch = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금|매일)\s+)?(.+?)에서\s+(.+?)(?:으로|로)\s+(.+)$/u
+  );
+
+  if (combinedDepartureMatch) {
+    const subjectSource =
+      twoProCleanCapturedKo(combinedDepartureMatch[1]);
+    const temporalSource =
+      twoProCleanCapturedKo(combinedDepartureMatch[2] || '');
+    const temporalEn = temporalSource
+      ? TWO_PRO_KO_EN_MOVEMENT_TIME_ADVERBS_V610.get(
+          temporalSource
+        ) || ''
+      : '';
+    const sourcePlaceSource =
+      twoProNormalizeKoreanNounV5(combinedDepartureMatch[3]);
+    const destinationSource =
+      twoProNormalizeKoreanNounV5(combinedDepartureMatch[4]);
+    const predicateSurface =
+      twoProCleanCapturedKo(combinedDepartureMatch[5]);
+
+    let departureTense: TwoProKoEnSimpleTenseV52 | null = null;
+    let isProgressiveDeparture = false;
+
+    if (
+      predicateSurface === '출발해요' ||
+      predicateSurface === '출발합니다'
+    ) {
+      departureTense = 'present';
+    } else if (
+      predicateSurface === '출발했어요' ||
+      predicateSurface === '출발했습니다'
+    ) {
+      departureTense = 'past';
+    } else if (predicateSurface === '출발하겠습니다') {
+      departureTense = 'future';
+    } else if (
+      /^출발하고\s+있(?:어요|습니다|다)$/u.test(
+        predicateSurface
+      )
+    ) {
+      departureTense = 'present';
+      isProgressiveDeparture = true;
+    } else {
+      const analyzed =
+        twoProAnalyzePredicateV52(predicateSurface);
+      if (analyzed?.base === '출발하다') {
+        departureTense = analyzed.tense;
+      }
+    }
+
+    if (
+      subjectSource &&
+      sourcePlaceSource &&
+      destinationSource &&
+      departureTense
+    ) {
+      const supabaseUrl =
+        process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey =
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      const supabase =
+        supabaseUrl && supabaseKey
+          ? createClient(supabaseUrl, supabaseKey)
+          : null;
+
+      const subjectBundle =
+        await twoProTranslateSubjectV52(
+          subjectSource,
+          supabase
+        );
+      const sourceBundle =
+        await twoProGetParticleBundleV58(
+          sourcePlaceSource,
+          'PLACE',
+          supabase
+        );
+      const destinationBundle =
+        await twoProGetParticleBundleV58(
+          destinationSource,
+          'PLACE',
+          supabase
+        );
+      const verbBundle =
+        twoProDirectBundleV74(
+          '출발하다',
+          'depart',
+          'V:MOVEMENT',
+          ['depart', 'set forth', 'start']
+        );
+
+      if (
+        subjectBundle &&
+        sourceBundle &&
+        destinationBundle
+      ) {
+        const sourcePhrase =
+          twoProPlacePhraseV53(
+            sourcePlaceSource,
+            sourceBundle.selected,
+            '에서',
+            '출발하다'
+          );
+        const destinationPhrase =
+          twoProDepartureDestinationForPhraseV612(
+            destinationSource,
+            destinationBundle.selected
+          );
+
+        const normalizedSubject =
+          String(subjectBundle.selected || '')
+            .toLowerCase();
+        const beAux =
+          normalizedSubject === 'i'
+            ? 'am'
+            : ['you', 'we', 'they'].includes(
+                normalizedSubject
+              )
+              ? 'are'
+              : 'is';
+        const verbEn = isProgressiveDeparture
+          ? `${beAux} departing`
+          : twoProConjugateEnglishVerbV52(
+              'depart',
+              departureTense,
+              subjectBundle.selected
+            );
+
+        if (
+          sourcePhrase &&
+          destinationPhrase &&
+          verbEn
+        ) {
+          const temporalTail =
+            temporalEn ? ` ${temporalEn}` : '';
+          const targetText =
+            twoProFinalizeEnglish(
+              `${subjectBundle.selected} ${verbEn} ${sourcePhrase} ${destinationPhrase}${temporalTail}`,
+              originalText
+            );
+
+          const referenceWords = [
+            ...twoProReferenceWordsV58([
+              sourceBundle,
+              destinationBundle,
+              verbBundle,
+            ]),
+            ...(temporalSource && temporalEn
+              ? [
+                  {
+                    source: temporalSource,
+                    selected: temporalEn,
+                    candidates: [temporalEn],
+                    slot: 'ADV',
+                    confidence: 1,
+                  } as TwoProKoEnReferenceWordV5,
+                ]
+              : []),
+          ];
+
+          return {
+            targetText,
+            analysis: [
+              {
+                ko: subjectBundle.source,
+                en: `${subjectBundle.selected} [S]`,
+              },
+              ...(temporalSource && temporalEn
+                ? [
+                    {
+                      ko: temporalSource,
+                      en: `${temporalEn} [TIME]`,
+                    },
+                  ]
+                : []),
+              {
+                ko: sourceBundle.source,
+                en: `${sourceBundle.selected} [SOURCE]`,
+              },
+              {
+                ko: destinationBundle.source,
+                en: `${destinationBundle.selected} [DESTINATION]`,
+              },
+              {
+                ko: '출발하다',
+                en: 'depart [V]',
+              },
+            ],
+            referenceWords,
+            engine:
+              'movement-departure-source-destination-ko-en-v6.12',
+          };
+        }
+      }
+    }
+  }
+
+  // 명시적 주어 + (선택 시간 부사) + 장소(에/에서/로/으로/을/를) + 이동 동사
   // 예: 그는 지금 학교에 가고 있어요 / 그녀는 매일 학교에 가요
+  //     나는 학교로 돌아가요 / 그녀는 방으로 돌아가요
+  //     나는 지금 학교에서 출발하고 있어요
   const match = normalized.match(
-    /^(.+?)(?:은|는|이|가)\s+(?:(지금|매일)\s+)?(.+?)(에|을|를)\s+(.+)$/u
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금|매일)\s+)?(.+?)(으로|에서|로|에|을|를)\s+(.+)$/u
   );
 
   if (!match) {
@@ -9081,7 +9338,7 @@ const twoProTryKoEnMovementDestinationV69 = async (
     twoProNormalizeKoreanNounV5(match[3]);
 
   const destinationParticle =
-    match[4] as '에' | '을' | '를';
+    match[4] as '에' | '에서' | '으로' | '로' | '을' | '를';
 
   const predicateSurface =
     twoProCleanCapturedKo(match[5]);
@@ -9092,13 +9349,150 @@ const twoProTryKoEnMovementDestinationV69 = async (
   let isProgressiveMovement = false;
 
   // TwoPro 2026-08-21:
-  // v5.2 공통 술어 인덱스에는 '갑니다'는 있으나 해요체 '가요'가 빠져 있습니다.
-  // 이동 목적지 문형 안에서만 '가요'를 현재형 '가다'로 좁게 보완합니다.
-  // 다른 동사/다른 문형으로 일반화하지 않아 기존 회귀 범위를 건드리지 않습니다.
-  if (!predicate && predicateSurface === '가요') {
+  // 해요체 이동동사는 공통 술어 인덱스에서 누락되거나
+  // 원형 추론이 잘못될 수 있으므로 이동 목적지 문형 안에서만 좁게 보정합니다.
+  // - 가요 -> 가다
+  // - 와요 -> 오다
+  // - 들어가요 / 들어갔어요 -> 들어가다
+  // - 돌아가요 / 돌아갔어요 -> 돌아가다
+  // - 되돌아가요 / 되돌아갔어요 -> 되돌아가다
+  // '되돌아가다'는 여기서는 장소 목적지가 있는 이동문으로만 제한합니다.
+  // 단독 사전 검색의 '가요(歌謠)' 등에는 영향을 주지 않습니다.
+  if (predicateSurface === '가요') {
     predicate = {
       base: '가다',
       tense: 'present',
+    };
+  } else if (predicateSurface === '와요') {
+    predicate = {
+      base: '오다',
+      tense: 'present',
+    };
+  } else if (
+    predicateSurface === '들어가요' ||
+    predicateSurface === '들어갑니다'
+  ) {
+    predicate = {
+      base: '들어가다',
+      tense: 'present',
+    };
+  } else if (
+    predicateSurface === '들어갔어요' ||
+    predicateSurface === '들어갔습니다'
+  ) {
+    predicate = {
+      base: '들어가다',
+      tense: 'past',
+    };
+  } else if (predicateSurface === '들어가겠습니다') {
+    predicate = {
+      base: '들어가다',
+      tense: 'future',
+    };
+  } else if (
+    predicateSurface === '돌아가요' ||
+    predicateSurface === '돌아갑니다'
+  ) {
+    predicate = {
+      base: '돌아가다',
+      tense: 'present',
+    };
+  } else if (
+    predicateSurface === '돌아갔어요' ||
+    predicateSurface === '돌아갔습니다'
+  ) {
+    predicate = {
+      base: '돌아가다',
+      tense: 'past',
+    };
+  } else if (predicateSurface === '돌아가겠습니다') {
+    predicate = {
+      base: '돌아가다',
+      tense: 'future',
+    };
+  } else if (
+    predicateSurface === '되돌아가요' ||
+    predicateSurface === '되돌아갑니다'
+  ) {
+    predicate = {
+      base: '되돌아가다',
+      tense: 'present',
+    };
+  } else if (
+    predicateSurface === '되돌아갔어요' ||
+    predicateSurface === '되돌아갔습니다'
+  ) {
+    predicate = {
+      base: '되돌아가다',
+      tense: 'past',
+    };
+  } else if (predicateSurface === '되돌아가겠습니다') {
+    predicate = {
+      base: '되돌아가다',
+      tense: 'future',
+    };
+  } else if (
+    predicateSurface === '올라가요' ||
+    predicateSurface === '올라갑니다'
+  ) {
+    predicate = {
+      base: '올라가다',
+      tense: 'present',
+    };
+  } else if (
+    predicateSurface === '올라갔어요' ||
+    predicateSurface === '올라갔습니다'
+  ) {
+    predicate = {
+      base: '올라가다',
+      tense: 'past',
+    };
+  } else if (predicateSurface === '올라가겠습니다') {
+    predicate = {
+      base: '올라가다',
+      tense: 'future',
+    };
+  } else if (
+    predicateSurface === '내려가요' ||
+    predicateSurface === '내려갑니다'
+  ) {
+    predicate = {
+      base: '내려가다',
+      tense: 'present',
+    };
+  } else if (
+    predicateSurface === '내려갔어요' ||
+    predicateSurface === '내려갔습니다'
+  ) {
+    predicate = {
+      base: '내려가다',
+      tense: 'past',
+    };
+  } else if (predicateSurface === '내려가겠습니다') {
+    predicate = {
+      base: '내려가다',
+      tense: 'future',
+    };
+  } else if (
+    predicateSurface === '출발해요' ||
+    predicateSurface === '출발합니다'
+  ) {
+    predicate = {
+      base: '출발하다',
+      tense: 'present',
+    };
+  } else if (
+    predicateSurface === '출발했어요' ||
+    predicateSurface === '출발했습니다'
+  ) {
+    predicate = {
+      base: '출발하다',
+      tense: 'past',
+    };
+  } else if (predicateSurface === '출발하겠습니다') {
+    predicate = {
+      base: '출발하다',
+      tense: 'future',
     };
   }
 
@@ -9109,10 +9503,29 @@ const twoProTryKoEnMovementDestinationV69 = async (
       );
 
     if (progressiveMatch) {
-      const progressiveBase =
-        twoProCoreSafeVerbBaseFromStemV991(
+      const progressiveStem =
+        twoProCleanCapturedKo(
           progressiveMatch[1]
-        );
+        )
+          .replace(/\s+/g, '')
+          .trim();
+
+      const progressiveBase =
+        progressiveStem === '들어가'
+          ? '들어가다'
+          : progressiveStem === '돌아가'
+            ? '돌아가다'
+            : progressiveStem === '되돌아가'
+              ? '되돌아가다'
+              : progressiveStem === '올라가'
+                ? '올라가다'
+                : progressiveStem === '내려가'
+                  ? '내려가다'
+                  : progressiveStem === '출발하'
+                    ? '출발하다'
+                    : twoProCoreSafeVerbBaseFromStemV991(
+                      progressiveMatch[1]
+                    );
 
       if (
         progressiveBase &&
@@ -9141,9 +9554,24 @@ const twoProTryKoEnMovementDestinationV69 = async (
     return null;
   }
 
-  // 목적격 조사 을/를은 알려진 장소일 때만 목적지로 보정합니다.
-  // 따라서 일반 목적어 문장을 이동 목적지로 잘못 바꾸지 않습니다.
+  // '에서'는 출발지 역할이므로 출발지 이동동사에서만 허용합니다.
+  // 목적격 조사 을/를 및 방향 조사 로/으로는 알려진 장소일 때만
+  // 목적지로 보정합니다. 일반 목적어/수단 표현의 오탐을 막으면서
+  // '학교로 돌아가다', '방으로 돌아가다' 같은 자연스러운 이동문은 허용합니다.
+  const isSourceMovement =
+    destinationParticle === '에서';
+
   if (
+    isSourceMovement &&
+    !TWO_PRO_KO_EN_SOURCE_MOVEMENT_VERBS_V53.has(
+      predicate.base
+    )
+  ) {
+    return null;
+  }
+
+  if (
+    !isSourceMovement &&
     destinationParticle !== '에' &&
     !TWO_PRO_KO_EN_KNOWN_DESTINATIONS_V69.has(
       destinationSource
@@ -9169,19 +9597,62 @@ const twoProTryKoEnMovementDestinationV69 = async (
       supabase
     );
 
+  const floorDestinationSelected =
+    destinationSource === '1층'
+      ? 'first floor'
+      : destinationSource === '2층'
+        ? 'second floor'
+        : '';
+
   const destinationBundle =
-    await twoProGetParticleBundleV58(
-      destinationSource,
-      'PLACE',
-      supabase
-    );
+    floorDestinationSelected
+      ? twoProDirectBundleV74(
+          destinationSource,
+          floorDestinationSelected,
+          'PLACE',
+          [floorDestinationSelected]
+        )
+      : await twoProGetParticleBundleV58(
+          destinationSource,
+          'PLACE',
+          supabase
+        );
 
   const verbBundle =
-    await twoProGetParticleBundleV58(
-      predicate.base,
-      'V',
-      supabase
-    );
+    predicate.base === '들어가다'
+      ? twoProDirectBundleV74(
+          '들어가다',
+          'enter',
+          'V:MOVEMENT',
+          ['enter']
+        )
+      : predicate.base === '돌아가다' ||
+          predicate.base === '되돌아가다'
+        ? twoProDirectBundleV74(
+            predicate.base,
+            'return',
+            'V:MOVEMENT',
+            ['return', 'go back']
+          )
+        : predicate.base === '올라가다'
+          ? twoProDirectBundleV74(
+              '올라가다',
+              'go up',
+              'V:MOVEMENT',
+              ['go up']
+            )
+          : predicate.base === '내려가다'
+            ? twoProDirectBundleV74(
+                '내려가다',
+                'go down',
+                'V:MOVEMENT',
+                ['go down']
+              )
+            : await twoProGetParticleBundleV58(
+            predicate.base,
+            'V',
+            supabase
+          );
 
   if (
     !subjectBundle ||
@@ -9215,13 +9686,12 @@ const twoProTryKoEnMovementDestinationV69 = async (
           subjectBundle.selected
         );
 
-  // 을/를이 사용되었더라도 의미 역할은 목적지이므로
-  // 장소 조사 에와 동일하게 영어 목적지 구를 생성합니다.
+  // '에서'는 출발지(from), 나머지 이동 조사는 목적지 역할로 생성합니다.
   const destinationEn =
     twoProPlacePhraseV53(
       destinationSource,
       destinationBundle.selected,
-      '에',
+      isSourceMovement ? '에서' : '에',
       predicate.base
     );
 
@@ -9287,7 +9757,1351 @@ const twoProTryKoEnMovementDestinationV69 = async (
     engine:
       destinationParticle === '에'
         ? 'movement-destination-e-ko-en-v6.9'
-        : 'movement-destination-object-particle-ko-en-v6.9',
+        : destinationParticle === '로' ||
+            destinationParticle === '으로'
+          ? 'movement-destination-directional-particle-ko-en-v6.11'
+          : 'movement-destination-object-particle-ko-en-v6.9',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.00-safe: 사람 간 사물 수수 CORE (주다 / 받다)
+// [S] + [PERSON]에게 + [OBJECT]을/를 + 주다
+// [S] + [PERSON]에게서 + [OBJECT]을/를 + 받다
+// 대명사·등록 인명만 사람 슬롯으로 허용해 일반 조사 문형 오탐을 막습니다.
+// ============================================================================
+
+type TwoProTransferPredicateV1000 = {
+  baseKo: '주다' | '받다';
+  verbEn: 'give' | 'receive';
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_TRANSFER_SIMPLE_FORMS_V1000: Readonly<Record<
+  string,
+  TwoProTransferPredicateV1000
+>> = {
+  '줘요': { baseKo: '주다', verbEn: 'give', tense: 'present', aspect: 'simple' },
+  '주어요': { baseKo: '주다', verbEn: 'give', tense: 'present', aspect: 'simple' },
+  '줍니다': { baseKo: '주다', verbEn: 'give', tense: 'present', aspect: 'simple' },
+  '준다': { baseKo: '주다', verbEn: 'give', tense: 'present', aspect: 'simple' },
+  '줬어요': { baseKo: '주다', verbEn: 'give', tense: 'past', aspect: 'simple' },
+  '주었어요': { baseKo: '주다', verbEn: 'give', tense: 'past', aspect: 'simple' },
+  '주었습니다': { baseKo: '주다', verbEn: 'give', tense: 'past', aspect: 'simple' },
+  '줬다': { baseKo: '주다', verbEn: 'give', tense: 'past', aspect: 'simple' },
+  '주었다': { baseKo: '주다', verbEn: 'give', tense: 'past', aspect: 'simple' },
+  '주겠습니다': { baseKo: '주다', verbEn: 'give', tense: 'future', aspect: 'simple' },
+  '줄 거예요': { baseKo: '주다', verbEn: 'give', tense: 'future', aspect: 'simple' },
+  '받아요': { baseKo: '받다', verbEn: 'receive', tense: 'present', aspect: 'simple' },
+  '받습니다': { baseKo: '받다', verbEn: 'receive', tense: 'present', aspect: 'simple' },
+  '받는다': { baseKo: '받다', verbEn: 'receive', tense: 'present', aspect: 'simple' },
+  '받았어요': { baseKo: '받다', verbEn: 'receive', tense: 'past', aspect: 'simple' },
+  '받았습니다': { baseKo: '받다', verbEn: 'receive', tense: 'past', aspect: 'simple' },
+  '받았다': { baseKo: '받다', verbEn: 'receive', tense: 'past', aspect: 'simple' },
+  '받겠습니다': { baseKo: '받다', verbEn: 'receive', tense: 'future', aspect: 'simple' },
+  '받을 거예요': { baseKo: '받다', verbEn: 'receive', tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseTransferPredicateV1000 = (
+  value: string
+): TwoProTransferPredicateV1000 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_TRANSFER_SIMPLE_FORMS_V1000[surface];
+  if (fixed) return fixed;
+
+  if (/^주고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { baseKo: '주다', verbEn: 'give', tense: 'present', aspect: 'progressive' };
+  }
+  if (/^받고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { baseKo: '받다', verbEn: 'receive', tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^(주|받)지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    const isGive = negative[1] === '주';
+    return {
+      baseKo: isGive ? '주다' : '받다',
+      verbEn: isGive ? 'give' : 'receive',
+      tense: /았/u.test(negative[2]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '주다' || analyzed?.base === '받다') {
+    const isGive = analyzed.base === '주다';
+    return {
+      baseKo: analyzed.base,
+      verbEn: isGive ? 'give' : 'receive',
+      tense: analyzed.tense,
+      aspect: 'simple',
+    };
+  }
+
+  return null;
+};
+
+const twoProTransferVerbPhraseV1000 = (
+  predicate: TwoProTransferPredicateV1000,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} ${twoProEnglishIngPhraseV991(predicate.verbEn)}`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return `did not ${predicate.verbEn}`;
+    if (predicate.tense === 'future') return `will not ${predicate.verbEn}`;
+    return `${pluralLike ? 'do' : 'does'} not ${predicate.verbEn}`;
+  }
+
+  return twoProConjugateEnglishVerbV52(
+    predicate.verbEn,
+    predicate.tense,
+    subjectEn
+  );
+};
+
+const twoProTryKoEnTransferGiveReceiveV1000 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const receiveMatch = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게서|한테서|께서)\s+(.+?)(?:을|를)\s+(.+)$/u
+  );
+  const giveMatch = receiveMatch ? null : normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(.+?)(?:을|를)\s+(.+)$/u
+  );
+  const match = receiveMatch || giveMatch;
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const personSource = twoProNormalizeKoreanNounV5(match[3]);
+  const objectSource = twoProNormalizeKoreanNounV5(match[4]);
+  const predicate = twoProParseTransferPredicateV1000(
+    twoProCleanCapturedKo(match[5])
+  );
+
+  if (
+    !predicate ||
+    (giveMatch && predicate.baseKo !== '주다') ||
+    (receiveMatch && predicate.baseKo !== '받다')
+  ) return null;
+
+  const personEn = twoProPolysemyObjectV60(personSource);
+  if (!personEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(subjectSource, supabase);
+  const objectBundle = await twoProGetParticleBundleV58(objectSource, 'N', supabase);
+  if (!subjectBundle || !objectBundle) return null;
+
+  const objectPhrase = twoProIndefiniteNounPhraseV58(
+    objectSource,
+    objectBundle.selected
+  );
+  const verbPhrase = twoProTransferVerbPhraseV1000(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!objectPhrase || !verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const complement = receiveMatch
+    ? `${objectPhrase} from ${personEn}`
+    : `${personEn} ${objectPhrase}`;
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${complement}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...twoProReferenceWordsV58([objectBundle]),
+    {
+      source: personSource,
+      selected: personEn,
+      candidates: [personEn],
+      slot: receiveMatch ? 'SOURCE' : 'IO',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90(predicate.baseKo, predicate.verbEn, 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      {
+        ko: personSource,
+        en: `${personEn} [${receiveMatch ? 'SOURCE' : 'RECIPIENT'}]`,
+      },
+      { ko: objectSource, en: `${objectPhrase} [OBJECT]` },
+      { ko: predicate.baseKo, en: `${predicate.verbEn} [V]` },
+    ],
+    referenceWords,
+    engine: receiveMatch
+      ? 'transfer-receive-from-person-ko-en-v10.00'
+      : 'transfer-give-to-person-ko-en-v10.00',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.05-safe: 대여 방향 CORE (빌려주다 / 빌리다)
+// [S] + [PERSON]에게 + [OBJECT]을/를 + 빌려주다  -> lend ... to/person
+// [S] + [PERSON]에게서 + [OBJECT]을/를 + 빌리다 -> borrow ... from person
+// 사람 슬롯은 기존 v10.00의 안전한 대명사·등록 인명 판별을 그대로 재사용합니다.
+// ============================================================================
+
+type TwoProLoanPredicateV1005 = {
+  baseKo: '빌려주다' | '빌리다';
+  verbEn: 'lend' | 'borrow';
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_LOAN_SIMPLE_FORMS_V1005: Readonly<Record<
+  string,
+  TwoProLoanPredicateV1005
+>> = {
+  '빌려줘요': { baseKo: '빌려주다', verbEn: 'lend', tense: 'present', aspect: 'simple' },
+  '빌려주어요': { baseKo: '빌려주다', verbEn: 'lend', tense: 'present', aspect: 'simple' },
+  '빌려줍니다': { baseKo: '빌려주다', verbEn: 'lend', tense: 'present', aspect: 'simple' },
+  '빌려준다': { baseKo: '빌려주다', verbEn: 'lend', tense: 'present', aspect: 'simple' },
+  '빌려줬어요': { baseKo: '빌려주다', verbEn: 'lend', tense: 'past', aspect: 'simple' },
+  '빌려주었어요': { baseKo: '빌려주다', verbEn: 'lend', tense: 'past', aspect: 'simple' },
+  '빌려주었습니다': { baseKo: '빌려주다', verbEn: 'lend', tense: 'past', aspect: 'simple' },
+  '빌려줬다': { baseKo: '빌려주다', verbEn: 'lend', tense: 'past', aspect: 'simple' },
+  '빌려주었다': { baseKo: '빌려주다', verbEn: 'lend', tense: 'past', aspect: 'simple' },
+  '빌려주겠습니다': { baseKo: '빌려주다', verbEn: 'lend', tense: 'future', aspect: 'simple' },
+  '빌려줄 거예요': { baseKo: '빌려주다', verbEn: 'lend', tense: 'future', aspect: 'simple' },
+
+  '빌려요': { baseKo: '빌리다', verbEn: 'borrow', tense: 'present', aspect: 'simple' },
+  '빌립니다': { baseKo: '빌리다', verbEn: 'borrow', tense: 'present', aspect: 'simple' },
+  '빌린다': { baseKo: '빌리다', verbEn: 'borrow', tense: 'present', aspect: 'simple' },
+  '빌렸어요': { baseKo: '빌리다', verbEn: 'borrow', tense: 'past', aspect: 'simple' },
+  '빌렸습니다': { baseKo: '빌리다', verbEn: 'borrow', tense: 'past', aspect: 'simple' },
+  '빌렸다': { baseKo: '빌리다', verbEn: 'borrow', tense: 'past', aspect: 'simple' },
+  '빌리겠습니다': { baseKo: '빌리다', verbEn: 'borrow', tense: 'future', aspect: 'simple' },
+  '빌릴 거예요': { baseKo: '빌리다', verbEn: 'borrow', tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseLoanPredicateV1005 = (
+  value: string
+): TwoProLoanPredicateV1005 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_LOAN_SIMPLE_FORMS_V1005[surface];
+  if (fixed) return fixed;
+
+  if (/^빌려주고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { baseKo: '빌려주다', verbEn: 'lend', tense: 'present', aspect: 'progressive' };
+  }
+  if (/^빌리고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { baseKo: '빌리다', verbEn: 'borrow', tense: 'present', aspect: 'progressive' };
+  }
+
+  const lendNegative = surface.match(
+    /^빌려주지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (lendNegative) {
+    return {
+      baseKo: '빌려주다',
+      verbEn: 'lend',
+      tense: /았/u.test(lendNegative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const borrowNegative = surface.match(
+    /^빌리지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (borrowNegative) {
+    return {
+      baseKo: '빌리다',
+      verbEn: 'borrow',
+      tense: /았/u.test(borrowNegative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '빌려주다' || analyzed?.base === '빌리다') {
+    const isLend = analyzed.base === '빌려주다';
+    return {
+      baseKo: analyzed.base,
+      verbEn: isLend ? 'lend' : 'borrow',
+      tense: analyzed.tense,
+      aspect: 'simple',
+    };
+  }
+
+  return null;
+};
+
+const twoProLoanVerbPhraseV1005 = (
+  predicate: TwoProLoanPredicateV1005,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} ${predicate.verbEn === 'lend' ? 'lending' : 'borrowing'}`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return `did not ${predicate.verbEn}`;
+    if (predicate.tense === 'future') return `will not ${predicate.verbEn}`;
+    return `${pluralLike ? 'do' : 'does'} not ${predicate.verbEn}`;
+  }
+
+  if (predicate.tense === 'past') {
+    return predicate.verbEn === 'lend' ? 'lent' : 'borrowed';
+  }
+  if (predicate.tense === 'future') {
+    return `will ${predicate.verbEn}`;
+  }
+  return pluralLike
+    ? predicate.verbEn
+    : predicate.verbEn === 'lend'
+      ? 'lends'
+      : 'borrows';
+};
+
+const twoProTryKoEnLoanLendBorrowV1005 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const borrowMatch = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게서|한테서|께서)\s+(.+?)(?:을|를)\s+(.+)$/u
+  );
+  const lendMatch = borrowMatch ? null : normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(.+?)(?:을|를)\s+(.+)$/u
+  );
+  const match = borrowMatch || lendMatch;
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const personSource = twoProNormalizeKoreanNounV5(match[3]);
+  const objectSource = twoProNormalizeKoreanNounV5(match[4]);
+  const predicate = twoProParseLoanPredicateV1005(
+    twoProCleanCapturedKo(match[5])
+  );
+
+  if (
+    !predicate ||
+    (lendMatch && predicate.baseKo !== '빌려주다') ||
+    (borrowMatch && predicate.baseKo !== '빌리다')
+  ) return null;
+
+  const personEn = twoProPolysemyObjectV60(personSource);
+  if (!personEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(subjectSource, supabase);
+  const objectBundle = await twoProGetParticleBundleV58(objectSource, 'N', supabase);
+  if (!subjectBundle || !objectBundle) return null;
+
+  const objectPhrase = twoProIndefiniteNounPhraseV58(
+    objectSource,
+    objectBundle.selected
+  );
+  const verbPhrase = twoProLoanVerbPhraseV1005(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!objectPhrase || !verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const complement = borrowMatch
+    ? `${objectPhrase} from ${personEn}`
+    : `${personEn} ${objectPhrase}`;
+
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${complement}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...twoProReferenceWordsV58([objectBundle]),
+    {
+      source: personSource,
+      selected: personEn,
+      candidates: [personEn],
+      slot: borrowMatch ? 'SOURCE' : 'IO',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90(predicate.baseKo, predicate.verbEn, 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      {
+        ko: personSource,
+        en: `${personEn} [${borrowMatch ? 'SOURCE' : 'RECIPIENT'}]`,
+      },
+      { ko: objectSource, en: `${objectPhrase} [OBJECT]` },
+      { ko: predicate.baseKo, en: `${predicate.verbEn} [V]` },
+    ],
+    referenceWords,
+    engine: borrowMatch
+      ? 'loan-borrow-from-person-ko-en-v10.05'
+      : 'loan-lend-to-person-ko-en-v10.05',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.06-safe: 구매 / 수혜 구매 CORE (사다 / 사주다)
+// [S] + (지금) + [OBJECT]을/를 + 사다
+// [S] + (지금) + [PERSON]에게 + [OBJECT]을/를 + 사주다
+//
+// 일반 구입과 수혜 구입을 분리하되 동일한 buy 활용을 공유합니다.
+// 사람 슬롯은 v10.00/v10.05에서 검증한 대명사·등록 인명 판별을 재사용합니다.
+// ============================================================================
+
+type TwoProBuyPredicateV1006 = {
+  baseKo: '사다' | '사주다';
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_BUY_SIMPLE_FORMS_V1006: Readonly<Record<
+  string,
+  TwoProBuyPredicateV1006
+>> = {
+  '사요': { baseKo: '사다', tense: 'present', aspect: 'simple' },
+  '삽니다': { baseKo: '사다', tense: 'present', aspect: 'simple' },
+  '산다': { baseKo: '사다', tense: 'present', aspect: 'simple' },
+  '샀어요': { baseKo: '사다', tense: 'past', aspect: 'simple' },
+  '샀습니다': { baseKo: '사다', tense: 'past', aspect: 'simple' },
+  '샀다': { baseKo: '사다', tense: 'past', aspect: 'simple' },
+  '사겠습니다': { baseKo: '사다', tense: 'future', aspect: 'simple' },
+  '살 거예요': { baseKo: '사다', tense: 'future', aspect: 'simple' },
+
+  '사줘요': { baseKo: '사주다', tense: 'present', aspect: 'simple' },
+  '사주어요': { baseKo: '사주다', tense: 'present', aspect: 'simple' },
+  '사줍니다': { baseKo: '사주다', tense: 'present', aspect: 'simple' },
+  '사준다': { baseKo: '사주다', tense: 'present', aspect: 'simple' },
+  '사줬어요': { baseKo: '사주다', tense: 'past', aspect: 'simple' },
+  '사주었어요': { baseKo: '사주다', tense: 'past', aspect: 'simple' },
+  '사주었습니다': { baseKo: '사주다', tense: 'past', aspect: 'simple' },
+  '사줬다': { baseKo: '사주다', tense: 'past', aspect: 'simple' },
+  '사주었다': { baseKo: '사주다', tense: 'past', aspect: 'simple' },
+  '사주겠습니다': { baseKo: '사주다', tense: 'future', aspect: 'simple' },
+  '사줄 거예요': { baseKo: '사주다', tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseBuyPredicateV1006 = (
+  value: string
+): TwoProBuyPredicateV1006 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim()
+    .replace(/^사\s+주/u, '사주')
+    .replace(/^사\s+줄/u, '사줄');
+
+  const fixed = TWO_PRO_BUY_SIMPLE_FORMS_V1006[surface];
+  if (fixed) return fixed;
+
+  if (/^사고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { baseKo: '사다', tense: 'present', aspect: 'progressive' };
+  }
+  if (/^사주고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { baseKo: '사주다', tense: 'present', aspect: 'progressive' };
+  }
+
+  const buyNegative = surface.match(
+    /^사지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (buyNegative) {
+    return {
+      baseKo: '사다',
+      tense: /았/u.test(buyNegative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const benefactiveNegative = surface.match(
+    /^사주지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (benefactiveNegative) {
+    return {
+      baseKo: '사주다',
+      tense: /았/u.test(benefactiveNegative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  return null;
+};
+
+const twoProBuyVerbPhraseV1006 = (
+  predicate: TwoProBuyPredicateV1006,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} buying`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not buy';
+    if (predicate.tense === 'future') return 'will not buy';
+    return `${pluralLike ? 'do' : 'does'} not buy`;
+  }
+
+  if (predicate.tense === 'past') return 'bought';
+  if (predicate.tense === 'future') return 'will buy';
+  return pluralLike ? 'buy' : 'buys';
+};
+
+const twoProTryKoEnBuyV1006 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const benefactiveMatch = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(.+?)(?:을|를)\s+(.+)$/u
+  );
+  const simpleMatch = benefactiveMatch ? null : normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:을|를)\s+(.+)$/u
+  );
+  const match = benefactiveMatch || simpleMatch;
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const personSource = benefactiveMatch
+    ? twoProNormalizeKoreanNounV5(match[3])
+    : '';
+  const objectSource = twoProNormalizeKoreanNounV5(
+    benefactiveMatch ? match[4] : match[3]
+  );
+  const predicate = twoProParseBuyPredicateV1006(
+    twoProCleanCapturedKo(benefactiveMatch ? match[5] : match[4])
+  );
+
+  if (
+    !predicate ||
+    (benefactiveMatch && predicate.baseKo !== '사주다') ||
+    (simpleMatch && predicate.baseKo !== '사다')
+  ) return null;
+
+  const personEn = benefactiveMatch
+    ? twoProPolysemyObjectV60(personSource)
+    : '';
+  if (benefactiveMatch && !personEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  const objectBundle = await twoProGetParticleBundleV58(
+    objectSource,
+    'N',
+    supabase
+  );
+  if (!subjectBundle || !objectBundle) return null;
+
+  const objectPhrase = twoProIndefiniteNounPhraseV58(
+    objectSource,
+    objectBundle.selected
+  );
+  const verbPhrase = twoProBuyVerbPhraseV1006(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!objectPhrase || !verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const complement = benefactiveMatch
+    ? `${personEn} ${objectPhrase}`
+    : objectPhrase;
+
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${complement}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...twoProReferenceWordsV58([objectBundle]),
+    ...(benefactiveMatch ? [{
+      source: personSource,
+      selected: personEn,
+      candidates: [personEn],
+      slot: 'BENEFICIARY',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+    twoProEmbeddedReferenceWordV90(
+      predicate.baseKo,
+      'buy',
+      'V'
+    ),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn
+        ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }]
+        : []),
+      ...(benefactiveMatch
+        ? [{ ko: personSource, en: `${personEn} [BENEFICIARY]` }]
+        : []),
+      { ko: objectSource, en: `${objectPhrase} [OBJECT]` },
+      { ko: predicate.baseKo, en: 'buy [V]' },
+    ],
+    referenceWords,
+    engine: benefactiveMatch
+      ? 'buy-benefactive-person-ko-en-v10.06'
+      : 'buy-object-ko-en-v10.06',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.01-safe: 사람에게 사물 보내기 CORE (보내다)
+// [S] + [PERSON]에게 + [OBJECT]을/를 + 보내다
+// 기존 주다/받다 CORE와 분리해 이미 통과한 수수 문형을 건드리지 않습니다.
+// 대명사·등록 인명만 수신자 슬롯으로 허용해 일반 조사 문형 오탐을 막습니다.
+// ============================================================================
+
+type TwoProSendPredicateV1001 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_SEND_SIMPLE_FORMS_V1001: Readonly<Record<
+  string,
+  TwoProSendPredicateV1001
+>> = {
+  '보내요': { tense: 'present', aspect: 'simple' },
+  '보냅니다': { tense: 'present', aspect: 'simple' },
+  '보낸다': { tense: 'present', aspect: 'simple' },
+  '보냈어요': { tense: 'past', aspect: 'simple' },
+  '보냈습니다': { tense: 'past', aspect: 'simple' },
+  '보냈다': { tense: 'past', aspect: 'simple' },
+  '보내겠습니다': { tense: 'future', aspect: 'simple' },
+  '보낼 거예요': { tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseSendPredicateV1001 = (
+  value: string
+): TwoProSendPredicateV1001 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_SEND_SIMPLE_FORMS_V1001[surface];
+  if (fixed) return fixed;
+
+  if (/^보내고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^보내지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '보내다') {
+    return {
+      tense: analyzed.tense,
+      aspect: 'simple',
+    };
+  }
+
+  return null;
+};
+
+const twoProSendVerbPhraseV1001 = (
+  predicate: TwoProSendPredicateV1001,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} sending`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not send';
+    if (predicate.tense === 'future') return 'will not send';
+    return `${pluralLike ? 'do' : 'does'} not send`;
+  }
+
+  return twoProConjugateEnglishVerbV52(
+    'send',
+    predicate.tense,
+    subjectEn
+  );
+};
+
+const twoProTryKoEnTransferSendV1001 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(.+?)(?:을|를)\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const personSource = twoProNormalizeKoreanNounV5(match[3]);
+  const objectSource = twoProNormalizeKoreanNounV5(match[4]);
+  const predicate = twoProParseSendPredicateV1001(
+    twoProCleanCapturedKo(match[5])
+  );
+  if (!predicate) return null;
+
+  const personEn = twoProPolysemyObjectV60(personSource);
+  if (!personEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  const objectBundle = await twoProGetParticleBundleV58(
+    objectSource,
+    'N',
+    supabase
+  );
+  if (!subjectBundle || !objectBundle) return null;
+
+  const objectPhrase = twoProIndefiniteNounPhraseV58(
+    objectSource,
+    objectBundle.selected
+  );
+  const verbPhrase = twoProSendVerbPhraseV1001(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!objectPhrase || !verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${personEn} ${objectPhrase}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...twoProReferenceWordsV58([objectBundle]),
+    {
+      source: personSource,
+      selected: personEn,
+      candidates: [personEn],
+      slot: 'RECIPIENT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90('보내다', 'send', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: personSource, en: `${personEn} [RECIPIENT]` },
+      { ko: objectSource, en: `${objectPhrase} [OBJECT]` },
+      { ko: '보내다', en: 'send [V]' },
+    ],
+    referenceWords,
+    engine: 'transfer-send-to-person-ko-en-v10.01',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.02-safe: 사물 운반 CORE (가져가다 / 가져오다)
+// [S] + [OBJECT]을/를 + 가져가다/가져오다
+//
+// 이미 통과한 보내다/주다/받다 CORE와 분리해 기존 회귀를 건드리지 않습니다.
+// 장소가 없는 단순 운반문에서 take/bring의 현재·과거·진행·부정을 안정적으로 처리합니다.
+// ============================================================================
+
+type TwoProCarryPredicateV1002 = {
+  baseKo: '가져가다' | '가져오다';
+  verbEn: 'take' | 'bring';
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_CARRY_SIMPLE_FORMS_V1002: Readonly<Record<
+  string,
+  TwoProCarryPredicateV1002
+>> = {
+  '가져가요': { baseKo: '가져가다', verbEn: 'take', tense: 'present', aspect: 'simple' },
+  '가져갑니다': { baseKo: '가져가다', verbEn: 'take', tense: 'present', aspect: 'simple' },
+  '가져간다': { baseKo: '가져가다', verbEn: 'take', tense: 'present', aspect: 'simple' },
+  '가져갔어요': { baseKo: '가져가다', verbEn: 'take', tense: 'past', aspect: 'simple' },
+  '가져갔습니다': { baseKo: '가져가다', verbEn: 'take', tense: 'past', aspect: 'simple' },
+  '가져갔다': { baseKo: '가져가다', verbEn: 'take', tense: 'past', aspect: 'simple' },
+  '가져가겠습니다': { baseKo: '가져가다', verbEn: 'take', tense: 'future', aspect: 'simple' },
+  '가져갈 거예요': { baseKo: '가져가다', verbEn: 'take', tense: 'future', aspect: 'simple' },
+
+  '가져와요': { baseKo: '가져오다', verbEn: 'bring', tense: 'present', aspect: 'simple' },
+  '가져옵니다': { baseKo: '가져오다', verbEn: 'bring', tense: 'present', aspect: 'simple' },
+  '가져온다': { baseKo: '가져오다', verbEn: 'bring', tense: 'present', aspect: 'simple' },
+  '가져왔어요': { baseKo: '가져오다', verbEn: 'bring', tense: 'past', aspect: 'simple' },
+  '가져왔습니다': { baseKo: '가져오다', verbEn: 'bring', tense: 'past', aspect: 'simple' },
+  '가져왔다': { baseKo: '가져오다', verbEn: 'bring', tense: 'past', aspect: 'simple' },
+  '가져오겠습니다': { baseKo: '가져오다', verbEn: 'bring', tense: 'future', aspect: 'simple' },
+  '가져올 거예요': { baseKo: '가져오다', verbEn: 'bring', tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseCarryPredicateV1002 = (
+  value: string
+): TwoProCarryPredicateV1002 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_CARRY_SIMPLE_FORMS_V1002[surface];
+  if (fixed) return fixed;
+
+  if (/^가져가고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return {
+      baseKo: '가져가다',
+      verbEn: 'take',
+      tense: 'present',
+      aspect: 'progressive',
+    };
+  }
+
+  if (/^가져오고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return {
+      baseKo: '가져오다',
+      verbEn: 'bring',
+      tense: 'present',
+      aspect: 'progressive',
+    };
+  }
+
+  const negative = surface.match(
+    /^(가져가|가져오)지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    const isTake = negative[1] === '가져가';
+    return {
+      baseKo: isTake ? '가져가다' : '가져오다',
+      verbEn: isTake ? 'take' : 'bring',
+      tense: /았/u.test(negative[2]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '가져가다' || analyzed?.base === '가져오다') {
+    const isTake = analyzed.base === '가져가다';
+    return {
+      baseKo: analyzed.base,
+      verbEn: isTake ? 'take' : 'bring',
+      tense: analyzed.tense,
+      aspect: 'simple',
+    };
+  }
+
+  return null;
+};
+
+const twoProCarryVerbPhraseV1002 = (
+  predicate: TwoProCarryPredicateV1002,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} ${twoProEnglishIngPhraseV991(predicate.verbEn)}`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return `did not ${predicate.verbEn}`;
+    if (predicate.tense === 'future') return `will not ${predicate.verbEn}`;
+    return `${pluralLike ? 'do' : 'does'} not ${predicate.verbEn}`;
+  }
+
+  return twoProConjugateEnglishVerbV52(
+    predicate.verbEn,
+    predicate.tense,
+    subjectEn
+  );
+};
+
+const twoProTryKoEnCarryTakeBringV1002 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:을|를)\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const objectSource = twoProNormalizeKoreanNounV5(match[3]);
+  const predicate = twoProParseCarryPredicateV1002(
+    twoProCleanCapturedKo(match[4])
+  );
+  if (!predicate) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  const objectBundle = await twoProGetParticleBundleV58(
+    objectSource,
+    'N',
+    supabase
+  );
+  if (!subjectBundle || !objectBundle) return null;
+
+  const objectPhrase = twoProObjectPhraseV52(
+    objectSource,
+    objectBundle.selected,
+    predicate.baseKo
+  );
+  const verbPhrase = twoProCarryVerbPhraseV1002(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!objectPhrase || !verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${objectPhrase}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...twoProReferenceWordsV58([objectBundle]),
+    twoProEmbeddedReferenceWordV90(
+      predicate.baseKo,
+      predicate.verbEn,
+      'V'
+    ),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: objectSource, en: `${objectPhrase} [OBJECT]` },
+      { ko: predicate.baseKo, en: `${predicate.verbEn} [V]` },
+    ],
+    referenceWords,
+    engine: predicate.baseKo === '가져가다'
+      ? 'carry-take-object-ko-en-v10.02'
+      : 'carry-bring-object-ko-en-v10.02',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.03-safe: 목적지가 있는 사물 운반 CORE (가져가다 / 가져오다)
+// [S] + (지금) + [PLACE]에/로/으로 + [OBJECT]을/를 + 가져가다/가져오다
+//
+// v10.02의 장소 없는 운반 CORE보다 먼저 실행합니다.
+// 장소는 기존 안전 목적지 목록으로 제한하고, 목적지 표현은 기존 이동문 표현기를
+// 재사용하여 학교 → to school, 사무실 → to the office, 집 → home을 보장합니다.
+// 이렇게 해서 "학교에 책을 가져왔어요"가 in the school로 내려가거나
+// "집으로"가 일반 사전 문장 후보로 노출되는 문제를 막습니다.
+// ============================================================================
+const twoProTryKoEnCarryTakeBringDestinationV1003 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(으로|로|에)\s+(.+?)(?:을|를)\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const destinationSource = twoProNormalizeKoreanNounV5(match[3]);
+  const objectSource = twoProNormalizeKoreanNounV5(match[5]);
+  const predicate = twoProParseCarryPredicateV1002(
+    twoProCleanCapturedKo(match[6])
+  );
+
+  if (!predicate) return null;
+
+  // 로/으로는 수단·방법 조사로도 자주 쓰이므로, 기존 이동문에서 검증된
+  // 목적지에 한해서만 이 CORE를 허용합니다. 에도 같은 안전 목록을 사용합니다.
+  if (!TWO_PRO_KO_EN_KNOWN_DESTINATIONS_V69.has(destinationSource)) {
+    return null;
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  const destinationBundle = await twoProGetParticleBundleV58(
+    destinationSource,
+    'PLACE',
+    supabase
+  );
+  const objectBundle = await twoProGetParticleBundleV58(
+    objectSource,
+    'N',
+    supabase
+  );
+
+  if (!subjectBundle || !destinationBundle || !objectBundle) {
+    return null;
+  }
+
+  const objectPhrase = twoProObjectPhraseV52(
+    objectSource,
+    objectBundle.selected,
+    predicate.baseKo
+  );
+
+  // carry 동사의 목적지는 가다와 같은 방향 목적지 표현을 사용합니다.
+  // 학교 → to school / 사무실 → to the office / 집 → home
+  const destinationPhrase = twoProPlacePhraseV53(
+    destinationSource,
+    destinationBundle.selected,
+    '에',
+    '가다'
+  );
+
+  const verbPhrase = twoProCarryVerbPhraseV1002(
+    predicate,
+    subjectBundle.selected
+  );
+
+  if (!objectPhrase || !destinationPhrase || !verbPhrase) {
+    return null;
+  }
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${objectPhrase} ${destinationPhrase}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...twoProReferenceWordsV58([
+      destinationBundle,
+      objectBundle,
+    ]),
+    twoProEmbeddedReferenceWordV90(
+      predicate.baseKo,
+      predicate.verbEn,
+      'V'
+    ),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn
+        ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }]
+        : []),
+      { ko: destinationSource, en: `${destinationPhrase} [PLACE]` },
+      { ko: objectSource, en: `${objectPhrase} [OBJECT]` },
+      { ko: predicate.baseKo, en: `${predicate.verbEn} [V]` },
+    ],
+    referenceWords,
+    engine: predicate.baseKo === '가져가다'
+      ? 'carry-take-destination-ko-en-v10.03'
+      : 'carry-bring-destination-ko-en-v10.03',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.04-safe: 사람이 목적지인 사물 운반 CORE (가져가다 / 가져오다)
+// [S] + (지금) + [PERSON]에게/한테/께 + [OBJECT]을/를 + 가져가다/가져오다
+//
+// 장소 목적지 v10.03과 분리하여 사람 슬롯만 처리합니다.
+// 사람은 twoProPolysemyObjectV60가 확정할 수 있는 인칭대명사·등록 인명으로 제한해
+// 일반 조사 문형을 과잉 매칭하지 않습니다.
+// 대표 어순은 take/bring + OBJECT + to + PERSON으로 고정합니다.
+// ============================================================================
+const twoProTryKoEnCarryTakeBringPersonV1004 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(.+?)(?:을|를)\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const personSource = twoProNormalizeKoreanNounV5(match[3]);
+  const objectSource = twoProNormalizeKoreanNounV5(match[4]);
+  const predicate = twoProParseCarryPredicateV1002(
+    twoProCleanCapturedKo(match[5])
+  );
+  if (!predicate) return null;
+
+  // 사람 목적지는 인칭 목적격 또는 등록 인명으로 확정되는 경우만 허용합니다.
+  const personEn = twoProPolysemyObjectV60(personSource);
+  if (!personEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  const objectBundle = await twoProGetParticleBundleV58(
+    objectSource,
+    'N',
+    supabase
+  );
+  if (!subjectBundle || !objectBundle) return null;
+
+  const objectPhrase = twoProObjectPhraseV52(
+    objectSource,
+    objectBundle.selected,
+    predicate.baseKo
+  );
+  const verbPhrase = twoProCarryVerbPhraseV1002(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!objectPhrase || !verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const destinationPhrase = `to ${personEn}`;
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${objectPhrase} ${destinationPhrase}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...twoProReferenceWordsV58([objectBundle]),
+    {
+      source: personSource,
+      selected: personEn,
+      candidates: [personEn],
+      slot: 'RECIPIENT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90(
+      predicate.baseKo,
+      predicate.verbEn,
+      'V'
+    ),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn
+        ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }]
+        : []),
+      { ko: personSource, en: `${destinationPhrase} [RECIPIENT]` },
+      { ko: objectSource, en: `${objectPhrase} [OBJECT]` },
+      { ko: predicate.baseKo, en: `${predicate.verbEn} [V]` },
+    ],
+    referenceWords,
+    engine: predicate.baseKo === '가져가다'
+      ? 'carry-take-person-ko-en-v10.04'
+      : 'carry-bring-person-ko-en-v10.04',
   };
 };
 
@@ -11817,6 +13631,7 @@ const twoProNegativeMovementBaseV75 = (
     '도착하': '도착하다',
     '들어가': '들어가다',
     '돌아가': '돌아가다',
+    '되돌아가': '되돌아가다',
     '내려가': '내려가다',
     '올라가': '올라가다',
     '이동하': '이동하다',
@@ -11832,8 +13647,133 @@ const twoProTryKoEnNegativeMovementClauseV75 = async (
   const normalized =
     twoProNormalizeClauseTextV70(originalText);
 
+  // TwoPro v7.51-safe: 출발지+목적지가 함께 있는 부정 출발문.
+  // 공항에서 서울로 출발하지 않았어요 -> did not depart from the airport for Seoul
+  const combinedDepartureMatch = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(.+?)에서\s+(.+?)(?:으로|로)\s+출발하지\s+않(았다|았어요|았습니다|는다|아요|습니다|겠다|을 것이다|을 거예요|을 겁니다)$/u
+  );
+
+  if (combinedDepartureMatch) {
+    const subjectSource =
+      twoProCleanCapturedKo(combinedDepartureMatch[1]);
+    const sourcePlaceSource =
+      twoProNormalizeKoreanNounV5(combinedDepartureMatch[2]);
+    const destinationSource =
+      twoProNormalizeKoreanNounV5(combinedDepartureMatch[3]);
+    const negativeEnding = combinedDepartureMatch[4];
+
+    const supabaseUrl =
+      process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey =
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabase =
+      supabaseUrl && supabaseKey
+        ? createClient(supabaseUrl, supabaseKey)
+        : null;
+
+    const subjectBundle =
+      await twoProTranslateSubjectV52(
+        subjectSource,
+        supabase
+      );
+    const sourceBundle =
+      await twoProGetParticleBundleV58(
+        sourcePlaceSource,
+        'PLACE',
+        supabase
+      );
+    const destinationBundle =
+      await twoProGetParticleBundleV58(
+        destinationSource,
+        'PLACE',
+        supabase
+      );
+
+    if (
+      subjectBundle &&
+      sourceBundle &&
+      destinationBundle
+    ) {
+      const sourcePhrase =
+        twoProPlacePhraseV53(
+          sourcePlaceSource,
+          sourceBundle.selected,
+          '에서',
+          '출발하다'
+        );
+      const destinationPhrase =
+        twoProDepartureDestinationForPhraseV612(
+          destinationSource,
+          destinationBundle.selected
+        );
+      const subjectEn = subjectBundle.selected;
+      const isPast =
+        /^(?:았다|았어요|았습니다)$/u.test(
+          negativeEnding
+        );
+      const isFuture =
+        /^(?:겠다|을 것이다|을 거예요|을 겁니다)$/u.test(
+          negativeEnding
+        );
+      const negativeAux = isPast
+        ? 'did not'
+        : isFuture
+          ? 'will not'
+          : /^(?:he|she|it)$/i.test(subjectEn)
+            ? 'does not'
+            : 'do not';
+      const verbBundle =
+        twoProDirectBundleV74(
+          '출발하다',
+          'depart',
+          'V:MOVEMENT',
+          ['depart', 'set forth', 'start']
+        );
+
+      if (sourcePhrase && destinationPhrase) {
+        return {
+          targetText:
+            twoProFinalizeEnglish(
+              `${subjectEn} ${negativeAux} depart ${sourcePhrase} ${destinationPhrase}`,
+              originalText
+            ),
+          analysis: [
+            {
+              ko: subjectBundle.source,
+              en: `${subjectEn} [S]`,
+            },
+            {
+              ko: sourceBundle.source,
+              en: `${sourceBundle.selected} [SOURCE]`,
+            },
+            {
+              ko: destinationBundle.source,
+              en: `${destinationBundle.selected} [DESTINATION]`,
+            },
+            {
+              ko: '출발하다',
+              en: 'depart [V:NEG-MOVEMENT]',
+            },
+            {
+              ko: '-지 않다',
+              en: `${negativeAux} [NEGATION]`,
+            },
+          ],
+          referenceWords:
+            twoProReferenceWordsV58([
+              sourceBundle,
+              destinationBundle,
+              verbBundle,
+            ]),
+          engine:
+            'negative-departure-source-destination-ko-en-v7.51',
+        };
+      }
+    }
+  }
+
   const match = normalized.match(
-    /^(.+?)(?:은|는|이|가)\s+(.+?)에\s+(.+?)지\s+않(았다|았어요|았습니다|는다|아요|습니다|겠다|을 것이다|을 거예요|을 겁니다)$/u
+    /^(.+?)(?:은|는|이|가)\s+(.+?)(으로|에서|로|에)\s+(.+?)지\s+않(았다|았어요|았습니다|는다|아요|습니다|겠다|을 것이다|을 거예요|을 겁니다)$/u
   );
 
   if (!match) {
@@ -11844,17 +13784,37 @@ const twoProTryKoEnNegativeMovementClauseV75 = async (
     twoProCleanCapturedKo(match[1]);
   const placeSource =
     twoProNormalizeKoreanNounV5(match[2]);
+  const placeParticle =
+    match[3] as '에' | '에서' | '로' | '으로';
   const predicateBase =
-    twoProNegativeMovementBaseV75(match[3]);
-  const negativeEnding = match[4];
+    twoProNegativeMovementBaseV75(match[4]);
+  const negativeEnding = match[5];
+
+  const isSourceMovement =
+    placeParticle === '에서';
 
   if (
     !subjectSource ||
     !placeSource ||
     !predicateBase ||
-    !TWO_PRO_KO_EN_DESTINATION_MOVEMENT_VERBS_V53.has(
-      predicateBase
+    (
+      isSourceMovement
+        ? !TWO_PRO_KO_EN_SOURCE_MOVEMENT_VERBS_V53.has(
+            predicateBase
+          )
+        : !TWO_PRO_KO_EN_DESTINATION_MOVEMENT_VERBS_V53.has(
+            predicateBase
+          )
     )
+  ) {
+    return null;
+  }
+
+  // 로/으로는 일반 수단 표현과 충돌할 수 있으므로 알려진 목적지에서만 허용합니다.
+  if (
+    !isSourceMovement &&
+    placeParticle !== '에' &&
+    !TWO_PRO_KO_EN_KNOWN_DESTINATIONS_V69.has(placeSource)
   ) {
     return null;
   }
@@ -11865,10 +13825,11 @@ const twoProTryKoEnNegativeMovementClauseV75 = async (
     '도착하다': 'arrive',
     '들어가다': 'enter',
     '돌아가다': 'return',
+    '되돌아가다': 'return',
     '내려가다': 'go down',
     '올라가다': 'go up',
     '이동하다': 'move',
-    '출발하다': 'leave',
+    '출발하다': 'depart',
   };
 
   const verbEn = verbMap[predicateBase];
@@ -11890,12 +13851,26 @@ const twoProTryKoEnNegativeMovementClauseV75 = async (
       subjectSource,
       supabase
     );
+  const floorPlaceSelected =
+    placeSource === '1층'
+      ? 'first floor'
+      : placeSource === '2층'
+        ? 'second floor'
+        : '';
+
   const placeBundle =
-    await twoProGetParticleBundleV58(
-      placeSource,
-      'PLACE',
-      supabase
-    );
+    floorPlaceSelected
+      ? twoProDirectBundleV74(
+          placeSource,
+          floorPlaceSelected,
+          'PLACE',
+          [floorPlaceSelected]
+        )
+      : await twoProGetParticleBundleV58(
+          placeSource,
+          'PLACE',
+          supabase
+        );
 
   if (!subjectBundle || !placeBundle) {
     return null;
@@ -11905,7 +13880,7 @@ const twoProTryKoEnNegativeMovementClauseV75 = async (
     twoProPlacePhraseV53(
       placeSource,
       placeBundle.selected,
-      '에',
+      isSourceMovement ? '에서' : '에',
       predicateBase
     );
 
@@ -35782,6 +37757,211 @@ export async function POST(request: Request) {
         },
         referenceWords:
           twoProMovementDestinationResult.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.345단계: 사람 간 사물 수수 CORE v10.00
+    // =================================================================
+    const twoProTransferGiveReceiveResultV1000 =
+      await twoProTryKoEnTransferGiveReceiveV1000(originalText);
+
+    if (twoProTransferGiveReceiveResultV1000) {
+      console.log('[한영 주다·받다 수수 문형 성공 v10.00]', {
+        query: originalText,
+        result: twoProTransferGiveReceiveResultV1000.targetText,
+        engine: twoProTransferGiveReceiveResultV1000.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProTransferGiveReceiveResultV1000.targetText
+          ),
+          isReference: false,
+          analysis: twoProTransferGiveReceiveResultV1000.analysis,
+          referenceWords: twoProTransferGiveReceiveResultV1000.referenceWords,
+          engine: twoProTransferGiveReceiveResultV1000.engine,
+        },
+        referenceWords: twoProTransferGiveReceiveResultV1000.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.3447단계: 사다 / 사주다 구매 CORE v10.06
+    // =================================================================
+    const twoProBuyResultV1006 =
+      await twoProTryKoEnBuyV1006(originalText);
+
+    if (twoProBuyResultV1006) {
+      console.log('[한영 사다·사주다 구매 문형 성공 v10.06]', {
+        query: originalText,
+        result: twoProBuyResultV1006.targetText,
+        engine: twoProBuyResultV1006.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProBuyResultV1006.targetText
+          ),
+          isReference: false,
+          analysis: twoProBuyResultV1006.analysis,
+          referenceWords: twoProBuyResultV1006.referenceWords,
+          engine: twoProBuyResultV1006.engine,
+        },
+        referenceWords: twoProBuyResultV1006.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.3445단계: 빌려주다 / 빌리다 방향 CORE v10.05
+    // =================================================================
+    const twoProLoanLendBorrowResultV1005 =
+      await twoProTryKoEnLoanLendBorrowV1005(originalText);
+
+    if (twoProLoanLendBorrowResultV1005) {
+      console.log('[한영 빌려주다·빌리다 대여 방향 문형 성공 v10.05]', {
+        query: originalText,
+        result: twoProLoanLendBorrowResultV1005.targetText,
+        engine: twoProLoanLendBorrowResultV1005.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProLoanLendBorrowResultV1005.targetText
+          ),
+          isReference: false,
+          analysis: twoProLoanLendBorrowResultV1005.analysis,
+          referenceWords: twoProLoanLendBorrowResultV1005.referenceWords,
+          engine: twoProLoanLendBorrowResultV1005.engine,
+        },
+        referenceWords: twoProLoanLendBorrowResultV1005.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.344단계: 사람에게 사물 보내기 CORE v10.01
+    // =================================================================
+    const twoProTransferSendResultV1001 =
+      await twoProTryKoEnTransferSendV1001(originalText);
+
+    if (twoProTransferSendResultV1001) {
+      console.log('[한영 보내다 수수 문형 성공 v10.01]', {
+        query: originalText,
+        result: twoProTransferSendResultV1001.targetText,
+        engine: twoProTransferSendResultV1001.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProTransferSendResultV1001.targetText
+          ),
+          isReference: false,
+          analysis: twoProTransferSendResultV1001.analysis,
+          referenceWords: twoProTransferSendResultV1001.referenceWords,
+          engine: twoProTransferSendResultV1001.engine,
+        },
+        referenceWords: twoProTransferSendResultV1001.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.3437단계: 사람이 목적지인 사물 운반 CORE v10.04
+    // 민수에게/그녀에게/나에게 + 사물을 가져가다/가져오다
+    // =================================================================
+    const twoProCarryPersonResultV1004 =
+      await twoProTryKoEnCarryTakeBringPersonV1004(originalText);
+
+    if (twoProCarryPersonResultV1004) {
+      console.log('[한영 가져가다·가져오다 사람 목적지 운반 문형 성공 v10.04]', {
+        query: originalText,
+        result: twoProCarryPersonResultV1004.targetText,
+        engine: twoProCarryPersonResultV1004.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProCarryPersonResultV1004.targetText
+          ),
+          isReference: false,
+          analysis: twoProCarryPersonResultV1004.analysis,
+          referenceWords: twoProCarryPersonResultV1004.referenceWords,
+          engine: twoProCarryPersonResultV1004.engine,
+        },
+        referenceWords: twoProCarryPersonResultV1004.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.3435단계: 목적지가 있는 사물 운반 CORE v10.03
+    // 학교에/집으로/사무실에 + 사물을 가져가다/가져오다
+    // =================================================================
+    const twoProCarryDestinationResultV1003 =
+      await twoProTryKoEnCarryTakeBringDestinationV1003(originalText);
+
+    if (twoProCarryDestinationResultV1003) {
+      console.log('[한영 가져가다·가져오다 목적지 운반 문형 성공 v10.03]', {
+        query: originalText,
+        result: twoProCarryDestinationResultV1003.targetText,
+        engine: twoProCarryDestinationResultV1003.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProCarryDestinationResultV1003.targetText
+          ),
+          isReference: false,
+          analysis: twoProCarryDestinationResultV1003.analysis,
+          referenceWords: twoProCarryDestinationResultV1003.referenceWords,
+          engine: twoProCarryDestinationResultV1003.engine,
+        },
+        referenceWords: twoProCarryDestinationResultV1003.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.343단계: 사물 운반 CORE v10.02 (가져가다 / 가져오다)
+    // =================================================================
+    const twoProCarryTakeBringResultV1002 =
+      await twoProTryKoEnCarryTakeBringV1002(originalText);
+
+    if (twoProCarryTakeBringResultV1002) {
+      console.log('[한영 가져가다·가져오다 운반 문형 성공 v10.02]', {
+        query: originalText,
+        result: twoProCarryTakeBringResultV1002.targetText,
+        engine: twoProCarryTakeBringResultV1002.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProCarryTakeBringResultV1002.targetText
+          ),
+          isReference: false,
+          analysis: twoProCarryTakeBringResultV1002.analysis,
+          referenceWords: twoProCarryTakeBringResultV1002.referenceWords,
+          engine: twoProCarryTakeBringResultV1002.engine,
+        },
+        referenceWords: twoProCarryTakeBringResultV1002.referenceWords,
       });
     }
 
