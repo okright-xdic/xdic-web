@@ -249,6 +249,13 @@ const twoProIsShortReferenceKoreanV117 = (
     .replace(/\s+/g, ' ')
     .trim();
 
+  // TwoPro v1.58-safe: DB의 짧은 병렬 표현이 물음표/마침표로 끝나도
+  // 한국어 종결형 여부는 문장부호를 제외한 본문으로 판단합니다.
+  // 예: "Gone? 갔어요?"의 "갔어요?"를 단어형 참고 표현으로 오인하지 않습니다.
+  const endingCheckTextV158 = text
+    .replace(/[.!?。！？]+$/u, '')
+    .trim();
+
   if (!text || text.length > 28) {
     return false;
   }
@@ -264,7 +271,7 @@ const twoProIsShortReferenceKoreanV117 = (
   // 완성 문장은 "참고 표현" 후보에서 제외합니다.
   if (
     /(습니다|습니까|입니다|인가요|나요|까요|세요|십시오|아요|어요|예요|에요|게요|데요|래요|거든요|잖아요|지요|해요|했어요|했다|한다|된다|됐다|이다|아니다|있다|없다|싶다|있어|없어|같아|겠어|했어|았어|었어|거야|잖아|구나|군요|네요|합시다|읍시다)$/u.test(
-      text
+      endingCheckTextV158
     )
   ) {
     return false;
@@ -1739,15 +1746,77 @@ const router = useRouter();
         pushIfNew
       );
 
-      supplementalReferenceWords.forEach(
-        pushIfNew
-      );
+      // ============================================================
+      // ☆ TwoPro v1.58-safe: 문장 번역 중 검색결과 보충 표현 의미 검증
+      //
+      // 검색 결과 기반 보충 표현은 실제 번역문에 그 영어 대응이
+      // 확인될 때만 합칩니다. 단독 단어 검색처럼 번역 블록이 없을 때는
+      // 기존 사전 검색 동작을 그대로 유지합니다.
+      //
+      // 방지 예:
+      //   가요   -> ballad           (문장 속 동사 활용형)
+      //   민수   -> civilian demands (문장 속 인명)
+      //   갔어요 -> Gone             (문장 속 과거 활용형)
+      // ============================================================
+      const normalizedTranslationV158 =
+        String(aiTranslation || '')
+          .normalize('NFC')
+          .toLocaleLowerCase()
+          .replace(/[^a-z0-9'’-]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+      const supplementalMatchesTranslationV158 = (
+        item: TranslationReferenceWord
+      ): boolean => {
+        // 번역 블록이 없는 일반 사전 검색에서는 기존 보충 표현을 유지합니다.
+        if (!normalizedTranslationV158) {
+          return true;
+        }
+
+        const paddedTarget =
+          ` ${normalizedTranslationV158} `;
+
+        const englishCandidates = [
+          String(item?.selected || ''),
+          ...(Array.isArray(item?.candidates)
+            ? item.candidates
+            : []),
+        ];
+
+        return englishCandidates.some((candidate) => {
+          const normalizedCandidate =
+            String(candidate || '')
+              .normalize('NFC')
+              .toLocaleLowerCase()
+              .replace(/[^a-z0-9'’-]+/g, ' ')
+              .replace(/\s+/g, ' ')
+              .trim();
+
+          if (!normalizedCandidate) {
+            return false;
+          }
+
+          return paddedTarget.includes(
+            ` ${normalizedCandidate} `
+          );
+        });
+      };
+
+      supplementalReferenceWords
+        .filter(
+          supplementalMatchesTranslationV158
+        )
+        .forEach(
+          pushIfNew
+        );
 
       return merged.slice(0, 6);
     }, [
       referenceWords,
       supplementalReferenceWords,
       hasExactBilingualSourceMatchV156,
+      aiTranslation,
     ]);
 
   // ================================================================
