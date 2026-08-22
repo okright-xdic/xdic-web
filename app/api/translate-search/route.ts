@@ -12786,6 +12786,869 @@ const twoProTryKoEnPromisePersonV1018 = async (
 };
 
 // ============================================================================
+// ☆ TwoPro v10.19-safe: 사람에게 다시 오겠다고 약속하기 CORE
+// [S] + (지금) + [PERSON]에게 + 다시 오겠다고 + 약속하다
+// -> promise person that S will/would come back
+//
+// 약속 내용은 현재 회귀 테스트의 "다시 오겠다고"로만 한정합니다.
+// 주절 과거형에서는 종속절 will -> would 시제 일치를 적용합니다.
+// ============================================================================
+
+const twoProPromiseClauseSubjectV1019 = (
+  subjectSource: string,
+  subjectEn: string
+): string | null => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+
+  if (['i', 'you', 'he', 'she', 'we', 'they'].includes(lower)) {
+    return lower;
+  }
+
+  // 현재 CORE 회귀에서 검증된 등록 인명 민수는 남성 단수로 한정합니다.
+  if (
+    twoProNormalizeKoreanNounV5(subjectSource) === '민수' ||
+    lower === 'minsu'
+  ) {
+    return 'he';
+  }
+
+  // 성별을 확정할 수 없는 다른 고유명사는 이 좁은 CORE에서 다루지 않습니다.
+  return null;
+};
+
+const twoProTryKoEnPromiseComeBackContentV1019 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(다시\s+오겠다고)\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const personSource = twoProNormalizeKoreanNounV5(match[3]);
+  const contentSource = twoProCleanCapturedKo(match[4]);
+  const predicate = twoProParsePromisePredicateV1018(
+    twoProCleanCapturedKo(match[5])
+  );
+  if (!predicate) return null;
+
+  const personEn = twoProPolysemyObjectV60(personSource);
+  if (!personEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const clauseSubject = twoProPromiseClauseSubjectV1019(
+    subjectBundle.source,
+    subjectBundle.selected
+  );
+  if (!clauseSubject) return null;
+
+  const verbPhrase = twoProPromiseVerbPhraseV1018(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!verbPhrase) return null;
+
+  const clauseModal = predicate.tense === 'past' ? 'would' : 'will';
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${personEn} that ${clauseSubject} ${clauseModal} come back${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    {
+      source: personSource,
+      selected: personEn,
+      candidates: [personEn],
+      slot: 'RECIPIENT',
+      confidence: 1,
+    },
+    {
+      source: '다시 오다',
+      selected: 'come back',
+      candidates: ['come back'],
+      slot: 'CLAUSE',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90('약속하다', 'promise', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: personSource, en: `${personEn} [RECIPIENT]` },
+      { ko: contentSource, en: `that ${clauseSubject} ${clauseModal} come back [CLAUSE]` },
+      { ko: '약속하다', en: 'promise [V]' },
+    ],
+    referenceWords,
+    engine: 'promise-come-back-content-ko-en-v10.19',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.20-safe: 사람이 방에 들어가도록 허락하기 CORE
+// [S] + (지금) + [PERSON]가 + 방에 들어가도록 + 허락하다
+// -> allow person to enter the room
+//
+// 현재 회귀 범위인 "방에 들어가도록"만 처리합니다.
+// embedded PERSON은 검증된 대명사·등록 인명만 허용하며,
+// 한국어 주격(내가/그가/그녀가/그들이)을 영어 목적격(me/him/her/them)으로 바꿉니다.
+// ============================================================================
+
+type TwoProAllowPredicateV1020 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_ALLOW_SIMPLE_FORMS_V1020: Readonly<Record<
+  string,
+  TwoProAllowPredicateV1020
+>> = {
+  '허락해요': { tense: 'present', aspect: 'simple' },
+  '허락합니다': { tense: 'present', aspect: 'simple' },
+  '허락한다': { tense: 'present', aspect: 'simple' },
+  '허락했어요': { tense: 'past', aspect: 'simple' },
+  '허락했습니다': { tense: 'past', aspect: 'simple' },
+  '허락했다': { tense: 'past', aspect: 'simple' },
+  '허락하겠습니다': { tense: 'future', aspect: 'simple' },
+  '허락할 거예요': { tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseAllowPredicateV1020 = (
+  value: string
+): TwoProAllowPredicateV1020 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_ALLOW_SIMPLE_FORMS_V1020[surface];
+  if (fixed) return fixed;
+
+  if (/^허락하고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^허락하지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '허락하다') {
+    return { tense: analyzed.tense, aspect: 'simple' };
+  }
+
+  return null;
+};
+
+const twoProAllowVerbPhraseV1020 = (
+  predicate: TwoProAllowPredicateV1020,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} allowing`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not allow';
+    if (predicate.tense === 'future') return 'will not allow';
+    return `${pluralLike ? 'do' : 'does'} not allow`;
+  }
+
+  if (predicate.tense === 'past') return 'allowed';
+  if (predicate.tense === 'future') return 'will allow';
+  return pluralLike ? 'allow' : 'allows';
+};
+
+const twoProNormalizeAllowEmbeddedPersonV1020 = (
+  value: string
+): string => {
+  const clean = twoProCleanCapturedKo(value);
+  if (clean === '내') return '나';
+  if (clean === '제') return '저';
+  if (clean === '네') return '너';
+  return twoProNormalizeKoreanNounV5(clean);
+};
+
+const twoProTryKoEnAllowEnterRoomV1020 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:이|가)\s+방에\s+들어가도록\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const embeddedPersonSource = twoProNormalizeAllowEmbeddedPersonV1020(
+    match[3]
+  );
+  const predicate = twoProParseAllowPredicateV1020(
+    twoProCleanCapturedKo(match[4])
+  );
+  if (!embeddedPersonSource || !predicate) return null;
+
+  const embeddedPersonEn = twoProPolysemyObjectV60(
+    embeddedPersonSource
+  );
+  if (!embeddedPersonEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const verbPhrase = twoProAllowVerbPhraseV1020(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${embeddedPersonEn} to enter the room${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    {
+      source: embeddedPersonSource,
+      selected: embeddedPersonEn,
+      candidates: [embeddedPersonEn],
+      slot: 'OBJECT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90('방', 'room', 'N'),
+    twoProEmbeddedReferenceWordV90('들어가다', 'enter', 'V'),
+    twoProEmbeddedReferenceWordV90('허락하다', 'allow', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: embeddedPersonSource, en: `${embeddedPersonEn} [OBJECT]` },
+      { ko: '방', en: 'the room [PLACE]' },
+      { ko: '들어가도록', en: 'to enter [XCOMP]' },
+      { ko: '허락하다', en: 'allow [V]' },
+    ],
+    referenceWords,
+    engine: 'allow-person-to-enter-room-ko-en-v10.20',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.21-safe: 사람이 방에 들어가는 것을 금지하기 CORE
+// [S] + (지금) + [PERSON]가 + 방에 들어가는 것을 + 금지하다
+// -> forbid person from entering the room
+//
+// 현재 회귀 범위인 "방에 들어가는 것을"만 처리합니다.
+// embedded PERSON은 검증된 대명사·등록 인명만 허용하며,
+// 한국어 주격(내가/그가/그녀가/그들이)을 영어 목적격(me/him/her/them)으로 바꿉니다.
+// "들어가는"은 이 문형에서 ingressive가 아니라 from 뒤의 gerund "entering"입니다.
+// ============================================================================
+
+type TwoProForbidPredicateV1021 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_FORBID_SIMPLE_FORMS_V1021: Readonly<Record<
+  string,
+  TwoProForbidPredicateV1021
+>> = {
+  '금지해요': { tense: 'present', aspect: 'simple' },
+  '금지합니다': { tense: 'present', aspect: 'simple' },
+  '금지한다': { tense: 'present', aspect: 'simple' },
+  '금지했어요': { tense: 'past', aspect: 'simple' },
+  '금지했습니다': { tense: 'past', aspect: 'simple' },
+  '금지했다': { tense: 'past', aspect: 'simple' },
+  '금지하겠습니다': { tense: 'future', aspect: 'simple' },
+  '금지할 거예요': { tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseForbidPredicateV1021 = (
+  value: string
+): TwoProForbidPredicateV1021 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_FORBID_SIMPLE_FORMS_V1021[surface];
+  if (fixed) return fixed;
+
+  if (/^금지하고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^금지하지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '금지하다') {
+    return { tense: analyzed.tense, aspect: 'simple' };
+  }
+
+  return null;
+};
+
+const twoProForbidVerbPhraseV1021 = (
+  predicate: TwoProForbidPredicateV1021,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} forbidding`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not forbid';
+    if (predicate.tense === 'future') return 'will not forbid';
+    return `${pluralLike ? 'do' : 'does'} not forbid`;
+  }
+
+  if (predicate.tense === 'past') return 'forbade';
+  if (predicate.tense === 'future') return 'will forbid';
+  return pluralLike ? 'forbid' : 'forbids';
+};
+
+const twoProNormalizeForbidEmbeddedPersonV1021 = (
+  value: string
+): string => {
+  const clean = twoProCleanCapturedKo(value);
+  if (clean === '내') return '나';
+  if (clean === '제') return '저';
+  if (clean === '네') return '너';
+  return twoProNormalizeKoreanNounV5(clean);
+};
+
+const twoProTryKoEnForbidEnterRoomV1021 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:이|가)\s+방에\s+들어가는\s+것을\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const embeddedPersonSource = twoProNormalizeForbidEmbeddedPersonV1021(
+    match[3]
+  );
+  const predicate = twoProParseForbidPredicateV1021(
+    twoProCleanCapturedKo(match[4])
+  );
+  if (!embeddedPersonSource || !predicate) return null;
+
+  const embeddedPersonEn = twoProPolysemyObjectV60(
+    embeddedPersonSource
+  );
+  if (!embeddedPersonEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const verbPhrase = twoProForbidVerbPhraseV1021(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${embeddedPersonEn} from entering the room${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    {
+      source: embeddedPersonSource,
+      selected: embeddedPersonEn,
+      candidates: [embeddedPersonEn],
+      slot: 'OBJECT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90('방', 'room', 'N'),
+    twoProEmbeddedReferenceWordV90('들어가다', 'enter', 'V'),
+    twoProEmbeddedReferenceWordV90('금지하다', 'forbid', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: embeddedPersonSource, en: `${embeddedPersonEn} [OBJECT]` },
+      { ko: '방', en: 'the room [PLACE]' },
+      { ko: '들어가는 것을', en: 'from entering [GERUND]' },
+      { ko: '금지하다', en: 'forbid [V]' },
+    ],
+    referenceWords,
+    engine: 'forbid-person-from-entering-room-ko-en-v10.21',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.22-safe: 사람에게 방에 들어가라고 강요하기 CORE
+// [S] + (지금) + [PERSON]에게 + 방에 들어가라고 + 강요하다
+// -> force person to enter the room
+//
+// 현재 회귀 범위인 "방에 들어가라고"만 처리합니다.
+// 강요 대상은 기존 검증된 사람 목적어 변환을 재사용하고,
+// 영어에서는 force + OBJECT + to-infinitive 구조로 고정합니다.
+// ============================================================================
+
+type TwoProForcePredicateV1022 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_FORCE_SIMPLE_FORMS_V1022: Readonly<Record<
+  string,
+  TwoProForcePredicateV1022
+>> = {
+  '강요해요': { tense: 'present', aspect: 'simple' },
+  '강요합니다': { tense: 'present', aspect: 'simple' },
+  '강요한다': { tense: 'present', aspect: 'simple' },
+  '강요했어요': { tense: 'past', aspect: 'simple' },
+  '강요했습니다': { tense: 'past', aspect: 'simple' },
+  '강요했다': { tense: 'past', aspect: 'simple' },
+  '강요하겠습니다': { tense: 'future', aspect: 'simple' },
+  '강요할 거예요': { tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseForcePredicateV1022 = (
+  value: string
+): TwoProForcePredicateV1022 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_FORCE_SIMPLE_FORMS_V1022[surface];
+  if (fixed) return fixed;
+
+  if (/^강요하고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^강요하지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '강요하다') {
+    return { tense: analyzed.tense, aspect: 'simple' };
+  }
+
+  return null;
+};
+
+const twoProForceVerbPhraseV1022 = (
+  predicate: TwoProForcePredicateV1022,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} forcing`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not force';
+    if (predicate.tense === 'future') return 'will not force';
+    return `${pluralLike ? 'do' : 'does'} not force`;
+  }
+
+  if (predicate.tense === 'past') return 'forced';
+  if (predicate.tense === 'future') return 'will force';
+  return pluralLike ? 'force' : 'forces';
+};
+
+const twoProTryKoEnForceEnterRoomV1022 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+방에\s+들어가라고\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const forceeSource = twoProNormalizeKoreanNounV5(match[3]);
+  const predicate = twoProParseForcePredicateV1022(
+    twoProCleanCapturedKo(match[4])
+  );
+  if (!forceeSource || !predicate) return null;
+
+  const forceeEn = twoProPolysemyObjectV60(forceeSource);
+  if (!forceeEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const verbPhrase = twoProForceVerbPhraseV1022(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${forceeEn} to enter the room${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    {
+      source: forceeSource,
+      selected: forceeEn,
+      candidates: [forceeEn],
+      slot: 'OBJECT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90('방', 'room', 'N'),
+    twoProEmbeddedReferenceWordV90('들어가다', 'enter', 'V'),
+    twoProEmbeddedReferenceWordV90('강요하다', 'force', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: forceeSource, en: `${forceeEn} [OBJECT]` },
+      { ko: '방', en: 'the room [PLACE]' },
+      { ko: '들어가라고', en: 'to enter [XCOMP]' },
+      { ko: '강요하다', en: 'force [V]' },
+    ],
+    referenceWords,
+    engine: 'force-person-to-enter-room-ko-en-v10.22',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.23-safe: 사람에게 방에 들어가라고 명령하기 CORE
+// [S] + (지금) + [PERSON]에게 + 방에 들어가라고 + 명령하다
+// -> order person to enter the room
+//
+// 현재 회귀 범위인 "방에 들어가라고"만 처리합니다.
+// 명령 대상은 기존 검증된 사람 목적어 변환을 재사용하고,
+// 영어에서는 order + OBJECT + to-infinitive 구조로 고정합니다.
+// ============================================================================
+
+type TwoProOrderPredicateV1023 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_ORDER_SIMPLE_FORMS_V1023: Readonly<Record<
+  string,
+  TwoProOrderPredicateV1023
+>> = {
+  '명령해요': { tense: 'present', aspect: 'simple' },
+  '명령합니다': { tense: 'present', aspect: 'simple' },
+  '명령한다': { tense: 'present', aspect: 'simple' },
+  '명령했어요': { tense: 'past', aspect: 'simple' },
+  '명령했습니다': { tense: 'past', aspect: 'simple' },
+  '명령했다': { tense: 'past', aspect: 'simple' },
+  '명령하겠습니다': { tense: 'future', aspect: 'simple' },
+  '명령할 거예요': { tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseOrderPredicateV1023 = (
+  value: string
+): TwoProOrderPredicateV1023 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_ORDER_SIMPLE_FORMS_V1023[surface];
+  if (fixed) return fixed;
+
+  if (/^명령하고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^명령하지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '명령하다') {
+    return { tense: analyzed.tense, aspect: 'simple' };
+  }
+
+  return null;
+};
+
+const twoProOrderVerbPhraseV1023 = (
+  predicate: TwoProOrderPredicateV1023,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} ordering`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not order';
+    if (predicate.tense === 'future') return 'will not order';
+    return `${pluralLike ? 'do' : 'does'} not order`;
+  }
+
+  if (predicate.tense === 'past') return 'ordered';
+  if (predicate.tense === 'future') return 'will order';
+  return pluralLike ? 'order' : 'orders';
+};
+
+const twoProTryKoEnOrderEnterRoomV1023 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+방에\s+들어가라고\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const orderTargetSource = twoProNormalizeKoreanNounV5(match[3]);
+  const predicate = twoProParseOrderPredicateV1023(
+    twoProCleanCapturedKo(match[4])
+  );
+  if (!orderTargetSource || !predicate) return null;
+
+  const orderTargetEn = twoProPolysemyObjectV60(orderTargetSource);
+  if (!orderTargetEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const verbPhrase = twoProOrderVerbPhraseV1023(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${orderTargetEn} to enter the room${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    {
+      source: orderTargetSource,
+      selected: orderTargetEn,
+      candidates: [orderTargetEn],
+      slot: 'OBJECT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90('방', 'room', 'N'),
+    twoProEmbeddedReferenceWordV90('들어가다', 'enter', 'V'),
+    twoProEmbeddedReferenceWordV90('명령하다', 'order', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: orderTargetSource, en: `${orderTargetEn} [OBJECT]` },
+      { ko: '방', en: 'the room [PLACE]' },
+      { ko: '들어가라고', en: 'to enter [XCOMP]' },
+      { ko: '명령하다', en: 'order [V]' },
+    ],
+    referenceWords,
+    engine: 'order-person-to-enter-room-ko-en-v10.23',
+  };
+};
+
+
+// ============================================================================
 // ☆ TwoPro v10.01-safe: 사람에게 사물 보내기 CORE (보내다)
 // [S] + [PERSON]에게 + [OBJECT]을/를 + 보내다
 // 기존 주다/받다 CORE와 분리해 이미 통과한 수수 문형을 건드리지 않습니다.
@@ -40414,6 +41277,35 @@ export async function POST(request: Request) {
     }
 
     // =================================================================
+    // 🎯 0.34457024단계: 다시 오겠다고 약속하기 CORE v10.19
+    // =================================================================
+    const twoProPromiseContentResultV1019 =
+      await twoProTryKoEnPromiseComeBackContentV1019(originalText);
+
+    if (twoProPromiseContentResultV1019) {
+      console.log('[한영 다시 오겠다고 약속하기 문형 성공 v10.19]', {
+        query: originalText,
+        result: twoProPromiseContentResultV1019.targetText,
+        engine: twoProPromiseContentResultV1019.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPromiseContentResultV1019.targetText
+          ),
+          isReference: false,
+          analysis: twoProPromiseContentResultV1019.analysis,
+          referenceWords: twoProPromiseContentResultV1019.referenceWords,
+          engine: twoProPromiseContentResultV1019.engine,
+        },
+        referenceWords: twoProPromiseContentResultV1019.referenceWords,
+      });
+    }
+
+    // =================================================================
     // 🎯 0.34457025단계: 사람에게 약속하기 CORE v10.18
     // =================================================================
     const twoProPromisePersonResultV1018 =
@@ -40439,6 +41331,122 @@ export async function POST(request: Request) {
           engine: twoProPromisePersonResultV1018.engine,
         },
         referenceWords: twoProPromisePersonResultV1018.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.34457020단계: 사람이 방에 들어가도록 허락하기 CORE v10.20
+    // =================================================================
+    const twoProAllowEnterRoomResultV1020 =
+      await twoProTryKoEnAllowEnterRoomV1020(originalText);
+
+    if (twoProAllowEnterRoomResultV1020) {
+      console.log('[한영 허락하다 사람+to부정사 문형 성공 v10.20]', {
+        query: originalText,
+        result: twoProAllowEnterRoomResultV1020.targetText,
+        engine: twoProAllowEnterRoomResultV1020.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProAllowEnterRoomResultV1020.targetText
+          ),
+          isReference: false,
+          analysis: twoProAllowEnterRoomResultV1020.analysis,
+          referenceWords: twoProAllowEnterRoomResultV1020.referenceWords,
+          engine: twoProAllowEnterRoomResultV1020.engine,
+        },
+        referenceWords: twoProAllowEnterRoomResultV1020.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.34457015단계: 사람이 방에 들어가는 것을 금지하기 CORE v10.21
+    // =================================================================
+    const twoProForbidEnterRoomResultV1021 =
+      await twoProTryKoEnForbidEnterRoomV1021(originalText);
+
+    if (twoProForbidEnterRoomResultV1021) {
+      console.log('[한영 금지하다 사람+from-ing 문형 성공 v10.21]', {
+        query: originalText,
+        result: twoProForbidEnterRoomResultV1021.targetText,
+        engine: twoProForbidEnterRoomResultV1021.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProForbidEnterRoomResultV1021.targetText
+          ),
+          isReference: false,
+          analysis: twoProForbidEnterRoomResultV1021.analysis,
+          referenceWords: twoProForbidEnterRoomResultV1021.referenceWords,
+          engine: twoProForbidEnterRoomResultV1021.engine,
+        },
+        referenceWords: twoProForbidEnterRoomResultV1021.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.34457010단계: 사람에게 방에 들어가라고 강요하기 CORE v10.22
+    // =================================================================
+    const twoProForceEnterRoomResultV1022 =
+      await twoProTryKoEnForceEnterRoomV1022(originalText);
+
+    if (twoProForceEnterRoomResultV1022) {
+      console.log('[한영 강요하다 사람+to부정사 문형 성공 v10.22]', {
+        query: originalText,
+        result: twoProForceEnterRoomResultV1022.targetText,
+        engine: twoProForceEnterRoomResultV1022.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProForceEnterRoomResultV1022.targetText
+          ),
+          isReference: false,
+          analysis: twoProForceEnterRoomResultV1022.analysis,
+          referenceWords: twoProForceEnterRoomResultV1022.referenceWords,
+          engine: twoProForceEnterRoomResultV1022.engine,
+        },
+        referenceWords: twoProForceEnterRoomResultV1022.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.34457005단계: 사람에게 방에 들어가라고 명령하기 CORE v10.23
+    // =================================================================
+    const twoProOrderEnterRoomResultV1023 =
+      await twoProTryKoEnOrderEnterRoomV1023(originalText);
+
+    if (twoProOrderEnterRoomResultV1023) {
+      console.log('[한영 명령하다 사람+to부정사 문형 성공 v10.23]', {
+        query: originalText,
+        result: twoProOrderEnterRoomResultV1023.targetText,
+        engine: twoProOrderEnterRoomResultV1023.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProOrderEnterRoomResultV1023.targetText
+          ),
+          isReference: false,
+          analysis: twoProOrderEnterRoomResultV1023.analysis,
+          referenceWords: twoProOrderEnterRoomResultV1023.referenceWords,
+          engine: twoProOrderEnterRoomResultV1023.engine,
+        },
+        referenceWords: twoProOrderEnterRoomResultV1023.referenceWords,
       });
     }
 
