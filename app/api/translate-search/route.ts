@@ -10454,6 +10454,2338 @@ const twoProTryKoEnBuyV1006 = async (
 };
 
 // ============================================================================
+// ☆ TwoPro v10.07-safe: 사람에게 사물 보여주기 CORE (보여주다)
+// [S] + (지금) + [PERSON]에게 + [OBJECT]을/를 + 보여주다
+//
+// 기존 주다/받다/보내다/사다·사주다 CORE와 분리해 회귀 범위를 좁힙니다.
+// 사람 슬롯은 검증된 대명사·등록 인명 판별을 재사용합니다.
+// ============================================================================
+
+type TwoProShowPredicateV1007 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_SHOW_SIMPLE_FORMS_V1007: Readonly<Record<
+  string,
+  TwoProShowPredicateV1007
+>> = {
+  '보여줘요': { tense: 'present', aspect: 'simple' },
+  '보여주어요': { tense: 'present', aspect: 'simple' },
+  '보여줍니다': { tense: 'present', aspect: 'simple' },
+  '보여준다': { tense: 'present', aspect: 'simple' },
+  '보여줬어요': { tense: 'past', aspect: 'simple' },
+  '보여주었어요': { tense: 'past', aspect: 'simple' },
+  '보여주었습니다': { tense: 'past', aspect: 'simple' },
+  '보여줬다': { tense: 'past', aspect: 'simple' },
+  '보여주었다': { tense: 'past', aspect: 'simple' },
+  '보여주겠습니다': { tense: 'future', aspect: 'simple' },
+  '보여줄 거예요': { tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseShowPredicateV1007 = (
+  value: string
+): TwoProShowPredicateV1007 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_SHOW_SIMPLE_FORMS_V1007[surface];
+  if (fixed) return fixed;
+
+  if (/^보여주고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^보여주지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '보여주다') {
+    return {
+      tense: analyzed.tense,
+      aspect: 'simple',
+    };
+  }
+
+  return null;
+};
+
+const twoProShowVerbPhraseV1007 = (
+  predicate: TwoProShowPredicateV1007,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} showing`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not show';
+    if (predicate.tense === 'future') return 'will not show';
+    return `${pluralLike ? 'do' : 'does'} not show`;
+  }
+
+  if (predicate.tense === 'past') return 'showed';
+  if (predicate.tense === 'future') return 'will show';
+  return pluralLike ? 'show' : 'shows';
+};
+
+const twoProTryKoEnTransferShowV1007 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(.+?)(?:을|를)\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const personSource = twoProNormalizeKoreanNounV5(match[3]);
+  const objectSource = twoProNormalizeKoreanNounV5(match[4]);
+  const predicate = twoProParseShowPredicateV1007(
+    twoProCleanCapturedKo(match[5])
+  );
+  if (!predicate) return null;
+
+  const personEn = twoProPolysemyObjectV60(personSource);
+  if (!personEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  const objectBundle = await twoProGetParticleBundleV58(
+    objectSource,
+    'N',
+    supabase
+  );
+  if (!subjectBundle || !objectBundle) return null;
+
+  const objectPhrase = twoProIndefiniteNounPhraseV58(
+    objectSource,
+    objectBundle.selected
+  );
+  const verbPhrase = twoProShowVerbPhraseV1007(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!objectPhrase || !verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${personEn} ${objectPhrase}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...twoProReferenceWordsV58([objectBundle]),
+    {
+      source: personSource,
+      selected: personEn,
+      candidates: [personEn],
+      slot: 'RECIPIENT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90('보여주다', 'show', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: personSource, en: `${personEn} [RECIPIENT]` },
+      { ko: objectSource, en: `${objectPhrase} [OBJECT]` },
+      { ko: '보여주다', en: 'show [V]' },
+    ],
+    referenceWords,
+    engine: 'transfer-show-to-person-ko-en-v10.07',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.08-safe: 사람에게 영어 가르치기 CORE (가르치다 / 가르쳐주다)
+// [S] + (지금) + [PERSON]에게 + 영어를 + 가르치다/가르쳐주다
+//
+// 이번 CORE는 회귀 범위를 좁히기 위해 목적어를 '영어'로 제한합니다.
+// 사람 슬롯은 기존 v10.00~v10.07에서 검증한 대명사·등록 인명 판별을 재사용합니다.
+// '가르쳐주다'의 수혜 의미는 기본 문맥에서 별도 give 없이 teach로 흡수합니다.
+// ============================================================================
+
+type TwoProTeachPredicateV1008 = {
+  baseKo: '가르치다' | '가르쳐주다';
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_TEACH_SIMPLE_FORMS_V1008: Readonly<Record<
+  string,
+  TwoProTeachPredicateV1008
+>> = {
+  '가르쳐요': { baseKo: '가르치다', tense: 'present', aspect: 'simple' },
+  '가르칩니다': { baseKo: '가르치다', tense: 'present', aspect: 'simple' },
+  '가르친다': { baseKo: '가르치다', tense: 'present', aspect: 'simple' },
+  '가르쳤어요': { baseKo: '가르치다', tense: 'past', aspect: 'simple' },
+  '가르쳤습니다': { baseKo: '가르치다', tense: 'past', aspect: 'simple' },
+  '가르쳤다': { baseKo: '가르치다', tense: 'past', aspect: 'simple' },
+  '가르치겠습니다': { baseKo: '가르치다', tense: 'future', aspect: 'simple' },
+  '가르칠 거예요': { baseKo: '가르치다', tense: 'future', aspect: 'simple' },
+
+  '가르쳐줘요': { baseKo: '가르쳐주다', tense: 'present', aspect: 'simple' },
+  '가르쳐주어요': { baseKo: '가르쳐주다', tense: 'present', aspect: 'simple' },
+  '가르쳐줍니다': { baseKo: '가르쳐주다', tense: 'present', aspect: 'simple' },
+  '가르쳐준다': { baseKo: '가르쳐주다', tense: 'present', aspect: 'simple' },
+  '가르쳐줬어요': { baseKo: '가르쳐주다', tense: 'past', aspect: 'simple' },
+  '가르쳐주었어요': { baseKo: '가르쳐주다', tense: 'past', aspect: 'simple' },
+  '가르쳐주었습니다': { baseKo: '가르쳐주다', tense: 'past', aspect: 'simple' },
+  '가르쳐줬다': { baseKo: '가르쳐주다', tense: 'past', aspect: 'simple' },
+  '가르쳐주었다': { baseKo: '가르쳐주다', tense: 'past', aspect: 'simple' },
+  '가르쳐주겠습니다': { baseKo: '가르쳐주다', tense: 'future', aspect: 'simple' },
+  '가르쳐줄 거예요': { baseKo: '가르쳐주다', tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseTeachPredicateV1008 = (
+  value: string
+): TwoProTeachPredicateV1008 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_TEACH_SIMPLE_FORMS_V1008[surface];
+  if (fixed) return fixed;
+
+  if (/^가르치고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return {
+      baseKo: '가르치다',
+      tense: 'present',
+      aspect: 'progressive',
+    };
+  }
+
+  if (/^가르쳐주고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return {
+      baseKo: '가르쳐주다',
+      tense: 'present',
+      aspect: 'progressive',
+    };
+  }
+
+  const teachNegative = surface.match(
+    /^가르치지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (teachNegative) {
+    return {
+      baseKo: '가르치다',
+      tense: /았/u.test(teachNegative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const benefactiveNegative = surface.match(
+    /^가르쳐주지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (benefactiveNegative) {
+    return {
+      baseKo: '가르쳐주다',
+      tense: /았/u.test(benefactiveNegative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '가르치다') {
+    return {
+      baseKo: '가르치다',
+      tense: analyzed.tense,
+      aspect: 'simple',
+    };
+  }
+
+  return null;
+};
+
+const twoProTeachVerbPhraseV1008 = (
+  predicate: TwoProTeachPredicateV1008,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} teaching`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not teach';
+    if (predicate.tense === 'future') return 'will not teach';
+    return `${pluralLike ? 'do' : 'does'} not teach`;
+  }
+
+  if (predicate.tense === 'past') return 'taught';
+  if (predicate.tense === 'future') return 'will teach';
+  return pluralLike ? 'teach' : 'teaches';
+};
+
+const twoProTryKoEnTeachEnglishV1008 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(영어)(?:을|를)\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const personSource = twoProNormalizeKoreanNounV5(match[3]);
+  const objectSource = twoProNormalizeKoreanNounV5(match[4]);
+  const predicate = twoProParseTeachPredicateV1008(
+    twoProCleanCapturedKo(match[5])
+  );
+  if (!predicate || objectSource !== '영어') return null;
+
+  const personEn = twoProPolysemyObjectV60(personSource);
+  if (!personEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const verbPhrase = twoProTeachVerbPhraseV1008(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${personEn} English${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    {
+      source: objectSource,
+      selected: 'English',
+      candidates: ['English'],
+      slot: 'OBJECT',
+      confidence: 1,
+    },
+    {
+      source: personSource,
+      selected: personEn,
+      candidates: [personEn],
+      slot: 'RECIPIENT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90(predicate.baseKo, 'teach', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: personSource, en: `${personEn} [RECIPIENT]` },
+      { ko: objectSource, en: 'English [OBJECT]' },
+      { ko: predicate.baseKo, en: 'teach [V]' },
+    ],
+    referenceWords,
+    engine: predicate.baseKo === '가르쳐주다'
+      ? 'teach-english-benefactive-person-ko-en-v10.08'
+      : 'teach-english-to-person-ko-en-v10.08',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.09-safe: 사람에게 사실/답 말해주기 CORE (말해주다 / 알려주다)
+// [S] + (지금) + [PERSON]에게 + 사실/답을 + 말해주다/알려주다
+//
+// 이번 CORE는 의미가 안정적인 '사실'과 '답'만 대상으로 제한합니다.
+// '사실을 말해주다'는 tell ... the truth, '답을 알려주다'는 tell ... the answer로 처리합니다.
+// 사람 슬롯은 기존 검증된 대명사·등록 인명 판별을 그대로 재사용합니다.
+// ============================================================================
+
+type TwoProTellPredicateV1009 = {
+  baseKo: '말해주다' | '알려주다';
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_TELL_SIMPLE_FORMS_V1009: Readonly<Record<
+  string,
+  TwoProTellPredicateV1009
+>> = {
+  '말해줘요': { baseKo: '말해주다', tense: 'present', aspect: 'simple' },
+  '말해주어요': { baseKo: '말해주다', tense: 'present', aspect: 'simple' },
+  '말해줍니다': { baseKo: '말해주다', tense: 'present', aspect: 'simple' },
+  '말해준다': { baseKo: '말해주다', tense: 'present', aspect: 'simple' },
+  '말해줬어요': { baseKo: '말해주다', tense: 'past', aspect: 'simple' },
+  '말해주었어요': { baseKo: '말해주다', tense: 'past', aspect: 'simple' },
+  '말해주었습니다': { baseKo: '말해주다', tense: 'past', aspect: 'simple' },
+  '말해줬다': { baseKo: '말해주다', tense: 'past', aspect: 'simple' },
+  '말해주었다': { baseKo: '말해주다', tense: 'past', aspect: 'simple' },
+  '말해주겠습니다': { baseKo: '말해주다', tense: 'future', aspect: 'simple' },
+  '말해줄 거예요': { baseKo: '말해주다', tense: 'future', aspect: 'simple' },
+
+  '알려줘요': { baseKo: '알려주다', tense: 'present', aspect: 'simple' },
+  '알려주어요': { baseKo: '알려주다', tense: 'present', aspect: 'simple' },
+  '알려줍니다': { baseKo: '알려주다', tense: 'present', aspect: 'simple' },
+  '알려준다': { baseKo: '알려주다', tense: 'present', aspect: 'simple' },
+  '알려줬어요': { baseKo: '알려주다', tense: 'past', aspect: 'simple' },
+  '알려주었어요': { baseKo: '알려주다', tense: 'past', aspect: 'simple' },
+  '알려주었습니다': { baseKo: '알려주다', tense: 'past', aspect: 'simple' },
+  '알려줬다': { baseKo: '알려주다', tense: 'past', aspect: 'simple' },
+  '알려주었다': { baseKo: '알려주다', tense: 'past', aspect: 'simple' },
+  '알려주겠습니다': { baseKo: '알려주다', tense: 'future', aspect: 'simple' },
+  '알려줄 거예요': { baseKo: '알려주다', tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseTellPredicateV1009 = (
+  value: string
+): TwoProTellPredicateV1009 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_TELL_SIMPLE_FORMS_V1009[surface];
+  if (fixed) return fixed;
+
+  if (/^말해주고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return {
+      baseKo: '말해주다',
+      tense: 'present',
+      aspect: 'progressive',
+    };
+  }
+
+  if (/^알려주고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return {
+      baseKo: '알려주다',
+      tense: 'present',
+      aspect: 'progressive',
+    };
+  }
+
+  const tellNegative = surface.match(
+    /^말해주지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (tellNegative) {
+    return {
+      baseKo: '말해주다',
+      tense: /았/u.test(tellNegative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const informNegative = surface.match(
+    /^알려주지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (informNegative) {
+    return {
+      baseKo: '알려주다',
+      tense: /았/u.test(informNegative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '말해주다' || analyzed?.base === '알려주다') {
+    return {
+      baseKo: analyzed.base,
+      tense: analyzed.tense,
+      aspect: 'simple',
+    };
+  }
+
+  return null;
+};
+
+const twoProTellVerbPhraseV1009 = (
+  predicate: TwoProTellPredicateV1009,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} telling`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not tell';
+    if (predicate.tense === 'future') return 'will not tell';
+    return `${pluralLike ? 'do' : 'does'} not tell`;
+  }
+
+  if (predicate.tense === 'past') return 'told';
+  if (predicate.tense === 'future') return 'will tell';
+  return pluralLike ? 'tell' : 'tells';
+};
+
+const twoProTryKoEnTellInformV1009 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(사실|답)(?:을|를)\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const personSource = twoProNormalizeKoreanNounV5(match[3]);
+  const objectSource = twoProNormalizeKoreanNounV5(match[4]);
+  const predicate = twoProParseTellPredicateV1009(
+    twoProCleanCapturedKo(match[5])
+  );
+  if (!predicate) return null;
+
+  if (
+    (predicate.baseKo === '말해주다' && objectSource !== '사실') ||
+    (predicate.baseKo === '알려주다' && objectSource !== '답')
+  ) return null;
+
+  const personEn = twoProPolysemyObjectV60(personSource);
+  if (!personEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const verbPhrase = twoProTellVerbPhraseV1009(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!verbPhrase) return null;
+
+  const objectPhrase = objectSource === '사실' ? 'the truth' : 'the answer';
+  const objectWord = objectSource === '사실' ? 'truth' : 'answer';
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${personEn} ${objectPhrase}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    {
+      source: objectSource,
+      selected: objectWord,
+      candidates: [objectWord],
+      slot: 'OBJECT',
+      confidence: 1,
+    },
+    {
+      source: personSource,
+      selected: personEn,
+      candidates: [personEn],
+      slot: 'RECIPIENT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90(predicate.baseKo, 'tell', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: personSource, en: `${personEn} [RECIPIENT]` },
+      { ko: objectSource, en: `${objectPhrase} [OBJECT]` },
+      { ko: predicate.baseKo, en: 'tell [V]' },
+    ],
+    referenceWords,
+    engine: predicate.baseKo === '알려주다'
+      ? 'tell-answer-to-person-ko-en-v10.09'
+      : 'tell-truth-to-person-ko-en-v10.09',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.10-safe: 사람에게 묻기 / 질문하기 CORE (묻다 / 질문하다)
+// [S] + (지금) + [PERSON]에게 + 묻다      -> ask person
+// [S] + (지금) + [PERSON]에게 + 질문하다  -> ask person a question
+//
+// '묻다'는 bury/stain 등의 다의어가 있으므로 반드시 사람 목적지 조사
+// 에게/한테/께가 확인되는 경우에만 ask로 확정합니다.
+// ============================================================================
+
+type TwoProAskPredicateV1010 = {
+  baseKo: '묻다' | '질문하다';
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_ASK_SIMPLE_FORMS_V1010: Readonly<Record<
+  string,
+  TwoProAskPredicateV1010
+>> = {
+  '물어요': { baseKo: '묻다', tense: 'present', aspect: 'simple' },
+  '묻습니다': { baseKo: '묻다', tense: 'present', aspect: 'simple' },
+  '묻는다': { baseKo: '묻다', tense: 'present', aspect: 'simple' },
+  '물었어요': { baseKo: '묻다', tense: 'past', aspect: 'simple' },
+  '물었습니다': { baseKo: '묻다', tense: 'past', aspect: 'simple' },
+  '물었다': { baseKo: '묻다', tense: 'past', aspect: 'simple' },
+  '묻겠습니다': { baseKo: '묻다', tense: 'future', aspect: 'simple' },
+  '물을 거예요': { baseKo: '묻다', tense: 'future', aspect: 'simple' },
+
+  '질문해요': { baseKo: '질문하다', tense: 'present', aspect: 'simple' },
+  '질문합니다': { baseKo: '질문하다', tense: 'present', aspect: 'simple' },
+  '질문한다': { baseKo: '질문하다', tense: 'present', aspect: 'simple' },
+  '질문했어요': { baseKo: '질문하다', tense: 'past', aspect: 'simple' },
+  '질문했습니다': { baseKo: '질문하다', tense: 'past', aspect: 'simple' },
+  '질문했다': { baseKo: '질문하다', tense: 'past', aspect: 'simple' },
+  '질문하겠습니다': { baseKo: '질문하다', tense: 'future', aspect: 'simple' },
+  '질문할 거예요': { baseKo: '질문하다', tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseAskPredicateV1010 = (
+  value: string
+): TwoProAskPredicateV1010 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_ASK_SIMPLE_FORMS_V1010[surface];
+  if (fixed) return fixed;
+
+  if (/^묻고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return {
+      baseKo: '묻다',
+      tense: 'present',
+      aspect: 'progressive',
+    };
+  }
+
+  if (/^질문하고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return {
+      baseKo: '질문하다',
+      tense: 'present',
+      aspect: 'progressive',
+    };
+  }
+
+  const askNegative = surface.match(
+    /^묻지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (askNegative) {
+    return {
+      baseKo: '묻다',
+      tense: /았/u.test(askNegative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const questionNegative = surface.match(
+    /^질문하지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (questionNegative) {
+    return {
+      baseKo: '질문하다',
+      tense: /았/u.test(questionNegative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '묻다' || analyzed?.base === '질문하다') {
+    return {
+      baseKo: analyzed.base,
+      tense: analyzed.tense,
+      aspect: 'simple',
+    };
+  }
+
+  return null;
+};
+
+const twoProAskVerbPhraseV1010 = (
+  predicate: TwoProAskPredicateV1010,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} asking`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not ask';
+    if (predicate.tense === 'future') return 'will not ask';
+    return `${pluralLike ? 'do' : 'does'} not ask`;
+  }
+
+  if (predicate.tense === 'past') return 'asked';
+  if (predicate.tense === 'future') return 'will ask';
+  return pluralLike ? 'ask' : 'asks';
+};
+
+const twoProTryKoEnAskQuestionV1010 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const personSource = twoProNormalizeKoreanNounV5(match[3]);
+  const predicate = twoProParseAskPredicateV1010(
+    twoProCleanCapturedKo(match[4])
+  );
+  if (!predicate) return null;
+
+  const personEn = twoProPolysemyObjectV60(personSource);
+  if (!personEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const verbPhrase = twoProAskVerbPhraseV1010(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const questionPhrase = predicate.baseKo === '질문하다'
+    ? ' a question'
+    : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${personEn}${questionPhrase}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    {
+      source: personSource,
+      selected: personEn,
+      candidates: [personEn],
+      slot: 'RECIPIENT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90(predicate.baseKo, 'ask', 'V'),
+    ...(predicate.baseKo === '질문하다' ? [{
+      source: '질문',
+      selected: 'question',
+      candidates: ['question'],
+      slot: 'OBJECT',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: personSource, en: `${personEn} [RECIPIENT]` },
+      ...(predicate.baseKo === '질문하다'
+        ? [{ ko: '질문', en: 'a question [OBJECT]' }]
+        : []),
+      { ko: predicate.baseKo, en: 'ask [V]' },
+    ],
+    referenceWords,
+    engine: predicate.baseKo === '질문하다'
+      ? 'ask-question-to-person-ko-en-v10.10'
+      : 'ask-person-ko-en-v10.10',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.11-safe: 사람에게 대답하기 CORE (대답하다 / 답하다)
+// [S] + (지금) + [PERSON]에게 + 대답하다/답하다 -> answer person
+//
+// 사람 대상 조사 에게/한테/께가 확인되는 경우에만 직접목적어 answer로 확정합니다.
+// 질문에 답하다 같은 비인칭 대상 문형은 다음 단계에서 별도 처리해 과잉 매칭을 막습니다.
+// ============================================================================
+
+type TwoProAnswerPredicateV1011 = {
+  baseKo: '대답하다' | '답하다';
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_ANSWER_SIMPLE_FORMS_V1011: Readonly<Record<
+  string,
+  TwoProAnswerPredicateV1011
+>> = {
+  '대답해요': { baseKo: '대답하다', tense: 'present', aspect: 'simple' },
+  '대답합니다': { baseKo: '대답하다', tense: 'present', aspect: 'simple' },
+  '대답한다': { baseKo: '대답하다', tense: 'present', aspect: 'simple' },
+  '대답했어요': { baseKo: '대답하다', tense: 'past', aspect: 'simple' },
+  '대답했습니다': { baseKo: '대답하다', tense: 'past', aspect: 'simple' },
+  '대답했다': { baseKo: '대답하다', tense: 'past', aspect: 'simple' },
+  '대답하겠습니다': { baseKo: '대답하다', tense: 'future', aspect: 'simple' },
+  '대답할 거예요': { baseKo: '대답하다', tense: 'future', aspect: 'simple' },
+
+  '답해요': { baseKo: '답하다', tense: 'present', aspect: 'simple' },
+  '답합니다': { baseKo: '답하다', tense: 'present', aspect: 'simple' },
+  '답한다': { baseKo: '답하다', tense: 'present', aspect: 'simple' },
+  '답했어요': { baseKo: '답하다', tense: 'past', aspect: 'simple' },
+  '답했습니다': { baseKo: '답하다', tense: 'past', aspect: 'simple' },
+  '답했다': { baseKo: '답하다', tense: 'past', aspect: 'simple' },
+  '답하겠습니다': { baseKo: '답하다', tense: 'future', aspect: 'simple' },
+  '답할 거예요': { baseKo: '답하다', tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseAnswerPredicateV1011 = (
+  value: string
+): TwoProAnswerPredicateV1011 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_ANSWER_SIMPLE_FORMS_V1011[surface];
+  if (fixed) return fixed;
+
+  if (/^대답하고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return {
+      baseKo: '대답하다',
+      tense: 'present',
+      aspect: 'progressive',
+    };
+  }
+
+  if (/^답하고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return {
+      baseKo: '답하다',
+      tense: 'present',
+      aspect: 'progressive',
+    };
+  }
+
+  const answerNegative = surface.match(
+    /^대답하지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (answerNegative) {
+    return {
+      baseKo: '대답하다',
+      tense: /았/u.test(answerNegative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const replyNegative = surface.match(
+    /^답하지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (replyNegative) {
+    return {
+      baseKo: '답하다',
+      tense: /았/u.test(replyNegative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '대답하다' || analyzed?.base === '답하다') {
+    return {
+      baseKo: analyzed.base,
+      tense: analyzed.tense,
+      aspect: 'simple',
+    };
+  }
+
+  return null;
+};
+
+const twoProAnswerVerbPhraseV1011 = (
+  predicate: TwoProAnswerPredicateV1011,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} answering`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not answer';
+    if (predicate.tense === 'future') return 'will not answer';
+    return `${pluralLike ? 'do' : 'does'} not answer`;
+  }
+
+  if (predicate.tense === 'past') return 'answered';
+  if (predicate.tense === 'future') return 'will answer';
+  return pluralLike ? 'answer' : 'answers';
+};
+
+const twoProTryKoEnAnswerPersonV1011 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const personSource = twoProNormalizeKoreanNounV5(match[3]);
+  const predicate = twoProParseAnswerPredicateV1011(
+    twoProCleanCapturedKo(match[4])
+  );
+  if (!predicate) return null;
+
+  const personEn = twoProPolysemyObjectV60(personSource);
+  if (!personEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const verbPhrase = twoProAnswerVerbPhraseV1011(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${personEn}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    {
+      source: personSource,
+      selected: personEn,
+      candidates: [personEn],
+      slot: 'OBJECT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90(predicate.baseKo, 'answer', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: personSource, en: `${personEn} [OBJECT]` },
+      { ko: predicate.baseKo, en: 'answer [V]' },
+    ],
+    referenceWords,
+    engine: predicate.baseKo === '답하다'
+      ? 'answer-person-short-ko-en-v10.11'
+      : 'answer-person-ko-en-v10.11',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.12-safe: 질문에 대답하기 CORE (대답하다 / 답하다)
+// [S] + (지금) + (그) 질문에 + 대답하다/답하다 -> answer the question
+//
+// 질문 대상일 때 answer가 직접목적어를 취하도록 확정합니다.
+// 사람에게 대답하기 v10.11과 분리해 에게/한테/께 문형에는 영향을 주지 않습니다.
+// ============================================================================
+
+const twoProTryKoEnAnswerQuestionV1012 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(?:(그)\s+)?질문에\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const determinerSource = twoProCleanCapturedKo(match[3] || '');
+  const predicate = twoProParseAnswerPredicateV1011(
+    twoProCleanCapturedKo(match[4])
+  );
+  if (!predicate) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const verbPhrase = twoProAnswerVerbPhraseV1011(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const questionSource = determinerSource ? `${determinerSource} 질문` : '질문';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} the question${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    {
+      source: '질문',
+      selected: 'question',
+      candidates: ['question'],
+      slot: 'OBJECT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90(predicate.baseKo, 'answer', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: questionSource, en: 'the question [OBJECT]' },
+      { ko: predicate.baseKo, en: 'answer [V]' },
+    ],
+    referenceWords,
+    engine: predicate.baseKo === '답하다'
+      ? 'answer-question-short-ko-en-v10.12'
+      : 'answer-question-ko-en-v10.12',
+  };
+};
+// ============================================================================
+// ☆ TwoPro v10.13-safe: 부탁하다 / 요청하다 CORE
+// [S] + (지금) + [PERSON]에게 + 부탁하다 -> ask person
+// [S] + (지금) + [OBJECT]을/를 + 요청하다 -> request the object
+//
+// 부탁하다는 사람 대상이 확인될 때만 ask로 확정하고,
+// 요청하다는 직접 목적어가 있는 경우에만 request로 확정합니다.
+// ============================================================================
+
+type TwoProRequestFavorPredicateV1013 = {
+  baseKo: '부탁하다' | '요청하다';
+  verbEn: 'ask' | 'request';
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_REQUEST_FAVOR_SIMPLE_FORMS_V1013: Readonly<Record<
+  string,
+  TwoProRequestFavorPredicateV1013
+>> = {
+  '부탁해요': { baseKo: '부탁하다', verbEn: 'ask', tense: 'present', aspect: 'simple' },
+  '부탁합니다': { baseKo: '부탁하다', verbEn: 'ask', tense: 'present', aspect: 'simple' },
+  '부탁한다': { baseKo: '부탁하다', verbEn: 'ask', tense: 'present', aspect: 'simple' },
+  '부탁했어요': { baseKo: '부탁하다', verbEn: 'ask', tense: 'past', aspect: 'simple' },
+  '부탁했습니다': { baseKo: '부탁하다', verbEn: 'ask', tense: 'past', aspect: 'simple' },
+  '부탁했다': { baseKo: '부탁하다', verbEn: 'ask', tense: 'past', aspect: 'simple' },
+  '부탁하겠습니다': { baseKo: '부탁하다', verbEn: 'ask', tense: 'future', aspect: 'simple' },
+  '부탁할 거예요': { baseKo: '부탁하다', verbEn: 'ask', tense: 'future', aspect: 'simple' },
+
+  '요청해요': { baseKo: '요청하다', verbEn: 'request', tense: 'present', aspect: 'simple' },
+  '요청합니다': { baseKo: '요청하다', verbEn: 'request', tense: 'present', aspect: 'simple' },
+  '요청한다': { baseKo: '요청하다', verbEn: 'request', tense: 'present', aspect: 'simple' },
+  '요청했어요': { baseKo: '요청하다', verbEn: 'request', tense: 'past', aspect: 'simple' },
+  '요청했습니다': { baseKo: '요청하다', verbEn: 'request', tense: 'past', aspect: 'simple' },
+  '요청했다': { baseKo: '요청하다', verbEn: 'request', tense: 'past', aspect: 'simple' },
+  '요청하겠습니다': { baseKo: '요청하다', verbEn: 'request', tense: 'future', aspect: 'simple' },
+  '요청할 거예요': { baseKo: '요청하다', verbEn: 'request', tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseRequestFavorPredicateV1013 = (
+  value: string
+): TwoProRequestFavorPredicateV1013 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_REQUEST_FAVOR_SIMPLE_FORMS_V1013[surface];
+  if (fixed) return fixed;
+
+  if (/^부탁하고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return {
+      baseKo: '부탁하다',
+      verbEn: 'ask',
+      tense: 'present',
+      aspect: 'progressive',
+    };
+  }
+
+  if (/^요청하고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return {
+      baseKo: '요청하다',
+      verbEn: 'request',
+      tense: 'present',
+      aspect: 'progressive',
+    };
+  }
+
+  const favorNegative = surface.match(
+    /^부탁하지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (favorNegative) {
+    return {
+      baseKo: '부탁하다',
+      verbEn: 'ask',
+      tense: /았/u.test(favorNegative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const requestNegative = surface.match(
+    /^요청하지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (requestNegative) {
+    return {
+      baseKo: '요청하다',
+      verbEn: 'request',
+      tense: /았/u.test(requestNegative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '부탁하다') {
+    return {
+      baseKo: '부탁하다',
+      verbEn: 'ask',
+      tense: analyzed.tense,
+      aspect: 'simple',
+    };
+  }
+  if (analyzed?.base === '요청하다') {
+    return {
+      baseKo: '요청하다',
+      verbEn: 'request',
+      tense: analyzed.tense,
+      aspect: 'simple',
+    };
+  }
+
+  return null;
+};
+
+const twoProRequestFavorVerbPhraseV1013 = (
+  predicate: TwoProRequestFavorPredicateV1013,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} ${predicate.verbEn === 'ask' ? 'asking' : 'requesting'}`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return `did not ${predicate.verbEn}`;
+    if (predicate.tense === 'future') return `will not ${predicate.verbEn}`;
+    return `${pluralLike ? 'do' : 'does'} not ${predicate.verbEn}`;
+  }
+
+  if (predicate.tense === 'past') {
+    return predicate.verbEn === 'ask' ? 'asked' : 'requested';
+  }
+  if (predicate.tense === 'future') {
+    return `will ${predicate.verbEn}`;
+  }
+
+  if (pluralLike) return predicate.verbEn;
+  return predicate.verbEn === 'ask' ? 'asks' : 'requests';
+};
+
+const twoProTryKoEnRequestFavorV1013 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const favorMatch = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(.+)$/u
+  );
+
+  if (favorMatch) {
+    const subjectSource = twoProCleanCapturedKo(favorMatch[1]);
+    const temporalSource = twoProCleanCapturedKo(favorMatch[2] || '');
+    const personSource = twoProNormalizeKoreanNounV5(favorMatch[3]);
+    const predicate = twoProParseRequestFavorPredicateV1013(
+      twoProCleanCapturedKo(favorMatch[4])
+    );
+
+    if (predicate?.baseKo === '부탁하다') {
+      const personEn = twoProPolysemyObjectV60(personSource);
+      if (!personEn) return null;
+
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      const supabase = supabaseUrl && supabaseKey
+        ? createClient(supabaseUrl, supabaseKey)
+        : null;
+
+      const subjectBundle = await twoProTranslateSubjectV52(subjectSource, supabase);
+      if (!subjectBundle) return null;
+
+      const verbPhrase = twoProRequestFavorVerbPhraseV1013(
+        predicate,
+        subjectBundle.selected
+      );
+      if (!verbPhrase) return null;
+
+      const temporalEn = temporalSource === '지금' ? 'now' : '';
+      const targetText = twoProFinalizeEnglish(
+        `${subjectBundle.selected} ${verbPhrase} ${personEn}${temporalEn ? ` ${temporalEn}` : ''}`,
+        originalText
+      );
+
+      const referenceWords: TwoProKoEnReferenceWordV5[] = [
+        {
+          source: personSource,
+          selected: personEn,
+          candidates: [personEn],
+          slot: 'RECIPIENT',
+          confidence: 1,
+        },
+        twoProEmbeddedReferenceWordV90('부탁하다', 'ask', 'V'),
+        ...(temporalEn ? [{
+          source: temporalSource,
+          selected: temporalEn,
+          candidates: [temporalEn],
+          slot: 'ADV',
+          confidence: 1,
+        } as TwoProKoEnReferenceWordV5] : []),
+      ];
+
+      return {
+        targetText,
+        analysis: [
+          { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+          ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+          { ko: personSource, en: `${personEn} [RECIPIENT]` },
+          { ko: '부탁하다', en: 'ask [V]' },
+        ],
+        referenceWords,
+        engine: 'ask-favor-person-ko-en-v10.13',
+      };
+    }
+  }
+
+  const requestMatch = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:을|를)\s+(.+)$/u
+  );
+  if (!requestMatch) return null;
+
+  const subjectSource = twoProCleanCapturedKo(requestMatch[1]);
+  const temporalSource = twoProCleanCapturedKo(requestMatch[2] || '');
+  const objectSource = twoProNormalizeKoreanNounV5(requestMatch[3]);
+  const predicate = twoProParseRequestFavorPredicateV1013(
+    twoProCleanCapturedKo(requestMatch[4])
+  );
+  if (predicate?.baseKo !== '요청하다') return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(subjectSource, supabase);
+  const objectBundle = await twoProGetParticleBundleV58(objectSource, 'N', supabase);
+  if (!subjectBundle || !objectBundle) return null;
+
+  const objectPhrase = twoProDefiniteNounPhraseV58(objectBundle.selected);
+  const verbPhrase = twoProRequestFavorVerbPhraseV1013(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!objectPhrase || !verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${objectPhrase}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...twoProReferenceWordsV58([objectBundle]),
+    twoProEmbeddedReferenceWordV90('요청하다', 'request', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: objectSource, en: `${objectPhrase} [OBJECT]` },
+      { ko: '요청하다', en: 'request [V]' },
+    ],
+    referenceWords,
+    engine: 'request-object-ko-en-v10.13',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.14-safe: 사람에게 문제 설명하기 CORE (설명하다)
+// [S] + (지금) + [PERSON]에게 + 문제를 + 설명하다
+// -> explain the problem to person
+//
+// explain은 show/teach처럼 이중목적어를 허용하지 않으므로,
+// 사람 슬롯을 반드시 to + 목적격으로 배치합니다.
+// 현재 회귀 범위에서는 목적어를 '문제'로 제한해 과잉 일반화를 막습니다.
+// ============================================================================
+
+type TwoProExplainPredicateV1014 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_EXPLAIN_SIMPLE_FORMS_V1014: Readonly<Record<
+  string,
+  TwoProExplainPredicateV1014
+>> = {
+  '설명해요': { tense: 'present', aspect: 'simple' },
+  '설명합니다': { tense: 'present', aspect: 'simple' },
+  '설명한다': { tense: 'present', aspect: 'simple' },
+  '설명했어요': { tense: 'past', aspect: 'simple' },
+  '설명했습니다': { tense: 'past', aspect: 'simple' },
+  '설명했다': { tense: 'past', aspect: 'simple' },
+  '설명하겠습니다': { tense: 'future', aspect: 'simple' },
+  '설명할 거예요': { tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseExplainPredicateV1014 = (
+  value: string
+): TwoProExplainPredicateV1014 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_EXPLAIN_SIMPLE_FORMS_V1014[surface];
+  if (fixed) return fixed;
+
+  if (/^설명하고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return {
+      tense: 'present',
+      aspect: 'progressive',
+    };
+  }
+
+  const negative = surface.match(
+    /^설명하지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '설명하다') {
+    return {
+      tense: analyzed.tense,
+      aspect: 'simple',
+    };
+  }
+
+  return null;
+};
+
+const twoProExplainVerbPhraseV1014 = (
+  predicate: TwoProExplainPredicateV1014,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} explaining`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not explain';
+    if (predicate.tense === 'future') return 'will not explain';
+    return `${pluralLike ? 'do' : 'does'} not explain`;
+  }
+
+  if (predicate.tense === 'past') return 'explained';
+  if (predicate.tense === 'future') return 'will explain';
+  return pluralLike ? 'explain' : 'explains';
+};
+
+const twoProTryKoEnExplainV1014 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(.+?)(?:을|를)\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const personSource = twoProNormalizeKoreanNounV5(match[3]);
+  const objectSource = twoProNormalizeKoreanNounV5(match[4]);
+  const predicate = twoProParseExplainPredicateV1014(
+    twoProCleanCapturedKo(match[5])
+  );
+
+  if (!predicate || objectSource !== '문제') return null;
+
+  const personEn = twoProPolysemyObjectV60(personSource);
+  if (!personEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(subjectSource, supabase);
+  const objectBundle = await twoProGetParticleBundleV58(objectSource, 'N', supabase);
+  if (!subjectBundle || !objectBundle) return null;
+
+  const objectPhrase = twoProDefiniteNounPhraseV58(objectBundle.selected);
+  const verbPhrase = twoProExplainVerbPhraseV1014(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!objectPhrase || !verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${objectPhrase} to ${personEn}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...twoProReferenceWordsV58([objectBundle]),
+    {
+      source: personSource,
+      selected: personEn,
+      candidates: [personEn],
+      slot: 'RECIPIENT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90('설명하다', 'explain', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: objectSource, en: `${objectPhrase} [OBJECT]` },
+      { ko: personSource, en: `to ${personEn} [RECIPIENT]` },
+      { ko: '설명하다', en: 'explain [V]' },
+    ],
+    referenceWords,
+    engine: 'explain-problem-to-person-ko-en-v10.14',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v10.15-safe: 사람을 사람에게 소개하기 CORE (소개하다)
+// [S] + (지금) + [RECIPIENT]에게 + [PERSON]을/를 + 소개하다
+// -> introduce person to recipient
+//
+// introduce는 explain과 마찬가지로 한국어 조사 순서를 그대로 영어 이중목적어로
+// 옮기면 안 되므로, 소개되는 사람을 직접목적어로 두고 대상은 to + 목적격으로 둡니다.
+// 대명사·등록 인명만 두 사람 슬롯에 허용하여 과잉 일반화를 막습니다.
+// ============================================================================
+
+type TwoProIntroducePredicateV1015 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_INTRODUCE_SIMPLE_FORMS_V1015: Readonly<Record<
+  string,
+  TwoProIntroducePredicateV1015
+>> = {
+  '소개해요': { tense: 'present', aspect: 'simple' },
+  '소개합니다': { tense: 'present', aspect: 'simple' },
+  '소개한다': { tense: 'present', aspect: 'simple' },
+  '소개했어요': { tense: 'past', aspect: 'simple' },
+  '소개했습니다': { tense: 'past', aspect: 'simple' },
+  '소개했다': { tense: 'past', aspect: 'simple' },
+  '소개하겠습니다': { tense: 'future', aspect: 'simple' },
+  '소개할 거예요': { tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseIntroducePredicateV1015 = (
+  value: string
+): TwoProIntroducePredicateV1015 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_INTRODUCE_SIMPLE_FORMS_V1015[surface];
+  if (fixed) return fixed;
+
+  if (/^소개하고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^소개하지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '소개하다') {
+    return { tense: analyzed.tense, aspect: 'simple' };
+  }
+
+  return null;
+};
+
+const twoProIntroduceVerbPhraseV1015 = (
+  predicate: TwoProIntroducePredicateV1015,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} introducing`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not introduce';
+    if (predicate.tense === 'future') return 'will not introduce';
+    return `${pluralLike ? 'do' : 'does'} not introduce`;
+  }
+
+  if (predicate.tense === 'past') return 'introduced';
+  if (predicate.tense === 'future') return 'will introduce';
+  return pluralLike ? 'introduce' : 'introduces';
+};
+
+const twoProTryKoEnIntroduceV1015 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(.+?)(?:을|를)\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const recipientSource = twoProNormalizeKoreanNounV5(match[3]);
+  const introducedSource = twoProNormalizeKoreanNounV5(match[4]);
+  const predicate = twoProParseIntroducePredicateV1015(
+    twoProCleanCapturedKo(match[5])
+  );
+  if (!predicate) return null;
+
+  const recipientEn = twoProPolysemyObjectV60(recipientSource);
+  const introducedEn = twoProPolysemyObjectV60(introducedSource);
+  if (!recipientEn || !introducedEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(subjectSource, supabase);
+  if (!subjectBundle) return null;
+
+  const verbPhrase = twoProIntroduceVerbPhraseV1015(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${introducedEn} to ${recipientEn}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    {
+      source: introducedSource,
+      selected: introducedEn,
+      candidates: [introducedEn],
+      slot: 'OBJECT',
+      confidence: 1,
+    },
+    {
+      source: recipientSource,
+      selected: recipientEn,
+      candidates: [recipientEn],
+      slot: 'RECIPIENT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90('소개하다', 'introduce', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: introducedSource, en: `${introducedEn} [OBJECT]` },
+      { ko: recipientSource, en: `to ${recipientEn} [RECIPIENT]` },
+      { ko: '소개하다', en: 'introduce [V]' },
+    ],
+    referenceWords,
+    engine: 'introduce-person-to-person-ko-en-v10.15',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.16-safe: 사람에게 사물 추천하기 CORE (추천하다)
+// [S] + (지금) + [RECIPIENT]에게 + [OBJECT]을/를 + 추천하다
+// -> recommend object to recipient
+//
+// recommend는 give/show/teach처럼 영어 이중목적어를 취하지 않으므로
+// 반드시 추천 사물을 직접목적어로 두고 대상은 to + 목적격으로 둡니다.
+// 대명사·등록 인명만 수신자 슬롯에 허용하여 과잉 일반화를 막습니다.
+// ============================================================================
+
+type TwoProRecommendPredicateV1016 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_RECOMMEND_SIMPLE_FORMS_V1016: Readonly<Record<
+  string,
+  TwoProRecommendPredicateV1016
+>> = {
+  '추천해요': { tense: 'present', aspect: 'simple' },
+  '추천합니다': { tense: 'present', aspect: 'simple' },
+  '추천한다': { tense: 'present', aspect: 'simple' },
+  '추천했어요': { tense: 'past', aspect: 'simple' },
+  '추천했습니다': { tense: 'past', aspect: 'simple' },
+  '추천했다': { tense: 'past', aspect: 'simple' },
+  '추천하겠습니다': { tense: 'future', aspect: 'simple' },
+  '추천할 거예요': { tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseRecommendPredicateV1016 = (
+  value: string
+): TwoProRecommendPredicateV1016 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_RECOMMEND_SIMPLE_FORMS_V1016[surface];
+  if (fixed) return fixed;
+
+  if (/^추천하고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^추천하지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '추천하다') {
+    return { tense: analyzed.tense, aspect: 'simple' };
+  }
+
+  return null;
+};
+
+const twoProRecommendVerbPhraseV1016 = (
+  predicate: TwoProRecommendPredicateV1016,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} recommending`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not recommend';
+    if (predicate.tense === 'future') return 'will not recommend';
+    return `${pluralLike ? 'do' : 'does'} not recommend`;
+  }
+
+  if (predicate.tense === 'past') return 'recommended';
+  if (predicate.tense === 'future') return 'will recommend';
+  return pluralLike ? 'recommend' : 'recommends';
+};
+
+const twoProTryKoEnRecommendV1016 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(.+?)(?:을|를)\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const recipientSource = twoProNormalizeKoreanNounV5(match[3]);
+  const objectSource = twoProNormalizeKoreanNounV5(match[4]);
+  const predicate = twoProParseRecommendPredicateV1016(
+    twoProCleanCapturedKo(match[5])
+  );
+  if (!predicate) return null;
+
+  const recipientEn = twoProPolysemyObjectV60(recipientSource);
+  if (!recipientEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(subjectSource, supabase);
+  const objectBundle = await twoProGetParticleBundleV58(objectSource, 'N', supabase);
+  if (!subjectBundle || !objectBundle) return null;
+
+  const objectPhrase = twoProIndefiniteNounPhraseV58(
+    objectSource,
+    objectBundle.selected
+  );
+  const verbPhrase = twoProRecommendVerbPhraseV1016(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!objectPhrase || !verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${objectPhrase} to ${recipientEn}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...twoProReferenceWordsV58([objectBundle]),
+    {
+      source: recipientSource,
+      selected: recipientEn,
+      candidates: [recipientEn],
+      slot: 'RECIPIENT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90('추천하다', 'recommend', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: objectSource, en: `${objectPhrase} [OBJECT]` },
+      { ko: recipientSource, en: `to ${recipientEn} [RECIPIENT]` },
+      { ko: '추천하다', en: 'recommend [V]' },
+    ],
+    referenceWords,
+    engine: 'recommend-object-to-person-ko-en-v10.16',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.17-safe: 사람에게 사물 제안하기 CORE (제안하다)
+// [S] + (지금) + [RECIPIENT]에게 + [OBJECT]을/를 + 제안하다
+// -> suggest object to recipient
+//
+// suggest는 give/show/teach처럼 영어 이중목적어를 취하지 않으므로
+// 반드시 제안 사물을 직접목적어로 두고 대상은 to + 목적격으로 둡니다.
+// 대명사·등록 인명만 수신자 슬롯에 허용하여 과잉 일반화를 막습니다.
+// ============================================================================
+
+type TwoProSuggestPredicateV1017 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_SUGGEST_SIMPLE_FORMS_V1017: Readonly<Record<
+  string,
+  TwoProSuggestPredicateV1017
+>> = {
+  '제안해요': { tense: 'present', aspect: 'simple' },
+  '제안합니다': { tense: 'present', aspect: 'simple' },
+  '제안한다': { tense: 'present', aspect: 'simple' },
+  '제안했어요': { tense: 'past', aspect: 'simple' },
+  '제안했습니다': { tense: 'past', aspect: 'simple' },
+  '제안했다': { tense: 'past', aspect: 'simple' },
+  '제안하겠습니다': { tense: 'future', aspect: 'simple' },
+  '제안할 거예요': { tense: 'future', aspect: 'simple' },
+};
+
+const twoProParseSuggestPredicateV1017 = (
+  value: string
+): TwoProSuggestPredicateV1017 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_SUGGEST_SIMPLE_FORMS_V1017[surface];
+  if (fixed) return fixed;
+
+  if (/^제안하고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^제안하지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '제안하다') {
+    return { tense: analyzed.tense, aspect: 'simple' };
+  }
+
+  return null;
+};
+
+const twoProSuggestVerbPhraseV1017 = (
+  predicate: TwoProSuggestPredicateV1017,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} suggesting`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not suggest';
+    if (predicate.tense === 'future') return 'will not suggest';
+    return `${pluralLike ? 'do' : 'does'} not suggest`;
+  }
+
+  if (predicate.tense === 'past') return 'suggested';
+  if (predicate.tense === 'future') return 'will suggest';
+  return pluralLike ? 'suggest' : 'suggests';
+};
+
+const twoProTryKoEnSuggestV1017 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(.+?)(?:을|를)\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const recipientSource = twoProNormalizeKoreanNounV5(match[3]);
+  const objectSource = twoProNormalizeKoreanNounV5(match[4]);
+  const predicate = twoProParseSuggestPredicateV1017(
+    twoProCleanCapturedKo(match[5])
+  );
+  if (!predicate) return null;
+
+  const recipientEn = twoProPolysemyObjectV60(recipientSource);
+  if (!recipientEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(subjectSource, supabase);
+  const objectBundle = await twoProGetParticleBundleV58(objectSource, 'N', supabase);
+  if (!subjectBundle || !objectBundle) return null;
+
+  const objectPhrase = twoProIndefiniteNounPhraseV58(
+    objectSource,
+    objectBundle.selected
+  );
+  const verbPhrase = twoProSuggestVerbPhraseV1017(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!objectPhrase || !verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${objectPhrase} to ${recipientEn}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...twoProReferenceWordsV58([objectBundle]),
+    {
+      source: recipientSource,
+      selected: recipientEn,
+      candidates: [recipientEn],
+      slot: 'RECIPIENT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90('제안하다', 'suggest', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: objectSource, en: `${objectPhrase} [OBJECT]` },
+      { ko: recipientSource, en: `to ${recipientEn} [RECIPIENT]` },
+      { ko: '제안하다', en: 'suggest [V]' },
+    ],
+    referenceWords,
+    engine: 'suggest-object-to-person-ko-en-v10.17',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.18-safe: 사람에게 약속하기 CORE (약속하다)
+// [S] + (지금) + [PERSON]에게 + 약속하다 -> promise person
+//
+// 약속의 구체 내용이 없는 최소 골격만 처리합니다.
+// 사람 슬롯은 기존 검증된 대명사·등록 인명 판별만 허용해 과잉 일반화를 막습니다.
+// ============================================================================
+
+type TwoProPromisePredicateV1018 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_PROMISE_SIMPLE_FORMS_V1018: Readonly<Record<
+  string,
+  TwoProPromisePredicateV1018
+>> = {
+  '약속해요': { tense: 'present', aspect: 'simple' },
+  '약속합니다': { tense: 'present', aspect: 'simple' },
+  '약속한다': { tense: 'present', aspect: 'simple' },
+  '약속했어요': { tense: 'past', aspect: 'simple' },
+  '약속했습니다': { tense: 'past', aspect: 'simple' },
+  '약속했다': { tense: 'past', aspect: 'simple' },
+  '약속하겠습니다': { tense: 'future', aspect: 'simple' },
+  '약속할 거예요': { tense: 'future', aspect: 'simple' },
+};
+
+const twoProParsePromisePredicateV1018 = (
+  value: string
+): TwoProPromisePredicateV1018 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_PROMISE_SIMPLE_FORMS_V1018[surface];
+  if (fixed) return fixed;
+
+  if (/^약속하고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^약속하지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  const analyzed = twoProAnalyzePredicateV52(surface);
+  if (analyzed?.base === '약속하다') {
+    return { tense: analyzed.tense, aspect: 'simple' };
+  }
+
+  return null;
+};
+
+const twoProPromiseVerbPhraseV1018 = (
+  predicate: TwoProPromisePredicateV1018,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} promising`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not promise';
+    if (predicate.tense === 'future') return 'will not promise';
+    return `${pluralLike ? 'do' : 'does'} not promise`;
+  }
+
+  if (predicate.tense === 'past') return 'promised';
+  if (predicate.tense === 'future') return 'will promise';
+  return pluralLike ? 'promise' : 'promises';
+};
+
+const twoProTryKoEnPromisePersonV1018 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(.+?)(?:에게|한테|께)\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const personSource = twoProNormalizeKoreanNounV5(match[3]);
+  const predicate = twoProParsePromisePredicateV1018(
+    twoProCleanCapturedKo(match[4])
+  );
+  if (!predicate) return null;
+
+  const personEn = twoProPolysemyObjectV60(personSource);
+  if (!personEn) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const verbPhrase = twoProPromiseVerbPhraseV1018(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!verbPhrase) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} ${personEn}${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    {
+      source: personSource,
+      selected: personEn,
+      candidates: [personEn],
+      slot: 'RECIPIENT',
+      confidence: 1,
+    },
+    twoProEmbeddedReferenceWordV90('약속하다', 'promise', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: personSource, en: `${personEn} [RECIPIENT]` },
+      { ko: '약속하다', en: 'promise [V]' },
+    ],
+    referenceWords,
+    engine: 'promise-person-ko-en-v10.18',
+  };
+};
+
+// ============================================================================
 // ☆ TwoPro v10.01-safe: 사람에게 사물 보내기 CORE (보내다)
 // [S] + [PERSON]에게 + [OBJECT]을/를 + 보내다
 // 기존 주다/받다 CORE와 분리해 이미 통과한 수수 문형을 건드리지 않습니다.
@@ -37815,6 +40147,355 @@ export async function POST(request: Request) {
           engine: twoProBuyResultV1006.engine,
         },
         referenceWords: twoProBuyResultV1006.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.34465단계: 사람에게 사물 보여주기 CORE v10.07
+    // =================================================================
+    const twoProTransferShowResultV1007 =
+      await twoProTryKoEnTransferShowV1007(originalText);
+
+    if (twoProTransferShowResultV1007) {
+      console.log('[한영 보여주다 수수 문형 성공 v10.07]', {
+        query: originalText,
+        result: twoProTransferShowResultV1007.targetText,
+        engine: twoProTransferShowResultV1007.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProTransferShowResultV1007.targetText
+          ),
+          isReference: false,
+          analysis: twoProTransferShowResultV1007.analysis,
+          referenceWords: twoProTransferShowResultV1007.referenceWords,
+          engine: twoProTransferShowResultV1007.engine,
+        },
+        referenceWords: twoProTransferShowResultV1007.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.34462단계: 사람에게 영어 가르치기 CORE v10.08
+    // =================================================================
+    const twoProTeachEnglishResultV1008 =
+      await twoProTryKoEnTeachEnglishV1008(originalText);
+
+    if (twoProTeachEnglishResultV1008) {
+      console.log('[한영 가르치다·가르쳐주다 영어 교육 문형 성공 v10.08]', {
+        query: originalText,
+        result: twoProTeachEnglishResultV1008.targetText,
+        engine: twoProTeachEnglishResultV1008.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProTeachEnglishResultV1008.targetText
+          ),
+          isReference: false,
+          analysis: twoProTeachEnglishResultV1008.analysis,
+          referenceWords: twoProTeachEnglishResultV1008.referenceWords,
+          engine: twoProTeachEnglishResultV1008.engine,
+        },
+        referenceWords: twoProTeachEnglishResultV1008.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.34460단계: 말해주다 / 알려주다 전달 CORE v10.09
+    // =================================================================
+    const twoProTellInformResultV1009 =
+      await twoProTryKoEnTellInformV1009(originalText);
+
+    if (twoProTellInformResultV1009) {
+      console.log('[한영 말해주다·알려주다 전달 문형 성공 v10.09]', {
+        query: originalText,
+        result: twoProTellInformResultV1009.targetText,
+        engine: twoProTellInformResultV1009.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProTellInformResultV1009.targetText
+          ),
+          isReference: false,
+          analysis: twoProTellInformResultV1009.analysis,
+          referenceWords: twoProTellInformResultV1009.referenceWords,
+          engine: twoProTellInformResultV1009.engine,
+        },
+        referenceWords: twoProTellInformResultV1009.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.34458단계: 사람에게 묻기 / 질문하기 CORE v10.10
+    // =================================================================
+    const twoProAskQuestionResultV1010 =
+      await twoProTryKoEnAskQuestionV1010(originalText);
+
+    if (twoProAskQuestionResultV1010) {
+      console.log('[한영 묻다·질문하다 사람 질문 문형 성공 v10.10]', {
+        query: originalText,
+        result: twoProAskQuestionResultV1010.targetText,
+        engine: twoProAskQuestionResultV1010.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProAskQuestionResultV1010.targetText
+          ),
+          isReference: false,
+          analysis: twoProAskQuestionResultV1010.analysis,
+          referenceWords: twoProAskQuestionResultV1010.referenceWords,
+          engine: twoProAskQuestionResultV1010.engine,
+        },
+        referenceWords: twoProAskQuestionResultV1010.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.344575단계: 부탁하다 / 요청하다 CORE v10.13
+    // =================================================================
+    const twoProRequestFavorResultV1013 =
+      await twoProTryKoEnRequestFavorV1013(originalText);
+
+    if (twoProRequestFavorResultV1013) {
+      console.log('[한영 부탁하다·요청하다 문형 성공 v10.13]', {
+        query: originalText,
+        result: twoProRequestFavorResultV1013.targetText,
+        engine: twoProRequestFavorResultV1013.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProRequestFavorResultV1013.targetText
+          ),
+          isReference: false,
+          analysis: twoProRequestFavorResultV1013.analysis,
+          referenceWords: twoProRequestFavorResultV1013.referenceWords,
+          engine: twoProRequestFavorResultV1013.engine,
+        },
+        referenceWords: twoProRequestFavorResultV1013.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.344573단계: 사람에게 문제 설명하기 CORE v10.14
+    // =================================================================
+    const twoProExplainResultV1014 =
+      await twoProTryKoEnExplainV1014(originalText);
+
+    if (twoProExplainResultV1014) {
+      console.log('[한영 설명하다 사람 대상 문형 성공 v10.14]', {
+        query: originalText,
+        result: twoProExplainResultV1014.targetText,
+        engine: twoProExplainResultV1014.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProExplainResultV1014.targetText
+          ),
+          isReference: false,
+          analysis: twoProExplainResultV1014.analysis,
+          referenceWords: twoProExplainResultV1014.referenceWords,
+          engine: twoProExplainResultV1014.engine,
+        },
+        referenceWords: twoProExplainResultV1014.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // 🎯 0.344572단계: 사람을 사람에게 소개하기 CORE v10.15
+    // =================================================================
+    const twoProIntroduceResultV1015 =
+      await twoProTryKoEnIntroduceV1015(originalText);
+
+    if (twoProIntroduceResultV1015) {
+      console.log('[한영 소개하다 사람→사람 문형 성공 v10.15]', {
+        query: originalText,
+        result: twoProIntroduceResultV1015.targetText,
+        engine: twoProIntroduceResultV1015.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProIntroduceResultV1015.targetText
+          ),
+          isReference: false,
+          analysis: twoProIntroduceResultV1015.analysis,
+          referenceWords: twoProIntroduceResultV1015.referenceWords,
+          engine: twoProIntroduceResultV1015.engine,
+        },
+        referenceWords: twoProIntroduceResultV1015.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // 🎯 0.344571단계: 사람에게 사물 추천하기 CORE v10.16
+    // =================================================================
+    const twoProRecommendResultV1016 =
+      await twoProTryKoEnRecommendV1016(originalText);
+
+    if (twoProRecommendResultV1016) {
+      console.log('[한영 추천하다 사물→사람 문형 성공 v10.16]', {
+        query: originalText,
+        result: twoProRecommendResultV1016.targetText,
+        engine: twoProRecommendResultV1016.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProRecommendResultV1016.targetText
+          ),
+          isReference: false,
+          analysis: twoProRecommendResultV1016.analysis,
+          referenceWords: twoProRecommendResultV1016.referenceWords,
+          engine: twoProRecommendResultV1016.engine,
+        },
+        referenceWords: twoProRecommendResultV1016.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.3445705단계: 사람에게 사물 제안하기 CORE v10.17
+    // =================================================================
+    const twoProSuggestResultV1017 =
+      await twoProTryKoEnSuggestV1017(originalText);
+
+    if (twoProSuggestResultV1017) {
+      console.log('[한영 제안하다 사물→사람 문형 성공 v10.17]', {
+        query: originalText,
+        result: twoProSuggestResultV1017.targetText,
+        engine: twoProSuggestResultV1017.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProSuggestResultV1017.targetText
+          ),
+          isReference: false,
+          analysis: twoProSuggestResultV1017.analysis,
+          referenceWords: twoProSuggestResultV1017.referenceWords,
+          engine: twoProSuggestResultV1017.engine,
+        },
+        referenceWords: twoProSuggestResultV1017.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.34457025단계: 사람에게 약속하기 CORE v10.18
+    // =================================================================
+    const twoProPromisePersonResultV1018 =
+      await twoProTryKoEnPromisePersonV1018(originalText);
+
+    if (twoProPromisePersonResultV1018) {
+      console.log('[한영 약속하다 사람 문형 성공 v10.18]', {
+        query: originalText,
+        result: twoProPromisePersonResultV1018.targetText,
+        engine: twoProPromisePersonResultV1018.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPromisePersonResultV1018.targetText
+          ),
+          isReference: false,
+          analysis: twoProPromisePersonResultV1018.analysis,
+          referenceWords: twoProPromisePersonResultV1018.referenceWords,
+          engine: twoProPromisePersonResultV1018.engine,
+        },
+        referenceWords: twoProPromisePersonResultV1018.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.34457단계: 질문에 대답하기 CORE v10.12
+    // =================================================================
+    const twoProAnswerQuestionResultV1012 =
+      await twoProTryKoEnAnswerQuestionV1012(originalText);
+
+    if (twoProAnswerQuestionResultV1012) {
+      console.log('[한영 대답하다·답하다 질문 응답 문형 성공 v10.12]', {
+        query: originalText,
+        result: twoProAnswerQuestionResultV1012.targetText,
+        engine: twoProAnswerQuestionResultV1012.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProAnswerQuestionResultV1012.targetText
+          ),
+          isReference: false,
+          analysis: twoProAnswerQuestionResultV1012.analysis,
+          referenceWords: twoProAnswerQuestionResultV1012.referenceWords,
+          engine: twoProAnswerQuestionResultV1012.engine,
+        },
+        referenceWords: twoProAnswerQuestionResultV1012.referenceWords,
+      });
+    }
+    // =================================================================
+    // 🎯 0.34456단계: 사람에게 대답하기 CORE v10.11
+    // =================================================================
+    const twoProAnswerPersonResultV1011 =
+      await twoProTryKoEnAnswerPersonV1011(originalText);
+
+    if (twoProAnswerPersonResultV1011) {
+      console.log('[한영 대답하다·답하다 사람 응답 문형 성공 v10.11]', {
+        query: originalText,
+        result: twoProAnswerPersonResultV1011.targetText,
+        engine: twoProAnswerPersonResultV1011.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProAnswerPersonResultV1011.targetText
+          ),
+          isReference: false,
+          analysis: twoProAnswerPersonResultV1011.analysis,
+          referenceWords: twoProAnswerPersonResultV1011.referenceWords,
+          engine: twoProAnswerPersonResultV1011.engine,
+        },
+        referenceWords: twoProAnswerPersonResultV1011.referenceWords,
       });
     }
 
