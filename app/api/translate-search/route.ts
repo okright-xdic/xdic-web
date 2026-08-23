@@ -18734,6 +18734,1570 @@ const twoProTryKoEnConfirmedEnterRoomV1054 = async (
   };
 };
 
+
+// ============================================================================
+// ☆ TwoPro v10.55-safe: 방에 들어간 것으로 판명되기 PASSIVE PERFECT CORE
+// [S] + (지금) + 방에 들어간 것으로 + 판명되다
+// -> be found to have entered the room
+//
+// v10.54 이하의 기존 CORE는 그대로 보존합니다.
+// 현재 회귀 범위인 "방에 들어간 것으로 판명되다"만 처리합니다.
+// "판명되고 있다"는 이번 의미에서는 현재의 판명 상태가 자연스러우므로
+// be being found가 아니라 be (now) found로 정규화합니다.
+// ============================================================================
+
+type TwoProFoundEnterRoomPredicateV1055 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_FOUND_ENTER_ROOM_SIMPLE_FORMS_V1055: Readonly<Record<
+  string,
+  TwoProFoundEnterRoomPredicateV1055
+>> = {
+  '판명돼요': { tense: 'present', aspect: 'simple' },
+  '판명됩니다': { tense: 'present', aspect: 'simple' },
+  '판명된다': { tense: 'present', aspect: 'simple' },
+  '판명됐어요': { tense: 'past', aspect: 'simple' },
+  '판명됐습니다': { tense: 'past', aspect: 'simple' },
+  '판명됐다': { tense: 'past', aspect: 'simple' },
+};
+
+const twoProParseFoundEnterRoomPredicateV1055 = (
+  value: string
+): TwoProFoundEnterRoomPredicateV1055 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_FOUND_ENTER_ROOM_SIMPLE_FORMS_V1055[surface];
+  if (fixed) return fixed;
+
+  if (/^판명되고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^판명되지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  return null;
+};
+
+const twoProFoundEnterRoomVerbPhraseV1055 = (
+  predicate: TwoProFoundEnterRoomPredicateV1055,
+  subjectEn: string,
+  hasNow: boolean
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['you', 'we', 'they'].includes(lower);
+  const presentBe = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+  const pastBe = pluralLike ? 'were' : 'was';
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return `${pastBe} not found`;
+    return `${presentBe} not found`;
+  }
+
+  if (predicate.tense === 'past') return `${pastBe} found`;
+  if (hasNow) return `${presentBe} now found`;
+  return `${presentBe} found`;
+};
+
+const twoProTryKoEnFoundEnterRoomV1055 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?방에\s+들어간\s+것으로\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const predicate = twoProParseFoundEnterRoomPredicateV1055(
+    twoProCleanCapturedKo(match[3])
+  );
+  if (!subjectSource || !predicate) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const verbPhrase = twoProFoundEnterRoomVerbPhraseV1055(
+    predicate,
+    subjectBundle.selected,
+    Boolean(temporalEn)
+  );
+  if (!verbPhrase) return null;
+
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} to have entered the room`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90('방', 'room', 'N'),
+    twoProEmbeddedReferenceWordV90('들어가다', 'enter', 'V'),
+    twoProEmbeddedReferenceWordV90('판명되다', 'be found', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: '방', en: 'the room [PLACE]' },
+      { ko: '들어간 것으로', en: 'to have entered [PERF XCOMP]' },
+      { ko: '판명되다', en: 'be found [PASSIVE V]' },
+    ],
+    referenceWords,
+    engine: 'found-enter-room-passive-perfect-ko-en-v10.55',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.56-safe: 방에 들어간 것으로 보이기 PERFECT RAISING CORE
+// [S] + (지금) + 방에 들어간 것으로 + 보이다
+// -> appear/appears/appeared to have entered the room
+//
+// v10.55 이하의 기존 CORE는 그대로 보존합니다.
+// 현재 회귀 범위인 "방에 들어간 것으로 보이다"만 처리합니다.
+// 수동태가 아니라 raising 문형이므로 현재형 3인칭 단수 appears,
+// 과거형 appeared, 부정형 does/did not appear를 직접 조립합니다.
+// ============================================================================
+
+type TwoProAppearEnterRoomPredicateV1056 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'negative';
+};
+
+const TWO_PRO_APPEAR_ENTER_ROOM_SIMPLE_FORMS_V1056: Readonly<Record<
+  string,
+  TwoProAppearEnterRoomPredicateV1056
+>> = {
+  '보여요': { tense: 'present', aspect: 'simple' },
+  '보입니다': { tense: 'present', aspect: 'simple' },
+  '보인다': { tense: 'present', aspect: 'simple' },
+  '보였어요': { tense: 'past', aspect: 'simple' },
+  '보였습니다': { tense: 'past', aspect: 'simple' },
+  '보였다': { tense: 'past', aspect: 'simple' },
+};
+
+const twoProParseAppearEnterRoomPredicateV1056 = (
+  value: string
+): TwoProAppearEnterRoomPredicateV1056 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_APPEAR_ENTER_ROOM_SIMPLE_FORMS_V1056[surface];
+  if (fixed) return fixed;
+
+  const negative = surface.match(
+    /^보이지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  return null;
+};
+
+const twoProAppearEnterRoomVerbPhraseV1056 = (
+  predicate: TwoProAppearEnterRoomPredicateV1056,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const thirdSingular = !['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not appear';
+    return thirdSingular ? 'does not appear' : 'do not appear';
+  }
+
+  if (predicate.tense === 'past') return 'appeared';
+  return thirdSingular ? 'appears' : 'appear';
+};
+
+const twoProTryKoEnAppearEnterRoomV1056 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?방에\s+들어간\s+것으로\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const predicate = twoProParseAppearEnterRoomPredicateV1056(
+    twoProCleanCapturedKo(match[3])
+  );
+  if (!subjectSource || !predicate) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const verbPhrase = twoProAppearEnterRoomVerbPhraseV1056(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!verbPhrase) return null;
+
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} to have entered the room${temporalEn ? ` ${temporalEn}` : ''}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90('방', 'room', 'N'),
+    twoProEmbeddedReferenceWordV90('들어가다', 'enter', 'V'),
+    twoProEmbeddedReferenceWordV90('보이다', 'appear', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: '방', en: 'the room [PLACE]' },
+      { ko: '들어간 것으로', en: 'to have entered [PERF XCOMP]' },
+      { ko: '보이다', en: 'appear [RAISING V]' },
+    ],
+    referenceWords,
+    engine: 'appear-enter-room-perfect-ko-en-v10.56',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.57-safe: 방에 들어간 것 같기 PERFECT RAISING CORE
+// [S] + (지금) + 방에 들어간 것 + 같다
+// -> seem/seems/seemed to have entered the room
+//
+// v10.56 이하의 기존 CORE는 그대로 보존합니다.
+// 현재 회귀 범위인 "방에 들어간 것 같다"만 처리합니다.
+// 수동태가 아니라 raising 문형이므로 현재형 3인칭 단수 seems,
+// 과거형 seemed, 부정형 do/does/did not seem을 직접 조립합니다.
+// ============================================================================
+
+type TwoProSeemEnterRoomPredicateV1057 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'negative';
+};
+
+const TWO_PRO_SEEM_ENTER_ROOM_SIMPLE_FORMS_V1057: Readonly<Record<
+  string,
+  TwoProSeemEnterRoomPredicateV1057
+>> = {
+  '같아요': { tense: 'present', aspect: 'simple' },
+  '같습니다': { tense: 'present', aspect: 'simple' },
+  '같다': { tense: 'present', aspect: 'simple' },
+  '같았어요': { tense: 'past', aspect: 'simple' },
+  '같았습니다': { tense: 'past', aspect: 'simple' },
+  '같았다': { tense: 'past', aspect: 'simple' },
+};
+
+const twoProParseSeemEnterRoomPredicateV1057 = (
+  value: string
+): TwoProSeemEnterRoomPredicateV1057 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_SEEM_ENTER_ROOM_SIMPLE_FORMS_V1057[surface];
+  if (fixed) return fixed;
+
+  const negative = surface.match(
+    /^같지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  return null;
+};
+
+const twoProSeemEnterRoomVerbPhraseV1057 = (
+  predicate: TwoProSeemEnterRoomPredicateV1057,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const thirdSingular = !['i', 'you', 'we', 'they'].includes(lower);
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not seem';
+    return thirdSingular ? 'does not seem' : 'do not seem';
+  }
+
+  if (predicate.tense === 'past') return 'seemed';
+  return thirdSingular ? 'seems' : 'seem';
+};
+
+const twoProTryKoEnSeemEnterRoomV1057 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?방에\s+들어간\s+것\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const predicate = twoProParseSeemEnterRoomPredicateV1057(
+    twoProCleanCapturedKo(match[3])
+  );
+  if (!subjectSource || !predicate) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const verbPhrase = twoProSeemEnterRoomVerbPhraseV1057(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!verbPhrase) return null;
+
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${temporalEn ? `${temporalEn} ` : ''}${verbPhrase} to have entered the room`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90('방', 'room', 'N'),
+    twoProEmbeddedReferenceWordV90('들어가다', 'enter', 'V'),
+    twoProEmbeddedReferenceWordV90('같다', 'seem', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: '방', en: 'the room [PLACE]' },
+      { ko: '들어간 것', en: 'to have entered [PERF XCOMP]' },
+      { ko: '같다', en: 'seem [RAISING V]' },
+    ],
+    referenceWords,
+    engine: 'seem-enter-room-perfect-ko-en-v10.57',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.58-safe: 방에 들어간 것으로 드러나기 PERFECT RESULT CORE
+// [S] + (지금) + 방에 들어간 것으로 + 드러나다
+// -> turn/turns/turned out to have entered the room
+//
+// v10.57 이하의 기존 CORE는 그대로 보존합니다.
+// 현재 회귀 범위인 "방에 들어간 것으로 드러나다"만 처리합니다.
+// 현재형 3인칭 단수 turns out, 과거형 turned out,
+// 진행형 am/is/are turning out, 부정형 do/does/did not turn out을 직접 조립합니다.
+// ============================================================================
+
+type TwoProTurnOutEnterRoomPredicateV1058 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_TURN_OUT_ENTER_ROOM_SIMPLE_FORMS_V1058: Readonly<Record<
+  string,
+  TwoProTurnOutEnterRoomPredicateV1058
+>> = {
+  '드러나요': { tense: 'present', aspect: 'simple' },
+  '드러납니다': { tense: 'present', aspect: 'simple' },
+  '드러난다': { tense: 'present', aspect: 'simple' },
+  '드러났어요': { tense: 'past', aspect: 'simple' },
+  '드러났습니다': { tense: 'past', aspect: 'simple' },
+  '드러났다': { tense: 'past', aspect: 'simple' },
+};
+
+const twoProParseTurnOutEnterRoomPredicateV1058 = (
+  value: string
+): TwoProTurnOutEnterRoomPredicateV1058 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_TURN_OUT_ENTER_ROOM_SIMPLE_FORMS_V1058[surface];
+  if (fixed) return fixed;
+
+  if (/^드러나고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^드러나지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  return null;
+};
+
+const twoProTurnOutEnterRoomVerbPhraseV1058 = (
+  predicate: TwoProTurnOutEnterRoomPredicateV1058,
+  subjectEn: string
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['i', 'you', 'we', 'they'].includes(lower);
+  const thirdSingular = !pluralLike;
+
+  if (predicate.aspect === 'progressive') {
+    const beAux = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+    return `${beAux} turning out`;
+  }
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return 'did not turn out';
+    return thirdSingular ? 'does not turn out' : 'do not turn out';
+  }
+
+  if (predicate.tense === 'past') return 'turned out';
+  return thirdSingular ? 'turns out' : 'turn out';
+};
+
+const twoProTryKoEnTurnOutEnterRoomV1058 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?방에\s+들어간\s+것으로\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const predicate = twoProParseTurnOutEnterRoomPredicateV1058(
+    twoProCleanCapturedKo(match[3])
+  );
+  if (!subjectSource || !predicate) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const verbPhrase = twoProTurnOutEnterRoomVerbPhraseV1058(
+    predicate,
+    subjectBundle.selected
+  );
+  if (!verbPhrase) return null;
+
+  const temporalVerbPhrase = temporalEn && predicate.aspect === 'progressive'
+    ? verbPhrase.replace(/^(am|is|are)\s+/u, `$1 ${temporalEn} `)
+    : `${temporalEn ? `${temporalEn} ` : ''}${verbPhrase}`;
+
+  let targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${temporalVerbPhrase} to have entered the room`,
+    originalText
+  );
+
+  // v10.59: Korean declarative '-nayo' in 'deureonayo' must not be
+  // mistaken for a question unless the source has an explicit question mark.
+  if (!/[?\uff1f]\s*$/u.test(String(originalText || '').trim())) {
+    targetText = targetText.replace(/\?$/u, '.');
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90('방', 'room', 'N'),
+    twoProEmbeddedReferenceWordV90('들어가다', 'enter', 'V'),
+    twoProEmbeddedReferenceWordV90('드러나다', 'turn out', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: '방', en: 'the room [PLACE]' },
+      { ko: '들어간 것으로', en: 'to have entered [PERF XCOMP]' },
+      { ko: '드러나다', en: 'turn out [RESULT V]' },
+    ],
+    referenceWords,
+    engine: 'turn-out-enter-room-perfect-ko-en-v10.58',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.60-safe: 방에 들어간 것으로 전해지기 PASSIVE PERFECT CORE
+// [S] + (지금) + 방에 들어간 것으로 + 전해지다
+// -> be said to have entered the room
+//
+// v10.59 이하의 기존 CORE는 그대로 보존합니다.
+// 현재 회귀 범위인 "방에 들어간 것으로 전해지다"만 처리합니다.
+// "전해지고 있다"는 이번 의미에서는 현재의 전달/통용 상태가 자연스러우므로
+// be being said가 아니라 be (now) said로 정규화합니다.
+// ============================================================================
+
+type TwoProSaidEnterRoomPredicateV1060 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_SAID_ENTER_ROOM_SIMPLE_FORMS_V1060: Readonly<Record<
+  string,
+  TwoProSaidEnterRoomPredicateV1060
+>> = {
+  '전해져요': { tense: 'present', aspect: 'simple' },
+  '전해집니다': { tense: 'present', aspect: 'simple' },
+  '전해진다': { tense: 'present', aspect: 'simple' },
+  '전해졌어요': { tense: 'past', aspect: 'simple' },
+  '전해졌습니다': { tense: 'past', aspect: 'simple' },
+  '전해졌다': { tense: 'past', aspect: 'simple' },
+};
+
+const twoProParseSaidEnterRoomPredicateV1060 = (
+  value: string
+): TwoProSaidEnterRoomPredicateV1060 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_SAID_ENTER_ROOM_SIMPLE_FORMS_V1060[surface];
+  if (fixed) return fixed;
+
+  if (/^전해지고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^전해지지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  return null;
+};
+
+const twoProSaidEnterRoomVerbPhraseV1060 = (
+  predicate: TwoProSaidEnterRoomPredicateV1060,
+  subjectEn: string,
+  hasNow: boolean
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['you', 'we', 'they'].includes(lower);
+  const presentBe = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+  const pastBe = pluralLike ? 'were' : 'was';
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return `${pastBe} not said`;
+    return `${presentBe} not said`;
+  }
+
+  if (predicate.tense === 'past') return `${pastBe} said`;
+  if (hasNow) return `${presentBe} now said`;
+  return `${presentBe} said`;
+};
+
+const twoProTryKoEnSaidEnterRoomV1060 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?방에\s+들어간\s+것으로\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const predicate = twoProParseSaidEnterRoomPredicateV1060(
+    twoProCleanCapturedKo(match[3])
+  );
+  if (!subjectSource || !predicate) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const verbPhrase = twoProSaidEnterRoomVerbPhraseV1060(
+    predicate,
+    subjectBundle.selected,
+    Boolean(temporalEn)
+  );
+  if (!verbPhrase) return null;
+
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} to have entered the room`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90('방', 'room', 'N'),
+    twoProEmbeddedReferenceWordV90('들어가다', 'enter', 'V'),
+    twoProEmbeddedReferenceWordV90('전해지다', 'be said', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: '방', en: 'the room [PLACE]' },
+      { ko: '들어간 것으로', en: 'to have entered [PERF XCOMP]' },
+      { ko: '전해지다', en: 'be said [PASSIVE V]' },
+    ],
+    referenceWords,
+    engine: 'said-enter-room-passive-perfect-ko-en-v10.60',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.61-safe: 방에 들어간 것으로 의심받기 PASSIVE PERFECT GERUND CORE
+// [S] + (지금) + 방에 들어간 것으로 + 의심받다
+// -> be suspected of having entered the room
+//
+// v10.60 이하의 기존 CORE는 그대로 보존합니다.
+// 현재 회귀 범위인 "방에 들어간 것으로 의심받다"만 처리합니다.
+// "의심받고 있다"는 이번 의미에서는 현재의 의심 상태가 자연스러우므로
+// be being suspected가 아니라 be (now) suspected로 정규화합니다.
+// ============================================================================
+
+type TwoProSuspectedEnterRoomPredicateV1061 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_SUSPECTED_ENTER_ROOM_SIMPLE_FORMS_V1061: Readonly<Record<
+  string,
+  TwoProSuspectedEnterRoomPredicateV1061
+>> = {
+  '의심받아요': { tense: 'present', aspect: 'simple' },
+  '의심받습니다': { tense: 'present', aspect: 'simple' },
+  '의심받는다': { tense: 'present', aspect: 'simple' },
+  '의심받았어요': { tense: 'past', aspect: 'simple' },
+  '의심받았습니다': { tense: 'past', aspect: 'simple' },
+  '의심받았다': { tense: 'past', aspect: 'simple' },
+};
+
+const twoProParseSuspectedEnterRoomPredicateV1061 = (
+  value: string
+): TwoProSuspectedEnterRoomPredicateV1061 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_SUSPECTED_ENTER_ROOM_SIMPLE_FORMS_V1061[surface];
+  if (fixed) return fixed;
+
+  if (/^의심받고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^의심받지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  return null;
+};
+
+const twoProSuspectedEnterRoomVerbPhraseV1061 = (
+  predicate: TwoProSuspectedEnterRoomPredicateV1061,
+  subjectEn: string,
+  hasNow: boolean
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['you', 'we', 'they'].includes(lower);
+  const presentBe = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+  const pastBe = pluralLike ? 'were' : 'was';
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return `${pastBe} not suspected`;
+    return `${presentBe} not suspected`;
+  }
+
+  if (predicate.tense === 'past') return `${pastBe} suspected`;
+  if (hasNow) return `${presentBe} now suspected`;
+  return `${presentBe} suspected`;
+};
+
+const twoProTryKoEnSuspectedEnterRoomV1061 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?방에\s+들어간\s+것으로\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const predicate = twoProParseSuspectedEnterRoomPredicateV1061(
+    twoProCleanCapturedKo(match[3])
+  );
+  if (!subjectSource || !predicate) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const verbPhrase = twoProSuspectedEnterRoomVerbPhraseV1061(
+    predicate,
+    subjectBundle.selected,
+    Boolean(temporalEn)
+  );
+  if (!verbPhrase) return null;
+
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} of having entered the room`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90('방', 'room', 'N'),
+    twoProEmbeddedReferenceWordV90('들어가다', 'enter', 'V'),
+    twoProEmbeddedReferenceWordV90('의심받다', 'be suspected', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: '방', en: 'the room [PLACE]' },
+      { ko: '들어간 것으로', en: 'of having entered [PERF GERUND COMP]' },
+      { ko: '의심받다', en: 'be suspected [PASSIVE V]' },
+    ],
+    referenceWords,
+    engine: 'suspected-enter-room-passive-perfect-gerund-ko-en-v10.61',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.62-safe: 방에 들어간 것으로 비판받기 PASSIVE PERFECT GERUND CORE
+// [S] + (지금) + 방에 들어간 것으로 + 비판받다
+// -> be criticized for having entered the room
+//
+// v10.61 이하의 기존 CORE는 그대로 보존합니다.
+// 현재 회귀 범위인 "방에 들어간 것으로 비판받다"만 처리합니다.
+// "비판받고 있다"는 실제 비판 행위가 진행 중인 의미가 자연스러우므로
+// be now being criticized 진행 수동형을 유지합니다.
+// ============================================================================
+
+type TwoProCriticizedEnterRoomPredicateV1062 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_CRITICIZED_ENTER_ROOM_SIMPLE_FORMS_V1062: Readonly<Record<
+  string,
+  TwoProCriticizedEnterRoomPredicateV1062
+>> = {
+  '비판받아요': { tense: 'present', aspect: 'simple' },
+  '비판받습니다': { tense: 'present', aspect: 'simple' },
+  '비판받는다': { tense: 'present', aspect: 'simple' },
+  '비판받았어요': { tense: 'past', aspect: 'simple' },
+  '비판받았습니다': { tense: 'past', aspect: 'simple' },
+  '비판받았다': { tense: 'past', aspect: 'simple' },
+};
+
+const twoProParseCriticizedEnterRoomPredicateV1062 = (
+  value: string
+): TwoProCriticizedEnterRoomPredicateV1062 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_CRITICIZED_ENTER_ROOM_SIMPLE_FORMS_V1062[surface];
+  if (fixed) return fixed;
+
+  if (/^비판받고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^비판받지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  return null;
+};
+
+const twoProCriticizedEnterRoomVerbPhraseV1062 = (
+  predicate: TwoProCriticizedEnterRoomPredicateV1062,
+  subjectEn: string,
+  hasNow: boolean
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['you', 'we', 'they'].includes(lower);
+  const presentBe = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+  const pastBe = pluralLike ? 'were' : 'was';
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return `${pastBe} not criticized`;
+    return `${presentBe} not criticized`;
+  }
+
+  if (predicate.aspect === 'progressive') {
+    return hasNow
+      ? `${presentBe} now being criticized`
+      : `${presentBe} being criticized`;
+  }
+
+  if (predicate.tense === 'past') return `${pastBe} criticized`;
+  return `${presentBe} criticized`;
+};
+
+const twoProTryKoEnCriticizedEnterRoomV1062 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?방에\s+들어간\s+것으로\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const predicate = twoProParseCriticizedEnterRoomPredicateV1062(
+    twoProCleanCapturedKo(match[3])
+  );
+  if (!subjectSource || !predicate) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const verbPhrase = twoProCriticizedEnterRoomVerbPhraseV1062(
+    predicate,
+    subjectBundle.selected,
+    Boolean(temporalEn)
+  );
+  if (!verbPhrase) return null;
+
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} for having entered the room`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90('방', 'room', 'N'),
+    twoProEmbeddedReferenceWordV90('들어가다', 'enter', 'V'),
+    twoProEmbeddedReferenceWordV90('비판받다', 'be criticized', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: '방', en: 'the room [PLACE]' },
+      { ko: '들어간 것으로', en: 'for having entered [PERF GERUND COMP]' },
+      { ko: '비판받다', en: 'be criticized [PASSIVE V]' },
+    ],
+    referenceWords,
+    engine: 'criticized-enter-room-passive-perfect-gerund-ko-en-v10.62',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.63-safe: 방에 들어간 것으로 처벌받기 PASSIVE PERFECT GERUND CORE
+// [S] + (지금) + 방에 들어간 것으로 + 처벌받다
+// -> be punished for having entered the room
+//
+// v10.62 이하의 기존 CORE는 그대로 보존합니다.
+// 현재 회귀 범위인 "방에 들어간 것으로 처벌받다"만 처리합니다.
+// "처벌받고 있다"는 실제 처벌 행위가 진행 중인 의미가 자연스러우므로
+// be now being punished 진행 수동형을 유지합니다.
+// ============================================================================
+
+type TwoProPunishedEnterRoomPredicateV1063 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_PUNISHED_ENTER_ROOM_SIMPLE_FORMS_V1063: Readonly<Record<
+  string,
+  TwoProPunishedEnterRoomPredicateV1063
+>> = {
+  '처벌받아요': { tense: 'present', aspect: 'simple' },
+  '처벌받습니다': { tense: 'present', aspect: 'simple' },
+  '처벌받는다': { tense: 'present', aspect: 'simple' },
+  '처벌받았어요': { tense: 'past', aspect: 'simple' },
+  '처벌받았습니다': { tense: 'past', aspect: 'simple' },
+  '처벌받았다': { tense: 'past', aspect: 'simple' },
+};
+
+const twoProParsePunishedEnterRoomPredicateV1063 = (
+  value: string
+): TwoProPunishedEnterRoomPredicateV1063 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_PUNISHED_ENTER_ROOM_SIMPLE_FORMS_V1063[surface];
+  if (fixed) return fixed;
+
+  if (/^처벌받고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^처벌받지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  return null;
+};
+
+const twoProPunishedEnterRoomVerbPhraseV1063 = (
+  predicate: TwoProPunishedEnterRoomPredicateV1063,
+  subjectEn: string,
+  hasNow: boolean
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['you', 'we', 'they'].includes(lower);
+  const presentBe = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+  const pastBe = pluralLike ? 'were' : 'was';
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return `${pastBe} not punished`;
+    return `${presentBe} not punished`;
+  }
+
+  if (predicate.aspect === 'progressive') {
+    return hasNow
+      ? `${presentBe} now being punished`
+      : `${presentBe} being punished`;
+  }
+
+  if (predicate.tense === 'past') return `${pastBe} punished`;
+  return `${presentBe} punished`;
+};
+
+const twoProTryKoEnPunishedEnterRoomV1063 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?방에\s+들어간\s+것으로\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const predicate = twoProParsePunishedEnterRoomPredicateV1063(
+    twoProCleanCapturedKo(match[3])
+  );
+  if (!subjectSource || !predicate) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const verbPhrase = twoProPunishedEnterRoomVerbPhraseV1063(
+    predicate,
+    subjectBundle.selected,
+    Boolean(temporalEn)
+  );
+  if (!verbPhrase) return null;
+
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} for having entered the room`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90('방', 'room', 'N'),
+    twoProEmbeddedReferenceWordV90('들어가다', 'enter', 'V'),
+    twoProEmbeddedReferenceWordV90('처벌받다', 'be punished', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: '방', en: 'the room [PLACE]' },
+      { ko: '들어간 것으로', en: 'for having entered [PERF GERUND COMP]' },
+      { ko: '처벌받다', en: 'be punished [PASSIVE V]' },
+    ],
+    referenceWords,
+    engine: 'punished-enter-room-passive-perfect-gerund-ko-en-v10.63',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.64-safe: 방에 들어간 것으로 비난받기 PASSIVE PERFECT GERUND CORE
+// [S] + (지금) + 방에 들어간 것으로 + 비난받다
+// -> be blamed for having entered the room
+//
+// v10.63 이하의 기존 CORE는 그대로 보존합니다.
+// 현재 회귀 범위인 "방에 들어간 것으로 비난받다"만 처리합니다.
+// "비난받고 있다"는 실제 비난 행위가 진행 중인 의미가 자연스러우므로
+// be now being blamed 진행 수동형을 유지합니다.
+// ============================================================================
+
+type TwoProBlamedEnterRoomPredicateV1064 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_BLAMED_ENTER_ROOM_SIMPLE_FORMS_V1064: Readonly<Record<
+  string,
+  TwoProBlamedEnterRoomPredicateV1064
+>> = {
+  '비난받아요': { tense: 'present', aspect: 'simple' },
+  '비난받습니다': { tense: 'present', aspect: 'simple' },
+  '비난받는다': { tense: 'present', aspect: 'simple' },
+  '비난받았어요': { tense: 'past', aspect: 'simple' },
+  '비난받았습니다': { tense: 'past', aspect: 'simple' },
+  '비난받았다': { tense: 'past', aspect: 'simple' },
+};
+
+const twoProParseBlamedEnterRoomPredicateV1064 = (
+  value: string
+): TwoProBlamedEnterRoomPredicateV1064 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_BLAMED_ENTER_ROOM_SIMPLE_FORMS_V1064[surface];
+  if (fixed) return fixed;
+
+  if (/^비난받고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^비난받지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  return null;
+};
+
+const twoProBlamedEnterRoomVerbPhraseV1064 = (
+  predicate: TwoProBlamedEnterRoomPredicateV1064,
+  subjectEn: string,
+  hasNow: boolean
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['you', 'we', 'they'].includes(lower);
+  const presentBe = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+  const pastBe = pluralLike ? 'were' : 'was';
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return `${pastBe} not blamed`;
+    return `${presentBe} not blamed`;
+  }
+
+  if (predicate.aspect === 'progressive') {
+    return hasNow
+      ? `${presentBe} now being blamed`
+      : `${presentBe} being blamed`;
+  }
+
+  if (predicate.tense === 'past') return `${pastBe} blamed`;
+  return `${presentBe} blamed`;
+};
+
+const twoProTryKoEnBlamedEnterRoomV1064 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?방에\s+들어간\s+것으로\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const predicate = twoProParseBlamedEnterRoomPredicateV1064(
+    twoProCleanCapturedKo(match[3])
+  );
+  if (!subjectSource || !predicate) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const verbPhrase = twoProBlamedEnterRoomVerbPhraseV1064(
+    predicate,
+    subjectBundle.selected,
+    Boolean(temporalEn)
+  );
+  if (!verbPhrase) return null;
+
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} for having entered the room`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90('방', 'room', 'N'),
+    twoProEmbeddedReferenceWordV90('들어가다', 'enter', 'V'),
+    twoProEmbeddedReferenceWordV90('비난받다', 'be blamed', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: '방', en: 'the room [PLACE]' },
+      { ko: '들어간 것으로', en: 'for having entered [PERF GERUND COMP]' },
+      { ko: '비난받다', en: 'be blamed [PASSIVE V]' },
+    ],
+    referenceWords,
+    engine: 'blamed-enter-room-passive-perfect-gerund-ko-en-v10.64',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.65-safe: 방에 들어간 혐의를 받기 PASSIVE PERFECT GERUND CORE
+// [S] + (지금) + 방에 들어간 혐의를 + 받다
+// -> be accused of having entered the room
+//
+// v10.64 이하의 기존 CORE는 그대로 보존합니다.
+// 현재 회귀 범위인 "방에 들어간 혐의를 받다"만 처리합니다.
+// "혐의를 받고 있다"는 실제 혐의 제기가 진행 중인 의미도 자연스러우므로
+// be now being accused 진행 수동형을 유지합니다.
+// ============================================================================
+
+type TwoProAccusedEnterRoomPredicateV1065 = {
+  tense: TwoProKoEnSimpleTenseV52;
+  aspect: 'simple' | 'progressive' | 'negative';
+};
+
+const TWO_PRO_ACCUSED_ENTER_ROOM_SIMPLE_FORMS_V1065: Readonly<Record<
+  string,
+  TwoProAccusedEnterRoomPredicateV1065
+>> = {
+  '혐의를 받아요': { tense: 'present', aspect: 'simple' },
+  '혐의를 받습니다': { tense: 'present', aspect: 'simple' },
+  '혐의를 받는다': { tense: 'present', aspect: 'simple' },
+  '혐의를 받았어요': { tense: 'past', aspect: 'simple' },
+  '혐의를 받았습니다': { tense: 'past', aspect: 'simple' },
+  '혐의를 받았다': { tense: 'past', aspect: 'simple' },
+};
+
+const twoProParseAccusedEnterRoomPredicateV1065 = (
+  value: string
+): TwoProAccusedEnterRoomPredicateV1065 | null => {
+  const surface = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const fixed = TWO_PRO_ACCUSED_ENTER_ROOM_SIMPLE_FORMS_V1065[surface];
+  if (fixed) return fixed;
+
+  if (/^혐의를\s+받고\s+있(?:어요|습니다|다)$/u.test(surface)) {
+    return { tense: 'present', aspect: 'progressive' };
+  }
+
+  const negative = surface.match(
+    /^혐의를\s+받지\s+않(아요|습니다|는다|았어요|았습니다|았다)$/u
+  );
+  if (negative) {
+    return {
+      tense: /았/u.test(negative[1]) ? 'past' : 'present',
+      aspect: 'negative',
+    };
+  }
+
+  return null;
+};
+
+const twoProAccusedEnterRoomVerbPhraseV1065 = (
+  predicate: TwoProAccusedEnterRoomPredicateV1065,
+  subjectEn: string,
+  hasNow: boolean
+): string => {
+  const lower = String(subjectEn || '').trim().toLowerCase();
+  const pluralLike = ['you', 'we', 'they'].includes(lower);
+  const presentBe = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
+  const pastBe = pluralLike ? 'were' : 'was';
+
+  if (predicate.aspect === 'negative') {
+    if (predicate.tense === 'past') return `${pastBe} not accused`;
+    return `${presentBe} not accused`;
+  }
+
+  if (predicate.aspect === 'progressive') {
+    return hasNow
+      ? `${presentBe} now being accused`
+      : `${presentBe} being accused`;
+  }
+
+  if (predicate.tense === 'past') return `${pastBe} accused`;
+  return `${presentBe} accused`;
+};
+
+const twoProTryKoEnAccusedEnterRoomV1065 = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?방에\s+들어간\s+(혐의를\s+.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const predicate = twoProParseAccusedEnterRoomPredicateV1065(
+    twoProCleanCapturedKo(match[3])
+  );
+  if (!subjectSource || !predicate) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(
+    subjectSource,
+    supabase
+  );
+  if (!subjectBundle) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const verbPhrase = twoProAccusedEnterRoomVerbPhraseV1065(
+    predicate,
+    subjectBundle.selected,
+    Boolean(temporalEn)
+  );
+  if (!verbPhrase) return null;
+
+  const targetText = twoProFinalizeEnglish(
+    `${subjectBundle.selected} ${verbPhrase} of having entered the room`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90('방', 'room', 'N'),
+    twoProEmbeddedReferenceWordV90('들어가다', 'enter', 'V'),
+    twoProEmbeddedReferenceWordV90('혐의를 받다', 'be accused', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: '방', en: 'the room [PLACE]' },
+      { ko: '방에 들어간', en: 'having entered the room [PERF GERUND COMP]' },
+      { ko: '혐의를 받다', en: 'be accused [PASSIVE V]' },
+    ],
+    referenceWords,
+    engine: 'accused-enter-room-passive-perfect-gerund-ko-en-v10.65',
+  };
+};
+
 // ============================================================================
 // ☆ TwoPro v10.01-safe: 사람에게 사물 보내기 CORE (보내다)
 // [S] + [PERSON]에게 + [OBJECT]을/를 + 보내다
@@ -46067,6 +47631,297 @@ export async function POST(request: Request) {
           engine: twoProConfirmedEnterRoomResultV1054.engine,
         },
         referenceWords: twoProConfirmedEnterRoomResultV1054.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // 🎯 0.344676단계: 방에 들어간 것으로 판명되기 PASSIVE PERFECT CORE v10.55
+    // =================================================================
+    const twoProFoundEnterRoomResultV1055 =
+      await twoProTryKoEnFoundEnterRoomV1055(originalText);
+
+    if (twoProFoundEnterRoomResultV1055) {
+      console.log('[한영 판명되다 완료 수동 문형 성공 v10.55]', {
+        query: originalText,
+        result: twoProFoundEnterRoomResultV1055.targetText,
+        engine: twoProFoundEnterRoomResultV1055.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProFoundEnterRoomResultV1055.targetText
+          ),
+          isReference: false,
+          analysis: twoProFoundEnterRoomResultV1055.analysis,
+          referenceWords: twoProFoundEnterRoomResultV1055.referenceWords,
+          engine: twoProFoundEnterRoomResultV1055.engine,
+        },
+        referenceWords: twoProFoundEnterRoomResultV1055.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.344677단계: 방에 들어간 것으로 보이기 PERFECT RAISING CORE v10.56
+    // =================================================================
+    const twoProAppearEnterRoomResultV1056 =
+      await twoProTryKoEnAppearEnterRoomV1056(originalText);
+
+    if (twoProAppearEnterRoomResultV1056) {
+      console.log('[한영 보이다 완료 raising 문형 성공 v10.56]', {
+        query: originalText,
+        result: twoProAppearEnterRoomResultV1056.targetText,
+        engine: twoProAppearEnterRoomResultV1056.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProAppearEnterRoomResultV1056.targetText
+          ),
+          isReference: false,
+          analysis: twoProAppearEnterRoomResultV1056.analysis,
+          referenceWords: twoProAppearEnterRoomResultV1056.referenceWords,
+          engine: twoProAppearEnterRoomResultV1056.engine,
+        },
+        referenceWords: twoProAppearEnterRoomResultV1056.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.344678단계: 방에 들어간 것 같기 PERFECT RAISING CORE v10.57
+    // =================================================================
+    const twoProSeemEnterRoomResultV1057 =
+      await twoProTryKoEnSeemEnterRoomV1057(originalText);
+
+    if (twoProSeemEnterRoomResultV1057) {
+      console.log('[한영 같다 완료 raising 문형 성공 v10.57]', {
+        query: originalText,
+        result: twoProSeemEnterRoomResultV1057.targetText,
+        engine: twoProSeemEnterRoomResultV1057.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProSeemEnterRoomResultV1057.targetText
+          ),
+          isReference: false,
+          analysis: twoProSeemEnterRoomResultV1057.analysis,
+          referenceWords: twoProSeemEnterRoomResultV1057.referenceWords,
+          engine: twoProSeemEnterRoomResultV1057.engine,
+        },
+        referenceWords: twoProSeemEnterRoomResultV1057.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.344679단계: 방에 들어간 것으로 드러나기 PERFECT RESULT CORE v10.58
+    // =================================================================
+    const twoProTurnOutEnterRoomResultV1058 =
+      await twoProTryKoEnTurnOutEnterRoomV1058(originalText);
+
+    if (twoProTurnOutEnterRoomResultV1058) {
+      console.log('[한영 드러나다 완료 결과 문형 성공 v10.58]', {
+        query: originalText,
+        result: twoProTurnOutEnterRoomResultV1058.targetText,
+        engine: twoProTurnOutEnterRoomResultV1058.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProTurnOutEnterRoomResultV1058.targetText
+          ),
+          isReference: false,
+          analysis: twoProTurnOutEnterRoomResultV1058.analysis,
+          referenceWords: twoProTurnOutEnterRoomResultV1058.referenceWords,
+          engine: twoProTurnOutEnterRoomResultV1058.engine,
+        },
+        referenceWords: twoProTurnOutEnterRoomResultV1058.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.344680단계: 방에 들어간 것으로 전해지기 PASSIVE PERFECT CORE v10.60
+    // =================================================================
+    const twoProSaidEnterRoomResultV1060 =
+      await twoProTryKoEnSaidEnterRoomV1060(originalText);
+
+    if (twoProSaidEnterRoomResultV1060) {
+      console.log('[한영 전해지다 완료 수동 문형 성공 v10.60]', {
+        query: originalText,
+        result: twoProSaidEnterRoomResultV1060.targetText,
+        engine: twoProSaidEnterRoomResultV1060.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProSaidEnterRoomResultV1060.targetText
+          ),
+          isReference: false,
+          analysis: twoProSaidEnterRoomResultV1060.analysis,
+          referenceWords: twoProSaidEnterRoomResultV1060.referenceWords,
+          engine: twoProSaidEnterRoomResultV1060.engine,
+        },
+        referenceWords: twoProSaidEnterRoomResultV1060.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.344681단계: 방에 들어간 것으로 의심받기 PASSIVE PERFECT GERUND CORE v10.61
+    // =================================================================
+    const twoProSuspectedEnterRoomResultV1061 =
+      await twoProTryKoEnSuspectedEnterRoomV1061(originalText);
+
+    if (twoProSuspectedEnterRoomResultV1061) {
+      console.log('[한영 의심받다 완료 동명사 수동 문형 성공 v10.61]', {
+        query: originalText,
+        result: twoProSuspectedEnterRoomResultV1061.targetText,
+        engine: twoProSuspectedEnterRoomResultV1061.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProSuspectedEnterRoomResultV1061.targetText
+          ),
+          isReference: false,
+          analysis: twoProSuspectedEnterRoomResultV1061.analysis,
+          referenceWords: twoProSuspectedEnterRoomResultV1061.referenceWords,
+          engine: twoProSuspectedEnterRoomResultV1061.engine,
+        },
+        referenceWords: twoProSuspectedEnterRoomResultV1061.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.344682단계: 방에 들어간 것으로 비판받기 PASSIVE PERFECT GERUND CORE v10.62
+    // =================================================================
+    const twoProCriticizedEnterRoomResultV1062 =
+      await twoProTryKoEnCriticizedEnterRoomV1062(originalText);
+
+    if (twoProCriticizedEnterRoomResultV1062) {
+      console.log('[한영 비판받다 완료 동명사 수동 문형 성공 v10.62]', {
+        query: originalText,
+        result: twoProCriticizedEnterRoomResultV1062.targetText,
+        engine: twoProCriticizedEnterRoomResultV1062.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProCriticizedEnterRoomResultV1062.targetText
+          ),
+          isReference: false,
+          analysis: twoProCriticizedEnterRoomResultV1062.analysis,
+          referenceWords: twoProCriticizedEnterRoomResultV1062.referenceWords,
+          engine: twoProCriticizedEnterRoomResultV1062.engine,
+        },
+        referenceWords: twoProCriticizedEnterRoomResultV1062.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.344683단계: 방에 들어간 것으로 처벌받기 PASSIVE PERFECT GERUND CORE v10.63
+    // =================================================================
+    const twoProPunishedEnterRoomResultV1063 =
+      await twoProTryKoEnPunishedEnterRoomV1063(originalText);
+
+    if (twoProPunishedEnterRoomResultV1063) {
+      console.log('[한영 처벌받다 완료 동명사 수동 문형 성공 v10.63]', {
+        query: originalText,
+        result: twoProPunishedEnterRoomResultV1063.targetText,
+        engine: twoProPunishedEnterRoomResultV1063.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPunishedEnterRoomResultV1063.targetText
+          ),
+          isReference: false,
+          analysis: twoProPunishedEnterRoomResultV1063.analysis,
+          referenceWords: twoProPunishedEnterRoomResultV1063.referenceWords,
+          engine: twoProPunishedEnterRoomResultV1063.engine,
+        },
+        referenceWords: twoProPunishedEnterRoomResultV1063.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.344684단계: 방에 들어간 것으로 비난받기 PASSIVE PERFECT GERUND CORE v10.64
+    // =================================================================
+    const twoProBlamedEnterRoomResultV1064 =
+      await twoProTryKoEnBlamedEnterRoomV1064(originalText);
+
+    if (twoProBlamedEnterRoomResultV1064) {
+      console.log('[한영 비난받다 완료 동명사 수동 문형 성공 v10.64]', {
+        query: originalText,
+        result: twoProBlamedEnterRoomResultV1064.targetText,
+        engine: twoProBlamedEnterRoomResultV1064.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProBlamedEnterRoomResultV1064.targetText
+          ),
+          isReference: false,
+          analysis: twoProBlamedEnterRoomResultV1064.analysis,
+          referenceWords: twoProBlamedEnterRoomResultV1064.referenceWords,
+          engine: twoProBlamedEnterRoomResultV1064.engine,
+        },
+        referenceWords: twoProBlamedEnterRoomResultV1064.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.344685단계: 방에 들어간 혐의를 받기 PASSIVE PERFECT GERUND CORE v10.65
+    // =================================================================
+    const twoProAccusedEnterRoomResultV1065 =
+      await twoProTryKoEnAccusedEnterRoomV1065(originalText);
+
+    if (twoProAccusedEnterRoomResultV1065) {
+      console.log('[한영 혐의를 받다 완료 동명사 수동 문형 성공 v10.65]', {
+        query: originalText,
+        result: twoProAccusedEnterRoomResultV1065.targetText,
+        engine: twoProAccusedEnterRoomResultV1065.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProAccusedEnterRoomResultV1065.targetText
+          ),
+          isReference: false,
+          analysis: twoProAccusedEnterRoomResultV1065.analysis,
+          referenceWords: twoProAccusedEnterRoomResultV1065.referenceWords,
+          engine: twoProAccusedEnterRoomResultV1065.engine,
+        },
+        referenceWords: twoProAccusedEnterRoomResultV1065.referenceWords,
       });
     }
 
