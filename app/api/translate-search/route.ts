@@ -1546,6 +1546,22 @@ const TWO_PRO_KO_EN_COMMON_NOUNS: Record<string, string> = {
   '보고서': 'report',
   '영수증': 'receipt',
   '사진': 'photo',
+  // ☆ TwoPro v11.30-safe: 짧은 기본 문장용 일상 명사 대표어
+  // DB의 전문용어/저빈도 후보가 먼저 선택되는 것을 막습니다.
+  '신문': 'newspaper',
+  '창문': 'window',
+  // ☆ TwoPro v11.46-safe: 기본 위치문에서 사용하는 일상 가구 명사
+  '책상': 'desk',
+  '의자': 'chair',
+  '우유': 'milk',
+  '커피': 'coffee',
+
+  // ☆ TwoPro v11.43-safe: 색상·모양·수량 CORE의 일상 명사 대표어
+  // '공'은 다의어라 여기서 전역 고정하지 않고 아래 지시어 문맥에서만 ball로 처리합니다.
+  '종이': 'paper',
+  '상자': 'box',
+  '학생': 'student',
+
   '계약서': 'contract',
   '견적서': 'quotation',
   '예약': 'reservation',
@@ -1555,6 +1571,10 @@ const TWO_PRO_KO_EN_COMMON_NOUNS: Record<string, string> = {
   '계획': 'plan',
   '정보': 'information',
   '이름': 'name',
+
+  // ☆ TwoPro v11.42-safe: 일상 인물 명사의 기본 대표어
+  // DB의 one 등 대용 표현이 '이 사람은 ...' 속성문에서 먼저 선택되지 않게 합니다.
+  '사람': 'person',
   '신고서': 'statement',
   // ☆ TwoPro v5.9: 관사 테스트용 핵심 가산명사
   '사과': 'apple',
@@ -1573,6 +1593,8 @@ const TWO_PRO_KO_EN_COMMON_VERBS: Record<string, string> = {
   '검토하다': 'review',
   '열': 'open',
   '열다': 'open',
+  // ☆ TwoPro v11.30-safe: 창문/문 닫기 기본 동사
+  '닫다': 'close',
   '사용': 'use',
   '사용하다': 'use',
   '변경': 'change',
@@ -1656,10 +1678,15 @@ const TWO_PRO_KO_EN_UNCOUNTABLE_NOUNS = new Set([
   'luggage',
   'money',
   'music',
+  // ☆ TwoPro v11.30-safe: 일반 음료 문맥에서는 mass noun으로 처리
+  // 한 잔/두 잔 등의 단위 표현은 별도 수량 CORE가 담당합니다.
+  'milk',
+  'coffee',
   'news',
   'research',
   'rice',
   'traffic',
+  'water',
   'weather',
 ]);
 
@@ -2848,10 +2875,55 @@ const twoProFinalizeEnglish = (
   );
 
   if (!/[.?!]$/.test(text)) {
+    const sourceForPunctuation =
+      String(sourceText || '').trim();
+
+    const sourceWithoutTerminalPeriod =
+      sourceForPunctuation
+        .replace(/[.!]+$/g, '')
+        .trim();
+
+    const sourceLastToken =
+      sourceWithoutTerminalPeriod
+        .split(/\s+/)
+        .filter(Boolean)
+        .pop() || '';
+
+    // ☆ TwoPro v11.33-safe:
+    // '-나요'는 의문 종결어미이기도 하지만, 일어나다/끝나다/태어나다처럼
+    // 어간 자체가 '나'로 끝나는 동사의 해요체와 표면형이 겹칩니다.
+    // 기존 정규식은 '일어나요'를 무조건 질문으로 보아
+    // 평서문도 'She gets up?'으로 끝나는 회귀를 만들었습니다.
+    // 명시적 ?는 항상 질문으로 보존하고, ?가 없는 '-나요'는
+    // 활용 사전에 실제 평서 해요체로 등록된 완전한 마지막 토큰이면
+    // 평서문으로 우선 판정합니다.
+    // ☆ TwoPro v11.44-safe:
+    // '네모나요'처럼 형용사/상태표현의 평서 해요체도 '-나요'로 끝날 수 있습니다.
+    // v11.33은 동사 활용 사전(conjugationDB)만 확인했기 때문에
+    // '이 상자는 네모나요'를 질문으로 오인했습니다.
+    // 명시적 '?'가 없는 경우, 동사 활용 사전 또는 검증된 형용사 활용표에
+    // 정확히 등록된 표면형이면 평서문으로 우선 판정합니다.
+    const isKnownDeclarativeNayoSurfaceV1133 =
+      /나요$/u.test(sourceLastToken) &&
+      (
+        Object.prototype.hasOwnProperty.call(
+          conjugationDB,
+          sourceLastToken
+        ) ||
+        Object.prototype.hasOwnProperty.call(
+          TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5,
+          sourceLastToken
+        )
+      );
+
     const sourceIsQuestion =
-      /\?$/.test(String(sourceText || '').trim()) ||
-      /(습니까|나요|까요|인가요|건가요|니|냐)\s*$/.test(
-        String(sourceText || '').trim()
+      /\?$/.test(sourceForPunctuation) ||
+      /(습니까|까요|인가요|건가요|니|냐)\s*$/.test(
+        sourceWithoutTerminalPeriod
+      ) ||
+      (
+        /나요\s*$/.test(sourceWithoutTerminalPeriod) &&
+        !isKnownDeclarativeNayoSurfaceV1133
       );
 
     text += sourceIsQuestion ? '?' : '.';
@@ -4310,6 +4382,30 @@ const TWO_PRO_KO_EN_LEXICAL_PRIORITIES_V5: Record<
   '음악': ['music'],
   '듣다': ['listen', 'hear'],
 
+  // ☆ TwoPro v11.27-safe:
+  // 일상 기본명사 '물'은 전문용어/저빈도 DB 후보보다 water를 우선합니다.
+  // 관사 조립에서는 위 UNCOUNTABLE_NOUNS의 water와 함께 사용되어
+  // '물이 필요해요' -> I need water를 보장합니다.
+  '물': ['water'],
+
+  // ☆ TwoPro v11.28-safe:
+  // 일상 자연·날씨 문맥에서는 하늘의 기본 대표어를 sky로 둡니다.
+  // 종교/비유 문맥의 heaven은 2차 후보로 보존합니다.
+  '하늘': ['sky', 'heaven'],
+  '파랗다': ['blue'],
+  '맑다': ['clear'],
+
+  // ☆ TwoPro v11.43-safe: 기본 색상·모양 형용사와 안전 명사 대표어
+  // 색상/모양은 지시어+명사+형용사 CORE에서 DB 저빈도 후보보다 우선합니다.
+  '빨갛다': ['red'],
+  '하얗다': ['white'],
+  '검다': ['black'],
+  '둥글다': ['round'],
+  '네모나다': ['square'],
+  '종이': ['paper'],
+  '상자': ['box'],
+  '학생': ['student'],
+
   // ☆ TwoPro v7.3-safe:
   // 형용사 서술절과 continue + work 결합을 DB 후보와 무관하게 안정화합니다.
   '피곤하다': ['tired'],
@@ -4340,6 +4436,16 @@ const TWO_PRO_KO_EN_LEXICAL_PRIORITIES_V5: Record<
   '보고서': ['report'],
   '영수증': ['receipt'],
   '사진': ['photo', 'picture'],
+
+  // ☆ TwoPro v11.30-safe: 짧은 기본 문장의 일상 대표어 우선
+  '신문': ['newspaper', 'paper'],
+  '창문': ['window'],
+  // ☆ TwoPro v11.46-safe: 위치문에서 DB 저빈도 후보보다 기본 가구 의미를 우선합니다.
+  '책상': ['desk'],
+  '의자': ['chair'],
+  '우유': ['milk'],
+  '커피': ['coffee'],
+
   '견적서': ['quotation', 'quote', 'estimate'],
   '계약서': ['contract', 'agreement'],
   '조항': ['clause', 'provision', 'article'],
@@ -4369,6 +4475,16 @@ const TWO_PRO_KO_EN_LEXICAL_PRIORITIES_V5: Record<
   '가다': ['go'],
   '크다': ['large', 'big', 'great'],
   '작다': ['small', 'little'],
+
+  // ☆ TwoPro v11.40-safe: 기본 온도·물성 형용사의 대표어를 좁게 고정합니다.
+  // 지시어+명사+형용사 및 상태형용사 CORE에서 DB 저빈도 후보보다 우선합니다.
+  '춥다': ['cold'],
+  '덥다': ['hot'],
+  '무겁다': ['heavy'],
+  '가볍다': ['light'],
+  '두껍다': ['thick'],
+  '얇다': ['thin'],
+
   '오래되다': ['old', 'aged', 'long-standing'],
   '낡다': ['old', 'worn', 'dilapidated'],
   '웅장하다': ['magnificent', 'grand', 'majestic', 'imposing'],
@@ -4378,6 +4494,24 @@ const TWO_PRO_KO_EN_LEXICAL_PRIORITIES_V5: Record<
   '좋다': ['good', 'nice'],
   '나쁘다': ['bad', 'poor'],
   '넓다': ['wide', 'spacious', 'broad'],
+
+  // ☆ TwoPro v11.42-safe: 일상 평가·성질 형용사의 기본 대표어 우선
+  // '싸다'는 wrap/cheap 다의어이므로 여기서 전역 고정하지 않고 아래 문맥 번들에서 처리합니다.
+  '더럽다': ['dirty'],
+  '비싸다': ['expensive', 'costly'],
+  '간단하다': ['simple', 'easy'],
+  '친절하다': ['kind', 'friendly'],
+  '무례하다': ['rude', 'impolite'],
+
+  // ☆ TwoPro v11.41-safe: 기본 속성 형용사의 대표어 우선
+  // 지시어+명사+형용사 CORE에서만 사용할 수 있도록 기존 직접 번들 경로를 재사용합니다.
+  '빠르다': ['fast', 'quick'],
+  '느리다': ['slow'],
+  '쉽다': ['easy'],
+  '길다': ['long'],
+  '짧다': ['short'],
+  '좁다': ['narrow'],
+
   '많다': ['many', 'much', 'numerous'],
   '어렵다': ['difficult', 'hard', 'challenging'],
   '살다': ['live', 'reside'],
@@ -4427,6 +4561,105 @@ const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
   '작습니다': '작다',
   '작아요': '작다',
   '작은': '작다',
+
+  // ☆ TwoPro v11.40-safe: 기본 온도·물성 형용사 활용형
+  // 전역 의미 일반화가 아니라 형용사 정규화 표에 검증된 표면형만 추가합니다.
+  '추워요': '춥다',
+  '추웠어요': '춥다',
+  '춥습니다': '춥다',
+  '추웠습니다': '춥다',
+  '춥다': '춥다',
+  '더워요': '덥다',
+  '더웠어요': '덥다',
+  '덥습니다': '덥다',
+  '더웠습니다': '덥다',
+  '덥다': '덥다',
+  '무거워요': '무겁다',
+  '무거웠어요': '무겁다',
+  '무겁습니다': '무겁다',
+  '무거웠습니다': '무겁다',
+  '무겁다': '무겁다',
+  '가벼워요': '가볍다',
+  '가벼웠어요': '가볍다',
+  '가볍습니다': '가볍다',
+  '가벼웠습니다': '가볍다',
+  '가볍다': '가볍다',
+  '두꺼워요': '두껍다',
+  '두꺼웠어요': '두껍다',
+  '두껍습니다': '두껍다',
+  '두꺼웠습니다': '두껍다',
+  '두껍다': '두껍다',
+  '얇아요': '얇다',
+  '얇았어요': '얇다',
+  '얇습니다': '얇다',
+  '얇았습니다': '얇다',
+  '얇다': '얇다',
+
+  // ☆ TwoPro v11.41-safe: 기본 평가·속성 형용사 활용형
+  // 현재 테스트에서 필요한 불규칙/축약 해요체를 명시적으로 기본형에 연결합니다.
+  '빨라요': '빠르다',
+  '빨랐어요': '빠르다',
+  '빠릅니다': '빠르다',
+  '빨랐습니다': '빠르다',
+  '빠르다': '빠르다',
+  '느려요': '느리다',
+  '느렸어요': '느리다',
+  '느립니다': '느리다',
+  '느렸습니다': '느리다',
+  '느리다': '느리다',
+  '쉬워요': '쉽다',
+  '쉬웠어요': '쉽다',
+  '쉽습니다': '쉽다',
+  '쉬웠습니다': '쉽다',
+  '쉽다': '쉽다',
+  '길어요': '길다',
+  '길었어요': '길다',
+  '깁니다': '길다',
+  '길었습니다': '길다',
+  '길다': '길다',
+  '짧아요': '짧다',
+  '짧았어요': '짧다',
+  '짧습니다': '짧다',
+  '짧았습니다': '짧다',
+  '짧다': '짧다',
+  '좁아요': '좁다',
+  '좁았어요': '좁다',
+  '좁습니다': '좁다',
+  '좁았습니다': '좁다',
+  '좁다': '좁다',
+
+  // ☆ TwoPro v11.42-safe: 일상 평가·성질 형용사 활용형
+  '더러워요': '더럽다',
+  '더러웠어요': '더럽다',
+  '더럽습니다': '더럽다',
+  '더러웠습니다': '더럽다',
+  '더럽다': '더럽다',
+  '비싸요': '비싸다',
+  '비쌌어요': '비싸다',
+  '비쌉니다': '비싸다',
+  '비쌌습니다': '비싸다',
+  '비싸다': '비싸다',
+  '싸요': '싸다',
+  '쌌어요': '싸다',
+  '쌉니다': '싸다',
+  '쌌습니다': '싸다',
+  '싸다': '싸다',
+  '간단해요': '간단하다',
+  '간단했어요': '간단하다',
+  '간단합니다': '간단하다',
+  '간단했습니다': '간단하다',
+  '간단하다': '간단하다',
+  '친절해요': '친절하다',
+  '친절했어요': '친절하다',
+  '친절합니다': '친절하다',
+  '친절했습니다': '친절하다',
+  '친절하다': '친절하다',
+  '무례해요': '무례하다',
+  '무례했어요': '무례하다',
+  '무례합니다': '무례하다',
+  '무례했습니다': '무례하다',
+  '무례하다': '무례하다',
+
   '오래되었습니다': '오래되다',
   '오래됐습니다': '오래되다',
   '오래됐어요': '오래되다',
@@ -4460,6 +4693,43 @@ const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
   '어려워요': '어렵다',
   '어려운': '어렵다',
   '어려웠습니다': '어렵다',
+
+  // ☆ TwoPro v11.43-safe: 기본 색상·모양 형용사 활용형
+  // 검증된 해요체/과거형만 명시적으로 기본형에 연결합니다.
+  '빨개요': '빨갛다',
+  '빨갰어요': '빨갛다',
+  '빨갛습니다': '빨갛다',
+  '빨갰습니다': '빨갛다',
+  '빨갛다': '빨갛다',
+  '하얘요': '하얗다',
+  '하얬어요': '하얗다',
+  '하얗습니다': '하얗다',
+  '하얬습니다': '하얗다',
+  '하얗다': '하얗다',
+  '검어요': '검다',
+  '검었어요': '검다',
+  '검습니다': '검다',
+  '검었습니다': '검다',
+  '검다': '검다',
+  '둥글어요': '둥글다',
+  '둥글었어요': '둥글다',
+  '둥글다': '둥글다',
+  '네모나요': '네모나다',
+  '네모났어요': '네모나다',
+  '네모나다': '네모나다',
+
+  // ☆ TwoPro v11.28-safe: 하늘 상태 기본 형용사
+  '파래요': '파랗다',
+  '파랬어요': '파랗다',
+  '파랗습니다': '파랗다',
+  '파랬습니다': '파랗다',
+  '파랗다': '파랗다',
+  '맑아요': '맑다',
+  '맑았어요': '맑다',
+  '맑습니다': '맑다',
+  '맑았습니다': '맑다',
+  '맑다': '맑다',
+
   '중요합니다': '중요하다',
   '중요해요': '중요하다',
   '중요한': '중요하다',
@@ -5425,7 +5695,42 @@ const twoProTryKoEnDemonstrativeCopularV5 = async (
       ? createClient(supabaseUrl, supabaseKey)
       : null;
 
+  // ☆ TwoPro v11.41-safe: 지시어 속성문에서만 다의 명사의 대표 의미를 좁게 고정합니다.
+  // 차(tea/difference), 길(path/way), 방법(way) 전체를 전역 고정하지 않습니다.
+  // 물리 속성/평가 형용사와 함께 쓰인 현재 문형에만 car/road/method를 선택합니다.
+  const contextualNounEnV1141 =
+    nounSource === '차' &&
+    ['빠르다', '느리다', '비싸다', '싸다'].includes(adjectiveSource)
+      ? 'car'
+      : nounSource === '공' &&
+          ['파랗다', '빨갛다', '하얗다', '검다', '둥글다'].includes(adjectiveSource)
+        ? 'ball'
+        : nounSource === '길' &&
+            ['넓다', '좁다', '길다', '짧다'].includes(adjectiveSource)
+          ? 'road'
+            : nounSource === '방법' &&
+              ['좋다', '나쁘다', '쉽다', '어렵다'].includes(adjectiveSource)
+            ? 'method'
+            : nounSource === '사람' &&
+                ['친절하다', '무례하다'].includes(adjectiveSource)
+              ? 'person'
+              : '';
+
+  const contextualNounBundleV1141:
+    TwoProKoEnCandidateBundleV5 | null =
+      contextualNounEnV1141
+        ? {
+            source: nounSource,
+            selected: contextualNounEnV1141,
+            candidates: [contextualNounEnV1141],
+            referenceCandidates: [contextualNounEnV1141],
+            confidence: 1,
+            slotType: 'N',
+          }
+        : null;
+
   const nounBundle =
+    contextualNounBundleV1141 ||
     twoProBuildDirectCopularBundleV57(
       nounSource,
       'N'
@@ -5436,7 +5741,29 @@ const twoProTryKoEnDemonstrativeCopularV5 = async (
       supabase
     );
 
+  // ☆ TwoPro v11.42-safe:
+  // '싸다'는 동사 wrap과 형용사 cheap가 같은 기본형이므로 전역 우선순위에 넣지 않습니다.
+  // 지시어+차+속성 형용사 문맥에서만 cheap로 고정해 다른 동사 문장을 보호합니다.
+  const contextualAdjectiveEnV1142 =
+    nounSource === '차' && adjectiveSource === '싸다'
+      ? 'cheap'
+      : '';
+
+  const contextualAdjectiveBundleV1142:
+    TwoProKoEnCandidateBundleV5 | null =
+      contextualAdjectiveEnV1142
+        ? {
+            source: adjectiveSource,
+            selected: contextualAdjectiveEnV1142,
+            candidates: [contextualAdjectiveEnV1142],
+            referenceCandidates: [contextualAdjectiveEnV1142],
+            confidence: 1,
+            slotType: 'ADJ',
+          }
+        : null;
+
   const adjectiveBundle =
+    contextualAdjectiveBundleV1142 ||
     twoProBuildDirectCopularBundleV57(
       adjectiveSource,
       'ADJ'
@@ -5474,14 +5801,31 @@ const twoProTryKoEnDemonstrativeCopularV5 = async (
 
   const adverbEn = adverbMap[adverbKo] || '';
 
+  // ☆ TwoPro v11.44-safe: 지시어+명사+형용사 의문문은 be동사를 도치합니다.
+  // 평서문 '이 상자는 네모나요'는 This box is square.
+  // 명시적 질문 '이 상자는 네모나요?'는 Is this box square? 로 구분합니다.
+  const isExplicitCopularQuestionV1144 = /\?\s*$/.test(
+    String(originalText || '').trim()
+  );
+
+  const targetTokensV1144 = isExplicitCopularQuestionV1144
+    ? [
+        beVerb,
+        demonstrativeEn.toLowerCase(),
+        nounEn,
+        adverbEn,
+        adjectiveBundle.selected,
+      ]
+    : [
+        demonstrativeEn,
+        nounEn,
+        beVerb,
+        adverbEn,
+        adjectiveBundle.selected,
+      ];
+
   const targetText = twoProFinalizeEnglish(
-    [
-      demonstrativeEn,
-      nounEn,
-      beVerb,
-      adverbEn,
-      adjectiveBundle.selected,
-    ]
+    targetTokensV1144
       .filter(Boolean)
       .join(' '),
     originalText
@@ -5514,6 +5858,481 @@ const twoProTryKoEnDemonstrativeCopularV5 = async (
   };
 };
 
+
+// ============================================================================
+// ☆ TwoPro v11.43-safe: 기본 수량 상태문 CORE
+//
+// '책이 많아요 / 학생이 적어요'처럼 [가산명사]+이/가+많다/적다만 처리합니다.
+// 한국어 '적다'의 write/record 의미와 충돌하지 않도록 전역 형용사 우선순위를
+// 바꾸지 않고, 검증된 가산명사 화이트리스트에서만 many/few를 선택합니다.
+// ============================================================================
+const TWO_PRO_KO_EN_SAFE_QUANTITY_NOUNS_V1143: Readonly<
+  Record<string, string>
+> = {
+  '책': 'book',
+  '학생': 'student',
+};
+
+const twoProTryKoEnBasicQuantityClauseV1143 = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:이|가)\s+(많아요|적어요)$/u
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const nounSource =
+    twoProNormalizeKoreanNounV5(match[1]);
+  const quantitySurface = match[2];
+  const nounEn =
+    TWO_PRO_KO_EN_SAFE_QUANTITY_NOUNS_V1143[nounSource];
+
+  if (!nounEn) {
+    return null;
+  }
+
+  const isMany = quantitySurface === '많아요';
+  const quantitySource = isMany ? '많다' : '적다';
+  const quantityEn = isMany ? 'many' : 'few';
+  const pluralNounEn =
+    twoProPluralizeEnglishV5(nounEn);
+
+  const nounReference: TwoProKoEnReferenceWordV5 = {
+    source: nounSource,
+    selected: nounEn,
+    candidates: [nounEn],
+    slot: 'N',
+    confidence: 1,
+  };
+
+  const quantityReference: TwoProKoEnReferenceWordV5 = {
+    source: quantitySource,
+    selected: quantityEn,
+    candidates: [quantityEn],
+    slot: 'ADJ',
+    confidence: 1,
+  };
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `There are ${quantityEn} ${pluralNounEn}`,
+      originalText
+    ),
+    analysis: [
+      { ko: nounSource, en: `${nounEn} [N]` },
+      { ko: quantitySource, en: `${quantityEn} [QUANTITY]` },
+    ],
+    referenceWords: [
+      nounReference,
+      quantityReference,
+    ],
+    engine: 'basic-quantity-state-ko-en-v11.43',
+  };
+};
+
+
+
+// ============================================================================
+// ☆ TwoPro v11.49-safe: 기본 지시어 비교급 CORE
+//
+// 처리 범위(현재 회귀 세트에 한정):
+// - 이 차는 저 차보다 빨라요 / 느려요
+// - 이 방은 저 방보다 커요 / 작아요
+// - 이 책은 저 책보다 두꺼워요 / 얇아요
+// - 이 가방은 저 가방보다 무거워요 / 가벼워요
+// - 이 문제는 저 문제보다 쉬워요 / 어려워요
+//
+// 안전 원칙:
+// 1. 이 N은/는 저 N보다 ADJ 구조만 처리합니다.
+// 2. 앞·뒤 명사가 정확히 같고 아래 안전 명사 목록에 있을 때만 적용합니다.
+// 3. 비교급은 검증된 불규칙/철자 변화만 직접 지정합니다.
+// 4. 차(tea/difference)는 이 비교 문맥에서만 car로 고정합니다.
+// 5. 다른 보다 문장·부사 more·최상급·과거형은 기존 엔진에 맡깁니다.
+// ============================================================================
+type TwoProBasicComparativeResultV1149 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+const TWO_PRO_BASIC_COMPARATIVE_NOUNS_V1149: Readonly<
+  Record<string, string>
+> = {
+  '차': 'car',
+  '방': 'room',
+  '책': 'book',
+  '가방': 'bag',
+  '문제': 'problem',
+};
+
+const TWO_PRO_BASIC_COMPARATIVE_ADJECTIVES_V1149: Readonly<
+  Record<string, string>
+> = {
+  '빠르다': 'faster',
+  '느리다': 'slower',
+  '크다': 'bigger',
+  '작다': 'smaller',
+  '두껍다': 'thicker',
+  '얇다': 'thinner',
+  '무겁다': 'heavier',
+  '가볍다': 'lighter',
+  '쉽다': 'easier',
+  '어렵다': 'more difficult',
+};
+
+const twoProTryKoEnBasicComparativeV1149 = (
+  originalText: string
+): TwoProBasicComparativeResultV1149 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^이\s+(.+?)(?:은|는)\s+저\s+(.+?)보다\s+(.+)$/u
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectNounKo = twoProNormalizeKoreanNounV5(match[1]);
+  const comparedNounKo = twoProNormalizeKoreanNounV5(match[2]);
+  const adjectiveKo = twoProNormalizeKoreanAdjectiveV5(match[3]);
+
+  if (
+    !subjectNounKo ||
+    !comparedNounKo ||
+    subjectNounKo !== comparedNounKo
+  ) {
+    return null;
+  }
+
+  const nounEn =
+    TWO_PRO_BASIC_COMPARATIVE_NOUNS_V1149[subjectNounKo];
+  const comparativeEn =
+    TWO_PRO_BASIC_COMPARATIVE_ADJECTIVES_V1149[adjectiveKo];
+
+  if (!nounEn || !comparativeEn) {
+    return null;
+  }
+
+  const targetText = twoProFinalizeEnglish(
+    `This ${nounEn} is ${comparativeEn} than that ${nounEn}`,
+    originalText
+  );
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    {
+      source: subjectNounKo,
+      selected: nounEn,
+      candidates: [nounEn],
+      slot: 'COMPARATIVE-NOUN',
+      confidence: 1,
+    },
+    {
+      source: adjectiveKo,
+      selected: comparativeEn,
+      candidates: [comparativeEn],
+      slot: 'COMPARATIVE-ADJ',
+      confidence: 1,
+    },
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      {
+        ko: subjectNounKo,
+        en: `${nounEn} [N]`,
+      },
+      {
+        ko: adjectiveKo,
+        en: `${comparativeEn} [COMPARATIVE]`,
+      },
+    ],
+    referenceWords,
+    engine: 'basic-comparative-ko-en-v11.49',
+  };
+};
+
+
+
+// ============================================================================
+// ☆ TwoPro v11.50-safe: 기본 명령문·금지문·정중 요청문 CORE
+//
+// 현재 회귀 범위의 짧고 명확한 명령/요청 표현만 직접 처리합니다.
+// - 목적어 + -세요: 문을 여세요 / 책을 읽으세요
+// - 장소·부사 + -세요: 여기에서 기다리세요 / 천천히 걸으세요
+// - -지 마세요: 문을 열지 마세요 / 여기에 앉지 마세요 / 학교에 가지 마세요
+// - -아/어 주세요: 잠시 기다려 주세요 / 문을 닫아 주세요
+//
+// 안전 원칙:
+// 1. 검증된 동사·명사·장소·부사 표면형만 허용합니다.
+// 2. -세요를 전역적으로 모두 명령으로 일반화하지 않습니다.
+// 3. -지 마세요는 Don't + 동사원형, -아/어 주세요는 Please + 동사원형으로 분리합니다.
+// 4. 기존 v7.x 명령 엔진과 정상 문장은 삭제/변경하지 않고, 그 엔진이 놓친 짧은 CORE만 보완합니다.
+// ============================================================================
+type TwoProBasicImperativeResultV1150 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+const TWO_PRO_BASIC_IMPERATIVE_NOUNS_V1150: Readonly<
+  Record<string, string>
+> = {
+  '문': 'door',
+  '창문': 'window',
+  '책': 'book',
+};
+
+const TWO_PRO_BASIC_IMPERATIVE_OBJECT_VERBS_V1150: Readonly<
+  Record<string, { base: string; en: string }>
+> = {
+  '여세요': { base: '열다', en: 'open' },
+  '닫으세요': { base: '닫다', en: 'close' },
+  '읽으세요': { base: '읽다', en: 'read' },
+};
+
+const TWO_PRO_BASIC_IMPERATIVE_NEG_OBJECT_VERBS_V1150: Readonly<
+  Record<string, { base: string; en: string }>
+> = {
+  '열지': { base: '열다', en: 'open' },
+  '닫지': { base: '닫다', en: 'close' },
+  '읽지': { base: '읽다', en: 'read' },
+};
+
+const TWO_PRO_BASIC_IMPERATIVE_REQUEST_OBJECT_VERBS_V1150: Readonly<
+  Record<string, { base: string; en: string }>
+> = {
+  '열어': { base: '열다', en: 'open' },
+  '닫아': { base: '닫다', en: 'close' },
+  '읽어': { base: '읽다', en: 'read' },
+};
+
+const twoProBasicImperativeReferenceV1150 = (
+  source: string,
+  selected: string,
+  slot: string
+): TwoProKoEnReferenceWordV5 => ({
+  source,
+  selected,
+  candidates: [selected],
+  slot,
+  confidence: 1,
+});
+
+const twoProTryKoEnBasicImperativeV1150 = (
+  originalText: string
+): TwoProBasicImperativeResultV1150 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  // ------------------------------------------------------------
+  // 1) 목적어 + -세요: 책을 읽으세요 / 문을 여세요
+  // ------------------------------------------------------------
+  let match = normalized.match(
+    /^(.+?)(?:을|를)\s+(여세요|닫으세요|읽으세요)$/u
+  );
+
+  if (match) {
+    const nounKo = twoProNormalizeKoreanNounV5(match[1]);
+    const verbInfo = TWO_PRO_BASIC_IMPERATIVE_OBJECT_VERBS_V1150[match[2]];
+    const nounEn = TWO_PRO_BASIC_IMPERATIVE_NOUNS_V1150[nounKo];
+
+    if (nounEn && verbInfo) {
+      const targetText = twoProFinalizeEnglish(
+        `${verbInfo.en} the ${nounEn}`,
+        originalText
+      );
+
+      return {
+        targetText,
+        analysis: [
+          { ko: nounKo, en: `${nounEn} [N]` },
+          { ko: verbInfo.base, en: `${verbInfo.en} [V:IMPERATIVE]` },
+        ],
+        referenceWords: [
+          twoProBasicImperativeReferenceV1150(nounKo, nounEn, 'N'),
+          twoProBasicImperativeReferenceV1150(verbInfo.base, verbInfo.en, 'V'),
+        ],
+        engine: 'basic-imperative-object-ko-en-v11.50',
+      };
+    }
+  }
+
+  // ------------------------------------------------------------
+  // 2) 장소/부사 + -세요
+  // ------------------------------------------------------------
+  if (/^(?:여기에서|여기서)\s+기다리세요$/u.test(normalized)) {
+    return {
+      targetText: twoProFinalizeEnglish('Wait here', originalText),
+      analysis: [
+        { ko: '여기', en: 'here [PLACE]' },
+        { ko: '기다리다', en: 'wait [V:IMPERATIVE]' },
+      ],
+      referenceWords: [
+        twoProBasicImperativeReferenceV1150('여기', 'here', 'PLACE'),
+        twoProBasicImperativeReferenceV1150('기다리다', 'wait', 'V'),
+      ],
+      engine: 'basic-imperative-place-ko-en-v11.50',
+    };
+  }
+
+  if (/^천천히\s+걸으세요$/u.test(normalized)) {
+    return {
+      targetText: twoProFinalizeEnglish('Walk slowly', originalText),
+      analysis: [
+        { ko: '걷다', en: 'walk [V:IMPERATIVE]' },
+        { ko: '천천히', en: 'slowly [ADV]' },
+      ],
+      referenceWords: [
+        twoProBasicImperativeReferenceV1150('걷다', 'walk', 'V'),
+        twoProBasicImperativeReferenceV1150('천천히', 'slowly', 'ADV'),
+      ],
+      engine: 'basic-imperative-adverb-ko-en-v11.50',
+    };
+  }
+
+  // ------------------------------------------------------------
+  // 3) 목적어 + -지 마세요
+  // ------------------------------------------------------------
+  match = normalized.match(
+    /^(.+?)(?:을|를)\s+(열지|닫지|읽지)\s+마세요$/u
+  );
+
+  if (match) {
+    const nounKo = twoProNormalizeKoreanNounV5(match[1]);
+    const verbInfo = TWO_PRO_BASIC_IMPERATIVE_NEG_OBJECT_VERBS_V1150[match[2]];
+    const nounEn = TWO_PRO_BASIC_IMPERATIVE_NOUNS_V1150[nounKo];
+
+    if (nounEn && verbInfo) {
+      return {
+        targetText: twoProFinalizeEnglish(
+          `Don't ${verbInfo.en} the ${nounEn}`,
+          originalText
+        ),
+        analysis: [
+          { ko: nounKo, en: `${nounEn} [N]` },
+          { ko: verbInfo.base, en: `${verbInfo.en} [V:NEG-IMPERATIVE]` },
+          { ko: '-지 마세요', en: `don't [NEGATION]` },
+        ],
+        referenceWords: [
+          twoProBasicImperativeReferenceV1150(nounKo, nounEn, 'N'),
+          twoProBasicImperativeReferenceV1150(verbInfo.base, verbInfo.en, 'V'),
+        ],
+        engine: 'basic-negative-imperative-object-ko-en-v11.50',
+      };
+    }
+  }
+
+  // 여기에 앉지 마세요 / 여기에서 앉지 마세요
+  if (/^(?:여기에|여기에서|여기서)\s+앉지\s+마세요$/u.test(normalized)) {
+    return {
+      targetText: twoProFinalizeEnglish("Don't sit here", originalText),
+      analysis: [
+        { ko: '여기', en: 'here [PLACE]' },
+        { ko: '앉다', en: 'sit [V:NEG-IMPERATIVE]' },
+        { ko: '-지 마세요', en: "don't [NEGATION]" },
+      ],
+      referenceWords: [
+        twoProBasicImperativeReferenceV1150('여기', 'here', 'PLACE'),
+        twoProBasicImperativeReferenceV1150('앉다', 'sit', 'V'),
+      ],
+      engine: 'basic-negative-imperative-place-ko-en-v11.50',
+    };
+  }
+
+  // 학교에 가지 마세요: 현재 회귀에서 검증된 목적지 school만 우선 보완합니다.
+  if (/^학교에\s+가지\s+마세요$/u.test(normalized)) {
+    return {
+      targetText: twoProFinalizeEnglish("Don't go to school", originalText),
+      analysis: [
+        { ko: '학교', en: 'school [PLACE]' },
+        { ko: '가다', en: 'go [V:NEG-IMPERATIVE]' },
+        { ko: '-지 마세요', en: "don't [NEGATION]" },
+      ],
+      referenceWords: [
+        twoProBasicImperativeReferenceV1150('학교', 'school', 'PLACE'),
+        twoProBasicImperativeReferenceV1150('가다', 'go', 'V'),
+      ],
+      engine: 'basic-negative-imperative-destination-ko-en-v11.50',
+    };
+  }
+
+  // ------------------------------------------------------------
+  // 4) -아/어 주세요: 정중 요청
+  // ------------------------------------------------------------
+  if (/^잠시\s+기다려\s+주세요$/u.test(normalized)) {
+    return {
+      targetText: twoProFinalizeEnglish('Please wait a moment', originalText),
+      analysis: [
+        { ko: '잠시', en: 'a moment [TIME]' },
+        { ko: '기다리다', en: 'wait [V:REQUEST]' },
+      ],
+      referenceWords: [
+        twoProBasicImperativeReferenceV1150('잠시', 'a moment', 'TIME'),
+        twoProBasicImperativeReferenceV1150('기다리다', 'wait', 'V'),
+      ],
+      engine: 'basic-polite-request-time-ko-en-v11.50',
+    };
+  }
+
+  match = normalized.match(
+    /^(.+?)(?:을|를)\s+(열어|닫아|읽어)\s+주세요$/u
+  );
+
+  if (match) {
+    const nounKo = twoProNormalizeKoreanNounV5(match[1]);
+    const verbInfo = TWO_PRO_BASIC_IMPERATIVE_REQUEST_OBJECT_VERBS_V1150[match[2]];
+    const nounEn = TWO_PRO_BASIC_IMPERATIVE_NOUNS_V1150[nounKo];
+
+    if (nounEn && verbInfo) {
+      return {
+        targetText: twoProFinalizeEnglish(
+          `Please ${verbInfo.en} the ${nounEn}`,
+          originalText
+        ),
+        analysis: [
+          { ko: nounKo, en: `${nounEn} [N]` },
+          { ko: verbInfo.base, en: `${verbInfo.en} [V:REQUEST]` },
+        ],
+        referenceWords: [
+          twoProBasicImperativeReferenceV1150(nounKo, nounEn, 'N'),
+          twoProBasicImperativeReferenceV1150(verbInfo.base, verbInfo.en, 'V'),
+        ],
+        engine: 'basic-polite-request-object-ko-en-v11.50',
+      };
+    }
+  }
+
+  return null;
+};
 
 // ============================================================================
 // ☆ TwoPro 한영 장소·이동·기간 문장 엔진 v5.4
@@ -6079,6 +6898,8 @@ const TWO_PRO_KO_EN_IRREGULAR_PAST_V52: Record<
   bring: 'brought',
   buy: 'bought',
   come: 'came',
+  // ☆ TwoPro v11.28-safe: drink 과거형
+  drink: 'drank',
   do: 'did',
   eat: 'ate',
   find: 'found',
@@ -6090,6 +6911,14 @@ const TWO_PRO_KO_EN_IRREGULAR_PAST_V52: Record<
   make: 'made',
   meet: 'met',
   read: 'read',
+  ride: 'rode',
+  // ☆ TwoPro v11.34-safe: 기본 자동사 과거형
+  sit: 'sat',
+  stand: 'stood',
+  // ☆ TwoPro v11.31-safe: 기본 자동사 과거형
+  run: 'ran',
+  sleep: 'slept',
+  swim: 'swam',
   say: 'said',
   see: 'saw',
   send: 'sent',
@@ -7158,6 +7987,66 @@ const twoProTryKoEnParticleClauseV58 = async (
     engine,
   });
 
+  // =================================================================
+  // ☆ TwoPro v11.28-safe: 하늘 상태 단문
+  //
+  // 일반 DB/조사 후보가 하늘->heaven으로 내려가기 전에
+  // 일상 자연 문맥의 하늘은 the sky로 고정합니다.
+  // 현재 확인 대상인 파랗다/맑다만 좁게 처리하여 다른 형용사 문장에는
+  // 영향을 주지 않습니다.
+  // =================================================================
+  const skyStateMatchV1128 = normalized.match(
+    /^하늘(?:은|는|이|가)\s+(파래요|파랗습니다|파랗다|파랬어요|파랬습니다|맑아요|맑습니다|맑다|맑았어요|맑았습니다)$/u
+  );
+
+  if (skyStateMatchV1128) {
+    const adjectiveSurfaceV1128 =
+      skyStateMatchV1128[1];
+
+    const isBlueV1128 =
+      /^파/u.test(adjectiveSurfaceV1128);
+
+    const adjectiveEnV1128 =
+      isBlueV1128 ? 'blue' : 'clear';
+
+    const adjectiveBaseV1128 =
+      isBlueV1128 ? '파랗다' : '맑다';
+
+    const pastV1128 =
+      /(?:랬|았)/u.test(adjectiveSurfaceV1128);
+
+    const skyBundleV1128 = {
+      source: '하늘',
+      selected: 'sky',
+      candidates: ['sky', 'heaven'],
+      referenceCandidates: ['sky', 'heaven'],
+      confidence: 1,
+      slotType: 'N',
+    } as TwoProKoEnCandidateBundleV5;
+
+    const adjectiveBundleV1128 = {
+      source: adjectiveBaseV1128,
+      selected: adjectiveEnV1128,
+      candidates: [adjectiveEnV1128],
+      referenceCandidates: [adjectiveEnV1128],
+      confidence: 1,
+      slotType: 'ADJ',
+    } as TwoProKoEnCandidateBundleV5;
+
+    return finish(
+      `the sky ${pastV1128 ? 'was' : 'is'} ${adjectiveEnV1128}`,
+      [skyBundleV1128, adjectiveBundleV1128],
+      'particle-sky-state-ko-en-v11.28',
+      [
+        { ko: '하늘', en: 'sky [N]' },
+        {
+          ko: adjectiveBaseV1128,
+          en: `${adjectiveEnV1128} [ADJ]`,
+        },
+      ]
+    );
+  }
+
   // 1) 주제 조사 은/는 + 형용사: 책은 중요합니다 / 호텔은 큽니다 / 호텔은 크다
   const topicAdjectiveMatch = normalized.match(
     /^(.+?)(들)?(?:은|는)\s+(?:(정말|매우|아주)\s+)?(.+)$/u
@@ -7596,7 +8485,53 @@ const twoProTryKoEnSimpleClauseV55 = async (
   const predicateSurface =
     twoProCleanCapturedKo(matched?.[3] || '');
 
+  // ☆ TwoPro v11.29-safe:
+  // '들어요/들었어요'는 듣다와 들다(들어 올리다)가 표면형에서 겹칠 수 있습니다.
+  // 전역 술어표에 고정하지 않고, 목적어가 '음악'인 경우에만
+  // 듣다 -> listen 문맥으로 좁게 복원합니다.
+  const normalizedComplementForListenV1129 =
+    twoProNormalizeKoreanNounV5(complementSource);
+
+  const listenMusicPredicateV1129:
+    TwoProKoEnPredicateInfoV52 | null =
+    normalizedComplementForListenV1129 === '음악'
+      ? (() => {
+          const surface =
+            twoProCleanPredicateFormV52(predicateSurface);
+
+          if (
+            /^(?:들어요|듣습니다|듣는다)$/u.test(surface)
+          ) {
+            return {
+              base: '듣다',
+              tense: 'present' as TwoProKoEnSimpleTenseV52,
+            };
+          }
+
+          if (
+            /^(?:들었어요|들었습니다|들었다)$/u.test(surface)
+          ) {
+            return {
+              base: '듣다',
+              tense: 'past' as TwoProKoEnSimpleTenseV52,
+            };
+          }
+
+          if (
+            /^(?:듣겠습니다|들을 거예요|들을 것입니다)$/u.test(surface)
+          ) {
+            return {
+              base: '듣다',
+              tense: 'future' as TwoProKoEnSimpleTenseV52,
+            };
+          }
+
+          return null;
+        })()
+      : null;
+
   const predicate =
+    listenMusicPredicateV1129 ||
     twoProAnalyzePredicateV52(predicateSurface);
 
   if (
@@ -7881,6 +8816,17 @@ const TWO_PRO_CORE_POLITE_PREDICATE_FIXED_V991:
     '봤어요': { base: '보다', tense: 'past' },
     '배워요': { base: '배우다', tense: 'present' },
     '배웠어요': { base: '배우다', tense: 'past' },
+
+    // ☆ TwoPro v11.28-safe:
+    // 마셔요/마셨어요는 단순 -아요/-어요 제거만으로
+    // 마시다 복원이 안전하지 않아 명시적으로 연결합니다.
+    '마셔요': { base: '마시다', tense: 'present' },
+    '마셨어요': { base: '마시다', tense: 'past' },
+
+    // ☆ TwoPro v11.30-safe: 닫다의 축약 활용형은 의미 충돌이 없어 전역 복원합니다.
+    // 쓰다/찍다/타다는 다의어이므로 아래 목적어 문맥에서만 복원합니다.
+    '닫아요': { base: '닫다', tense: 'present' },
+    '닫았어요': { base: '닫다', tense: 'past' },
   };
 
 const twoProCoreSafeVerbBaseFromStemV991 = (
@@ -7899,6 +8845,9 @@ const twoProCoreSafeVerbBaseFromStemV991 = (
     '봐': '보다',
     '배우': '배우다',
     '배워': '배우다',
+    '마시': '마시다',
+    '마셔': '마시다',
+    '닫': '닫다',
   };
 
   const fixed = fixedStemMap[stem];
@@ -8093,6 +9042,92 @@ const twoProTryKoEnCoreObjectClauseV991 = async (
     return null;
   }
 
+  // =================================================================
+  // ☆ TwoPro v11.30-safe: 다의어 활용형은 목적어 문맥 안에서만 복원
+  //
+  // 써요/찍어요/타요를 전역으로 각각 write/take/ride에 연결하면
+  // 모자를 쓰다, 도장을 찍다, 버스를 타다 같은 문장을 오염시킬 수 있습니다.
+  // 따라서 이번 기본 CORE에서는 편지/사진/자전거 조합에서만 복원합니다.
+  // =================================================================
+  const normalizedObjectForPredicateV1130 =
+    twoProNormalizeKoreanNounV5(objectSource);
+
+  const contextualSimplePredicateV1130 = (() => {
+    const surface =
+      twoProCleanPredicateFormV52(predicateSurface);
+
+    const fromForms = (
+      base: string,
+      presentForms: RegExp,
+      pastForms: RegExp
+    ): TwoProKoEnPredicateInfoV52 | null => {
+      if (presentForms.test(surface)) {
+        return { base, tense: 'present' };
+      }
+      if (pastForms.test(surface)) {
+        return { base, tense: 'past' };
+      }
+      return null;
+    };
+
+    if (normalizedObjectForPredicateV1130 === '편지') {
+      return fromForms(
+        '쓰다',
+        /^(?:써요|씁니다|쓴다)$/u,
+        /^(?:썼어요|썼습니다|썼다)$/u
+      );
+    }
+
+    if (normalizedObjectForPredicateV1130 === '사진') {
+      return fromForms(
+        '찍다',
+        /^(?:찍어요|찍습니다|찍는다)$/u,
+        /^(?:찍었어요|찍었습니다|찍었다)$/u
+      );
+    }
+
+    if (normalizedObjectForPredicateV1130 === '자전거') {
+      return fromForms(
+        '타다',
+        /^(?:타요|탑니다|탄다)$/u,
+        /^(?:탔어요|탔습니다|탔다)$/u
+      );
+    }
+
+    return null;
+  })();
+
+  const contextualBaseFromStemV1130 = (
+    stemValue: string
+  ): string | null => {
+    const stem = twoProCleanCapturedKo(stemValue)
+      .replace(/\s+/g, '')
+      .trim();
+
+    if (
+      normalizedObjectForPredicateV1130 === '편지' &&
+      /^(?:쓰|써)$/u.test(stem)
+    ) {
+      return '쓰다';
+    }
+
+    if (
+      normalizedObjectForPredicateV1130 === '사진' &&
+      /^(?:찍|찍어)$/u.test(stem)
+    ) {
+      return '찍다';
+    }
+
+    if (
+      normalizedObjectForPredicateV1130 === '자전거' &&
+      /^타$/u.test(stem)
+    ) {
+      return '타다';
+    }
+
+    return null;
+  };
+
   let predicateInfo:
     TwoProCoreObjectPredicateV991 | null = null;
 
@@ -8103,6 +9138,7 @@ const twoProTryKoEnCoreObjectClauseV991 = async (
 
   if (negativeWantMatch) {
     const base =
+      contextualBaseFromStemV1130(negativeWantMatch[1]) ||
       twoProCoreSafeVerbBaseFromStemV991(
         negativeWantMatch[1]
       );
@@ -8127,6 +9163,7 @@ const twoProTryKoEnCoreObjectClauseV991 = async (
 
     if (progressiveMatch) {
       const base =
+        contextualBaseFromStemV1130(progressiveMatch[1]) ||
         twoProCoreSafeVerbBaseFromStemV991(
           progressiveMatch[1]
         );
@@ -8149,6 +9186,7 @@ const twoProTryKoEnCoreObjectClauseV991 = async (
 
     if (negativeMatch) {
       const base =
+        contextualBaseFromStemV1130(negativeMatch[1]) ||
         twoProCoreSafeVerbBaseFromStemV991(
           negativeMatch[1]
         );
@@ -8168,6 +9206,7 @@ const twoProTryKoEnCoreObjectClauseV991 = async (
 
   if (!predicateInfo) {
     const simple =
+      contextualSimplePredicateV1130 ||
       twoProAnalyzeCorePolitePredicateV991(
         predicateSurface
       );
@@ -8195,30 +9234,98 @@ const twoProTryKoEnCoreObjectClauseV991 = async (
       ? createClient(supabaseUrl, supabaseKey)
       : null;
 
+  // =================================================================
+  // ☆ TwoPro v11.27-safe: 하늘 + 보다 문맥 우선 보정
+  //
+  // 일반 목적어 fallback(v9.91)이 아래 v9.90의 하늘 전용 보정보다 먼저
+  // 실행되므로, DB 후보 heaven / see가 먼저 선택되는 회귀가 발생했습니다.
+  // '하늘' + '보다' 문맥에서만 sky / look at으로 고정합니다.
+  // 영화=watch, 사람=see 등 다른 '보다' 문맥에는 영향을 주지 않습니다.
+  // =================================================================
+  const isSkyLookContextV1127 =
+    objectSource === '하늘' &&
+    predicateInfo.base === '보다';
+
   const objectBundle =
-    await twoProLookupBasicEnglishCandidatesV5(
-      objectSource,
-      'N',
-      supabase
-    );
+    isSkyLookContextV1127
+      ? ({
+          source: '하늘',
+          selected: 'sky',
+          candidates: ['sky', 'heaven'],
+          referenceCandidates: ['sky', 'heaven'],
+          confidence: 1,
+          slotType: 'N',
+        } as TwoProKoEnCandidateBundleV5)
+      : await twoProLookupBasicEnglishCandidatesV5(
+          objectSource,
+          'N',
+          supabase
+        );
+
+  // =================================================================
+  // ☆ TwoPro v11.30-safe: 사진/자전거 목적어 문맥 동사 보정
+  //
+  // 찍다/타다는 다의어이므로 전역 사전 대표어를 바꾸지 않습니다.
+  // 오직 사진을 찍다 -> take a photo, 자전거를 타다 -> ride a bicycle
+  // 두 조합에서만 영어 동사를 고정합니다.
+  // =================================================================
+  const normalizedObjectV1130 =
+    twoProNormalizeKoreanNounV5(objectSource);
+
+  const isPhotoTakeContextV1130 =
+    normalizedObjectV1130 === '사진' &&
+    predicateInfo.base === '찍다';
+
+  const isBicycleRideContextV1130 =
+    normalizedObjectV1130 === '자전거' &&
+    predicateInfo.base === '타다';
 
   const verbBundle =
-    await twoProLookupBasicEnglishCandidatesV5(
-      predicateInfo.base,
-      'V',
-      supabase
-    );
+    isSkyLookContextV1127
+      ? ({
+          source: '보다',
+          selected: 'look at',
+          candidates: ['look at', 'see'],
+          referenceCandidates: ['look at', 'see'],
+          confidence: 1,
+          slotType: 'V',
+        } as TwoProKoEnCandidateBundleV5)
+      : isPhotoTakeContextV1130
+        ? ({
+            source: '찍다',
+            selected: 'take',
+            candidates: ['take', 'photograph'],
+            referenceCandidates: ['take', 'photograph'],
+            confidence: 1,
+            slotType: 'V',
+          } as TwoProKoEnCandidateBundleV5)
+        : isBicycleRideContextV1130
+          ? ({
+              source: '타다',
+              selected: 'ride',
+              candidates: ['ride'],
+              referenceCandidates: ['ride'],
+              confidence: 1,
+              slotType: 'V',
+            } as TwoProKoEnCandidateBundleV5)
+          : await twoProLookupBasicEnglishCandidatesV5(
+              predicateInfo.base,
+              'V',
+              supabase
+            );
 
   if (!objectBundle || !verbBundle) {
     return null;
   }
 
   const objectEn =
-    twoProObjectPhraseV52(
-      objectSource,
-      objectBundle.selected,
-      predicateInfo.base
-    );
+    isSkyLookContextV1127
+      ? 'the sky'
+      : twoProObjectPhraseV52(
+          objectSource,
+          objectBundle.selected,
+          predicateInfo.base
+        );
 
   if (!objectEn) {
     return null;
@@ -8917,6 +10024,33 @@ const TWO_PRO_KO_EN_SAFE_SUBJECT_ONLY_VERBS_V83 =
     '기다리다',
     '웃다',
     '울다',
+
+    // ☆ TwoPro v11.31-safe:
+    // 목적어 없는 가장 기본적인 동작 서술만 좁게 확장합니다.
+    // 기존 v8.3 subject-only handler를 그대로 재사용하므로
+    // 목적어/장소/보어가 붙은 문장은 이 경로가 잡지 않습니다.
+    '자다',
+    '걷다',
+    '달리다',
+    '수영하다',
+    '일어나다',
+
+    // ☆ TwoPro v11.34-safe:
+    // 기존 subject-only CORE에서 이미 안전 대상으로 쓰던 웃다/울다/쉬다는
+    // 해요체 복원을 보강하고, 앉다/서다는 명시적 주어 + 무목적어 단문에서만
+    // 좁게 허용합니다. '서요' 같은 다의 후보는 이 경로 밖에서는 건드리지 않습니다.
+    '앉다',
+    '서다',
+
+    // ☆ TwoPro v11.37-safe:
+    // 명시적 인칭 주어 + 무목적어 단문에서만 기본 동작 의미를 고정합니다.
+    // 놀다/뛰다처럼 문맥에 따라 의미가 달라질 수 있는 동사는 이 경로 밖에서는
+    // 기존 사전/문장 엔진에 그대로 맡깁니다.
+    '놀다',
+    '노래하다',
+    '춤추다',
+    '뛰다',
+    '눕다',
   ]);
 
 const twoProTryKoEnSubjectOnlyVerbClauseV83 = async (
@@ -8946,8 +10080,60 @@ const twoProTryKoEnSubjectOnlyVerbClauseV83 = async (
     return null;
   }
 
+  // ☆ TwoPro v11.32-safe:
+  // v8.3 subject-only handler는 원래 compound leaf 안에서 주로 쓰였고,
+  // twoProAnalyzePredicateV52는 자요/걸어요/달려요/일어나요 같은
+  // 비-하다 해요체를 모두 복원하지 못합니다.
+  // 이 handler의 안전 목록에 한정하여 현재/과거 해요체를 명시 복원합니다.
+  const fixedSubjectOnlyPredicateV1132:
+    Readonly<Record<string, TwoProKoEnPredicateInfoV52>> = {
+      '자요': { base: '자다', tense: 'present' },
+      '잤어요': { base: '자다', tense: 'past' },
+      '걸어요': { base: '걷다', tense: 'present' },
+      '걸었어요': { base: '걷다', tense: 'past' },
+      '달려요': { base: '달리다', tense: 'present' },
+      '달렸어요': { base: '달리다', tense: 'past' },
+      '수영해요': { base: '수영하다', tense: 'present' },
+      '수영했어요': { base: '수영하다', tense: 'past' },
+      '일어나요': { base: '일어나다', tense: 'present' },
+      '일어났어요': { base: '일어나다', tense: 'past' },
+
+      // ☆ TwoPro v11.34-safe: 기본 무목적어 동사의 해요체 정확 복원
+      '웃어요': { base: '웃다', tense: 'present' },
+      '웃었어요': { base: '웃다', tense: 'past' },
+      '울어요': { base: '울다', tense: 'present' },
+      '울었어요': { base: '울다', tense: 'past' },
+      '쉬어요': { base: '쉬다', tense: 'present' },
+      '쉬었어요': { base: '쉬다', tense: 'past' },
+      '앉아요': { base: '앉다', tense: 'present' },
+      '앉았어요': { base: '앉다', tense: 'past' },
+      '서요': { base: '서다', tense: 'present' },
+      '섰어요': { base: '서다', tense: 'past' },
+
+      // ☆ TwoPro v11.36-safe:
+      // v5.8 조사 엔진보다 먼저 확인할 세 현재형은 subject-only 문맥에서
+      // 기본형을 확정합니다. 특히 '기다려요'는 일반 -해요 복원 규칙으로
+      // 기다리다를 만들 수 없으므로 정확 표면형 등록이 필요합니다.
+      '기다려요': { base: '기다리다', tense: 'present' },
+      '공부해요': { base: '공부하다', tense: 'present' },
+      '운동해요': { base: '운동하다', tense: 'present' },
+
+      // ☆ TwoPro v11.37-safe: 추가 기본 동작 현재 해요체 정확 복원
+      '놀아요': { base: '놀다', tense: 'present' },
+      '노래해요': { base: '노래하다', tense: 'present' },
+      '춤춰요': { base: '춤추다', tense: 'present' },
+      '뛰어요': { base: '뛰다', tense: 'present' },
+      '누워요': { base: '눕다', tense: 'present' },
+    };
+
+  // ☆ TwoPro v11.34-safe:
+  // 정확 등록한 subject-only 해요체를 일반 분석보다 먼저 사용합니다.
+  // 이는 '서요'처럼 DB/일반 형태 분석에서 다른 의미로 갈 수 있는 표면형을
+  // 명시적 주어 + 무목적어 문맥에서만 안전하게 고정하기 위한 것입니다.
   const predicate =
-    twoProAnalyzePredicateV52(predicateSurface);
+    fixedSubjectOnlyPredicateV1132[predicateSurface] ||
+    twoProAnalyzePredicateV52(predicateSurface) ||
+    null;
 
   if (
     !predicate ||
@@ -8969,12 +10155,62 @@ const twoProTryKoEnSubjectOnlyVerbClauseV83 = async (
       ? createClient(supabaseUrl, supabaseKey)
       : null;
 
-  const verbBundle =
-    await twoProLookupBasicEnglishCandidatesV5(
-      predicate.base,
-      'V',
-      supabase
-    );
+  // ☆ TwoPro v11.31-safe:
+  // 새로 허용한 기본 자동사는 DB 후보에 맡기지 않고
+  // 이 subject-only 문맥에서만 대표어를 고정합니다.
+  // 다른 목적어/장소 문장이나 기존 동사 후보 순위에는 영향이 없습니다.
+  const fixedSubjectOnlyVerbV1131:
+    Readonly<Record<string, string>> = {
+      '자다': 'sleep',
+      '걷다': 'walk',
+      '달리다': 'run',
+      '수영하다': 'swim',
+      '일어나다': 'get up',
+
+      // ☆ TwoPro v11.34-safe: subject-only 대표어 고정
+      '웃다': 'laugh',
+      '울다': 'cry',
+      '쉬다': 'rest',
+      '앉다': 'sit',
+      '서다': 'stand',
+
+      // ☆ TwoPro v11.37-safe: subject-only 기본 동작 대표어 고정
+      '놀다': 'play',
+      '노래하다': 'sing',
+      '춤추다': 'dance',
+      '뛰다': 'run',
+      '눕다': 'lie down',
+    };
+
+  // ☆ TwoPro v11.35-safe:
+  // 기존 v8.3 안전 목록의 현재 해요체 중 DB 후보 선택으로 빠지던
+  // 기다려요/공부해요/운동해요만 정확 표면형에서 대표어를 고정합니다.
+  // 과거형과 다른 문맥의 같은 동사에는 영향을 주지 않습니다.
+  const fixedSubjectOnlyPresentVerbV1135:
+    Readonly<Record<string, string>> = {
+      '기다려요': 'wait',
+      '공부해요': 'study',
+      '운동해요': 'exercise',
+    };
+
+  const fixedVerbEnV1131 =
+    fixedSubjectOnlyPresentVerbV1135[predicateSurface] ||
+    fixedSubjectOnlyVerbV1131[predicate.base];
+
+  const verbBundle = fixedVerbEnV1131
+    ? ({
+        source: predicate.base,
+        selected: fixedVerbEnV1131,
+        candidates: [fixedVerbEnV1131],
+        referenceCandidates: [fixedVerbEnV1131],
+        confidence: 1,
+        slotType: 'V',
+      } as TwoProKoEnCandidateBundleV5)
+    : await twoProLookupBasicEnglishCandidatesV5(
+        predicate.base,
+        'V',
+        supabase
+      );
 
   if (!verbBundle) {
     return null;
@@ -8996,9 +10232,39 @@ const twoProTryKoEnSubjectOnlyVerbClauseV83 = async (
     return null;
   }
 
+  // ☆ TwoPro v11.33-safe:
+  // 명시적 '?'가 있는 무목적어 단문은 영어 평서 어순에 물음표만 붙이지 않고
+  // do/does/did 의문문으로 조립합니다.
+  // 그녀는 일어나요? -> Does she get up?
+  // 그는 자요?       -> Does he sleep?
+  const isExplicitQuestionV1133 =
+    /\?\s*$/.test(String(originalText || '').trim());
+
+  const normalizedSubjectV1133 =
+    String(subjectEn || '').toLowerCase();
+
+  const questionSubjectV1133 =
+    normalizedSubjectV1133 === 'i'
+      ? 'I'
+      : normalizedSubjectV1133;
+
+  const questionAuxV1133 =
+    predicate.tense === 'past'
+      ? 'Did'
+      : ['i', 'you', 'we', 'they'].includes(
+          normalizedSubjectV1133
+        )
+        ? 'Do'
+        : 'Does';
+
+  const subjectOnlyTargetV1133 =
+    isExplicitQuestionV1133
+      ? `${questionAuxV1133} ${questionSubjectV1133} ${verbBundle.selected}`
+      : `${subjectEn} ${verbEn}`;
+
   return {
     targetText: twoProFinalizeEnglish(
-      `${subjectEn} ${verbEn}`,
+      subjectOnlyTargetV1133,
       originalText
     ),
     analysis: [
@@ -20299,7 +21565,7 @@ const twoProTryKoEnAccusedEnterRoomV1065 = async (
 };
 
 // ============================================================================
-// ☆ TwoPro v10.66 + v11.14 + v11.15 + v11.16 + v11.17 + v11.19 + v11.20 + v11.21 + v11.22 + v11.23 + v11.24 + v11.25-safe: 기소되기 PASSIVE PERFECT GERUND ACTION-SLOT CORE
+// ☆ TwoPro v10.66 + v11.14 + v11.15 + v11.16 + v11.17 + v11.19 + v11.20 + v11.21 + v11.22 + v11.23 + v11.24 + v11.25 + v11.26-safe: 기소되기 PASSIVE PERFECT GERUND ACTION-SLOT CORE
 // [S] + (지금) + [PAST ACTION] + 혐의로/것으로 + 기소되다
 //
 // 기존 통과 문형:
@@ -20350,6 +21616,11 @@ const twoProTryKoEnAccusedEnterRoomV1065 = async (
 //   시스템에 침입한 것으로 기소되다
 //   -> be charged with having hacked into the system
 //   ('시스템'은 system으로, 사이버 침입은 hack into로 우선)
+//
+// v11.26 문맥 보정:
+//   서버에 침입한 것으로 기소되다
+//   -> be charged with having hacked into the server
+//   ('서버'는 server로 고정하고, 사이버 침입은 hack into로 우선)
 //
 // 기존 v10.66 "방에 들어간" 결과는 그대로 보존합니다.
 // 새 확장은 이미 별도 CORE(v10.02)에서 검증된 가져가다/가져오다 계열만
@@ -20553,6 +21824,44 @@ const twoProBuildChargedPerfectActionV1114 = async (
           twoProEmbeddedReferenceWordV90(
             '시스템',
             'system',
+            'N'
+          ),
+          twoProEmbeddedReferenceWordV90(
+            '침입하다',
+            'hack into',
+            'V'
+          ),
+        ],
+        engineKind: 'break-into-place',
+      };
+    }
+
+
+    // SERVER-INTRUSION CONTEXT DISAMBIGUATION v11.26
+    // '서버에 침입하다'도 일반 명사 DB 후보에 맡기지 않고
+    // 사이버 침입 문맥으로 직접 해석합니다.
+    // 서버 -> server
+    // 서버에 침입하다 -> hack into the server
+    if (placeSource === '서버') {
+      return {
+        source: surface,
+        perfectPhrase:
+          'having hacked into the server',
+        analysis: [
+          {
+            ko: '서버',
+            en: 'the server [PLACE]',
+          },
+          {
+            ko: surface,
+            en:
+              'having hacked into the server [PERF GERUND COMP]',
+          },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90(
+            '서버',
+            'server',
             'N'
           ),
           twoProEmbeddedReferenceWordV90(
@@ -21307,7 +22616,7 @@ const twoProTryKoEnChargedEnterRoomV1066 = async (
       actionBundle.engineKind === 'enter-room'
         ? 'charged-enter-room-passive-perfect-gerund-ko-en-v10.66'
         : actionBundle.engineKind === 'break-into-place'
-          ? 'charged-break-into-place-perfect-gerund-ko-en-v11.25'
+          ? 'charged-break-into-place-perfect-gerund-ko-en-v11.26'
           : actionBundle.engineKind === 'tamper-with-object'
             ? 'charged-tamper-with-object-perfect-gerund-ko-en-v11.23'
             : actionBundle.engineKind === 'carry-leak-object'
@@ -32384,7 +33693,31 @@ const twoProTryKoEnSubjectAdjectiveClauseV73 = async (
 
   const adverbKo = match[2] || '';
 
+  // ☆ TwoPro v11.39-safe:
+  // 바빠요/배고파요/목말라요처럼 기본형 복원이 불규칙한 상태 형용사는
+  // 이 '명시적 주어 + 상태 형용사' 경로 안에서만 정확 표면형을 먼저 복원합니다.
+  // 전역 predicate 분석이나 다른 문형의 동사/형용사 선택은 건드리지 않습니다.
+  const statePredicateSurfaceV1139 =
+    twoProCleanPredicateFormV52(match[3]);
+
+  const fixedStatePredicateV1139:
+    Readonly<Record<string, TwoProKoEnPredicateInfoV52>> = {
+      '바빠요': { base: '바쁘다', tense: 'present' },
+      '바빴어요': { base: '바쁘다', tense: 'past' },
+      '배고파요': { base: '배고프다', tense: 'present' },
+      '배고팠어요': { base: '배고프다', tense: 'past' },
+      '목말라요': { base: '목마르다', tense: 'present' },
+      '목말랐어요': { base: '목마르다', tense: 'past' },
+
+      // ☆ TwoPro v11.40-safe: 사람 상태/오늘 날씨의 기본 온도 형용사
+      '추워요': { base: '춥다', tense: 'present' },
+      '추웠어요': { base: '춥다', tense: 'past' },
+      '더워요': { base: '덥다', tense: 'present' },
+      '더웠어요': { base: '덥다', tense: 'past' },
+    };
+
   const predicate =
+    fixedStatePredicateV1139[statePredicateSurfaceV1139] ||
     twoProAnalyzePredicateV52(match[3]);
 
   if (!subjectSource || !predicate) {
@@ -32402,6 +33735,18 @@ const twoProTryKoEnSubjectAdjectiveClauseV73 = async (
     Record<string, string>
   > = {
     '피곤하다': 'tired',
+
+    // ☆ TwoPro v11.38-safe:
+    // 명시적 주어 + 상태 형용사 서술절에서만 검증된 기본 상태를 확장합니다.
+    // 일반 -하다 동사를 형용사로 넓게 해석하지 않고 이 안전 목록에 한정합니다.
+    '바쁘다': 'busy',
+    '행복하다': 'happy',
+    '배고프다': 'hungry',
+    '목마르다': 'thirsty',
+
+    // ☆ TwoPro v11.40-safe: 사람 상태와 오늘 날씨에서만 쓰는 기본 온도 상태
+    '춥다': 'cold',
+    '덥다': 'hot',
   };
 
   const adjectiveEn =
@@ -32420,6 +33765,53 @@ const twoProTryKoEnSubjectAdjectiveClauseV73 = async (
       confidence: 1,
       slotType: 'ADJ',
     };
+
+  // ☆ TwoPro v11.40-safe: '오늘은 춥다/덥다'는 영어 비인칭 날씨문으로 조립합니다.
+  // 일반 명사 주어를 바꾸지 않고 subjectSource가 정확히 '오늘'일 때만 적용합니다.
+  if (
+    subjectSource === '오늘' &&
+    (adjectiveSource === '춥다' || adjectiveSource === '덥다')
+  ) {
+    const weatherBe =
+      predicate.tense === 'future'
+        ? 'will be'
+        : predicate.tense === 'past'
+          ? 'was'
+          : 'is';
+
+    const adverbMapV1140: Record<string, string> = {
+      정말: 'really',
+      매우: 'very',
+      아주: 'very',
+    };
+
+    const targetTextV1140 = twoProFinalizeEnglish(
+      [
+        'It',
+        weatherBe,
+        adverbMapV1140[adverbKo] || '',
+        adjectiveEn,
+        'today',
+      ].filter(Boolean).join(' '),
+      originalText
+    );
+
+    const adjectiveReferenceV1140 =
+      twoProReferenceWordV5(adjectiveBundle);
+
+    return {
+      targetText: targetTextV1140,
+      analysis: [
+        { ko: '오늘', en: 'today [TIME]' },
+        { ko: adjectiveSource, en: `${adjectiveEn} [ADJ]` },
+      ],
+      referenceWords:
+        adjectiveReferenceV1140
+          ? [adjectiveReferenceV1140]
+          : [],
+      engine: 'today-temperature-adjective-ko-en-v11.40',
+    };
+  }
 
   const supabaseUrl =
     process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -52232,6 +53624,147 @@ const twoProTryKoEnArticleNumberClauseV990 = (
     }
   }
 
+  // ========================================================================
+  // ☆ TwoPro v11.45-safe: 있다/없다 존재·장소·소유 기본 CORE
+  //
+  // 같은 "있다/없다"라도 한국어 구조에 따라 영어 문형을 분리합니다.
+  // - N이/가 있다/없다           -> There is/are ... / There is/are no ...
+  // - 장소에 N이/가 있다/없다    -> There is/are ... in the ...
+  // - 인칭주어 + N이/가 있다/없다 -> have/has / don't/doesn't have
+  //
+  // 장소는 현재 회귀에서 검증된 방/가방/사무실만 좁게 허용합니다.
+  // 학교/집 등은 at/in 선택이 달라질 수 있으므로 여기서 일반화하지 않습니다.
+  // ========================================================================
+
+  const twoProExistentialLocationMapV1145: Readonly<
+    Record<string, { english: string; preposition: 'in' }>
+  > = {
+    '방': { english: 'room', preposition: 'in' },
+    '가방': { english: 'bag', preposition: 'in' },
+    '사무실': { english: 'office', preposition: 'in' },
+  };
+
+  const twoProNegativeExistentialNounV1145 = (
+    nounPhrase: TwoProNounPhraseRenderV990
+  ): string =>
+    `no ${twoProStripEnglishDeterminerV990(nounPhrase.selected)}`;
+
+  // 3-a) 인칭대명사 주어 + N이/가 있다/없다 -> have/has 문형
+  const possessionSubjectV1145 =
+    twoProExtractLeadingSubjectV62(normalized);
+
+  if (possessionSubjectV1145) {
+    const possessionMatchV1145 =
+      possessionSubjectV1145.body.match(
+        /^(.+?)(?:이|가)\s+(있습니다|있어요|있다|없습니다|없어요|없다)$/u
+      );
+
+    if (possessionMatchV1145) {
+      const nounPhrase =
+        twoProRenderNounPhraseV990(
+          possessionMatchV1145[1],
+          'object'
+        );
+
+      if (nounPhrase) {
+        const subjectForms =
+          twoProEnglishSubjectFormsV68(
+            possessionSubjectV1145.pronoun
+          );
+        const isNegative =
+          /^없/u.test(possessionMatchV1145[2]);
+        const havePhrase = isNegative
+          ? `${subjectForms.doAux}n't have`
+          : subjectForms.haveAux;
+
+        return finish(
+          `${subjectForms.subject} ${havePhrase} ${nounPhrase.selected}`,
+          [
+            {
+              ko: possessionSubjectV1145.source,
+              en: `${subjectForms.subject} [SUBJECT]`,
+            },
+            {
+              ko: nounPhrase.source,
+              en: `${nounPhrase.selected} [OBJECT]`,
+            },
+            {
+              ko: possessionMatchV1145[2],
+              en: `${havePhrase} [POSSESSION]`,
+            },
+          ],
+          [
+            twoProEmbeddedReferenceWordV90(
+              possessionSubjectV1145.source,
+              subjectForms.subject,
+              'SUBJECT'
+            ),
+            twoProNounPhraseReferenceV990(nounPhrase),
+          ],
+          'article-number-possession-ko-en-v11.45',
+          isNegative
+            ? 'SUBJECT_NOUN_HAVE_NEGATIVE_V1145'
+            : 'SUBJECT_NOUN_HAVE_POSITIVE_V1145'
+        );
+      }
+    }
+  }
+
+  // 3-b) 장소에 N이/가 있다/없다 -> existential + in the PLACE
+  match = normalized.match(
+    /^(.+?)에\s+(.+?)(?:이|가)\s+(있습니다|있어요|있다|없습니다|없어요|없다)$/u
+  );
+
+  if (match) {
+    const locationSource =
+      twoProNormalizeKoreanNounV5(match[1]);
+    const locationInfo =
+      twoProExistentialLocationMapV1145[locationSource];
+    const nounPhrase =
+      twoProRenderNounPhraseV990(match[2], 'existential');
+
+    if (locationInfo && nounPhrase && !nounPhrase.definite) {
+      const isNegative = /^없/u.test(match[3]);
+      const beVerb =
+        nounPhrase.number === 'plural' ? 'are' : 'is';
+      const existentialNoun = isNegative
+        ? twoProNegativeExistentialNounV1145(nounPhrase)
+        : nounPhrase.selected;
+      const placePhrase =
+        `${locationInfo.preposition} the ${locationInfo.english}`;
+
+      return finish(
+        `There ${beVerb} ${existentialNoun} ${placePhrase}`,
+        [
+          {
+            ko: nounPhrase.source,
+            en: `${existentialNoun} [EXISTENTIAL-NOUN]`,
+          },
+          {
+            ko: match[1],
+            en: `${placePhrase} [PLACE]`,
+          },
+          {
+            ko: match[3],
+            en: `${beVerb}${isNegative ? ' no' : ''} [EXISTENTIAL]`,
+          },
+        ],
+        [
+          twoProNounPhraseReferenceV990(nounPhrase),
+          twoProEmbeddedReferenceWordV90(
+            match[1],
+            locationInfo.english,
+            'PLACE'
+          ),
+        ],
+        'article-number-location-existential-ko-en-v11.45',
+        isNegative
+          ? 'PLACE_NOUN_EXISTENTIAL_NEGATIVE_V1145'
+          : 'PLACE_NOUN_EXISTENTIAL_POSITIVE_V1145'
+      );
+    }
+  }
+
   // 3) N이/가 있다. 특정명사는 existential there 문맥이 불안정하므로 제외합니다.
   match = normalized.match(
     /^(.+?)(?:이|가)\s+(있습니다|있어요|있다)$/u
@@ -52255,6 +53788,445 @@ const twoProTryKoEnArticleNumberClauseV990 = (
         'article-number-existential-ko-en-v9.90',
         'NOUN_PHRASE_EXISTENTIAL_V990'
       );
+    }
+  }
+
+  // 3-c) N이/가 없다 -> There is/are no N
+  match = normalized.match(
+    /^(.+?)(?:이|가)\s+(없습니다|없어요|없다)$/u
+  );
+
+  if (match) {
+    const nounPhrase =
+      twoProRenderNounPhraseV990(match[1], 'existential');
+
+    if (nounPhrase && !nounPhrase.definite) {
+      const beVerb =
+        nounPhrase.number === 'plural' ? 'are' : 'is';
+      const negativeNoun =
+        twoProNegativeExistentialNounV1145(nounPhrase);
+
+      return finish(
+        `There ${beVerb} ${negativeNoun}`,
+        [
+          {
+            ko: nounPhrase.source,
+            en: `${negativeNoun} [EXISTENTIAL-NOUN]`,
+          },
+          {
+            ko: match[2],
+            en: `${beVerb} no [EXISTENTIAL]`,
+          },
+        ],
+        [twoProNounPhraseReferenceV990(nounPhrase)],
+        'article-number-negative-existential-ko-en-v11.45',
+        'NOUN_PHRASE_NEGATIVE_EXISTENTIAL_V1145'
+      );
+    }
+  }
+
+  // ========================================================================
+  // ☆ TwoPro v11.46-safe: 특정 사물 + 구체적 위치 + 있다 기본 CORE
+  //
+  // 앞선 v11.45의 "장소에 N이/가 있어요"는 존재문(There is ...)이고,
+  // 이번 문형은 "N은/는 장소에 있어요"이므로 특정 사물의 위치를 서술합니다.
+  // - 책은 책상 위에 있어요   -> The book is on the desk.
+  // - 열쇠는 가방 안에 있어요 -> The key is in the bag.
+  // - 책은 방에 있어요         -> The book is in the room.
+  //
+  // '위/안/아래/옆'과 검증된 방/가방/사무실만 처리해
+  // 이동 목적지나 학교/home 같은 전치사 다의 문맥으로 확장하지 않습니다.
+  // 명시적 '?'가 있으면 be동사 도치까지 여기서 처리합니다.
+  // ========================================================================
+
+  const twoProDefiniteNounPhraseV1146 = (
+    sourceValue: string
+  ): {
+    source: string;
+    english: string;
+    lemma: string;
+    number: TwoProNounPhraseRenderV990['number'];
+    reference: TwoProKoEnReferenceWordV5;
+  } | null => {
+    const nounPhrase =
+      twoProRenderNounPhraseV990(sourceValue, 'subject');
+
+    if (!nounPhrase) return null;
+
+    const bare = twoProStripEnglishDeterminerV990(
+      nounPhrase.selected
+    );
+
+    if (!bare) return null;
+
+    return {
+      source: nounPhrase.source,
+      english: `the ${bare}`,
+      lemma: nounPhrase.lemma,
+      number: nounPhrase.number,
+      reference: twoProEmbeddedReferenceWordV90(
+        nounPhrase.source,
+        nounPhrase.lemma,
+        'N'
+      ),
+    };
+  };
+
+  const twoProLocationRelationMapV1146: Readonly<
+    Record<string, 'on' | 'in' | 'under' | 'next to'>
+  > = {
+    '위': 'on',
+    '안': 'in',
+    '아래': 'under',
+    '옆': 'next to',
+  };
+
+  const isExplicitLocationQuestionV1146 = /\?\s*$/.test(
+    String(originalText || '').trim()
+  );
+
+  // 3-d) N은/는 LANDMARK 위/안/아래/옆에 있다
+  match = normalized.match(
+    /^(.+?)(?:은|는)\s+(.+?)\s+(위|안|아래|옆)에\s+(있습니다|있어요|있다)$/u
+  );
+
+  if (match) {
+    const subjectNounV1146 =
+      twoProDefiniteNounPhraseV1146(match[1]);
+    const landmarkNounV1146 =
+      twoProDefiniteNounPhraseV1146(match[2]);
+    const relationEnV1146 =
+      twoProLocationRelationMapV1146[match[3]];
+
+    if (
+      subjectNounV1146 &&
+      landmarkNounV1146 &&
+      relationEnV1146
+    ) {
+      const beVerbV1146 =
+        subjectNounV1146.number === 'plural'
+          ? 'are'
+          : 'is';
+      const placePhraseV1146 =
+        `${relationEnV1146} ${landmarkNounV1146.english}`;
+      const targetV1146 = isExplicitLocationQuestionV1146
+        ? `${beVerbV1146} ${subjectNounV1146.english} ${placePhraseV1146}`
+        : `${subjectNounV1146.english} ${beVerbV1146} ${placePhraseV1146}`;
+
+      return finish(
+        targetV1146,
+        [
+          {
+            ko: subjectNounV1146.source,
+            en: `${subjectNounV1146.english} [SUBJECT]`,
+          },
+          {
+            ko: `${match[2]} ${match[3]}에`,
+            en: `${placePhraseV1146} [PLACE]`,
+          },
+          {
+            ko: match[4],
+            en: `${beVerbV1146} [LOCATION-COPULA]`,
+          },
+        ],
+        [
+          subjectNounV1146.reference,
+          landmarkNounV1146.reference,
+        ],
+        'article-number-specific-location-ko-en-v11.46',
+        isExplicitLocationQuestionV1146
+          ? 'TOPIC_RELATIVE_LOCATION_QUESTION_V1146'
+          : 'TOPIC_RELATIVE_LOCATION_V1146'
+      );
+    }
+  }
+
+  // 3-e) N은/는 방/가방/사무실에 있다
+  match = normalized.match(
+    /^(.+?)(?:은|는)\s+(.+?)에\s+(있습니다|있어요|있다)$/u
+  );
+
+  if (match) {
+    const subjectNounV1146 =
+      twoProDefiniteNounPhraseV1146(match[1]);
+    const locationSourceV1146 =
+      twoProNormalizeKoreanNounV5(match[2]);
+    const locationInfoV1146 =
+      twoProExistentialLocationMapV1145[locationSourceV1146];
+
+    if (subjectNounV1146 && locationInfoV1146) {
+      const beVerbV1146 =
+        subjectNounV1146.number === 'plural'
+          ? 'are'
+          : 'is';
+      const placePhraseV1146 =
+        `${locationInfoV1146.preposition} the ${locationInfoV1146.english}`;
+      const targetV1146 = isExplicitLocationQuestionV1146
+        ? `${beVerbV1146} ${subjectNounV1146.english} ${placePhraseV1146}`
+        : `${subjectNounV1146.english} ${beVerbV1146} ${placePhraseV1146}`;
+
+      return finish(
+        targetV1146,
+        [
+          {
+            ko: subjectNounV1146.source,
+            en: `${subjectNounV1146.english} [SUBJECT]`,
+          },
+          {
+            ko: match[2],
+            en: `${placePhraseV1146} [PLACE]`,
+          },
+          {
+            ko: match[3],
+            en: `${beVerbV1146} [LOCATION-COPULA]`,
+          },
+        ],
+        [
+          subjectNounV1146.reference,
+          twoProEmbeddedReferenceWordV90(
+            match[2],
+            locationInfoV1146.english,
+            'PLACE'
+          ),
+        ],
+        'article-number-specific-location-ko-en-v11.46',
+        isExplicitLocationQuestionV1146
+          ? 'TOPIC_SIMPLE_LOCATION_QUESTION_V1146'
+          : 'TOPIC_SIMPLE_LOCATION_V1146'
+      );
+    }
+  }
+
+  // ========================================================================
+  // ☆ TwoPro v11.48-safe: 인칭주어 + 출발지에서 + 목적지로/까지 + 가다/오다 CORE
+  //
+  // v11.47은 A에서 B까지 + 걷다만 직접 처리했습니다.
+  // 이번 회귀에서 확인된 기본 이동문만 좁게 확장합니다.
+  // - 집에서 학교로/까지 가다        -> go from home to school
+  // - 집/학교에서 사무실로/까지 가다 -> go ... to the office
+  // - 학교/사무실에서 집으로/까지 오다 -> come home from ...
+  // home/school/office 이외의 장소와 과거/미래형은 여기서 일반화하지 않습니다.
+  // ========================================================================
+
+  const twoProRangeMovementPlaceMapV1148: Readonly<
+    Record<string, string>
+  > = {
+    '집': 'home',
+    '학교': 'school',
+    '사무실': 'the office',
+  };
+
+  const rangeMovementSubjectV1148 =
+    twoProExtractLeadingSubjectV62(normalized);
+
+  if (rangeMovementSubjectV1148) {
+    const rangeMovementMatchV1148 =
+      rangeMovementSubjectV1148.body.match(
+        /^(.+?)에서\s+(.+?)(으로|로|까지)\s+(갑니다|가요|간다|옵니다|와요|온다)$/u
+      );
+
+    if (rangeMovementMatchV1148) {
+      const sourcePlaceKoV1148 =
+        twoProNormalizeKoreanNounV5(rangeMovementMatchV1148[1]);
+      const destinationPlaceKoV1148 =
+        twoProNormalizeKoreanNounV5(rangeMovementMatchV1148[2]);
+      const sourcePlaceEnV1148 =
+        twoProRangeMovementPlaceMapV1148[sourcePlaceKoV1148];
+      const destinationPlaceEnV1148 =
+        twoProRangeMovementPlaceMapV1148[destinationPlaceKoV1148];
+      const verbSurfaceV1148 = rangeMovementMatchV1148[4];
+      const isGoV1148 =
+        /^(?:갑니다|가요|간다)$/u.test(verbSurfaceV1148);
+      const isComeV1148 =
+        /^(?:옵니다|와요|온다)$/u.test(verbSurfaceV1148);
+
+      // 현재 회귀 범위만 허용합니다.
+      const safeGoRouteV1148 =
+        isGoV1148 &&
+        Boolean(sourcePlaceEnV1148) &&
+        Boolean(destinationPlaceEnV1148) &&
+        ['집', '학교'].includes(sourcePlaceKoV1148) &&
+        ['학교', '사무실'].includes(destinationPlaceKoV1148);
+
+      const safeComeHomeRouteV1148 =
+        isComeV1148 &&
+        Boolean(sourcePlaceEnV1148) &&
+        destinationPlaceKoV1148 === '집' &&
+        ['학교', '사무실'].includes(sourcePlaceKoV1148);
+
+      if (safeGoRouteV1148 || safeComeHomeRouteV1148) {
+        const subjectFormsV1148 =
+          twoProEnglishSubjectFormsV68(
+            rangeMovementSubjectV1148.pronoun
+          );
+        const isQuestionV1148 = /\?\s*$/.test(
+          String(originalText || '').trim()
+        );
+        const verbBaseV1148 = isGoV1148 ? 'go' : 'come';
+        const verbEnV1148 =
+          twoProConjugateEnglishVerbV52(
+            verbBaseV1148,
+            'present',
+            rangeMovementSubjectV1148.pronoun
+          );
+
+        const movementBodyV1148 = safeGoRouteV1148
+          ? `${isQuestionV1148 ? verbBaseV1148 : verbEnV1148} from ${sourcePlaceEnV1148} to ${destinationPlaceEnV1148}`
+          : `${isQuestionV1148 ? verbBaseV1148 : verbEnV1148} home from ${sourcePlaceEnV1148}`;
+
+        const targetV1148 = isQuestionV1148
+          ? `${subjectFormsV1148.doAux} ${subjectFormsV1148.lowerSubject} ${movementBodyV1148}`
+          : `${subjectFormsV1148.subject} ${movementBodyV1148}`;
+
+        return finish(
+          targetV1148,
+          [
+            {
+              ko: rangeMovementSubjectV1148.source,
+              en: `${subjectFormsV1148.subject} [SUBJECT]`,
+            },
+            {
+              ko: `${rangeMovementMatchV1148[1]}에서`,
+              en: `from ${sourcePlaceEnV1148} [SOURCE]`,
+            },
+            {
+              ko: `${rangeMovementMatchV1148[2]}${rangeMovementMatchV1148[3]}`,
+              en: safeComeHomeRouteV1148
+                ? 'home [DESTINATION]'
+                : `to ${destinationPlaceEnV1148} [DESTINATION]`,
+            },
+            {
+              ko: verbSurfaceV1148,
+              en: `${isQuestionV1148 ? verbBaseV1148 : verbEnV1148} [V]`,
+            },
+          ],
+          [
+            twoProEmbeddedReferenceWordV90(
+              rangeMovementSubjectV1148.source,
+              subjectFormsV1148.subject,
+              'SUBJECT'
+            ),
+            twoProEmbeddedReferenceWordV90(
+              rangeMovementMatchV1148[1],
+              sourcePlaceEnV1148,
+              'PLACE'
+            ),
+            twoProEmbeddedReferenceWordV90(
+              rangeMovementMatchV1148[2],
+              destinationPlaceEnV1148,
+              'PLACE'
+            ),
+            verbRef(isGoV1148 ? '가다' : '오다', verbBaseV1148),
+          ],
+          'article-number-from-to-go-come-ko-en-v11.48',
+          isQuestionV1148
+            ? 'SUBJECT_FROM_TO_GO_COME_QUESTION_V1148'
+            : 'SUBJECT_FROM_TO_GO_COME_V1148'
+        );
+      }
+    }
+  }
+
+  // ========================================================================
+  // ☆ TwoPro v11.47-safe: 인칭주어 + 출발지에서 목적지까지 + 걷다 기본 CORE
+  //
+  // v11.46까지는 "학교에 가요 / 학교에서 와요" 같은 단일 장소 이동은 처리하지만,
+  // "나는 집에서 학교까지 걸어요"처럼 출발지와 도착지가 함께 있는 범위 이동은
+  // 직접 조립하지 못해 DB 참고문장 검색으로 내려갔습니다.
+  // 현재 회귀에서 검증하는 집/home, 학교/school만 허용해 전치사 일반화를 피합니다.
+  // - 나는 집에서 학교까지 걸어요   -> I walk from home to school.
+  // - 우리는 학교에서 집까지 걸어요 -> We walk from school to home.
+  // 명시적 '?'가 있으면 do/does 의문문으로만 좁게 처리합니다.
+  // ========================================================================
+
+  const twoProWalkRangePlaceMapV1147: Readonly<
+    Record<string, string>
+  > = {
+    '집': 'home',
+    '학교': 'school',
+  };
+
+  const walkRangeSubjectV1147 =
+    twoProExtractLeadingSubjectV62(normalized);
+
+  if (walkRangeSubjectV1147) {
+    const walkRangeMatchV1147 =
+      walkRangeSubjectV1147.body.match(
+        /^(.+?)에서\s+(.+?)까지\s+(걷습니다|걸어요|걷는다)$/u
+      );
+
+    if (walkRangeMatchV1147) {
+      const sourcePlaceKoV1147 =
+        twoProNormalizeKoreanNounV5(walkRangeMatchV1147[1]);
+      const destinationPlaceKoV1147 =
+        twoProNormalizeKoreanNounV5(walkRangeMatchV1147[2]);
+      const sourcePlaceEnV1147 =
+        twoProWalkRangePlaceMapV1147[sourcePlaceKoV1147];
+      const destinationPlaceEnV1147 =
+        twoProWalkRangePlaceMapV1147[destinationPlaceKoV1147];
+
+      if (sourcePlaceEnV1147 && destinationPlaceEnV1147) {
+        const subjectFormsV1147 =
+          twoProEnglishSubjectFormsV68(
+            walkRangeSubjectV1147.pronoun
+          );
+        const isQuestionV1147 = /\?\s*$/.test(
+          String(originalText || '').trim()
+        );
+        const walkVerbV1147 =
+          twoProConjugateEnglishVerbV52(
+            'walk',
+            'present',
+            walkRangeSubjectV1147.pronoun
+          );
+        const targetV1147 = isQuestionV1147
+          ? `${subjectFormsV1147.doAux} ${subjectFormsV1147.lowerSubject} walk from ${sourcePlaceEnV1147} to ${destinationPlaceEnV1147}`
+          : `${subjectFormsV1147.subject} ${walkVerbV1147} from ${sourcePlaceEnV1147} to ${destinationPlaceEnV1147}`;
+
+        return finish(
+          targetV1147,
+          [
+            {
+              ko: walkRangeSubjectV1147.source,
+              en: `${subjectFormsV1147.subject} [SUBJECT]`,
+            },
+            {
+              ko: `${walkRangeMatchV1147[1]}에서`,
+              en: `from ${sourcePlaceEnV1147} [SOURCE]`,
+            },
+            {
+              ko: `${walkRangeMatchV1147[2]}까지`,
+              en: `to ${destinationPlaceEnV1147} [DESTINATION]`,
+            },
+            {
+              ko: walkRangeMatchV1147[3],
+              en: `${isQuestionV1147 ? 'walk' : walkVerbV1147} [V]`,
+            },
+          ],
+          [
+            twoProEmbeddedReferenceWordV90(
+              walkRangeSubjectV1147.source,
+              subjectFormsV1147.subject,
+              'SUBJECT'
+            ),
+            twoProEmbeddedReferenceWordV90(
+              walkRangeMatchV1147[1],
+              sourcePlaceEnV1147,
+              'PLACE'
+            ),
+            twoProEmbeddedReferenceWordV90(
+              walkRangeMatchV1147[2],
+              destinationPlaceEnV1147,
+              'PLACE'
+            ),
+            verbRef('걷다', 'walk'),
+          ],
+          'article-number-from-to-walk-ko-en-v11.47',
+          isQuestionV1147
+            ? 'SUBJECT_FROM_TO_WALK_QUESTION_V1147'
+            : 'SUBJECT_FROM_TO_WALK_V1147'
+        );
+      }
     }
   }
 
@@ -56668,6 +58640,88 @@ export async function POST(request: Request) {
     }
 
     // =================================================================
+    // ☆ TwoPro v11.49-safe: 기본 지시어 비교급 CORE
+    // 일반 지시어+형용사 엔진이 "저 N보다 ..." 전체를 형용사로 오인하기 전에
+    // 검증된 이 N은/는 저 N보다 ADJ 구조만 먼저 처리합니다.
+    // =================================================================
+    const twoProBasicComparativeResultV1149 =
+      twoProTryKoEnBasicComparativeV1149(originalText);
+
+    if (twoProBasicComparativeResultV1149) {
+      console.log(
+        '[한영 기본 비교급 성공 v11.49]',
+        {
+          query: originalText,
+          result:
+            twoProBasicComparativeResultV1149.targetText,
+          engine:
+            twoProBasicComparativeResultV1149.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicComparativeResultV1149.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicComparativeResultV1149.analysis,
+          referenceWords:
+            twoProBasicComparativeResultV1149.referenceWords,
+          engine:
+            twoProBasicComparativeResultV1149.engine,
+        },
+        referenceWords:
+          twoProBasicComparativeResultV1149.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.50-safe: 기본 명령문·금지문·정중 요청문 CORE
+    // 기존 상위 엔진이 놓친 짧은 -세요 / -지 마세요 / -아어 주세요 문장만
+    // 검증된 동사·명사·장소 범위에서 직접 조립합니다.
+    // =================================================================
+    const twoProBasicImperativeResultV1150 =
+      twoProTryKoEnBasicImperativeV1150(originalText);
+
+    if (twoProBasicImperativeResultV1150) {
+      console.log(
+        '[한영 기본 명령·금지·요청 성공 v11.50]',
+        {
+          query: originalText,
+          result:
+            twoProBasicImperativeResultV1150.targetText,
+          engine:
+            twoProBasicImperativeResultV1150.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicImperativeResultV1150.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicImperativeResultV1150.analysis,
+          referenceWords:
+            twoProBasicImperativeResultV1150.referenceWords,
+          engine:
+            twoProBasicImperativeResultV1150.engine,
+        },
+        referenceWords:
+          twoProBasicImperativeResultV1150.referenceWords,
+      });
+    }
+
+    // =================================================================
     // 🎯 0.25단계: 한영 지시어 + 명사 + 계사 + 형용사 문맥 번역
     // 이/그, 단수/복수, 형용사 활용을 먼저 해석합니다.
     // =================================================================
@@ -57154,13 +59208,13 @@ export async function POST(request: Request) {
     }
 
     // =================================================================
-    // 🎯 0.34469단계: 기소되기 PASSIVE PERFECT GERUND ACTION-SLOT CORE v10.66 + v11.14 + v11.15 + v11.16 + v11.17 + v11.19 + v11.20 + v11.21 + v11.22 + v11.23 + v11.24 + v11.25
+    // 🎯 0.34469단계: 기소되기 PASSIVE PERFECT GERUND ACTION-SLOT CORE v10.66 + v11.14 + v11.15 + v11.16 + v11.17 + v11.19 + v11.20 + v11.21 + v11.22 + v11.23 + v11.24 + v11.25 + v11.26
     // =================================================================
     const twoProChargedEnterRoomResultV1066 =
       await twoProTryKoEnChargedEnterRoomV1066(originalText);
 
     if (twoProChargedEnterRoomResultV1066) {
-      console.log('[한영 기소되다 완료 동명사 수동 행동슬롯 문형 성공 v10.66/v11.14/v11.15/v11.16/v11.17/v11.19/v11.20/v11.21/v11.22/v11.23/v11.24/v11.25]', {
+      console.log('[한영 기소되다 완료 동명사 수동 행동슬롯 문형 성공 v10.66/v11.14/v11.15/v11.16/v11.17/v11.19/v11.20/v11.21/v11.22/v11.23/v11.24/v11.25/v11.26]', {
         query: originalText,
         result: twoProChargedEnterRoomResultV1066.targetText,
         engine: twoProChargedEnterRoomResultV1066.engine,
@@ -61036,6 +63090,112 @@ export async function POST(request: Request) {
     }
 
     // =================================================================
+    // ☆ TwoPro v11.43-safe: 가산명사 + 많아요/적어요 수량 상태문
+    //
+    // 일반 조사 엔진이 '적다'를 write/record로 해석하기 전에,
+    // 검증된 책/학생 가산명사에 한해서 There are many/few ... 로 조립합니다.
+    // =================================================================
+    const twoProBasicQuantityResultV1143 =
+      twoProTryKoEnBasicQuantityClauseV1143(
+        originalText
+      );
+
+    if (twoProBasicQuantityResultV1143) {
+      console.log(
+        '[한영 기본 수량 상태문 성공 v11.43]',
+        {
+          query: originalText,
+          result:
+            twoProBasicQuantityResultV1143.targetText,
+          engine:
+            twoProBasicQuantityResultV1143.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicQuantityResultV1143.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicQuantityResultV1143.analysis,
+          referenceWords:
+            twoProBasicQuantityResultV1143.referenceWords,
+          engine:
+            twoProBasicQuantityResultV1143.engine,
+        },
+        referenceWords:
+          twoProBasicQuantityResultV1143.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.36~v11.37-safe: v5.8 조사 엔진 선점 방지
+    //
+    // v11.36에서는 기다려요/공부해요/운동해요를, v11.37에서는
+    // 놀아요/노래해요/춤춰요/뛰어요/누워요를 추가합니다.
+    // 모두 명시적 인칭 주어 + 무목적어 + 정확 표면형에서만 기존 v8.3 handler를
+    // v5.8보다 먼저 실행합니다. 다른 조사 문장/목적어/장소 문장은 그대로입니다.
+    // =================================================================
+    const twoProPreParticleSubjectV1136 =
+      twoProExtractLeadingSubjectV62(originalText);
+
+    const twoProPreParticleBodyV1136 =
+      twoProPreParticleSubjectV1136
+        ? twoProCleanPredicateFormV52(
+            twoProPreParticleSubjectV1136.body
+          )
+        : '';
+
+    if (
+      /^(?:기다려요|공부해요|운동해요|놀아요|노래해요|춤춰요|뛰어요|누워요)$/u.test(
+        twoProPreParticleBodyV1136
+      )
+    ) {
+      const twoProPreParticleSubjectOnlyV1136 =
+        await twoProTryKoEnSubjectOnlyVerbClauseV83(
+          originalText
+        );
+
+      if (twoProPreParticleSubjectOnlyV1136) {
+        console.log(
+          '[한영 무목적어 기본동사 선행 성공 v11.36]',
+          {
+            query: originalText,
+            result:
+              twoProPreParticleSubjectOnlyV1136.targetText,
+            engine:
+              twoProPreParticleSubjectOnlyV1136.engine,
+          }
+        );
+
+        return twoProRespondWithPhraseDiagnosticsV915({
+          ok: true,
+          best: {
+            source_text: originalText,
+            target_text:
+              twoProCapitalizeEnglishSentenceStartV93(
+                twoProPreParticleSubjectOnlyV1136.targetText
+              ),
+            isReference: false,
+            analysis:
+              twoProPreParticleSubjectOnlyV1136.analysis,
+            referenceWords:
+              twoProPreParticleSubjectOnlyV1136.referenceWords,
+            engine:
+              twoProPreParticleSubjectOnlyV1136.engine,
+          },
+          referenceWords:
+            twoProPreParticleSubjectOnlyV1136.referenceWords,
+        });
+      }
+    }
+
+    // =================================================================
     // 🎯 0.4단계: 한국어 조사 문맥 번역 v5.8
     // 은/는·이/가·을/를·(으)로·과/와·에서·에를 역할별로 처리합니다.
     // =================================================================
@@ -61112,6 +63272,53 @@ export async function POST(request: Request) {
           });
         }
       }
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.32-safe: 최상위 무목적어 기본동사 단문 CORE
+    //
+    // 기존 v8.3 subject-only handler는 compound leaf 경로에서는 호출되지만
+    // 최상위 POST의 일반 단문 경로에서는 직접 호출되지 않아
+    // "나는 자요 / 그는 달려요 / 그녀는 일어나요"가 참고문장 검색으로
+    // 떨어지는 문제가 있었습니다.
+    // 목적어·장소·보어 없는 안전 목록 문장에만 적용합니다.
+    // =================================================================
+    const twoProSubjectOnlyResultV1132 =
+      await twoProTryKoEnSubjectOnlyVerbClauseV83(
+        originalText
+      );
+
+    if (twoProSubjectOnlyResultV1132) {
+      console.log(
+        '[한영 무목적어 기본동사 단문 성공 v11.32]',
+        {
+          query: originalText,
+          result:
+            twoProSubjectOnlyResultV1132.targetText,
+          engine:
+            twoProSubjectOnlyResultV1132.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProSubjectOnlyResultV1132.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProSubjectOnlyResultV1132.analysis,
+          referenceWords:
+            twoProSubjectOnlyResultV1132.referenceWords,
+          engine:
+            twoProSubjectOnlyResultV1132.engine,
+        },
+        referenceWords:
+          twoProSubjectOnlyResultV1132.referenceWords,
+      });
     }
 
     // =================================================================
