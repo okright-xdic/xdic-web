@@ -7500,6 +7500,492 @@ const twoProTryKoEnBasicModalQuestionV1155 = (
 
 
 // ============================================================================
+// ☆ TwoPro v11.56-safe: 과거 가능·불가능(could / couldn't) + 과거 의무(had to) CORE
+//
+// 현재 회귀 범위의 짧고 명확한 과거 조동사 문장만
+// 기존 일반 검색/참고문장이 선점하기 전에 직접 조립합니다.
+//
+// 처리 범위:
+// [과거 가능·불가능]
+// - 나는 어제 수영할 수 있었어요 / 없었어요
+// - 그는 어제 운전할 수 있었어요
+// - 그는 운전할 수 없었어요
+// - 그녀는 영어를 말할 수 있었어요
+//
+// [과거 의무]
+// - 나는 어제 공부해야 했어요
+// - 그는 어제 일해야 했어요
+// - 그녀는 학교에 가야 했어요
+// - 나는 문을 닫아야 했어요
+// - 우리는 일찍 출발해야 했어요
+//
+// 안전 원칙:
+// 1. could/couldn't 뒤에는 항상 동사원형을 사용합니다.
+// 2. 과거 의무는 모든 주어에서 had to + 동사원형으로 통일합니다.
+// 3. '어제'는 이 CORE 안에서만 yesterday로 직접 고정하여 오염 후보를 차단합니다.
+// 4. 현재 검증한 주어·동작·시간 조합만 직접 처리합니다.
+// ============================================================================
+type TwoProBasicPastModalResultV1156 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+const TWO_PRO_BASIC_PAST_MODAL_SUBJECTS_V1156: Readonly<
+  Record<string, string>
+> = {
+  '나는': 'I',
+  '그는': 'He',
+  '그녀는': 'She',
+  '우리는': 'We',
+};
+
+const TWO_PRO_BASIC_PAST_OBLIGATION_EXTRA_BODIES_V1156: Readonly<
+  Record<string, TwoProBasicObligationBodyV1152>
+> = {
+  '출발해야': {
+    target: 'leave',
+    verbKo: '출발하다',
+    verbEn: 'leave',
+  },
+};
+
+const twoProBasicPastModalReferenceV1156 = (
+  source: string,
+  selected: string,
+  slot: string
+): TwoProKoEnReferenceWordV5 => ({
+  source,
+  selected,
+  candidates: [selected],
+  slot,
+  confidence: 1,
+});
+
+const twoProBasicPastModalSubjectReferenceV1156 = (
+  subjectEn: string
+): string => {
+  return subjectEn === 'I'
+    ? 'I'
+    : String(subjectEn || '').toLowerCase();
+};
+
+const twoProTryKoEnBasicPastModalV1156 = (
+  originalText: string
+): TwoProBasicPastModalResultV1156 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  // ------------------------------------------------------------
+  // 1) 과거 가능·불가능: -을/ㄹ 수 있었어요 / 없었어요
+  // ------------------------------------------------------------
+  const abilityMatched = normalized.match(
+    /^(나는|그는|그녀는)\s+(?:(어제)\s+)?(.+?)\s+수\s+(있었어요|없었어요)$/u
+  );
+
+  if (abilityMatched) {
+    const subjectKo = abilityMatched[1];
+    const timeKo = abilityMatched[2] || '';
+    const bodyKo = abilityMatched[3];
+    const abilitySurface = abilityMatched[4];
+
+    const subjectEn =
+      TWO_PRO_BASIC_PAST_MODAL_SUBJECTS_V1156[subjectKo];
+    const body = TWO_PRO_BASIC_ABILITY_BODIES_V1151[bodyKo];
+
+    if (!subjectEn || !body) {
+      return null;
+    }
+
+    const isNegative = abilitySurface === '없었어요';
+    const modalEn = isNegative ? "couldn't" : 'could';
+    const timeSuffix = timeKo ? ' yesterday' : '';
+
+    const referenceWords: TwoProKoEnReferenceWordV5[] = [
+      twoProBasicPastModalReferenceV1156(
+        subjectKo,
+        twoProBasicPastModalSubjectReferenceV1156(subjectEn),
+        'SUBJECT'
+      ),
+      twoProBasicPastModalReferenceV1156(
+        body.verbKo,
+        body.verbEn,
+        'V:BARE'
+      ),
+      ...(body.extraReferences || []).map((item) =>
+        twoProBasicPastModalReferenceV1156(
+          item.source,
+          item.selected,
+          item.slot
+        )
+      ),
+      ...(timeKo
+        ? [
+            twoProBasicPastModalReferenceV1156(
+              '어제',
+              'yesterday',
+              'TIME'
+            ),
+          ]
+        : []),
+    ];
+
+    return {
+      targetText: twoProFinalizeEnglish(
+        `${subjectEn} ${modalEn} ${body.target}${timeSuffix}`,
+        originalText
+      ),
+      analysis: [
+        { ko: subjectKo, en: `${subjectEn} [S]` },
+        { ko: bodyKo, en: `${body.target} [BARE-INFINITIVE]` },
+        {
+          ko: `수 ${abilitySurface}`,
+          en: `${modalEn} [PAST-ABILITY]`,
+        },
+        ...(timeKo
+          ? [{ ko: '어제', en: 'yesterday [TIME]' }]
+          : []),
+      ],
+      referenceWords,
+      engine: isNegative
+        ? 'basic-past-inability-could-ko-en-v11.56'
+        : 'basic-past-ability-could-ko-en-v11.56',
+    };
+  }
+
+  // ------------------------------------------------------------
+  // 2) 과거 의무: -아/어야 했어요 -> had to + 동사원형
+  // ------------------------------------------------------------
+  const obligationMatched = normalized.match(
+    /^(나는|그는|그녀는|우리는)\s+(?:(어제|일찍)\s+)?(.+?야)\s+했어요$/u
+  );
+
+  if (!obligationMatched) {
+    return null;
+  }
+
+  const subjectKo = obligationMatched[1];
+  const timeKo = obligationMatched[2] || '';
+  const bodyKo = obligationMatched[3];
+
+  const subjectEn =
+    TWO_PRO_BASIC_PAST_MODAL_SUBJECTS_V1156[subjectKo];
+  const body =
+    TWO_PRO_BASIC_OBLIGATION_BODIES_V1152[bodyKo] ||
+    TWO_PRO_BASIC_PAST_OBLIGATION_EXTRA_BODIES_V1156[bodyKo];
+
+  if (!subjectEn || !body) {
+    return null;
+  }
+
+  // 현재 시점 부사(now)를 포함한 v11.52 전용 본문은 과거 CORE에서 제외합니다.
+  if (/\bnow\b/i.test(body.target)) {
+    return null;
+  }
+
+  const timeEn =
+    timeKo === '어제'
+      ? 'yesterday'
+      : timeKo === '일찍'
+        ? 'early'
+        : '';
+  const timeSuffix = timeEn ? ` ${timeEn}` : '';
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicPastModalReferenceV1156(
+      subjectKo,
+      twoProBasicPastModalSubjectReferenceV1156(subjectEn),
+      'SUBJECT'
+    ),
+    twoProBasicPastModalReferenceV1156(
+      body.verbKo,
+      body.verbEn,
+      'V:BARE'
+    ),
+    ...(body.extraReferences || []).map((item) =>
+      twoProBasicPastModalReferenceV1156(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+    ...(timeEn
+      ? [
+          twoProBasicPastModalReferenceV1156(
+            timeKo,
+            timeEn,
+            'TIME'
+          ),
+        ]
+      : []),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${subjectEn} had to ${body.target}${timeSuffix}`,
+      originalText
+    ),
+    analysis: [
+      { ko: subjectKo, en: `${subjectEn} [S]` },
+      { ko: bodyKo, en: `${body.target} [BARE-INFINITIVE]` },
+      { ko: '해야 했어요', en: 'had to [PAST-OBLIGATION]' },
+      ...(timeEn
+        ? [{ ko: timeKo, en: `${timeEn} [TIME]` }]
+        : []),
+    ],
+    referenceWords,
+    engine: 'basic-past-obligation-had-to-ko-en-v11.56',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v11.57-safe: 과거 가능·불가능 + 과거 의무 의문문 CORE
+//
+// 현재 회귀 범위의 짧고 명확한 과거 조동사 의문문만 직접 조립합니다.
+// 일반 검색/참고문장이 질문형을 선점하거나 어휘 오염을 일으키기 전에 처리합니다.
+//
+// 처리 범위:
+// [과거 가능·불가능 의문문]
+// - 나는 어제 수영할 수 있었나요? / 없었나요?
+// - 그는 어제 운전할 수 있었나요?
+// - 그는 운전할 수 없었나요?
+// - 그녀는 영어를 말할 수 있었나요?
+//
+// [과거 의무 의문문]
+// - 나는 어제 공부해야 했나요?
+// - 그는 어제 일해야 했나요?
+// - 그녀는 학교에 가야 했나요?
+// - 나는 문을 닫아야 했나요?
+// - 우리는 일찍 출발해야 했나요?
+//
+// 안전 원칙:
+// 1. Could/Couldn't 뒤에는 항상 주어 + 동사원형을 사용합니다.
+// 2. 과거 의무 의문문은 Did + 주어 + have to + 동사원형으로 조립합니다.
+// 3. Did 뒤에서는 had가 아니라 반드시 have를 사용합니다.
+// 4. '어제'와 '일찍'은 이 CORE 안에서만 yesterday/early로 직접 고정합니다.
+// 5. 현재 검증한 주어·동작·시간 조합만 직접 처리합니다.
+// ============================================================================
+type TwoProBasicPastModalQuestionResultV1157 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+const twoProBasicPastModalQuestionSubjectV1157 = (
+  subjectEn: string
+): string => {
+  return subjectEn === 'I'
+    ? 'I'
+    : String(subjectEn || '').toLowerCase();
+};
+
+const twoProBasicPastModalQuestionReferenceV1157 = (
+  source: string,
+  selected: string,
+  slot: string
+): TwoProKoEnReferenceWordV5 => ({
+  source,
+  selected,
+  candidates: [selected],
+  slot,
+  confidence: 1,
+});
+
+const twoProTryKoEnBasicPastModalQuestionV1157 = (
+  originalText: string
+): TwoProBasicPastModalQuestionResultV1157 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  // ------------------------------------------------------------
+  // 1) 과거 가능·불가능 의문문: -을/ㄹ 수 있었나요? / 없었나요?
+  // ------------------------------------------------------------
+  const abilityMatched = normalized.match(
+    /^(나는|그는|그녀는)\s+(?:(어제)\s+)?(.+?)\s+수\s+(있었나요|없었나요)$/u
+  );
+
+  if (abilityMatched) {
+    const subjectKo = abilityMatched[1];
+    const timeKo = abilityMatched[2] || '';
+    const bodyKo = abilityMatched[3];
+    const abilitySurface = abilityMatched[4];
+
+    const subjectEn =
+      TWO_PRO_BASIC_PAST_MODAL_SUBJECTS_V1156[subjectKo];
+    const body = TWO_PRO_BASIC_ABILITY_BODIES_V1151[bodyKo];
+
+    if (!subjectEn || !body) {
+      return null;
+    }
+
+    const isNegative = abilitySurface === '없었나요';
+    const auxiliaryEn = isNegative ? "Couldn't" : 'Could';
+    const questionSubjectEn =
+      twoProBasicPastModalQuestionSubjectV1157(subjectEn);
+    const timeEn = timeKo ? 'yesterday' : '';
+    const timeSuffix = timeEn ? ` ${timeEn}` : '';
+
+    const referenceWords: TwoProKoEnReferenceWordV5[] = [
+      twoProBasicPastModalQuestionReferenceV1157(
+        subjectKo,
+        twoProBasicPastModalQuestionSubjectV1157(subjectEn),
+        'SUBJECT'
+      ),
+      twoProBasicPastModalQuestionReferenceV1157(
+        body.verbKo,
+        body.verbEn,
+        'V:BARE'
+      ),
+      ...(body.extraReferences || []).map((item) =>
+        twoProBasicPastModalQuestionReferenceV1157(
+          item.source,
+          item.selected,
+          item.slot
+        )
+      ),
+      ...(timeKo
+        ? [
+            twoProBasicPastModalQuestionReferenceV1157(
+              '어제',
+              'yesterday',
+              'TIME'
+            ),
+          ]
+        : []),
+    ];
+
+    return {
+      targetText: twoProFinalizeEnglish(
+        `${auxiliaryEn} ${questionSubjectEn} ${body.target}${timeSuffix}`,
+        originalText
+      ),
+      analysis: [
+        { ko: subjectKo, en: `${subjectEn} [S]` },
+        { ko: bodyKo, en: `${body.target} [BARE-INFINITIVE]` },
+        {
+          ko: `수 ${abilitySurface}`,
+          en: `${auxiliaryEn.toLowerCase()} [PAST-ABILITY:QUESTION]`,
+        },
+        ...(timeKo
+          ? [{ ko: '어제', en: 'yesterday [TIME]' }]
+          : []),
+      ],
+      referenceWords,
+      engine: isNegative
+        ? 'basic-past-inability-question-couldnt-ko-en-v11.57'
+        : 'basic-past-ability-question-could-ko-en-v11.57',
+    };
+  }
+
+  // ------------------------------------------------------------
+  // 2) 과거 의무 의문문: -아/어야 했나요? -> Did ... have to ...?
+  // ------------------------------------------------------------
+  const obligationMatched = normalized.match(
+    /^(나는|그는|그녀는|우리는)\s+(?:(어제|일찍)\s+)?(.+?야)\s+했나요$/u
+  );
+
+  if (!obligationMatched) {
+    return null;
+  }
+
+  const subjectKo = obligationMatched[1];
+  const timeKo = obligationMatched[2] || '';
+  const bodyKo = obligationMatched[3];
+
+  const subjectEn =
+    TWO_PRO_BASIC_PAST_MODAL_SUBJECTS_V1156[subjectKo];
+  const body =
+    TWO_PRO_BASIC_OBLIGATION_BODIES_V1152[bodyKo] ||
+    TWO_PRO_BASIC_PAST_OBLIGATION_EXTRA_BODIES_V1156[bodyKo];
+
+  if (!subjectEn || !body) {
+    return null;
+  }
+
+  // 현재 시점 부사(now)를 포함한 현재형 전용 본문은 과거 의문문에서도 제외합니다.
+  if (/\bnow\b/i.test(body.target)) {
+    return null;
+  }
+
+  const questionSubjectEn =
+    twoProBasicPastModalQuestionSubjectV1157(subjectEn);
+  const timeEn =
+    timeKo === '어제'
+      ? 'yesterday'
+      : timeKo === '일찍'
+        ? 'early'
+        : '';
+  const timeSuffix = timeEn ? ` ${timeEn}` : '';
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicPastModalQuestionReferenceV1157(
+      subjectKo,
+      twoProBasicPastModalQuestionSubjectV1157(subjectEn),
+      'SUBJECT'
+    ),
+    twoProBasicPastModalQuestionReferenceV1157(
+      body.verbKo,
+      body.verbEn,
+      'V:BARE'
+    ),
+    ...(body.extraReferences || []).map((item) =>
+      twoProBasicPastModalQuestionReferenceV1157(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+    ...(timeEn
+      ? [
+          twoProBasicPastModalQuestionReferenceV1157(
+            timeKo,
+            timeEn,
+            'TIME'
+          ),
+        ]
+      : []),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `Did ${questionSubjectEn} have to ${body.target}${timeSuffix}`,
+      originalText
+    ),
+    analysis: [
+      { ko: subjectKo, en: `${subjectEn} [S]` },
+      { ko: bodyKo, en: `${body.target} [BARE-INFINITIVE]` },
+      {
+        ko: '해야 했나요',
+        en: 'did ... have to [PAST-OBLIGATION:QUESTION]',
+      },
+      ...(timeEn
+        ? [{ ko: timeKo, en: `${timeEn} [TIME]` }]
+        : []),
+    ],
+    referenceWords,
+    engine: 'basic-past-obligation-question-did-have-to-ko-en-v11.57',
+  };
+};
+
+
+// ============================================================================
 // ☆ TwoPro 한영 장소·이동·기간 문장 엔진 v5.4
 // [S]+[PLACE]에서+서술어 / [S]+[N]을·를+서술어를
 // DB 유사 참고 문장보다 먼저 번역하며 에/에서와 이동 방향을 구분합니다.
@@ -59883,6 +60369,86 @@ export async function POST(request: Request) {
         },
         referenceWords:
           twoProBasicImperativeResultV1150.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.57-safe: 과거 가능·불가능 + 과거 의무 의문문 CORE
+    // Could/Couldn't 및 Did ... have to 질문을 일반 검색/참고문장보다 먼저 처리합니다.
+    // =================================================================
+    const twoProBasicPastModalQuestionResultV1157 =
+      twoProTryKoEnBasicPastModalQuestionV1157(originalText);
+
+    if (twoProBasicPastModalQuestionResultV1157) {
+      console.log(
+        '[한영 기본 과거 조동사 의문문 성공 v11.57]',
+        {
+          query: originalText,
+          result:
+            twoProBasicPastModalQuestionResultV1157.targetText,
+          engine:
+            twoProBasicPastModalQuestionResultV1157.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicPastModalQuestionResultV1157.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicPastModalQuestionResultV1157.analysis,
+          referenceWords:
+            twoProBasicPastModalQuestionResultV1157.referenceWords,
+          engine:
+            twoProBasicPastModalQuestionResultV1157.engine,
+        },
+        referenceWords:
+          twoProBasicPastModalQuestionResultV1157.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.56-safe: 과거 가능·불가능 + 과거 의무 CORE
+    // could/couldn't 및 had to 문장을 일반 검색/참고문장이 선점하기 전에 처리합니다.
+    // =================================================================
+    const twoProBasicPastModalResultV1156 =
+      twoProTryKoEnBasicPastModalV1156(originalText);
+
+    if (twoProBasicPastModalResultV1156) {
+      console.log(
+        '[한영 기본 과거 조동사 성공 v11.56]',
+        {
+          query: originalText,
+          result:
+            twoProBasicPastModalResultV1156.targetText,
+          engine:
+            twoProBasicPastModalResultV1156.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicPastModalResultV1156.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicPastModalResultV1156.analysis,
+          referenceWords:
+            twoProBasicPastModalResultV1156.referenceWords,
+          engine:
+            twoProBasicPastModalResultV1156.engine,
+        },
+        referenceWords:
+          twoProBasicPastModalResultV1156.referenceWords,
       });
     }
 
