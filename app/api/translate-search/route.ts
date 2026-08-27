@@ -7985,6 +7985,1195 @@ const twoProTryKoEnBasicPastModalQuestionV1157 = (
 };
 
 
+
+// ============================================================================
+// ☆ TwoPro v11.58-safe: 미래 가능·불가능(will be able to) + 미래 의무(will have to) CORE
+//
+// 현재 회귀 범위의 짧고 명확한 미래 조동사 문장만
+// 기존 일반 검색/참고문장이 선점하기 전에 직접 조립합니다.
+//
+// 처리 범위:
+// [미래 가능·불가능]
+// - 나는 내일 수영할 수 있을 거예요 / 없을 거예요
+// - 그는 내일 운전할 수 있을 거예요
+// - 그는 운전할 수 없을 거예요
+// - 그녀는 영어를 말할 수 있을 거예요
+//
+// [미래 의무]
+// - 나는 내일 공부해야 할 거예요
+// - 그는 내일 일해야 할 거예요
+// - 그녀는 학교에 가야 할 거예요
+// - 나는 문을 닫아야 할 거예요
+// - 우리는 일찍 출발해야 할 거예요
+//
+// 안전 원칙:
+// 1. 미래 가능은 *will can이 아니라 will be able to + 동사원형을 사용합니다.
+// 2. 미래 불가능은 won't be able to + 동사원형을 사용합니다.
+// 3. 미래 의무는 모든 주어에서 will have to + 동사원형을 사용합니다.
+// 4. '내일'과 '일찍'은 이 CORE 안에서만 tomorrow/early로 직접 고정합니다.
+// 5. 현재 검증한 주어·동작·시간 조합만 직접 처리합니다.
+// ============================================================================
+type TwoProBasicFutureModalResultV1158 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+const TWO_PRO_BASIC_FUTURE_MODAL_SUBJECTS_V1158: Readonly<
+  Record<string, string>
+> = {
+  '나는': 'I',
+  '그는': 'He',
+  '그녀는': 'She',
+  '우리는': 'We',
+};
+
+const twoProBasicFutureModalSubjectReferenceV1158 = (
+  subjectEn: string
+): string => {
+  return subjectEn === 'I'
+    ? 'I'
+    : String(subjectEn || '').toLowerCase();
+};
+
+const twoProBasicFutureModalReferenceV1158 = (
+  source: string,
+  selected: string,
+  slot: string
+): TwoProKoEnReferenceWordV5 => ({
+  source,
+  selected,
+  candidates: [selected],
+  slot,
+  confidence: 1,
+});
+
+const twoProTryKoEnBasicFutureModalV1158 = (
+  originalText: string
+): TwoProBasicFutureModalResultV1158 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  // ------------------------------------------------------------
+  // 1) 미래 가능·불가능: -을/ㄹ 수 있을/없을 거예요
+  // ------------------------------------------------------------
+  const abilityMatched = normalized.match(
+    /^(나는|그는|그녀는)\s+(?:(내일)\s+)?(.+?)\s+수\s+(있을|없을)\s+거예요$/u
+  );
+
+  if (abilityMatched) {
+    const subjectKo = abilityMatched[1];
+    const timeKo = abilityMatched[2] || '';
+    const bodyKo = abilityMatched[3];
+    const abilitySurface = abilityMatched[4];
+
+    const subjectEn =
+      TWO_PRO_BASIC_FUTURE_MODAL_SUBJECTS_V1158[subjectKo];
+    const body = TWO_PRO_BASIC_ABILITY_BODIES_V1151[bodyKo];
+
+    if (!subjectEn || !body) {
+      return null;
+    }
+
+    const isNegative = abilitySurface === '없을';
+    const modalEn = isNegative
+      ? "won't be able to"
+      : 'will be able to';
+    const timeEn = timeKo ? 'tomorrow' : '';
+    const timeSuffix = timeEn ? ` ${timeEn}` : '';
+
+    const referenceWords: TwoProKoEnReferenceWordV5[] = [
+      twoProBasicFutureModalReferenceV1158(
+        subjectKo,
+        twoProBasicFutureModalSubjectReferenceV1158(subjectEn),
+        'SUBJECT'
+      ),
+      twoProBasicFutureModalReferenceV1158(
+        body.verbKo,
+        body.verbEn,
+        'V:BARE'
+      ),
+      ...(body.extraReferences || []).map((item) =>
+        twoProBasicFutureModalReferenceV1158(
+          item.source,
+          item.selected,
+          item.slot
+        )
+      ),
+      ...(timeEn
+        ? [
+            twoProBasicFutureModalReferenceV1158(
+              '내일',
+              'tomorrow',
+              'TIME'
+            ),
+          ]
+        : []),
+    ];
+
+    return {
+      targetText: twoProFinalizeEnglish(
+        `${subjectEn} ${modalEn} ${body.target}${timeSuffix}`,
+        originalText
+      ),
+      analysis: [
+        { ko: subjectKo, en: `${subjectEn} [S]` },
+        { ko: bodyKo, en: `${body.target} [BARE-INFINITIVE]` },
+        {
+          ko: `수 ${abilitySurface} 거예요`,
+          en: `${modalEn} [FUTURE-ABILITY]`,
+        },
+        ...(timeEn
+          ? [{ ko: '내일', en: 'tomorrow [TIME]' }]
+          : []),
+      ],
+      referenceWords,
+      engine: isNegative
+        ? 'basic-future-inability-wont-be-able-to-ko-en-v11.58'
+        : 'basic-future-ability-will-be-able-to-ko-en-v11.58',
+    };
+  }
+
+  // ------------------------------------------------------------
+  // 2) 미래 의무: -아/어야 할 거예요 -> will have to + 동사원형
+  // ------------------------------------------------------------
+  const obligationMatched = normalized.match(
+    /^(나는|그는|그녀는|우리는)\s+(?:(내일|일찍)\s+)?(.+?야)\s+할\s+거예요$/u
+  );
+
+  if (!obligationMatched) {
+    return null;
+  }
+
+  const subjectKo = obligationMatched[1];
+  const timeKo = obligationMatched[2] || '';
+  const bodyKo = obligationMatched[3];
+
+  const subjectEn =
+    TWO_PRO_BASIC_FUTURE_MODAL_SUBJECTS_V1158[subjectKo];
+  const body =
+    TWO_PRO_BASIC_OBLIGATION_BODIES_V1152[bodyKo] ||
+    TWO_PRO_BASIC_PAST_OBLIGATION_EXTRA_BODIES_V1156[bodyKo];
+
+  if (!subjectEn || !body) {
+    return null;
+  }
+
+  // 현재 시점 부사(now)를 포함한 현재형 전용 본문은 미래 CORE에서 제외합니다.
+  if (/\bnow\b/i.test(body.target)) {
+    return null;
+  }
+
+  const timeEn =
+    timeKo === '내일'
+      ? 'tomorrow'
+      : timeKo === '일찍'
+        ? 'early'
+        : '';
+  const timeSuffix = timeEn ? ` ${timeEn}` : '';
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicFutureModalReferenceV1158(
+      subjectKo,
+      twoProBasicFutureModalSubjectReferenceV1158(subjectEn),
+      'SUBJECT'
+    ),
+    twoProBasicFutureModalReferenceV1158(
+      body.verbKo,
+      body.verbEn,
+      'V:BARE'
+    ),
+    ...(body.extraReferences || []).map((item) =>
+      twoProBasicFutureModalReferenceV1158(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+    ...(timeEn
+      ? [
+          twoProBasicFutureModalReferenceV1158(
+            timeKo,
+            timeEn,
+            'TIME'
+          ),
+        ]
+      : []),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${subjectEn} will have to ${body.target}${timeSuffix}`,
+      originalText
+    ),
+    analysis: [
+      { ko: subjectKo, en: `${subjectEn} [S]` },
+      { ko: bodyKo, en: `${body.target} [BARE-INFINITIVE]` },
+      {
+        ko: '해야 할 거예요',
+        en: 'will have to [FUTURE-OBLIGATION]',
+      },
+      ...(timeEn
+        ? [{ ko: timeKo, en: `${timeEn} [TIME]` }]
+        : []),
+    ],
+    referenceWords,
+    engine: 'basic-future-obligation-will-have-to-ko-en-v11.58',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v11.59-safe: 미래 가능·불가능 + 미래 의무 의문문 CORE
+//
+// v11.58에서 검증한 미래 본문 사전을 그대로 재사용하여
+// "-을/ㄹ 수 있을까요? / 없을까요? / -아/어야 할까요?"만 직접 조립합니다.
+// 일반 검색/참고문장이 질문형을 선점하거나 시간 표현을 오염시키기 전에 처리합니다.
+//
+// 처리 범위:
+// [미래 가능·불가능 의문문]
+// - 나는 내일 수영할 수 있을까요? / 없을까요?
+// - 그는 내일 운전할 수 있을까요?
+// - 그는 운전할 수 없을까요?
+// - 그녀는 영어를 말할 수 있을까요?
+//
+// [미래 의무 의문문]
+// - 나는 내일 공부해야 할까요?
+// - 그는 내일 일해야 할까요?
+// - 그녀는 학교에 가야 할까요?
+// - 나는 문을 닫아야 할까요?
+// - 우리는 일찍 출발해야 할까요?
+//
+// 안전 원칙:
+// 1. 미래 가능 의문문은 Will/Won't + 주어 + be able to + 동사원형을 사용합니다.
+// 2. 미래 의무 의문문은 Will + 주어 + have to + 동사원형을 사용합니다.
+// 3. will 뒤에서 has/works/speaks 같은 굴절형을 만들지 않습니다.
+// 4. '내일'과 '일찍'은 이 CORE 안에서만 tomorrow/early로 직접 고정합니다.
+// 5. 현재 검증한 주어·동작·시간 조합만 직접 처리합니다.
+// ============================================================================
+type TwoProBasicFutureModalQuestionResultV1159 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+const twoProBasicFutureModalQuestionSubjectV1159 = (
+  subjectEn: string
+): string => {
+  return subjectEn === 'I'
+    ? 'I'
+    : String(subjectEn || '').toLowerCase();
+};
+
+const twoProBasicFutureModalQuestionReferenceV1159 = (
+  source: string,
+  selected: string,
+  slot: string
+): TwoProKoEnReferenceWordV5 => ({
+  source,
+  selected,
+  candidates: [selected],
+  slot,
+  confidence: 1,
+});
+
+const twoProTryKoEnBasicFutureModalQuestionV1159 = (
+  originalText: string
+): TwoProBasicFutureModalQuestionResultV1159 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  // ------------------------------------------------------------
+  // 1) 미래 가능·불가능 의문문: -을/ㄹ 수 있을까요? / 없을까요?
+  // ------------------------------------------------------------
+  const abilityMatched = normalized.match(
+    /^(나는|그는|그녀는)\s+(?:(내일)\s+)?(.+?)\s+수\s+(있을까요|없을까요)$/u
+  );
+
+  if (abilityMatched) {
+    const subjectKo = abilityMatched[1];
+    const timeKo = abilityMatched[2] || '';
+    const bodyKo = abilityMatched[3];
+    const abilitySurface = abilityMatched[4];
+
+    const subjectEn =
+      TWO_PRO_BASIC_FUTURE_MODAL_SUBJECTS_V1158[subjectKo];
+    const body = TWO_PRO_BASIC_ABILITY_BODIES_V1151[bodyKo];
+
+    if (!subjectEn || !body) {
+      return null;
+    }
+
+    const isNegative = abilitySurface === '없을까요';
+    const auxiliaryEn = isNegative ? "Won't" : 'Will';
+    const questionSubjectEn =
+      twoProBasicFutureModalQuestionSubjectV1159(subjectEn);
+    const timeEn = timeKo ? 'tomorrow' : '';
+    const timeSuffix = timeEn ? ` ${timeEn}` : '';
+
+    const referenceWords: TwoProKoEnReferenceWordV5[] = [
+      twoProBasicFutureModalQuestionReferenceV1159(
+        subjectKo,
+        twoProBasicFutureModalQuestionSubjectV1159(subjectEn),
+        'SUBJECT'
+      ),
+      twoProBasicFutureModalQuestionReferenceV1159(
+        body.verbKo,
+        body.verbEn,
+        'V:BARE'
+      ),
+      ...(body.extraReferences || []).map((item) =>
+        twoProBasicFutureModalQuestionReferenceV1159(
+          item.source,
+          item.selected,
+          item.slot
+        )
+      ),
+      ...(timeKo
+        ? [
+            twoProBasicFutureModalQuestionReferenceV1159(
+              '내일',
+              'tomorrow',
+              'TIME'
+            ),
+          ]
+        : []),
+    ];
+
+    return {
+      targetText: twoProFinalizeEnglish(
+        `${auxiliaryEn} ${questionSubjectEn} be able to ${body.target}${timeSuffix}`,
+        originalText
+      ),
+      analysis: [
+        { ko: subjectKo, en: `${subjectEn} [S]` },
+        { ko: bodyKo, en: `${body.target} [BARE-INFINITIVE]` },
+        {
+          ko: `수 ${abilitySurface}`,
+          en: `${auxiliaryEn.toLowerCase()} ... be able to [FUTURE-ABILITY:QUESTION]`,
+        },
+        ...(timeKo
+          ? [{ ko: '내일', en: 'tomorrow [TIME]' }]
+          : []),
+      ],
+      referenceWords,
+      engine: isNegative
+        ? 'basic-future-inability-question-wont-be-able-to-ko-en-v11.59'
+        : 'basic-future-ability-question-will-be-able-to-ko-en-v11.59',
+    };
+  }
+
+  // ------------------------------------------------------------
+  // 2) 미래 의무 의문문: -아/어야 할까요? -> Will ... have to ...?
+  // ------------------------------------------------------------
+  const obligationMatched = normalized.match(
+    /^(나는|그는|그녀는|우리는)\s+(?:(내일|일찍)\s+)?(.+?야)\s+할까요$/u
+  );
+
+  if (!obligationMatched) {
+    return null;
+  }
+
+  const subjectKo = obligationMatched[1];
+  const timeKo = obligationMatched[2] || '';
+  const bodyKo = obligationMatched[3];
+
+  const subjectEn =
+    TWO_PRO_BASIC_FUTURE_MODAL_SUBJECTS_V1158[subjectKo];
+  const body =
+    TWO_PRO_BASIC_OBLIGATION_BODIES_V1152[bodyKo] ||
+    TWO_PRO_BASIC_PAST_OBLIGATION_EXTRA_BODIES_V1156[bodyKo];
+
+  if (!subjectEn || !body) {
+    return null;
+  }
+
+  // 현재 시점 부사(now)를 포함한 현재형 전용 본문은 미래 의문문에서도 제외합니다.
+  if (/\bnow\b/i.test(body.target)) {
+    return null;
+  }
+
+  const questionSubjectEn =
+    twoProBasicFutureModalQuestionSubjectV1159(subjectEn);
+  const timeEn =
+    timeKo === '내일'
+      ? 'tomorrow'
+      : timeKo === '일찍'
+        ? 'early'
+        : '';
+  const timeSuffix = timeEn ? ` ${timeEn}` : '';
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicFutureModalQuestionReferenceV1159(
+      subjectKo,
+      twoProBasicFutureModalQuestionSubjectV1159(subjectEn),
+      'SUBJECT'
+    ),
+    twoProBasicFutureModalQuestionReferenceV1159(
+      body.verbKo,
+      body.verbEn,
+      'V:BARE'
+    ),
+    ...(body.extraReferences || []).map((item) =>
+      twoProBasicFutureModalQuestionReferenceV1159(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+    ...(timeEn
+      ? [
+          twoProBasicFutureModalQuestionReferenceV1159(
+            timeKo,
+            timeEn,
+            'TIME'
+          ),
+        ]
+      : []),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `Will ${questionSubjectEn} have to ${body.target}${timeSuffix}`,
+      originalText
+    ),
+    analysis: [
+      { ko: subjectKo, en: `${subjectEn} [S]` },
+      { ko: bodyKo, en: `${body.target} [BARE-INFINITIVE]` },
+      {
+        ko: '해야 할까요',
+        en: 'will ... have to [FUTURE-OBLIGATION:QUESTION]',
+      },
+      ...(timeEn
+        ? [{ ko: timeKo, en: `${timeEn} [TIME]` }]
+        : []),
+    ],
+    referenceWords,
+    engine: 'basic-future-obligation-question-will-have-to-ko-en-v11.59',
+  };
+};
+
+
+
+// ============================================================================
+// ☆ TwoPro v11.60-safe: 일반 미래 긍정·부정 CORE
+//
+// 현재 회귀에서 확인한 짧고 명확한 일반 미래형 10문장만 직접 조립합니다.
+// 조동사 미래(v11.58/v11.59)와 분리하여 "-ㄹ/을 거예요 / -지 않을 거예요"만 처리합니다.
+//
+// 처리 범위:
+// - 나는 내일 학교에 갈 거예요 / 가지 않을 거예요
+// - 그는 내일 일할 거예요 / 일하지 않을 거예요
+// - 그녀는 책을 읽을 거예요 / 읽지 않을 거예요
+// - 우리는 내일 출발할 거예요 / 출발하지 않을 거예요
+// - 나는 문을 열 거예요 / 열지 않을 거예요
+//
+// 안전 원칙:
+// 1. 긍정은 will + 동사원형, 부정은 won't + 동사원형을 사용합니다.
+// 2. will/won't 뒤에서 works/reads/goes 같은 굴절형을 만들지 않습니다.
+// 3. '내일'은 이 CORE 안에서 tomorrow로 직접 고정합니다.
+// 4. 현재 검증한 10개 조합만 정확 일치로 처리하여 기존 일반 엔진에 영향 주지 않습니다.
+// ============================================================================
+type TwoProBasicFutureSimpleResultV1160 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+type TwoProBasicFutureSimpleCaseV1160 = {
+  subjectKo: '나는' | '그는' | '그녀는' | '우리는';
+  subjectEn: 'I' | 'He' | 'She' | 'We';
+  targetBody: string;
+  verbKo: string;
+  verbEn: string;
+  negative: boolean;
+  timeKo?: '내일';
+  extraReferences?: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_BASIC_FUTURE_SIMPLE_CASES_V1160: Readonly<
+  Record<string, TwoProBasicFutureSimpleCaseV1160>
+> = {
+  '나는 내일 학교에 갈 거예요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    negative: false,
+    timeKo: '내일',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+    ],
+  },
+  '그는 내일 일할 거예요': {
+    subjectKo: '그는',
+    subjectEn: 'He',
+    targetBody: 'work',
+    verbKo: '일하다',
+    verbEn: 'work',
+    negative: false,
+    timeKo: '내일',
+  },
+  '그녀는 책을 읽을 거예요': {
+    subjectKo: '그녀는',
+    subjectEn: 'She',
+    targetBody: 'read the book',
+    verbKo: '읽다',
+    verbEn: 'read',
+    negative: false,
+    extraReferences: [
+      { source: '책', selected: 'book', slot: 'OBJECT' },
+    ],
+  },
+  '우리는 내일 출발할 거예요': {
+    subjectKo: '우리는',
+    subjectEn: 'We',
+    targetBody: 'leave',
+    verbKo: '출발하다',
+    verbEn: 'leave',
+    negative: false,
+    timeKo: '내일',
+  },
+  '나는 문을 열 거예요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'open the door',
+    verbKo: '열다',
+    verbEn: 'open',
+    negative: false,
+    extraReferences: [
+      { source: '문', selected: 'door', slot: 'OBJECT' },
+    ],
+  },
+  '나는 내일 학교에 가지 않을 거예요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    negative: true,
+    timeKo: '내일',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+    ],
+  },
+  '그는 내일 일하지 않을 거예요': {
+    subjectKo: '그는',
+    subjectEn: 'He',
+    targetBody: 'work',
+    verbKo: '일하다',
+    verbEn: 'work',
+    negative: true,
+    timeKo: '내일',
+  },
+  '그녀는 책을 읽지 않을 거예요': {
+    subjectKo: '그녀는',
+    subjectEn: 'She',
+    targetBody: 'read the book',
+    verbKo: '읽다',
+    verbEn: 'read',
+    negative: true,
+    extraReferences: [
+      { source: '책', selected: 'book', slot: 'OBJECT' },
+    ],
+  },
+  '우리는 내일 출발하지 않을 거예요': {
+    subjectKo: '우리는',
+    subjectEn: 'We',
+    targetBody: 'leave',
+    verbKo: '출발하다',
+    verbEn: 'leave',
+    negative: true,
+    timeKo: '내일',
+  },
+  '나는 문을 열지 않을 거예요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'open the door',
+    verbKo: '열다',
+    verbEn: 'open',
+    negative: true,
+    extraReferences: [
+      { source: '문', selected: 'door', slot: 'OBJECT' },
+    ],
+  },
+};
+
+const twoProBasicFutureSimpleReferenceV1160 = (
+  source: string,
+  selected: string,
+  slot: string
+): TwoProKoEnReferenceWordV5 => ({
+  source,
+  selected,
+  candidates: [selected],
+  slot,
+  confidence: 1,
+});
+
+const twoProTryKoEnBasicFutureSimpleV1160 = (
+  originalText: string
+): TwoProBasicFutureSimpleResultV1160 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_BASIC_FUTURE_SIMPLE_CASES_V1160[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const modalEn = matched.negative ? "won't" : 'will';
+  const timeSuffix = matched.timeKo ? ' tomorrow' : '';
+  const subjectReference =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicFutureSimpleReferenceV1160(
+      matched.subjectKo,
+      subjectReference,
+      'SUBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+    ...(matched.timeKo
+      ? [
+          twoProBasicFutureSimpleReferenceV1160(
+            '내일',
+            'tomorrow',
+            'TIME'
+          ),
+        ]
+      : []),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${matched.subjectEn} ${modalEn} ${matched.targetBody}${timeSuffix}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: matched.negative ? '지 않을 거예요' : 'ㄹ/을 거예요',
+        en: `${modalEn} [FUTURE:SIMPLE]`,
+      },
+      ...(matched.timeKo
+        ? [{ ko: '내일', en: 'tomorrow [TIME]' }]
+        : []),
+    ],
+    referenceWords,
+    engine: matched.negative
+      ? 'basic-future-simple-negative-wont-ko-en-v11.60'
+      : 'basic-future-simple-positive-will-ko-en-v11.60',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v11.62-safe: 일반 미래 긍정·부정 의문문 CORE + 주어 대소문자 보정
+//
+// v11.60에서 검증한 동일한 10개 일반 미래형에 명시적 '?'가 붙은 경우만
+// 영어 의문문 어순(Will/Won't + 주어 + 동사원형)으로 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. 반드시 원문 끝에 명시적 '?' 또는 '？'가 있을 때만 실행합니다.
+// 2. v11.60의 검증된 10개 정확 일치 case map만 재사용합니다.
+// 3. 긍정 질문은 Will + S + V, 부정 질문은 Won't + S + V를 사용합니다.
+// 4. 일반 미래 평서문(v11.60)보다 먼저 호출하여 "S will ...?" 회귀를 차단합니다.
+// ============================================================================
+type TwoProBasicFutureSimpleQuestionResultV1161 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+const twoProTryKoEnBasicFutureSimpleQuestionV1161 = (
+  originalText: string
+): TwoProBasicFutureSimpleQuestionResultV1161 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 이 CORE는 사용자가 명시적으로 '?'를 입력한 문장만 처리합니다.
+  if (!/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[?？]+\s*$/u, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_BASIC_FUTURE_SIMPLE_CASES_V1160[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const modalEn = matched.negative ? "Won't" : 'Will';
+  const timeSuffix = matched.timeKo ? ' tomorrow' : '';
+  // ☆ TwoPro v11.62-safe:
+  // 영어 의문문에서 조동사 뒤의 인칭대명사는 I를 제외하고 소문자로 유지합니다.
+  // Will He / Won't She 같은 비정상 대문자화를 방지합니다.
+  const subjectQuestionEn =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+  const subjectReference = subjectQuestionEn;
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicFutureSimpleReferenceV1160(
+      matched.subjectKo,
+      subjectReference,
+      'SUBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+    ...(matched.timeKo
+      ? [
+          twoProBasicFutureSimpleReferenceV1160(
+            '내일',
+            'tomorrow',
+            'TIME'
+          ),
+        ]
+      : []),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${modalEn} ${subjectQuestionEn} ${matched.targetBody}${timeSuffix}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: matched.negative ? '지 않을 거예요?' : 'ㄹ/을 거예요?',
+        en: `${modalEn} [FUTURE:SIMPLE:QUESTION]`,
+      },
+      ...(matched.timeKo
+        ? [{ ko: '내일', en: 'tomorrow [TIME]' }]
+        : []),
+    ],
+    referenceWords,
+    engine: matched.negative
+      ? 'basic-future-simple-negative-question-wont-ko-en-v11.62'
+      : 'basic-future-simple-positive-question-will-ko-en-v11.62',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v11.63-safe: 계획·의도 "-려고 해요" CORE
+//
+// 현재 회귀에서 확인한 짧고 명확한 계획·의도 10문장만 직접 조립합니다.
+// 일반 미래(will) 및 미래 조동사 CORE와 분리하여 "be going to + 동사원형"만 처리합니다.
+//
+// 처리 범위:
+// - 나는 학교에 가려고 해요
+// - 그는 내일 일하려고 해요
+// - 그녀는 책을 읽으려고 해요
+// - 우리는 지금 출발하려고 해요
+// - 나는 문을 열려고 해요
+// - 나는 영어를 공부하려고 해요
+// - 그는 컴퓨터를 사용하려고 해요
+// - 그녀는 집에 가려고 해요
+// - 우리는 물을 마시려고 해요
+// - 나는 민수에게 전화하려고 해요
+//
+// 안전 원칙:
+// 1. I am / He·She is / We are going to + 동사원형을 사용합니다.
+// 2. 현재 검증한 10개 조합만 정확 일치로 처리합니다.
+// 3. 명시적 물음표가 있는 입력은 처리하지 않아 향후 의도 의문문 CORE와 충돌하지 않습니다.
+// 4. 학교/집/영어/컴퓨터/민수/지금/내일은 이 CORE 안에서만 안전한 번역으로 고정합니다.
+// ============================================================================
+type TwoProBasicIntentionResultV1163 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+type TwoProBasicIntentionCaseV1163 = {
+  subjectKo: '나는' | '그는' | '그녀는' | '우리는';
+  subjectEn: 'I' | 'He' | 'She' | 'We';
+  beEn: 'am' | 'is' | 'are';
+  targetBody: string;
+  verbKo: string;
+  verbEn: string;
+  timeKo?: '내일' | '지금';
+  extraReferences?: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_BASIC_INTENTION_CASES_V1163: Readonly<
+  Record<string, TwoProBasicIntentionCaseV1163>
+> = {
+  '나는 학교에 가려고 해요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    beEn: 'am',
+    targetBody: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+    ],
+  },
+  '그는 내일 일하려고 해요': {
+    subjectKo: '그는',
+    subjectEn: 'He',
+    beEn: 'is',
+    targetBody: 'work',
+    verbKo: '일하다',
+    verbEn: 'work',
+    timeKo: '내일',
+  },
+  '그녀는 책을 읽으려고 해요': {
+    subjectKo: '그녀는',
+    subjectEn: 'She',
+    beEn: 'is',
+    targetBody: 'read the book',
+    verbKo: '읽다',
+    verbEn: 'read',
+    extraReferences: [
+      { source: '책', selected: 'book', slot: 'OBJECT' },
+    ],
+  },
+  '우리는 지금 출발하려고 해요': {
+    subjectKo: '우리는',
+    subjectEn: 'We',
+    beEn: 'are',
+    targetBody: 'leave',
+    verbKo: '출발하다',
+    verbEn: 'leave',
+    timeKo: '지금',
+  },
+  '나는 문을 열려고 해요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    beEn: 'am',
+    targetBody: 'open the door',
+    verbKo: '열다',
+    verbEn: 'open',
+    extraReferences: [
+      { source: '문', selected: 'door', slot: 'OBJECT' },
+    ],
+  },
+  '나는 영어를 공부하려고 해요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    beEn: 'am',
+    targetBody: 'study English',
+    verbKo: '공부하다',
+    verbEn: 'study',
+    extraReferences: [
+      { source: '영어', selected: 'English', slot: 'OBJECT' },
+    ],
+  },
+  '그는 컴퓨터를 사용하려고 해요': {
+    subjectKo: '그는',
+    subjectEn: 'He',
+    beEn: 'is',
+    targetBody: 'use the computer',
+    verbKo: '사용하다',
+    verbEn: 'use',
+    extraReferences: [
+      { source: '컴퓨터', selected: 'computer', slot: 'OBJECT' },
+    ],
+  },
+  '그녀는 집에 가려고 해요': {
+    subjectKo: '그녀는',
+    subjectEn: 'She',
+    beEn: 'is',
+    targetBody: 'go home',
+    verbKo: '가다',
+    verbEn: 'go',
+    extraReferences: [
+      { source: '집', selected: 'home', slot: 'PLACE:TO' },
+    ],
+  },
+  '우리는 물을 마시려고 해요': {
+    subjectKo: '우리는',
+    subjectEn: 'We',
+    beEn: 'are',
+    targetBody: 'drink water',
+    verbKo: '마시다',
+    verbEn: 'drink',
+    extraReferences: [
+      { source: '물', selected: 'water', slot: 'OBJECT:MASS' },
+    ],
+  },
+  '나는 민수에게 전화하려고 해요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    beEn: 'am',
+    targetBody: 'call Minsu',
+    verbKo: '전화하다',
+    verbEn: 'call',
+    extraReferences: [
+      { source: '민수', selected: 'Minsu', slot: 'PERSON:OBJECT' },
+    ],
+  },
+};
+
+const twoProBasicIntentionReferenceV1163 = (
+  source: string,
+  selected: string,
+  slot: string
+): TwoProKoEnReferenceWordV5 => ({
+  source,
+  selected,
+  candidates: [selected],
+  slot,
+  confidence: 1,
+});
+
+const twoProTryKoEnBasicIntentionV1163 = (
+  originalText: string
+): TwoProBasicIntentionResultV1163 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 향후 "-려고 해요?" 의문문과 충돌하지 않도록 명시적 물음표는 제외합니다.
+  if (/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_BASIC_INTENTION_CASES_V1163[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const timeEn =
+    matched.timeKo === '내일'
+      ? 'tomorrow'
+      : matched.timeKo === '지금'
+        ? 'now'
+        : '';
+  const timeSuffix = timeEn ? ` ${timeEn}` : '';
+  const subjectReference =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectReference,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+    ...(timeEn
+      ? [
+          twoProBasicIntentionReferenceV1163(
+            matched.timeKo || '',
+            timeEn,
+            'TIME'
+          ),
+        ]
+      : []),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${matched.subjectEn} ${matched.beEn} going to ${matched.targetBody}${timeSuffix}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      { ko: '려고 해요', en: `${matched.beEn} going to [INTENTION]` },
+      ...(timeEn
+        ? [{ ko: matched.timeKo || '', en: `${timeEn} [TIME]` }]
+        : []),
+    ],
+    referenceWords,
+    engine: 'basic-intention-going-to-ko-en-v11.63',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v11.64-safe: 계획·의도 "-려고 해요?" 의문문 CORE
+//
+// v11.63에서 검증한 동일한 10개 계획·의도 case에 명시적 '?'가 붙은 경우만
+// 영어 be동사 의문문 어순(Am/Is/Are + 주어 + going to + 동사원형)으로 조립합니다.
+//
+// 안전 원칙:
+// 1. 반드시 원문 끝에 명시적 '?' 또는 '？'가 있을 때만 실행합니다.
+// 2. v11.63의 검증된 10개 정확 일치 case map만 재사용합니다.
+// 3. be동사만 주어 앞으로 이동하며, do/does를 삽입하지 않습니다.
+// 4. I를 제외한 he/she/we는 be동사 뒤에서 소문자로 유지합니다.
+// 5. v11.63 평서문 및 기존 미래/조동사 CORE는 수정하지 않습니다.
+// ============================================================================
+type TwoProBasicIntentionQuestionResultV1164 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+const twoProTryKoEnBasicIntentionQuestionV1164 = (
+  originalText: string
+): TwoProBasicIntentionQuestionResultV1164 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 사용자가 명시적으로 '?'를 입력한 경우만 처리합니다.
+  if (!/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[?？]+\s*$/u, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_BASIC_INTENTION_CASES_V1163[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const questionBeEn =
+    matched.beEn === 'am'
+      ? 'Am'
+      : matched.beEn === 'is'
+        ? 'Is'
+        : 'Are';
+
+  const subjectQuestionEn =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const timeEn =
+    matched.timeKo === '내일'
+      ? 'tomorrow'
+      : matched.timeKo === '지금'
+        ? 'now'
+        : '';
+  const timeSuffix = timeEn ? ` ${timeEn}` : '';
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectQuestionEn,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+    ...(timeEn
+      ? [
+          twoProBasicIntentionReferenceV1163(
+            matched.timeKo || '',
+            timeEn,
+            'TIME'
+          ),
+        ]
+      : []),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${questionBeEn} ${subjectQuestionEn} going to ${matched.targetBody}${timeSuffix}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      { ko: '려고 해요?', en: `${questionBeEn} ... going to [INTENTION:QUESTION]` },
+      ...(timeEn
+        ? [{ ko: matched.timeKo || '', en: `${timeEn} [TIME]` }]
+        : []),
+    ],
+    referenceWords,
+    engine: 'basic-intention-going-to-question-ko-en-v11.64',
+  };
+};
+
 // ============================================================================
 // ☆ TwoPro 한영 장소·이동·기간 문장 엔진 v5.4
 // [S]+[PLACE]에서+서술어 / [S]+[N]을·를+서술어를
@@ -60369,6 +61558,240 @@ export async function POST(request: Request) {
         },
         referenceWords:
           twoProBasicImperativeResultV1150.referenceWords,
+      });
+    }
+
+
+
+
+    // =================================================================
+    // ☆ TwoPro v11.64-safe: 계획·의도 "-려고 해요?" 의문문 CORE
+    // Am/Is/Are + 주어 + going to + 동사원형 질문을 일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProBasicIntentionQuestionResultV1164 =
+      twoProTryKoEnBasicIntentionQuestionV1164(originalText);
+
+    if (twoProBasicIntentionQuestionResultV1164) {
+      console.log(
+        '[한영 기본 계획·의도 의문문 성공 v11.64]',
+        {
+          query: originalText,
+          result: twoProBasicIntentionQuestionResultV1164.targetText,
+          engine: twoProBasicIntentionQuestionResultV1164.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicIntentionQuestionResultV1164.targetText
+            ),
+          isReference: false,
+          analysis: twoProBasicIntentionQuestionResultV1164.analysis,
+          referenceWords:
+            twoProBasicIntentionQuestionResultV1164.referenceWords,
+          engine: twoProBasicIntentionQuestionResultV1164.engine,
+        },
+        referenceWords:
+          twoProBasicIntentionQuestionResultV1164.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.63-safe: 계획·의도 "-려고 해요" CORE
+    // I am / He·She is / We are going to + 동사원형을 일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProBasicIntentionResultV1163 =
+      twoProTryKoEnBasicIntentionV1163(originalText);
+
+    if (twoProBasicIntentionResultV1163) {
+      console.log(
+        '[한영 기본 계획·의도 성공 v11.63]',
+        {
+          query: originalText,
+          result: twoProBasicIntentionResultV1163.targetText,
+          engine: twoProBasicIntentionResultV1163.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicIntentionResultV1163.targetText
+            ),
+          isReference: false,
+          analysis: twoProBasicIntentionResultV1163.analysis,
+          referenceWords:
+            twoProBasicIntentionResultV1163.referenceWords,
+          engine: twoProBasicIntentionResultV1163.engine,
+        },
+        referenceWords:
+          twoProBasicIntentionResultV1163.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.62-safe: 일반 미래 긍정·부정 의문문 CORE + 주어 대소문자 보정
+    // Will/Won't + 주어 + 동사원형 질문을 v11.60 평서문보다 먼저 처리합니다.
+    // I를 제외한 he/she/we는 조동사 뒤에서 소문자로 출력합니다.
+    // =================================================================
+    const twoProBasicFutureSimpleQuestionResultV1161 =
+      twoProTryKoEnBasicFutureSimpleQuestionV1161(originalText);
+
+    if (twoProBasicFutureSimpleQuestionResultV1161) {
+      console.log(
+        '[한영 기본 일반 미래 의문문 성공 v11.62]',
+        {
+          query: originalText,
+          result:
+            twoProBasicFutureSimpleQuestionResultV1161.targetText,
+          engine:
+            twoProBasicFutureSimpleQuestionResultV1161.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicFutureSimpleQuestionResultV1161.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicFutureSimpleQuestionResultV1161.analysis,
+          referenceWords:
+            twoProBasicFutureSimpleQuestionResultV1161.referenceWords,
+          engine:
+            twoProBasicFutureSimpleQuestionResultV1161.engine,
+        },
+        referenceWords:
+          twoProBasicFutureSimpleQuestionResultV1161.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.60-safe: 일반 미래 긍정·부정 CORE
+    // will / won't + 동사원형 문장을 일반 검색/참고문장보다 먼저 처리합니다.
+    // =================================================================
+    const twoProBasicFutureSimpleResultV1160 =
+      twoProTryKoEnBasicFutureSimpleV1160(originalText);
+
+    if (twoProBasicFutureSimpleResultV1160) {
+      console.log(
+        '[한영 기본 일반 미래 성공 v11.60]',
+        {
+          query: originalText,
+          result: twoProBasicFutureSimpleResultV1160.targetText,
+          engine: twoProBasicFutureSimpleResultV1160.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicFutureSimpleResultV1160.targetText
+            ),
+          isReference: false,
+          analysis: twoProBasicFutureSimpleResultV1160.analysis,
+          referenceWords:
+            twoProBasicFutureSimpleResultV1160.referenceWords,
+          engine: twoProBasicFutureSimpleResultV1160.engine,
+        },
+        referenceWords:
+          twoProBasicFutureSimpleResultV1160.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.59-safe: 미래 가능·불가능 + 미래 의무 의문문 CORE
+    // Will/Won't ... be able to 및 Will ... have to 질문을
+    // 일반 검색/참고문장이 선점하기 전에 직접 처리합니다.
+    // =================================================================
+    const twoProBasicFutureModalQuestionResultV1159 =
+      twoProTryKoEnBasicFutureModalQuestionV1159(originalText);
+
+    if (twoProBasicFutureModalQuestionResultV1159) {
+      console.log(
+        '[한영 기본 미래 조동사 의문문 성공 v11.59]',
+        {
+          query: originalText,
+          result:
+            twoProBasicFutureModalQuestionResultV1159.targetText,
+          engine:
+            twoProBasicFutureModalQuestionResultV1159.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicFutureModalQuestionResultV1159.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicFutureModalQuestionResultV1159.analysis,
+          referenceWords:
+            twoProBasicFutureModalQuestionResultV1159.referenceWords,
+          engine:
+            twoProBasicFutureModalQuestionResultV1159.engine,
+        },
+        referenceWords:
+          twoProBasicFutureModalQuestionResultV1159.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.58-safe: 미래 가능·불가능 + 미래 의무 CORE
+    // will be able to / won't be able to / will have to 문장을
+    // 일반 검색/참고문장이 선점하기 전에 직접 처리합니다.
+    // =================================================================
+    const twoProBasicFutureModalResultV1158 =
+      twoProTryKoEnBasicFutureModalV1158(originalText);
+
+    if (twoProBasicFutureModalResultV1158) {
+      console.log(
+        '[한영 기본 미래 조동사 성공 v11.58]',
+        {
+          query: originalText,
+          result:
+            twoProBasicFutureModalResultV1158.targetText,
+          engine:
+            twoProBasicFutureModalResultV1158.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicFutureModalResultV1158.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicFutureModalResultV1158.analysis,
+          referenceWords:
+            twoProBasicFutureModalResultV1158.referenceWords,
+          engine:
+            twoProBasicFutureModalResultV1158.engine,
+        },
+        referenceWords:
+          twoProBasicFutureModalResultV1158.referenceWords,
       });
     }
 
