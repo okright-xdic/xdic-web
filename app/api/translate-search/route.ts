@@ -9175,6 +9175,1282 @@ const twoProTryKoEnBasicIntentionQuestionV1164 = (
 };
 
 // ============================================================================
+// ☆ TwoPro v11.66-safe: 제3자 희망·욕구 "-고 싶어해요 / -고 싶어하지 않아요" CORE
+//
+// 현재 회귀에서 확인한 제3자 주어의 짧고 명확한 희망·욕구 10문장만
+// 일반 검색/기존 want 처리보다 먼저 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. He/She/Minsu는 긍정에서 wants to + 동사원형을 사용합니다.
+// 2. They는 긍정에서 want to + 동사원형을 사용합니다.
+// 3. He/She/Minsu의 부정은 doesn't want to + 동사원형을 사용합니다.
+// 4. They의 부정은 don't want to + 동사원형을 사용합니다.
+// 5. doesn't 뒤에서는 wants를 절대 사용하지 않습니다.
+// 6. 현재 검증한 10개 조합만 정확 일치로 처리합니다.
+// 7. 명시적 물음표가 있는 입력은 처리하지 않아 향후 제3자 욕구 의문문 CORE와 충돌하지 않습니다.
+// ============================================================================
+type TwoProThirdPersonDesireResultV1166 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+type TwoProThirdPersonDesireCaseV1166 = {
+  subjectKo: '그는' | '그녀는' | '민수는' | '그들은';
+  subjectEn: 'He' | 'She' | 'Minsu' | 'They';
+  targetBody: string;
+  verbKo: string;
+  verbEn: string;
+  negative: boolean;
+  timeKo?: '지금';
+  extraReferences?: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_THIRD_PERSON_DESIRE_CASES_V1166: Readonly<
+  Record<string, TwoProThirdPersonDesireCaseV1166>
+> = {
+  '그는 학교에 가고 싶어해요': {
+    subjectKo: '그는', subjectEn: 'He', targetBody: 'go to school',
+    verbKo: '가다', verbEn: 'go', negative: false,
+    extraReferences: [{ source: '학교', selected: 'school', slot: 'PLACE:TO' }],
+  },
+  '그녀는 책을 읽고 싶어해요': {
+    subjectKo: '그녀는', subjectEn: 'She', targetBody: 'read the book',
+    verbKo: '읽다', verbEn: 'read', negative: false,
+    extraReferences: [{ source: '책', selected: 'book', slot: 'OBJECT' }],
+  },
+  '민수는 물을 마시고 싶어해요': {
+    subjectKo: '민수는', subjectEn: 'Minsu', targetBody: 'drink water',
+    verbKo: '마시다', verbEn: 'drink', negative: false,
+    extraReferences: [{ source: '물', selected: 'water', slot: 'OBJECT:MASS' }],
+  },
+  '그들은 영어를 공부하고 싶어해요': {
+    subjectKo: '그들은', subjectEn: 'They', targetBody: 'study English',
+    verbKo: '공부하다', verbEn: 'study', negative: false,
+    extraReferences: [{ source: '영어', selected: 'English', slot: 'OBJECT' }],
+  },
+  '그는 지금 출발하고 싶어해요': {
+    subjectKo: '그는', subjectEn: 'He', targetBody: 'leave',
+    verbKo: '출발하다', verbEn: 'leave', negative: false, timeKo: '지금',
+  },
+  '그는 학교에 가고 싶어하지 않아요': {
+    subjectKo: '그는', subjectEn: 'He', targetBody: 'go to school',
+    verbKo: '가다', verbEn: 'go', negative: true,
+    extraReferences: [{ source: '학교', selected: 'school', slot: 'PLACE:TO' }],
+  },
+  '그녀는 책을 읽고 싶어하지 않아요': {
+    subjectKo: '그녀는', subjectEn: 'She', targetBody: 'read the book',
+    verbKo: '읽다', verbEn: 'read', negative: true,
+    extraReferences: [{ source: '책', selected: 'book', slot: 'OBJECT' }],
+  },
+  '민수는 물을 마시고 싶어하지 않아요': {
+    subjectKo: '민수는', subjectEn: 'Minsu', targetBody: 'drink water',
+    verbKo: '마시다', verbEn: 'drink', negative: true,
+    extraReferences: [{ source: '물', selected: 'water', slot: 'OBJECT:MASS' }],
+  },
+  '그들은 영어를 공부하고 싶어하지 않아요': {
+    subjectKo: '그들은', subjectEn: 'They', targetBody: 'study English',
+    verbKo: '공부하다', verbEn: 'study', negative: true,
+    extraReferences: [{ source: '영어', selected: 'English', slot: 'OBJECT' }],
+  },
+  '그녀는 지금 출발하고 싶어하지 않아요': {
+    subjectKo: '그녀는', subjectEn: 'She', targetBody: 'leave',
+    verbKo: '출발하다', verbEn: 'leave', negative: true, timeKo: '지금',
+  },
+};
+
+const twoProThirdPersonDesireReferenceV1166 = (
+  source: string,
+  selected: string,
+  slot: string
+): TwoProKoEnReferenceWordV5 => ({
+  source,
+  selected,
+  candidates: [selected],
+  slot,
+  confidence: 1,
+});
+
+const twoProTryKoEnThirdPersonDesireV1166 = (
+  originalText: string
+): TwoProThirdPersonDesireResultV1166 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_THIRD_PERSON_DESIRE_CASES_V1166[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const thirdPersonSingular = matched.subjectEn !== 'They';
+  const wantEn = matched.negative
+    ? (thirdPersonSingular ? "doesn't want to" : "don't want to")
+    : (thirdPersonSingular ? 'wants to' : 'want to');
+  const timeEn = matched.timeKo === '지금' ? 'now' : '';
+  const timeSuffix = timeEn ? ` ${timeEn}` : '';
+
+  const subjectReference =
+    matched.subjectEn === 'Minsu'
+      ? 'Minsu'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProThirdPersonDesireReferenceV1166(
+      matched.subjectKo,
+      subjectReference,
+      'SUBJECT'
+    ),
+    twoProThirdPersonDesireReferenceV1166(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProThirdPersonDesireReferenceV1166(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+    ...(timeEn
+      ? [twoProThirdPersonDesireReferenceV1166('지금', 'now', 'TIME')]
+      : []),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${matched.subjectEn} ${wantEn} ${matched.targetBody}${timeSuffix}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: matched.negative ? '고 싶어하지 않아요' : '고 싶어해요',
+        en: `${wantEn} [DESIRE:THIRD-PERSON]`,
+      },
+      ...(timeEn ? [{ ko: '지금', en: 'now [TIME]' }] : []),
+    ],
+    referenceWords,
+    engine: matched.negative
+      ? 'third-person-desire-negative-ko-en-v11.66'
+      : 'third-person-desire-positive-ko-en-v11.66',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v11.67-safe: 제3자 희망·욕구 의문문 "-고 싶어해요? / -고 싶어하지 않아요?" CORE
+//
+// v11.66에서 이미 검증한 제3자 희망·욕구 10개 조합만 재사용하여
+// 명시적 물음표가 있는 경우 Do/Does 의문문으로 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. He/She/Minsu 긍정 질문은 Does + 주어 + want to + 동사원형입니다.
+// 2. They 긍정 질문은 Do + they + want to + 동사원형입니다.
+// 3. He/She/Minsu 부정 질문은 Doesn't + 주어 + want to + 동사원형입니다.
+// 4. They 부정 질문은 Don't + they + want to + 동사원형입니다.
+// 5. do/does/don't/doesn't 뒤에서는 wants를 절대 사용하지 않습니다.
+// 6. 대명사 주어는 조동사 뒤에서 he/she/they 소문자로 유지합니다.
+// 7. Minsu는 고유명사이므로 대문자를 유지합니다.
+// 8. 명시적 ?/？가 있는, v11.66의 정확 10개 조합만 처리합니다.
+// ============================================================================
+const twoProTryKoEnThirdPersonDesireQuestionV1167 = (
+  originalText: string
+): TwoProThirdPersonDesireResultV1166 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[?？]+$/gu, '')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_THIRD_PERSON_DESIRE_CASES_V1166[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const thirdPersonSingular = matched.subjectEn !== 'They';
+  const auxEn = matched.negative
+    ? (thirdPersonSingular ? "Doesn't" : "Don't")
+    : (thirdPersonSingular ? 'Does' : 'Do');
+
+  const questionSubjectEn =
+    matched.subjectEn === 'Minsu'
+      ? 'Minsu'
+      : matched.subjectEn.toLowerCase();
+
+  const timeEn = matched.timeKo === '지금' ? 'now' : '';
+  const timeSuffix = timeEn ? ` ${timeEn}` : '';
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProThirdPersonDesireReferenceV1166(
+      matched.subjectKo,
+      questionSubjectEn,
+      'SUBJECT'
+    ),
+    twoProThirdPersonDesireReferenceV1166(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProThirdPersonDesireReferenceV1166(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+    ...(timeEn
+      ? [twoProThirdPersonDesireReferenceV1166('지금', 'now', 'TIME')]
+      : []),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${auxEn} ${questionSubjectEn} want to ${matched.targetBody}${timeSuffix}?`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${questionSubjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: matched.negative ? '고 싶어하지 않아요?' : '고 싶어해요?',
+        en: `${auxEn} ... want to [DESIRE:THIRD-PERSON:QUESTION]`,
+      },
+      ...(timeEn ? [{ ko: '지금', en: 'now [TIME]' }] : []),
+    ],
+    referenceWords,
+    engine: matched.negative
+      ? 'third-person-desire-negative-question-ko-en-v11.67'
+      : 'third-person-desire-positive-question-ko-en-v11.67',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v11.65-safe: 희망·욕구 "-고 싶어요 / -고 싶지 않아요" CORE
+//
+// 현재 회귀에서 확인한 나/우리 주어의 짧고 명확한 희망·욕구 10문장만
+// 일반 검색/기존 want 처리보다 먼저 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. 긍정은 want to + 동사원형을 사용합니다.
+// 2. 부정은 자연스러운 축약형 don't want to + 동사원형을 사용합니다.
+// 3. I/We에는 wants를 절대 붙이지 않습니다.
+// 4. 현재 검증한 10개 조합만 정확 일치로 처리합니다.
+// 5. 명시적 물음표가 있는 입력은 처리하지 않아 향후 욕구 의문문 CORE와 충돌하지 않습니다.
+// ============================================================================
+type TwoProBasicDesireResultV1165 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+type TwoProBasicDesireCaseV1165 = {
+  subjectKo: '나는' | '우리는';
+  subjectEn: 'I' | 'We';
+  targetBody: string;
+  verbKo: string;
+  verbEn: string;
+  negative: boolean;
+  timeKo?: '지금';
+  extraReferences?: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_BASIC_DESIRE_CASES_V1165: Readonly<
+  Record<string, TwoProBasicDesireCaseV1165>
+> = {
+  '나는 학교에 가고 싶어요': {
+    subjectKo: '나는', subjectEn: 'I', targetBody: 'go to school',
+    verbKo: '가다', verbEn: 'go', negative: false,
+    extraReferences: [{ source: '학교', selected: 'school', slot: 'PLACE:TO' }],
+  },
+  '나는 책을 읽고 싶어요': {
+    subjectKo: '나는', subjectEn: 'I', targetBody: 'read the book',
+    verbKo: '읽다', verbEn: 'read', negative: false,
+    extraReferences: [{ source: '책', selected: 'book', slot: 'OBJECT' }],
+  },
+  '나는 물을 마시고 싶어요': {
+    subjectKo: '나는', subjectEn: 'I', targetBody: 'drink water',
+    verbKo: '마시다', verbEn: 'drink', negative: false,
+    extraReferences: [{ source: '물', selected: 'water', slot: 'OBJECT:MASS' }],
+  },
+  '나는 영어를 공부하고 싶어요': {
+    subjectKo: '나는', subjectEn: 'I', targetBody: 'study English',
+    verbKo: '공부하다', verbEn: 'study', negative: false,
+    extraReferences: [{ source: '영어', selected: 'English', slot: 'OBJECT' }],
+  },
+  '우리는 지금 출발하고 싶어요': {
+    subjectKo: '우리는', subjectEn: 'We', targetBody: 'leave',
+    verbKo: '출발하다', verbEn: 'leave', negative: false, timeKo: '지금',
+  },
+  '나는 학교에 가고 싶지 않아요': {
+    subjectKo: '나는', subjectEn: 'I', targetBody: 'go to school',
+    verbKo: '가다', verbEn: 'go', negative: true,
+    extraReferences: [{ source: '학교', selected: 'school', slot: 'PLACE:TO' }],
+  },
+  '나는 책을 읽고 싶지 않아요': {
+    subjectKo: '나는', subjectEn: 'I', targetBody: 'read the book',
+    verbKo: '읽다', verbEn: 'read', negative: true,
+    extraReferences: [{ source: '책', selected: 'book', slot: 'OBJECT' }],
+  },
+  '나는 물을 마시고 싶지 않아요': {
+    subjectKo: '나는', subjectEn: 'I', targetBody: 'drink water',
+    verbKo: '마시다', verbEn: 'drink', negative: true,
+    extraReferences: [{ source: '물', selected: 'water', slot: 'OBJECT:MASS' }],
+  },
+  '나는 영어를 공부하고 싶지 않아요': {
+    subjectKo: '나는', subjectEn: 'I', targetBody: 'study English',
+    verbKo: '공부하다', verbEn: 'study', negative: true,
+    extraReferences: [{ source: '영어', selected: 'English', slot: 'OBJECT' }],
+  },
+  '우리는 지금 출발하고 싶지 않아요': {
+    subjectKo: '우리는', subjectEn: 'We', targetBody: 'leave',
+    verbKo: '출발하다', verbEn: 'leave', negative: true, timeKo: '지금',
+  },
+};
+
+const twoProBasicDesireReferenceV1165 = (
+  source: string,
+  selected: string,
+  slot: string
+): TwoProKoEnReferenceWordV5 => ({
+  source,
+  selected,
+  candidates: [selected],
+  slot,
+  confidence: 1,
+});
+
+const twoProTryKoEnBasicDesireV1165 = (
+  originalText: string
+): TwoProBasicDesireResultV1165 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_BASIC_DESIRE_CASES_V1165[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const wantEn = matched.negative ? "don't want to" : 'want to';
+  const timeEn = matched.timeKo === '지금' ? 'now' : '';
+  const timeSuffix = timeEn ? ` ${timeEn}` : '';
+  const subjectReference = matched.subjectEn === 'I' ? 'I' : 'we';
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicDesireReferenceV1165(matched.subjectKo, subjectReference, 'SUBJECT'),
+    twoProBasicDesireReferenceV1165(matched.verbKo, matched.verbEn, 'V:BARE'),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicDesireReferenceV1165(item.source, item.selected, item.slot)
+    ),
+    ...(timeEn
+      ? [twoProBasicDesireReferenceV1165('지금', 'now', 'TIME')]
+      : []),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${matched.subjectEn} ${wantEn} ${matched.targetBody}${timeSuffix}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: matched.negative ? '고 싶지 않아요' : '고 싶어요',
+        en: `${wantEn} [DESIRE]`,
+      },
+      ...(timeEn ? [{ ko: '지금', en: 'now [TIME]' }] : []),
+    ],
+    referenceWords,
+    engine: matched.negative
+      ? 'basic-desire-negative-dont-want-ko-en-v11.65'
+      : 'basic-desire-positive-want-ko-en-v11.65',
+  };
+};
+
+
+
+// ============================================================================
+// ☆ TwoPro v11.68-safe: 과거 희망·욕구 "-고 싶었어요 / -고 싶지 않았어요" CORE
+//
+// 현재 회귀에서 확인한 나/우리 주어의 짧고 명확한 과거 희망·욕구 10문장만
+// 일반 검색/기존 want 처리보다 먼저 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. 긍정은 wanted to + 동사원형을 사용합니다.
+// 2. 부정은 자연스러운 축약형 didn't want to + 동사원형을 사용합니다.
+// 3. didn't 뒤에서는 wanted를 절대 사용하지 않습니다.
+// 4. 현재 검증한 10개 조합만 정확 일치로 처리합니다.
+// 5. 명시적 물음표가 있는 입력은 처리하지 않아 향후 과거 욕구 의문문 CORE와 충돌하지 않습니다.
+// ============================================================================
+type TwoProPastDesireCaseV1168 = {
+  subjectKo: '나는' | '우리는';
+  subjectEn: 'I' | 'We';
+  targetBody: string;
+  verbKo: string;
+  verbEn: string;
+  negative: boolean;
+  timeKo?: '일찍';
+  extraReferences?: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_PAST_DESIRE_CASES_V1168: Readonly<
+  Record<string, TwoProPastDesireCaseV1168>
+> = {
+  '나는 학교에 가고 싶었어요': {
+    subjectKo: '나는', subjectEn: 'I', targetBody: 'go to school',
+    verbKo: '가다', verbEn: 'go', negative: false,
+    extraReferences: [{ source: '학교', selected: 'school', slot: 'PLACE:TO' }],
+  },
+  '나는 책을 읽고 싶었어요': {
+    subjectKo: '나는', subjectEn: 'I', targetBody: 'read the book',
+    verbKo: '읽다', verbEn: 'read', negative: false,
+    extraReferences: [{ source: '책', selected: 'book', slot: 'OBJECT' }],
+  },
+  '나는 물을 마시고 싶었어요': {
+    subjectKo: '나는', subjectEn: 'I', targetBody: 'drink water',
+    verbKo: '마시다', verbEn: 'drink', negative: false,
+    extraReferences: [{ source: '물', selected: 'water', slot: 'OBJECT:MASS' }],
+  },
+  '나는 영어를 공부하고 싶었어요': {
+    subjectKo: '나는', subjectEn: 'I', targetBody: 'study English',
+    verbKo: '공부하다', verbEn: 'study', negative: false,
+    extraReferences: [{ source: '영어', selected: 'English', slot: 'OBJECT' }],
+  },
+  '우리는 일찍 출발하고 싶었어요': {
+    subjectKo: '우리는', subjectEn: 'We', targetBody: 'leave',
+    verbKo: '출발하다', verbEn: 'leave', negative: false, timeKo: '일찍',
+  },
+  '나는 학교에 가고 싶지 않았어요': {
+    subjectKo: '나는', subjectEn: 'I', targetBody: 'go to school',
+    verbKo: '가다', verbEn: 'go', negative: true,
+    extraReferences: [{ source: '학교', selected: 'school', slot: 'PLACE:TO' }],
+  },
+  '나는 책을 읽고 싶지 않았어요': {
+    subjectKo: '나는', subjectEn: 'I', targetBody: 'read the book',
+    verbKo: '읽다', verbEn: 'read', negative: true,
+    extraReferences: [{ source: '책', selected: 'book', slot: 'OBJECT' }],
+  },
+  '나는 물을 마시고 싶지 않았어요': {
+    subjectKo: '나는', subjectEn: 'I', targetBody: 'drink water',
+    verbKo: '마시다', verbEn: 'drink', negative: true,
+    extraReferences: [{ source: '물', selected: 'water', slot: 'OBJECT:MASS' }],
+  },
+  '나는 영어를 공부하고 싶지 않았어요': {
+    subjectKo: '나는', subjectEn: 'I', targetBody: 'study English',
+    verbKo: '공부하다', verbEn: 'study', negative: true,
+    extraReferences: [{ source: '영어', selected: 'English', slot: 'OBJECT' }],
+  },
+  '우리는 일찍 출발하고 싶지 않았어요': {
+    subjectKo: '우리는', subjectEn: 'We', targetBody: 'leave',
+    verbKo: '출발하다', verbEn: 'leave', negative: true, timeKo: '일찍',
+  },
+};
+
+const twoProTryKoEnPastDesireV1168 = (
+  originalText: string
+): TwoProBasicDesireResultV1165 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_PAST_DESIRE_CASES_V1168[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const wantEn = matched.negative ? "didn't want to" : 'wanted to';
+  const timeEn = matched.timeKo === '일찍' ? 'early' : '';
+  const timeSuffix = timeEn ? ` ${timeEn}` : '';
+  const subjectReference = matched.subjectEn === 'I' ? 'I' : 'we';
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicDesireReferenceV1165(matched.subjectKo, subjectReference, 'SUBJECT'),
+    twoProBasicDesireReferenceV1165(matched.verbKo, matched.verbEn, 'V:BARE'),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicDesireReferenceV1165(item.source, item.selected, item.slot)
+    ),
+    ...(timeEn
+      ? [twoProBasicDesireReferenceV1165('일찍', 'early', 'TIME')]
+      : []),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${matched.subjectEn} ${wantEn} ${matched.targetBody}${timeSuffix}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: matched.negative ? '고 싶지 않았어요' : '고 싶었어요',
+        en: `${wantEn} [DESIRE:PAST]`,
+      },
+      ...(timeEn ? [{ ko: '일찍', en: 'early [TIME]' }] : []),
+    ],
+    referenceWords,
+    engine: matched.negative
+      ? 'past-desire-negative-didnt-want-ko-en-v11.68'
+      : 'past-desire-positive-wanted-ko-en-v11.68',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v11.69-safe: 과거 희망·욕구 의문문 "-고 싶었어요? / -고 싶지 않았어요?" CORE
+//
+// v11.68에서 이미 검증한 나/우리 과거 희망·욕구 10개 조합만 재사용하여
+// 명시적 물음표가 있는 경우 Did / Didn't 의문문으로 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. 긍정 질문은 Did + 주어 + want to + 동사원형입니다.
+// 2. 부정 질문은 Didn't + 주어 + want to + 동사원형입니다.
+// 3. did/didn't 뒤에서는 wanted를 절대 사용하지 않습니다.
+// 4. I는 대문자를 유지하고 We는 조동사 뒤에서 we로 소문자화합니다.
+// 5. 명시적 ?/？가 있는, v11.68의 정확 10개 조합만 처리합니다.
+// ============================================================================
+const twoProTryKoEnPastDesireQuestionV1169 = (
+  originalText: string
+): TwoProBasicDesireResultV1165 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[?？]+$/gu, '')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_PAST_DESIRE_CASES_V1168[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const auxEn = matched.negative ? "Didn't" : 'Did';
+  const questionSubjectEn = matched.subjectEn === 'I' ? 'I' : 'we';
+  const timeEn = matched.timeKo === '일찍' ? 'early' : '';
+  const timeSuffix = timeEn ? ` ${timeEn}` : '';
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicDesireReferenceV1165(
+      matched.subjectKo,
+      questionSubjectEn,
+      'SUBJECT'
+    ),
+    twoProBasicDesireReferenceV1165(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicDesireReferenceV1165(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+    ...(timeEn
+      ? [twoProBasicDesireReferenceV1165('일찍', 'early', 'TIME')]
+      : []),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${auxEn} ${questionSubjectEn} want to ${matched.targetBody}${timeSuffix}?`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${questionSubjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: matched.negative ? '고 싶지 않았어요?' : '고 싶었어요?',
+        en: `${auxEn} ... want to [DESIRE:PAST:QUESTION]`,
+      },
+      ...(timeEn ? [{ ko: '일찍', en: 'early [TIME]' }] : []),
+    ],
+    referenceWords,
+    engine: matched.negative
+      ? 'past-desire-negative-question-ko-en-v11.69'
+      : 'past-desire-positive-question-ko-en-v11.69',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v11.70-safe: 제3자 과거 희망·욕구 "-고 싶어했어요 / -고 싶어하지 않았어요" CORE
+//
+// 현재 회귀에서 확인한 제3자 주어의 짧고 명확한 과거 희망·욕구 10문장만
+// 일반 검색/기존 want 처리보다 먼저 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. 긍정은 주어와 관계없이 wanted to + 동사원형을 사용합니다.
+// 2. 부정은 주어와 관계없이 didn't want to + 동사원형을 사용합니다.
+// 3. didn't 뒤에서는 wanted를 절대 사용하지 않습니다.
+// 4. He/She/Minsu/They 모두 과거 긍정에서 wanted로 통일합니다.
+// 5. 현재 검증한 10개 조합만 정확 일치로 처리합니다.
+// 6. 명시적 물음표가 있는 입력은 처리하지 않아 향후 제3자 과거 욕구 의문문 CORE와 충돌하지 않습니다.
+// ============================================================================
+type TwoProThirdPersonPastDesireCaseV1170 = {
+  subjectKo: '그는' | '그녀는' | '민수는' | '그들은';
+  subjectEn: 'He' | 'She' | 'Minsu' | 'They';
+  targetBody: string;
+  verbKo: string;
+  verbEn: string;
+  negative: boolean;
+  timeKo?: '일찍';
+  extraReferences?: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_THIRD_PERSON_PAST_DESIRE_CASES_V1170: Readonly<
+  Record<string, TwoProThirdPersonPastDesireCaseV1170>
+> = {
+  '그는 학교에 가고 싶어했어요': {
+    subjectKo: '그는', subjectEn: 'He', targetBody: 'go to school',
+    verbKo: '가다', verbEn: 'go', negative: false,
+    extraReferences: [{ source: '학교', selected: 'school', slot: 'PLACE:TO' }],
+  },
+  '그녀는 책을 읽고 싶어했어요': {
+    subjectKo: '그녀는', subjectEn: 'She', targetBody: 'read the book',
+    verbKo: '읽다', verbEn: 'read', negative: false,
+    extraReferences: [{ source: '책', selected: 'book', slot: 'OBJECT' }],
+  },
+  '민수는 물을 마시고 싶어했어요': {
+    subjectKo: '민수는', subjectEn: 'Minsu', targetBody: 'drink water',
+    verbKo: '마시다', verbEn: 'drink', negative: false,
+    extraReferences: [{ source: '물', selected: 'water', slot: 'OBJECT:MASS' }],
+  },
+  '그들은 영어를 공부하고 싶어했어요': {
+    subjectKo: '그들은', subjectEn: 'They', targetBody: 'study English',
+    verbKo: '공부하다', verbEn: 'study', negative: false,
+    extraReferences: [{ source: '영어', selected: 'English', slot: 'OBJECT' }],
+  },
+  '그는 일찍 출발하고 싶어했어요': {
+    subjectKo: '그는', subjectEn: 'He', targetBody: 'leave',
+    verbKo: '출발하다', verbEn: 'leave', negative: false, timeKo: '일찍',
+  },
+  '그는 학교에 가고 싶어하지 않았어요': {
+    subjectKo: '그는', subjectEn: 'He', targetBody: 'go to school',
+    verbKo: '가다', verbEn: 'go', negative: true,
+    extraReferences: [{ source: '학교', selected: 'school', slot: 'PLACE:TO' }],
+  },
+  '그녀는 책을 읽고 싶어하지 않았어요': {
+    subjectKo: '그녀는', subjectEn: 'She', targetBody: 'read the book',
+    verbKo: '읽다', verbEn: 'read', negative: true,
+    extraReferences: [{ source: '책', selected: 'book', slot: 'OBJECT' }],
+  },
+  '민수는 물을 마시고 싶어하지 않았어요': {
+    subjectKo: '민수는', subjectEn: 'Minsu', targetBody: 'drink water',
+    verbKo: '마시다', verbEn: 'drink', negative: true,
+    extraReferences: [{ source: '물', selected: 'water', slot: 'OBJECT:MASS' }],
+  },
+  '그들은 영어를 공부하고 싶어하지 않았어요': {
+    subjectKo: '그들은', subjectEn: 'They', targetBody: 'study English',
+    verbKo: '공부하다', verbEn: 'study', negative: true,
+    extraReferences: [{ source: '영어', selected: 'English', slot: 'OBJECT' }],
+  },
+  '그녀는 일찍 출발하고 싶어하지 않았어요': {
+    subjectKo: '그녀는', subjectEn: 'She', targetBody: 'leave',
+    verbKo: '출발하다', verbEn: 'leave', negative: true, timeKo: '일찍',
+  },
+};
+
+const twoProTryKoEnThirdPersonPastDesireV1170 = (
+  originalText: string
+): TwoProThirdPersonDesireResultV1166 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_THIRD_PERSON_PAST_DESIRE_CASES_V1170[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const wantEn = matched.negative ? "didn't want to" : 'wanted to';
+  const timeEn = matched.timeKo === '일찍' ? 'early' : '';
+  const timeSuffix = timeEn ? ` ${timeEn}` : '';
+  const subjectReference =
+    matched.subjectEn === 'Minsu'
+      ? 'Minsu'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProThirdPersonDesireReferenceV1166(
+      matched.subjectKo,
+      subjectReference,
+      'SUBJECT'
+    ),
+    twoProThirdPersonDesireReferenceV1166(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProThirdPersonDesireReferenceV1166(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+    ...(timeEn
+      ? [twoProThirdPersonDesireReferenceV1166('일찍', 'early', 'TIME')]
+      : []),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${matched.subjectEn} ${wantEn} ${matched.targetBody}${timeSuffix}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: matched.negative ? '고 싶어하지 않았어요' : '고 싶어했어요',
+        en: `${wantEn} [DESIRE:THIRD-PERSON:PAST]`,
+      },
+      ...(timeEn ? [{ ko: '일찍', en: 'early [TIME]' }] : []),
+    ],
+    referenceWords,
+    engine: matched.negative
+      ? 'third-person-past-desire-negative-didnt-want-ko-en-v11.70'
+      : 'third-person-past-desire-positive-wanted-ko-en-v11.70',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v11.71-safe: 제3자 과거 희망·욕구 의문문
+// "-고 싶어했어요? / -고 싶어하지 않았어요?" CORE
+//
+// v11.70에서 이미 검증한 정확 10개 조합만 재사용하여
+// 명시적 물음표가 있는 경우 Did / Didn't 의문문으로 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. 긍정 질문은 Did + 주어 + want to + 동사원형입니다.
+// 2. 부정 질문은 Didn't + 주어 + want to + 동사원형입니다.
+// 3. did/didn't 뒤에서는 wanted를 절대 사용하지 않습니다.
+// 4. he/she/they는 조동사 뒤에서 소문자를 유지합니다.
+// 5. Minsu는 고유명사이므로 대문자를 유지합니다.
+// 6. 명시적 ?/？가 있는 v11.70의 정확 10개 조합만 처리합니다.
+// ============================================================================
+const twoProTryKoEnThirdPersonPastDesireQuestionV1171 = (
+  originalText: string
+): TwoProThirdPersonDesireResultV1166 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[?？]+$/gu, '')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_THIRD_PERSON_PAST_DESIRE_CASES_V1170[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const auxEn = matched.negative ? "Didn't" : 'Did';
+  const questionSubjectEn =
+    matched.subjectEn === 'Minsu'
+      ? 'Minsu'
+      : matched.subjectEn.toLowerCase();
+  const timeEn = matched.timeKo === '일찍' ? 'early' : '';
+  const timeSuffix = timeEn ? ` ${timeEn}` : '';
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProThirdPersonDesireReferenceV1166(
+      matched.subjectKo,
+      questionSubjectEn,
+      'SUBJECT'
+    ),
+    twoProThirdPersonDesireReferenceV1166(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProThirdPersonDesireReferenceV1166(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+    ...(timeEn
+      ? [twoProThirdPersonDesireReferenceV1166('일찍', 'early', 'TIME')]
+      : []),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${auxEn} ${questionSubjectEn} want to ${matched.targetBody}${timeSuffix}?`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${questionSubjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: matched.negative ? '고 싶어하지 않았어요?' : '고 싶어했어요?',
+        en: `${auxEn} ... want to [DESIRE:THIRD-PERSON:PAST:QUESTION]`,
+      },
+      ...(timeEn ? [{ ko: '일찍', en: 'early [TIME]' }] : []),
+    ],
+    referenceWords,
+    engine: matched.negative
+      ? 'third-person-past-desire-negative-question-ko-en-v11.71'
+      : 'third-person-past-desire-positive-question-ko-en-v11.71',
+  };
+};
+
+
+
+// ============================================================================
+// ☆ TwoPro v11.72-safe: 과거 계획·의도 "-려고 했어요" CORE
+//
+// 현재 회귀에서 확인한 짧고 명확한 과거 계획·의도 10문장만
+// 일반 검색/기존 유사 참고문장보다 먼저 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. I/He/She는 was going to + 동사원형을 사용합니다.
+// 2. We는 were going to + 동사원형을 사용합니다.
+// 3. 현재 검증한 10개 조합만 정확 일치로 처리합니다.
+// 4. 명시적 물음표가 있는 입력은 처리하지 않아 향후 과거 의도 의문문 CORE와 충돌하지 않습니다.
+// 5. 기존 v11.63/v11.64 현재 계획·의도 CORE는 수정하지 않습니다.
+// ============================================================================
+type TwoProPastIntentionCaseV1172 = {
+  subjectKo: '나는' | '그는' | '그녀는' | '우리는';
+  subjectEn: 'I' | 'He' | 'She' | 'We';
+  pastBeEn: 'was' | 'were';
+  targetBody: string;
+  verbKo: string;
+  verbEn: string;
+  extraReferences?: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_PAST_INTENTION_CASES_V1172: Readonly<
+  Record<string, TwoProPastIntentionCaseV1172>
+> = {
+  '나는 학교에 가려고 했어요': {
+    subjectKo: '나는', subjectEn: 'I', pastBeEn: 'was',
+    targetBody: 'go to school', verbKo: '가다', verbEn: 'go',
+    extraReferences: [{ source: '학교', selected: 'school', slot: 'PLACE:TO' }],
+  },
+  '그는 일하려고 했어요': {
+    subjectKo: '그는', subjectEn: 'He', pastBeEn: 'was',
+    targetBody: 'work', verbKo: '일하다', verbEn: 'work',
+  },
+  '그녀는 책을 읽으려고 했어요': {
+    subjectKo: '그녀는', subjectEn: 'She', pastBeEn: 'was',
+    targetBody: 'read the book', verbKo: '읽다', verbEn: 'read',
+    extraReferences: [{ source: '책', selected: 'book', slot: 'OBJECT' }],
+  },
+  '우리는 출발하려고 했어요': {
+    subjectKo: '우리는', subjectEn: 'We', pastBeEn: 'were',
+    targetBody: 'leave', verbKo: '출발하다', verbEn: 'leave',
+  },
+  '나는 문을 열려고 했어요': {
+    subjectKo: '나는', subjectEn: 'I', pastBeEn: 'was',
+    targetBody: 'open the door', verbKo: '열다', verbEn: 'open',
+    extraReferences: [{ source: '문', selected: 'door', slot: 'OBJECT' }],
+  },
+  '나는 영어를 공부하려고 했어요': {
+    subjectKo: '나는', subjectEn: 'I', pastBeEn: 'was',
+    targetBody: 'study English', verbKo: '공부하다', verbEn: 'study',
+    extraReferences: [{ source: '영어', selected: 'English', slot: 'OBJECT' }],
+  },
+  '그는 컴퓨터를 사용하려고 했어요': {
+    subjectKo: '그는', subjectEn: 'He', pastBeEn: 'was',
+    targetBody: 'use the computer', verbKo: '사용하다', verbEn: 'use',
+    extraReferences: [{ source: '컴퓨터', selected: 'computer', slot: 'OBJECT' }],
+  },
+  '그녀는 집에 가려고 했어요': {
+    subjectKo: '그녀는', subjectEn: 'She', pastBeEn: 'was',
+    targetBody: 'go home', verbKo: '가다', verbEn: 'go',
+    extraReferences: [{ source: '집', selected: 'home', slot: 'PLACE:TO' }],
+  },
+  '우리는 물을 마시려고 했어요': {
+    subjectKo: '우리는', subjectEn: 'We', pastBeEn: 'were',
+    targetBody: 'drink water', verbKo: '마시다', verbEn: 'drink',
+    extraReferences: [{ source: '물', selected: 'water', slot: 'OBJECT:MASS' }],
+  },
+  '나는 민수에게 전화하려고 했어요': {
+    subjectKo: '나는', subjectEn: 'I', pastBeEn: 'was',
+    targetBody: 'call Minsu', verbKo: '전화하다', verbEn: 'call',
+    extraReferences: [{ source: '민수', selected: 'Minsu', slot: 'PERSON:OBJECT' }],
+  },
+};
+
+const twoProTryKoEnPastIntentionV1172 = (
+  originalText: string
+): TwoProBasicIntentionResultV1163 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_PAST_INTENTION_CASES_V1172[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const subjectReference =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectReference,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${matched.subjectEn} ${matched.pastBeEn} going to ${matched.targetBody}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      { ko: '려고 했어요', en: `${matched.pastBeEn} going to [INTENTION:PAST]` },
+    ],
+    referenceWords,
+    engine: 'past-intention-going-to-ko-en-v11.72',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v11.73-safe: 과거 계획·의도 "-려고 했어요?" 의문문 CORE
+//
+// v11.72에서 검증된 동일한 10개 과거 계획·의도 조합만 재사용하여
+// Was/Were + 주어 + going to + 동사원형 의문문을 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. I/He/She는 Was + 주어 + going to + 동사원형을 사용합니다.
+// 2. We는 Were + we + going to + 동사원형을 사용합니다.
+// 3. be동사 뒤 대명사 주어는 I를 제외하고 소문자를 사용합니다.
+// 4. 명시적 물음표가 있는 입력만 처리합니다.
+// 5. v11.72의 검증된 정확 일치 10개 조합 외에는 처리하지 않습니다.
+// ============================================================================
+const twoProTryKoEnPastIntentionQuestionV1173 = (
+  originalText: string
+): TwoProBasicIntentionQuestionResultV1164 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[?？]+\s*$/u, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_PAST_INTENTION_CASES_V1172[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const questionBeEn = matched.pastBeEn === 'were' ? 'Were' : 'Was';
+  const subjectQuestionEn =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectQuestionEn,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${questionBeEn} ${subjectQuestionEn} going to ${matched.targetBody}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${subjectQuestionEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      { ko: '려고 했어요?', en: `${questionBeEn} ... going to [INTENTION:PAST:QUESTION]` },
+    ],
+    referenceWords,
+    engine: 'past-intention-going-to-question-ko-en-v11.73',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v11.74-safe: 과거 부정 계획·의도 "-지 않으려고 했어요" CORE
+//
+// 현재 회귀에서 확인한 짧고 명확한 과거 부정 계획·의도 10문장만
+// 일반 검색/기존 유사 참고문장보다 먼저 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. I/He/She는 wasn't going to + 동사원형을 사용합니다.
+// 2. We는 weren't going to + 동사원형을 사용합니다.
+// 3. "-지 않으려고 했어요"만 처리하며 "-려고 하지 않았어요"와 혼동하지 않습니다.
+// 4. 현재 검증한 10개 조합만 정확 일치로 처리합니다.
+// 5. 명시적 물음표가 있는 입력은 처리하지 않아 향후 부정 계획·의도 의문문 CORE와 충돌하지 않습니다.
+// 6. 기존 v11.72/v11.73 과거 계획·의도 CORE는 수정하지 않습니다.
+// ============================================================================
+type TwoProPastNegativeIntentionCaseV1174 = {
+  subjectKo: '나는' | '그는' | '그녀는' | '우리는';
+  subjectEn: 'I' | 'He' | 'She' | 'We';
+  negativePastBeEn: "wasn't" | "weren't";
+  targetBody: string;
+  verbKo: string;
+  verbEn: string;
+  extraReferences?: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_PAST_NEGATIVE_INTENTION_CASES_V1174: Readonly<
+  Record<string, TwoProPastNegativeIntentionCaseV1174>
+> = {
+  '나는 학교에 가지 않으려고 했어요': {
+    subjectKo: '나는', subjectEn: 'I', negativePastBeEn: "wasn't",
+    targetBody: 'go to school', verbKo: '가다', verbEn: 'go',
+    extraReferences: [{ source: '학교', selected: 'school', slot: 'PLACE:TO' }],
+  },
+  '그는 일하지 않으려고 했어요': {
+    subjectKo: '그는', subjectEn: 'He', negativePastBeEn: "wasn't",
+    targetBody: 'work', verbKo: '일하다', verbEn: 'work',
+  },
+  '그녀는 책을 읽지 않으려고 했어요': {
+    subjectKo: '그녀는', subjectEn: 'She', negativePastBeEn: "wasn't",
+    targetBody: 'read the book', verbKo: '읽다', verbEn: 'read',
+    extraReferences: [{ source: '책', selected: 'book', slot: 'OBJECT' }],
+  },
+  '우리는 출발하지 않으려고 했어요': {
+    subjectKo: '우리는', subjectEn: 'We', negativePastBeEn: "weren't",
+    targetBody: 'leave', verbKo: '출발하다', verbEn: 'leave',
+  },
+  '나는 문을 열지 않으려고 했어요': {
+    subjectKo: '나는', subjectEn: 'I', negativePastBeEn: "wasn't",
+    targetBody: 'open the door', verbKo: '열다', verbEn: 'open',
+    extraReferences: [{ source: '문', selected: 'door', slot: 'OBJECT' }],
+  },
+  '나는 영어를 공부하지 않으려고 했어요': {
+    subjectKo: '나는', subjectEn: 'I', negativePastBeEn: "wasn't",
+    targetBody: 'study English', verbKo: '공부하다', verbEn: 'study',
+    extraReferences: [{ source: '영어', selected: 'English', slot: 'OBJECT' }],
+  },
+  '그는 컴퓨터를 사용하지 않으려고 했어요': {
+    subjectKo: '그는', subjectEn: 'He', negativePastBeEn: "wasn't",
+    targetBody: 'use the computer', verbKo: '사용하다', verbEn: 'use',
+    extraReferences: [{ source: '컴퓨터', selected: 'computer', slot: 'OBJECT' }],
+  },
+  '그녀는 집에 가지 않으려고 했어요': {
+    subjectKo: '그녀는', subjectEn: 'She', negativePastBeEn: "wasn't",
+    targetBody: 'go home', verbKo: '가다', verbEn: 'go',
+    extraReferences: [{ source: '집', selected: 'home', slot: 'PLACE:TO' }],
+  },
+  '우리는 물을 마시지 않으려고 했어요': {
+    subjectKo: '우리는', subjectEn: 'We', negativePastBeEn: "weren't",
+    targetBody: 'drink water', verbKo: '마시다', verbEn: 'drink',
+    extraReferences: [{ source: '물', selected: 'water', slot: 'OBJECT:MASS' }],
+  },
+  '나는 민수에게 전화하지 않으려고 했어요': {
+    subjectKo: '나는', subjectEn: 'I', negativePastBeEn: "wasn't",
+    targetBody: 'call Minsu', verbKo: '전화하다', verbEn: 'call',
+    extraReferences: [{ source: '민수', selected: 'Minsu', slot: 'PERSON:OBJECT' }],
+  },
+};
+
+const twoProTryKoEnPastNegativeIntentionV1174 = (
+  originalText: string
+): TwoProBasicIntentionResultV1163 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_PAST_NEGATIVE_INTENTION_CASES_V1174[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const subjectReference =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectReference,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${matched.subjectEn} ${matched.negativePastBeEn} going to ${matched.targetBody}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: '지 않으려고 했어요',
+        en: `${matched.negativePastBeEn} going to [INTENTION:PAST:NEGATIVE]`,
+      },
+    ],
+    referenceWords,
+    engine: 'past-negative-intention-going-to-ko-en-v11.74',
+  };
+};
+
+// ============================================================================
 // ☆ TwoPro 한영 장소·이동·기간 문장 엔진 v5.4
 // [S]+[PLACE]에서+서술어 / [S]+[N]을·를+서술어를
 // DB 유사 참고 문장보다 먼저 번역하며 에/에서와 이동 방향을 구분합니다.
@@ -61563,6 +62839,367 @@ export async function POST(request: Request) {
 
 
 
+
+
+
+
+
+    // =================================================================
+    // ☆ TwoPro v11.74-safe: 과거 부정 계획·의도 "-지 않으려고 했어요" CORE
+    // wasn't/weren't going to + 동사원형을 검증된 10문장에서
+    // 일반 검색/유사 참고문장보다 먼저 처리합니다.
+    // =================================================================
+    const twoProPastNegativeIntentionResultV1174 =
+      twoProTryKoEnPastNegativeIntentionV1174(originalText);
+
+    if (twoProPastNegativeIntentionResultV1174) {
+      console.log(
+        '[한영 과거 부정 계획·의도 성공 v11.74]',
+        {
+          query: originalText,
+          result: twoProPastNegativeIntentionResultV1174.targetText,
+          engine: twoProPastNegativeIntentionResultV1174.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProPastNegativeIntentionResultV1174.targetText
+            ),
+          isReference: false,
+          analysis: twoProPastNegativeIntentionResultV1174.analysis,
+          referenceWords: twoProPastNegativeIntentionResultV1174.referenceWords,
+          engine: twoProPastNegativeIntentionResultV1174.engine,
+        },
+        referenceWords: twoProPastNegativeIntentionResultV1174.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.73-safe: 과거 계획·의도 "-려고 했어요?" 의문문 CORE
+    // Was/Were + 주어 + going to + 동사원형 질문을
+    // v11.72 평서문/일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProPastIntentionQuestionResultV1173 =
+      twoProTryKoEnPastIntentionQuestionV1173(originalText);
+
+    if (twoProPastIntentionQuestionResultV1173) {
+      console.log(
+        '[한영 과거 계획·의도 의문문 성공 v11.73]',
+        {
+          query: originalText,
+          result: twoProPastIntentionQuestionResultV1173.targetText,
+          engine: twoProPastIntentionQuestionResultV1173.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProPastIntentionQuestionResultV1173.targetText
+            ),
+          isReference: false,
+          analysis: twoProPastIntentionQuestionResultV1173.analysis,
+          referenceWords: twoProPastIntentionQuestionResultV1173.referenceWords,
+          engine: twoProPastIntentionQuestionResultV1173.engine,
+        },
+        referenceWords: twoProPastIntentionQuestionResultV1173.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.72-safe: 과거 계획·의도 "-려고 했어요" CORE
+    // was/were going to + 동사원형을 검증된 10문장에서
+    // 일반 검색/유사 참고문장보다 먼저 처리합니다.
+    // =================================================================
+    const twoProPastIntentionResultV1172 =
+      twoProTryKoEnPastIntentionV1172(originalText);
+
+    if (twoProPastIntentionResultV1172) {
+      console.log(
+        '[한영 과거 계획·의도 성공 v11.72]',
+        {
+          query: originalText,
+          result: twoProPastIntentionResultV1172.targetText,
+          engine: twoProPastIntentionResultV1172.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProPastIntentionResultV1172.targetText
+            ),
+          isReference: false,
+          analysis: twoProPastIntentionResultV1172.analysis,
+          referenceWords: twoProPastIntentionResultV1172.referenceWords,
+          engine: twoProPastIntentionResultV1172.engine,
+        },
+        referenceWords: twoProPastIntentionResultV1172.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.71-safe: 제3자 과거 희망·욕구 의문문 CORE
+    // Did / Didn't + 주어 + want to + 동사원형 질문을
+    // v11.70 평서문/일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProThirdPersonPastDesireQuestionResultV1171 =
+      twoProTryKoEnThirdPersonPastDesireQuestionV1171(originalText);
+
+    if (twoProThirdPersonPastDesireQuestionResultV1171) {
+      console.log(
+        '[한영 제3자 과거 희망·욕구 의문문 성공 v11.71]',
+        {
+          query: originalText,
+          result: twoProThirdPersonPastDesireQuestionResultV1171.targetText,
+          engine: twoProThirdPersonPastDesireQuestionResultV1171.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProThirdPersonPastDesireQuestionResultV1171.targetText
+            ),
+          isReference: false,
+          analysis: twoProThirdPersonPastDesireQuestionResultV1171.analysis,
+          referenceWords:
+            twoProThirdPersonPastDesireQuestionResultV1171.referenceWords,
+          engine: twoProThirdPersonPastDesireQuestionResultV1171.engine,
+        },
+        referenceWords:
+          twoProThirdPersonPastDesireQuestionResultV1171.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.70-safe: 제3자 과거 희망·욕구 CORE
+    // wanted to / didn't want to + 동사원형을 제3자 과거 욕구 문장에서
+    // 일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProThirdPersonPastDesireResultV1170 =
+      twoProTryKoEnThirdPersonPastDesireV1170(originalText);
+
+    if (twoProThirdPersonPastDesireResultV1170) {
+      console.log(
+        '[한영 제3자 과거 희망·욕구 성공 v11.70]',
+        {
+          query: originalText,
+          result: twoProThirdPersonPastDesireResultV1170.targetText,
+          engine: twoProThirdPersonPastDesireResultV1170.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProThirdPersonPastDesireResultV1170.targetText
+            ),
+          isReference: false,
+          analysis: twoProThirdPersonPastDesireResultV1170.analysis,
+          referenceWords:
+            twoProThirdPersonPastDesireResultV1170.referenceWords,
+          engine: twoProThirdPersonPastDesireResultV1170.engine,
+        },
+        referenceWords:
+          twoProThirdPersonPastDesireResultV1170.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.69-safe: 과거 희망·욕구 의문문 CORE
+    // Did / Didn't + 주어 + want to + 동사원형 질문을
+    // v11.68 평서문/일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProPastDesireQuestionResultV1169 =
+      twoProTryKoEnPastDesireQuestionV1169(originalText);
+
+    if (twoProPastDesireQuestionResultV1169) {
+      console.log(
+        '[한영 과거 희망·욕구 의문문 성공 v11.69]',
+        {
+          query: originalText,
+          result: twoProPastDesireQuestionResultV1169.targetText,
+          engine: twoProPastDesireQuestionResultV1169.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProPastDesireQuestionResultV1169.targetText
+            ),
+          isReference: false,
+          analysis: twoProPastDesireQuestionResultV1169.analysis,
+          referenceWords:
+            twoProPastDesireQuestionResultV1169.referenceWords,
+          engine: twoProPastDesireQuestionResultV1169.engine,
+        },
+        referenceWords:
+          twoProPastDesireQuestionResultV1169.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.68-safe: 과거 희망·욕구 "-고 싶었어요 / -고 싶지 않았어요" CORE
+    // wanted to / didn't want to + 동사원형을 일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProPastDesireResultV1168 =
+      twoProTryKoEnPastDesireV1168(originalText);
+
+    if (twoProPastDesireResultV1168) {
+      console.log(
+        '[한영 과거 희망·욕구 성공 v11.68]',
+        {
+          query: originalText,
+          result: twoProPastDesireResultV1168.targetText,
+          engine: twoProPastDesireResultV1168.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProPastDesireResultV1168.targetText
+            ),
+          isReference: false,
+          analysis: twoProPastDesireResultV1168.analysis,
+          referenceWords: twoProPastDesireResultV1168.referenceWords,
+          engine: twoProPastDesireResultV1168.engine,
+        },
+        referenceWords: twoProPastDesireResultV1168.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.67-safe: 제3자 희망·욕구 의문문 CORE
+    // Does/Do 및 Doesn't/Don't + 주어 + want to + 동사원형 질문을
+    // v11.66 평서문/일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProThirdPersonDesireQuestionResultV1167 =
+      twoProTryKoEnThirdPersonDesireQuestionV1167(originalText);
+
+    if (twoProThirdPersonDesireQuestionResultV1167) {
+      console.log(
+        '[한영 제3자 희망·욕구 의문문 성공 v11.67]',
+        {
+          query: originalText,
+          result: twoProThirdPersonDesireQuestionResultV1167.targetText,
+          engine: twoProThirdPersonDesireQuestionResultV1167.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProThirdPersonDesireQuestionResultV1167.targetText
+            ),
+          isReference: false,
+          analysis: twoProThirdPersonDesireQuestionResultV1167.analysis,
+          referenceWords:
+            twoProThirdPersonDesireQuestionResultV1167.referenceWords,
+          engine: twoProThirdPersonDesireQuestionResultV1167.engine,
+        },
+        referenceWords:
+          twoProThirdPersonDesireQuestionResultV1167.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.66-safe: 제3자 희망·욕구 "-고 싶어해요 / -고 싶어하지 않아요" CORE
+    // wants/want to 및 doesn't/don't want to + 동사원형을 일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProThirdPersonDesireResultV1166 =
+      twoProTryKoEnThirdPersonDesireV1166(originalText);
+
+    if (twoProThirdPersonDesireResultV1166) {
+      console.log(
+        '[한영 제3자 희망·욕구 성공 v11.66]',
+        {
+          query: originalText,
+          result: twoProThirdPersonDesireResultV1166.targetText,
+          engine: twoProThirdPersonDesireResultV1166.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProThirdPersonDesireResultV1166.targetText
+            ),
+          isReference: false,
+          analysis: twoProThirdPersonDesireResultV1166.analysis,
+          referenceWords:
+            twoProThirdPersonDesireResultV1166.referenceWords,
+          engine: twoProThirdPersonDesireResultV1166.engine,
+        },
+        referenceWords:
+          twoProThirdPersonDesireResultV1166.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.65-safe: 희망·욕구 "-고 싶어요 / -고 싶지 않아요" CORE
+    // want to / don't want to + 동사원형을 일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProBasicDesireResultV1165 =
+      twoProTryKoEnBasicDesireV1165(originalText);
+
+    if (twoProBasicDesireResultV1165) {
+      console.log(
+        '[한영 기본 희망·욕구 성공 v11.65]',
+        {
+          query: originalText,
+          result: twoProBasicDesireResultV1165.targetText,
+          engine: twoProBasicDesireResultV1165.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicDesireResultV1165.targetText
+            ),
+          isReference: false,
+          analysis: twoProBasicDesireResultV1165.analysis,
+          referenceWords: twoProBasicDesireResultV1165.referenceWords,
+          engine: twoProBasicDesireResultV1165.engine,
+        },
+        referenceWords: twoProBasicDesireResultV1165.referenceWords,
+      });
+    }
 
     // =================================================================
     // ☆ TwoPro v11.64-safe: 계획·의도 "-려고 해요?" 의문문 CORE
