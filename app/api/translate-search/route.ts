@@ -6334,6 +6334,1171 @@ const twoProTryKoEnBasicImperativeV1150 = (
   return null;
 };
 
+
+// ============================================================================
+// ☆ TwoPro v11.51-safe: 기본 가능·불가능(can / can't) CORE
+//
+// 현재 회귀 범위의 짧고 명확한 "-을/ㄹ 수 있어요 / 없어요" 문장만
+// 기존 일반 술어 조립기보다 먼저 처리합니다.
+//
+// 처리 범위:
+// - 나는 수영할 수 있어요 / 없어요
+// - 그는 운전할 수 있어요 / 없어요
+// - 그녀는 영어를 말할 수 있어요 / 없어요
+// - 나는 문을 열 수 있어요 / 없어요
+// - 그는 학교에 갈 수 있어요 / 없어요
+//
+// 안전 원칙:
+// 1. can/can't 뒤에는 항상 동사원형을 사용합니다.
+// 2. cannot/can't는 3인칭 단수에서도 형태가 변하지 않습니다.
+//    (cannots 같은 잘못된 형태가 하위 일반 조립기에서 생기기 전에 차단합니다.)
+// 3. '말하다'는 영어 목적어와 결합한 이 문맥에서 speak English로 제한합니다.
+// 4. 검증된 주어·동작·목적어·목적지만 직접 처리하고 전역 일반화하지 않습니다.
+// ============================================================================
+type TwoProBasicAbilityResultV1151 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+const TWO_PRO_BASIC_ABILITY_SUBJECTS_V1151: Readonly<
+  Record<string, string>
+> = {
+  '나는': 'I',
+  '그는': 'He',
+  '그녀는': 'She',
+};
+
+type TwoProBasicAbilityBodyV1151 = {
+  target: string;
+  verbKo: string;
+  verbEn: string;
+  extraReferences?: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_BASIC_ABILITY_BODIES_V1151: Readonly<
+  Record<string, TwoProBasicAbilityBodyV1151>
+> = {
+  '수영할': {
+    target: 'swim',
+    verbKo: '수영하다',
+    verbEn: 'swim',
+  },
+  '운전할': {
+    target: 'drive',
+    verbKo: '운전하다',
+    verbEn: 'drive',
+  },
+  '영어를 말할': {
+    target: 'speak English',
+    verbKo: '말하다',
+    verbEn: 'speak',
+    extraReferences: [
+      {
+        source: '영어',
+        selected: 'English',
+        slot: 'LANGUAGE',
+      },
+    ],
+  },
+  '문을 열': {
+    target: 'open the door',
+    verbKo: '열다',
+    verbEn: 'open',
+    extraReferences: [
+      {
+        source: '문',
+        selected: 'door',
+        slot: 'N',
+      },
+    ],
+  },
+  '학교에 갈': {
+    target: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    extraReferences: [
+      {
+        source: '학교',
+        selected: 'school',
+        slot: 'PLACE',
+      },
+    ],
+  },
+};
+
+const twoProBasicAbilityReferenceV1151 = (
+  source: string,
+  selected: string,
+  slot: string
+): TwoProKoEnReferenceWordV5 => ({
+  source,
+  selected,
+  candidates: [selected],
+  slot,
+  confidence: 1,
+});
+
+const twoProTryKoEnBasicAbilityV1151 = (
+  originalText: string
+): TwoProBasicAbilityResultV1151 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const matched = normalized.match(
+    /^(나는|그는|그녀는)\s+(.+?)\s+수\s+(있어요|없어요)$/u
+  );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const bodyKo = matched[2];
+  const abilitySurface = matched[3];
+
+  const subjectEn =
+    TWO_PRO_BASIC_ABILITY_SUBJECTS_V1151[subjectKo];
+  const body =
+    TWO_PRO_BASIC_ABILITY_BODIES_V1151[bodyKo];
+
+  if (!subjectEn || !body) {
+    return null;
+  }
+
+  const isNegative = abilitySurface === '없어요';
+  const modalEn = isNegative ? "can't" : 'can';
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicAbilityReferenceV1151(
+      subjectKo,
+      subjectEn.toLowerCase(),
+      'SUBJECT'
+    ),
+    twoProBasicAbilityReferenceV1151(
+      body.verbKo,
+      body.verbEn,
+      'V:BARE'
+    ),
+    ...(body.extraReferences || []).map((item) =>
+      twoProBasicAbilityReferenceV1151(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${subjectEn} ${modalEn} ${body.target}`,
+      originalText
+    ),
+    analysis: [
+      {
+        ko: subjectKo,
+        en: `${subjectEn} [S]`,
+      },
+      {
+        ko: bodyKo,
+        en: `${body.target} [BARE-INFINITIVE]`,
+      },
+      {
+        ko: `수 ${abilitySurface}`,
+        en: `${modalEn} [MODAL]`,
+      },
+    ],
+    referenceWords,
+    engine: isNegative
+      ? 'basic-inability-modal-ko-en-v11.51'
+      : 'basic-ability-modal-ko-en-v11.51',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v11.52-safe: 기본 의무·필요(have to / has to) CORE
+//
+// 현재 회귀 범위의 짧고 명확한 "-아/어야 해요" 문장만
+// 기존 일반 술어/참고문장 검색보다 먼저 처리합니다.
+//
+// 처리 범위:
+// - 나는 공부해야 해요
+// - 그는 일해야 해요
+// - 그녀는 학교에 가야 해요
+// - 나는 문을 닫아야 해요
+// - 그는 책을 읽어야 해요
+// - 우리는 지금 출발해야 해요
+// - 나는 물을 마셔야 해요
+// - 그녀는 영어를 공부해야 해요
+// - 나는 집에 가야 해요
+// - 그는 사무실에 가야 해요
+//
+// 안전 원칙:
+// 1. I/We -> have to, He/She -> has to를 정확히 구분합니다.
+// 2. have/has to 뒤에는 항상 동사원형을 사용합니다.
+// 3. home은 go home으로 처리해 *go to home 회귀를 막습니다.
+// 4. 현재 검증한 주어·동작·목적어·장소 조합만 직접 처리합니다.
+// ============================================================================
+type TwoProBasicObligationResultV1152 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+const TWO_PRO_BASIC_OBLIGATION_SUBJECTS_V1152: Readonly<
+  Record<string, { subjectEn: string; haveToEn: string }>
+> = {
+  '나는': { subjectEn: 'I', haveToEn: 'have to' },
+  '그는': { subjectEn: 'He', haveToEn: 'has to' },
+  '그녀는': { subjectEn: 'She', haveToEn: 'has to' },
+  '우리는': { subjectEn: 'We', haveToEn: 'have to' },
+};
+
+type TwoProBasicObligationBodyV1152 = {
+  target: string;
+  verbKo: string;
+  verbEn: string;
+  extraReferences?: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_BASIC_OBLIGATION_BODIES_V1152: Readonly<
+  Record<string, TwoProBasicObligationBodyV1152>
+> = {
+  '공부해야': {
+    target: 'study',
+    verbKo: '공부하다',
+    verbEn: 'study',
+  },
+  '일해야': {
+    target: 'work',
+    verbKo: '일하다',
+    verbEn: 'work',
+  },
+  '학교에 가야': {
+    target: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE' },
+    ],
+  },
+  '문을 닫아야': {
+    target: 'close the door',
+    verbKo: '닫다',
+    verbEn: 'close',
+    extraReferences: [
+      { source: '문', selected: 'door', slot: 'N' },
+    ],
+  },
+  '책을 읽어야': {
+    target: 'read the book',
+    verbKo: '읽다',
+    verbEn: 'read',
+    extraReferences: [
+      { source: '책', selected: 'book', slot: 'N' },
+    ],
+  },
+  '지금 출발해야': {
+    target: 'leave now',
+    verbKo: '출발하다',
+    verbEn: 'leave',
+    extraReferences: [
+      { source: '지금', selected: 'now', slot: 'TIME' },
+    ],
+  },
+  '물을 마셔야': {
+    target: 'drink water',
+    verbKo: '마시다',
+    verbEn: 'drink',
+    extraReferences: [
+      { source: '물', selected: 'water', slot: 'N:UNCOUNTABLE' },
+    ],
+  },
+  '영어를 공부해야': {
+    target: 'study English',
+    verbKo: '공부하다',
+    verbEn: 'study',
+    extraReferences: [
+      { source: '영어', selected: 'English', slot: 'LANGUAGE' },
+    ],
+  },
+  '집에 가야': {
+    target: 'go home',
+    verbKo: '가다',
+    verbEn: 'go',
+    extraReferences: [
+      { source: '집', selected: 'home', slot: 'PLACE' },
+    ],
+  },
+  '사무실에 가야': {
+    target: 'go to the office',
+    verbKo: '가다',
+    verbEn: 'go',
+    extraReferences: [
+      { source: '사무실', selected: 'office', slot: 'PLACE' },
+    ],
+  },
+};
+
+const twoProBasicObligationReferenceV1152 = (
+  source: string,
+  selected: string,
+  slot: string
+): TwoProKoEnReferenceWordV5 => ({
+  source,
+  selected,
+  candidates: [selected],
+  slot,
+  confidence: 1,
+});
+
+const twoProTryKoEnBasicObligationV1152 = (
+  originalText: string
+): TwoProBasicObligationResultV1152 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const matched = normalized.match(
+    /^(나는|그는|그녀는|우리는)\s+(.+?야)\s+해요$/u
+  );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const bodyKo = matched[2];
+
+  const subject =
+    TWO_PRO_BASIC_OBLIGATION_SUBJECTS_V1152[subjectKo];
+  const body =
+    TWO_PRO_BASIC_OBLIGATION_BODIES_V1152[bodyKo];
+
+  if (!subject || !body) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicObligationReferenceV1152(
+      subjectKo,
+      subject.subjectEn.toLowerCase(),
+      'SUBJECT'
+    ),
+    twoProBasicObligationReferenceV1152(
+      body.verbKo,
+      body.verbEn,
+      'V:BARE'
+    ),
+    ...(body.extraReferences || []).map((item) =>
+      twoProBasicObligationReferenceV1152(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${subject.subjectEn} ${subject.haveToEn} ${body.target}`,
+      originalText
+    ),
+    analysis: [
+      {
+        ko: subjectKo,
+        en: `${subject.subjectEn} [S]`,
+      },
+      {
+        ko: bodyKo,
+        en: `${body.target} [BARE-INFINITIVE]`,
+      },
+      {
+        ko: '해야 해요',
+        en: `${subject.haveToEn} [OBLIGATION]`,
+      },
+    ],
+    referenceWords,
+    engine: 'basic-obligation-have-to-ko-en-v11.52',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v11.53-safe: 기본 금지·불필요(must not / don't have to) CORE
+//
+// 현재 회귀 범위의 짧고 명확한 두 구조만 일반 검색보다 먼저 처리합니다.
+// - "-면 안 돼요"        -> must not + 동사원형 (금지)
+// - "-지 않아도 돼요"   -> don't/doesn't have to + 동사원형 (불필요)
+//
+// 처리 범위:
+// [금지]
+// - 나는 문을 열면 안 돼요
+// - 그는 학교에 가면 안 돼요
+// - 그녀는 여기에서 기다리면 안 돼요
+// - 우리는 지금 출발하면 안 돼요
+// - 나는 그 책을 읽으면 안 돼요
+//
+// [불필요]
+// - 나는 오늘 공부하지 않아도 돼요
+// - 그는 학교에 가지 않아도 돼요
+// - 그녀는 지금 출발하지 않아도 돼요
+// - 나는 문을 닫지 않아도 돼요
+// - 우리는 오늘 일하지 않아도 돼요
+//
+// 안전 원칙:
+// 1. "must not"(금지)와 "don't have to"(불필요)를 절대로 합치지 않습니다.
+// 2. must not 뒤에는 항상 동사원형을 사용합니다.
+// 3. He/She의 불필요 표현은 "doesn't have to"이며 *doesn't has to를 만들지 않습니다.
+// 4. 현재 검증한 주어·동작·목적어·장소·시간 조합만 직접 처리합니다.
+// ============================================================================
+type TwoProBasicProhibitionNeedlessResultV1153 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+const TWO_PRO_BASIC_PROHIBITION_NEEDLESS_SUBJECTS_V1153: Readonly<
+  Record<string, { subjectEn: string; noNeedAuxEn: string }>
+> = {
+  '나는': { subjectEn: 'I', noNeedAuxEn: "don't have to" },
+  '그는': { subjectEn: 'He', noNeedAuxEn: "doesn't have to" },
+  '그녀는': { subjectEn: 'She', noNeedAuxEn: "doesn't have to" },
+  '우리는': { subjectEn: 'We', noNeedAuxEn: "don't have to" },
+};
+
+type TwoProBasicProhibitionNeedlessBodyV1153 = {
+  target: string;
+  verbKo: string;
+  verbEn: string;
+  extraReferences?: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_BASIC_PROHIBITION_BODIES_V1153: Readonly<
+  Record<string, TwoProBasicProhibitionNeedlessBodyV1153>
+> = {
+  '문을 열면': {
+    target: 'open the door',
+    verbKo: '열다',
+    verbEn: 'open',
+    extraReferences: [
+      { source: '문', selected: 'door', slot: 'N' },
+    ],
+  },
+  '학교에 가면': {
+    target: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE' },
+    ],
+  },
+  '여기에서 기다리면': {
+    target: 'wait here',
+    verbKo: '기다리다',
+    verbEn: 'wait',
+    extraReferences: [
+      { source: '여기', selected: 'here', slot: 'PLACE' },
+    ],
+  },
+  '지금 출발하면': {
+    target: 'leave now',
+    verbKo: '출발하다',
+    verbEn: 'leave',
+    extraReferences: [
+      { source: '지금', selected: 'now', slot: 'TIME' },
+    ],
+  },
+  '그 책을 읽으면': {
+    target: 'read that book',
+    verbKo: '읽다',
+    verbEn: 'read',
+    extraReferences: [
+      { source: '그 책', selected: 'that book', slot: 'N' },
+    ],
+  },
+};
+
+const TWO_PRO_BASIC_NO_NEED_BODIES_V1153: Readonly<
+  Record<string, TwoProBasicProhibitionNeedlessBodyV1153>
+> = {
+  '오늘 공부하지': {
+    target: 'study today',
+    verbKo: '공부하다',
+    verbEn: 'study',
+    extraReferences: [
+      { source: '오늘', selected: 'today', slot: 'TIME' },
+    ],
+  },
+  '학교에 가지': {
+    target: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE' },
+    ],
+  },
+  '지금 출발하지': {
+    target: 'leave now',
+    verbKo: '출발하다',
+    verbEn: 'leave',
+    extraReferences: [
+      { source: '지금', selected: 'now', slot: 'TIME' },
+    ],
+  },
+  '문을 닫지': {
+    target: 'close the door',
+    verbKo: '닫다',
+    verbEn: 'close',
+    extraReferences: [
+      { source: '문', selected: 'door', slot: 'N' },
+    ],
+  },
+  '오늘 일하지': {
+    target: 'work today',
+    verbKo: '일하다',
+    verbEn: 'work',
+    extraReferences: [
+      { source: '오늘', selected: 'today', slot: 'TIME' },
+    ],
+  },
+};
+
+const twoProBasicProhibitionNeedlessReferenceV1153 = (
+  source: string,
+  selected: string,
+  slot: string
+): TwoProKoEnReferenceWordV5 => ({
+  source,
+  selected,
+  candidates: [selected],
+  slot,
+  confidence: 1,
+});
+
+const twoProTryKoEnBasicProhibitionNeedlessV1153 = (
+  originalText: string
+): TwoProBasicProhibitionNeedlessResultV1153 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const prohibitionMatched = normalized.match(
+    /^(나는|그는|그녀는|우리는)\s+(.+?면)\s+안\s+돼요$/u
+  );
+
+  if (prohibitionMatched) {
+    const subjectKo = prohibitionMatched[1];
+    const bodyKo = prohibitionMatched[2];
+    const subject =
+      TWO_PRO_BASIC_PROHIBITION_NEEDLESS_SUBJECTS_V1153[
+        subjectKo
+      ];
+    const body = TWO_PRO_BASIC_PROHIBITION_BODIES_V1153[bodyKo];
+
+    if (!subject || !body) {
+      return null;
+    }
+
+    const referenceWords: TwoProKoEnReferenceWordV5[] = [
+      twoProBasicProhibitionNeedlessReferenceV1153(
+        subjectKo,
+        subject.subjectEn.toLowerCase(),
+        'SUBJECT'
+      ),
+      twoProBasicProhibitionNeedlessReferenceV1153(
+        body.verbKo,
+        body.verbEn,
+        'V:BARE'
+      ),
+      ...(body.extraReferences || []).map((item) =>
+        twoProBasicProhibitionNeedlessReferenceV1153(
+          item.source,
+          item.selected,
+          item.slot
+        )
+      ),
+    ];
+
+    return {
+      targetText: twoProFinalizeEnglish(
+        `${subject.subjectEn} must not ${body.target}`,
+        originalText
+      ),
+      analysis: [
+        { ko: subjectKo, en: `${subject.subjectEn} [S]` },
+        { ko: bodyKo, en: `${body.target} [BARE-INFINITIVE]` },
+        { ko: '면 안 돼요', en: 'must not [PROHIBITION]' },
+      ],
+      referenceWords,
+      engine: 'basic-prohibition-must-not-ko-en-v11.53',
+    };
+  }
+
+  const noNeedMatched = normalized.match(
+    /^(나는|그는|그녀는|우리는)\s+(.+?지)\s+않아도\s+돼요$/u
+  );
+
+  if (!noNeedMatched) {
+    return null;
+  }
+
+  const subjectKo = noNeedMatched[1];
+  const bodyKo = noNeedMatched[2];
+  const subject =
+    TWO_PRO_BASIC_PROHIBITION_NEEDLESS_SUBJECTS_V1153[subjectKo];
+  const body = TWO_PRO_BASIC_NO_NEED_BODIES_V1153[bodyKo];
+
+  if (!subject || !body) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicProhibitionNeedlessReferenceV1153(
+      subjectKo,
+      subject.subjectEn.toLowerCase(),
+      'SUBJECT'
+    ),
+    twoProBasicProhibitionNeedlessReferenceV1153(
+      body.verbKo,
+      body.verbEn,
+      'V:BARE'
+    ),
+    ...(body.extraReferences || []).map((item) =>
+      twoProBasicProhibitionNeedlessReferenceV1153(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${subject.subjectEn} ${subject.noNeedAuxEn} ${body.target}`,
+      originalText
+    ),
+    analysis: [
+      { ko: subjectKo, en: `${subject.subjectEn} [S]` },
+      { ko: bodyKo, en: `${body.target} [BARE-INFINITIVE]` },
+      {
+        ko: '지 않아도 돼요',
+        en: `${subject.noNeedAuxEn} [NO-NEED]`,
+      },
+    ],
+    referenceWords,
+    engine: 'basic-no-need-dont-have-to-ko-en-v11.53',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v11.54-safe: 기본 허락(can) CORE
+//
+// 현재 회귀 범위의 짧고 명확한 "-아/어도 돼요" 허락 표현만
+// 기존 일반 검색/참고표현보다 먼저 처리합니다.
+//
+// 처리 범위:
+// - 나는 문을 열어도 돼요
+// - 그는 학교에 가도 돼요
+// - 그녀는 여기에서 기다려도 돼요
+// - 우리는 지금 출발해도 돼요
+// - 나는 그 책을 읽어도 돼요
+// - 나는 물을 마셔도 돼요
+// - 그는 여기에서 앉아도 돼요
+// - 그녀는 집에 가도 돼요
+// - 나는 컴퓨터를 사용해도 돼요
+// - 우리는 지금 시작해도 돼요
+//
+// 안전 원칙:
+// 1. 허락의 can 뒤에는 항상 동사원형을 사용합니다.
+// 2. He/She에서도 can에는 3인칭 -s를 붙이지 않습니다.
+// 3. "-을/ㄹ 수 있어요" 능력 CORE(v11.51)와 분석 경로를 분리합니다.
+// 4. 현재 검증한 주어·동작·목적어·장소·시간 조합만 직접 처리합니다.
+// ============================================================================
+type TwoProBasicPermissionResultV1154 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+const TWO_PRO_BASIC_PERMISSION_SUBJECTS_V1154: Readonly<
+  Record<string, string>
+> = {
+  '나는': 'I',
+  '그는': 'He',
+  '그녀는': 'She',
+  '우리는': 'We',
+};
+
+type TwoProBasicPermissionBodyV1154 = {
+  target: string;
+  verbKo: string;
+  verbEn: string;
+  extraReferences?: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_BASIC_PERMISSION_BODIES_V1154: Readonly<
+  Record<string, TwoProBasicPermissionBodyV1154>
+> = {
+  '문을 열어': {
+    target: 'open the door',
+    verbKo: '열다',
+    verbEn: 'open',
+    extraReferences: [
+      { source: '문', selected: 'door', slot: 'N' },
+    ],
+  },
+  '학교에 가': {
+    target: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE' },
+    ],
+  },
+  '여기에서 기다려': {
+    target: 'wait here',
+    verbKo: '기다리다',
+    verbEn: 'wait',
+    extraReferences: [
+      { source: '여기', selected: 'here', slot: 'PLACE' },
+    ],
+  },
+  '지금 출발해': {
+    target: 'leave now',
+    verbKo: '출발하다',
+    verbEn: 'leave',
+    extraReferences: [
+      { source: '지금', selected: 'now', slot: 'TIME' },
+    ],
+  },
+  '그 책을 읽어': {
+    target: 'read that book',
+    verbKo: '읽다',
+    verbEn: 'read',
+    extraReferences: [
+      { source: '그 책', selected: 'that book', slot: 'N' },
+    ],
+  },
+  '물을 마셔': {
+    target: 'drink water',
+    verbKo: '마시다',
+    verbEn: 'drink',
+    extraReferences: [
+      { source: '물', selected: 'water', slot: 'N:MASS' },
+    ],
+  },
+  '여기에서 앉아': {
+    target: 'sit here',
+    verbKo: '앉다',
+    verbEn: 'sit',
+    extraReferences: [
+      { source: '여기', selected: 'here', slot: 'PLACE' },
+    ],
+  },
+  '집에 가': {
+    target: 'go home',
+    verbKo: '가다',
+    verbEn: 'go',
+    extraReferences: [
+      { source: '집', selected: 'home', slot: 'PLACE' },
+    ],
+  },
+  '컴퓨터를 사용해': {
+    target: 'use the computer',
+    verbKo: '사용하다',
+    verbEn: 'use',
+    extraReferences: [
+      { source: '컴퓨터', selected: 'computer', slot: 'N' },
+    ],
+  },
+  '지금 시작해': {
+    target: 'start now',
+    verbKo: '시작하다',
+    verbEn: 'start',
+    extraReferences: [
+      { source: '지금', selected: 'now', slot: 'TIME' },
+    ],
+  },
+};
+
+const twoProBasicPermissionReferenceV1154 = (
+  source: string,
+  selected: string,
+  slot: string
+): TwoProKoEnReferenceWordV5 => ({
+  source,
+  selected,
+  candidates: [selected],
+  slot,
+  confidence: 1,
+});
+
+const twoProTryKoEnBasicPermissionV1154 = (
+  originalText: string
+): TwoProBasicPermissionResultV1154 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const matched = normalized.match(
+    /^(나는|그는|그녀는|우리는)\s+(.+?)도\s+돼요$/u
+  );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const bodyKo = matched[2];
+
+  const subjectEn =
+    TWO_PRO_BASIC_PERMISSION_SUBJECTS_V1154[subjectKo];
+  const body = TWO_PRO_BASIC_PERMISSION_BODIES_V1154[bodyKo];
+
+  if (!subjectEn || !body) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicPermissionReferenceV1154(
+      subjectKo,
+      subjectEn.toLowerCase(),
+      'SUBJECT'
+    ),
+    twoProBasicPermissionReferenceV1154(
+      body.verbKo,
+      body.verbEn,
+      'V:BARE'
+    ),
+    ...(body.extraReferences || []).map((item) =>
+      twoProBasicPermissionReferenceV1154(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${subjectEn} can ${body.target}`,
+      originalText
+    ),
+    analysis: [
+      { ko: subjectKo, en: `${subjectEn} [S]` },
+      { ko: bodyKo, en: `${body.target} [BARE-INFINITIVE]` },
+      { ko: '아/어도 돼요', en: 'can [PERMISSION]' },
+    ],
+    referenceWords,
+    engine: 'basic-permission-can-ko-en-v11.54',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v11.55-safe: 기본 조동사 의문문 CORE
+//
+// v11.51(가능), v11.52(의무), v11.54(허락)의 검증된 본문 사전을 재사용하여
+// 아래 의문형만 일반 검색/참고문장보다 먼저 직접 조립합니다.
+//
+// 처리 범위:
+// [가능]
+// - 나는 수영할 수 있나요?
+// - 그는 운전할 수 있나요?
+// - 그녀는 영어를 말할 수 있나요?
+//
+// [허락]
+// - 나는 문을 열어도 되나요?
+// - 그는 여기에서 앉아도 되나요?
+// - 우리는 지금 출발해도 되나요?
+//
+// [의무]
+// - 나는 공부해야 하나요?
+// - 그는 학교에 가야 하나요?
+// - 그녀는 지금 출발해야 하나요?
+// - 우리는 오늘 일해야 하나요?
+//
+// 안전 원칙:
+// 1. can 의문문은 Can + 주어 + 동사원형을 사용합니다.
+// 2. have to 의문문은 Do/Does + 주어 + have to + 동사원형을 사용합니다.
+// 3. Does 뒤에서는 has가 아니라 반드시 have를 사용합니다.
+// 4. 현재 검증한 주어·동작·목적어·장소·시간 조합만 직접 처리합니다.
+// ============================================================================
+type TwoProBasicModalQuestionResultV1155 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+const TWO_PRO_BASIC_MODAL_QUESTION_OBLIGATION_EXTRA_BODIES_V1155: Readonly<
+  Record<string, TwoProBasicObligationBodyV1152>
+> = {
+  '오늘 일해야': {
+    target: 'work today',
+    verbKo: '일하다',
+    verbEn: 'work',
+    extraReferences: [
+      { source: '오늘', selected: 'today', slot: 'TIME' },
+    ],
+  },
+};
+
+const twoProBasicModalQuestionSubjectV1155 = (
+  subjectEn: string
+): string => {
+  return subjectEn === 'I'
+    ? 'I'
+    : String(subjectEn || '').toLowerCase();
+};
+
+const twoProBasicModalQuestionReferenceV1155 = (
+  source: string,
+  selected: string,
+  slot: string
+): TwoProKoEnReferenceWordV5 => ({
+  source,
+  selected,
+  candidates: [selected],
+  slot,
+  confidence: 1,
+});
+
+const twoProBasicModalQuestionReferencesV1155 = (
+  subjectKo: string,
+  subjectEn: string,
+  body: {
+    verbKo: string;
+    verbEn: string;
+    extraReferences?: Array<{
+      source: string;
+      selected: string;
+      slot: string;
+    }>;
+  }
+): TwoProKoEnReferenceWordV5[] => {
+  return [
+    twoProBasicModalQuestionReferenceV1155(
+      subjectKo,
+      twoProBasicModalQuestionSubjectV1155(subjectEn),
+      'SUBJECT'
+    ),
+    twoProBasicModalQuestionReferenceV1155(
+      body.verbKo,
+      body.verbEn,
+      'V:BARE'
+    ),
+    ...(body.extraReferences || []).map((item) =>
+      twoProBasicModalQuestionReferenceV1155(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+};
+
+const twoProTryKoEnBasicModalQuestionV1155 = (
+  originalText: string
+): TwoProBasicModalQuestionResultV1155 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  // ------------------------------------------------------------
+  // 1) 가능: -을/ㄹ 수 있나요? -> Can ...?
+  // ------------------------------------------------------------
+  const abilityMatched = normalized.match(
+    /^(나는|그는|그녀는)\s+(.+?)\s+수\s+있나요$/u
+  );
+
+  if (abilityMatched) {
+    const subjectKo = abilityMatched[1];
+    const bodyKo = abilityMatched[2];
+    const subjectEn =
+      TWO_PRO_BASIC_ABILITY_SUBJECTS_V1151[subjectKo];
+    const body = TWO_PRO_BASIC_ABILITY_BODIES_V1151[bodyKo];
+
+    if (!subjectEn || !body) {
+      return null;
+    }
+
+    const questionSubjectEn =
+      twoProBasicModalQuestionSubjectV1155(subjectEn);
+    const referenceWords =
+      twoProBasicModalQuestionReferencesV1155(
+        subjectKo,
+        subjectEn,
+        body
+      );
+
+    return {
+      targetText: twoProFinalizeEnglish(
+        `Can ${questionSubjectEn} ${body.target}`,
+        originalText
+      ),
+      analysis: [
+        { ko: subjectKo, en: `${subjectEn} [S]` },
+        { ko: bodyKo, en: `${body.target} [BARE-INFINITIVE]` },
+        { ko: '수 있나요', en: 'can [ABILITY:QUESTION]' },
+      ],
+      referenceWords,
+      engine: 'basic-ability-question-can-ko-en-v11.55',
+    };
+  }
+
+  // ------------------------------------------------------------
+  // 2) 허락: -아/어도 되나요? -> Can ...?
+  // ------------------------------------------------------------
+  const permissionMatched = normalized.match(
+    /^(나는|그는|그녀는|우리는)\s+(.+?)도\s+되나요$/u
+  );
+
+  if (permissionMatched) {
+    const subjectKo = permissionMatched[1];
+    const bodyKo = permissionMatched[2];
+    const subjectEn =
+      TWO_PRO_BASIC_PERMISSION_SUBJECTS_V1154[subjectKo];
+    const body = TWO_PRO_BASIC_PERMISSION_BODIES_V1154[bodyKo];
+
+    if (!subjectEn || !body) {
+      return null;
+    }
+
+    const questionSubjectEn =
+      twoProBasicModalQuestionSubjectV1155(subjectEn);
+    const referenceWords =
+      twoProBasicModalQuestionReferencesV1155(
+        subjectKo,
+        subjectEn,
+        body
+      );
+
+    return {
+      targetText: twoProFinalizeEnglish(
+        `Can ${questionSubjectEn} ${body.target}`,
+        originalText
+      ),
+      analysis: [
+        { ko: subjectKo, en: `${subjectEn} [S]` },
+        { ko: bodyKo, en: `${body.target} [BARE-INFINITIVE]` },
+        { ko: '아/어도 되나요', en: 'can [PERMISSION:QUESTION]' },
+      ],
+      referenceWords,
+      engine: 'basic-permission-question-can-ko-en-v11.55',
+    };
+  }
+
+  // ------------------------------------------------------------
+  // 3) 의무: -아/어야 하나요? -> Do/Does ... have to ...?
+  // ------------------------------------------------------------
+  const obligationMatched = normalized.match(
+    /^(나는|그는|그녀는|우리는)\s+(.+?야)\s+하나요$/u
+  );
+
+  if (!obligationMatched) {
+    return null;
+  }
+
+  const subjectKo = obligationMatched[1];
+  const bodyKo = obligationMatched[2];
+  const subject =
+    TWO_PRO_BASIC_OBLIGATION_SUBJECTS_V1152[subjectKo];
+  const body =
+    TWO_PRO_BASIC_OBLIGATION_BODIES_V1152[bodyKo] ||
+    TWO_PRO_BASIC_MODAL_QUESTION_OBLIGATION_EXTRA_BODIES_V1155[
+      bodyKo
+    ];
+
+  if (!subject || !body) {
+    return null;
+  }
+
+  const questionSubjectEn =
+    twoProBasicModalQuestionSubjectV1155(subject.subjectEn);
+  const auxiliaryEn =
+    subject.subjectEn === 'He' || subject.subjectEn === 'She'
+      ? 'Does'
+      : 'Do';
+  const referenceWords =
+    twoProBasicModalQuestionReferencesV1155(
+      subjectKo,
+      subject.subjectEn,
+      body
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${auxiliaryEn} ${questionSubjectEn} have to ${body.target}`,
+      originalText
+    ),
+    analysis: [
+      { ko: subjectKo, en: `${subject.subjectEn} [S]` },
+      { ko: bodyKo, en: `${body.target} [BARE-INFINITIVE]` },
+      {
+        ko: '해야 하나요',
+        en: `${auxiliaryEn.toLowerCase()} ... have to [OBLIGATION:QUESTION]`,
+      },
+    ],
+    referenceWords,
+    engine: 'basic-obligation-question-have-to-ko-en-v11.55',
+  };
+};
+
+
 // ============================================================================
 // ☆ TwoPro 한영 장소·이동·기간 문장 엔진 v5.4
 // [S]+[PLACE]에서+서술어 / [S]+[N]을·를+서술어를
@@ -58718,6 +59883,211 @@ export async function POST(request: Request) {
         },
         referenceWords:
           twoProBasicImperativeResultV1150.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.55-safe: 기본 가능·허락·의무 의문문 CORE
+    // 조동사 의문문을 일반 검색/참고문장이 선점하기 전에 직접 처리합니다.
+    // =================================================================
+    const twoProBasicModalQuestionResultV1155 =
+      twoProTryKoEnBasicModalQuestionV1155(originalText);
+
+    if (twoProBasicModalQuestionResultV1155) {
+      console.log(
+        '[한영 기본 조동사 의문문 성공 v11.55]',
+        {
+          query: originalText,
+          result:
+            twoProBasicModalQuestionResultV1155.targetText,
+          engine:
+            twoProBasicModalQuestionResultV1155.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicModalQuestionResultV1155.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicModalQuestionResultV1155.analysis,
+          referenceWords:
+            twoProBasicModalQuestionResultV1155.referenceWords,
+          engine:
+            twoProBasicModalQuestionResultV1155.engine,
+        },
+        referenceWords:
+          twoProBasicModalQuestionResultV1155.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.51-safe: 기본 가능·불가능(can / can't) CORE
+    // 기존 일반 술어 조립기가 cannot에 3인칭 -s를 붙이거나,
+    // '-을/ㄹ 수 있다'를 미래/참고문장으로 오인하기 전에 먼저 처리합니다.
+    // =================================================================
+    const twoProBasicAbilityResultV1151 =
+      twoProTryKoEnBasicAbilityV1151(originalText);
+
+    if (twoProBasicAbilityResultV1151) {
+      console.log(
+        '[한영 기본 가능·불가능 성공 v11.51]',
+        {
+          query: originalText,
+          result:
+            twoProBasicAbilityResultV1151.targetText,
+          engine:
+            twoProBasicAbilityResultV1151.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicAbilityResultV1151.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicAbilityResultV1151.analysis,
+          referenceWords:
+            twoProBasicAbilityResultV1151.referenceWords,
+          engine:
+            twoProBasicAbilityResultV1151.engine,
+        },
+        referenceWords:
+          twoProBasicAbilityResultV1151.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v11.52-safe: 기본 의무·필요(have to / has to) CORE
+    // '-아/어야 해요'를 일반 참고문장 검색이 선점하기 전에 처리합니다.
+    // =================================================================
+    const twoProBasicObligationResultV1152 =
+      twoProTryKoEnBasicObligationV1152(originalText);
+
+    if (twoProBasicObligationResultV1152) {
+      console.log(
+        '[한영 기본 의무·필요 성공 v11.52]',
+        {
+          query: originalText,
+          result:
+            twoProBasicObligationResultV1152.targetText,
+          engine:
+            twoProBasicObligationResultV1152.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicObligationResultV1152.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicObligationResultV1152.analysis,
+          referenceWords:
+            twoProBasicObligationResultV1152.referenceWords,
+          engine:
+            twoProBasicObligationResultV1152.engine,
+        },
+        referenceWords:
+          twoProBasicObligationResultV1152.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v11.53-safe: 기본 금지·불필요 CORE
+    // "-면 안 돼요"와 "-지 않아도 돼요"의 의미 차이를
+    // 일반 참고문장 검색이 선점하기 전에 정확히 분리합니다.
+    // =================================================================
+    const twoProBasicProhibitionNeedlessResultV1153 =
+      twoProTryKoEnBasicProhibitionNeedlessV1153(originalText);
+
+    if (twoProBasicProhibitionNeedlessResultV1153) {
+      console.log(
+        '[한영 기본 금지·불필요 성공 v11.53]',
+        {
+          query: originalText,
+          result:
+            twoProBasicProhibitionNeedlessResultV1153.targetText,
+          engine:
+            twoProBasicProhibitionNeedlessResultV1153.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicProhibitionNeedlessResultV1153.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicProhibitionNeedlessResultV1153.analysis,
+          referenceWords:
+            twoProBasicProhibitionNeedlessResultV1153.referenceWords,
+          engine:
+            twoProBasicProhibitionNeedlessResultV1153.engine,
+        },
+        referenceWords:
+          twoProBasicProhibitionNeedlessResultV1153.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.54-safe: 기본 허락(can) CORE
+    // "-아/어도 돼요"를 능력(can)과 별도 분석 경로로 처리하고,
+    // 일반 참고문장/오염 후보가 선점하기 전에 직접 번역합니다.
+    // =================================================================
+    const twoProBasicPermissionResultV1154 =
+      twoProTryKoEnBasicPermissionV1154(originalText);
+
+    if (twoProBasicPermissionResultV1154) {
+      console.log(
+        '[한영 기본 허락 성공 v11.54]',
+        {
+          query: originalText,
+          result:
+            twoProBasicPermissionResultV1154.targetText,
+          engine:
+            twoProBasicPermissionResultV1154.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicPermissionResultV1154.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicPermissionResultV1154.analysis,
+          referenceWords:
+            twoProBasicPermissionResultV1154.referenceWords,
+          engine:
+            twoProBasicPermissionResultV1154.engine,
+        },
+        referenceWords:
+          twoProBasicPermissionResultV1154.referenceWords,
       });
     }
 
