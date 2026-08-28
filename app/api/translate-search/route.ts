@@ -10451,6 +10451,940 @@ const twoProTryKoEnPastNegativeIntentionV1174 = (
 };
 
 // ============================================================================
+// ☆ TwoPro v11.75-safe: 과거 부정 계획·의도 "-지 않으려고 했어요?" 의문문 CORE
+//
+// v11.74에서 검증된 동일한 10개 과거 부정 계획·의도 조합만 재사용하여
+// Wasn't/Weren't + 주어 + going to + 동사원형 의문문을 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. I/He/She는 Wasn't + 주어 + going to + 동사원형을 사용합니다.
+// 2. We는 Weren't + we + going to + 동사원형을 사용합니다.
+// 3. be동사 뒤 대명사 주어는 I를 제외하고 소문자를 사용합니다.
+// 4. 명시적 물음표가 있는 입력만 처리합니다.
+// 5. v11.74의 검증된 정확 일치 10개 조합 외에는 처리하지 않습니다.
+// 6. "-지 않으려고 했어요?"만 처리하며 "-려고 하지 않았어요?"와 혼동하지 않습니다.
+// ============================================================================
+const twoProTryKoEnPastNegativeIntentionQuestionV1175 = (
+  originalText: string
+): TwoProBasicIntentionQuestionResultV1164 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[?？]+\s*$/u, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_PAST_NEGATIVE_INTENTION_CASES_V1174[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const questionBeEn =
+    matched.negativePastBeEn === "weren't" ? "Weren't" : "Wasn't";
+  const subjectQuestionEn =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectQuestionEn,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${questionBeEn} ${subjectQuestionEn} going to ${matched.targetBody}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${subjectQuestionEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: '지 않으려고 했어요?',
+        en: `${questionBeEn} ... going to [INTENTION:PAST:NEGATIVE:QUESTION]`,
+      },
+    ],
+    referenceWords,
+    engine: 'past-negative-intention-going-to-question-ko-en-v11.75',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v11.76-safe: 현재 부정 계획·의도 "-지 않으려고 해요" CORE
+//
+// 현재 회귀에서 확인한 짧고 명확한 현재 부정 계획·의도 10문장만
+// 일반 검색/기존 유사 참고문장보다 먼저 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. I는 am not going to + 동사원형을 사용합니다.
+// 2. He/She는 is not going to + 동사원형을 사용합니다.
+// 3. We는 are not going to + 동사원형을 사용합니다.
+// 4. "-지 않으려고 해요"만 처리하며 "-려고 하지 않아요"와 혼동하지 않습니다.
+// 5. 현재 검증한 10개 조합만 정확 일치로 처리합니다.
+// 6. 명시적 물음표가 있는 입력은 처리하지 않아 향후 현재 부정 계획·의도 의문문 CORE와 충돌하지 않습니다.
+// 7. 기존 v11.63/v11.64 및 v11.72~v11.75 계획·의도 CORE는 수정하지 않습니다.
+// ============================================================================
+type TwoProCurrentNegativeIntentionCaseV1176 = {
+  subjectKo: '나는' | '그는' | '그녀는' | '우리는';
+  subjectEn: 'I' | 'He' | 'She' | 'We';
+  negativeBeEn: 'am not' | 'is not' | 'are not';
+  targetBody: string;
+  verbKo: string;
+  verbEn: string;
+  extraReferences?: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_CURRENT_NEGATIVE_INTENTION_CASES_V1176: Readonly<
+  Record<string, TwoProCurrentNegativeIntentionCaseV1176>
+> = {
+  '나는 학교에 가지 않으려고 해요': {
+    subjectKo: '나는', subjectEn: 'I', negativeBeEn: 'am not',
+    targetBody: 'go to school', verbKo: '가다', verbEn: 'go',
+    extraReferences: [{ source: '학교', selected: 'school', slot: 'PLACE:TO' }],
+  },
+  '그는 일하지 않으려고 해요': {
+    subjectKo: '그는', subjectEn: 'He', negativeBeEn: 'is not',
+    targetBody: 'work', verbKo: '일하다', verbEn: 'work',
+  },
+  '그녀는 책을 읽지 않으려고 해요': {
+    subjectKo: '그녀는', subjectEn: 'She', negativeBeEn: 'is not',
+    targetBody: 'read the book', verbKo: '읽다', verbEn: 'read',
+    extraReferences: [{ source: '책', selected: 'book', slot: 'OBJECT' }],
+  },
+  '우리는 출발하지 않으려고 해요': {
+    subjectKo: '우리는', subjectEn: 'We', negativeBeEn: 'are not',
+    targetBody: 'leave', verbKo: '출발하다', verbEn: 'leave',
+  },
+  '나는 문을 열지 않으려고 해요': {
+    subjectKo: '나는', subjectEn: 'I', negativeBeEn: 'am not',
+    targetBody: 'open the door', verbKo: '열다', verbEn: 'open',
+    extraReferences: [{ source: '문', selected: 'door', slot: 'OBJECT' }],
+  },
+  '나는 영어를 공부하지 않으려고 해요': {
+    subjectKo: '나는', subjectEn: 'I', negativeBeEn: 'am not',
+    targetBody: 'study English', verbKo: '공부하다', verbEn: 'study',
+    extraReferences: [{ source: '영어', selected: 'English', slot: 'OBJECT' }],
+  },
+  '그는 컴퓨터를 사용하지 않으려고 해요': {
+    subjectKo: '그는', subjectEn: 'He', negativeBeEn: 'is not',
+    targetBody: 'use the computer', verbKo: '사용하다', verbEn: 'use',
+    extraReferences: [{ source: '컴퓨터', selected: 'computer', slot: 'OBJECT' }],
+  },
+  '그녀는 집에 가지 않으려고 해요': {
+    subjectKo: '그녀는', subjectEn: 'She', negativeBeEn: 'is not',
+    targetBody: 'go home', verbKo: '가다', verbEn: 'go',
+    extraReferences: [{ source: '집', selected: 'home', slot: 'PLACE:TO' }],
+  },
+  '우리는 물을 마시지 않으려고 해요': {
+    subjectKo: '우리는', subjectEn: 'We', negativeBeEn: 'are not',
+    targetBody: 'drink water', verbKo: '마시다', verbEn: 'drink',
+    extraReferences: [{ source: '물', selected: 'water', slot: 'OBJECT:MASS' }],
+  },
+  '나는 민수에게 전화하지 않으려고 해요': {
+    subjectKo: '나는', subjectEn: 'I', negativeBeEn: 'am not',
+    targetBody: 'call Minsu', verbKo: '전화하다', verbEn: 'call',
+    extraReferences: [{ source: '민수', selected: 'Minsu', slot: 'PERSON:OBJECT' }],
+  },
+};
+
+const twoProTryKoEnCurrentNegativeIntentionV1176 = (
+  originalText: string
+): TwoProBasicIntentionResultV1163 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_CURRENT_NEGATIVE_INTENTION_CASES_V1176[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const subjectReference =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectReference,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${matched.subjectEn} ${matched.negativeBeEn} going to ${matched.targetBody}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: '지 않으려고 해요',
+        en: `${matched.negativeBeEn} going to [INTENTION:PRESENT:NEGATIVE]`,
+      },
+    ],
+    referenceWords,
+    engine: 'current-negative-intention-going-to-ko-en-v11.76',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v11.77-safe: 현재 부정 계획·의도 "-지 않으려고 해요?" 의문문 CORE
+//
+// v11.76에서 검증된 동일한 10개 현재 부정 계획·의도 조합만 재사용하여
+// Am/Is/Are + 주어 + not going to + 동사원형 의문문을 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. I는 Am I not going to + 동사원형을 사용합니다.
+// 2. He/She는 Is he/she not going to + 동사원형을 사용합니다.
+// 3. We는 Are we not going to + 동사원형을 사용합니다.
+// 4. be동사 뒤 대명사 주어는 I를 제외하고 소문자를 사용합니다.
+// 5. 명시적 물음표가 있는 입력만 처리합니다.
+// 6. v11.76의 검증된 정확 일치 10개 조합 외에는 처리하지 않습니다.
+// 7. "-지 않으려고 해요?"만 처리하며 "-려고 하지 않아요?"와 혼동하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCurrentNegativeIntentionQuestionV1177 = (
+  originalText: string
+): TwoProBasicIntentionQuestionResultV1164 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[?？]+\s*$/u, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_CURRENT_NEGATIVE_INTENTION_CASES_V1176[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const questionBeEn =
+    matched.negativeBeEn === 'am not'
+      ? 'Am'
+      : matched.negativeBeEn === 'are not'
+        ? 'Are'
+        : 'Is';
+
+  const subjectQuestionEn =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectQuestionEn,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${questionBeEn} ${subjectQuestionEn} not going to ${matched.targetBody}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${subjectQuestionEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: '지 않으려고 해요?',
+        en: `${questionBeEn} ... not going to [INTENTION:PRESENT:NEGATIVE:QUESTION]`,
+      },
+    ],
+    referenceWords,
+    engine: 'current-negative-intention-going-to-question-ko-en-v11.77',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v11.82-safe: 현재 노력·시도 부정 "-려고 노력하지 않아요" CORE
+//
+// v11.78에서 검증한 동일한 10개 노력·시도 조합을 현재 부정형으로만 확장합니다.
+// 일반 검색/유사 참고문장보다 먼저 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. I/We는 don't try to + 동사원형을 사용합니다.
+// 2. He/She는 doesn't try to + 동사원형을 사용합니다.
+// 3. doesn't 뒤에서는 tries가 아니라 반드시 try 원형을 사용합니다.
+// 4. "-려고 노력하지 않아요"와 "-지 않으려고 노력해요"를 합치지 않습니다.
+// 5. v11.78에서 검증한 10개 조합만 정확 일치로 처리합니다.
+// 6. 명시적 물음표가 있는 입력은 처리하지 않아 향후 부정 의문문 CORE와 충돌하지 않습니다.
+// 7. 기존 v11.63~v11.81 CORE는 수정하거나 삭제하지 않습니다.
+// ============================================================================
+const TWO_PRO_CURRENT_NEGATIVE_EFFORT_TO_CURRENT_KEY_V1182: Readonly<
+  Record<string, keyof typeof TWO_PRO_CURRENT_EFFORT_CASES_V1178>
+> = {
+  '나는 매일 공부하려고 노력하지 않아요': '나는 매일 공부하려고 노력해요',
+  '그는 일찍 일어나려고 노력하지 않아요': '그는 일찍 일어나려고 노력해요',
+  '그녀는 영어를 말하려고 노력하지 않아요': '그녀는 영어를 말하려고 노력해요',
+  '우리는 일찍 출발하려고 노력하지 않아요': '우리는 일찍 출발하려고 노력해요',
+  '나는 책을 읽으려고 노력하지 않아요': '나는 책을 읽으려고 노력해요',
+  '그는 천천히 운전하려고 노력하지 않아요': '그는 천천히 운전하려고 노력해요',
+  '그녀는 물을 많이 마시려고 노력하지 않아요': '그녀는 물을 많이 마시려고 노력해요',
+  '나는 매일 걸으려고 노력하지 않아요': '나는 매일 걸으려고 노력해요',
+  '우리는 영어를 사용하려고 노력하지 않아요': '우리는 영어를 사용하려고 노력해요',
+  '나는 문을 조용히 닫으려고 노력하지 않아요': '나는 문을 조용히 닫으려고 노력해요',
+};
+
+const twoProTryKoEnCurrentNegativeEffortV1182 = (
+  originalText: string
+): TwoProBasicIntentionResultV1163 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const currentKey =
+    TWO_PRO_CURRENT_NEGATIVE_EFFORT_TO_CURRENT_KEY_V1182[normalized];
+  if (!currentKey) {
+    return null;
+  }
+
+  const matched = TWO_PRO_CURRENT_EFFORT_CASES_V1178[currentKey];
+  if (!matched) {
+    return null;
+  }
+
+  const negativeAuxEn =
+    matched.subjectEn === 'He' || matched.subjectEn === 'She'
+      ? "doesn't"
+      : "don't";
+
+  const subjectReference =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectReference,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${matched.subjectEn} ${negativeAuxEn} try to ${matched.targetBody}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: '려고 노력하지 않아요',
+        en: `${negativeAuxEn} try to [EFFORT:PRESENT:NEGATIVE]`,
+      },
+    ],
+    referenceWords,
+    engine: 'current-negative-effort-dont-try-ko-en-v11.82',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v11.83-safe: 현재 노력·시도 부정 의문문 "-려고 노력하지 않아요?" CORE
+//
+// v11.82에서 검증한 동일한 10개 현재 노력·시도 부정 조합의 의문문만
+// 일반 검색/유사 참고문장보다 먼저 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. I/We는 Don't + 주어 + try to + 동사원형을 사용합니다.
+// 2. He/She는 Doesn't + 주어 + try to + 동사원형을 사용합니다.
+// 3. doesn't 뒤에서는 tries가 아니라 반드시 try 원형을 사용합니다.
+// 4. "-려고 노력하지 않아요?"와 "-지 않으려고 노력해요?"를 합치지 않습니다.
+// 5. v11.82에서 검증한 10개 조합만 정확 일치로 처리합니다.
+// 6. 명시적 물음표가 있는 입력만 처리하여 v11.82 평서문과 충돌하지 않습니다.
+// 7. 기존 v11.63~v11.82 CORE는 수정하거나 삭제하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCurrentNegativeEffortQuestionV1183 = (
+  originalText: string
+): TwoProBasicIntentionResultV1163 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[?？]+$/gu, '')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const currentKey =
+    TWO_PRO_CURRENT_NEGATIVE_EFFORT_TO_CURRENT_KEY_V1182[normalized];
+  if (!currentKey) {
+    return null;
+  }
+
+  const matched = TWO_PRO_CURRENT_EFFORT_CASES_V1178[currentKey];
+  if (!matched) {
+    return null;
+  }
+
+  const negativeAuxQuestionEn =
+    matched.subjectEn === 'He' || matched.subjectEn === 'She'
+      ? "Doesn't"
+      : "Don't";
+
+  const subjectQuestionEn =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectQuestionEn,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${negativeAuxQuestionEn} ${subjectQuestionEn} try to ${matched.targetBody}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${subjectQuestionEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: '려고 노력하지 않아요?',
+        en: `${negativeAuxQuestionEn} ... try to [EFFORT:PRESENT:NEGATIVE:QUESTION]`,
+      },
+    ],
+    referenceWords,
+    engine: 'current-negative-effort-dont-try-question-ko-en-v11.83',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v11.81-safe: 과거 노력·시도 "-려고 노력했어요?" 의문문 CORE
+//
+// v11.80에서 검증한 동일한 10개 과거 노력·시도 조합의 의문문만
+// 일반 검색/유사 참고문장보다 먼저 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. 모든 주어에서 Did + 주어 + try to + 동사원형을 사용합니다.
+// 2. did 뒤에서는 tried가 아니라 반드시 try 원형을 사용합니다.
+// 3. try to 뒤의 본동사도 반드시 동사원형을 유지합니다.
+// 4. v11.80에서 검증한 10개 조합만 정확 일치로 처리합니다.
+// 5. 명시적 물음표가 있는 입력만 처리하여 v11.80 평서문과 충돌하지 않습니다.
+// 6. 기존 v11.63~v11.80 CORE는 수정하거나 삭제하지 않습니다.
+// ============================================================================
+const twoProTryKoEnPastEffortQuestionV1181 = (
+  originalText: string
+): TwoProBasicIntentionResultV1163 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[?？]+$/gu, '')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const currentKey = TWO_PRO_PAST_EFFORT_TO_CURRENT_KEY_V1180[normalized];
+  if (!currentKey) {
+    return null;
+  }
+
+  const matched = TWO_PRO_CURRENT_EFFORT_CASES_V1178[currentKey];
+  if (!matched) {
+    return null;
+  }
+
+  const subjectQuestionEn =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectQuestionEn,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `Did ${subjectQuestionEn} try to ${matched.targetBody}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${subjectQuestionEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: '려고 노력했어요?',
+        en: 'Did ... try to [EFFORT:PAST:QUESTION]',
+      },
+    ],
+    referenceWords,
+    engine: 'past-effort-tried-to-question-ko-en-v11.81',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v11.80-safe: 과거 노력·시도 "-려고 노력했어요" CORE
+//
+// v11.78에서 검증한 동일한 10개 노력·시도 조합을 과거형으로만 확장합니다.
+// 일반 검색/유사 참고문장보다 먼저 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. 모든 주어에서 tried to + 동사원형을 사용합니다.
+// 2. tried 뒤에는 반드시 to + 동사원형을 사용합니다.
+// 3. 현재 검증한 10개 조합만 정확 일치로 처리합니다.
+// 4. 명시적 물음표가 있는 입력은 처리하지 않아 향후 과거 의문문 CORE와 충돌하지 않습니다.
+// 5. 기존 v11.63~v11.79 CORE는 수정하거나 삭제하지 않습니다.
+// ============================================================================
+const TWO_PRO_PAST_EFFORT_TO_CURRENT_KEY_V1180: Readonly<
+  Record<string, keyof typeof TWO_PRO_CURRENT_EFFORT_CASES_V1178>
+> = {
+  '나는 매일 공부하려고 노력했어요': '나는 매일 공부하려고 노력해요',
+  '그는 일찍 일어나려고 노력했어요': '그는 일찍 일어나려고 노력해요',
+  '그녀는 영어를 말하려고 노력했어요': '그녀는 영어를 말하려고 노력해요',
+  '우리는 일찍 출발하려고 노력했어요': '우리는 일찍 출발하려고 노력해요',
+  '나는 책을 읽으려고 노력했어요': '나는 책을 읽으려고 노력해요',
+  '그는 천천히 운전하려고 노력했어요': '그는 천천히 운전하려고 노력해요',
+  '그녀는 물을 많이 마시려고 노력했어요': '그녀는 물을 많이 마시려고 노력해요',
+  '나는 매일 걸으려고 노력했어요': '나는 매일 걸으려고 노력해요',
+  '우리는 영어를 사용하려고 노력했어요': '우리는 영어를 사용하려고 노력해요',
+  '나는 문을 조용히 닫으려고 노력했어요': '나는 문을 조용히 닫으려고 노력해요',
+};
+
+const twoProTryKoEnPastEffortV1180 = (
+  originalText: string
+): TwoProBasicIntentionResultV1163 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const currentKey = TWO_PRO_PAST_EFFORT_TO_CURRENT_KEY_V1180[normalized];
+  if (!currentKey) {
+    return null;
+  }
+
+  const matched = TWO_PRO_CURRENT_EFFORT_CASES_V1178[currentKey];
+  if (!matched) {
+    return null;
+  }
+
+  const subjectReference =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectReference,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${matched.subjectEn} tried to ${matched.targetBody}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: '려고 노력했어요',
+        en: 'tried to [EFFORT:PAST]',
+      },
+    ],
+    referenceWords,
+    engine: 'past-effort-tried-to-ko-en-v11.80',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v11.79-safe: 현재 노력·시도 "-려고 노력해요?" 의문문 CORE
+//
+// v11.78에서 검증한 동일한 10개 노력·시도 조합의 의문문만
+// 일반 검색/유사 참고문장보다 먼저 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. I/We는 Do + 주어 + try to + 동사원형을 사용합니다.
+// 2. He/She는 Does + 주어 + try to + 동사원형을 사용합니다.
+// 3. does 뒤에서도 tries가 아니라 반드시 try 원형을 사용합니다.
+// 4. 현재 검증한 v11.78의 10개 조합만 정확 일치로 처리합니다.
+// 5. 명시적 물음표가 있는 입력만 처리하여 v11.78 평서문과 충돌하지 않습니다.
+// 6. 기존 v11.63~v11.78 CORE는 수정하거나 삭제하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCurrentEffortQuestionV1179 = (
+  originalText: string
+): TwoProBasicIntentionResultV1163 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[?？]+$/gu, '')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_CURRENT_EFFORT_CASES_V1178[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const questionAuxEn =
+    matched.subjectEn === 'He' || matched.subjectEn === 'She'
+      ? 'Does'
+      : 'Do';
+
+  const subjectQuestionEn =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectQuestionEn,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${questionAuxEn} ${subjectQuestionEn} try to ${matched.targetBody}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${subjectQuestionEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: '려고 노력해요?',
+        en: `${questionAuxEn} ... try to [EFFORT:PRESENT:QUESTION]`,
+      },
+    ],
+    referenceWords,
+    engine: 'current-effort-try-to-question-ko-en-v11.79',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v11.78-safe: 현재 노력·시도 "-려고 노력해요" CORE
+//
+// 현재 회귀에서 확인한 짧고 명확한 노력·시도 10문장만
+// 일반 검색/기존 유사 참고문장보다 먼저 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. I/We는 try to + 동사원형을 사용합니다.
+// 2. He/She는 tries to + 동사원형을 사용합니다.
+// 3. try/tries to 뒤에는 항상 동사원형을 사용합니다.
+// 4. 현재 검증한 10개 조합만 정확 일치로 처리합니다.
+// 5. 명시적 물음표가 있는 입력은 처리하지 않아 향후 의문문 CORE와 충돌하지 않습니다.
+// 6. 기존 v11.63~v11.77 계획·의도/희망·욕구 CORE는 수정하지 않습니다.
+// ============================================================================
+type TwoProCurrentEffortCaseV1178 = {
+  subjectKo: '나는' | '그는' | '그녀는' | '우리는';
+  subjectEn: 'I' | 'He' | 'She' | 'We';
+  tryEn: 'try' | 'tries';
+  targetBody: string;
+  verbKo: string;
+  verbEn: string;
+  extraReferences?: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_CURRENT_EFFORT_CASES_V1178: Readonly<
+  Record<string, TwoProCurrentEffortCaseV1178>
+> = {
+  '나는 매일 공부하려고 노력해요': {
+    subjectKo: '나는', subjectEn: 'I', tryEn: 'try',
+    targetBody: 'study every day', verbKo: '공부하다', verbEn: 'study',
+    extraReferences: [{ source: '매일', selected: 'every day', slot: 'TIME:FREQUENCY' }],
+  },
+  '그는 일찍 일어나려고 노력해요': {
+    subjectKo: '그는', subjectEn: 'He', tryEn: 'tries',
+    targetBody: 'get up early', verbKo: '일어나다', verbEn: 'get up',
+    extraReferences: [{ source: '일찍', selected: 'early', slot: 'ADVERB' }],
+  },
+  '그녀는 영어를 말하려고 노력해요': {
+    subjectKo: '그녀는', subjectEn: 'She', tryEn: 'tries',
+    targetBody: 'speak English', verbKo: '말하다', verbEn: 'speak',
+    extraReferences: [{ source: '영어', selected: 'English', slot: 'OBJECT/LANGUAGE' }],
+  },
+  '우리는 일찍 출발하려고 노력해요': {
+    subjectKo: '우리는', subjectEn: 'We', tryEn: 'try',
+    targetBody: 'leave early', verbKo: '출발하다', verbEn: 'leave',
+    extraReferences: [{ source: '일찍', selected: 'early', slot: 'ADVERB' }],
+  },
+  '나는 책을 읽으려고 노력해요': {
+    subjectKo: '나는', subjectEn: 'I', tryEn: 'try',
+    targetBody: 'read the book', verbKo: '읽다', verbEn: 'read',
+    extraReferences: [{ source: '책', selected: 'book', slot: 'OBJECT' }],
+  },
+  '그는 천천히 운전하려고 노력해요': {
+    subjectKo: '그는', subjectEn: 'He', tryEn: 'tries',
+    targetBody: 'drive slowly', verbKo: '운전하다', verbEn: 'drive',
+    extraReferences: [{ source: '천천히', selected: 'slowly', slot: 'ADVERB' }],
+  },
+  '그녀는 물을 많이 마시려고 노력해요': {
+    subjectKo: '그녀는', subjectEn: 'She', tryEn: 'tries',
+    targetBody: 'drink a lot of water', verbKo: '마시다', verbEn: 'drink',
+    extraReferences: [{ source: '물', selected: 'water', slot: 'OBJECT:MASS' }],
+  },
+  '나는 매일 걸으려고 노력해요': {
+    subjectKo: '나는', subjectEn: 'I', tryEn: 'try',
+    targetBody: 'walk every day', verbKo: '걷다', verbEn: 'walk',
+    extraReferences: [{ source: '매일', selected: 'every day', slot: 'TIME:FREQUENCY' }],
+  },
+  '우리는 영어를 사용하려고 노력해요': {
+    subjectKo: '우리는', subjectEn: 'We', tryEn: 'try',
+    targetBody: 'use English', verbKo: '사용하다', verbEn: 'use',
+    extraReferences: [{ source: '영어', selected: 'English', slot: 'OBJECT/LANGUAGE' }],
+  },
+  '나는 문을 조용히 닫으려고 노력해요': {
+    subjectKo: '나는', subjectEn: 'I', tryEn: 'try',
+    targetBody: 'close the door quietly', verbKo: '닫다', verbEn: 'close',
+    extraReferences: [
+      { source: '문', selected: 'door', slot: 'OBJECT' },
+      { source: '조용히', selected: 'quietly', slot: 'ADVERB' },
+    ],
+  },
+};
+
+const twoProTryKoEnCurrentEffortV1178 = (
+  originalText: string
+): TwoProBasicIntentionResultV1163 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_CURRENT_EFFORT_CASES_V1178[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const subjectReference =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectReference,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${matched.subjectEn} ${matched.tryEn} to ${matched.targetBody}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: '려고 노력해요',
+        en: `${matched.tryEn} to [EFFORT:PRESENT]`,
+      },
+    ],
+    referenceWords,
+    engine: 'current-effort-try-to-ko-en-v11.78',
+  };
+};
+
+// ============================================================================
 // ☆ TwoPro 한영 장소·이동·기간 문장 엔진 v5.4
 // [S]+[PLACE]에서+서술어 / [S]+[N]을·를+서술어를
 // DB 유사 참고 문장보다 먼저 번역하며 에/에서와 이동 방향을 구분합니다.
@@ -62843,6 +63777,333 @@ export async function POST(request: Request) {
 
 
 
+
+
+
+    // =================================================================
+    // ☆ TwoPro v11.83-safe: 현재 노력·시도 부정 "-려고 노력하지 않아요?" 의문문 CORE
+    // Don't/Doesn't + 주어 + try to + 동사원형을 검증된 10문장에서
+    // 일반 검색/유사 참고문장보다 먼저 처리합니다.
+    // =================================================================
+    const twoProCurrentNegativeEffortQuestionResultV1183 =
+      twoProTryKoEnCurrentNegativeEffortQuestionV1183(originalText);
+
+    if (twoProCurrentNegativeEffortQuestionResultV1183) {
+      console.log(
+        '[한영 현재 노력·시도 부정 의문문 성공 v11.83]',
+        {
+          query: originalText,
+          result: twoProCurrentNegativeEffortQuestionResultV1183.targetText,
+          engine: twoProCurrentNegativeEffortQuestionResultV1183.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCurrentNegativeEffortQuestionResultV1183.targetText
+            ),
+          isReference: false,
+          analysis: twoProCurrentNegativeEffortQuestionResultV1183.analysis,
+          referenceWords:
+            twoProCurrentNegativeEffortQuestionResultV1183.referenceWords,
+          engine: twoProCurrentNegativeEffortQuestionResultV1183.engine,
+        },
+        referenceWords:
+          twoProCurrentNegativeEffortQuestionResultV1183.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.82-safe: 현재 노력·시도 부정 "-려고 노력하지 않아요" CORE
+    // don't/doesn't try to + 동사원형을 검증된 10문장에서
+    // 일반 검색/유사 참고문장보다 먼저 처리합니다.
+    // =================================================================
+    const twoProCurrentNegativeEffortResultV1182 =
+      twoProTryKoEnCurrentNegativeEffortV1182(originalText);
+
+    if (twoProCurrentNegativeEffortResultV1182) {
+      console.log(
+        '[한영 현재 노력·시도 부정 성공 v11.82]',
+        {
+          query: originalText,
+          result: twoProCurrentNegativeEffortResultV1182.targetText,
+          engine: twoProCurrentNegativeEffortResultV1182.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCurrentNegativeEffortResultV1182.targetText
+            ),
+          isReference: false,
+          analysis: twoProCurrentNegativeEffortResultV1182.analysis,
+          referenceWords: twoProCurrentNegativeEffortResultV1182.referenceWords,
+          engine: twoProCurrentNegativeEffortResultV1182.engine,
+        },
+        referenceWords: twoProCurrentNegativeEffortResultV1182.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.81-safe: 과거 노력·시도 "-려고 노력했어요?" 의문문 CORE
+    // Did + 주어 + try to + 동사원형을 검증된 10문장에서
+    // 일반 검색/유사 참고문장보다 먼저 처리합니다.
+    // =================================================================
+    const twoProPastEffortQuestionResultV1181 =
+      twoProTryKoEnPastEffortQuestionV1181(originalText);
+
+    if (twoProPastEffortQuestionResultV1181) {
+      console.log(
+        '[한영 과거 노력·시도 의문문 성공 v11.81]',
+        {
+          query: originalText,
+          result: twoProPastEffortQuestionResultV1181.targetText,
+          engine: twoProPastEffortQuestionResultV1181.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProPastEffortQuestionResultV1181.targetText
+            ),
+          isReference: false,
+          analysis: twoProPastEffortQuestionResultV1181.analysis,
+          referenceWords: twoProPastEffortQuestionResultV1181.referenceWords,
+          engine: twoProPastEffortQuestionResultV1181.engine,
+        },
+        referenceWords: twoProPastEffortQuestionResultV1181.referenceWords,
+      });
+    }
+
+
+
+    // =================================================================
+    // ☆ TwoPro v11.80-safe: 과거 노력·시도 "-려고 노력했어요" CORE
+    // tried to + 동사원형을 검증된 10문장에서
+    // 일반 검색/유사 참고문장보다 먼저 처리합니다.
+    // =================================================================
+    const twoProPastEffortResultV1180 =
+      twoProTryKoEnPastEffortV1180(originalText);
+
+    if (twoProPastEffortResultV1180) {
+      console.log(
+        '[한영 과거 노력·시도 성공 v11.80]',
+        {
+          query: originalText,
+          result: twoProPastEffortResultV1180.targetText,
+          engine: twoProPastEffortResultV1180.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProPastEffortResultV1180.targetText
+            ),
+          isReference: false,
+          analysis: twoProPastEffortResultV1180.analysis,
+          referenceWords: twoProPastEffortResultV1180.referenceWords,
+          engine: twoProPastEffortResultV1180.engine,
+        },
+        referenceWords: twoProPastEffortResultV1180.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.79-safe: 현재 노력·시도 "-려고 노력해요?" 의문문 CORE
+    // Do/Does + 주어 + try to + 동사원형 질문을
+    // v11.78 평서문/일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProCurrentEffortQuestionResultV1179 =
+      twoProTryKoEnCurrentEffortQuestionV1179(originalText);
+
+    if (twoProCurrentEffortQuestionResultV1179) {
+      console.log(
+        '[한영 현재 노력·시도 의문문 성공 v11.79]',
+        {
+          query: originalText,
+          result: twoProCurrentEffortQuestionResultV1179.targetText,
+          engine: twoProCurrentEffortQuestionResultV1179.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCurrentEffortQuestionResultV1179.targetText
+            ),
+          isReference: false,
+          analysis: twoProCurrentEffortQuestionResultV1179.analysis,
+          referenceWords: twoProCurrentEffortQuestionResultV1179.referenceWords,
+          engine: twoProCurrentEffortQuestionResultV1179.engine,
+        },
+        referenceWords: twoProCurrentEffortQuestionResultV1179.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.78-safe: 현재 노력·시도 "-려고 노력해요" CORE
+    // try/tries to + 동사원형을 검증된 10문장에서
+    // 일반 검색/유사 참고문장보다 먼저 처리합니다.
+    // =================================================================
+    const twoProCurrentEffortResultV1178 =
+      twoProTryKoEnCurrentEffortV1178(originalText);
+
+    if (twoProCurrentEffortResultV1178) {
+      console.log(
+        '[한영 현재 노력·시도 성공 v11.78]',
+        {
+          query: originalText,
+          result: twoProCurrentEffortResultV1178.targetText,
+          engine: twoProCurrentEffortResultV1178.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCurrentEffortResultV1178.targetText
+            ),
+          isReference: false,
+          analysis: twoProCurrentEffortResultV1178.analysis,
+          referenceWords: twoProCurrentEffortResultV1178.referenceWords,
+          engine: twoProCurrentEffortResultV1178.engine,
+        },
+        referenceWords: twoProCurrentEffortResultV1178.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.77-safe: 현재 부정 계획·의도 "-지 않으려고 해요?" 의문문 CORE
+    // Am/Is/Are + 주어 + not going to + 동사원형 질문을
+    // v11.76 평서문/일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProCurrentNegativeIntentionQuestionResultV1177 =
+      twoProTryKoEnCurrentNegativeIntentionQuestionV1177(originalText);
+
+    if (twoProCurrentNegativeIntentionQuestionResultV1177) {
+      console.log(
+        '[한영 현재 부정 계획·의도 의문문 성공 v11.77]',
+        {
+          query: originalText,
+          result: twoProCurrentNegativeIntentionQuestionResultV1177.targetText,
+          engine: twoProCurrentNegativeIntentionQuestionResultV1177.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCurrentNegativeIntentionQuestionResultV1177.targetText
+            ),
+          isReference: false,
+          analysis: twoProCurrentNegativeIntentionQuestionResultV1177.analysis,
+          referenceWords:
+            twoProCurrentNegativeIntentionQuestionResultV1177.referenceWords,
+          engine: twoProCurrentNegativeIntentionQuestionResultV1177.engine,
+        },
+        referenceWords:
+          twoProCurrentNegativeIntentionQuestionResultV1177.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.76-safe: 현재 부정 계획·의도 "-지 않으려고 해요" CORE
+    // am/is/are not going to + 동사원형을 검증된 10문장에서
+    // 일반 검색/유사 참고문장보다 먼저 처리합니다.
+    // =================================================================
+    const twoProCurrentNegativeIntentionResultV1176 =
+      twoProTryKoEnCurrentNegativeIntentionV1176(originalText);
+
+    if (twoProCurrentNegativeIntentionResultV1176) {
+      console.log(
+        '[한영 현재 부정 계획·의도 성공 v11.76]',
+        {
+          query: originalText,
+          result: twoProCurrentNegativeIntentionResultV1176.targetText,
+          engine: twoProCurrentNegativeIntentionResultV1176.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCurrentNegativeIntentionResultV1176.targetText
+            ),
+          isReference: false,
+          analysis: twoProCurrentNegativeIntentionResultV1176.analysis,
+          referenceWords:
+            twoProCurrentNegativeIntentionResultV1176.referenceWords,
+          engine: twoProCurrentNegativeIntentionResultV1176.engine,
+        },
+        referenceWords:
+          twoProCurrentNegativeIntentionResultV1176.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v11.75-safe: 과거 부정 계획·의도 "-지 않으려고 했어요?" 의문문 CORE
+    // Wasn't/Weren't + 주어 + going to + 동사원형 질문을
+    // v11.74 평서문/일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProPastNegativeIntentionQuestionResultV1175 =
+      twoProTryKoEnPastNegativeIntentionQuestionV1175(originalText);
+
+    if (twoProPastNegativeIntentionQuestionResultV1175) {
+      console.log(
+        '[한영 과거 부정 계획·의도 의문문 성공 v11.75]',
+        {
+          query: originalText,
+          result: twoProPastNegativeIntentionQuestionResultV1175.targetText,
+          engine: twoProPastNegativeIntentionQuestionResultV1175.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProPastNegativeIntentionQuestionResultV1175.targetText
+            ),
+          isReference: false,
+          analysis: twoProPastNegativeIntentionQuestionResultV1175.analysis,
+          referenceWords:
+            twoProPastNegativeIntentionQuestionResultV1175.referenceWords,
+          engine: twoProPastNegativeIntentionQuestionResultV1175.engine,
+        },
+        referenceWords:
+          twoProPastNegativeIntentionQuestionResultV1175.referenceWords,
+      });
+    }
 
     // =================================================================
     // ☆ TwoPro v11.74-safe: 과거 부정 계획·의도 "-지 않으려고 했어요" CORE
