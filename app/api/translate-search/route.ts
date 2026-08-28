@@ -11780,6 +11780,704 @@ const twoProTryKoEnCurrentPlanV1196 = (
 
 
 // ============================================================================
+// ☆ TwoPro v12.02-safe: 현재 계획 부정 "-할 계획이 아니에요" CORE
+//
+// v11.96에서 검증한 현재 계획 10개 조합을 그대로 재사용하여
+// I/We/They는 don't plan to, He/She는 doesn't plan to로 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. I/We/They는 don't plan to, He/She는 doesn't plan to를 사용합니다.
+// 2. don't/doesn't가 인칭을 담당하므로 뒤에서는 plans가 아니라 plan 원형을 사용합니다.
+// 3. plan to 뒤에는 반드시 동사원형을 사용합니다.
+// 4. v11.96에서 검증한 정확 일치 10개 조합만 재사용합니다.
+// 5. 명시적 물음표가 있는 입력은 처리하지 않아 향후 부정 계획 의문문 CORE와 충돌하지 않습니다.
+// 6. "-지 않을 계획이에요"(plan not to)와 의미가 달라 v12.00/v12.01과 분리합니다.
+// 7. "내일"과 "오늘"의 시간 부사 위치는 v11.96 targetBody를 그대로 유지합니다.
+// 8. v11.63~v12.01 및 기존 CORE는 수정하거나 삭제하지 않습니다.
+// ============================================================================
+const TWO_PRO_CURRENT_DONT_PLAN_CASES_V1202: Readonly<
+  Record<string, TwoProCurrentPlanCaseV1196>
+> = {
+  '나는 내일 학교에 갈 계획이 아니에요':
+    TWO_PRO_CURRENT_PLAN_CASES_V1196['나는 내일 학교에 갈 계획이에요'],
+  '그는 일찍 출발할 계획이 아니에요':
+    TWO_PRO_CURRENT_PLAN_CASES_V1196['그는 일찍 출발할 계획이에요'],
+  '그녀는 그 책을 읽을 계획이 아니에요':
+    TWO_PRO_CURRENT_PLAN_CASES_V1196['그녀는 그 책을 읽을 계획이에요'],
+  '우리는 영어를 공부할 계획이 아니에요':
+    TWO_PRO_CURRENT_PLAN_CASES_V1196['우리는 영어를 공부할 계획이에요'],
+  '나는 문을 닫을 계획이 아니에요':
+    TWO_PRO_CURRENT_PLAN_CASES_V1196['나는 문을 닫을 계획이에요'],
+  '그는 컴퓨터를 사용할 계획이 아니에요':
+    TWO_PRO_CURRENT_PLAN_CASES_V1196['그는 컴퓨터를 사용할 계획이에요'],
+  '그녀는 집에 갈 계획이 아니에요':
+    TWO_PRO_CURRENT_PLAN_CASES_V1196['그녀는 집에 갈 계획이에요'],
+  '우리는 물을 마실 계획이 아니에요':
+    TWO_PRO_CURRENT_PLAN_CASES_V1196['우리는 물을 마실 계획이에요'],
+  '나는 민수에게 전화할 계획이 아니에요':
+    TWO_PRO_CURRENT_PLAN_CASES_V1196['나는 민수에게 전화할 계획이에요'],
+  '그들은 오늘 일할 계획이 아니에요':
+    TWO_PRO_CURRENT_PLAN_CASES_V1196['그들은 오늘 일할 계획이에요'],
+};
+
+const twoProTryKoEnCurrentDontPlanV1202 = (
+  originalText: string
+): TwoProBasicIntentionResultV1163 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_CURRENT_DONT_PLAN_CASES_V1202[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const negativeAuxiliary =
+    matched.subjectEn === 'He' || matched.subjectEn === 'She'
+      ? "doesn't"
+      : "don't";
+
+  const subjectReference =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectReference,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${matched.subjectEn} ${negativeAuxiliary} plan to ${matched.targetBody}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: '할 계획이 아니에요',
+        en: `${negativeAuxiliary} plan to [V:BARE] [PLAN:PRESENT:NEGATIVE]`,
+      },
+    ],
+    referenceWords,
+    engine: 'current-plan-dont-plan-to-ko-en-v12.02',
+  };
+};
+
+
+
+// ============================================================================
+// ☆ TwoPro v12.04-safe: 현재 계획 부정 의문문 "-할 계획이 아니에요?" CORE
+//
+// v12.02에서 검증한 현재 계획 부정 10개 조합을 그대로 재사용하여
+// Don't/Doesn't + 주어 + plan to + 동사원형 의문문으로 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. I/We/They는 Don't, He/She는 Doesn't를 사용합니다.
+// 2. don't/doesn't가 인칭 일치를 담당하므로 뒤에서는 plans가 아니라 plan 원형을 사용합니다.
+// 3. plan to 뒤에는 반드시 동사원형을 사용합니다.
+// 4. v12.02에서 검증한 정확 일치 10개 조합만 재사용합니다.
+// 5. 명시적 물음표가 있는 입력만 처리하여 v12.02 평서문과 충돌하지 않습니다.
+// 6. "-지 않을 계획이에요?"(Do/Does ... plan not to ...?)와 의미가 달라 v12.01과 분리합니다.
+// 7. "내일"과 "오늘"의 시간 부사 위치는 v11.96 targetBody를 그대로 유지합니다.
+// 8. v11.63~v12.03 및 기존 CORE는 수정하거나 삭제하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCurrentDontPlanQuestionV1204 = (
+  originalText: string
+): TwoProBasicIntentionResultV1163 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[?？]\s*$/u, '')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_CURRENT_DONT_PLAN_CASES_V1202[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const negativeAuxiliary =
+    matched.subjectEn === 'He' || matched.subjectEn === 'She'
+      ? "Doesn't"
+      : "Don't";
+
+  const subjectQuestionEn =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const subjectReference =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectReference,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${negativeAuxiliary} ${subjectQuestionEn} plan to ${matched.targetBody}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: '할 계획이 아니에요?',
+        en: `${negativeAuxiliary} [S] plan to [V:BARE]? [PLAN:PRESENT:NEGATIVE:QUESTION]`,
+      },
+    ],
+    referenceWords,
+    engine: 'current-plan-dont-plan-to-question-ko-en-v12.04',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v12.05-safe: 과거 부정 보문 계획 "-지 않을 계획이었어요" CORE
+//
+// v11.98에서 검증한 과거 계획 10개 조합을 그대로 재사용하여
+// 모든 주어에서 planned not to + 동사원형으로 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. 모든 주어에서 planned not to + 동사원형을 사용합니다.
+// 2. planned not to 뒤에는 반드시 동사원형을 사용합니다.
+// 3. v11.98에서 검증한 정확 일치 10개 조합만 재사용합니다.
+// 4. 명시적 물음표가 있는 입력은 처리하지 않아 향후 과거 부정 계획 의문문 CORE와 충돌하지 않습니다.
+// 5. "다음 날"은 the next day, "그날"은 that day로 v11.98 targetBody를 그대로 유지합니다.
+// 6. "집에 가다"는 go home, "학교에 가다"는 go to school로 유지합니다.
+// 7. "-할 계획이 아니었어요"(didn't plan to)와 의미가 다르므로 이 CORE에서는 처리하지 않습니다.
+// 8. v11.63~v12.04 및 기존 CORE는 수정하거나 삭제하지 않습니다.
+// ============================================================================
+const TWO_PRO_PAST_PLAN_NOT_CASES_V1205: Readonly<
+  Record<string, TwoProPastPlanCaseV1198>
+> = {
+  '나는 다음 날 학교에 가지 않을 계획이었어요':
+    TWO_PRO_PAST_PLAN_CASES_V1198['나는 다음 날 학교에 갈 계획이었어요'],
+  '그는 일찍 출발하지 않을 계획이었어요':
+    TWO_PRO_PAST_PLAN_CASES_V1198['그는 일찍 출발할 계획이었어요'],
+  '그녀는 그 책을 읽지 않을 계획이었어요':
+    TWO_PRO_PAST_PLAN_CASES_V1198['그녀는 그 책을 읽을 계획이었어요'],
+  '우리는 영어를 공부하지 않을 계획이었어요':
+    TWO_PRO_PAST_PLAN_CASES_V1198['우리는 영어를 공부할 계획이었어요'],
+  '나는 문을 닫지 않을 계획이었어요':
+    TWO_PRO_PAST_PLAN_CASES_V1198['나는 문을 닫을 계획이었어요'],
+  '그는 컴퓨터를 사용하지 않을 계획이었어요':
+    TWO_PRO_PAST_PLAN_CASES_V1198['그는 컴퓨터를 사용할 계획이었어요'],
+  '그녀는 집에 가지 않을 계획이었어요':
+    TWO_PRO_PAST_PLAN_CASES_V1198['그녀는 집에 갈 계획이었어요'],
+  '우리는 물을 마시지 않을 계획이었어요':
+    TWO_PRO_PAST_PLAN_CASES_V1198['우리는 물을 마실 계획이었어요'],
+  '나는 민수에게 전화하지 않을 계획이었어요':
+    TWO_PRO_PAST_PLAN_CASES_V1198['나는 민수에게 전화할 계획이었어요'],
+  '그들은 그날 일하지 않을 계획이었어요':
+    TWO_PRO_PAST_PLAN_CASES_V1198['그들은 그날 일할 계획이었어요'],
+};
+
+const twoProTryKoEnPastPlanNotV1205 = (
+  originalText: string
+): TwoProBasicIntentionResultV1163 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_PAST_PLAN_NOT_CASES_V1205[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const subjectReference =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectReference,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${matched.subjectEn} planned not to ${matched.targetBody}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: '지 않을 계획이었어요',
+        en: 'planned not to [V:BARE] [PLAN:PAST:NEGATED-COMPLEMENT]',
+      },
+    ],
+    referenceWords,
+    engine: 'past-plan-planned-not-to-ko-en-v12.05',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v12.06-safe: 과거 부정 보문 계획 의문문 "-지 않을 계획이었어요?" CORE
+//
+// v12.05에서 검증한 과거 부정 보문 계획 10개 조합을 그대로 재사용하여
+// 모든 주어에서 Did + 주어 + plan not to + 동사원형? 으로 직접 조립합니다.
+//
+// 안전 원칙:
+// 1. 과거 의문문이므로 Did + 주어 + plan not to + 동사원형? 을 사용합니다.
+// 2. Did 뒤에서는 planned가 아니라 반드시 plan 원형을 사용합니다.
+// 3. plan not to 뒤에는 반드시 동사원형을 사용합니다.
+// 4. v12.05에서 검증한 정확 일치 10개 조합만 재사용합니다.
+// 5. 명시적 물음표가 있는 입력만 처리하여 v12.05 평서문과 충돌하지 않습니다.
+// 6. "다음 날"은 the next day, "그날"은 that day로 기존 targetBody를 그대로 유지합니다.
+// 7. "-할 계획이 아니었어요?"(Didn't ... plan to ...?)와 의미가 달라 별도 CORE로 유지합니다.
+// 8. v11.63~v12.05 및 기존 CORE는 수정하거나 삭제하지 않습니다.
+// ============================================================================
+const twoProTryKoEnPastPlanNotQuestionV1206 = (
+  originalText: string
+): TwoProBasicIntentionResultV1163 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[?？]+\s*$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_PAST_PLAN_NOT_CASES_V1205[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const subjectQuestion =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const subjectReference =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectReference,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `Did ${subjectQuestion} plan not to ${matched.targetBody}?`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: '지 않을 계획이었어요?',
+        en: 'Did [S] plan not to [V:BARE]? [PLAN:PAST:NEGATED-COMPLEMENT:QUESTION]',
+      },
+    ],
+    referenceWords,
+    engine: 'past-plan-planned-not-to-question-ko-en-v12.06',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v12.03-safe: 계획 CORE 회귀 누락 보완
+//
+// 이번 CORE 회귀에서 실제로 실패가 확인된 문장만 별도 exact-map으로 보완합니다.
+// 기존 v11.96/v11.98/v12.02의 검증된 10개 조합과 의문문 재사용 맵은 수정하지 않습니다.
+//
+// 안전 원칙:
+// 1. 현재 계획 부정 "-할 계획이 아니에요"는 don't/doesn't plan to + 동사원형.
+// 2. 과거 계획 "-할 계획이었어요"는 planned to + 동사원형.
+// 3. 이번 회귀에서 실패가 확인된 정확 일치 문장만 처리합니다.
+// 4. 물음표 입력은 처리하지 않아 기존 계획 의문문 CORE와 충돌하지 않습니다.
+// 5. 기존 성공 문장은 이 맵에 넣지 않아 기존 엔진 우선순위와 결과를 그대로 보존합니다.
+// ============================================================================
+type TwoProPlanRegressionCaseV1203 = {
+  subjectKo: '나는' | '그는' | '그녀는' | '우리는' | '그들은';
+  subjectEn: 'I' | 'He' | 'She' | 'We' | 'They';
+  targetBody: string;
+  verbKo: string;
+  verbEn: string;
+  mode: 'current-dont-plan' | 'past-plan';
+  extraReferences?: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_PLAN_REGRESSION_CASES_V1203: Readonly<
+  Record<string, TwoProPlanRegressionCaseV1203>
+> = {
+  // 현재 계획 부정: 이번 최소대조에서 실패가 확인된 2문장
+  '그는 출발할 계획이 아니에요': {
+    subjectKo: '그는',
+    subjectEn: 'He',
+    targetBody: 'leave',
+    verbKo: '출발하다',
+    verbEn: 'leave',
+    mode: 'current-dont-plan',
+  },
+  '나는 전화할 계획이 아니에요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'call',
+    verbKo: '전화하다',
+    verbEn: 'call',
+    mode: 'current-dont-plan',
+  },
+
+  // 과거 계획: 이번 회귀에서 추천 문장 번역 블록 미표시가 확인된 문장
+  '나는 학교에 갈 계획이었어요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    mode: 'past-plan',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+    ],
+  },
+  '나는 오늘 학교에 갈 계획이었어요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'go to school today',
+    verbKo: '가다',
+    verbEn: 'go',
+    mode: 'past-plan',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+      { source: '오늘', selected: 'today', slot: 'TIME' },
+    ],
+  },
+  '나는 내일 학교에 갈 계획이었어요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'go to school tomorrow',
+    verbKo: '가다',
+    verbEn: 'go',
+    mode: 'past-plan',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+      { source: '내일', selected: 'tomorrow', slot: 'TIME' },
+    ],
+  },
+  '나는 어제 학교에 갈 계획이었어요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'go to school yesterday',
+    verbKo: '가다',
+    verbEn: 'go',
+    mode: 'past-plan',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+      { source: '어제', selected: 'yesterday', slot: 'TIME' },
+    ],
+  },
+  '나는 어제 집에 갈 계획이었어요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'go home yesterday',
+    verbKo: '가다',
+    verbEn: 'go',
+    mode: 'past-plan',
+    extraReferences: [
+      { source: '집', selected: 'home', slot: 'PLACE:TO' },
+      { source: '어제', selected: 'yesterday', slot: 'TIME' },
+    ],
+  },
+  '나는 어제 일할 계획이었어요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'work yesterday',
+    verbKo: '일하다',
+    verbEn: 'work',
+    mode: 'past-plan',
+    extraReferences: [
+      { source: '어제', selected: 'yesterday', slot: 'TIME' },
+    ],
+  },
+  '나는 일할 계획이었어요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'work',
+    verbKo: '일하다',
+    verbEn: 'work',
+    mode: 'past-plan',
+  },
+  '나는 출발할 계획이었어요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'leave',
+    verbKo: '출발하다',
+    verbEn: 'leave',
+    mode: 'past-plan',
+  },
+  '나는 책을 읽을 계획이었어요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'read a book',
+    verbKo: '읽다',
+    verbEn: 'read',
+    mode: 'past-plan',
+    extraReferences: [
+      { source: '책', selected: 'book', slot: 'OBJECT' },
+    ],
+  },
+  '나는 물을 마실 계획이었어요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'drink water',
+    verbKo: '마시다',
+    verbEn: 'drink',
+    mode: 'past-plan',
+    extraReferences: [
+      { source: '물', selected: 'water', slot: 'OBJECT:MASS' },
+    ],
+  },
+  '나는 집에 갈 계획이었어요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'go home',
+    verbKo: '가다',
+    verbEn: 'go',
+    mode: 'past-plan',
+    extraReferences: [
+      { source: '집', selected: 'home', slot: 'PLACE:TO' },
+    ],
+  },
+  '그는 학교에 갈 계획이었어요': {
+    subjectKo: '그는',
+    subjectEn: 'He',
+    targetBody: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    mode: 'past-plan',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+    ],
+  },
+  '그는 출발할 계획이었어요': {
+    subjectKo: '그는',
+    subjectEn: 'He',
+    targetBody: 'leave',
+    verbKo: '출발하다',
+    verbEn: 'leave',
+    mode: 'past-plan',
+  },
+  '그녀는 책을 읽을 계획이었어요': {
+    subjectKo: '그녀는',
+    subjectEn: 'She',
+    targetBody: 'read a book',
+    verbKo: '읽다',
+    verbEn: 'read',
+    mode: 'past-plan',
+    extraReferences: [
+      { source: '책', selected: 'book', slot: 'OBJECT' },
+    ],
+  },
+  '나는 전화할 계획이었어요': {
+    subjectKo: '나는',
+    subjectEn: 'I',
+    targetBody: 'call',
+    verbKo: '전화하다',
+    verbEn: 'call',
+    mode: 'past-plan',
+  },
+};
+
+const twoProTryKoEnPlanRegressionV1203 = (
+  originalText: string
+): TwoProBasicIntentionResultV1163 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched = TWO_PRO_PLAN_REGRESSION_CASES_V1203[normalized];
+  if (!matched) {
+    return null;
+  }
+
+  const subjectReference =
+    matched.subjectEn === 'I'
+      ? 'I'
+      : matched.subjectEn.toLowerCase();
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicIntentionReferenceV1163(
+      matched.subjectKo,
+      subjectReference,
+      'SUBJECT'
+    ),
+    twoProBasicIntentionReferenceV1163(
+      matched.verbKo,
+      matched.verbEn,
+      'V:BARE'
+    ),
+    ...(matched.extraReferences || []).map((item) =>
+      twoProBasicIntentionReferenceV1163(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    ),
+  ];
+
+  if (matched.mode === 'current-dont-plan') {
+    const negativeAuxiliary =
+      matched.subjectEn === 'He' || matched.subjectEn === 'She'
+        ? "doesn't"
+        : "don't";
+
+    return {
+      targetText: twoProFinalizeEnglish(
+        `${matched.subjectEn} ${negativeAuxiliary} plan to ${matched.targetBody}`,
+        originalText
+      ),
+      analysis: [
+        { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+        { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+        {
+          ko: '할 계획이 아니에요',
+          en: `${negativeAuxiliary} plan to [V:BARE] [PLAN:PRESENT:NEGATIVE]`,
+        },
+      ],
+      referenceWords,
+      engine: 'plan-regression-current-dont-plan-ko-en-v12.03',
+    };
+  }
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      `${matched.subjectEn} planned to ${matched.targetBody}`,
+      originalText
+    ),
+    analysis: [
+      { ko: matched.subjectKo, en: `${matched.subjectEn} [S]` },
+      { ko: matched.verbKo, en: `${matched.verbEn} [BARE-INFINITIVE]` },
+      {
+        ko: '할 계획이었어요',
+        en: 'planned to [V:BARE] [PLAN:PAST]',
+      },
+    ],
+    referenceWords,
+    engine: 'plan-regression-past-plan-ko-en-v12.03',
+  };
+};
+
+
+// ============================================================================
 // ☆ TwoPro v11.90-safe: 과거 결정 "-기로 결정했어요" CORE
 //
 // 현재 회귀에서 확인한 짧고 명확한 과거 결정 10문장만
@@ -65747,6 +66445,188 @@ export async function POST(request: Request) {
       });
     }
 
+
+
+
+    // =================================================================
+    // ☆ TwoPro v12.06-safe: 과거 부정 보문 계획 의문문 "-지 않을 계획이었어요?" CORE
+    // Did + 주어 + plan not to + 동사원형? 을 v12.05에서 검증한
+    // 동일한 10개 조합의 의문문에서 일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProPastPlanNotQuestionResultV1206 =
+      twoProTryKoEnPastPlanNotQuestionV1206(originalText);
+
+    if (twoProPastPlanNotQuestionResultV1206) {
+      console.log(
+        '[한영 과거 부정 보문 계획 의문문 성공 v12.06]',
+        {
+          query: originalText,
+          result: twoProPastPlanNotQuestionResultV1206.targetText,
+          engine: twoProPastPlanNotQuestionResultV1206.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProPastPlanNotQuestionResultV1206.targetText
+            ),
+          isReference: false,
+          analysis: twoProPastPlanNotQuestionResultV1206.analysis,
+          referenceWords: twoProPastPlanNotQuestionResultV1206.referenceWords,
+          engine: twoProPastPlanNotQuestionResultV1206.engine,
+        },
+        referenceWords: twoProPastPlanNotQuestionResultV1206.referenceWords,
+      });
+    }
+
+
+
+    // =================================================================
+    // ☆ TwoPro v12.05-safe: 과거 부정 보문 계획 "-지 않을 계획이었어요" CORE
+    // 모든 주어에서 planned not to + 동사원형을 사용하며,
+    // v11.98에서 검증한 동일한 10개 조합을 일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProPastPlanNotResultV1205 =
+      twoProTryKoEnPastPlanNotV1205(originalText);
+
+    if (twoProPastPlanNotResultV1205) {
+      console.log(
+        '[한영 과거 부정 보문 계획 성공 v12.05]',
+        {
+          query: originalText,
+          result: twoProPastPlanNotResultV1205.targetText,
+          engine: twoProPastPlanNotResultV1205.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProPastPlanNotResultV1205.targetText
+            ),
+          isReference: false,
+          analysis: twoProPastPlanNotResultV1205.analysis,
+          referenceWords: twoProPastPlanNotResultV1205.referenceWords,
+          engine: twoProPastPlanNotResultV1205.engine,
+        },
+        referenceWords: twoProPastPlanNotResultV1205.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v12.04-safe: 현재 계획 부정 의문문 "-할 계획이 아니에요?" CORE
+    // Don't/Doesn't + 주어 + plan to + 동사원형을 v12.02에서 검증한
+    // 동일한 10개 조합의 의문문에서 일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProCurrentDontPlanQuestionResultV1204 =
+      twoProTryKoEnCurrentDontPlanQuestionV1204(originalText);
+
+    if (twoProCurrentDontPlanQuestionResultV1204) {
+      console.log(
+        '[한영 현재 계획 부정 의문문 성공 v12.04]',
+        {
+          query: originalText,
+          result: twoProCurrentDontPlanQuestionResultV1204.targetText,
+          engine: twoProCurrentDontPlanQuestionResultV1204.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCurrentDontPlanQuestionResultV1204.targetText
+            ),
+          isReference: false,
+          analysis: twoProCurrentDontPlanQuestionResultV1204.analysis,
+          referenceWords: twoProCurrentDontPlanQuestionResultV1204.referenceWords,
+          engine: twoProCurrentDontPlanQuestionResultV1204.engine,
+        },
+        referenceWords: twoProCurrentDontPlanQuestionResultV1204.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v12.03-safe: 계획 CORE 회귀 누락 보완
+    // 이번 회귀에서 실제 실패가 확인된 현재 계획 부정/과거 계획 exact 문장만
+    // 기존 v12.02/v11.98보다 먼저 처리합니다.
+    // =================================================================
+    const twoProPlanRegressionResultV1203 =
+      twoProTryKoEnPlanRegressionV1203(originalText);
+
+    if (twoProPlanRegressionResultV1203) {
+      console.log(
+        '[한영 계획 CORE 회귀 보완 성공 v12.03]',
+        {
+          query: originalText,
+          result: twoProPlanRegressionResultV1203.targetText,
+          engine: twoProPlanRegressionResultV1203.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProPlanRegressionResultV1203.targetText
+            ),
+          isReference: false,
+          analysis: twoProPlanRegressionResultV1203.analysis,
+          referenceWords: twoProPlanRegressionResultV1203.referenceWords,
+          engine: twoProPlanRegressionResultV1203.engine,
+        },
+        referenceWords: twoProPlanRegressionResultV1203.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v12.02-safe: 현재 계획 부정 "-할 계획이 아니에요" CORE
+    // I/We/They는 don't plan to, He/She는 doesn't plan to를 사용하며,
+    // v11.96에서 검증한 동일한 10개 조합을 일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProCurrentDontPlanResultV1202 =
+      twoProTryKoEnCurrentDontPlanV1202(originalText);
+
+    if (twoProCurrentDontPlanResultV1202) {
+      console.log(
+        '[한영 현재 계획 부정 성공 v12.02]',
+        {
+          query: originalText,
+          result: twoProCurrentDontPlanResultV1202.targetText,
+          engine: twoProCurrentDontPlanResultV1202.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCurrentDontPlanResultV1202.targetText
+            ),
+          isReference: false,
+          analysis: twoProCurrentDontPlanResultV1202.analysis,
+          referenceWords: twoProCurrentDontPlanResultV1202.referenceWords,
+          engine: twoProCurrentDontPlanResultV1202.engine,
+        },
+        referenceWords: twoProCurrentDontPlanResultV1202.referenceWords,
+      });
+    }
 
 
     // =================================================================
