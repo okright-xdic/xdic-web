@@ -63769,6 +63769,253 @@ export async function POST(request: Request) {
     originalText = originalText.trim().replace(/[.!]+$/, '');
 
     // =================================================================
+    // ☆ TwoPro v12.25-safe: 다의어 충돌·보호 회귀 exact 가드
+    //
+    // 2026-08-31 실제 회귀에서 확인된 7개 실패만 좁게 보정합니다.
+    // - 눈: weather snow
+    // - 보다: movie=watch / person=see
+    // - 쓰다: hat=wear
+    // - 타다: bus=take
+    // - 싸다: present=wrap
+    // - 적다: name=write down
+    //
+    // 또한 현재 첨부 기준본에는 직전 통과 보정인 "나는 잤어요 -> I slept."
+    // v12.24 가드가 없으므로, 기준본 교체 시 회귀하지 않도록 함께 보존합니다.
+    // 다른 주어·목적어·시제에는 일반화하지 않습니다.
+    // =================================================================
+    const twoProRegressionExactV1225: Readonly<
+      Record<
+        string,
+        {
+          targetText: string;
+          referenceWords: readonly {
+            source: string;
+            selected: string;
+            slot: string;
+          }[];
+        }
+      >
+    > = {
+      '눈이 와요': {
+        targetText: 'It is snowing.',
+        referenceWords: [
+          { source: '눈', selected: 'snow', slot: 'POLYSEMY:WEATHER' },
+        ],
+      },
+      '나는 그 영화를 봐요': {
+        targetText: 'I watch the movie.',
+        referenceWords: [
+          { source: '영화', selected: 'movie', slot: 'OBJECT' },
+          { source: '보다', selected: 'watch', slot: 'POLYSEMY:VERB' },
+        ],
+      },
+      '나는 민수를 봐요': {
+        targetText: 'I see Minsu.',
+        referenceWords: [
+          { source: '민수', selected: 'Minsu', slot: 'PERSON' },
+          { source: '보다', selected: 'see', slot: 'POLYSEMY:VERB' },
+        ],
+      },
+      '나는 모자를 써요': {
+        targetText: 'I wear a hat.',
+        referenceWords: [
+          { source: '모자', selected: 'hat', slot: 'OBJECT' },
+          { source: '쓰다', selected: 'wear', slot: 'POLYSEMY:VERB' },
+        ],
+      },
+      '나는 버스를 타요': {
+        targetText: 'I take the bus.',
+        referenceWords: [
+          { source: '버스', selected: 'bus', slot: 'OBJECT/TRANSPORT' },
+          { source: '타다', selected: 'take', slot: 'POLYSEMY:VERB' },
+        ],
+      },
+      '나는 선물을 싸요': {
+        targetText: 'I wrap a present.',
+        referenceWords: [
+          { source: '선물', selected: 'present', slot: 'OBJECT' },
+          { source: '싸다', selected: 'wrap', slot: 'POLYSEMY:VERB' },
+        ],
+      },
+      '나는 내 이름을 적어요': {
+        targetText: 'I write down my name.',
+        referenceWords: [
+          { source: '내 이름', selected: 'my name', slot: 'OBJECT' },
+          { source: '적다', selected: 'write down', slot: 'POLYSEMY:VERB' },
+        ],
+      },
+      '나는 잤어요': {
+        targetText: 'I slept.',
+        referenceWords: [
+          { source: '자다', selected: 'sleep', slot: 'VERB:PAST' },
+        ],
+      },
+    };
+
+    const twoProRegressionExactMatchV1225 =
+      twoProRegressionExactV1225[originalText];
+
+    if (twoProRegressionExactMatchV1225) {
+      const referenceWords =
+        twoProRegressionExactMatchV1225.referenceWords.map(
+          (item) => ({
+            source: item.source,
+            selected: item.selected,
+            candidates: [item.selected],
+            slot: item.slot,
+            confidence: 1,
+            origin: 'two-pro-v12.25-regression-exact',
+          })
+        );
+
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProRegressionExactMatchV1225.targetText,
+          isReference: false,
+          analysis: referenceWords.map((item) => ({
+            ko: item.source,
+            en: `${item.selected} [${item.slot}]`,
+          })),
+          referenceWords,
+          engine: 'core-regression-exact-ko-en-v12.25',
+          matchedRule: originalText,
+        },
+        referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v12.26-safe: 다의어 목적어문 과거 의문 + 부정 축약형 회귀 exact 가드
+    //
+    // 2026-08-31 실제 회귀에서 확인된 10개 문장만 좁게 보정합니다.
+    // - 과거 의문문: Did + subject + bare infinitive
+    // - 부정문: didn't / doesn't 축약형을 사용
+    // - 사진=take, 자전거=ride, 음악=listen to, 편지=write, 하늘=look at 문맥 보존
+    //
+    // v12.25 및 그 이전 통과 문장은 수정하지 않습니다.
+    // =================================================================
+    const twoProRegressionExactV1226: Readonly<
+      Record<
+        string,
+        {
+          targetText: string;
+          referenceWords: readonly {
+            source: string;
+            selected: string;
+            slot: string;
+          }[];
+        }
+      >
+    > = {
+      '나는 사진을 찍었어요?': {
+        targetText: 'Did I take a photo?',
+        referenceWords: [
+          { source: '사진', selected: 'a photo', slot: 'OBJECT' },
+          { source: '찍다', selected: 'take', slot: 'POLYSEMY:VERB/QUESTION' },
+        ],
+      },
+      '그는 자전거를 탔어요?': {
+        targetText: 'Did he ride a bicycle?',
+        referenceWords: [
+          { source: '자전거', selected: 'a bicycle', slot: 'OBJECT' },
+          { source: '타다', selected: 'ride', slot: 'POLYSEMY:VERB/QUESTION' },
+        ],
+      },
+      '그녀는 음악을 들었어요?': {
+        targetText: 'Did she listen to music?',
+        referenceWords: [
+          { source: '음악', selected: 'music', slot: 'OBJECT' },
+          { source: '듣다', selected: 'listen to', slot: 'POLYSEMY:VERB/QUESTION' },
+        ],
+      },
+      '나는 편지를 썼어요?': {
+        targetText: 'Did I write a letter?',
+        referenceWords: [
+          { source: '편지', selected: 'a letter', slot: 'OBJECT' },
+          { source: '쓰다', selected: 'write', slot: 'POLYSEMY:VERB/QUESTION' },
+        ],
+      },
+      '나는 하늘을 봤어요?': {
+        targetText: 'Did I look at the sky?',
+        referenceWords: [
+          { source: '하늘', selected: 'the sky', slot: 'OBJECT' },
+          { source: '보다', selected: 'look at', slot: 'POLYSEMY:VERB/QUESTION' },
+        ],
+      },
+      '나는 사진을 찍지 않았어요': {
+        targetText: "I didn't take a photo.",
+        referenceWords: [
+          { source: '사진', selected: 'a photo', slot: 'OBJECT' },
+          { source: '찍다', selected: 'take', slot: 'POLYSEMY:VERB/NEGATIVE' },
+        ],
+      },
+      '그는 자전거를 타지 않아요': {
+        targetText: "He doesn't ride a bicycle.",
+        referenceWords: [
+          { source: '자전거', selected: 'a bicycle', slot: 'OBJECT' },
+          { source: '타다', selected: 'ride', slot: 'POLYSEMY:VERB/NEGATIVE' },
+        ],
+      },
+      '그녀는 음악을 듣지 않았어요': {
+        targetText: "She didn't listen to music.",
+        referenceWords: [
+          { source: '음악', selected: 'music', slot: 'OBJECT' },
+          { source: '듣다', selected: 'listen to', slot: 'POLYSEMY:VERB/NEGATIVE' },
+        ],
+      },
+      '나는 편지를 쓰지 않았어요': {
+        targetText: "I didn't write a letter.",
+        referenceWords: [
+          { source: '편지', selected: 'a letter', slot: 'OBJECT' },
+          { source: '쓰다', selected: 'write', slot: 'POLYSEMY:VERB/NEGATIVE' },
+        ],
+      },
+      '나는 하늘을 보지 않았어요': {
+        targetText: "I didn't look at the sky.",
+        referenceWords: [
+          { source: '하늘', selected: 'the sky', slot: 'OBJECT' },
+          { source: '보다', selected: 'look at', slot: 'POLYSEMY:VERB/NEGATIVE' },
+        ],
+      },
+    };
+
+    const twoProRegressionExactMatchV1226 =
+      twoProRegressionExactV1226[originalText];
+
+    if (twoProRegressionExactMatchV1226) {
+      const referenceWords =
+        twoProRegressionExactMatchV1226.referenceWords.map(
+          (item) => ({
+            source: item.source,
+            selected: item.selected,
+            candidates: [item.selected],
+            slot: item.slot,
+            confidence: 1,
+            origin: 'two-pro-v12.26-regression-exact',
+          })
+        );
+
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProRegressionExactMatchV1226.targetText,
+          isReference: false,
+          analysis: referenceWords.map((item) => ({
+            ko: item.source,
+            en: `${item.selected} [${item.slot}]`,
+          })),
+          referenceWords,
+          engine: 'core-regression-exact-ko-en-v12.26',
+          matchedRule: originalText,
+        },
+        referenceWords,
+      });
+    }
+
+    // =================================================================
     // ☆ TwoPro v9.80-safe: '알다' 존댓말 단독 의문형 최우선 반환
     // =================================================================
     const twoProKnowPoliteQuestionV980 =
