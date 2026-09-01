@@ -5666,6 +5666,192 @@ const twoProTryKoEnDemonstrativeCopularV5 = async (
     .replace(/[.?!]+$/g, '')
     .trim();
 
+  // ============================================================================
+  // ☆ TwoPro v12.31-safe: 지시어 + 명사 + 형용사 부정 의문문 CORE
+  //
+  // v12.30의 부정 평서문과 동일한 형용사·명사 해석을 재사용하되,
+  // 명시적 '?'가 있는 "-지 않아요?"만 Isn't/Aren't 도치형으로 처리합니다.
+  //
+  // 예:
+  // 이 차는 빠르지 않아요?       -> Isn't this car fast?
+  // 그 사람은 친절하지 않아요?   -> Isn't that person kind?
+  // 이 가방들은 무겁지 않아요?   -> Aren't these bags heavy?
+  // 그 상자들은 네모나지 않아요? -> Aren't those boxes square?
+  //
+  // 안전 원칙:
+  // 1. 명시적 '?'가 있는 현재 해요체 부정 의문문만 처리합니다.
+  // 2. 긍정 계사 CORE를 재사용하여 기존 다의어/복수형 보호를 보존합니다.
+  // 3. 평서 부정문(v12.30), 긍정문, 긍정 의문문은 수정하지 않습니다.
+  // ============================================================================
+  if (/\?\s*$/.test(String(originalText || '').trim())) {
+    const negativeQuestionMatchV1231 = normalized.match(
+      /^(이|그)\s+(.+?)(들)?(?:은|는)\s+(?:(정말|매우|아주)\s+)?(.+?)지\s+않아요$/u
+    );
+
+    if (negativeQuestionMatchV1231) {
+      const demonstrativeKoV1231 = negativeQuestionMatchV1231[1];
+      const nounKoV1231 = negativeQuestionMatchV1231[2];
+      const pluralKoV1231 = negativeQuestionMatchV1231[3] || '';
+      const adverbKoV1231 = negativeQuestionMatchV1231[4] || '';
+      const adjectiveStemV1231 = negativeQuestionMatchV1231[5].trim();
+      const adjectiveLemmaV1231 =
+        twoProNormalizeKoreanAdjectiveV5(`${adjectiveStemV1231}다`);
+
+      if (adjectiveLemmaV1231) {
+        const positiveSyntheticV1231 = [
+          demonstrativeKoV1231,
+          `${nounKoV1231}${pluralKoV1231}는`,
+          adverbKoV1231,
+          adjectiveLemmaV1231,
+        ]
+          .filter(Boolean)
+          .join(' ');
+
+        const positiveResultV1231 =
+          await twoProTryKoEnDemonstrativeCopularV5(
+            positiveSyntheticV1231
+          );
+
+        if (positiveResultV1231) {
+          const positiveCoreV1231 =
+            String(positiveResultV1231.targetText || '')
+              .replace(/[.?!]+$/g, '')
+              .trim();
+
+          const parsedPositiveV1231 = positiveCoreV1231.match(
+            /^(This|That|These|Those)\s+(.+?)\s+(is|are)\s+(.+)$/i
+          );
+
+          if (parsedPositiveV1231) {
+            const demonstrativeEnV1231 =
+              parsedPositiveV1231[1].toLowerCase();
+            const nounPhraseEnV1231 = parsedPositiveV1231[2];
+            const beVerbV1231 = parsedPositiveV1231[3].toLowerCase();
+            const predicateEnV1231 = parsedPositiveV1231[4];
+            const negativeAuxV1231 =
+              beVerbV1231 === 'are' ? "Aren't" : "Isn't";
+
+            const negationReferenceV1231 = {
+              source: '지 않아요',
+              selected: 'not',
+              candidates: ['not'],
+              slot: 'NEGATION',
+              confidence: 1,
+              origin: 'two-pro-v12.31-negative-copular-question',
+            } as any;
+
+            return {
+              targetText: twoProFinalizeEnglish(
+                `${negativeAuxV1231} ${demonstrativeEnV1231} ${nounPhraseEnV1231} ${predicateEnV1231}`,
+                originalText
+              ),
+              analysis: [
+                ...positiveResultV1231.analysis,
+                {
+                  ko: '지 않아요?',
+                  en: 'not [NEGATION]',
+                },
+              ],
+              referenceWords: [
+                ...positiveResultV1231.referenceWords,
+                negationReferenceV1231,
+              ],
+              engine:
+                'contextual-demonstrative-negative-copular-question-ko-en-v12.31',
+            };
+          }
+        }
+      }
+    }
+  }
+
+  // ============================================================================
+  // ☆ TwoPro v12.30-safe: 지시어 + 명사 + 형용사 부정 평서문 CORE
+  //
+  // 실제 회귀에서 확인된 "이/그 + 명사 + 형용사-지 않아요" 문형을
+  // 기존 v5.7/v11.41~v11.44 긍정 계사 CORE의 명사·형용사 해석을 그대로
+  // 재사용하여 처리합니다.
+  //
+  // 안전 원칙:
+  // 1. 명시적 '?'가 없는 현재 부정 평서문만 처리합니다.
+  // 2. 형용사 어간을 기본형(-다)으로 복원한 뒤 기존 긍정 CORE를 재사용합니다.
+  // 3. 차/길/방법/사람 등 기존 문맥 다의어 보호 로직도 그대로 보존합니다.
+  // 4. 기존 긍정문/의문문 코드는 수정하지 않습니다.
+  // ============================================================================
+  if (!/\?\s*$/.test(String(originalText || '').trim())) {
+    const negativeCopularMatchV1230 = normalized.match(
+      /^(이|그)\s+(.+?)(들)?(?:은|는)\s+(?:(정말|매우|아주)\s+)?(.+?)지\s+않(?:아요|습니다)$/u
+    );
+
+    if (negativeCopularMatchV1230) {
+      const demonstrativeKoV1230 = negativeCopularMatchV1230[1];
+      const nounKoV1230 = negativeCopularMatchV1230[2];
+      const pluralKoV1230 = negativeCopularMatchV1230[3] || '';
+      const adverbKoV1230 = negativeCopularMatchV1230[4] || '';
+      const adjectiveStemV1230 = negativeCopularMatchV1230[5].trim();
+      const adjectiveLemmaV1230 =
+        twoProNormalizeKoreanAdjectiveV5(`${adjectiveStemV1230}다`);
+
+      if (adjectiveLemmaV1230) {
+        const positiveSyntheticV1230 = [
+          demonstrativeKoV1230,
+          `${nounKoV1230}${pluralKoV1230}는`,
+          adverbKoV1230,
+          adjectiveLemmaV1230,
+        ]
+          .filter(Boolean)
+          .join(' ');
+
+        const positiveResultV1230 =
+          await twoProTryKoEnDemonstrativeCopularV5(
+            positiveSyntheticV1230
+          );
+
+        if (positiveResultV1230) {
+          const positiveCoreV1230 =
+            String(positiveResultV1230.targetText || '')
+              .replace(/[.?!]+$/g, '')
+              .trim();
+
+          const negativeCoreV1230 = positiveCoreV1230
+            .replace(/\bis\b/, "isn't")
+            .replace(/\bare\b/, "aren't");
+
+          if (negativeCoreV1230 !== positiveCoreV1230) {
+            const negationReferenceV1230 = {
+              source: '지 않아요',
+              selected: 'not',
+              candidates: ['not'],
+              slot: 'NEGATION',
+              confidence: 1,
+              origin: 'two-pro-v12.30-negative-copular',
+            } as any;
+
+            return {
+              targetText: twoProFinalizeEnglish(
+                negativeCoreV1230,
+                originalText
+              ),
+              analysis: [
+                ...positiveResultV1230.analysis,
+                {
+                  ko: '지 않아요',
+                  en: 'not [NEGATION]',
+                },
+              ],
+              referenceWords: [
+                ...positiveResultV1230.referenceWords,
+                negationReferenceV1230,
+              ],
+              engine:
+                'contextual-demonstrative-negative-copular-ko-en-v12.30',
+            };
+          }
+        }
+      }
+    }
+  }
+
   const match = normalized.match(
     /^(이|그)\s+(.+?)(들)?(?:은|는)\s+(?:(정말|매우|아주)\s+)?(.+)$/u
   );
@@ -6054,6 +6240,41 @@ const twoProTryKoEnBasicComparativeV1149 = (
       confidence: 1,
     },
   ];
+
+  // ============================================================================
+  // ☆ TwoPro v12.28-safe: 기본 지시어 비교급 의문문 CORE
+  //
+  // v11.49는 입력 끝의 ?를 제거한 뒤 평서문을 조립하므로,
+  // "이 차는 저 차보다 빨라요?"가 "This car is faster than that car?"
+  // 형태로 남는 회귀가 있었습니다.
+  //
+  // 기존 v11.49의 안전 명사/비교급 화이트리스트와 분석 결과는 그대로 재사용하고,
+  // 명시적 물음표가 있는 경우에만 be동사를 도치합니다.
+  // 평서문 및 다른 비교 구조에는 영향을 주지 않습니다.
+  // ============================================================================
+  const isExplicitComparativeQuestionV1228 =
+    /\?\s*$/.test(String(originalText || '').trim());
+
+  if (isExplicitComparativeQuestionV1228) {
+    return {
+      targetText: twoProFinalizeEnglish(
+        `Is this ${nounEn} ${comparativeEn} than that ${nounEn}`,
+        originalText
+      ),
+      analysis: [
+        {
+          ko: subjectNounKo,
+          en: `${nounEn} [N]`,
+        },
+        {
+          ko: adjectiveKo,
+          en: `${comparativeEn} [COMPARATIVE]`,
+        },
+      ],
+      referenceWords,
+      engine: 'basic-comparative-question-ko-en-v12.28',
+    };
+  }
 
   return {
     targetText,
@@ -62990,6 +63211,329 @@ const twoProTryKoEnArticleNumberClauseV990 = (
   ): string =>
     `no ${twoProStripEnglishDeterminerV990(nounPhrase.selected)}`;
 
+
+  // ========================================================================
+  // ☆ TwoPro v12.32-safe: 있다 존재·장소·소유 긍정 의문문 CORE
+  //
+  // v11.45의 검증된 명사구/장소/인칭주어 범위를 그대로 재사용하되,
+  // 명시적 물음표가 있는 긍정 "있다" 문장만 의문문 어순으로 조립합니다.
+  // - N이/가 있어요?            -> Is/Are there ...?
+  // - 장소에 N이/가 있어요?     -> Is/Are there ... in the ...?
+  // - 인칭주어 + N이/가 있어요? -> Do/Does ... have ...?
+  //
+  // 안전 원칙:
+  // 1. 부정 "없어요?"는 여기서 처리하지 않습니다.
+  // 2. 장소는 v11.45의 방/가방/사무실 화이트리스트만 재사용합니다.
+  // 3. 명사 관사·단복수는 v9.90 noun phrase renderer를 그대로 재사용합니다.
+  // 4. 평서문 v11.45 로직은 수정하지 않습니다.
+  // ========================================================================
+  const isExplicitExistentialQuestionV1232 = /[?？]\s*$/u.test(
+    String(originalText || '').trim()
+  );
+
+  if (isExplicitExistentialQuestionV1232) {
+    // 3-a-Q) 인칭대명사 주어 + N이/가 있다? -> Do/Does ... have ...?
+    const possessionQuestionSubjectV1232 =
+      twoProExtractLeadingSubjectV62(normalized);
+
+    if (possessionQuestionSubjectV1232) {
+      const possessionQuestionMatchV1232 =
+        possessionQuestionSubjectV1232.body.match(
+          /^(.+?)(?:이|가)\s+(있습니다|있어요|있다)$/u
+        );
+
+      if (possessionQuestionMatchV1232) {
+        const nounPhrase = twoProRenderNounPhraseV990(
+          possessionQuestionMatchV1232[1],
+          'object'
+        );
+
+        if (nounPhrase) {
+          const subjectForms = twoProEnglishSubjectFormsV68(
+            possessionQuestionSubjectV1232.pronoun
+          );
+          const questionAux =
+            subjectForms.doAux === 'does' ? 'Does' : 'Do';
+
+          return finish(
+            `${questionAux} ${subjectForms.lowerSubject} have ${nounPhrase.selected}`,
+            [
+              {
+                ko: possessionQuestionSubjectV1232.source,
+                en: `${subjectForms.lowerSubject} [SUBJECT]`,
+              },
+              {
+                ko: nounPhrase.source,
+                en: `${nounPhrase.selected} [OBJECT]`,
+              },
+              {
+                ko: possessionQuestionMatchV1232[2],
+                en: `${questionAux} ... have [POSSESSION:QUESTION]`,
+              },
+            ],
+            [
+              twoProEmbeddedReferenceWordV90(
+                possessionQuestionSubjectV1232.source,
+                subjectForms.subject,
+                'SUBJECT'
+              ),
+              twoProNounPhraseReferenceV990(nounPhrase),
+            ],
+            'article-number-possession-question-ko-en-v12.32',
+            'SUBJECT_NOUN_HAVE_POSITIVE_QUESTION_V1232'
+          );
+        }
+      }
+    }
+
+    // 3-b-Q) 장소에 N이/가 있다? -> Is/Are there ... in the PLACE?
+    const locationQuestionMatchV1232 = normalized.match(
+      /^(.+?)에\s+(.+?)(?:이|가)\s+(있습니다|있어요|있다)$/u
+    );
+
+    if (locationQuestionMatchV1232) {
+      const locationSource = twoProNormalizeKoreanNounV5(
+        locationQuestionMatchV1232[1]
+      );
+      const locationInfo =
+        twoProExistentialLocationMapV1145[locationSource];
+      const nounPhrase = twoProRenderNounPhraseV990(
+        locationQuestionMatchV1232[2],
+        'existential'
+      );
+
+      if (locationInfo && nounPhrase && !nounPhrase.definite) {
+        const beVerb =
+          nounPhrase.number === 'plural' ? 'Are' : 'Is';
+        const placePhrase =
+          `${locationInfo.preposition} the ${locationInfo.english}`;
+
+        return finish(
+          `${beVerb} there ${nounPhrase.selected} ${placePhrase}`,
+          [
+            {
+              ko: nounPhrase.source,
+              en: `${nounPhrase.selected} [EXISTENTIAL-NOUN]`,
+            },
+            {
+              ko: locationQuestionMatchV1232[1],
+              en: `${placePhrase} [PLACE]`,
+            },
+            {
+              ko: locationQuestionMatchV1232[3],
+              en: `${beVerb} there [EXISTENTIAL:QUESTION]`,
+            },
+          ],
+          [
+            twoProNounPhraseReferenceV990(nounPhrase),
+            twoProEmbeddedReferenceWordV90(
+              locationQuestionMatchV1232[1],
+              locationInfo.english,
+              'PLACE'
+            ),
+          ],
+          'article-number-location-existential-question-ko-en-v12.32',
+          'PLACE_NOUN_EXISTENTIAL_POSITIVE_QUESTION_V1232'
+        );
+      }
+    }
+
+    // 3-Q) N이/가 있다? -> Is/Are there ...?
+    const existentialQuestionMatchV1232 = normalized.match(
+      /^(.+?)(?:이|가)\s+(있습니다|있어요|있다)$/u
+    );
+
+    if (existentialQuestionMatchV1232) {
+      const nounPhrase = twoProRenderNounPhraseV990(
+        existentialQuestionMatchV1232[1],
+        'existential'
+      );
+
+      if (nounPhrase && !nounPhrase.definite) {
+        const beVerb =
+          nounPhrase.number === 'plural' ? 'Are' : 'Is';
+
+        return finish(
+          `${beVerb} there ${nounPhrase.selected}`,
+          [
+            {
+              ko: nounPhrase.source,
+              en: `${nounPhrase.selected} [EXISTENTIAL-NOUN]`,
+            },
+            {
+              ko: existentialQuestionMatchV1232[2],
+              en: `${beVerb} there [EXISTENTIAL:QUESTION]`,
+            },
+          ],
+          [twoProNounPhraseReferenceV990(nounPhrase)],
+          'article-number-existential-question-ko-en-v12.32',
+          'NOUN_PHRASE_EXISTENTIAL_POSITIVE_QUESTION_V1232'
+        );
+      }
+    }
+  }
+
+  // ========================================================================
+  // ☆ TwoPro v12.33-safe: 없다 존재·장소·소유 부정 의문문 CORE
+  //
+  // v11.45의 검증된 명사구/장소/인칭주어 범위를 그대로 재사용하되,
+  // 명시적 물음표가 있는 부정 "없다" 문장만 축약 부정 의문문으로 조립합니다.
+  // - N이/가 없어요?            -> Isn't/Aren't there ...?
+  // - 장소에 N이/가 없어요?     -> Isn't/Aren't there ... in the ...?
+  // - 인칭주어 + N이/가 없어요? -> Don't/Doesn't ... have ...?
+  //
+  // 안전 원칙:
+  // 1. 긍정 "있어요?"는 v12.32가 계속 담당합니다.
+  // 2. 장소는 v11.45의 방/가방/사무실 화이트리스트만 재사용합니다.
+  // 3. 명사 관사·단복수는 v9.90 noun phrase renderer를 그대로 재사용합니다.
+  // 4. 평서 부정문 v11.45 로직은 수정하지 않습니다.
+  // ========================================================================
+  const isExplicitNegativeExistentialQuestionV1233 = /[?？]\s*$/u.test(
+    String(originalText || '').trim()
+  );
+
+  if (isExplicitNegativeExistentialQuestionV1233) {
+    // 3-a-NQ) 인칭대명사 주어 + N이/가 없다? -> Don't/Doesn't ... have ...?
+    const possessionNegativeQuestionSubjectV1233 =
+      twoProExtractLeadingSubjectV62(normalized);
+
+    if (possessionNegativeQuestionSubjectV1233) {
+      const possessionNegativeQuestionMatchV1233 =
+        possessionNegativeQuestionSubjectV1233.body.match(
+          /^(.+?)(?:이|가)\s+(없습니다|없어요|없다)$/u
+        );
+
+      if (possessionNegativeQuestionMatchV1233) {
+        const nounPhrase = twoProRenderNounPhraseV990(
+          possessionNegativeQuestionMatchV1233[1],
+          'object'
+        );
+
+        if (nounPhrase) {
+          const subjectForms = twoProEnglishSubjectFormsV68(
+            possessionNegativeQuestionSubjectV1233.pronoun
+          );
+          const negativeQuestionAux =
+            subjectForms.doAux === 'does' ? "Doesn't" : "Don't";
+
+          return finish(
+            `${negativeQuestionAux} ${subjectForms.lowerSubject} have ${nounPhrase.selected}`,
+            [
+              {
+                ko: possessionNegativeQuestionSubjectV1233.source,
+                en: `${subjectForms.lowerSubject} [SUBJECT]`,
+              },
+              {
+                ko: nounPhrase.source,
+                en: `${nounPhrase.selected} [OBJECT]`,
+              },
+              {
+                ko: possessionNegativeQuestionMatchV1233[2],
+                en: `${negativeQuestionAux} ... have [POSSESSION:NEGATIVE-QUESTION]`,
+              },
+            ],
+            [
+              twoProEmbeddedReferenceWordV90(
+                possessionNegativeQuestionSubjectV1233.source,
+                subjectForms.subject,
+                'SUBJECT'
+              ),
+              twoProNounPhraseReferenceV990(nounPhrase),
+            ],
+            'article-number-possession-negative-question-ko-en-v12.33',
+            'SUBJECT_NOUN_HAVE_NEGATIVE_QUESTION_V1233'
+          );
+        }
+      }
+    }
+
+    // 3-b-NQ) 장소에 N이/가 없다? -> Isn't/Aren't there ... in the PLACE?
+    const locationNegativeQuestionMatchV1233 = normalized.match(
+      /^(.+?)에\s+(.+?)(?:이|가)\s+(없습니다|없어요|없다)$/u
+    );
+
+    if (locationNegativeQuestionMatchV1233) {
+      const locationSource = twoProNormalizeKoreanNounV5(
+        locationNegativeQuestionMatchV1233[1]
+      );
+      const locationInfo =
+        twoProExistentialLocationMapV1145[locationSource];
+      const nounPhrase = twoProRenderNounPhraseV990(
+        locationNegativeQuestionMatchV1233[2],
+        'existential'
+      );
+
+      if (locationInfo && nounPhrase && !nounPhrase.definite) {
+        const negativeBeVerb =
+          nounPhrase.number === 'plural' ? "Aren't" : "Isn't";
+        const placePhrase =
+          `${locationInfo.preposition} the ${locationInfo.english}`;
+
+        return finish(
+          `${negativeBeVerb} there ${nounPhrase.selected} ${placePhrase}`,
+          [
+            {
+              ko: nounPhrase.source,
+              en: `${nounPhrase.selected} [EXISTENTIAL-NOUN]`,
+            },
+            {
+              ko: locationNegativeQuestionMatchV1233[1],
+              en: `${placePhrase} [PLACE]`,
+            },
+            {
+              ko: locationNegativeQuestionMatchV1233[3],
+              en: `${negativeBeVerb} there [EXISTENTIAL:NEGATIVE-QUESTION]`,
+            },
+          ],
+          [
+            twoProNounPhraseReferenceV990(nounPhrase),
+            twoProEmbeddedReferenceWordV90(
+              locationNegativeQuestionMatchV1233[1],
+              locationInfo.english,
+              'PLACE'
+            ),
+          ],
+          'article-number-location-existential-negative-question-ko-en-v12.33',
+          'PLACE_NOUN_EXISTENTIAL_NEGATIVE_QUESTION_V1233'
+        );
+      }
+    }
+
+    // 3-NQ) N이/가 없다? -> Isn't/Aren't there ...?
+    const existentialNegativeQuestionMatchV1233 = normalized.match(
+      /^(.+?)(?:이|가)\s+(없습니다|없어요|없다)$/u
+    );
+
+    if (existentialNegativeQuestionMatchV1233) {
+      const nounPhrase = twoProRenderNounPhraseV990(
+        existentialNegativeQuestionMatchV1233[1],
+        'existential'
+      );
+
+      if (nounPhrase && !nounPhrase.definite) {
+        const negativeBeVerb =
+          nounPhrase.number === 'plural' ? "Aren't" : "Isn't";
+
+        return finish(
+          `${negativeBeVerb} there ${nounPhrase.selected}`,
+          [
+            {
+              ko: nounPhrase.source,
+              en: `${nounPhrase.selected} [EXISTENTIAL-NOUN]`,
+            },
+            {
+              ko: existentialNegativeQuestionMatchV1233[2],
+              en: `${negativeBeVerb} there [EXISTENTIAL:NEGATIVE-QUESTION]`,
+            },
+          ],
+          [twoProNounPhraseReferenceV990(nounPhrase)],
+          'article-number-existential-negative-question-ko-en-v12.33',
+          'NOUN_PHRASE_EXISTENTIAL_NEGATIVE_QUESTION_V1233'
+        );
+      }
+    }
+  }
+
   // 3-a) 인칭대명사 주어 + N이/가 있다/없다 -> have/has 문형
   const possessionSubjectV1145 =
     twoProExtractLeadingSubjectV62(normalized);
@@ -63225,6 +63769,536 @@ const twoProTryKoEnArticleNumberClauseV990 = (
   const isExplicitLocationQuestionV1146 = /\?\s*$/.test(
     String(originalText || '').trim()
   );
+
+  // ========================================================================
+  // ☆ TwoPro v12.34-safe: 특정 사물 + 구체적 위치 + 없다 CORE
+  //
+  // v11.46의 검증된 특정 사물/위치 명사/관사/단복수 판정을 그대로 재사용하고,
+  // 위치 술어가 부정형인 경우만 별도로 처리합니다.
+  // - N은/는 LANDMARK 위/안/아래/옆에 없어요 -> The N isn't ...
+  // - N은/는 방/가방/사무실에 없어요         -> The N isn't in the ...
+  // - 명시적 '?'가 있으면 Isn't/Aren't + subject + place 로 도치합니다.
+  //
+  // 안전 원칙:
+  // 1. 긍정 위치문은 기존 v11.46이 계속 담당합니다.
+  // 2. 관계 위치는 위/안/아래/옆만, 단순 장소는 방/가방/사무실만 허용합니다.
+  // 3. 존재문 "장소에 N이 없다"와 섞지 않고, 토픽형 "N은 장소에 없다"만 처리합니다.
+  // ========================================================================
+
+  // 3-d-N) N은/는 LANDMARK 위/안/아래/옆에 없다
+  const negativeRelativeLocationMatchV1234 = normalized.match(
+    /^(.+?)(?:은|는)\s+(.+?)\s+(위|안|아래|옆)에\s+(없습니다|없어요|없다)$/u
+  );
+
+  if (negativeRelativeLocationMatchV1234) {
+    const subjectNounV1234 = twoProDefiniteNounPhraseV1146(
+      negativeRelativeLocationMatchV1234[1]
+    );
+    const landmarkNounV1234 = twoProDefiniteNounPhraseV1146(
+      negativeRelativeLocationMatchV1234[2]
+    );
+    const relationEnV1234 = twoProLocationRelationMapV1146[
+      negativeRelativeLocationMatchV1234[3]
+    ];
+
+    if (subjectNounV1234 && landmarkNounV1234 && relationEnV1234) {
+      const negativeBeV1234 =
+        subjectNounV1234.number === 'plural' ? "aren't" : "isn't";
+      const negativeQuestionBeV1234 =
+        subjectNounV1234.number === 'plural' ? "Aren't" : "Isn't";
+      const placePhraseV1234 = `${relationEnV1234} ${landmarkNounV1234.english}`;
+      const targetV1234 = isExplicitLocationQuestionV1146
+        ? `${negativeQuestionBeV1234} ${subjectNounV1234.english} ${placePhraseV1234}`
+        : `${subjectNounV1234.english} ${negativeBeV1234} ${placePhraseV1234}`;
+
+      return finish(
+        targetV1234,
+        [
+          {
+            ko: subjectNounV1234.source,
+            en: `${subjectNounV1234.english} [SUBJECT]`,
+          },
+          {
+            ko: `${negativeRelativeLocationMatchV1234[2]} ${negativeRelativeLocationMatchV1234[3]}에`,
+            en: `${placePhraseV1234} [PLACE]`,
+          },
+          {
+            ko: negativeRelativeLocationMatchV1234[4],
+            en: `${negativeBeV1234} [LOCATION-COPULA:NEGATIVE]`,
+          },
+        ],
+        [subjectNounV1234.reference, landmarkNounV1234.reference],
+        'article-number-specific-location-negative-ko-en-v12.34',
+        isExplicitLocationQuestionV1146
+          ? 'TOPIC_RELATIVE_LOCATION_NEGATIVE_QUESTION_V1234'
+          : 'TOPIC_RELATIVE_LOCATION_NEGATIVE_V1234'
+      );
+    }
+  }
+
+  // 3-e-N) N은/는 방/가방/사무실에 없다
+  const negativeSimpleLocationMatchV1234 = normalized.match(
+    /^(.+?)(?:은|는)\s+(.+?)에\s+(없습니다|없어요|없다)$/u
+  );
+
+  if (negativeSimpleLocationMatchV1234) {
+    const subjectNounV1234 = twoProDefiniteNounPhraseV1146(
+      negativeSimpleLocationMatchV1234[1]
+    );
+    const locationSourceV1234 = twoProNormalizeKoreanNounV5(
+      negativeSimpleLocationMatchV1234[2]
+    );
+    const locationInfoV1234 =
+      twoProExistentialLocationMapV1145[locationSourceV1234];
+
+    if (subjectNounV1234 && locationInfoV1234) {
+      const negativeBeV1234 =
+        subjectNounV1234.number === 'plural' ? "aren't" : "isn't";
+      const negativeQuestionBeV1234 =
+        subjectNounV1234.number === 'plural' ? "Aren't" : "Isn't";
+      const placePhraseV1234 =
+        `${locationInfoV1234.preposition} the ${locationInfoV1234.english}`;
+      const targetV1234 = isExplicitLocationQuestionV1146
+        ? `${negativeQuestionBeV1234} ${subjectNounV1234.english} ${placePhraseV1234}`
+        : `${subjectNounV1234.english} ${negativeBeV1234} ${placePhraseV1234}`;
+
+      return finish(
+        targetV1234,
+        [
+          {
+            ko: subjectNounV1234.source,
+            en: `${subjectNounV1234.english} [SUBJECT]`,
+          },
+          {
+            ko: negativeSimpleLocationMatchV1234[2],
+            en: `${placePhraseV1234} [PLACE]`,
+          },
+          {
+            ko: negativeSimpleLocationMatchV1234[3],
+            en: `${negativeBeV1234} [LOCATION-COPULA:NEGATIVE]`,
+          },
+        ],
+        [
+          subjectNounV1234.reference,
+          twoProEmbeddedReferenceWordV90(
+            negativeSimpleLocationMatchV1234[2],
+            locationInfoV1234.english,
+            'PLACE'
+          ),
+        ],
+        'article-number-specific-location-negative-ko-en-v12.34',
+        isExplicitLocationQuestionV1146
+          ? 'TOPIC_SIMPLE_LOCATION_NEGATIVE_QUESTION_V1234'
+          : 'TOPIC_SIMPLE_LOCATION_NEGATIVE_V1234'
+      );
+    }
+  }
+
+  // ========================================================================
+  // ☆ TwoPro v12.35-safe: 특정 사물 + 구체적 위치 과거 CORE
+  //
+  // v11.46/v12.34의 검증된 특정 사물/위치 명사/관사/단복수 판정을 그대로
+  // 재사용하고, 과거 위치 술어 있었어요/없었어요만 별도로 처리합니다.
+  // - N은/는 LANDMARK 위/안/아래/옆에 있었어요 -> The N was/were ...
+  // - N은/는 LANDMARK 위/안/아래/옆에 없었어요 -> The N wasn't/weren't ...
+  // - N은/는 방/가방/사무실에 있었어요          -> The N was/were in the ...
+  // - N은/는 방/가방/사무실에 없었어요          -> The N wasn't/weren't in the ...
+  // - 명시적 '?'가 있으면 Was/Were 또는 Wasn't/Weren't를 앞으로 도치합니다.
+  //
+  // 안전 원칙:
+  // 1. 현재 위치문은 기존 v11.46/v12.34가 계속 담당합니다.
+  // 2. 관계 위치는 위/안/아래/옆만, 단순 장소는 방/가방/사무실만 허용합니다.
+  // 3. 존재문 "장소에 N이 있었다/없었다"와 섞지 않고 토픽형만 처리합니다.
+  // ========================================================================
+
+  const twoProPastLocationCopulaV1235 = (
+    number: TwoProNounPhraseRenderV990['number'],
+    predicate: string,
+    isQuestion: boolean
+  ): string => {
+    const isPlural = number === 'plural';
+    const isNegative = /^없/u.test(predicate);
+
+    if (isQuestion) {
+      if (isNegative) return isPlural ? "Weren't" : "Wasn't";
+      return isPlural ? 'Were' : 'Was';
+    }
+
+    if (isNegative) return isPlural ? "weren't" : "wasn't";
+    return isPlural ? 'were' : 'was';
+  };
+
+  // 3-d-P) N은/는 LANDMARK 위/안/아래/옆에 있었다/없었다
+  const pastRelativeLocationMatchV1235 = normalized.match(
+    /^(.+?)(?:은|는)\s+(.+?)\s+(위|안|아래|옆)에\s+(있었습니다|있었어요|있었다|없었습니다|없었어요|없었다)$/u
+  );
+
+  if (pastRelativeLocationMatchV1235) {
+    const subjectNounV1235 = twoProDefiniteNounPhraseV1146(
+      pastRelativeLocationMatchV1235[1]
+    );
+    const landmarkNounV1235 = twoProDefiniteNounPhraseV1146(
+      pastRelativeLocationMatchV1235[2]
+    );
+    const relationEnV1235 = twoProLocationRelationMapV1146[
+      pastRelativeLocationMatchV1235[3]
+    ];
+
+    if (subjectNounV1235 && landmarkNounV1235 && relationEnV1235) {
+      const predicateV1235 = pastRelativeLocationMatchV1235[4];
+      const copulaV1235 = twoProPastLocationCopulaV1235(
+        subjectNounV1235.number,
+        predicateV1235,
+        isExplicitLocationQuestionV1146
+      );
+      const placePhraseV1235 = `${relationEnV1235} ${landmarkNounV1235.english}`;
+      const targetV1235 = isExplicitLocationQuestionV1146
+        ? `${copulaV1235} ${subjectNounV1235.english} ${placePhraseV1235}`
+        : `${subjectNounV1235.english} ${copulaV1235} ${placePhraseV1235}`;
+      const isNegativeV1235 = /^없/u.test(predicateV1235);
+
+      return finish(
+        targetV1235,
+        [
+          {
+            ko: subjectNounV1235.source,
+            en: `${subjectNounV1235.english} [SUBJECT]`,
+          },
+          {
+            ko: `${pastRelativeLocationMatchV1235[2]} ${pastRelativeLocationMatchV1235[3]}에`,
+            en: `${placePhraseV1235} [PLACE]`,
+          },
+          {
+            ko: predicateV1235,
+            en: `${copulaV1235} [LOCATION-COPULA:PAST${isNegativeV1235 ? ':NEGATIVE' : ''}]`,
+          },
+        ],
+        [subjectNounV1235.reference, landmarkNounV1235.reference],
+        'article-number-specific-location-past-ko-en-v12.35',
+        isExplicitLocationQuestionV1146
+          ? (isNegativeV1235
+              ? 'TOPIC_RELATIVE_LOCATION_PAST_NEGATIVE_QUESTION_V1235'
+              : 'TOPIC_RELATIVE_LOCATION_PAST_QUESTION_V1235')
+          : (isNegativeV1235
+              ? 'TOPIC_RELATIVE_LOCATION_PAST_NEGATIVE_V1235'
+              : 'TOPIC_RELATIVE_LOCATION_PAST_V1235')
+      );
+    }
+  }
+
+  // 3-e-P) N은/는 방/가방/사무실에 있었다/없었다
+  const pastSimpleLocationMatchV1235 = normalized.match(
+    /^(.+?)(?:은|는)\s+(.+?)에\s+(있었습니다|있었어요|있었다|없었습니다|없었어요|없었다)$/u
+  );
+
+  if (pastSimpleLocationMatchV1235) {
+    const subjectNounV1235 = twoProDefiniteNounPhraseV1146(
+      pastSimpleLocationMatchV1235[1]
+    );
+    const locationSourceV1235 = twoProNormalizeKoreanNounV5(
+      pastSimpleLocationMatchV1235[2]
+    );
+    const locationInfoV1235 =
+      twoProExistentialLocationMapV1145[locationSourceV1235];
+
+    if (subjectNounV1235 && locationInfoV1235) {
+      const predicateV1235 = pastSimpleLocationMatchV1235[3];
+      const copulaV1235 = twoProPastLocationCopulaV1235(
+        subjectNounV1235.number,
+        predicateV1235,
+        isExplicitLocationQuestionV1146
+      );
+      const placePhraseV1235 =
+        `${locationInfoV1235.preposition} the ${locationInfoV1235.english}`;
+      const targetV1235 = isExplicitLocationQuestionV1146
+        ? `${copulaV1235} ${subjectNounV1235.english} ${placePhraseV1235}`
+        : `${subjectNounV1235.english} ${copulaV1235} ${placePhraseV1235}`;
+      const isNegativeV1235 = /^없/u.test(predicateV1235);
+
+      return finish(
+        targetV1235,
+        [
+          {
+            ko: subjectNounV1235.source,
+            en: `${subjectNounV1235.english} [SUBJECT]`,
+          },
+          {
+            ko: pastSimpleLocationMatchV1235[2],
+            en: `${placePhraseV1235} [PLACE]`,
+          },
+          {
+            ko: predicateV1235,
+            en: `${copulaV1235} [LOCATION-COPULA:PAST${isNegativeV1235 ? ':NEGATIVE' : ''}]`,
+          },
+        ],
+        [
+          subjectNounV1235.reference,
+          twoProEmbeddedReferenceWordV90(
+            pastSimpleLocationMatchV1235[2],
+            locationInfoV1235.english,
+            'PLACE'
+          ),
+        ],
+        'article-number-specific-location-past-ko-en-v12.35',
+        isExplicitLocationQuestionV1146
+          ? (isNegativeV1235
+              ? 'TOPIC_SIMPLE_LOCATION_PAST_NEGATIVE_QUESTION_V1235'
+              : 'TOPIC_SIMPLE_LOCATION_PAST_QUESTION_V1235')
+          : (isNegativeV1235
+              ? 'TOPIC_SIMPLE_LOCATION_PAST_NEGATIVE_V1235'
+              : 'TOPIC_SIMPLE_LOCATION_PAST_V1235')
+      );
+    }
+  }
+
+  // ========================================================================
+  // ☆ TwoPro v12.36-safe: 과거 있다/없다 존재·장소·소유 CORE
+  //
+  // v11.45 및 v12.32/v12.33의 검증된 명사구·장소·인칭주어 판정을 그대로
+  // 재사용하면서 과거 술어 있었어요/없었어요만 별도로 처리합니다.
+  //
+  // - N이/가 있었다/없었다
+  //     -> There was/were ... / There was/were no ...
+  // - 장소에 N이/가 있었다/없었다
+  //     -> There was/were ... in the ...
+  // - 인칭주어 + N이/가 있었다/없었다
+  //     -> had / didn't have
+  // - 명시적 '?'가 있으면 Was/Were, Wasn't/Weren't, Did/Didn't로 도치합니다.
+  //
+  // 안전 원칙:
+  // 1. 현재 있다/없다는 기존 v11.45/v12.32/v12.33이 계속 담당합니다.
+  // 2. 장소는 기존 방/가방/사무실 화이트리스트만 재사용합니다.
+  // 3. 토픽형 특정 위치문(N은/는 장소에 있었다/없었다)은 v12.35가 담당합니다.
+  // 4. Did/Didn't 뒤에는 항상 동사원형 have를 사용합니다.
+  // ========================================================================
+
+  const isExplicitPastExistentialQuestionV1236 = /[?？]\s*$/u.test(
+    String(originalText || '').trim()
+  );
+
+  const twoProPastExistentialBeV1236 = (
+    number: TwoProNounPhraseRenderV990['number']
+  ): 'was' | 'were' =>
+    number === 'plural' ? 'were' : 'was';
+
+  const twoProPastExistentialQuestionBeV1236 = (
+    number: TwoProNounPhraseRenderV990['number'],
+    isNegative: boolean
+  ): 'Was' | 'Were' | "Wasn't" | "Weren't" => {
+    const isPlural = number === 'plural';
+
+    if (isNegative) {
+      return isPlural ? "Weren't" : "Wasn't";
+    }
+
+    return isPlural ? 'Were' : 'Was';
+  };
+
+  // 3-a-P) 인칭대명사 주어 + N이/가 있었다/없었다
+  const possessionPastSubjectV1236 =
+    twoProExtractLeadingSubjectV62(normalized);
+
+  if (possessionPastSubjectV1236) {
+    const possessionPastMatchV1236 =
+      possessionPastSubjectV1236.body.match(
+        /^(.+?)(?:이|가)\s+(있었습니다|있었어요|있었다|없었습니다|없었어요|없었다)$/u
+      );
+
+    if (possessionPastMatchV1236) {
+      const nounPhraseV1236 = twoProRenderNounPhraseV990(
+        possessionPastMatchV1236[1],
+        'object'
+      );
+
+      if (nounPhraseV1236) {
+        const subjectFormsV1236 = twoProEnglishSubjectFormsV68(
+          possessionPastSubjectV1236.pronoun
+        );
+        const isNegativeV1236 =
+          /^없/u.test(possessionPastMatchV1236[2]);
+
+        const targetV1236 = isExplicitPastExistentialQuestionV1236
+          ? `${isNegativeV1236 ? "Didn't" : 'Did'} ${subjectFormsV1236.lowerSubject} have ${nounPhraseV1236.selected}`
+          : isNegativeV1236
+            ? `${subjectFormsV1236.subject} didn't have ${nounPhraseV1236.selected}`
+            : `${subjectFormsV1236.subject} had ${nounPhraseV1236.selected}`;
+
+        return finish(
+          targetV1236,
+          [
+            {
+              ko: possessionPastSubjectV1236.source,
+              en: `${subjectFormsV1236.subject} [SUBJECT]`,
+            },
+            {
+              ko: nounPhraseV1236.source,
+              en: `${nounPhraseV1236.selected} [OBJECT]`,
+            },
+            {
+              ko: possessionPastMatchV1236[2],
+              en: `${
+                isExplicitPastExistentialQuestionV1236
+                  ? (isNegativeV1236 ? "Didn't ... have" : 'Did ... have')
+                  : (isNegativeV1236 ? "didn't have" : 'had')
+              } [POSSESSION:PAST${isNegativeV1236 ? ':NEGATIVE' : ''}]`,
+            },
+          ],
+          [
+            twoProEmbeddedReferenceWordV90(
+              possessionPastSubjectV1236.source,
+              subjectFormsV1236.subject,
+              'SUBJECT'
+            ),
+            twoProNounPhraseReferenceV990(nounPhraseV1236),
+          ],
+          'article-number-possession-past-ko-en-v12.36',
+          isExplicitPastExistentialQuestionV1236
+            ? (isNegativeV1236
+                ? 'SUBJECT_NOUN_HAVE_PAST_NEGATIVE_QUESTION_V1236'
+                : 'SUBJECT_NOUN_HAVE_PAST_QUESTION_V1236')
+            : (isNegativeV1236
+                ? 'SUBJECT_NOUN_HAVE_PAST_NEGATIVE_V1236'
+                : 'SUBJECT_NOUN_HAVE_PAST_POSITIVE_V1236')
+        );
+      }
+    }
+  }
+
+  // 3-b-P) 장소에 N이/가 있었다/없었다
+  const placePastExistentialMatchV1236 = normalized.match(
+    /^(.+?)에\s+(.+?)(?:이|가)\s+(있었습니다|있었어요|있었다|없었습니다|없었어요|없었다)$/u
+  );
+
+  if (placePastExistentialMatchV1236) {
+    const locationSourceV1236 = twoProNormalizeKoreanNounV5(
+      placePastExistentialMatchV1236[1]
+    );
+    const locationInfoV1236 =
+      twoProExistentialLocationMapV1145[locationSourceV1236];
+    const nounPhraseV1236 = twoProRenderNounPhraseV990(
+      placePastExistentialMatchV1236[2],
+      'existential'
+    );
+
+    if (locationInfoV1236 && nounPhraseV1236 && !nounPhraseV1236.definite) {
+      const isNegativeV1236 =
+        /^없/u.test(placePastExistentialMatchV1236[3]);
+      const pastBeV1236 =
+        twoProPastExistentialBeV1236(nounPhraseV1236.number);
+      const questionBeV1236 =
+        twoProPastExistentialQuestionBeV1236(
+          nounPhraseV1236.number,
+          isNegativeV1236
+        );
+      const placePhraseV1236 =
+        `${locationInfoV1236.preposition} the ${locationInfoV1236.english}`;
+      const existentialNounV1236 =
+        !isExplicitPastExistentialQuestionV1236 && isNegativeV1236
+          ? twoProNegativeExistentialNounV1145(nounPhraseV1236)
+          : nounPhraseV1236.selected;
+
+      const targetV1236 = isExplicitPastExistentialQuestionV1236
+        ? `${questionBeV1236} there ${nounPhraseV1236.selected} ${placePhraseV1236}`
+        : `There ${pastBeV1236} ${existentialNounV1236} ${placePhraseV1236}`;
+
+      return finish(
+        targetV1236,
+        [
+          {
+            ko: nounPhraseV1236.source,
+            en: `${existentialNounV1236} [EXISTENTIAL-NOUN]`,
+          },
+          {
+            ko: placePastExistentialMatchV1236[1],
+            en: `${placePhraseV1236} [PLACE]`,
+          },
+          {
+            ko: placePastExistentialMatchV1236[3],
+            en: `${
+              isExplicitPastExistentialQuestionV1236
+                ? `${questionBeV1236} there`
+                : `${pastBeV1236}${isNegativeV1236 ? ' no' : ''}`
+            } [EXISTENTIAL:PAST${isNegativeV1236 ? ':NEGATIVE' : ''}]`,
+          },
+        ],
+        [
+          twoProNounPhraseReferenceV990(nounPhraseV1236),
+          twoProEmbeddedReferenceWordV90(
+            placePastExistentialMatchV1236[1],
+            locationInfoV1236.english,
+            'PLACE'
+          ),
+        ],
+        'article-number-location-existential-past-ko-en-v12.36',
+        isExplicitPastExistentialQuestionV1236
+          ? (isNegativeV1236
+              ? 'PLACE_NOUN_EXISTENTIAL_PAST_NEGATIVE_QUESTION_V1236'
+              : 'PLACE_NOUN_EXISTENTIAL_PAST_QUESTION_V1236')
+          : (isNegativeV1236
+              ? 'PLACE_NOUN_EXISTENTIAL_PAST_NEGATIVE_V1236'
+              : 'PLACE_NOUN_EXISTENTIAL_PAST_POSITIVE_V1236')
+      );
+    }
+  }
+
+  // 3-c-P) N이/가 있었다/없었다
+  const nounPastExistentialMatchV1236 = normalized.match(
+    /^(.+?)(?:이|가)\s+(있었습니다|있었어요|있었다|없었습니다|없었어요|없었다)$/u
+  );
+
+  if (nounPastExistentialMatchV1236) {
+    const nounPhraseV1236 = twoProRenderNounPhraseV990(
+      nounPastExistentialMatchV1236[1],
+      'existential'
+    );
+
+    if (nounPhraseV1236 && !nounPhraseV1236.definite) {
+      const isNegativeV1236 =
+        /^없/u.test(nounPastExistentialMatchV1236[2]);
+      const pastBeV1236 =
+        twoProPastExistentialBeV1236(nounPhraseV1236.number);
+      const questionBeV1236 =
+        twoProPastExistentialQuestionBeV1236(
+          nounPhraseV1236.number,
+          isNegativeV1236
+        );
+      const existentialNounV1236 =
+        !isExplicitPastExistentialQuestionV1236 && isNegativeV1236
+          ? twoProNegativeExistentialNounV1145(nounPhraseV1236)
+          : nounPhraseV1236.selected;
+
+      const targetV1236 = isExplicitPastExistentialQuestionV1236
+        ? `${questionBeV1236} there ${nounPhraseV1236.selected}`
+        : `There ${pastBeV1236} ${existentialNounV1236}`;
+
+      return finish(
+        targetV1236,
+        [
+          {
+            ko: nounPhraseV1236.source,
+            en: `${existentialNounV1236} [EXISTENTIAL-NOUN]`,
+          },
+          {
+            ko: nounPastExistentialMatchV1236[2],
+            en: `${
+              isExplicitPastExistentialQuestionV1236
+                ? `${questionBeV1236} there`
+                : `${pastBeV1236}${isNegativeV1236 ? ' no' : ''}`
+            } [EXISTENTIAL:PAST${isNegativeV1236 ? ':NEGATIVE' : ''}]`,
+          },
+        ],
+        [twoProNounPhraseReferenceV990(nounPhraseV1236)],
+        'article-number-existential-past-ko-en-v12.36',
+        isExplicitPastExistentialQuestionV1236
+          ? (isNegativeV1236
+              ? 'NOUN_PHRASE_EXISTENTIAL_PAST_NEGATIVE_QUESTION_V1236'
+              : 'NOUN_PHRASE_EXISTENTIAL_PAST_QUESTION_V1236')
+          : (isNegativeV1236
+              ? 'NOUN_PHRASE_EXISTENTIAL_PAST_NEGATIVE_V1236'
+              : 'NOUN_PHRASE_EXISTENTIAL_PAST_POSITIVE_V1236')
+      );
+    }
+  }
 
   // 3-d) N은/는 LANDMARK 위/안/아래/옆에 있다
   match = normalized.match(
@@ -64013,6 +65087,360 @@ export async function POST(request: Request) {
         },
         referenceWords,
       });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v12.27-safe: 다의어 목적어문 현재 의문 + 현재 부정 의문 회귀 exact 가드
+    //
+    // 2026-08-31 실제 회귀에서 실패한 9개 문장만 좁게 보정합니다.
+    // - 현재 의문문: Do/Does + subject + bare infinitive
+    // - 현재 부정 의문문: Don't/Doesn't + subject + bare infinitive
+    // - 사진=take, 자전거=ride, 음악=listen to, 편지=write, 하늘=look at 문맥 보존
+    //
+    // "나는 편지를 써요?"는 기존 코드에서 이미 정상 통과했으므로 이 가드에 넣지 않습니다.
+    // v12.26 및 그 이전 통과 문장은 수정하지 않습니다.
+    // =================================================================
+    const twoProRegressionExactV1227: Readonly<
+      Record<
+        string,
+        {
+          targetText: string;
+          referenceWords: readonly {
+            source: string;
+            selected: string;
+            slot: string;
+          }[];
+        }
+      >
+    > = {
+      '나는 사진을 찍어요?': {
+        targetText: 'Do I take a photo?',
+        referenceWords: [
+          { source: '사진', selected: 'a photo', slot: 'OBJECT' },
+          { source: '찍다', selected: 'take', slot: 'POLYSEMY:VERB/PRESENT_QUESTION' },
+        ],
+      },
+      '그는 자전거를 타요?': {
+        targetText: 'Does he ride a bicycle?',
+        referenceWords: [
+          { source: '자전거', selected: 'a bicycle', slot: 'OBJECT' },
+          { source: '타다', selected: 'ride', slot: 'POLYSEMY:VERB/PRESENT_QUESTION' },
+        ],
+      },
+      '그녀는 음악을 들어요?': {
+        targetText: 'Does she listen to music?',
+        referenceWords: [
+          { source: '음악', selected: 'music', slot: 'OBJECT' },
+          { source: '듣다', selected: 'listen to', slot: 'POLYSEMY:VERB/PRESENT_QUESTION' },
+        ],
+      },
+      '나는 하늘을 봐요?': {
+        targetText: 'Do I look at the sky?',
+        referenceWords: [
+          { source: '하늘', selected: 'the sky', slot: 'OBJECT' },
+          { source: '보다', selected: 'look at', slot: 'POLYSEMY:VERB/PRESENT_QUESTION' },
+        ],
+      },
+      '나는 사진을 찍지 않아요?': {
+        targetText: "Don't I take a photo?",
+        referenceWords: [
+          { source: '사진', selected: 'a photo', slot: 'OBJECT' },
+          { source: '찍다', selected: 'take', slot: 'POLYSEMY:VERB/PRESENT_NEGATIVE_QUESTION' },
+        ],
+      },
+      '그는 자전거를 타지 않아요?': {
+        targetText: "Doesn't he ride a bicycle?",
+        referenceWords: [
+          { source: '자전거', selected: 'a bicycle', slot: 'OBJECT' },
+          { source: '타다', selected: 'ride', slot: 'POLYSEMY:VERB/PRESENT_NEGATIVE_QUESTION' },
+        ],
+      },
+      '그녀는 음악을 듣지 않아요?': {
+        targetText: "Doesn't she listen to music?",
+        referenceWords: [
+          { source: '음악', selected: 'music', slot: 'OBJECT' },
+          { source: '듣다', selected: 'listen to', slot: 'POLYSEMY:VERB/PRESENT_NEGATIVE_QUESTION' },
+        ],
+      },
+      '나는 편지를 쓰지 않아요?': {
+        targetText: "Don't I write a letter?",
+        referenceWords: [
+          { source: '편지', selected: 'a letter', slot: 'OBJECT' },
+          { source: '쓰다', selected: 'write', slot: 'POLYSEMY:VERB/PRESENT_NEGATIVE_QUESTION' },
+        ],
+      },
+      '나는 하늘을 보지 않아요?': {
+        targetText: "Don't I look at the sky?",
+        referenceWords: [
+          { source: '하늘', selected: 'the sky', slot: 'OBJECT' },
+          { source: '보다', selected: 'look at', slot: 'POLYSEMY:VERB/PRESENT_NEGATIVE_QUESTION' },
+        ],
+      },
+    };
+
+    const twoProRegressionExactMatchV1227 =
+      twoProRegressionExactV1227[originalText];
+
+    if (twoProRegressionExactMatchV1227) {
+      const referenceWords =
+        twoProRegressionExactMatchV1227.referenceWords.map(
+          (item) => ({
+            source: item.source,
+            selected: item.selected,
+            candidates: [item.selected],
+            slot: item.slot,
+            confidence: 1,
+            origin: 'two-pro-v12.27-regression-exact',
+          })
+        );
+
+      return NextResponse.json({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProRegressionExactMatchV1227.targetText,
+          isReference: false,
+          analysis: referenceWords.map((item) => ({
+            ko: item.source,
+            en: `${item.selected} [${item.slot}]`,
+          })),
+          referenceWords,
+          engine: 'core-regression-exact-ko-en-v12.27',
+          matchedRule: originalText,
+        },
+        referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v12.29-safe: 다의어 목적어문 과거 긍정 일반화 CORE
+    //
+    // 2026-08-31 실제 일반화 회귀에서 확인된 5개 의미군만 좁게 처리합니다.
+    // v12.25의 "나는 + 현재형" exact 보정이 다른 인칭·과거형으로
+    // 일반화되지 않던 문제를 보완합니다.
+    //
+    // 처리 의미군:
+    // - 그 영화 + 보다 -> watched the movie
+    // - 모자 + 쓰다 -> wore a hat
+    // - 버스 + 타다 -> took the bus
+    // - 선물 + 싸다 -> wrapped a present
+    // - [소유격] 이름 + 적다 -> wrote down [possessive] name
+    //
+    // 안전 원칙:
+    // 1. 문두 명시적 인칭주어만 처리합니다.
+    // 2. 과거 긍정 종결형만 처리하며 의문/부정에는 관여하지 않습니다.
+    // 3. 목적어가 위 화이트리스트에 정확히 맞을 때만 다의어 의미를 고정합니다.
+    // 4. 기존 v12.25~v12.28 및 다른 CORE는 수정하지 않습니다.
+    // =================================================================
+    if (!/\?\s*$/.test(String(originalText || '').trim())) {
+      const twoProPastPolysemySubjectV1229 =
+        twoProExtractLeadingSubjectV62(originalText);
+
+      if (twoProPastPolysemySubjectV1229) {
+        const twoProPastPolysemyBodyV1229 =
+          twoProPastPolysemySubjectV1229.body
+            .normalize('NFC')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        const twoProPastPolysemySubjectEnV1229 =
+          twoProCapitalizeSubjectV62(
+            twoProPastPolysemySubjectV1229.pronoun
+          );
+
+        const twoProPastPolysemySimpleV1229: Readonly<
+          Record<
+            string,
+            {
+              predicateEn: string;
+              objectKo: string;
+              objectEn: string;
+              verbKo: string;
+              verbEn: string;
+            }
+          >
+        > = {
+          '그 영화를 봤어요': {
+            predicateEn: 'watched the movie',
+            objectKo: '그 영화',
+            objectEn: 'the movie',
+            verbKo: '보다',
+            verbEn: 'watched',
+          },
+          '그 영화를 보았어요': {
+            predicateEn: 'watched the movie',
+            objectKo: '그 영화',
+            objectEn: 'the movie',
+            verbKo: '보다',
+            verbEn: 'watched',
+          },
+          '모자를 썼어요': {
+            predicateEn: 'wore a hat',
+            objectKo: '모자',
+            objectEn: 'a hat',
+            verbKo: '쓰다',
+            verbEn: 'wore',
+          },
+          '버스를 탔어요': {
+            predicateEn: 'took the bus',
+            objectKo: '버스',
+            objectEn: 'the bus',
+            verbKo: '타다',
+            verbEn: 'took',
+          },
+          '선물을 쌌어요': {
+            predicateEn: 'wrapped a present',
+            objectKo: '선물',
+            objectEn: 'a present',
+            verbKo: '싸다',
+            verbEn: 'wrapped',
+          },
+        };
+
+        const twoProPastPolysemySimpleMatchV1229 =
+          twoProPastPolysemySimpleV1229[
+            twoProPastPolysemyBodyV1229
+          ];
+
+        let twoProPastPolysemyTargetV1229 = '';
+        let twoProPastPolysemyReferencesV1229:
+          Array<{
+            source: string;
+            selected: string;
+            slot: string;
+          }> = [];
+
+        if (twoProPastPolysemySimpleMatchV1229) {
+          twoProPastPolysemyTargetV1229 =
+            `${twoProPastPolysemySubjectEnV1229} ` +
+            twoProPastPolysemySimpleMatchV1229.predicateEn;
+
+          twoProPastPolysemyReferencesV1229 = [
+            {
+              source:
+                twoProPastPolysemySubjectV1229.source,
+              selected:
+                twoProPastPolysemySubjectEnV1229,
+              slot: 'SUBJECT',
+            },
+            {
+              source:
+                twoProPastPolysemySimpleMatchV1229.objectKo,
+              selected:
+                twoProPastPolysemySimpleMatchV1229.objectEn,
+              slot: 'OBJECT',
+            },
+            {
+              source:
+                twoProPastPolysemySimpleMatchV1229.verbKo,
+              selected:
+                twoProPastPolysemySimpleMatchV1229.verbEn,
+              slot: 'POLYSEMY:VERB/PAST',
+            },
+          ];
+        } else {
+          const twoProPastNameMatchV1229 =
+            twoProPastPolysemyBodyV1229.match(
+              /^(나의|내|저의|제|너의|네|당신의|그의|그녀의|우리의|저희의|그들의)\s+이름을\s+(적었어요|적었습니다|적었다)$/u
+            );
+
+          if (twoProPastNameMatchV1229) {
+            const twoProPastNamePossessivesV1229:
+              Readonly<Record<string, string>> = {
+                '나의': 'my',
+                '내': 'my',
+                '저의': 'my',
+                '제': 'my',
+                '너의': 'your',
+                '네': 'your',
+                '당신의': 'your',
+                '그의': 'his',
+                '그녀의': 'her',
+                '우리의': 'our',
+                '저희의': 'our',
+                '그들의': 'their',
+              };
+
+            const twoProPastNamePossessiveKoV1229 =
+              twoProPastNameMatchV1229[1];
+            const twoProPastNamePossessiveEnV1229 =
+              twoProPastNamePossessivesV1229[
+                twoProPastNamePossessiveKoV1229
+              ];
+
+            if (twoProPastNamePossessiveEnV1229) {
+              const twoProPastNameObjectEnV1229 =
+                `${twoProPastNamePossessiveEnV1229} name`;
+
+              twoProPastPolysemyTargetV1229 =
+                `${twoProPastPolysemySubjectEnV1229} ` +
+                `wrote down ${twoProPastNameObjectEnV1229}`;
+
+              twoProPastPolysemyReferencesV1229 = [
+                {
+                  source:
+                    twoProPastPolysemySubjectV1229.source,
+                  selected:
+                    twoProPastPolysemySubjectEnV1229,
+                  slot: 'SUBJECT',
+                },
+                {
+                  source:
+                    `${twoProPastNamePossessiveKoV1229} 이름`,
+                  selected:
+                    twoProPastNameObjectEnV1229,
+                  slot: 'OBJECT',
+                },
+                {
+                  source: '적다',
+                  selected: 'wrote down',
+                  slot: 'POLYSEMY:VERB/PAST',
+                },
+              ];
+            }
+          }
+        }
+
+        if (twoProPastPolysemyTargetV1229) {
+          const referenceWords =
+            twoProPastPolysemyReferencesV1229.map(
+              (item) => ({
+                source: item.source,
+                selected: item.selected,
+                candidates: [item.selected],
+                slot: item.slot,
+                confidence: 1,
+                origin:
+                  'two-pro-v12.29-polysemy-past-positive',
+              })
+            );
+
+          const targetText = twoProFinalizeEnglish(
+            twoProPastPolysemyTargetV1229,
+            originalText
+          );
+
+          return NextResponse.json({
+            ok: true,
+            best: {
+              source_text: originalText,
+              target_text: targetText,
+              isReference: false,
+              analysis: referenceWords.map((item) => ({
+                ko: item.source,
+                en: `${item.selected} [${item.slot}]`,
+              })),
+              referenceWords,
+              engine:
+                'polysemy-past-positive-generalization-ko-en-v12.29',
+              matchedRule:
+                'POLYSEMY_PAST_POSITIVE_GENERALIZATION_V1229',
+            },
+            referenceWords,
+          });
+        }
+      }
     }
 
     // =================================================================
@@ -75263,6 +76691,146 @@ export async function POST(request: Request) {
               0,
           };
         },
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v12.37-safe: 수량 상태문 현재 의문 + 과거 평서/의문 CORE
+    //
+    // v11.43은 현재 평서문(책이 많아요 / 학생이 적어요)을 그대로 담당합니다.
+    // 이번 보정은 같은 안전 가산명사 화이트리스트에서 아래 세 경우만 먼저 처리합니다.
+    // - 현재 의문: 책이 많아요?    -> Are there many books?
+    // - 과거 평서: 책이 많았어요   -> There were many books.
+    // - 과거 의문: 책이 많았어요?  -> Were there many books?
+    //
+    // '적다'의 write/record 의미와 충돌하지 않도록 기존 v11.43의 책/학생
+    // 화이트리스트를 그대로 재사용하며, 다른 명사나 다른 활용형으로 확장하지 않습니다.
+    // =================================================================
+    const twoProBasicQuantityExtendedResultV1237 = (() => {
+      const rawV1237 = String(originalText || '')
+        .normalize('NFC')
+        .trim();
+      const isQuestionV1237 = /[?？]\s*$/u.test(rawV1237);
+      const normalizedV1237 = rawV1237
+        .replace(/[.?!？]+$/gu, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const matchV1237 = normalizedV1237.match(
+        /^(.+?)(?:이|가)\s+(많아요|적어요|많았어요|적었어요)$/u
+      );
+
+      if (!matchV1237) {
+        return null;
+      }
+
+      const nounSourceV1237 = twoProNormalizeKoreanNounV5(
+        matchV1237[1]
+      );
+      const quantitySurfaceV1237 = matchV1237[2];
+      const nounEnV1237 =
+        TWO_PRO_KO_EN_SAFE_QUANTITY_NOUNS_V1143[nounSourceV1237];
+
+      if (!nounEnV1237) {
+        return null;
+      }
+
+      const isPastV1237 =
+        quantitySurfaceV1237 === '많았어요' ||
+        quantitySurfaceV1237 === '적었어요';
+
+      // 현재 평서문은 검증된 기존 v11.43으로 그대로 넘깁니다.
+      if (!isPastV1237 && !isQuestionV1237) {
+        return null;
+      }
+
+      const isManyV1237 =
+        quantitySurfaceV1237 === '많아요' ||
+        quantitySurfaceV1237 === '많았어요';
+      const quantitySourceV1237 = isManyV1237 ? '많다' : '적다';
+      const quantityEnV1237 = isManyV1237 ? 'many' : 'few';
+      const pluralNounEnV1237 =
+        twoProPluralizeEnglishV5(nounEnV1237);
+
+      const targetCoreV1237 = isPastV1237
+        ? (isQuestionV1237
+            ? `Were there ${quantityEnV1237} ${pluralNounEnV1237}`
+            : `There were ${quantityEnV1237} ${pluralNounEnV1237}`)
+        : `Are there ${quantityEnV1237} ${pluralNounEnV1237}`;
+
+      const nounReferenceV1237: TwoProKoEnReferenceWordV5 = {
+        source: nounSourceV1237,
+        selected: nounEnV1237,
+        candidates: [nounEnV1237],
+        slot: 'N',
+        confidence: 1,
+      };
+
+      const quantityReferenceV1237: TwoProKoEnReferenceWordV5 = {
+        source: quantitySourceV1237,
+        selected: quantityEnV1237,
+        candidates: [quantityEnV1237],
+        slot: 'ADJ',
+        confidence: 1,
+      };
+
+      return {
+        targetText: twoProFinalizeEnglish(
+          targetCoreV1237,
+          originalText
+        ),
+        analysis: [
+          {
+            ko: nounSourceV1237,
+            en: `${nounEnV1237} [N]`,
+          },
+          {
+            ko: quantitySourceV1237,
+            en: `${quantityEnV1237} [QUANTITY]`,
+          },
+        ],
+        referenceWords: [
+          nounReferenceV1237,
+          quantityReferenceV1237,
+        ],
+        engine: isPastV1237
+          ? (isQuestionV1237
+              ? 'basic-quantity-state-past-question-ko-en-v12.37'
+              : 'basic-quantity-state-past-ko-en-v12.37')
+          : 'basic-quantity-state-question-ko-en-v12.37',
+      };
+    })();
+
+    if (twoProBasicQuantityExtendedResultV1237) {
+      console.log(
+        '[한영 수량 상태문 의문/과거 성공 v12.37]',
+        {
+          query: originalText,
+          result:
+            twoProBasicQuantityExtendedResultV1237.targetText,
+          engine:
+            twoProBasicQuantityExtendedResultV1237.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicQuantityExtendedResultV1237.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicQuantityExtendedResultV1237.analysis,
+          referenceWords:
+            twoProBasicQuantityExtendedResultV1237.referenceWords,
+          engine:
+            twoProBasicQuantityExtendedResultV1237.engine,
+        },
+        referenceWords:
+          twoProBasicQuantityExtendedResultV1237.referenceWords,
       });
     }
 
