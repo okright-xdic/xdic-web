@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import AdSenseWebOnly from '@/components/AdSenseWebOnly';
+import AdMobNativeBanner from './components/AdMobNativeBanner';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -58,7 +59,10 @@ export default function RootLayout({
         {/* ▲▲▲ 구글 애널리틱스 & 구글 애즈 통합 태그 끝 ▲▲▲ */}
       </head>
 
-      <body className="bg-white text-slate-900 font-sans antialiased">{children}</body>
+      <body className="bg-white text-slate-900 font-sans antialiased">
+        {children}
+        <AdMobNativeBanner />
+      </body>
     </html>
   );
 }

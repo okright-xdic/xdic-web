@@ -4,4 +4,5 @@
     <string name="title_activity_main">X-DIC</string>
     <string name="package_name">com.xdic.app</string>
     <string name="custom_url_scheme">com.xdic.app</string>
+    <string name="admob_app_id">ca-app-pub-8555893885172220~1175351370</string>
 </resources>
