@@ -5040,6 +5040,11 @@ const hasXdicInsight =
           ? "flex flex-col min-h-screen bg-white overflow-x-hidden"
           : "flex flex-col min-h-screen bg-white"
       }
+      style={
+        displayIsApp
+          ? { paddingBottom: 'calc(110px + env(safe-area-inset-bottom))' }
+          : undefined
+      }
     >
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6">
         {!displayQuery && <UnifiedHeader />}
