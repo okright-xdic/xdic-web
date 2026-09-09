@@ -4,8 +4,33 @@
 import SearchPage from '@/components/SearchPage';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: { q?: string; app?: string };
+}): Promise<Metadata> {
+  const query = (searchParams.q || '').toString().trim();
+
+  if (query) {
+    return {
+      robots: {
+        index: false,
+        follow: true,
+      },
+    };
+  }
+
+  return {
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
+}
 
 const kKeepWords = new Set([
   '좋은', '많은', '작은', '큰', '새로운', '나쁜', '어려운',
