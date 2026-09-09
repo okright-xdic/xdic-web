@@ -9,20 +9,6 @@ const CATEGORY_NAMES: { [key: number]: string } = {
   9: '의학용어', 10: '인문사회기타용어', 11: '과학기술기타용어', 12: '기타'
 };
 
-// [광고 컴포넌트]
-const AdPlaceholder = ({ label }: { label: string }) => (
-  <div className="w-full my-8 px-2">
-    <div className="flex flex-col items-center">
-      <span className="text-[10px] text-slate-400 tracking-[0.2em] mb-2 uppercase font-bold text-center w-full">
-        광고(ADVERTISEMENT)
-      </span>
-      <div className="w-full min-h-[160px] bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center shadow-sm text-slate-300 italic text-sm">
-        {label}
-      </div>
-    </div>
-  </div>
-);
-
 export default function SearchResults({ keyword }: { keyword: string }) {
   const [results, setResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -237,7 +223,6 @@ export default function SearchResults({ keyword }: { keyword: string }) {
                         [{CATEGORY_NAMES[item.category_id] || '기타'}]
                       </span>
                     </div>
-                    {idx === 6 && <AdPlaceholder label="Google AdSense - Feed Ad" />}
                   </React.Fragment>
                 ))}
               </div>
@@ -259,9 +244,6 @@ export default function SearchResults({ keyword }: { keyword: string }) {
                 </div>
               )}
 
-              <div className="mt-8">
-                <AdPlaceholder label="Google AdSense - Bottom Ad" />
-              </div>
             </>
           ) : (
             // [검색 결과 없음 화면] - Google/Naver 바로가기 유지

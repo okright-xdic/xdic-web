@@ -5391,7 +5391,7 @@ const hasXdicInsight =
                         기존 페이지 하단에서 사용하던 Bottom 광고 단위를
                         이 위치로 이동하여 중복 광고 단위 호출을 피합니다.
                        ===================================================== */}
-                    {!displayIsApp && (
+                    {!displayIsApp && !String(query || '').trim() && (
                       <div
                         id="xdic-translation-footer-placeholder"
                         data-xdic-placeholder="translation-footer-kakaoadfit"
@@ -5729,7 +5729,7 @@ const hasXdicInsight =
                           </div>
                         </li>
                         {/* Ads Review 안전화: 결과가 7건 미만이면 목록 중간 광고를 표시하지 않습니다. */}
-                        {!displayIsApp && currentItems.length >= 7 && idx === 6 && (
+                        {!displayIsApp && !String(query || '').trim() && currentItems.length >= 7 && idx === 6 && (
                           <div className="w-full flex justify-center my-6">
                             <div className={`relative flex items-center justify-center w-full max-w-[728px] ${isMobileWeb ? 'min-h-[100px]' : 'min-h-[90px]'} bg-transparent rounded-lg overflow-hidden`}>
                               <div className="relative z-10 flex justify-center w-full overflow-x-auto max-w-full">
@@ -5812,7 +5812,7 @@ const hasXdicInsight =
                     </p>
                   </aside>
 
-                  {!displayIsApp && !aiTranslation && currentItems.length >= 10 && (
+                  {!displayIsApp && !String(query || '').trim() && !aiTranslation && currentItems.length >= 10 && (
                     <div className="w-full flex justify-center mt-8 mb-2">
                       <div className={`relative flex items-center justify-center w-full max-w-[728px] ${isMobileWeb ? 'min-h-[100px]' : 'min-h-[90px]'} bg-transparent rounded-lg overflow-hidden`}>
                         <div className="relative z-10 flex justify-center w-full overflow-x-auto max-w-full">

@@ -12,12 +12,23 @@ export default function AdSenseWebOnly() {
 
   useEffect(() => {
     const ua = navigator.userAgent || '';
+
     const isNativeApp =
       Capacitor.isNativePlatform() ||
       ua.includes('wv') ||
       ua.includes('Capacitor');
 
-    setShouldLoadAdSense(!isNativeApp);
+    const pathname = window.location.pathname;
+    const params = new URLSearchParams(window.location.search);
+    const query = (params.get('q') || '').trim();
+
+    const isSearchResultPage =
+      pathname === '/search' ||
+      (pathname === '/' && query.length > 0);
+
+    setShouldLoadAdSense(
+      !isNativeApp && !isSearchResultPage
+    );
   }, []);
 
   if (!shouldLoadAdSense) return null;
