@@ -1507,7 +1507,32 @@ const twoProKoreanDateLabelV131 = (dateKey: string): string => {
   return `${Number(match[2])}월 ${Number(match[3])}일`;
 };
 
-  export default function SearchPage({
+// ================================================================
+// ☆ TwoPro AdSense Step 3
+// 웹 메인 최초 HTML에 표시할 고정 영어회화 미리보기.
+// Supabase 데이터가 도착하면 기존 previewData로 자동 교체됩니다.
+// 앱 화면과 기존 conversation_lines 조회 로직은 변경하지 않습니다.
+// ================================================================
+const HOME_CONVERSATION_FALLBACK = [
+  {
+    id: 'home-fallback-1',
+    category: '일상 영어회화',
+    en_text: 'Could you give me a moment?',
+    ko_text: '잠시 시간을 주시겠어요?',
+    description:
+      '상대방에게 잠시 시간을 달라고 정중하게 요청할 때 쓰는 자연스러운 표현입니다.',
+  },
+  {
+    id: 'home-fallback-2',
+    category: '일상 영어회화',
+    en_text: 'Could you say that again, please?',
+    ko_text: '다시 말씀해 주시겠어요?',
+    description:
+      '상대의 말을 잘 듣지 못했을 때 정중하게 다시 말해 달라고 요청하는 표현입니다.',
+  },
+];
+
+export default function SearchPage({
   query,
   results = [],
   orangeKeys = [],
@@ -2942,7 +2967,12 @@ if (
 </Link>
     </>
   );
-
+  const conversationPreviewItems =
+  previewData.length > 0
+    ? previewData.slice(0, 2)
+    : displayIsApp
+      ? []
+      : HOME_CONVERSATION_FALLBACK;
   const renderConversationPreview = () => (
 <article
   className={
@@ -2988,7 +3018,7 @@ if (
   </div>
   
   <div className={displayIsApp ? "grid grid-cols-1 gap-1.5" : "grid grid-cols-1 md:grid-cols-2 gap-2.5"}>
-    {previewData.length > 0 ? previewData.slice(0, 2).map((item, idx) => (
+    {conversationPreviewItems.length > 0 ? conversationPreviewItems.map((item, idx) => (
       <div
         key={idx}
         className={
