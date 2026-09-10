@@ -227,7 +227,55 @@ export default function PrivacyPage() {
             국외이전, 파기, 정보주체의 권리 등 적용되는 상세 사항은 현재 제공 중인
             정식 문서를 확인해 주세요.
           </p>
+          <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/50 p-4 md:p-5">
+            <h3 className="text-[14px] md:text-[16px] font-black text-slate-900">
+              Google 광고 및 쿠키 안내
+            </h3>
 
+            <div className="mt-2 space-y-2 text-[11px] md:text-[12px] leading-5 text-slate-600">
+              <p>
+                X-DIC은 웹사이트에서 Google AdSense, 모바일 앱에서 Google AdMob 등
+                Google의 광고 서비스를 사용할 수 있습니다. Google을 포함한 제3자
+                광고 제공업체는 광고를 제공하고 광고 효과를 측정하기 위해 쿠키,
+                웹 비콘, IP 주소 또는 기타 식별자와 같은 기술을 사용할 수 있습니다.
+              </p>
+
+              <p>
+                Google 및 Google의 파트너는 사용자가 X-DIC 또는 다른 웹사이트와
+                앱을 방문하거나 이용한 정보를 바탕으로 광고를 제공할 수 있습니다.
+                Google 광고 서비스가 사용되는 과정에서 방문 중인 페이지의 URL,
+                IP 주소, 브라우저 또는 기기 관련 정보 등이 Google에 전달될 수 있으며,
+                Google이 브라우저의 쿠키를 설정하거나 읽을 수도 있습니다.
+              </p>
+
+              <p>
+                사용자는 Google 광고 설정에서 개인 맞춤 광고에 사용되는 정보를
+                확인하거나 개인 맞춤 광고를 관리할 수 있습니다. Google이 파트너
+                사이트와 앱에서 정보를 사용하는 방법은 아래 Google 공식 안내에서
+                확인할 수 있습니다.
+              </p>
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-[11px] md:text-[12px] font-extrabold">
+              <a
+                href="https://policies.google.com/technologies/partner-sites?hl=ko"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-700 hover:text-blue-900 hover:underline underline-offset-4"
+              >
+                Google의 파트너 사이트·앱 데이터 사용 안내 →
+              </a>
+
+              <a
+                href="https://adssettings.google.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-700 hover:text-blue-900 hover:underline underline-offset-4"
+              >
+                Google 광고 설정 →
+              </a>
+            </div>
+          </div>
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
             <a
               href="/docs/terms_ko.pdf"
