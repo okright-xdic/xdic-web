@@ -33,6 +33,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/english/dont-do-not-doesnt',
     '/english/tense-translation',
     '/english/book-noun-verb',
+    '/english/file-noun-verb',
 
     // 전문용어 허브
     '/medical',
