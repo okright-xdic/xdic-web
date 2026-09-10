@@ -181,7 +181,86 @@ export default function NoticePage() {
       </header>
 
       <main className="max-w-3xl mx-auto mt-8 px-4 md:px-6">
-        
+
+        {/* =========================================================
+            X-DIC 공지사항 고정 안내
+            - 검색엔진과 일반 이용자에게 페이지 목적을 명확히 안내
+            - Supabase 공지사항 로딩 여부와 관계없이 항상 표시
+        ========================================================= */}
+        <section
+          aria-labelledby="notice-guide-title"
+          className="mb-8 rounded-2xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm"
+        >
+          <div className="mb-5">
+            <p className="mb-1 text-[11px] md:text-xs font-bold uppercase tracking-wide text-blue-600">
+              X-DIC Notice & FAQ
+            </p>
+
+            <h2
+              id="notice-guide-title"
+              className="text-lg md:text-xl font-extrabold text-slate-900"
+            >
+              X-DIC 공지사항 및 이용 안내
+            </h2>
+
+            <p className="mt-3 text-sm md:text-[15px] leading-7 text-slate-600 break-keep">
+              이 페이지에서는 X-DIC의 검색·번역 기능 업데이트, 데이터 정비,
+              서비스 이용 안내와 주요 변경 사항을 확인할 수 있습니다.
+              한영·영한 검색, 전문용어, 추천 번역, 참고 표현 및 영어 학습
+              콘텐츠와 관련된 안내도 함께 제공합니다.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <article className="rounded-xl border border-blue-100 bg-blue-50/40 p-4">
+              <h3 className="text-sm font-extrabold text-slate-800">
+                검색 결과는 어떻게 제공되나요?
+              </h3>
+
+              <p className="mt-2 text-[13px] md:text-sm leading-6 text-slate-600 break-keep">
+                X-DIC은 한영·영한 사전 데이터, 전문용어, 병렬 예문과
+                번역 규칙을 함께 활용합니다. 같은 단어나 문장도 문맥과
+                쓰임에 따라 여러 번역 후보와 참고 표현이 표시될 수 있습니다.
+              </p>
+            </article>
+
+            <article className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-4">
+              <h3 className="text-sm font-extrabold text-slate-800">
+                데이터나 번역 오류를 발견했다면?
+              </h3>
+
+              <p className="mt-2 text-[13px] md:text-sm leading-6 text-slate-600 break-keep">
+                검색 결과에서 잘못된 번역이나 용어, 데이터 오류를 발견한 경우
+                문의 페이지를 통해 알려주세요. 내용을 확인한 뒤 필요한 경우
+                데이터와 검색·번역 규칙을 검토하여 반영합니다.
+              </p>
+            </article>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href="/guide"
+              className="rounded-full border border-blue-200 bg-white px-4 py-2 text-xs font-bold text-blue-700 transition-colors hover:bg-blue-50"
+            >
+              X-DIC 이용 안내
+            </Link>
+
+            <Link
+              href="/data-policy"
+              className="rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-50"
+            >
+              데이터·편집 원칙
+            </Link>
+
+            <Link
+              href="/contact"
+              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              문의·오류 제보
+            </Link>
+          </div>
+        </section>
+
         {isAdmin && !isWriting && (
           <div className="flex justify-end mb-4">
             <button 
