@@ -23,6 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/conversation',
     '/nuance',
     '/idiom',
+    '/english/go-vs-come',
 
     // 전문용어 허브
     '/medical',
