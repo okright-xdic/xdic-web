@@ -26,6 +26,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/english/go-vs-come',
     '/english/see-look-watch',
     '/english/say-tell-speak-talk',
+    '/english/do-vs-make',
 
     // 전문용어 허브
     '/medical',
