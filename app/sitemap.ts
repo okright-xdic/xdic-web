@@ -28,6 +28,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/english/say-tell-speak-talk',
     '/english/do-vs-make',
     '/english/in-on-at',
+    '/english/to-vs-for',
 
     // 전문용어 허브
     '/medical',
