@@ -23,6 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/conversation',
     '/nuance',
     '/idiom',
+    '/english',
     '/english/go-vs-come',
     '/english/see-look-watch',
     '/english/say-tell-speak-talk',
