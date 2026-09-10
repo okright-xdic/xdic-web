@@ -24,6 +24,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/nuance',
     '/idiom',
     '/english/go-vs-come',
+    '/english/see-look-watch',
 
     // 전문용어 허브
     '/medical',
