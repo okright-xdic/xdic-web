@@ -25,6 +25,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: `엑스딕(X-DIC)에서 '${keyword}'의 정확한 영어 표현, 전문 용어, 실생활 예문과 번역가 해설을 확인해보세요.`,
     metadataBase: new URL('https://x-dic.com'), // 👈 불순물 싹 제거했습니다!
     keywords: [keyword, `${keyword} 영어로`, `${keyword} 뜻`, '엑스딕', 'XDIC', '복합어 사전', '전문용어 번역'],
+    robots: {
+      index: false,
+      follow: true,
+    },
     openGraph: {
       title: `${keyword} 영어로 뜻 | 전문 복합어 X-DIC`,
       description: `'${keyword}' 실무 번역과 예문 뉘앙스 보기.`,
