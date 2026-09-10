@@ -31,6 +31,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/english/to-vs-for',
     '/english/articles-a-an-the',
     '/english/dont-do-not-doesnt',
+    '/english/tense-translation',
 
     // 전문용어 허브
     '/medical',
