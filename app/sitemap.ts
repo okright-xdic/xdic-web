@@ -29,6 +29,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/english/do-vs-make',
     '/english/in-on-at',
     '/english/to-vs-for',
+    '/english/articles-a-an-the',
 
     // 전문용어 허브
     '/medical',
