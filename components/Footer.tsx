@@ -64,14 +64,22 @@ export default function Footer() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <Link 
-                href="/conversation" 
+              <Link
+                href="/english"
+                className="text-[12px] font-bold text-violet-600 hover:text-violet-800 hover:bg-violet-50 px-2 py-1 rounded transition-colors border border-violet-200 bg-white shadow-sm flex items-center gap-1"
+              >
+                <span>📝</span> 번역가 영어해설
+              </Link>
+
+              <Link
+                href="/conversation"
                 className="text-[12px] font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded transition-colors border border-blue-200 bg-white shadow-sm flex items-center gap-1"
               >
                 <span>📖</span> 필수 영어회화
               </Link>
-              <Link 
-                href="/notice" 
+
+              <Link
+                href="/notice"
                 className="text-[12px] font-bold text-slate-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded transition-colors border border-slate-200 bg-white shadow-sm flex items-center gap-1"
               >
                 <span>📢</span> 공지사항 / FAQ

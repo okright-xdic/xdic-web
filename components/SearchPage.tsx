@@ -2932,6 +2932,22 @@ if (
   <span className="text-[14px] group-hover:scale-110 transition-transform">⭐</span> 
   <span>즐겨찾기 <span className="font-semibold text-orange-400">· Save</span></span>
 </button>
+
+{!displayIsApp && (
+  <Link
+    href="/english"
+    className="group flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 bg-white border border-violet-200 shadow-sm hover:border-violet-400 hover:shadow-md hover:bg-violet-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-violet-600 hover:text-violet-800 transition-all duration-300"
+  >
+    <span className="text-[14px] group-hover:scale-110 transition-transform">
+      📝
+    </span>
+    <span>
+      번역가 영어해설{' '}
+      <span className="font-semibold text-violet-400">· Guide</span>
+    </span>
+  </Link>
+)}
+
 <Link
   href="/conversation"
   className={
