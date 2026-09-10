@@ -34,6 +34,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/english/tense-translation',
     '/english/book-noun-verb',
     '/english/file-noun-verb',
+    '/english/plant-noun-verb',
 
     // 전문용어 허브
     '/medical',
