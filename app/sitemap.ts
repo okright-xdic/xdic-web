@@ -30,6 +30,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/english/in-on-at',
     '/english/to-vs-for',
     '/english/articles-a-an-the',
+    '/english/dont-do-not-doesnt',
 
     // 전문용어 허브
     '/medical',
