@@ -1407,6 +1407,30 @@ export default function ComputerPage() {
             소프트웨어와 컴퓨터 기술은 제품·플랫폼·버전에 따라 용어와 사용 방식이 달라질 수 있으므로,
             실제 개발·운영 작업에서는 해당 기술의 공식 문서와 최신 사양을 함께 확인해 주세요.
           </p>
+
+          <nav
+            aria-label="X-DIC 컴퓨터 용어 페이지 신뢰 정보"
+            className="mt-3 flex flex-wrap gap-2"
+          >
+            <Link
+              href="/about"
+              className="text-[11px] md:text-xs font-bold text-slate-600 hover:text-blue-700 bg-white border border-slate-200 rounded-full px-3 py-1.5 transition-colors"
+            >
+              About X-DIC
+            </Link>
+            <Link
+              href="/data-policy"
+              className="text-[11px] md:text-xs font-bold text-slate-600 hover:text-blue-700 bg-white border border-slate-200 rounded-full px-3 py-1.5 transition-colors"
+            >
+              데이터·편집 원칙
+            </Link>
+            <Link
+              href="/guide"
+              className="text-[11px] md:text-xs font-bold text-slate-600 hover:text-blue-700 bg-white border border-slate-200 rounded-full px-3 py-1.5 transition-colors"
+            >
+              X-DIC 이용 안내
+            </Link>
+          </nav>
         </section>
       </main>
     </div>
