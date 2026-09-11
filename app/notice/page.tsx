@@ -22,6 +22,7 @@ export default function NoticePage() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true); 
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
   const [isWriting, setIsWriting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   
@@ -45,20 +46,50 @@ export default function NoticePage() {
     fetchNotices();
   }, [supabase]);
 
-  const handleAdminLogin = () => {
+  const handleAdminLogin = async () => {
     if (isAdmin) {
       setIsAdmin(false);
+      setAdminPassword('');
       setIsWriting(false);
       setEditingId(null);
       alert('관리자 모드가 해제되었습니다.');
       return;
     }
+
     const pwd = prompt('관리자 비밀번호를 입력하세요:');
-    if (pwd === 'okright91088!!') {
+
+    if (pwd === null) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/notices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'auth',
+          password: pwd,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        alert('비밀번호가 일치하지 않습니다.');
+        return;
+      }
+
+      setAdminPassword(pwd);
       setIsAdmin(true);
-      alert('관리자 모드로 접속되었습니다. 자유롭게 글을 작성/수정/삭제할 수 있습니다.');
-    } else if (pwd !== null) {
-      alert('비밀번호가 일치하지 않습니다.');
+
+      alert(
+        '관리자 모드로 접속되었습니다. 자유롭게 글을 작성/수정/삭제할 수 있습니다.'
+      );
+    } catch (error) {
+      console.error('[notice admin login error]', error);
+      alert('관리자 확인 중 오류가 발생했습니다.');
     }
   };
 
@@ -68,33 +99,56 @@ export default function NoticePage() {
       return;
     }
 
-    if (editingId) {
-      const { error } = await supabase
-        .from('notices')
-        .update({ title, content })
-        .eq('id', editingId);
+    if (!isAdmin || !adminPassword) {
+      alert('관리자 로그인이 필요합니다.');
+      return;
+    }
 
-      if (error) {
-        console.error(error);
-        alert('글 수정에 실패했습니다: ' + error.message);
-      } else {
-        alert('성공적으로 수정되었습니다!');
-        resetForm();
-        fetchNotices();
-      }
-    } else {
-      const { error } = await supabase
-        .from('notices')
-        .insert([{ title, content }]);
+    try {
+      const action =
+        editingId !== null
+          ? 'update'
+          : 'create';
 
-      if (error) {
-        console.error(error);
-        alert('글 저장에 실패했습니다: ' + error.message);
-      } else {
-        alert('성공적으로 등록되었습니다!');
-        resetForm();
-        fetchNotices();
+      const response = await fetch('/api/notices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action,
+          password: adminPassword,
+          id: editingId,
+          title,
+          content,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        console.error('[notice save error]', result);
+
+        alert(
+          editingId !== null
+            ? '글 수정에 실패했습니다.'
+            : '글 저장에 실패했습니다.'
+        );
+
+        return;
       }
+
+      alert(
+        editingId !== null
+          ? '성공적으로 수정되었습니다!'
+          : '성공적으로 등록되었습니다!'
+      );
+
+      resetForm();
+      await fetchNotices();
+    } catch (error) {
+      console.error('[notice save exception]', error);
+      alert('공지사항 저장 중 오류가 발생했습니다.');
     }
   };
 
@@ -107,14 +161,41 @@ export default function NoticePage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
-    const { error } = await supabase.from('notices').delete().eq('id', id);
-    if (error) {
-      console.error(error);
-      alert('삭제에 실패했습니다: ' + error.message);
-    } else {
+    if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) {
+      return;
+    }
+
+    if (!isAdmin || !adminPassword) {
+      alert('관리자 로그인이 필요합니다.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/notices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'delete',
+          password: adminPassword,
+          id,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        console.error('[notice delete error]', result);
+        alert('삭제에 실패했습니다.');
+        return;
+      }
+
       alert('삭제되었습니다.');
-      fetchNotices();
+      await fetchNotices();
+    } catch (error) {
+      console.error('[notice delete exception]', error);
+      alert('삭제 중 오류가 발생했습니다.');
     }
   };
 
