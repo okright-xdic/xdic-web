@@ -862,6 +862,27 @@ export default function PlantNounVerbPage() {
           </Link>
 
           <Link
+            href="/english"
+            className="inline-flex items-center rounded-full border border-slate-300 bg-white px-5 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"
+          >
+            영어 번역가 해설 전체
+          </Link>
+
+          <Link
+            href="/about"
+            className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-5 py-2 text-sm font-bold text-sky-700 hover:bg-sky-100"
+          >
+            About X-DIC
+          </Link>
+
+          <Link
+            href="/data-policy"
+            className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2 text-sm font-bold text-emerald-700 hover:bg-emerald-100"
+          >
+            데이터·편집 원칙
+          </Link>
+
+          <Link
             href="/guide"
             className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-5 py-2 text-sm font-bold text-blue-700 hover:bg-blue-100"
           >

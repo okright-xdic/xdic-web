@@ -341,7 +341,52 @@ export default function GoVsComePage() {
             도구 영역이며, 이 페이지는 표현 선택의 기준과 번역 판단을 설명하는
             편집 콘텐츠입니다.
           </p>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href="/about"
+              className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-bold text-sky-700 hover:bg-sky-100"
+            >
+              About X-DIC
+            </Link>
+
+            <Link
+              href="/data-policy"
+              className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100"
+            >
+              데이터·편집 원칙
+            </Link>
+          </div>
         </aside>
+
+        <section className="mt-10 border-t border-slate-200 pt-8">
+          <h2 className="text-lg font-extrabold">
+            관련 번역가 해설
+          </h2>
+
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href="/english/in-on-at"
+              className="inline-flex rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-blue-700 hover:bg-blue-50"
+            >
+              in · on · at — 장소와 위치의 전치사 선택 →
+            </Link>
+
+            <Link
+              href="/english/to-vs-for"
+              className="inline-flex rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-blue-700 hover:bg-blue-50"
+            >
+              to와 for — 방향·대상·목적의 차이 →
+            </Link>
+
+            <Link
+              href="/english/tense-translation"
+              className="inline-flex rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-blue-700 hover:bg-blue-50"
+            >
+              영어 시제 — 현재·과거·미래 번역 기준 →
+            </Link>
+          </div>
+        </section>
 
         <div className="mt-10 flex flex-wrap gap-3">
           <Link
@@ -349,6 +394,13 @@ export default function GoVsComePage() {
             className="inline-flex items-center rounded-full border border-slate-300 bg-white px-5 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"
           >
             ← X-DIC 홈
+          </Link>
+
+          <Link
+            href="/english"
+            className="inline-flex items-center rounded-full border border-slate-300 bg-white px-5 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"
+          >
+            영어 번역가 해설 전체
           </Link>
 
           <Link
