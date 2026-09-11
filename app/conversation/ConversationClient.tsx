@@ -850,6 +850,75 @@ export default function ConversationClient({ initialData = [] }: { initialData: 
                   );
                 })}
               </div>
+
+              {/* ================================================================
+                  ☆ TwoPro v1.62-safe: 필수 영어회화 미리보기
+                  - /conversation 기본 화면에서 기존 conversation_lines 일부를 바로 표시
+                  - 여행/일상/비즈니스 각 2개씩만 노출
+                  - 기존 분류 목록과 상세 페이지 구조는 그대로 유지
+                 ================================================================ */}
+              <div className="border-t border-slate-200 bg-slate-50/60 px-6 py-6">
+                <div>
+                  <h3 className="text-base md:text-lg font-extrabold text-slate-800">
+                    필수 영어회화 미리보기
+                  </h3>
+                  <p className="mt-1 text-xs md:text-sm text-slate-500 leading-relaxed">
+                    여행·일상·비즈니스에서 자주 쓰는 표현을 각 분류에서 일부 먼저 확인해 보세요.
+                  </p>
+                </div>
+
+                <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    { key: 'travel', label: CATEGORY_MAP.travel },
+                    { key: 'casual', label: CATEGORY_MAP.casual },
+                    { key: 'business', label: CATEGORY_MAP.business },
+                  ].map((category) => {
+                    const previewItems = data
+                      .filter(d => d.category === category.label)
+                      .slice(0, 2);
+
+                    return (
+                      <div
+                        key={category.key}
+                        className="bg-white rounded-xl border border-slate-200 p-4"
+                      >
+                        <div className="text-sm font-extrabold text-slate-800">
+                          {category.label}
+                        </div>
+
+                        <div className="mt-3 space-y-3">
+                          {previewItems.length === 0 ? (
+                            <p className="text-xs text-slate-400">
+                              등록된 회화가 없습니다.
+                            </p>
+                          ) : (
+                            previewItems.map((item, index) => (
+                              <div
+                                key={item.id || `${category.key}-${index}`}
+                                className="border-t border-slate-100 first:border-t-0 first:pt-0 pt-3"
+                              >
+                                <p className="text-[13px] md:text-sm font-bold text-slate-800 leading-relaxed">
+                                  {item.en_text}
+                                </p>
+                                <p className="mt-1 text-[12px] md:text-[13px] text-slate-500 leading-relaxed">
+                                  {item.ko_text}
+                                </p>
+                              </div>
+                            ))
+                          )}
+                        </div>
+
+                        <Link
+                          href={`/conversation?type=${category.key}`}
+                          className="inline-flex mt-4 text-xs font-extrabold text-blue-600 hover:text-blue-800 transition-colors"
+                        >
+                          이 분류 전체 보기 →
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </section>
           )}
 
