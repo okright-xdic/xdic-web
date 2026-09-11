@@ -831,6 +831,30 @@ export default function EngineeringPage() {
             실제 설계, 제작, 시험, 안전, 규격 적용이 필요한 경우에는 해당 분야의 최신 표준·사양서와
             프로젝트 기준을 함께 확인해 주세요.
           </p>
+
+          <nav
+            aria-label="X-DIC 기술용어 페이지 신뢰 정보"
+            className="mt-3 flex flex-wrap gap-2"
+          >
+            <Link
+              href="/about"
+              className="text-[11px] md:text-xs font-bold text-slate-600 hover:text-blue-700 bg-white border border-slate-200 rounded-full px-3 py-1.5 transition-colors"
+            >
+              About X-DIC
+            </Link>
+            <Link
+              href="/data-policy"
+              className="text-[11px] md:text-xs font-bold text-slate-600 hover:text-blue-700 bg-white border border-slate-200 rounded-full px-3 py-1.5 transition-colors"
+            >
+              데이터·편집 원칙
+            </Link>
+            <Link
+              href="/guide"
+              className="text-[11px] md:text-xs font-bold text-slate-600 hover:text-blue-700 bg-white border border-slate-200 rounded-full px-3 py-1.5 transition-colors"
+            >
+              X-DIC 이용 안내
+            </Link>
+          </nav>
         </section>
       </main>
     </div>
