@@ -3,9 +3,9 @@ export default function Loading() {
     <div className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center">
        <div className="flex flex-col items-center">
          {/* 로고 */}
-         <h1 className="text-4xl font-black text-slate-800 tracking-tighter mb-8">
+         <div className="text-4xl font-black text-slate-800 tracking-tighter mb-8">
             <span className="text-blue-500">X</span>-DIC
-         </h1>
+         </div>
 
          {/* 스피너 */}
          <div className="relative w-20 h-20 mb-8">
