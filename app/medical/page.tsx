@@ -512,6 +512,30 @@ export default function MedicalPage() {
             의료 진단이나 치료 판단을 대신하지 않으며, 실제 의료 의사결정이 필요한 경우에는
             의료 전문가의 판단과 공신력 있는 전문 자료를 함께 확인해 주세요.
           </p>
+
+          <nav
+            aria-label="X-DIC 의학용어 페이지 신뢰 정보"
+            className="mt-3 flex flex-wrap gap-2"
+          >
+            <Link
+              href="/about"
+              className="text-[11px] md:text-xs font-bold text-slate-600 hover:text-blue-700 bg-white border border-slate-200 rounded-full px-3 py-1.5 transition-colors"
+            >
+              About X-DIC
+            </Link>
+            <Link
+              href="/data-policy"
+              className="text-[11px] md:text-xs font-bold text-slate-600 hover:text-blue-700 bg-white border border-slate-200 rounded-full px-3 py-1.5 transition-colors"
+            >
+              데이터·편집 원칙
+            </Link>
+            <Link
+              href="/guide"
+              className="text-[11px] md:text-xs font-bold text-slate-600 hover:text-blue-700 bg-white border border-slate-200 rounded-full px-3 py-1.5 transition-colors"
+            >
+              X-DIC 이용 안내
+            </Link>
+          </nav>
         </section>
       </main>
     </div>
