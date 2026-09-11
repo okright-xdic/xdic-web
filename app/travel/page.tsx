@@ -1044,6 +1044,30 @@ export default function TravelPage() {
             X-DIC Travel은 여행 중 필요한 영어 표현을 빠르게 탐색하고 한영·영한 사전 결과와 연결하기 위한 실용 영어 허브입니다.
             교통 시간, 요금, 입국 절차, 의료·안전 관련 정보처럼 실제 상황에서 달라질 수 있는 내용은 현지 공식 안내를 함께 확인해 주세요.
           </p>
+
+          <nav
+            aria-label="X-DIC Travel 페이지 신뢰 정보"
+            className="mt-3 flex flex-wrap gap-2"
+          >
+            <Link
+              href="/about"
+              className="text-[11px] md:text-xs font-bold text-slate-600 hover:text-blue-700 bg-white border border-slate-200 rounded-full px-3 py-1.5 transition-colors"
+            >
+              About X-DIC
+            </Link>
+            <Link
+              href="/data-policy"
+              className="text-[11px] md:text-xs font-bold text-slate-600 hover:text-blue-700 bg-white border border-slate-200 rounded-full px-3 py-1.5 transition-colors"
+            >
+              데이터·편집 원칙
+            </Link>
+            <Link
+              href="/guide"
+              className="text-[11px] md:text-xs font-bold text-slate-600 hover:text-blue-700 bg-white border border-slate-200 rounded-full px-3 py-1.5 transition-colors"
+            >
+              X-DIC 이용 안내
+            </Link>
+          </nav>
         </section>
       </main>
     </div>
