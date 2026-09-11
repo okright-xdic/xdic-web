@@ -3685,6 +3685,78 @@ if (
         )}
 
         {/* ================================================================
+            ☆ TwoPro v1.40-safe: 메인페이지 번역가 영어해설
+            - 오늘의 영어회화와 전문용어 탐색 사이에 배치
+            - 기존 /english 해설 콘텐츠를 메인에서 직접 탐색
+            - 검색/번역/API/앱 UI에는 영향 없음
+           ================================================================ */}
+        {!displayIsApp && (
+          <section
+            aria-labelledby="xdic-translator-english-guide-title"
+            className="w-full mt-3 md:mt-4"
+          >
+            <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/60 via-white to-indigo-50/35 shadow-sm overflow-hidden">
+              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-2.5 px-4 md:px-5 py-3 md:py-3.5 border-b border-violet-100/80">
+                <div>
+                  <p className="text-[10px] md:text-[11px] font-extrabold uppercase tracking-[0.12em] text-violet-500">
+                    X-DIC English Guide
+                  </p>
+                  <h2
+                    id="xdic-translator-english-guide-title"
+                    className="mt-0.5 text-[16px] md:text-[19px] font-black text-slate-900"
+                  >
+                    번역가 영어해설
+                    <span className="ml-1.5 text-[9px] md:text-[10px] font-bold text-slate-400">
+                      English Guide
+                    </span>
+                  </h2>
+                  <p className="mt-1 text-[11px] md:text-[12px] text-slate-500 leading-relaxed break-keep">
+                    헷갈리기 쉬운 영어 표현과 한영·영한 번역 차이를 번역가 관점에서 쉽게 살펴보세요.
+                  </p>
+                </div>
+
+                <Link
+                  href="/english"
+                  className="self-start md:self-auto shrink-0 text-[10px] md:text-[11px] font-extrabold text-violet-600 hover:text-violet-800 transition-colors"
+                >
+                  번역가 영어해설 전체 보기 →
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-3 md:p-3.5">
+                <Link
+                  href="/english/articles-a-an-the"
+                  className="rounded-xl border border-violet-100 bg-white px-3 py-2.5 text-center text-[11px] md:text-[12px] font-extrabold text-slate-700 hover:border-violet-300 hover:text-violet-700 hover:bg-violet-50/50 transition-all"
+                >
+                  a / an / the
+                </Link>
+
+                <Link
+                  href="/english/in-on-at"
+                  className="rounded-xl border border-violet-100 bg-white px-3 py-2.5 text-center text-[11px] md:text-[12px] font-extrabold text-slate-700 hover:border-violet-300 hover:text-violet-700 hover:bg-violet-50/50 transition-all"
+                >
+                  in / on / at
+                </Link>
+
+                <Link
+                  href="/english/say-tell-speak-talk"
+                  className="rounded-xl border border-violet-100 bg-white px-3 py-2.5 text-center text-[11px] md:text-[12px] font-extrabold text-slate-700 hover:border-violet-300 hover:text-violet-700 hover:bg-violet-50/50 transition-all"
+                >
+                  say / tell / speak / talk
+                </Link>
+
+                <Link
+                  href="/english/see-look-watch"
+                  className="rounded-xl border border-violet-100 bg-white px-3 py-2.5 text-center text-[11px] md:text-[12px] font-extrabold text-slate-700 hover:border-violet-300 hover:text-violet-700 hover:bg-violet-50/50 transition-all"
+                >
+                  see / look / watch
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ================================================================
             ☆ TwoPro v1.25-safe: 메인페이지 X-DIC 전문용어 허브
             - 검색/음성검색/번역 기능과 독립된 정적 설명 콘텐츠
             - Google/사용자가 검색 조작 없이도 분야별 정체성을 확인 가능
