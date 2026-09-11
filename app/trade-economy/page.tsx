@@ -1163,6 +1163,30 @@ export default function TradeEconomyPage() {
             실제 계약, 결제, 통관, 금융·투자 또는 경제적 의사결정이 필요한 경우에는
             관련 법령·계약조건·공식 통계와 해당 분야 전문가의 최신 자료를 함께 확인해 주세요.
           </p>
+
+          <nav
+            aria-label="X-DIC 무역·경제 용어 페이지 신뢰 정보"
+            className="mt-3 flex flex-wrap gap-2"
+          >
+            <Link
+              href="/about"
+              className="text-[11px] md:text-xs font-bold text-slate-600 hover:text-blue-700 bg-white border border-slate-200 rounded-full px-3 py-1.5 transition-colors"
+            >
+              About X-DIC
+            </Link>
+            <Link
+              href="/data-policy"
+              className="text-[11px] md:text-xs font-bold text-slate-600 hover:text-blue-700 bg-white border border-slate-200 rounded-full px-3 py-1.5 transition-colors"
+            >
+              데이터·편집 원칙
+            </Link>
+            <Link
+              href="/guide"
+              className="text-[11px] md:text-xs font-bold text-slate-600 hover:text-blue-700 bg-white border border-slate-200 rounded-full px-3 py-1.5 transition-colors"
+            >
+              X-DIC 이용 안내
+            </Link>
+          </nav>
         </section>
       </main>
     </div>
