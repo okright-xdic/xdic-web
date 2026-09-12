@@ -4557,9 +4557,14 @@ const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
 > = {
   '큽니다': '크다',
   '커요': '크다',
+  // ☆ TwoPro v12.54-safe: 크다/작다 검증 과거·미래 확장
+  '컸어요': '크다',
+  '클 거예요': '크다',
   '큰': '크다',
   '작습니다': '작다',
   '작아요': '작다',
+  '작았어요': '작다',
+  '작을 거예요': '작다',
   '작은': '작다',
 
   // ☆ TwoPro v11.40-safe: 기본 온도·물성 형용사 활용형
@@ -4568,11 +4573,15 @@ const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
   '추웠어요': '춥다',
   '춥습니다': '춥다',
   '추웠습니다': '춥다',
+  // ☆ TwoPro v12.51-safe: 검증 확장 형용사 미래형
+  '추울 거예요': '춥다',
   '춥다': '춥다',
   '더워요': '덥다',
   '더웠어요': '덥다',
   '덥습니다': '덥다',
   '더웠습니다': '덥다',
+  // ☆ TwoPro v12.51-safe: 검증 확장 형용사 미래형
+  '더울 거예요': '덥다',
   '덥다': '덥다',
   '무거워요': '무겁다',
   '무거웠어요': '무겁다',
@@ -4585,16 +4594,22 @@ const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
   '가벼웠어요': '가볍다',
   '가볍습니다': '가볍다',
   '가벼웠습니다': '가볍다',
+  // ☆ TwoPro v12.49-safe: 검증 확장 형용사 미래형
+  '가벼울 거예요': '가볍다',
   '가볍다': '가볍다',
   '두꺼워요': '두껍다',
   '두꺼웠어요': '두껍다',
   '두껍습니다': '두껍다',
   '두꺼웠습니다': '두껍다',
+  // ☆ TwoPro v12.50-safe: 검증 확장 형용사 미래형
+  '두꺼울 거예요': '두껍다',
   '두껍다': '두껍다',
   '얇아요': '얇다',
   '얇았어요': '얇다',
   '얇습니다': '얇다',
   '얇았습니다': '얇다',
+  // ☆ TwoPro v12.50-safe: 검증 확장 형용사 미래형
+  '얇을 거예요': '얇다',
   '얇다': '얇다',
 
   // ☆ TwoPro v11.41-safe: 기본 평가·속성 형용사 활용형
@@ -4610,21 +4625,28 @@ const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
   '느렸어요': '느리다',
   '느립니다': '느리다',
   '느렸습니다': '느리다',
+  // ☆ TwoPro v12.50-safe: 검증 확장 형용사 미래형
+  '느릴 거예요': '느리다',
   '느리다': '느리다',
   '쉬워요': '쉽다',
   '쉬웠어요': '쉽다',
   '쉽습니다': '쉽다',
   '쉬웠습니다': '쉽다',
+  // ☆ TwoPro v12.52-safe: 평가형 형용사 검증 과거/미래 확장
+  '쉬울 거예요': '쉽다',
   '쉽다': '쉽다',
   '길어요': '길다',
   '길었어요': '길다',
   '깁니다': '길다',
   '길었습니다': '길다',
+  // ☆ TwoPro v12.55-safe: 길다/짧다 미래형 회귀 확장
+  '길 거예요': '길다',
   '길다': '길다',
   '짧아요': '짧다',
   '짧았어요': '짧다',
   '짧습니다': '짧다',
   '짧았습니다': '짧다',
+  '짧을 거예요': '짧다',
   '짧다': '짧다',
   '좁아요': '좁다',
   '좁았어요': '좁다',
@@ -4642,6 +4664,8 @@ const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
   '비쌌어요': '비싸다',
   '비쌉니다': '비싸다',
   '비쌌습니다': '비싸다',
+  // ☆ TwoPro v12.51-safe: 검증 확장 형용사 미래형
+  '비쌀 거예요': '비싸다',
   '비싸다': '비싸다',
   '싸요': '싸다',
   '쌌어요': '싸다',
@@ -4683,20 +4707,32 @@ const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
   '새로운': '새롭다',
   '좋습니다': '좋다',
   '좋아요': '좋다',
+  // ☆ TwoPro v12.52-safe: 평가형 형용사 검증 과거/미래 확장
+  '좋았어요': '좋다',
+  '좋을 거예요': '좋다',
   '좋은': '좋다',
   '나쁩니다': '나쁘다',
   '나빠요': '나쁘다',
+  '나빴어요': '나쁘다',
+  '나쁠 거예요': '나쁘다',
   '나쁜': '나쁘다',
   '넓습니다': '넓다',
   '넓어요': '넓다',
+  // ☆ TwoPro v12.49-safe: 누락된 검증 과거형 + 미래형
+  '넓었어요': '넓다',
+  '넓을 거예요': '넓다',
   '넓은': '넓다',
   '많습니다': '많다',
   '많아요': '많다',
   '많은': '많다',
   '어렵습니다': '어렵다',
   '어려워요': '어렵다',
+  // ☆ TwoPro v12.53-safe: 어렵다 과거/미래 검증 확장
+  '어려웠어요': '어렵다',
+  '어려울 거예요': '어렵다',
   '어려운': '어렵다',
   '어려웠습니다': '어렵다',
+  '어렵다': '어렵다',
 
   // ☆ TwoPro v11.43-safe: 기본 색상·모양 형용사 활용형
   // 검증된 해요체/과거형만 명시적으로 기본형에 연결합니다.
@@ -4704,6 +4740,8 @@ const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
   '빨갰어요': '빨갛다',
   '빨갛습니다': '빨갛다',
   '빨갰습니다': '빨갛다',
+  // ☆ TwoPro v12.49-safe: 검증 확장 형용사 미래형
+  '빨갈 거예요': '빨갛다',
   '빨갛다': '빨갛다',
   '하얘요': '하얗다',
   '하얬어요': '하얗다',
@@ -4743,9 +4781,10 @@ const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
 };
 
 // ============================================================================
-// ☆ TwoPro v12.47-safe: 지시어+명사+형용사 미래 계사 표면형
+// ☆ TwoPro v12.47-safe + v12.49-safe: 지시어+명사+형용사 미래 계사 표면형
 //
-// 이번 회귀에서 검증한 세 형용사의 '-(으)ㄹ 거예요'만 미래로 표시합니다.
+// v12.47의 기존 3개 형용사는 그대로 보존하고,
+// v12.49에서 실제 회귀 확인 중인 넓다/빨갛다/가볍다만 추가합니다.
 // 일반 형용사/동사 전역 추론은 하지 않아 기존 CORE에 영향을 주지 않습니다.
 // ============================================================================
 const TWO_PRO_KO_EN_FUTURE_COPULAR_SURFACES_V1247 =
@@ -4753,6 +4792,30 @@ const TWO_PRO_KO_EN_FUTURE_COPULAR_SURFACES_V1247 =
     '빠를 거예요',
     '무거울 거예요',
     '네모날 거예요',
+    // ☆ TwoPro v12.49-safe: 회귀 테스트에서 확인 중인 확장 형용사
+    '넓을 거예요',
+    '빨갈 거예요',
+    '가벼울 거예요',
+    // ☆ TwoPro v12.50-safe: 회귀 테스트에서 확인 중인 확장 형용사
+    '두꺼울 거예요',
+    '얇을 거예요',
+    '느릴 거예요',
+    // ☆ TwoPro v12.51-safe: 회귀 테스트에서 확인 중인 확장 형용사
+    '비쌀 거예요',
+    '추울 거예요',
+    '더울 거예요',
+    // ☆ TwoPro v12.52-safe: 평가형 형용사 회귀 확장
+    '좋을 거예요',
+    '나쁠 거예요',
+    '쉬울 거예요',
+    // ☆ TwoPro v12.53-safe: 어렵다 미래형 회귀 확장
+    '어려울 거예요',
+    // ☆ TwoPro v12.54-safe: 크다/작다 미래형 회귀 확장
+    '클 거예요',
+    '작을 거예요',
+    // ☆ TwoPro v12.55-safe: 길다/짧다 미래형 회귀 확장
+    '길 거예요',
+    '짧을 거예요',
   ]);
 
 const twoProNormalizeKoreanAdjectiveV5 = (
@@ -5714,6 +5777,143 @@ const twoProTryKoEnDemonstrativeCopularV5 = async (
   }
 
   // ============================================================================
+  // ☆ TwoPro v12.48-safe: 지시어 + 명사 + 형용사 미래 부정/부정 의문문 CORE
+  //
+  // v12.47에서 검증한 미래 긍정 3개 형용사에 한해서만
+  // "-지 않을 거예요"를 won't be / Won't ... be? 로 연결합니다.
+  //
+  // 예:
+  // 이 차는 빠르지 않을 거예요        -> This car won't be fast.
+  // 그 가방은 무겁지 않을 거예요?     -> Won't that bag be heavy?
+  // 이 상자들은 네모나지 않을 거예요  -> These boxes won't be square.
+  // 이 상자들은 네모나지 않을 거예요? -> Won't these boxes be square?
+  //
+  // 안전 원칙:
+  // 1. v12.47에서 이미 검증한 빠르다/무겁다/네모나다만 허용합니다.
+  // 2. 기존 긍정 계사 CORE를 재사용하여 명사 다의어/복수형/형용사 대표어를 보존합니다.
+  // 3. 현재/과거 부정 CORE와 PHRASES/JSON rule 우선순위는 변경하지 않습니다.
+  // ============================================================================
+  const futureNegativeCopularMatchV1248 = normalized.match(
+    /^(이|그)\s+(.+?)(들)?(?:은|는)\s+(?:(정말|매우|아주)\s+)?(.+?)지\s+않을\s+거예요$/u
+  );
+
+  if (futureNegativeCopularMatchV1248) {
+    const demonstrativeKoV1248 = futureNegativeCopularMatchV1248[1];
+    const nounKoV1248 = futureNegativeCopularMatchV1248[2];
+    const pluralKoV1248 = futureNegativeCopularMatchV1248[3] || '';
+    const adverbKoV1248 = futureNegativeCopularMatchV1248[4] || '';
+    const adjectiveStemV1248 = futureNegativeCopularMatchV1248[5].trim();
+    const adjectiveLemmaV1248 =
+      twoProNormalizeKoreanAdjectiveV5(`${adjectiveStemV1248}다`);
+
+    const isVerifiedFutureNegativeAdjectiveV1248 =
+      [
+        '빠르다',
+        '무겁다',
+        '네모나다',
+        // ☆ TwoPro v12.49-safe: 회귀 테스트에서 확인 중인 확장 형용사
+        '넓다',
+        '빨갛다',
+        '가볍다',
+        // ☆ TwoPro v12.50-safe: 회귀 테스트에서 확인 중인 확장 형용사
+        '두껍다',
+        '얇다',
+        '느리다',
+        // ☆ TwoPro v12.51-safe: 회귀 테스트에서 확인 중인 확장 형용사
+        '비싸다',
+        '춥다',
+        '덥다',
+        // ☆ TwoPro v12.52-safe: 평가형 형용사 회귀 확장
+        '좋다',
+        '나쁘다',
+        '쉽다',
+        // ☆ TwoPro v12.53-safe: 어렵다 미래 부정 회귀 확장
+        '어렵다',
+        // ☆ TwoPro v12.54-safe: 크다/작다 미래 부정 회귀 확장
+        '크다',
+        '작다',
+        // ☆ TwoPro v12.55-safe: 길다/짧다 미래 부정 회귀 확장
+        '길다',
+        '짧다',
+      ].includes(adjectiveLemmaV1248);
+
+    if (
+      adjectiveLemmaV1248 &&
+      isVerifiedFutureNegativeAdjectiveV1248
+    ) {
+      const positiveSyntheticV1248 = [
+        demonstrativeKoV1248,
+        `${nounKoV1248}${pluralKoV1248}는`,
+        adverbKoV1248,
+        adjectiveLemmaV1248,
+      ]
+        .filter(Boolean)
+        .join(' ');
+
+      const positiveResultV1248 =
+        await twoProTryKoEnDemonstrativeCopularV5(
+          positiveSyntheticV1248
+        );
+
+      if (positiveResultV1248) {
+        const positiveCoreV1248 =
+          String(positiveResultV1248.targetText || '')
+            .replace(/[.?!]+$/g, '')
+            .trim();
+
+        const parsedPositiveV1248 = positiveCoreV1248.match(
+          /^(This|That|These|Those)\s+(.+?)\s+(is|are)\s+(.+)$/i
+        );
+
+        if (parsedPositiveV1248) {
+          const demonstrativeEnV1248 = parsedPositiveV1248[1];
+          const nounPhraseEnV1248 = parsedPositiveV1248[2];
+          const predicateEnV1248 = parsedPositiveV1248[4];
+          const isQuestionV1248 = /[?？]\s*$/.test(
+            String(originalText || '').trim()
+          );
+
+          const targetCoreV1248 = isQuestionV1248
+            ? `Won't ${demonstrativeEnV1248.toLowerCase()} ${nounPhraseEnV1248} be ${predicateEnV1248}`
+            : `${demonstrativeEnV1248} ${nounPhraseEnV1248} won't be ${predicateEnV1248}`;
+
+          const negationReferenceV1248 = {
+            source: '지 않을 거예요',
+            selected: 'not',
+            candidates: ['not'],
+            slot: 'NEGATION:FUTURE',
+            confidence: 1,
+            origin: 'two-pro-v12.48-future-negative-copular',
+          } as any;
+
+          return {
+            targetText: twoProFinalizeEnglish(
+              targetCoreV1248,
+              originalText
+            ),
+            analysis: [
+              ...positiveResultV1248.analysis,
+              {
+                ko: isQuestionV1248
+                  ? '지 않을 거예요?'
+                  : '지 않을 거예요',
+                en: 'not [NEGATION:FUTURE]',
+              },
+            ],
+            referenceWords: [
+              ...positiveResultV1248.referenceWords,
+              negationReferenceV1248,
+            ],
+            engine: isQuestionV1248
+              ? 'contextual-demonstrative-future-negative-copular-question-ko-en-v12.48'
+              : 'contextual-demonstrative-future-negative-copular-ko-en-v12.48',
+          };
+        }
+      }
+    }
+  }
+
+  // ============================================================================
   // ☆ TwoPro v12.46-safe: 지시어 + 명사 + 형용사 과거 부정/부정 의문문 CORE
   //
   // v12.45에서 긍정 과거형의 was/were 시제를 보존한 데 이어,
@@ -6063,6 +6263,9 @@ const twoProTryKoEnDemonstrativeCopularV5 = async (
         : nounSource === '길' &&
             ['넓다', '좁다', '길다', '짧다'].includes(adjectiveSource)
           ? 'road'
+          : nounSource === '줄' &&
+              ['길다', '짧다'].includes(adjectiveSource)
+            ? 'line'
             : nounSource === '방법' &&
               ['좋다', '나쁘다', '쉽다', '어렵다'].includes(adjectiveSource)
             ? 'method'
