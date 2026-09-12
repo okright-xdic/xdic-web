@@ -1,0 +1,83 @@
+
+> xdic-web@0.1.0 build
+> next build
+
+- info Loaded env from C:\dictionary_upload\xdic-web\.env.local
+- info Loaded env from C:\dictionary_upload\xdic-web\.env
+- info Creating an optimized production build...
+- info Linting and checking validity of types...
+- info Collecting page data...
+- info Generating static pages (0/42)
+- info Generating static pages (10/42)
+- info Generating static pages (20/42)
+- info Generating static pages (31/42)
+- info Generating static pages (42/42)
+- info Finalizing page optimization...
+
+Route (app)                                Size     First Load JS
+┌ λ /                                      169 B           213 kB
+├ ○ /about                                 194 B          84.7 kB
+├ ○ /admin-write                           1.94 kB         154 kB
+├ λ /api/log-search                        0 B                0 B
+├ λ /api/rpc-search                        0 B                0 B
+├ λ /api/slot-similarity-reference         0 B                0 B
+├ λ /api/translate-en-ko                   0 B                0 B
+├ λ /api/translate-search                  0 B                0 B
+├ λ /app                                   168 B           213 kB
+├ ○ /app-view                              2.68 kB         144 kB
+├ ○ /app/waggle                            3.54 kB         150 kB
+├ ○ /business                              10 kB          94.5 kB
+├ ○ /computer                              12 kB          96.5 kB
+├ ○ /contact                               194 B          84.7 kB
+├ λ /conversation                          9.57 kB         170 kB
+├ ○ /data-policy                           194 B          84.7 kB
+├ ○ /engineering                           8.56 kB          93 kB
+├ ○ /english                               2.08 kB        86.5 kB
+├ ○ /english/articles-a-an-the             2.08 kB        86.5 kB
+├ ○ /english/book-noun-verb                2.08 kB        86.5 kB
+├ ○ /english/do-vs-make                    2.08 kB        86.5 kB
+├ ○ /english/dont-do-not-doesnt            2.08 kB        86.5 kB
+├ ○ /english/file-noun-verb                2.08 kB        86.5 kB
+├ ○ /english/go-vs-come                    2.08 kB        86.5 kB
+├ ○ /english/in-on-at                      2.08 kB        86.5 kB
+├ ○ /english/plant-noun-verb               2.08 kB        86.5 kB
+├ ○ /english/say-tell-speak-talk           2.08 kB        86.5 kB
+├ ○ /english/see-look-watch                2.08 kB        86.5 kB
+├ ○ /english/tense-translation             2.08 kB        86.5 kB
+├ ○ /english/to-vs-for                     2.08 kB        86.5 kB
+├ ○ /favicon.ico                           0 B                0 B
+├ ○ /guide                                 194 B          84.7 kB
+├ λ /idiom                                 4.4 kB          182 kB
+├ λ /m                                     409 B          79.1 kB
+├ ○ /medical                               6.54 kB          91 kB
+├ ○ /notice                                3.16 kB         160 kB
+├ λ /nuance                                4.45 kB         182 kB
+├ ○ /popular                               3.69 kB         184 kB
+├ ○ /privacy                               194 B          84.7 kB
+├ ○ /recent                                3.76 kB         184 kB
+├ ○ /robots.txt                            0 B                0 B
+├ λ /search                                169 B           213 kB
+├ ○ /sitemap                               194 B          84.7 kB
+├ ○ /sitemap.xml                           0 B                0 B
+├ λ /term/[keyword]                        169 B           213 kB
+├ ○ /terms-en                              949 B          79.6 kB
+├ ○ /trade-economy                         10.2 kB        94.7 kB
+├ ○ /travel                                9.18 kB        93.6 kB
+└ ○ /trend                                 3.66 kB         184 kB
++ First Load JS shared by all              78.7 kB
+  ├ chunks/596-52e693293ff4ffcf.js         26.1 kB
+  ├ chunks/fd9d1056-7f457ef32dd1fc81.js    50.6 kB
+  ├ chunks/main-app-c099f41656538917.js    219 B
+  └ chunks/webpack-7f8ab33ad171655e.js     1.82 kB
+
+Route (pages)                              Size     First Load JS
+─ ○ /404                                   182 B          76.8 kB
++ First Load JS shared by all              76.6 kB
+  ├ chunks/framework-964c2d6016b0d731.js   45 kB
+  ├ chunks/main-214c30cabdc63663.js        29.6 kB
+  ├ chunks/pages/_app-c39a67c97d2e85f6.js  196 B
+  └ chunks/webpack-7f8ab33ad171655e.js     1.82 kB
+
+λ  (Server)  server-side renders at runtime (uses getInitialProps or getServerSideProps)
+○  (Static)  automatically rendered as static HTML (uses no initial props)
+

@@ -1,0 +1,42 @@
+Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+Browserslist: caniuse-lite is outdated. Please run:
+  npx browserslist@latest --update-db
+  Why you should do it regularly: https://github.com/browserslist/browserslist#browsers-data-updating
+- warn Compiled with warnings
+
+./node_modules/@supabase/supabase-js/dist/index.cjs
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@supabase/supabase-js/dist/index.cjs
+./node_modules/@supabase/auth-helpers-shared/dist/index.js
+./node_modules/@supabase/auth-helpers-nextjs/dist/index.js
+./app/admin-write/page.tsx
+
+./node_modules/@supabase/supabase-js/dist/index.cjs
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@supabase/supabase-js/dist/index.cjs
+./node_modules/@supabase/auth-helpers-shared/dist/index.js
+./node_modules/@supabase/auth-helpers-nextjs/dist/index.js
+./app/page.tsx
+
+[rpc-search 예외 발생] {
+  message: "Dynamic server usage: Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  error: DynamicServerError: Dynamic server usage: Page couldn't be rendered statically because it used `request.url`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+      at Object.staticGenerationBailout (C:\dictionary_upload\xdic-web\.next\server\chunks\3587.js:165:21)
+      at handleReqBailout (C:\dictionary_upload\xdic-web\.next\server\chunks\5501.js:4863:23)
+      at Object.get (C:\dictionary_upload\xdic-web\.next\server\chunks\5501.js:4871:13)
+      at GET (C:\dictionary_upload\xdic-web\.next\server\app\api\rpc-search\route.js:59:46)
+      at C:\dictionary_upload\xdic-web\.next\server\chunks\5501.js:5169:43
+      at C:\dictionary_upload\xdic-web\.next\server\chunks\5501.js:6036:36
+      at NoopContextManager.with (C:\dictionary_upload\xdic-web\.next\server\chunks\5501.js:458:30)
+      at ContextAPI.with (C:\dictionary_upload\xdic-web\.next\server\chunks\5501.js:128:58)
+      at NoopTracer.startActiveSpan (C:\dictionary_upload\xdic-web\.next\server\chunks\5501.js:1051:34)
+      at ProxyTracer.startActiveSpan (C:\dictionary_upload\xdic-web\.next\server\chunks\5501.js:1091:36) {
+    digest: 'DYNAMIC_SERVER_USAGE'
+  }
+}

@@ -4578,6 +4578,8 @@ const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
   '무거웠어요': '무겁다',
   '무겁습니다': '무겁다',
   '무거웠습니다': '무겁다',
+  // ☆ TwoPro v12.47-safe: 검증된 지시어 계사 미래형
+  '무거울 거예요': '무겁다',
   '무겁다': '무겁다',
   '가벼워요': '가볍다',
   '가벼웠어요': '가볍다',
@@ -4601,6 +4603,8 @@ const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
   '빨랐어요': '빠르다',
   '빠릅니다': '빠르다',
   '빨랐습니다': '빠르다',
+  // ☆ TwoPro v12.47-safe: 검증된 지시어 계사 미래형
+  '빠를 거예요': '빠르다',
   '빠르다': '빠르다',
   '느려요': '느리다',
   '느렸어요': '느리다',
@@ -4716,6 +4720,8 @@ const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
   '둥글다': '둥글다',
   '네모나요': '네모나다',
   '네모났어요': '네모나다',
+  // ☆ TwoPro v12.47-safe: 검증된 지시어 계사 미래형
+  '네모날 거예요': '네모나다',
   '네모나다': '네모나다',
 
   // ☆ TwoPro v11.28-safe: 하늘 상태 기본 형용사
@@ -4735,6 +4741,19 @@ const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
   '중요한': '중요하다',
   '중요하다': '중요하다',
 };
+
+// ============================================================================
+// ☆ TwoPro v12.47-safe: 지시어+명사+형용사 미래 계사 표면형
+//
+// 이번 회귀에서 검증한 세 형용사의 '-(으)ㄹ 거예요'만 미래로 표시합니다.
+// 일반 형용사/동사 전역 추론은 하지 않아 기존 CORE에 영향을 주지 않습니다.
+// ============================================================================
+const TWO_PRO_KO_EN_FUTURE_COPULAR_SURFACES_V1247 =
+  new Set<string>([
+    '빠를 거예요',
+    '무거울 거예요',
+    '네모날 거예요',
+  ]);
 
 const twoProNormalizeKoreanAdjectiveV5 = (
   value: string
@@ -5667,6 +5686,140 @@ const twoProTryKoEnDemonstrativeCopularV5 = async (
     .trim();
 
   // ============================================================================
+  // ☆ TwoPro v12.38-safe: "-지 않나요?" 부정 형용사 의문문 연결 CORE
+  //
+  // 새 번역 규칙을 만들지 않고, 이미 검증된 v12.31 "-지 않아요?" 경로로만
+  // 표면형을 연결합니다.
+  // - 이 차는 빠르지 않나요? -> 이 차는 빠르지 않아요?
+  //
+  // 명시적 물음표가 있고 정확히 "-지 않나요"로 끝나는 경우에만 적용합니다.
+  // ============================================================================
+  const rawNegativeNayoQuestionV1238 = String(originalText || '')
+    .normalize('NFC')
+    .trim();
+
+  if (
+    /[?？]\s*$/u.test(rawNegativeNayoQuestionV1238) &&
+    /지\s+않나요[?？]\s*$/u.test(rawNegativeNayoQuestionV1238)
+  ) {
+    const bridgedNegativeQuestionV1238 =
+      rawNegativeNayoQuestionV1238.replace(
+        /지\s+않나요(?=[?？]\s*$)/u,
+        '지 않아요'
+      );
+
+    return await twoProTryKoEnDemonstrativeCopularV5(
+      bridgedNegativeQuestionV1238
+    );
+  }
+
+  // ============================================================================
+  // ☆ TwoPro v12.46-safe: 지시어 + 명사 + 형용사 과거 부정/부정 의문문 CORE
+  //
+  // v12.45에서 긍정 과거형의 was/were 시제를 보존한 데 이어,
+  // "-지 않았어요/-지 않았습니다"만 좁게 처리합니다.
+  //
+  // 예:
+  // 이 차는 빠르지 않았어요        -> This car wasn't fast.
+  // 그 가방은 무겁지 않았어요?     -> Wasn't that bag heavy?
+  // 이 상자들은 네모나지 않았어요  -> These boxes weren't square.
+  // 이 상자들은 네모나지 않았어요? -> Weren't these boxes square?
+  //
+  // 안전 원칙:
+  // 1. 기존 긍정 계사 CORE를 재사용하여 명사 다의어/복수형/형용사 대표어를 보존합니다.
+  // 2. 과거 부정 표면형에만 적용하며 현재 부정 v12.30/v12.31은 그대로 둡니다.
+  // 3. 다른 동사/PHRASES/JSON rule 우선순위는 변경하지 않습니다.
+  // ============================================================================
+  const pastNegativeCopularMatchV1246 = normalized.match(
+    /^(이|그)\s+(.+?)(들)?(?:은|는)\s+(?:(정말|매우|아주)\s+)?(.+?)지\s+않았(?:어요|습니다)$/u
+  );
+
+  if (pastNegativeCopularMatchV1246) {
+    const demonstrativeKoV1246 = pastNegativeCopularMatchV1246[1];
+    const nounKoV1246 = pastNegativeCopularMatchV1246[2];
+    const pluralKoV1246 = pastNegativeCopularMatchV1246[3] || '';
+    const adverbKoV1246 = pastNegativeCopularMatchV1246[4] || '';
+    const adjectiveStemV1246 = pastNegativeCopularMatchV1246[5].trim();
+    const adjectiveLemmaV1246 =
+      twoProNormalizeKoreanAdjectiveV5(`${adjectiveStemV1246}다`);
+
+    if (adjectiveLemmaV1246) {
+      const positiveSyntheticV1246 = [
+        demonstrativeKoV1246,
+        `${nounKoV1246}${pluralKoV1246}는`,
+        adverbKoV1246,
+        adjectiveLemmaV1246,
+      ]
+        .filter(Boolean)
+        .join(' ');
+
+      const positiveResultV1246 =
+        await twoProTryKoEnDemonstrativeCopularV5(
+          positiveSyntheticV1246
+        );
+
+      if (positiveResultV1246) {
+        const positiveCoreV1246 =
+          String(positiveResultV1246.targetText || '')
+            .replace(/[.?!]+$/g, '')
+            .trim();
+
+        const parsedPositiveV1246 = positiveCoreV1246.match(
+          /^(This|That|These|Those)\s+(.+?)\s+(is|are)\s+(.+)$/i
+        );
+
+        if (parsedPositiveV1246) {
+          const demonstrativeEnV1246 = parsedPositiveV1246[1];
+          const nounPhraseEnV1246 = parsedPositiveV1246[2];
+          const beVerbV1246 = parsedPositiveV1246[3].toLowerCase();
+          const predicateEnV1246 = parsedPositiveV1246[4];
+          const isQuestionV1246 = /[?？]\s*$/.test(
+            String(originalText || '').trim()
+          );
+          const pastNegativeBeV1246 =
+            beVerbV1246 === 'are' ? "weren't" : "wasn't";
+
+          const targetCoreV1246 = isQuestionV1246
+            ? `${pastNegativeBeV1246 === "weren't" ? "Weren't" : "Wasn't"} ${demonstrativeEnV1246.toLowerCase()} ${nounPhraseEnV1246} ${predicateEnV1246}`
+            : `${demonstrativeEnV1246} ${nounPhraseEnV1246} ${pastNegativeBeV1246} ${predicateEnV1246}`;
+
+          const negationReferenceV1246 = {
+            source: '지 않았어요',
+            selected: 'not',
+            candidates: ['not'],
+            slot: 'NEGATION:PAST',
+            confidence: 1,
+            origin: 'two-pro-v12.46-past-negative-copular',
+          } as any;
+
+          return {
+            targetText: twoProFinalizeEnglish(
+              targetCoreV1246,
+              originalText
+            ),
+            analysis: [
+              ...positiveResultV1246.analysis,
+              {
+                ko: isQuestionV1246
+                  ? '지 않았어요?'
+                  : '지 않았어요',
+                en: 'not [NEGATION:PAST]',
+              },
+            ],
+            referenceWords: [
+              ...positiveResultV1246.referenceWords,
+              negationReferenceV1246,
+            ],
+            engine: isQuestionV1246
+              ? 'contextual-demonstrative-past-negative-copular-question-ko-en-v12.46'
+              : 'contextual-demonstrative-past-negative-copular-ko-en-v12.46',
+          };
+        }
+      }
+    }
+  }
+
+  // ============================================================================
   // ☆ TwoPro v12.31-safe: 지시어 + 명사 + 형용사 부정 의문문 CORE
   //
   // v12.30의 부정 평서문과 동일한 형용사·명사 해석을 재사용하되,
@@ -5864,8 +6017,24 @@ const twoProTryKoEnDemonstrativeCopularV5 = async (
   const nounSource = twoProNormalizeKoreanNounV5(match[2]);
   const isPlural = Boolean(match[3]);
   const adverbKo = match[4] || '';
+
+  // ☆ TwoPro v12.45-safe:
+  // 형용사를 기본형으로 정규화하기 전에 실제 활용 표면형을 보존합니다.
+  // 예: 빨랐어요 -> 빠르다, 무거웠어요 -> 무겁다, 네모났어요 -> 네모나다
+  const adjectiveSurfaceV1245 =
+    twoProCleanCapturedKo(match[5]);
+
   const adjectiveSource =
-    twoProNormalizeKoreanAdjectiveV5(match[5]);
+    twoProNormalizeKoreanAdjectiveV5(
+      adjectiveSurfaceV1245
+    );
+
+  // ☆ TwoPro v12.47-safe:
+  // 검증된 '-(으)ㄹ 거예요' 표면형만 미래 계사로 처리합니다.
+  const isFutureCopularAdjectiveV1247 =
+    TWO_PRO_KO_EN_FUTURE_COPULAR_SURFACES_V1247.has(
+      adjectiveSurfaceV1245
+    );
 
   if (!nounSource || !adjectiveSource) {
     return null;
@@ -5977,7 +6146,61 @@ const twoProTryKoEnDemonstrativeCopularV5 = async (
     ? twoProPluralizeEnglishV5(nounBundle.selected)
     : nounBundle.selected;
 
-  const beVerb = isPlural ? 'are' : 'is';
+  // ============================================================================
+  // ☆ TwoPro v12.45-safe: 지시어+명사+형용사 과거 시제 보존
+  //
+  // 기존 v5.7/v11.44는 형용사를 기본형으로 정규화한 뒤 항상 is/are를
+  // 사용하여 "빨랐어요/무거웠어요/네모났어요"도 현재형이 되었습니다.
+  //
+  // 기존 검증 형용사 활용표에 등록된 표면형에 한해서만,
+  // 해요체/하십시오체 앞 음절의 종성 ㅆ(과거 표지)를 확인합니다.
+  // 따라서 현재형 처리와 다른 문형의 우선순위는 변경하지 않습니다.
+  // ============================================================================
+  const isPastCopularAdjectiveV1245 = (() => {
+    if (
+      !Object.prototype.hasOwnProperty.call(
+        TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5,
+        adjectiveSurfaceV1245
+      )
+    ) {
+      return false;
+    }
+
+    const stemBeforePoliteEndingV1245 =
+      adjectiveSurfaceV1245.replace(
+        /(?:어요|아요|습니다)$/u,
+        ''
+      );
+
+    if (
+      !stemBeforePoliteEndingV1245 ||
+      stemBeforePoliteEndingV1245 ===
+        adjectiveSurfaceV1245
+    ) {
+      return false;
+    }
+
+    const lastSyllableV1245 =
+      stemBeforePoliteEndingV1245.slice(-1);
+
+    if (!/^[가-힣]$/u.test(lastSyllableV1245)) {
+      return false;
+    }
+
+    const hangulCodeV1245 =
+      lastSyllableV1245.charCodeAt(0) - 0xac00;
+
+    return (
+      hangulCodeV1245 >= 0 &&
+      hangulCodeV1245 <= 11171 &&
+      hangulCodeV1245 % 28 === 20
+    );
+  })();
+
+  const beVerb =
+    isPastCopularAdjectiveV1245
+      ? (isPlural ? 'were' : 'was')
+      : (isPlural ? 'are' : 'is');
 
   const adverbMap: Record<string, string> = {
     '정말': 'truly',
@@ -5994,21 +6217,42 @@ const twoProTryKoEnDemonstrativeCopularV5 = async (
     String(originalText || '').trim()
   );
 
-  const targetTokensV1144 = isExplicitCopularQuestionV1144
-    ? [
-        beVerb,
-        demonstrativeEn.toLowerCase(),
-        nounEn,
-        adverbEn,
-        adjectiveBundle.selected,
-      ]
-    : [
-        demonstrativeEn,
-        nounEn,
-        beVerb,
-        adverbEn,
-        adjectiveBundle.selected,
-      ];
+  const targetTokensV1144 =
+    isFutureCopularAdjectiveV1247
+      ? (
+          isExplicitCopularQuestionV1144
+            ? [
+                'Will',
+                demonstrativeEn.toLowerCase(),
+                nounEn,
+                'be',
+                adverbEn,
+                adjectiveBundle.selected,
+              ]
+            : [
+                demonstrativeEn,
+                nounEn,
+                'will',
+                'be',
+                adverbEn,
+                adjectiveBundle.selected,
+              ]
+        )
+      : isExplicitCopularQuestionV1144
+        ? [
+            beVerb,
+            demonstrativeEn.toLowerCase(),
+            nounEn,
+            adverbEn,
+            adjectiveBundle.selected,
+          ]
+        : [
+            demonstrativeEn,
+            nounEn,
+            beVerb,
+            adverbEn,
+            adjectiveBundle.selected,
+          ];
 
   const targetText = twoProFinalizeEnglish(
     targetTokensV1144
@@ -6040,7 +6284,13 @@ const twoProTryKoEnDemonstrativeCopularV5 = async (
       },
     ],
     referenceWords,
-    engine: 'contextual-demonstrative-copular-ko-en-v5.7',
+    engine: isFutureCopularAdjectiveV1247
+      ? (
+          isExplicitCopularQuestionV1144
+            ? 'contextual-demonstrative-future-copular-question-ko-en-v12.47'
+            : 'contextual-demonstrative-future-copular-ko-en-v12.47'
+        )
+      : 'contextual-demonstrative-copular-ko-en-v5.7',
   };
 };
 
@@ -19633,6 +19883,161 @@ const twoProTryKoEnSubjectOnlyVerbClauseV83 = async (
 
   const predicateSurface =
     twoProCleanCapturedKo(explicitSubject.body);
+
+  // ============================================================================
+  // ☆ TwoPro v12.42-safe: 무목적어 기본동사 현재/과거 부정 + 부정의문 CORE
+  //
+  // 기존 v8.3/v11.32 handler는 목적어 없는 긍정 단문을 처리하지만,
+  // "웃지 않아요 / 쉬지 않았어요"는 술어 내부에 공백이 생겨
+  // 아래의 기존 공백 차단에서 즉시 null로 빠졌습니다.
+  //
+  // 이 보정은 기존 SAFE subject-only 동사에 해당하는 부정 활용만
+  // 공백 차단보다 먼저 좁게 처리합니다.
+  // - 현재 부정:      don't / doesn't + bare
+  // - 과거 부정:      didn't + bare
+  // - 현재 부정의문:  Don't / Doesn't + subject + bare?
+  // - 과거 부정의문:  Didn't + subject + bare?
+  //
+  // 목적어·장소·보어가 붙은 문장은 이 패턴에 맞지 않으므로 기존 파서로 내려갑니다.
+  // ============================================================================
+  const negativeSubjectOnlyMatchV1242 = predicateSurface.match(
+    /^(.+?)지\s+(않아요|않았어요)$/u
+  );
+
+  if (negativeSubjectOnlyMatchV1242) {
+    const negativeStemV1242 =
+      twoProCleanCapturedKo(negativeSubjectOnlyMatchV1242[1]);
+
+    const negativeEndingV1242 =
+      twoProCleanCapturedKo(negativeSubjectOnlyMatchV1242[2]);
+
+    const safeNegativeSubjectOnlyV1242:
+      Readonly<Record<string, { base: string; en: string }>> = {
+        '공부하': { base: '공부하다', en: 'study' },
+        '학습하': { base: '학습하다', en: 'study' },
+        '일하': { base: '일하다', en: 'work' },
+        '운동하': { base: '운동하다', en: 'exercise' },
+        '쉬': { base: '쉬다', en: 'rest' },
+        '기다리': { base: '기다리다', en: 'wait' },
+        '웃': { base: '웃다', en: 'laugh' },
+        '울': { base: '울다', en: 'cry' },
+        '자': { base: '자다', en: 'sleep' },
+        '걷': { base: '걷다', en: 'walk' },
+        '달리': { base: '달리다', en: 'run' },
+        '수영하': { base: '수영하다', en: 'swim' },
+        '일어나': { base: '일어나다', en: 'get up' },
+        '앉': { base: '앉다', en: 'sit' },
+        '서': { base: '서다', en: 'stand' },
+        '놀': { base: '놀다', en: 'play' },
+        '노래하': { base: '노래하다', en: 'sing' },
+        '춤추': { base: '춤추다', en: 'dance' },
+        '뛰': { base: '뛰다', en: 'run' },
+        '눕': { base: '눕다', en: 'lie down' },
+      };
+
+    const negativeVerbV1242 =
+      safeNegativeSubjectOnlyV1242[negativeStemV1242];
+
+    if (
+      negativeVerbV1242 &&
+      TWO_PRO_KO_EN_SAFE_SUBJECT_ONLY_VERBS_V83.has(
+        negativeVerbV1242.base
+      )
+    ) {
+      const subjectEnV1242 =
+        twoProCapitalizeSubjectV62(explicitSubject.pronoun);
+
+      const normalizedSubjectV1242 =
+        String(subjectEnV1242 || '').toLowerCase();
+
+      const questionSubjectV1242 =
+        normalizedSubjectV1242 === 'i'
+          ? 'I'
+          : normalizedSubjectV1242;
+
+      const isPastV1242 =
+        negativeEndingV1242 === '않았어요';
+
+      const isQuestionV1242 =
+        /[?？]\s*$/.test(
+          String(originalText || '').trim()
+        );
+
+      const statementAuxV1242 =
+        isPastV1242
+          ? "didn't"
+          : ['i', 'you', 'we', 'they'].includes(
+              normalizedSubjectV1242
+            )
+            ? "don't"
+            : "doesn't";
+
+      const questionAuxV1242 =
+        isPastV1242
+          ? "Didn't"
+          : ['i', 'you', 'we', 'they'].includes(
+              normalizedSubjectV1242
+            )
+            ? "Don't"
+            : "Doesn't";
+
+      const targetCoreV1242 =
+        isQuestionV1242
+          ? `${questionAuxV1242} ${questionSubjectV1242} ${negativeVerbV1242.en}`
+          : `${subjectEnV1242} ${statementAuxV1242} ${negativeVerbV1242.en}`;
+
+      const verbBundleV1242:
+        TwoProKoEnCandidateBundleV5 = {
+          source: negativeVerbV1242.base,
+          selected: negativeVerbV1242.en,
+          candidates: [negativeVerbV1242.en],
+          referenceCandidates: [negativeVerbV1242.en],
+          confidence: 1,
+          slotType: 'V',
+        };
+
+      return {
+        targetText: twoProFinalizeEnglish(
+          targetCoreV1242,
+          originalText
+        ),
+        analysis: [
+          {
+            ko: explicitSubject.source,
+            en: `${subjectEnV1242} [S]`,
+          },
+          {
+            ko: negativeVerbV1242.base,
+            en: `${negativeVerbV1242.en} [V]`,
+          },
+          {
+            ko: negativeEndingV1242,
+            en: `${
+              isQuestionV1242
+                ? questionAuxV1242
+                : statementAuxV1242
+            } [NEGATIVE${isPastV1242 ? ':PAST' : ':PRESENT'}]`,
+          },
+        ],
+        referenceWords:
+          twoProReferenceWordsV58([
+            verbBundleV1242,
+          ]),
+        engine:
+          isQuestionV1242
+            ? (
+                isPastV1242
+                  ? 'subject-only-action-negative-past-question-ko-en-v12.42'
+                  : 'subject-only-action-negative-present-question-ko-en-v12.42'
+              )
+            : (
+                isPastV1242
+                  ? 'subject-only-action-negative-past-ko-en-v12.42'
+                  : 'subject-only-action-negative-present-ko-en-v12.42'
+              ),
+      };
+    }
+  }
 
   // 목적어·장소·보어가 있는 문장은 기존 전문 파서가 처리합니다.
   if (
@@ -43242,6 +43647,443 @@ const twoProTryKoEnSubjectAdjectiveClauseV73 = async (
     .replace(/\s+/g, ' ')
     .trim();
 
+  // ============================================================================
+  // ☆ TwoPro v12.44-safe: 오늘 날씨 온도 형용사 의문/부정 CORE
+  //
+  // 기존 v11.40은 '오늘은 추워요/더워요/추웠어요/더웠어요' 긍정 평서문을
+  // 안정적으로 처리하지만, 명시적 '?'의 도치와 '-지 않아요/-지 않았어요'
+  // 부정 활용은 직접 처리하지 못했습니다.
+  //
+  // 기존 검증 범위를 넓히지 않고 '오늘(은) + 춥다/덥다'에만 한정합니다.
+  // - 현재 긍정 의문: Is it cold/hot today?
+  // - 과거 긍정 의문: Was it cold/hot today?
+  // - 현재 부정:       It isn't cold/hot today.
+  // - 과거 부정:       It wasn't cold/hot today.
+  // - 부정 의문:       Isn't/Wasn't it ... today?
+  //
+  // 긍정 평서문은 기존 v11.40으로 그대로 넘깁니다.
+  // ============================================================================
+  const rawWeatherStateV1244 = String(originalText || '')
+    .normalize('NFC')
+    .trim();
+
+  const isWeatherQuestionV1244 =
+    /[?？]\s*$/.test(rawWeatherStateV1244);
+
+  const normalizedWeatherStateV1244 =
+    rawWeatherStateV1244
+      .replace(/[.?!？]+$/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  const weatherStateMatchV1244 =
+    normalizedWeatherStateV1244.match(
+      /^오늘(?:은)?\s+(추워요|추웠어요|더워요|더웠어요|춥지\s+않아요|춥지\s+않았어요|덥지\s+않아요|덥지\s+않았어요)$/u
+    );
+
+  if (weatherStateMatchV1244) {
+    const surfaceV1244 =
+      weatherStateMatchV1244[1].replace(/\s+/g, ' ');
+
+    type TwoProWeatherStateV1244 = {
+      base: '춥다' | '덥다';
+      en: 'cold' | 'hot';
+      tense: 'present' | 'past';
+      negative: boolean;
+    };
+
+    const weatherSurfaceMapV1244:
+      Readonly<Record<string, TwoProWeatherStateV1244>> = {
+        '추워요': {
+          base: '춥다',
+          en: 'cold',
+          tense: 'present',
+          negative: false,
+        },
+        '추웠어요': {
+          base: '춥다',
+          en: 'cold',
+          tense: 'past',
+          negative: false,
+        },
+        '더워요': {
+          base: '덥다',
+          en: 'hot',
+          tense: 'present',
+          negative: false,
+        },
+        '더웠어요': {
+          base: '덥다',
+          en: 'hot',
+          tense: 'past',
+          negative: false,
+        },
+        '춥지 않아요': {
+          base: '춥다',
+          en: 'cold',
+          tense: 'present',
+          negative: true,
+        },
+        '춥지 않았어요': {
+          base: '춥다',
+          en: 'cold',
+          tense: 'past',
+          negative: true,
+        },
+        '덥지 않아요': {
+          base: '덥다',
+          en: 'hot',
+          tense: 'present',
+          negative: true,
+        },
+        '덥지 않았어요': {
+          base: '덥다',
+          en: 'hot',
+          tense: 'past',
+          negative: true,
+        },
+      };
+
+    const weatherStateV1244 =
+      weatherSurfaceMapV1244[surfaceV1244];
+
+    // 긍정 평서문은 이미 검증된 v11.40이 계속 담당합니다.
+    if (
+      weatherStateV1244 &&
+      (weatherStateV1244.negative || isWeatherQuestionV1244)
+    ) {
+      const targetCoreV1244 =
+        isWeatherQuestionV1244
+          ? (
+              weatherStateV1244.negative
+                ? (
+                    weatherStateV1244.tense === 'past'
+                      ? `Wasn't it ${weatherStateV1244.en} today`
+                      : `Isn't it ${weatherStateV1244.en} today`
+                  )
+                : (
+                    weatherStateV1244.tense === 'past'
+                      ? `Was it ${weatherStateV1244.en} today`
+                      : `Is it ${weatherStateV1244.en} today`
+                  )
+            )
+          : (
+              weatherStateV1244.tense === 'past'
+                ? `It wasn't ${weatherStateV1244.en} today`
+                : `It isn't ${weatherStateV1244.en} today`
+            );
+
+      const adjectiveBundleV1244:
+        TwoProKoEnCandidateBundleV5 = {
+          source: weatherStateV1244.base,
+          selected: weatherStateV1244.en,
+          candidates: [weatherStateV1244.en],
+          referenceCandidates: [weatherStateV1244.en],
+          confidence: 1,
+          slotType: 'ADJ',
+        };
+
+      return {
+        targetText: twoProFinalizeEnglish(
+          targetCoreV1244,
+          originalText
+        ),
+        analysis: [
+          { ko: '오늘', en: 'today [TIME]' },
+          {
+            ko: weatherStateV1244.base,
+            en: `${weatherStateV1244.en} [ADJ:WEATHER]`,
+          },
+        ],
+        referenceWords:
+          twoProReferenceWordsV58([
+            adjectiveBundleV1244,
+          ]),
+        engine:
+          isWeatherQuestionV1244
+            ? (
+                weatherStateV1244.negative
+                  ? `today-temperature-negative-${weatherStateV1244.tense}-question-ko-en-v12.44`
+                  : `today-temperature-${weatherStateV1244.tense}-question-ko-en-v12.44`
+              )
+            : `today-temperature-negative-${weatherStateV1244.tense}-ko-en-v12.44`,
+      };
+    }
+  }
+
+  // ============================================================================
+  // ☆ TwoPro v12.43-safe: 인칭주어 + 사람 상태형용사 의문/부정 CORE
+  //
+  // 기존 v7.3은 긍정 평서문을 안정적으로 처리하지만,
+  // 명시적 '?'가 붙어도 영어 어순을 도치하지 않고,
+  // "바쁘지 않아요 / 배고프지 않았어요" 같은 부정 활용도 직접 분석하지 못했습니다.
+  //
+  // 기존 SAFE 상태형용사(피곤/바쁨/행복/배고픔/목마름)에 한정하여
+  // 인칭대명사 주어의 다음 네 축만 평서 CORE보다 먼저 처리합니다.
+  // - 현재 긍정 의문: Am/Is/Are + S + ADJ?
+  // - 과거 긍정 의문: Was/Were + S + ADJ?
+  // - 현재 부정:       am not / isn't / aren't + ADJ
+  // - 과거 부정:       wasn't / weren't + ADJ
+  // 부정 의문은 Isn't/Aren't/Wasn't/Weren't 도치를 사용합니다.
+  // ============================================================================
+  const explicitStateSubjectV1243 =
+    twoProExtractLeadingSubjectV62(normalized);
+
+  if (explicitStateSubjectV1243) {
+    type TwoProStateSurfaceV1243 = {
+      base: string;
+      en: string;
+      tense: 'present' | 'past';
+      negative: boolean;
+    };
+
+    const safeStateSurfaceV1243:
+      Readonly<Record<string, TwoProStateSurfaceV1243>> = {
+        '피곤해요': {
+          base: '피곤하다',
+          en: 'tired',
+          tense: 'present',
+          negative: false,
+        },
+        '피곤했어요': {
+          base: '피곤하다',
+          en: 'tired',
+          tense: 'past',
+          negative: false,
+        },
+        '피곤하지 않아요': {
+          base: '피곤하다',
+          en: 'tired',
+          tense: 'present',
+          negative: true,
+        },
+        '피곤하지 않았어요': {
+          base: '피곤하다',
+          en: 'tired',
+          tense: 'past',
+          negative: true,
+        },
+
+        '바빠요': {
+          base: '바쁘다',
+          en: 'busy',
+          tense: 'present',
+          negative: false,
+        },
+        '바빴어요': {
+          base: '바쁘다',
+          en: 'busy',
+          tense: 'past',
+          negative: false,
+        },
+        '바쁘지 않아요': {
+          base: '바쁘다',
+          en: 'busy',
+          tense: 'present',
+          negative: true,
+        },
+        '바쁘지 않았어요': {
+          base: '바쁘다',
+          en: 'busy',
+          tense: 'past',
+          negative: true,
+        },
+
+        '행복해요': {
+          base: '행복하다',
+          en: 'happy',
+          tense: 'present',
+          negative: false,
+        },
+        '행복했어요': {
+          base: '행복하다',
+          en: 'happy',
+          tense: 'past',
+          negative: false,
+        },
+        '행복하지 않아요': {
+          base: '행복하다',
+          en: 'happy',
+          tense: 'present',
+          negative: true,
+        },
+        '행복하지 않았어요': {
+          base: '행복하다',
+          en: 'happy',
+          tense: 'past',
+          negative: true,
+        },
+
+        '배고파요': {
+          base: '배고프다',
+          en: 'hungry',
+          tense: 'present',
+          negative: false,
+        },
+        '배고팠어요': {
+          base: '배고프다',
+          en: 'hungry',
+          tense: 'past',
+          negative: false,
+        },
+        '배고프지 않아요': {
+          base: '배고프다',
+          en: 'hungry',
+          tense: 'present',
+          negative: true,
+        },
+        '배고프지 않았어요': {
+          base: '배고프다',
+          en: 'hungry',
+          tense: 'past',
+          negative: true,
+        },
+
+        '목말라요': {
+          base: '목마르다',
+          en: 'thirsty',
+          tense: 'present',
+          negative: false,
+        },
+        '목말랐어요': {
+          base: '목마르다',
+          en: 'thirsty',
+          tense: 'past',
+          negative: false,
+        },
+        '목마르지 않아요': {
+          base: '목마르다',
+          en: 'thirsty',
+          tense: 'present',
+          negative: true,
+        },
+        '목마르지 않았어요': {
+          base: '목마르다',
+          en: 'thirsty',
+          tense: 'past',
+          negative: true,
+        },
+      };
+
+    const stateV1243 =
+      safeStateSurfaceV1243[
+        twoProCleanPredicateFormV52(
+          explicitStateSubjectV1243.body
+        )
+      ];
+
+    const isQuestionV1243 =
+      /[?？]\s*$/.test(
+        String(originalText || '').trim()
+      );
+
+    // 긍정 평서문은 검증된 기존 v7.3으로 그대로 넘깁니다.
+    if (
+      stateV1243 &&
+      (stateV1243.negative || isQuestionV1243)
+    ) {
+      const subjectFormsV1243 =
+        twoProEnglishSubjectFormsV68(
+          explicitStateSubjectV1243.pronoun
+        );
+
+      const subjectQuestionV1243 =
+        subjectFormsV1243.lowerSubject;
+
+      const positiveBeV1243 =
+        stateV1243.tense === 'past'
+          ? subjectFormsV1243.pastBe
+          : subjectFormsV1243.presentBe;
+
+      const negativeStatementBeV1243 =
+        stateV1243.tense === 'past'
+          ? (
+              subjectFormsV1243.pastBe === 'were'
+                ? "weren't"
+                : "wasn't"
+            )
+          : explicitStateSubjectV1243.pronoun === 'I'
+            ? "am not"
+            : subjectFormsV1243.presentBe === 'are'
+              ? "aren't"
+              : "isn't";
+
+      const positiveQuestionBeV1243 =
+        stateV1243.tense === 'past'
+          ? (
+              subjectFormsV1243.pastBe === 'were'
+                ? 'Were'
+                : 'Was'
+            )
+          : explicitStateSubjectV1243.pronoun === 'I'
+            ? 'Am'
+            : subjectFormsV1243.presentBe === 'are'
+              ? 'Are'
+              : 'Is';
+
+      const negativeQuestionBeV1243 =
+        stateV1243.tense === 'past'
+          ? (
+              subjectFormsV1243.pastBe === 'were'
+                ? "Weren't"
+                : "Wasn't"
+            )
+          : explicitStateSubjectV1243.pronoun === 'I'
+            ? "Aren't"
+            : subjectFormsV1243.presentBe === 'are'
+              ? "Aren't"
+              : "Isn't";
+
+      const targetCoreV1243 =
+        isQuestionV1243
+          ? (
+              stateV1243.negative
+                ? `${negativeQuestionBeV1243} ${subjectQuestionV1243} ${stateV1243.en}`
+                : `${positiveQuestionBeV1243} ${subjectQuestionV1243} ${stateV1243.en}`
+            )
+          : `${subjectFormsV1243.subject} ${negativeStatementBeV1243} ${stateV1243.en}`;
+
+      const adjectiveBundleV1243:
+        TwoProKoEnCandidateBundleV5 = {
+          source: stateV1243.base,
+          selected: stateV1243.en,
+          candidates: [stateV1243.en],
+          referenceCandidates: [stateV1243.en],
+          confidence: 1,
+          slotType: 'ADJ',
+        };
+
+      return {
+        targetText: twoProFinalizeEnglish(
+          targetCoreV1243,
+          originalText
+        ),
+        analysis: [
+          {
+            ko: explicitStateSubjectV1243.source,
+            en: `${subjectFormsV1243.subject} [S]`,
+          },
+          {
+            ko: stateV1243.base,
+            en: `${stateV1243.en} [ADJ]`,
+          },
+        ],
+        referenceWords:
+          twoProReferenceWordsV58([
+            adjectiveBundleV1243,
+          ]),
+        engine:
+          isQuestionV1243
+            ? (
+                stateV1243.negative
+                  ? `person-state-adjective-negative-${stateV1243.tense}-question-ko-en-v12.43`
+                  : `person-state-adjective-${stateV1243.tense}-question-ko-en-v12.43`
+              )
+            : `person-state-adjective-negative-${stateV1243.tense}-ko-en-v12.43`,
+      };
+    }
+  }
+
   const match = normalized.match(
     /^(.+?)(?:은|는|이|가)\s+(?:(정말|매우|아주)\s+)?(.+)$/u
   );
@@ -63213,6 +64055,38 @@ const twoProTryKoEnArticleNumberClauseV990 = (
 
 
   // ========================================================================
+  // ☆ TwoPro v12.38-safe: "있나요?/없나요?" 질문 종결형 연결 CORE
+  //
+  // 새 존재·위치·소유 번역 규칙을 중복 작성하지 않고,
+  // 이미 검증된 다음 CORE로 표면형만 안전하게 연결합니다.
+  // - 있나요? -> 있어요? : v12.32 / v11.46
+  // - 없나요? -> 없어요? : v12.33 / v12.34
+  //
+  // 따라서 아래 구조의 기존 관사·단복수·장소·주어 판정을 그대로 보존합니다.
+  // - 책이 있나요?       -> Is there a book?
+  // - 그는 책이 있나요?  -> Does he have a book?
+  // - 책은 방에 있나요?  -> Is the book in the room?
+  // - 책은 방에 없나요?  -> Isn't the book in the room?
+  // ========================================================================
+  const rawNayoExistentialQuestionV1238 = String(originalText || '')
+    .normalize('NFC')
+    .trim();
+
+  if (
+    /[?？]\s*$/u.test(rawNayoExistentialQuestionV1238) &&
+    /(있나요|없나요)[?？]\s*$/u.test(rawNayoExistentialQuestionV1238)
+  ) {
+    const bridgedExistentialQuestionV1238 =
+      rawNayoExistentialQuestionV1238
+        .replace(/있나요(?=[?？]\s*$)/u, '있어요')
+        .replace(/없나요(?=[?？]\s*$)/u, '없어요');
+
+    return twoProTryKoEnArticleNumberClauseV990(
+      bridgedExistentialQuestionV1238
+    );
+  }
+
+  // ========================================================================
   // ☆ TwoPro v12.32-safe: 있다 존재·장소·소유 긍정 의문문 CORE
   //
   // v11.45의 검증된 명사구/장소/인칭주어 범위를 그대로 재사용하되,
@@ -76287,6 +77161,73 @@ export async function POST(request: Request) {
     }
 
     // =================================================================
+    // ☆ TwoPro v12.40-safe: 긍정 "있나요?" JSON Template 선점 방지 CORE
+    //
+    // 실제 로그에서 [N] 있나요 JSON 규칙이 v12.39보다 먼저 실행되어
+    //   책이 있나요?      -> Do you have book?
+    //   그는 책이 있나요? -> Does he have book?
+    // 로 선점하는 것이 확인되었습니다.
+    //
+    // 따라서 JSON Template 단계보다 먼저, 명시적 긍정 "있나요?"만
+    // 검증된 "있어요?" 형태로 연결하여 v9.90/v12.32 존재·소유 CORE에
+    // 우선 전달합니다. 새 번역 규칙을 중복 작성하지 않습니다.
+    // =================================================================
+    const rawPositiveNayoBeforeJsonV1240 = String(originalText || '')
+      .normalize('NFC')
+      .trim();
+
+    if (
+      /[?？]\s*$/u.test(rawPositiveNayoBeforeJsonV1240) &&
+      /있나요[?？]\s*$/u.test(rawPositiveNayoBeforeJsonV1240)
+    ) {
+      const bridgedPositiveNayoBeforeJsonV1240 =
+        rawPositiveNayoBeforeJsonV1240.replace(
+          /있나요(?=[?？]\s*$)/u,
+          '있어요'
+        );
+
+      const twoProPositiveNayoBeforeJsonResultV1240 =
+        twoProTryKoEnArticleNumberClauseV990(
+          bridgedPositiveNayoBeforeJsonV1240
+        );
+
+      if (twoProPositiveNayoBeforeJsonResultV1240) {
+        console.log(
+          '[한영 긍정 있나요 JSON 이전 연결 성공 v12.40]',
+          {
+            query: originalText,
+            bridgedQuery: bridgedPositiveNayoBeforeJsonV1240,
+            result:
+              twoProPositiveNayoBeforeJsonResultV1240.targetText,
+            engine:
+              twoProPositiveNayoBeforeJsonResultV1240.engine,
+          }
+        );
+
+        return twoProRespondWithPhraseDiagnosticsV915({
+          ok: true,
+          best: {
+            source_text: originalText,
+            target_text:
+              twoProCapitalizeEnglishSentenceStartV93(
+                twoProPositiveNayoBeforeJsonResultV1240.targetText
+              ),
+            isReference: false,
+            analysis:
+              twoProPositiveNayoBeforeJsonResultV1240.analysis,
+            referenceWords:
+              twoProPositiveNayoBeforeJsonResultV1240.referenceWords,
+            engine: 'positive-nayo-before-json-template-ko-en-v12.40',
+            matchedRule:
+              twoProPositiveNayoBeforeJsonResultV1240.matchedRule,
+          },
+          referenceWords:
+            twoProPositiveNayoBeforeJsonResultV1240.referenceWords,
+        });
+      }
+    }
+
+    // =================================================================
     // 🎯 0.35단계: TwoPro 한영 JSON 슬롯 템플릿
     // 구체적인 JSON 템플릿을 일반 조사 문맥 엔진보다 먼저 실행합니다.
     // =================================================================
@@ -76695,6 +77636,131 @@ export async function POST(request: Request) {
     }
 
     // =================================================================
+    // ☆ TwoPro v12.41-safe: 수량 상태문 현재 부정/부정의문 CORE
+    //
+    // v11.43/v12.37에서 이미 검증한 가산명사 수량 구조를 그대로 재사용합니다.
+    // 이번 보정은 현재형 "많지 않아요"와 명시적 질문 "많지 않아요?"만
+    // 좁게 처리합니다.
+    //
+    // - 책이 많지 않아요   -> There aren't many books.
+    // - 책이 많지 않아요?  -> Aren't there many books?
+    //
+    // '적지 않아요'는 영어 not few가 일반 번역 기준으로 어색하므로
+    // 이번 CORE에는 포함하지 않습니다.
+    // =================================================================
+    const twoProBasicQuantityNegativeResultV1241 = (() => {
+      const rawV1241 = String(originalText || '')
+        .normalize('NFC')
+        .trim();
+
+      const isQuestionV1241 = /[?？]\s*$/u.test(rawV1241);
+
+      const normalizedV1241 = rawV1241
+        .replace(/[.?!？]+$/gu, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const matchV1241 = normalizedV1241.match(
+        /^(.+?)(?:이|가)\s+많지\s+않아요$/u
+      );
+
+      if (!matchV1241) {
+        return null;
+      }
+
+      const nounSourceV1241 = twoProNormalizeKoreanNounV5(
+        matchV1241[1]
+      );
+
+      const nounEnV1241 =
+        TWO_PRO_KO_EN_SAFE_QUANTITY_NOUNS_V1143[nounSourceV1241];
+
+      if (!nounEnV1241) {
+        return null;
+      }
+
+      const pluralNounEnV1241 =
+        twoProPluralizeEnglishV5(nounEnV1241);
+
+      const targetCoreV1241 = isQuestionV1241
+        ? `Aren't there many ${pluralNounEnV1241}`
+        : `There aren't many ${pluralNounEnV1241}`;
+
+      const nounReferenceV1241: TwoProKoEnReferenceWordV5 = {
+        source: nounSourceV1241,
+        selected: nounEnV1241,
+        candidates: [nounEnV1241],
+        slot: 'N',
+        confidence: 1,
+      };
+
+      const quantityReferenceV1241: TwoProKoEnReferenceWordV5 = {
+        source: '많다',
+        selected: 'many',
+        candidates: ['many'],
+        slot: 'ADJ',
+        confidence: 1,
+      };
+
+      return {
+        targetText: twoProFinalizeEnglish(
+          targetCoreV1241,
+          originalText
+        ),
+        analysis: [
+          {
+            ko: nounSourceV1241,
+            en: `${nounEnV1241} [N]`,
+          },
+          {
+            ko: '많지 않아요',
+            en: `not many [QUANTITY:NEGATIVE]`,
+          },
+        ],
+        referenceWords: [
+          nounReferenceV1241,
+          quantityReferenceV1241,
+        ],
+        engine: isQuestionV1241
+          ? 'basic-quantity-state-negative-question-ko-en-v12.41'
+          : 'basic-quantity-state-negative-ko-en-v12.41',
+      };
+    })();
+
+    if (twoProBasicQuantityNegativeResultV1241) {
+      console.log(
+        '[한영 수량 상태문 부정 성공 v12.41]',
+        {
+          query: originalText,
+          result:
+            twoProBasicQuantityNegativeResultV1241.targetText,
+          engine:
+            twoProBasicQuantityNegativeResultV1241.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicQuantityNegativeResultV1241.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicQuantityNegativeResultV1241.analysis,
+          referenceWords:
+            twoProBasicQuantityNegativeResultV1241.referenceWords,
+          engine:
+            twoProBasicQuantityNegativeResultV1241.engine,
+        },
+        referenceWords:
+          twoProBasicQuantityNegativeResultV1241.referenceWords,
+      });
+    }
+
+    // =================================================================
     // ☆ TwoPro v12.37-safe: 수량 상태문 현재 의문 + 과거 평서/의문 CORE
     //
     // v11.43은 현재 평서문(책이 많아요 / 학생이 적어요)을 그대로 담당합니다.
@@ -76936,6 +78002,70 @@ export async function POST(request: Request) {
           },
           referenceWords:
             twoProPreParticleSubjectOnlyV1136.referenceWords,
+        });
+      }
+    }
+
+    // =================================================================
+    // ☆ TwoPro v12.39-safe: 긍정 "있나요?" 선행 연결 CORE
+    //
+    // v12.38의 있나요? -> 있어요? 표면형 브리지는 v9.90 관사·수량 CORE 안에
+    // 있었기 때문에, 그보다 앞서 실행되는 v5.8 조사/일반 문장 엔진이
+    // "책이 있나요?" / "그는 책이 있나요?"를 먼저 잡아
+    // Do you have book? / Does he have book?으로 만드는 선점 회귀가 남았습니다.
+    //
+    // 여기서는 새 번역 규칙을 만들지 않고, 명시적 긍정 "있나요?" 입력만
+    // 검증된 "있어요?" 형태로 바꾼 뒤 v9.90/v12.32/v11.46에 먼저 전달합니다.
+    // 해당 CORE가 처리할 수 없는 문장은 null이므로 기존 흐름으로 그대로 내려갑니다.
+    // =================================================================
+    const rawPositiveNayoQuestionV1239 = String(originalText || '')
+      .normalize('NFC')
+      .trim();
+
+    if (
+      /[?？]\s*$/u.test(rawPositiveNayoQuestionV1239) &&
+      /있나요[?？]\s*$/u.test(rawPositiveNayoQuestionV1239)
+    ) {
+      const bridgedPositiveNayoQuestionV1239 =
+        rawPositiveNayoQuestionV1239.replace(
+          /있나요(?=[?？]\s*$)/u,
+          '있어요'
+        );
+
+      const twoProPositiveNayoResultV1239 =
+        twoProTryKoEnArticleNumberClauseV990(
+          bridgedPositiveNayoQuestionV1239
+        );
+
+      if (twoProPositiveNayoResultV1239) {
+        console.log(
+          '[한영 긍정 있나요 선행 연결 성공 v12.39]',
+          {
+            query: originalText,
+            bridgedQuery: bridgedPositiveNayoQuestionV1239,
+            result: twoProPositiveNayoResultV1239.targetText,
+            engine: twoProPositiveNayoResultV1239.engine,
+          }
+        );
+
+        return twoProRespondWithPhraseDiagnosticsV915({
+          ok: true,
+          best: {
+            source_text: originalText,
+            target_text:
+              twoProCapitalizeEnglishSentenceStartV93(
+                twoProPositiveNayoResultV1239.targetText
+              ),
+            isReference: false,
+            analysis: twoProPositiveNayoResultV1239.analysis,
+            referenceWords:
+              twoProPositiveNayoResultV1239.referenceWords,
+            engine: 'positive-nayo-preparticle-ko-en-v12.39',
+            matchedRule:
+              twoProPositiveNayoResultV1239.matchedRule,
+          },
+          referenceWords:
+            twoProPositiveNayoResultV1239.referenceWords,
         });
       }
     }
