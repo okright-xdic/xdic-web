@@ -235,7 +235,13 @@ const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[
       ...sortByCategory(dictPartialMatch), 
       ...sortByCategory(corpusPartialMatch),
       ...sortByRelevanceAndCategory(andMatchesBoundary), 
-      ...sortByRelevanceAndCategory(andMatchesPartial)
+      ...sortByRelevanceAndCategory(andMatchesPartial),
+
+      // ☆ TwoPro 2026-09-12: Exact Match가 있어도 일부 핵심어 관련 결과를 보존합니다.
+      // category_id 0의 번역 원문만 남아 APP 화면에서 검색 결과 0건이 되는 것을 막고,
+      // 웹과 동일하게 X-DIC Insight가 사용할 관련 사전 데이터를 전달합니다.
+      ...sortByRelevanceAndCategory(orMatchesBoundary),
+      ...sortByRelevanceAndCategory(orMatchesPartial)
     ];
   } else {
     const combinedTightSplit: any[] = [];

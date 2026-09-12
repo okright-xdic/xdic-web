@@ -5764,10 +5764,18 @@ const hasXdicInsight =
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:divide-x divide-slate-100">
                         {xdicInsightData.professionalTerms.length > 0 && (
                           <div className={displayIsApp ? "p-3" : "p-4 md:p-5"}>
-                            <h3 className="text-[13px] md:text-[14px] font-extrabold text-blue-700 mb-2.5 flex items-center gap-1.5">
-                              <span>📚</span>
-                              관련 전문용어
-                            </h3>
+                            <div className="mb-2.5">
+                              <h3 className="text-[13px] md:text-[14px] font-extrabold text-blue-700 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                                <span>📚</span>
+                                <span>전문용어 · 관련 표현</span>
+                                <span className={displayIsApp ? "text-[8px] font-bold text-blue-400" : "text-[9px] md:text-[10px] font-bold text-blue-400"}>
+                                  Terminology &amp; Related Expressions
+                                </span>
+                              </h3>
+                              <p className={displayIsApp ? "mt-1 text-[8.5px] leading-snug text-slate-400" : "mt-1 text-[9px] md:text-[10px] leading-snug text-slate-400"}>
+                                검색어와 관련된 전문용어와 표현을 함께 확인합니다.
+                              </p>
+                            </div>
                             <div className="space-y-2">
                               {xdicInsightData.professionalTerms.map(
                                 (item, index) => (
@@ -5786,7 +5794,7 @@ const hasXdicInsight =
                                               : "mt-0.5 w-8 h-8 shrink-0 rounded-full bg-white border border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
                                           }
                                           title="발음 듣기"
-                                          aria-label="관련 전문용어 발음 듣기"
+                                          aria-label="전문용어·관련 표현 발음 듣기"
                                         >
                                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                                             <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
@@ -5811,10 +5819,18 @@ const hasXdicInsight =
 
                         {xdicInsightData.parallelExamples.length > 0 && (
                           <div className={displayIsApp ? "p-3" : "p-4 md:p-5"}>
-                            <h3 className="text-[13px] md:text-[14px] font-extrabold text-emerald-700 mb-2.5 flex items-center gap-1.5">
-                              <span>📝</span>
-                              실제 병렬 예문
-                            </h3>
+                            <div className="mb-2.5">
+                              <h3 className="text-[13px] md:text-[14px] font-extrabold text-emerald-700 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                                <span>📝</span>
+                                <span>실제 사용 예시</span>
+                                <span className={displayIsApp ? "text-[8px] font-bold text-emerald-400" : "text-[9px] md:text-[10px] font-bold text-emerald-400"}>
+                                  Parallel Examples
+                                </span>
+                              </h3>
+                              <p className={displayIsApp ? "mt-1 text-[8.5px] leading-snug text-slate-400" : "mt-1 text-[9px] md:text-[10px] leading-snug text-slate-400"}>
+                                한·영 데이터에서 단어와 표현의 실제 사용 예를 확인합니다.
+                              </p>
+                            </div>
                             <div className="space-y-2">
                               {xdicInsightData.parallelExamples.map(
                                 (item, index) => (
@@ -5833,7 +5849,7 @@ const hasXdicInsight =
                                               : "mt-0.5 w-8 h-8 shrink-0 rounded-full bg-white border border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
                                           }
                                           title="발음 듣기"
-                                          aria-label="실제 병렬 예문 발음 듣기"
+                                          aria-label="실제 사용 예시 발음 듣기"
                                         >
                                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                                             <path d="M10 3.75a.75.75 0 00-1.264-.546L4.703 7H3.167a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h1.536l4.033 3.796A.75.75 0 0010 16.25V3.75zM14 10a4.002 4.002 0 00-1.172-2.828.75.75 0 10-1.06 1.06c.586.586.914 1.378.914 2.207s-.328 1.62-.914 2.207a.75.75 0 101.06 1.06A4.002 4.002 0 0014 10z" />
