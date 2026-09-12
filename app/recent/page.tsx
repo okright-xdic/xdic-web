@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 import PopularKeywords from '@/components/PopularKeywords';
+import RecentKeywords from '@/components/RecentKeywords';
 import TrendGraph from '@/components/TrendGraph';
 // 🌟 뉘앙스 위젯 불러오기!
 import NuanceWidget from '@/components/NuanceWidget';
@@ -124,53 +125,20 @@ export default function RecentPage() {
           <section className="bg-white rounded-3xl p-6 md:p-8 shadow-md border border-slate-200 mt-4 relative overflow-hidden min-h-[300px]">
             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-full blur-3xl -z-10 opacity-50"></div>
 
+            {/* ================================================================
+                ☆ TwoPro 2026-09-12 minimal-safe: 실시간 라이브 검색 전체보기
+                - 메인 화면과 동일한 RecentKeywords 컴포넌트를 사용
+                - 검색/번역/인기검색/트렌드/배너 로직은 변경하지 않음
+                - 기존 localStorage 최근검색 로직은 파일에 보존하여 영향 범위 최소화
+               ================================================================ */}
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <span className="text-2xl">🕒</span> 최근 검색어 <span className="text-sm font-normal text-slate-400">({recentKeywords.length})</span>
+                <span className="text-2xl">🕒</span> 실시간 라이브 검색
+                <span className="text-sm font-normal text-slate-400">Live Search</span>
               </h2>
-              {recentKeywords.length > 0 && (
-                <button 
-                  onClick={handleClearAll}
-                  className="text-sm text-slate-400 hover:text-red-500 underline decoration-slate-200 underline-offset-4 transition-colors"
-                >
-                  기록 전체 삭제
-                </button>
-              )}
             </div>
 
-            {recentKeywords.length > 0 ? (
-              <div className="flex flex-wrap gap-3">
-                {recentKeywords.map((item, idx) => (
-                  <div 
-                    key={idx}
-                    onClick={() => handleSearch(item.keyword)}
-                    className={`
-                      group flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full border cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5
-                      ${getColorClass(item.keyword)}
-                    `}
-                  >
-                    <span className="font-bold text-sm md:text-base"># {item.keyword}</span>
-                    {item.count && item.count > 1 && (
-                      <span className="text-xs font-extrabold opacity-70">
-                        (x{item.count})
-                      </span>
-                    )}
-                    <button 
-                      onClick={(e) => handleDelete(e, item.keyword)}
-                      className="w-5 h-5 flex items-center justify-center rounded-full bg-black/5 hover:bg-black/20 text-current transition-colors ml-1"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                <div className="text-4xl opacity-20 mb-3">💬</div>
-                <p className="text-slate-500 font-medium">아직 검색 기록이 없습니다.</p>
-                <p className="text-slate-400 text-sm mt-1">궁금한 단어를 검색해보세요!</p>
-              </div>
-            )}
+            <RecentKeywords className="w-full min-h-[300px] border-0 shadow-none bg-transparent" />
           </section>
 
           {/* 🌟 광고 바로 위 구원투수: 뉘앙스 위젯 배치! */}
