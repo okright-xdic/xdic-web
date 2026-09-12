@@ -1547,6 +1547,25 @@ export default function SearchPage({
 const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+
+  const englishGuideTopics = [
+    {
+      label: 'a / an / the',
+      href: '/english/articles-a-an-the',
+    },
+    {
+      label: 'in / on / at',
+      href: '/english/in-on-at',
+    },
+    {
+      label: 'say / tell / speak / talk',
+      href: '/english/say-tell-speak-talk',
+    },
+    {
+      label: 'see / look / watch',
+      href: '/english/see-look-watch',
+    },
+  ];
   
   const [clientIsApp, setClientIsApp] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -2918,6 +2937,7 @@ if (
   // ☆ TwoPro v1.38-safe: 메인 빠른 메뉴 / 영어회화 미리보기 공용 렌더
   // - 기존 링크/핸들러/previewData 로직을 그대로 재사용
   // - 웹에서는 새 위치에, 앱에서는 기존 하단 위치에 유지
+  // - 웹/APP 모두 공지사항·FAQ 빠른 메뉴는 표시하지 않음
   // ================================================================
   const renderHomeQuickLinkButtons = () => (
     <>
@@ -2958,17 +2978,6 @@ if (
 >
   <span className="text-[14px] group-hover:scale-110 transition-transform">📖</span> 
   <span>영어회화 <span className="font-semibold text-blue-400">· English</span></span>
-</Link>
-<Link
-  href="/notice"
-  className={
-    displayIsApp
-      ? "group w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-white border border-slate-200 shadow-sm hover:border-slate-400 hover:bg-slate-50 rounded-full text-[10.5px] min-[390px]:text-[11px] font-extrabold text-slate-600 hover:text-slate-800 transition-all duration-300"
-      : "group flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 bg-white border border-slate-200 shadow-sm hover:border-slate-400 hover:shadow-md hover:bg-slate-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-slate-600 hover:text-slate-800 transition-all duration-300"
-  }
->
-  <span className="text-[14px] group-hover:scale-110 transition-transform">📢</span> 
-  <span>공지사항 <span className="font-semibold text-slate-400">· FAQ</span></span>
 </Link>
 <Link
   href="/sitemap"
@@ -3240,7 +3249,7 @@ if (
         {/* ================================================================
             ☆ TwoPro v1.38-safe: 빠른 메뉴를 검색창 바로 아래로 이동
             - 웹 메인에서만 새 위치 사용
-            - 즐겨찾기/영어회화/공지사항/사이트맵 기능은 기존 그대로
+            - 웹/APP 모두 공지사항·FAQ 빠른 메뉴는 표시하지 않음
            ================================================================ */}
         {!displayIsApp && (
           <nav
@@ -3270,11 +3279,15 @@ if (
             }
           >
             <div>
-              {!displayIsApp && (
-                <p className="text-[9px] md:text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-400">
-                  X-DIC Core Features
-                </p>
-              )}
+              <p
+                className={
+                  displayIsApp
+                    ? "text-[8px] min-[390px]:text-[8.5px] font-extrabold uppercase tracking-[0.12em] text-slate-400"
+                    : "text-[9px] md:text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-400"
+                }
+              >
+                X-DIC Core Features
+              </p>
               <h2
                 id="xdic-main-capabilities-title"
                 className={
@@ -3297,18 +3310,30 @@ if (
             )}
           </div>
 
+          {/* ================================================================
+              ☆ TwoPro 2026-09-12 all-surface Core Features actionable cards
+              - PC / 모바일 웹 / APP: 실용 문장 번역 / 전문용어 검색 2개 카드만 표시
+              - 세 화면 모두 같은 설명·예문·Click 안내 사용
+              - 카드 전체를 실제 X-DIC 검색으로 연결
+              - 기존 문맥별 뜻 / 실제 병렬 예문 코드는 rollback 안전을 위해 숨김 보존
+             ================================================================ */}
           <div
             className={
               displayIsApp
                 ? "grid grid-cols-2 gap-1 px-0.5"
-                : "grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-2.5 px-1"
+                : "grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-2.5 px-1"
             }
           >
             <article className={
               displayIsApp
-                ? "relative overflow-hidden rounded-xl border border-blue-100 bg-blue-50/45 px-2 py-1.5 shadow-sm"
-                : "relative min-h-[108px] md:min-h-[118px] overflow-hidden rounded-2xl border border-blue-100 bg-blue-50/45 px-3 py-3 md:px-3.5 md:py-3.5 shadow-sm"
+                ? "group relative overflow-hidden rounded-xl border border-blue-100 bg-blue-50/45 px-2 py-2 shadow-sm transition-all hover:border-blue-200 hover:shadow-md"
+                : "group relative min-h-[108px] md:min-h-[132px] overflow-hidden rounded-2xl border border-blue-100 bg-blue-50/45 px-3 py-3 md:px-3.5 md:py-3.5 shadow-sm transition-all md:hover:border-blue-200 md:hover:shadow-md"
             }>
+              <Link
+                href={`${displayIsApp ? '/app' : '/'}?q=${encodeURIComponent('나는 그에게 책을 읽으라고 가르쳤다')}`}
+                aria-label="실용 문장 번역 예문 검색: 나는 그에게 책을 읽으라고 가르쳤다"
+                className="absolute inset-0 z-10 rounded-xl md:rounded-2xl"
+              />
               <div className="absolute inset-x-0 top-0 h-0.5 bg-blue-400/70" aria-hidden="true" />
               <div className={displayIsApp ? "flex items-start gap-1.5" : "flex items-start gap-2"}>
                 <span
@@ -3345,15 +3370,30 @@ if (
                     : "mt-2 text-[10px] md:text-[11px] text-slate-600 leading-[1.55] break-keep"
                 }
               >
-                {displayIsApp ? '시간이 필요해요. → I need some time.' : '한·영 문장을 검색해 추천 번역과 참고 표현을 함께 확인합니다.'}
+                한·영 문장을 검색해 추천 번역과 참고 표현을 함께 확인합니다.
               </p>
+              <div
+                className={
+                  displayIsApp
+                    ? "mt-1.5 flex items-end justify-between gap-1 text-[7.5px] min-[390px]:text-[8px] font-bold text-blue-600 leading-tight"
+                    : "mt-2 flex items-end md:items-center justify-between gap-2 text-[9px] md:text-[10.5px] font-bold text-blue-600 leading-tight"
+                }
+              >
+                <span>예) 나는 그에게 책을 읽으라고 가르쳤다</span>
+                <span className="shrink-0 group-hover:translate-x-0.5 transition-transform">Click!</span>
+              </div>
             </article>
 
             <article className={
               displayIsApp
-                ? "relative overflow-hidden rounded-xl border border-sky-100 bg-sky-50/45 px-2 py-1.5 shadow-sm"
-                : "relative min-h-[108px] md:min-h-[118px] overflow-hidden rounded-2xl border border-sky-100 bg-sky-50/45 px-3 py-3 md:px-3.5 md:py-3.5 shadow-sm"
+                ? "group relative overflow-hidden rounded-xl border border-sky-100 bg-sky-50/45 px-2 py-2 shadow-sm transition-all hover:border-sky-200 hover:shadow-md"
+                : "group relative min-h-[108px] md:min-h-[132px] overflow-hidden rounded-2xl border border-sky-100 bg-sky-50/45 px-3 py-3 md:px-3.5 md:py-3.5 shadow-sm transition-all md:hover:border-sky-200 md:hover:shadow-md"
             }>
+              <Link
+                href={`${displayIsApp ? '/app' : '/'}?q=${encodeURIComponent('갑상선기능항진증 치료')}`}
+                aria-label="전문용어 검색 예문: 갑상선기능항진증 치료"
+                className="absolute inset-0 z-10 rounded-xl md:rounded-2xl"
+              />
               <div className="absolute inset-x-0 top-0 h-0.5 bg-sky-400/70" aria-hidden="true" />
               <div className={displayIsApp ? "flex items-start gap-1.5" : "flex items-start gap-2"}>
                 <span
@@ -3390,14 +3430,24 @@ if (
                     : "mt-2 text-[10px] md:text-[11px] text-slate-600 leading-[1.55] break-keep"
                 }
               >
-                {displayIsApp ? '심근경색 ↔ myocardial infarction' : '의학·기계/전기/전자·무역/경제·컴퓨터 전문용어를 검색합니다.'}
+                의학·기계/전기/전자·무역/경제·컴퓨터 전문용어를 검색합니다.
               </p>
+              <div
+                className={
+                  displayIsApp
+                    ? "mt-1.5 flex items-end justify-between gap-1 text-[7.5px] min-[390px]:text-[8px] font-bold text-sky-600 leading-tight"
+                    : "mt-2 flex items-end md:items-center justify-between gap-2 text-[9px] md:text-[10.5px] font-bold text-sky-600 leading-tight"
+                }
+              >
+                <span>예) 갑상선기능항진증 치료</span>
+                <span className="shrink-0 group-hover:translate-x-0.5 transition-transform">Click!</span>
+              </div>
             </article>
 
             <article className={
               displayIsApp
-                ? "relative overflow-hidden rounded-xl border border-violet-100 bg-violet-50/30 px-2 py-1.5 shadow-sm"
-                : "relative min-h-[108px] md:min-h-[118px] overflow-hidden rounded-2xl border border-violet-100 bg-violet-50/30 px-3 py-3 md:px-3.5 md:py-3.5 shadow-sm"
+                ? "hidden relative overflow-hidden rounded-xl border border-violet-100 bg-violet-50/30 px-2 py-1.5 shadow-sm"
+                : "hidden relative min-h-[108px] overflow-hidden rounded-2xl border border-violet-100 bg-violet-50/30 px-3 py-3 shadow-sm"
             }>
               <div className="absolute inset-x-0 top-0 h-0.5 bg-violet-400/65" aria-hidden="true" />
               <div className={displayIsApp ? "flex items-start gap-1.5" : "flex items-start gap-2"}>
@@ -3441,8 +3491,8 @@ if (
 
             <article className={
               displayIsApp
-                ? "relative overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50/30 px-2 py-1.5 shadow-sm"
-                : "relative min-h-[108px] md:min-h-[118px] overflow-hidden rounded-2xl border border-emerald-100 bg-emerald-50/30 px-3 py-3 md:px-3.5 md:py-3.5 shadow-sm"
+                ? "hidden relative overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50/30 px-2 py-1.5 shadow-sm"
+                : "hidden relative min-h-[108px] overflow-hidden rounded-2xl border border-emerald-100 bg-emerald-50/30 px-3 py-3 shadow-sm"
             }>
               <div className="absolute inset-x-0 top-0 h-0.5 bg-emerald-400/65" aria-hidden="true" />
               <div className={displayIsApp ? "flex items-start gap-1.5" : "flex items-start gap-2"}>
@@ -3684,78 +3734,104 @@ if (
           </div>
         )}
 
-        {/* ================================================================
-            ☆ TwoPro v1.40-safe: 메인페이지 번역가 영어해설
-            - 오늘의 영어회화와 전문용어 탐색 사이에 배치
-            - 기존 /english 해설 콘텐츠를 메인에서 직접 탐색
-            - 검색/번역/API/앱 UI에는 영향 없음
-           ================================================================ */}
-        {!displayIsApp && (
-          <section
-            aria-labelledby="xdic-translator-english-guide-title"
-            className="w-full mt-3 md:mt-4"
-          >
-            <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/60 via-white to-indigo-50/35 shadow-sm overflow-hidden">
-              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-2.5 px-4 md:px-5 py-3 md:py-3.5 border-b border-violet-100/80">
-                <div>
-                  <p className="text-[10px] md:text-[11px] font-extrabold uppercase tracking-[0.12em] text-violet-500">
-                    X-DIC English Guide
-                  </p>
-                  <h2
-                    id="xdic-translator-english-guide-title"
-                    className="mt-0.5 text-[16px] md:text-[19px] font-black text-slate-900"
-                  >
-                    번역가 영어해설
-                    <span className="ml-1.5 text-[9px] md:text-[10px] font-bold text-slate-400">
-                      English Guide
-                    </span>
-                  </h2>
-                  <p className="mt-1 text-[11px] md:text-[12px] text-slate-500 leading-relaxed break-keep">
-                    헷갈리기 쉬운 영어 표현과 한영·영한 번역 차이를 번역가 관점에서 쉽게 살펴보세요.
-                  </p>
-                </div>
+{/* ================================================================
+    ☆ TwoPro v1.63-safe: 메인 번역가 영어해설 카드형 UI
+    - 위치는 오늘의 영어회화와 전문용어 탐색 사이 유지
+    - 클릭 시 /english 이동 유지
+    - 기존 전문용어 카드 톤과 통일
+    - 너무 넓고 심플한 박스형 대신 컴팩트한 허브 카드로 정리
+   ================================================================ */}
+{!displayIsApp && (
+  <section
+    aria-labelledby="xdic-english-guide-title"
+    className="w-full mt-3 md:mt-4"
+  >
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="px-4 md:px-5 py-3 md:py-3.5 border-b border-slate-100 bg-slate-50/70">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-2">
+          <div>
+            <p className="text-[11px] md:text-[12px] font-bold text-violet-600 mb-1">
+              Translation Notes
+            </p>
+            <h2
+              id="xdic-english-guide-title"
+              className="text-[17px] md:text-[21px] font-extrabold text-slate-900"
+            >
+              번역가 영어해설
+              <span className="ml-1.5 text-[10px] md:text-[11px] font-bold text-slate-400">
+                English Guide
+              </span>
+            </h2>
+            <p className="mt-1 text-[11px] md:text-[12px] text-slate-600 leading-5 break-keep">
+              헷갈리기 쉬운 영어 표현을 문맥·문장 구조 중심으로 이해할 수 있도록 정리한 해설 허브입니다.
+            </p>
+          </div>
 
-                <Link
-                  href="/english"
-                  className="self-start md:self-auto shrink-0 text-[10px] md:text-[11px] font-extrabold text-violet-600 hover:text-violet-800 transition-colors"
-                >
-                  번역가 영어해설 전체 보기 →
-                </Link>
+          <Link
+            href="/english"
+            className="text-[11px] md:text-[12px] font-bold text-violet-600 hover:text-violet-800 transition-colors shrink-0"
+          >
+            번역가 영어해설 전체 보기 →
+          </Link>
+        </div>
+      </div>
+
+      <div className="p-3 md:p-3.5">
+        <Link
+          href="/english"
+          className="group block rounded-xl border border-violet-100 bg-violet-50/35 px-4 py-3.5 hover:border-violet-200 hover:bg-violet-50/60 hover:shadow-sm transition-all"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xl" aria-hidden="true">📝</span>
+                <h3 className="text-[14px] md:text-[16px] font-extrabold text-slate-900 leading-tight">
+                  번역가 영어해설
+                  <span className="ml-1 text-[10px] md:text-[11px] font-bold text-violet-600">
+                    English Guide
+                  </span>
+                </h3>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-3 md:p-3.5">
-                <Link
-                  href="/english/articles-a-an-the"
-                  className="rounded-xl border border-violet-100 bg-white px-3 py-2.5 text-center text-[11px] md:text-[12px] font-extrabold text-slate-700 hover:border-violet-300 hover:text-violet-700 hover:bg-violet-50/50 transition-all"
-                >
-                  a / an / the
-                </Link>
+              <p className="text-[11px] md:text-[12px] text-slate-600 leading-5 break-keep">
+                단어만 바꾸는 번역이 아니라, 관사·전치사·동사 선택과 문장 구조까지 함께 살펴보며
+                실제 번역 판단 기준을 이해할 수 있도록 구성했습니다.
+              </p>
 
-                <Link
-                  href="/english/in-on-at"
-                  className="rounded-xl border border-violet-100 bg-white px-3 py-2.5 text-center text-[11px] md:text-[12px] font-extrabold text-slate-700 hover:border-violet-300 hover:text-violet-700 hover:bg-violet-50/50 transition-all"
-                >
-                  in / on / at
-                </Link>
-
-                <Link
-                  href="/english/say-tell-speak-talk"
-                  className="rounded-xl border border-violet-100 bg-white px-3 py-2.5 text-center text-[11px] md:text-[12px] font-extrabold text-slate-700 hover:border-violet-300 hover:text-violet-700 hover:bg-violet-50/50 transition-all"
-                >
-                  say / tell / speak / talk
-                </Link>
-
-                <Link
-                  href="/english/see-look-watch"
-                  className="rounded-xl border border-violet-100 bg-white px-3 py-2.5 text-center text-[11px] md:text-[12px] font-extrabold text-slate-700 hover:border-violet-300 hover:text-violet-700 hover:bg-violet-50/50 transition-all"
-                >
-                  see / look / watch
-                </Link>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <p className="text-[10px] md:text-[11px] text-slate-400 font-medium truncate">
+                  총 12개 해설 · 실제 예문 중심
+                </p>
+                <span className="shrink-0 text-[11px] md:text-[12px] font-extrabold text-violet-700 group-hover:text-violet-900 transition-colors">
+                  번역가 영어해설 보기 →
+                </span>
               </div>
             </div>
-          </section>
-        )}
 
+            <span
+              className="text-violet-400 text-[18px] md:text-[20px] group-hover:translate-x-0.5 transition-transform"
+              aria-hidden="true"
+            >
+              ↗
+            </span>
+          </div>
+        </Link>
+
+        <div className="mt-2.5 flex flex-wrap gap-2">
+          {englishGuideTopics.map((topic) => (
+            <Link
+              key={topic.href}
+              href={topic.href}
+              className="px-3 py-1.5 bg-white border border-violet-100 text-violet-700 text-[11px] md:text-[12px] font-bold rounded-full hover:border-violet-300 hover:bg-violet-50 transition-all"
+            >
+              {topic.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+)}
         {/* ================================================================
             ☆ TwoPro v1.25-safe: 메인페이지 X-DIC 전문용어 허브
             - 검색/음성검색/번역 기능과 독립된 정적 설명 콘텐츠
