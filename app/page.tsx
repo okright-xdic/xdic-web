@@ -632,6 +632,265 @@ const getExactQueries = (word: string) => {
   ].join(',');
 };
 
+
+// ============================================================
+// ☆ TwoPro DB Select Shadow v1
+// - 기존 검색 결과/정렬/화면은 변경하지 않습니다.
+// - 추가 DB 호출 없이 현재 후보군만 별도 점수로 비교합니다.
+// ============================================================
+type TwoProDbShadowTokenV1 = {
+  surface: string;
+  alternatives: string[];
+  rankingWeight: number;
+  retrievalWeight: number;
+  role: string;
+  index: number;
+};
+
+const TWO_PRO_SHADOW_LOW_SUBJECTS_V1 = new Set([
+  '나는', '저는', '내가', '제가', '나를', '저를', '너는', '네가', '너를',
+  '당신은', '당신이', '당신을', '그는', '그가', '그를', '그녀는', '그녀가',
+  '그녀를', '우리는', '우리가', '우리를', '그들은', '그들이', '그들을',
+]);
+
+const TWO_PRO_SHADOW_LOW_RECIPIENTS_V1 = new Set([
+  '나에게', '저에게', '너에게', '당신에게', '그에게', '그녀에게',
+  '우리에게', '그들에게', '나한테', '저한테', '너한테', '그한테',
+  '그녀한테', '우리한테', '그들한테',
+]);
+
+const twoProNormalizeDbShadowV1 = (value: string): string =>
+  String(value || '')
+    .normalize('NFC')
+    .replace(/^[\s.,:;!?()[\]{}"'“”‘’]+|[\s.,:;!?()[\]{}"'“”‘’]+$/g, '')
+    .trim();
+
+const twoProBuildDbShadowProfilesV1 = (queryText: string): TwoProDbShadowTokenV1[] => {
+  const tokens = String(queryText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .map(twoProNormalizeDbShadowV1)
+    .filter(Boolean);
+
+  return tokens.map((surface, index) => {
+    const lower = surface.toLocaleLowerCase();
+    const hasKorean = /[가-힣]/u.test(surface);
+    const next = tokens[index + 1] || '';
+    let rankingWeight = 3.0;
+    let retrievalWeight = 4.0;
+    let role = 'CONTENT';
+
+    if (hasKorean) {
+      if (TWO_PRO_SHADOW_LOW_SUBJECTS_V1.has(surface)) {
+        rankingWeight = 0.5; retrievalWeight = 0.2; role = 'LOW_SUBJECT_PRONOUN';
+      } else if (TWO_PRO_SHADOW_LOW_RECIPIENTS_V1.has(surface)) {
+        rankingWeight = 1.3; retrievalWeight = 0.7; role = 'LOW_RECIPIENT_PRONOUN';
+      } else if (/(않|못|아니|없)/u.test(surface)) {
+        rankingWeight = 4.5; retrievalWeight = 3.8; role = 'NEGATION_TAM';
+      } else if (/지$/u.test(surface) && /^(?:않|못)/u.test(next)) {
+        rankingWeight = 4.2; retrievalWeight = 4.5; role = 'NEGATION_PREDICATE';
+      } else if (/(?:라고|다고|자고|냐고)/u.test(surface)) {
+        rankingWeight = 4.3; retrievalWeight = 4.8; role = 'QUOTED_OR_COMMAND_PREDICATE';
+      } else if (/(?:을|를)$/u.test(surface)) {
+        rankingWeight = 3.8; retrievalWeight = 4.4; role = 'OBJECT_CONTENT';
+      } else if (/(?:해요|합니다|했어요|했죠|한다|했다|말해요|말합니다|말했어요|가요|갔어요|와요|왔어요|줘요|주세요|됩니다|됐어요|있어요|없어요)$/u.test(surface)) {
+        rankingWeight = 4.0; retrievalWeight = 4.6; role = 'MAIN_PREDICATE';
+      }
+    } else if (eStopWords.has(lower)) {
+      rankingWeight = 0.5; retrievalWeight = 0.2; role = 'LOW_ENGLISH_FUNCTION';
+    } else if (/^(?:not|never|no|without)$/i.test(surface)) {
+      rankingWeight = 4.5; retrievalWeight = 3.8; role = 'NEGATION_TAM';
+    } else {
+      rankingWeight = 3.4; retrievalWeight = 4.2; role = 'ENGLISH_CONTENT';
+    }
+
+    const alternatives = new Set<string>([surface]);
+    if (hasKorean) {
+      const cleaned = twoProNormalizeDbShadowV1(cleanKoreanKeyword(surface));
+      if (cleaned && cleaned !== surface && !/^[가-힣]$/u.test(cleaned)) alternatives.add(cleaned);
+    } else if (irregulars[lower]?.length >= 2) {
+      alternatives.add(irregulars[lower]);
+    }
+
+    return { surface, alternatives: [...alternatives], rankingWeight, retrievalWeight, role, index };
+  });
+};
+
+const twoProEvaluateDbShadowV1 = (queryText: string, candidateResults: any[]) => {
+  const profiles = twoProBuildDbShadowProfilesV1(queryText);
+  const coreProfiles = profiles.filter((p) => p.retrievalWeight >= 3.5);
+  const shadowKeywords = [...coreProfiles]
+    .sort((a, b) => b.retrievalWeight - a.retrievalWeight || a.index - b.index)
+    .map((p) => p.surface)
+    .filter((v, i, a) => a.indexOf(v) === i)
+    .slice(0, 4);
+
+  const phraseUnits = profiles.slice(0, -1)
+    .map((p, i) => p.rankingWeight >= 3 && profiles[i + 1]?.rankingWeight >= 3
+      ? `${p.surface} ${profiles[i + 1].surface}` : '')
+    .filter(Boolean);
+
+  const totalWeight = Math.max(
+    profiles.reduce((sum, p) => sum + p.rankingWeight, 0),
+    1
+  );
+
+  const scored = (Array.isArray(candidateResults) ? candidateResults : []).map((item, originalIndex) => {
+    const text = String(item?.line_text || '').normalize('NFC').replace(/\s+/g, ' ').trim();
+    const lowerText = text.toLocaleLowerCase();
+    const matched = profiles.filter((p) => p.alternatives.some((alt) => {
+      const key = twoProNormalizeDbShadowV1(alt).toLocaleLowerCase();
+      return Boolean(key) && lowerText.includes(key);
+    }));
+    const matchedWeight = matched.reduce((sum, p) => sum + p.rankingWeight, 0);
+    const distinctCoreMatches = matched.filter((p) => p.rankingWeight >= 3).length;
+    const coverage = matchedWeight / totalWeight;
+    const phraseMatches = phraseUnits.filter((phrase) => lowerText.includes(phrase.toLocaleLowerCase()));
+    const score = matchedWeight + coverage * 4
+      + (distinctCoreMatches >= 2 ? (distinctCoreMatches - 1) * 3 : 0)
+      + Math.min(phraseMatches.length, 2) * 2
+      - (coreProfiles.length >= 2 && distinctCoreMatches === 1 ? 1.5 : 0);
+    return {
+      item, originalIndex, score, coverage, distinctCoreMatches,
+      matchedTokens: matched.map((p) => p.surface), phraseMatches,
+    };
+  }).sort((a, b) =>
+    b.score - a.score ||
+    b.distinctCoreMatches - a.distinctCoreMatches ||
+    b.coverage - a.coverage ||
+    a.originalIndex - b.originalIndex
+  );
+
+  const missingCoreKeywords = coreProfiles
+    .filter((p) => !scored.some((entry) => entry.matchedTokens.includes(p.surface)))
+    .map((p) => p.surface);
+
+  return { profiles, shadowKeywords, phraseUnits, scored, missingCoreKeywords };
+};
+
+// ============================================================
+// ☆ TwoPro DB Select Shadow v3
+// - 개발 환경(localhost)에서만 추가 DB probe를 실행합니다.
+// - 실제 results/resultsMap/화면에는 절대 합치지 않습니다.
+// - 짧은 단독어가 아니라 인접 핵심정보를 묶은 anchor만 조회합니다.
+// - compact length 3도 허용하여 "문을 열" 같은 고정보다 넓은 활용형 anchor를 시험합니다.
+//   예: "문을 열", "열라고 말", "기다리라고 말", "말하지 않"
+// ============================================================
+type TwoProDbShadowAnchorV2 = {
+  text: string;
+  weight: number;
+  left: string;
+  right: string;
+};
+
+const twoProRightAnchorFormV2 = (
+  profile: TwoProDbShadowTokenV1
+): string => {
+  const surface = twoProNormalizeDbShadowV1(profile.surface);
+
+  if (!surface) return '';
+
+  if (/[가-힣]/u.test(surface)) {
+    if (profile.role === 'QUOTED_OR_COMMAND_PREDICATE') {
+      const stem = surface
+        .replace(/(?:으라고|라고|다고|자고|냐고)$/u, '')
+        .trim();
+      return stem || surface;
+    }
+
+    if (profile.role === 'MAIN_PREDICATE') {
+      const stem = surface
+        .replace(
+          /(?:했어요|했죠|합니다|해요|한다|했다)$/u,
+          ''
+        )
+        .trim();
+      return stem || surface;
+    }
+
+    if (profile.role === 'NEGATION_TAM') {
+      if (/^않/u.test(surface)) return '않';
+      if (/^못/u.test(surface)) return '못';
+      if (/^없/u.test(surface)) return '없';
+      if (/^아니/u.test(surface)) return '아니';
+    }
+  }
+
+  return surface;
+};
+
+const twoProBuildDbShadowAnchorsV2 = (
+  profiles: TwoProDbShadowTokenV1[]
+): TwoProDbShadowAnchorV2[] => {
+  const anchors: TwoProDbShadowAnchorV2[] = [];
+
+  for (let index = 0; index < profiles.length - 1; index += 1) {
+    const left = profiles[index];
+    const right = profiles[index + 1];
+
+    // 낮은 정보량 주어/대명사가 포함된 pair는 probe하지 않습니다.
+    if (
+      left.retrievalWeight < 3.5 ||
+      right.retrievalWeight < 3.5
+    ) {
+      continue;
+    }
+
+    const leftText = twoProNormalizeDbShadowV1(left.surface);
+    const rightText = twoProRightAnchorFormV2(right);
+
+    if (!leftText || !rightText) {
+      continue;
+    }
+
+    const anchorText = `${leftText} ${rightText}`
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    // 단독 1~2글자 검색은 피하되, "문을 열"처럼 전체 anchor가
+    // 3글자 이상이면 의미 결합이 충분하므로 local Shadow probe를 허용합니다.
+    const compactLength = anchorText
+      .replace(/\s+/g, '')
+      .length;
+
+    if (compactLength < 3) {
+      continue;
+    }
+
+    anchors.push({
+      text: anchorText,
+      weight:
+        left.retrievalWeight +
+        right.retrievalWeight,
+      left: left.surface,
+      right: right.surface,
+    });
+  }
+
+  const unique = new Map<string, TwoProDbShadowAnchorV2>();
+
+  for (const anchor of anchors) {
+    const key = anchor.text.toLocaleLowerCase();
+
+    if (
+      !unique.has(key) ||
+      (unique.get(key)?.weight || 0) < anchor.weight
+    ) {
+      unique.set(key, anchor);
+    }
+  }
+
+  return [...unique.values()]
+    .sort(
+      (a, b) =>
+        b.weight - a.weight ||
+        b.text.length - a.text.length
+    )
+    .slice(0, 2);
+};
+
 export default async function Page({ searchParams }: { searchParams: { q?: string; app?: string }; }) {
   const query = (searchParams.q || '').toString();
   const cleanQuery = query.trim();
@@ -665,6 +924,8 @@ const isSentenceSearch =
   let wordCount = 0;
   let baseExtracted: string[] = [];
   let allSearchKeywords: string[] = []; 
+  // Shadow 전용: 실제 fallback에서 선택된 핵심어를 기록만 합니다.
+  let twoProCurrentRelatedSearchKeywordsShadowV1: string[] = [];
 
   const flexStr = noSpaceQuery.split('').map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*');
 
@@ -882,6 +1143,9 @@ const relatedSearchKeywords = [
   .sort((a, b) => b.length - a.length)
   .slice(0, 4);
 
+// 실제 검색에는 그대로 relatedSearchKeywords를 사용합니다.
+twoProCurrentRelatedSearchKeywordsShadowV1 = [...relatedSearchKeywords];
+
 relatedSearchKeywords.forEach((keyword) => {
   const cleanK = keyword
     .replace(/[,.()\[\]:"']/g, '')
@@ -1023,10 +1287,231 @@ relatedSearchKeywords.forEach((keyword) => {
 // 문장 검색은 관련 검색 결과를
 // 중요 카테고리와 다양성을 고려해 최대 20건으로 정리합니다.
 if (isSentenceSearch) {
-  results =
-    selectSentenceRelatedResults(
-      results
+  // ------------------------------------------------------------
+  // Shadow v1: 현재 후보군만 분석 (실제 화면 영향 없음)
+  // ------------------------------------------------------------
+  const shadow = twoProEvaluateDbShadowV1(
+    cleanQuery,
+    results
+  );
+
+  const currentSelected =
+    selectSentenceRelatedResults(results);
+
+  // ------------------------------------------------------------
+  // Shadow v3: localhost 개발 환경에서만 "핵심 anchor" 2개 probe
+  //
+  // 중요:
+  // - production build / Vercel에서는 실행하지 않습니다.
+  // - probe 결과는 results/resultsMap에 절대 addRes 하지 않습니다.
+  // - 사용자 화면은 currentSelected를 그대로 사용합니다.
+  // ------------------------------------------------------------
+  const shadowProbeEnabledV2 =
+    process.env.NODE_ENV !== 'production';
+
+  const shadowAnchorsV2 =
+    twoProBuildDbShadowAnchorsV2(
+      shadow.profiles
     );
+
+  const shadowProbeRowsV2: any[] = [];
+  const shadowProbeStatsV2: Array<{
+    anchor: string;
+    elapsedMs: number;
+    resultCount: number;
+    error: string | null;
+  }> = [];
+
+  if (
+    shadowProbeEnabledV2 &&
+    shadowAnchorsV2.length > 0
+  ) {
+    for (const anchor of shadowAnchorsV2) {
+      const startedAt = Date.now();
+
+      try {
+        const { data, error } = await supabase
+          .from('dictionary_lines')
+          .select('*')
+          .neq('category_id', 0)
+          .ilike(
+            'line_text',
+            `%${anchor.text}%`
+          )
+          .limit(30);
+
+        const rows =
+          Array.isArray(data)
+            ? data
+            : [];
+
+        shadowProbeStatsV2.push({
+          anchor: anchor.text,
+          elapsedMs:
+            Date.now() - startedAt,
+          resultCount: rows.length,
+          error:
+            error?.message || null,
+        });
+
+        if (!error) {
+          for (const row of rows) {
+            shadowProbeRowsV2.push(row);
+          }
+        }
+      } catch (error: any) {
+        shadowProbeStatsV2.push({
+          anchor: anchor.text,
+          elapsedMs:
+            Date.now() - startedAt,
+          resultCount: 0,
+          error:
+            String(
+              error?.message ||
+              error ||
+              'unknown shadow probe error'
+            ),
+        });
+      }
+    }
+  }
+
+  // current 후보 + shadow probe 후보를 별도 Map으로만 병합합니다.
+  // 실제 results에는 합치지 않습니다.
+  const shadowMergedMapV2 =
+    new Map<string, any>();
+
+  const addShadowOnlyV2 = (
+    item: any
+  ) => {
+    const key =
+      item?.id !== null &&
+      item?.id !== undefined
+        ? String(item.id)
+        : [
+            Number(item?.category_id ?? 12),
+            String(item?.line_text || ''),
+          ].join('::');
+
+    if (!shadowMergedMapV2.has(key)) {
+      shadowMergedMapV2.set(key, item);
+    }
+  };
+
+  // Insight/관련 검색 결과에서 category 0은 표시하지 않으므로
+  // v2 비교도 같은 조건으로 맞춥니다.
+  results
+    .filter(
+      (item) =>
+        Number(item?.category_id) !== 0
+    )
+    .forEach(addShadowOnlyV2);
+
+  shadowProbeRowsV2
+    .filter(
+      (item) =>
+        Number(item?.category_id) !== 0
+    )
+    .forEach(addShadowOnlyV2);
+
+  const shadowAfterProbeV2 =
+    twoProEvaluateDbShadowV1(
+      cleanQuery,
+      Array.from(
+        shadowMergedMapV2.values()
+      )
+    );
+
+  console.log(
+    '[X-DIC DB Select Shadow v3]',
+    {
+      query: cleanQuery,
+      shadowOnly: true,
+      userVisibleEffect: false,
+      productionDbProbe: false,
+      localShadowDbProbe:
+        shadowProbeEnabledV2,
+      anchorMinCompactLength: 3,
+      candidateCountBeforeSentenceSelect:
+        results.length,
+      currentFallbackKeywords:
+        twoProCurrentRelatedSearchKeywordsShadowV1,
+      shadowKeywords:
+        shadow.shadowKeywords,
+      tokenProfiles:
+        shadow.profiles.map((p) => ({
+          token: p.surface,
+          role: p.role,
+          rankingWeight:
+            p.rankingWeight,
+          retrievalWeight:
+            p.retrievalWeight,
+          alternatives:
+            p.alternatives,
+        })),
+      phraseUnits:
+        shadow.phraseUnits,
+      missingCoreKeywordsBeforeProbe:
+        shadow.missingCoreKeywords,
+      shadowAnchors:
+        shadowAnchorsV2,
+      shadowProbeStats:
+        shadowProbeStatsV2,
+      shadowProbeUniqueRows:
+        new Set(
+          shadowProbeRowsV2.map(
+            (item) =>
+              String(
+                item?.id ??
+                item?.line_text ??
+                ''
+              )
+          )
+        ).size,
+      missingCoreKeywordsAfterProbe:
+        shadowAfterProbeV2
+          .missingCoreKeywords,
+      currentSelectedTop5:
+        currentSelected
+          .slice(0, 5)
+          .map((item) => ({
+            categoryId:
+              item?.category_id,
+            text:
+              String(
+                item?.line_text || ''
+              ),
+          })),
+      shadowTop8AfterProbe:
+        shadowAfterProbeV2.scored
+          .slice(0, 8)
+          .map((entry) => ({
+            categoryId:
+              entry.item?.category_id,
+            text:
+              String(
+                entry.item?.line_text || ''
+              ),
+            score:
+              Number(
+                entry.score.toFixed(3)
+              ),
+            coverage:
+              Number(
+                entry.coverage.toFixed(3)
+              ),
+            distinctCoreMatches:
+              entry.distinctCoreMatches,
+            matchedTokens:
+              entry.matchedTokens,
+            phraseMatches:
+              entry.phraseMatches,
+          })),
+    }
+  );
+
+  // 실제 사용자 화면은 기존 선택 결과를 그대로 사용합니다.
+  results = currentSelected;
 }
     }
   }

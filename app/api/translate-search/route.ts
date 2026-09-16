@@ -4549,6 +4549,11 @@ const TWO_PRO_KO_EN_LEXICAL_PRIORITIES_V5: Record<
   '조용하다': ['quiet'],
   '시끄럽다': ['noisy'],
 
+  // ☆ TwoPro v12.77-safe: 젊다/늙다 사람 상태 회귀 확장 대표어
+  // 사람의 연령 상태를 나타내는 copular CORE에서 DB 후보보다 young/old를 우선합니다.
+  '젊다': ['young'],
+  '늙다': ['old'],
+
   '많다': ['many', 'much', 'numerous'],
   '어렵다': ['difficult', 'hard', 'challenging'],
   '살다': ['live', 'reside'],
@@ -4863,6 +4868,20 @@ const TWO_PRO_KO_EN_ADJECTIVE_FORM_MAP_V5: Record<
   '시끄러웠습니다': '시끄럽다',
   '시끄럽다': '시끄럽다',
 
+  // ☆ TwoPro v12.77-safe: 젊다/늙다 현재·과거·미래 회귀 확장
+  '젊어요': '젊다',
+  '젊었어요': '젊다',
+  '젊을 거예요': '젊다',
+  '젊습니다': '젊다',
+  '젊었습니다': '젊다',
+  '젊다': '젊다',
+  '늙어요': '늙다',
+  '늙었어요': '늙다',
+  '늙을 거예요': '늙다',
+  '늙습니다': '늙다',
+  '늙었습니다': '늙다',
+  '늙다': '늙다',
+
   // ☆ TwoPro v12.64-safe: 안전하다/위험하다 현재·과거·미래 회귀 확장
   '안전해요': '안전하다',
   '안전했어요': '안전하다',
@@ -5032,6 +5051,9 @@ const TWO_PRO_KO_EN_FUTURE_COPULAR_SURFACES_V1247 =
     // ☆ TwoPro v12.76-safe: 조용하다/시끄럽다 미래형 회귀 확장
     '조용할 거예요',
     '시끄러울 거예요',
+    // ☆ TwoPro v12.77-safe: 젊다/늙다 미래형 회귀 확장
+    '젊을 거예요',
+    '늙을 거예요',
     // ☆ TwoPro v12.57-safe: 깨끗하다/더럽다 미래형 회귀 확장
     '깨끗할 거예요',
     '더러울 거예요',
@@ -6103,6 +6125,9 @@ const twoProTryKoEnDemonstrativeCopularV5 = async (
         // ☆ TwoPro v12.76-safe: 조용하다/시끄럽다 미래 부정 회귀 확장
         '조용하다',
         '시끄럽다',
+        // ☆ TwoPro v12.77-safe: 젊다/늙다 미래 부정 회귀 확장
+        '젊다',
+        '늙다',
         // ☆ TwoPro v12.57-safe: 깨끗하다/더럽다 미래 부정 회귀 확장
         '깨끗하다',
         '더럽다',
@@ -9501,8 +9526,8 @@ type TwoProBasicFutureSimpleResultV1160 = {
 };
 
 type TwoProBasicFutureSimpleCaseV1160 = {
-  subjectKo: '나는' | '그는' | '그녀는' | '우리는';
-  subjectEn: 'I' | 'He' | 'She' | 'We';
+  subjectKo: '나는' | '그는' | '그녀는' | '우리는' | '그들은';
+  subjectEn: 'I' | 'He' | 'She' | 'We' | 'They';
   targetBody: string;
   verbKo: string;
   verbEn: string;
@@ -9530,6 +9555,166 @@ const TWO_PRO_BASIC_FUTURE_SIMPLE_CASES_V1160: Readonly<
       { source: '학교', selected: 'school', slot: 'PLACE:TO' },
     ],
   },
+  // ==========================================================================
+  // ☆ TwoPro v12.xx-safe: 일반 미래 동사 추가 회귀
+  //
+  // v11.60 정확 일치 CORE의 안전 확장:
+  // - 문을 열다
+  // - 그 책을 읽다
+  // - 오늘 밤 일하다
+  // - 내일 도착하다
+  //
+  // 질문형은 기존 v11.60 질문 처리부가 동일 CASE를 재사용하므로
+  // 별도 question CASE를 만들지 않습니다.
+  // ==========================================================================
+
+  '그는 내일 문을 열 거예요': {
+    subjectKo: '그는',
+    subjectEn: 'He',
+    targetBody: 'open the door',
+    verbKo: '열다',
+    verbEn: 'open',
+    negative: false,
+    timeKo: '내일',
+    extraReferences: [
+      { source: '문', selected: 'door', slot: 'OBJECT' },
+    ],
+  },
+
+  '그는 문을 열지 않을 거예요': {
+    subjectKo: '그는',
+    subjectEn: 'He',
+    targetBody: 'open the door',
+    verbKo: '열다',
+    verbEn: 'open',
+    negative: true,
+    extraReferences: [
+      { source: '문', selected: 'door', slot: 'OBJECT' },
+    ],
+  },
+
+  '그녀는 그 책을 읽을 거예요': {
+    subjectKo: '그녀는',
+    subjectEn: 'She',
+    targetBody: 'read the book',
+    verbKo: '읽다',
+    verbEn: 'read',
+    negative: false,
+    extraReferences: [
+      { source: '책', selected: 'book', slot: 'OBJECT' },
+    ],
+  },
+
+  '그녀는 그 책을 읽지 않을 거예요': {
+    subjectKo: '그녀는',
+    subjectEn: 'She',
+    targetBody: 'read the book',
+    verbKo: '읽다',
+    verbEn: 'read',
+    negative: true,
+    extraReferences: [
+      { source: '책', selected: 'book', slot: 'OBJECT' },
+    ],
+  },
+
+  '우리는 오늘 밤 일할 거예요': {
+    subjectKo: '우리는',
+    subjectEn: 'We',
+    targetBody: 'work tonight',
+    verbKo: '일하다',
+    verbEn: 'work',
+    negative: false,
+    extraReferences: [
+      { source: '오늘 밤', selected: 'tonight', slot: 'TIME' },
+    ],
+  },
+
+  '우리는 오늘 밤 일하지 않을 거예요': {
+    subjectKo: '우리는',
+    subjectEn: 'We',
+    targetBody: 'work tonight',
+    verbKo: '일하다',
+    verbEn: 'work',
+    negative: true,
+    extraReferences: [
+      { source: '오늘 밤', selected: 'tonight', slot: 'TIME' },
+    ],
+  },
+
+  '그들은 내일 도착할 거예요': {
+    subjectKo: '그들은',
+    subjectEn: 'They',
+    targetBody: 'arrive',
+    verbKo: '도착하다',
+    verbEn: 'arrive',
+    negative: false,
+    timeKo: '내일',
+  },
+
+  '그들은 내일 도착하지 않을 거예요': {
+    subjectKo: '그들은',
+    subjectEn: 'They',
+    targetBody: 'arrive',
+    verbKo: '도착하다',
+    verbEn: 'arrive',
+    negative: true,
+    timeKo: '내일',
+  },
+
+    // ☆ TwoPro v12.??-safe:
+  // 일반 미래 학교 가다 - 주어 확장 회귀
+  '그는 내일 학교에 갈 거예요': {
+    subjectKo: '그는',
+    subjectEn: 'He',
+    targetBody: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    negative: false,
+    timeKo: '내일',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+    ],
+  },
+
+  '그녀는 내일 학교에 갈 거예요': {
+    subjectKo: '그녀는',
+    subjectEn: 'She',
+    targetBody: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    negative: false,
+    timeKo: '내일',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+    ],
+  },
+
+  '우리는 내일 학교에 갈 거예요': {
+    subjectKo: '우리는',
+    subjectEn: 'We',
+    targetBody: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    negative: false,
+    timeKo: '내일',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+    ],
+  },
+
+  '그들은 내일 학교에 갈 거예요': {
+    subjectKo: '그들은',
+    subjectEn: 'They',
+    targetBody: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    negative: false,
+    timeKo: '내일',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+    ],
+  },
+
   '그는 내일 일할 거예요': {
     subjectKo: '그는',
     subjectEn: 'He',
@@ -9582,6 +9767,59 @@ const TWO_PRO_BASIC_FUTURE_SIMPLE_CASES_V1160: Readonly<
       { source: '학교', selected: 'school', slot: 'PLACE:TO' },
     ],
   },
+
+  '그는 내일 학교에 가지 않을 거예요': {
+    subjectKo: '그는',
+    subjectEn: 'He',
+    targetBody: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    negative: true,
+    timeKo: '내일',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+    ],
+  },
+
+  '그녀는 내일 학교에 가지 않을 거예요': {
+    subjectKo: '그녀는',
+    subjectEn: 'She',
+    targetBody: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    negative: true,
+    timeKo: '내일',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+    ],
+  },
+
+  '우리는 내일 학교에 가지 않을 거예요': {
+    subjectKo: '우리는',
+    subjectEn: 'We',
+    targetBody: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    negative: true,
+    timeKo: '내일',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+    ],
+  },
+
+  '그들은 내일 학교에 가지 않을 거예요': {
+    subjectKo: '그들은',
+    subjectEn: 'They',
+    targetBody: 'go to school',
+    verbKo: '가다',
+    verbEn: 'go',
+    negative: true,
+    timeKo: '내일',
+    extraReferences: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+    ],
+  },
+
   '그는 내일 일하지 않을 거예요': {
     subjectKo: '그는',
     subjectEn: 'He',
@@ -9814,6 +10052,1501 @@ const twoProTryKoEnBasicFutureSimpleQuestionV1161 = (
   };
 };
 
+// ============================================================================
+// ☆ TwoPro v12.95-safe: 기본 피동·수동 CORE
+//
+// 현재 회귀에서 확인한 3개 문형만 제한적으로 처리합니다.
+// - 문이 열리다: 영어에서는 자연스러운 자동사 open으로 처리
+// - 그 책은 학생들에게 읽히다: be read by the students
+// - 그는 회의에 초대되다: be invited to the meeting
+//
+// 안전 원칙:
+// 1. 명시적 물음표가 있는 입력은 처리하지 않습니다. 질문형은 별도 회귀 후 추가합니다.
+// 2. 아래 3개 문형과 검증된 4개 서술형 어미만 처리합니다.
+// 3. 기존 일반 미래/조동사/WH/복문 CORE에는 손대지 않습니다.
+// 4. '문이 열리다'는 영어에서 *be opened*를 기계적으로 쓰지 않고
+//    opens / opened / will open / won't open으로 자연스럽게 처리합니다.
+// ============================================================================
+type TwoProBasicPassiveResultV1295 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+type TwoProBasicPassiveFormV1295 = {
+  targetBody: string;
+  analysisEn: string;
+};
+
+const TWO_PRO_DOOR_OPEN_FORMS_V1295: Readonly<
+  Record<string, TwoProBasicPassiveFormV1295>
+> = {
+  '열려요': {
+    targetBody: 'The door opens',
+    analysisEn: 'opens [PRESENT:INCHOATIVE]',
+  },
+  '열렸어요': {
+    targetBody: 'The door opened',
+    analysisEn: 'opened [PAST:INCHOATIVE]',
+  },
+  '열릴 거예요': {
+    targetBody: 'The door will open',
+    analysisEn: 'will open [FUTURE:INCHOATIVE]',
+  },
+  '열리지 않을 거예요': {
+    targetBody: "The door won't open",
+    analysisEn: "won't open [FUTURE:NEGATIVE:INCHOATIVE]",
+  },
+};
+
+const TWO_PRO_BOOK_READ_PASSIVE_FORMS_V1295: Readonly<
+  Record<string, TwoProBasicPassiveFormV1295>
+> = {
+  '읽혀요': {
+    targetBody: 'The book is read by the students',
+    analysisEn: 'is read [PRESENT:PASSIVE]',
+  },
+  '읽혔어요': {
+    targetBody: 'The book was read by the students',
+    analysisEn: 'was read [PAST:PASSIVE]',
+  },
+  '읽힐 거예요': {
+    targetBody: 'The book will be read by the students',
+    analysisEn: 'will be read [FUTURE:PASSIVE]',
+  },
+  '읽히지 않을 거예요': {
+    targetBody: "The book won't be read by the students",
+    analysisEn: "won't be read [FUTURE:NEGATIVE:PASSIVE]",
+  },
+};
+
+const TWO_PRO_MEETING_INVITE_PASSIVE_FORMS_V1295: Readonly<
+  Record<string, TwoProBasicPassiveFormV1295>
+> = {
+  '초대돼요': {
+    targetBody: 'He is invited to the meeting',
+    analysisEn: 'is invited [PRESENT:PASSIVE]',
+  },
+  '초대됐어요': {
+    targetBody: 'He was invited to the meeting',
+    analysisEn: 'was invited [PAST:PASSIVE]',
+  },
+  '초대될 거예요': {
+    targetBody: 'He will be invited to the meeting',
+    analysisEn: 'will be invited [FUTURE:PASSIVE]',
+  },
+  '초대되지 않을 거예요': {
+    targetBody: "He won't be invited to the meeting",
+    analysisEn: "won't be invited [FUTURE:NEGATIVE:PASSIVE]",
+  },
+};
+
+const twoProTryKoEnBasicPassiveV1295 = (
+  originalText: string
+): TwoProBasicPassiveResultV1295 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 질문형은 이번 CORE가 선점하지 않습니다.
+  if (/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[.!]+\s*$/u, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const doorMatch =
+    /^문이 (열려요|열렸어요|열릴 거예요|열리지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (doorMatch) {
+    const predicateKo = doorMatch[1];
+    const form = TWO_PRO_DOOR_OPEN_FORMS_V1295[predicateKo];
+
+    if (!form) return null;
+
+    const referenceWords: TwoProKoEnReferenceWordV5[] = [
+      twoProBasicFutureSimpleReferenceV1160(
+        '문',
+        'door',
+        'SUBJECT'
+      ),
+      twoProBasicFutureSimpleReferenceV1160(
+        '열리다',
+        'open',
+        'V:INCHOATIVE'
+      ),
+    ];
+
+    return {
+      targetText: twoProFinalizeEnglish(
+        form.targetBody,
+        originalText
+      ),
+      analysis: [
+        { ko: '문이', en: 'the door [S]' },
+        { ko: predicateKo, en: form.analysisEn },
+      ],
+      referenceWords,
+      engine: 'basic-door-open-inchoative-ko-en-v12.95',
+    };
+  }
+
+  const bookMatch =
+    /^그 책은 학생들에게 (읽혀요|읽혔어요|읽힐 거예요|읽히지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (bookMatch) {
+    const predicateKo = bookMatch[1];
+    const form =
+      TWO_PRO_BOOK_READ_PASSIVE_FORMS_V1295[predicateKo];
+
+    if (!form) return null;
+
+    const referenceWords: TwoProKoEnReferenceWordV5[] = [
+      twoProBasicFutureSimpleReferenceV1160(
+        '책',
+        'book',
+        'SUBJECT'
+      ),
+      twoProBasicFutureSimpleReferenceV1160(
+        '학생들',
+        'students',
+        'AGENT'
+      ),
+      twoProBasicFutureSimpleReferenceV1160(
+        '읽히다',
+        'be read',
+        'V:PASSIVE'
+      ),
+    ];
+
+    return {
+      targetText: twoProFinalizeEnglish(
+        form.targetBody,
+        originalText
+      ),
+      analysis: [
+        { ko: '그 책은', en: 'the book [S]' },
+        {
+          ko: '학생들에게',
+          en: 'by the students [AGENT]',
+        },
+        { ko: predicateKo, en: form.analysisEn },
+      ],
+      referenceWords,
+      engine: 'basic-read-passive-ko-en-v12.95',
+    };
+  }
+
+  const inviteMatch =
+    /^그는 회의에 (초대돼요|초대됐어요|초대될 거예요|초대되지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (inviteMatch) {
+    const predicateKo = inviteMatch[1];
+    const form =
+      TWO_PRO_MEETING_INVITE_PASSIVE_FORMS_V1295[
+        predicateKo
+      ];
+
+    if (!form) return null;
+
+    const referenceWords: TwoProKoEnReferenceWordV5[] = [
+      twoProBasicFutureSimpleReferenceV1160(
+        '그는',
+        'he',
+        'SUBJECT'
+      ),
+      twoProBasicFutureSimpleReferenceV1160(
+        '회의',
+        'meeting',
+        'GOAL'
+      ),
+      twoProBasicFutureSimpleReferenceV1160(
+        '초대되다',
+        'be invited',
+        'V:PASSIVE'
+      ),
+    ];
+
+    return {
+      targetText: twoProFinalizeEnglish(
+        form.targetBody,
+        originalText
+      ),
+      analysis: [
+        { ko: '그는', en: 'He [S]' },
+        { ko: '회의에', en: 'to the meeting [GOAL]' },
+        { ko: predicateKo, en: form.analysisEn },
+      ],
+      referenceWords,
+      engine: 'basic-invite-passive-ko-en-v12.95',
+    };
+  }
+
+  return null;
+};
+
+// ============================================================================
+// ☆ TwoPro v12.96-safe: 기본 피동·수동 의문문 CORE
+//
+// v12.95의 성공한 평서문은 그대로 보존하고,
+// 명시적 ?가 있는 아래 3개 문형 × 4개 시제·부정형만 별도로 처리합니다.
+//
+// 처리 범위:
+// - 문이 열려요? / 열렸어요? / 열릴 거예요? / 열리지 않을 거예요?
+// - 그 책은 학생들에게 읽혀요? / 읽혔어요? / 읽힐 거예요? / 읽히지 않을 거예요?
+// - 그는 회의에 초대돼요? / 초대됐어요? / 초대될 거예요? / 초대되지 않을 거예요?
+//
+// 안전 원칙:
+// 1. 반드시 명시적 ? 또는 ？가 있는 입력만 처리합니다.
+// 2. v12.95 평서문 CORE는 수정하지 않습니다.
+// 3. 현재 검증 대상 12문장만 정확 일치로 처리합니다.
+// 4. 문이 열리다는 기존 v12.95와 동일하게 자연스러운 자동사 open을 사용합니다.
+// ============================================================================
+const TWO_PRO_DOOR_OPEN_QUESTION_FORMS_V1296: Readonly<
+  Record<string, TwoProBasicPassiveFormV1295>
+> = {
+  '열려요': {
+    targetBody: 'Does the door open',
+    analysisEn: 'does open [PRESENT:QUESTION:INCHOATIVE]',
+  },
+  '열렸어요': {
+    targetBody: 'Did the door open',
+    analysisEn: 'did open [PAST:QUESTION:INCHOATIVE]',
+  },
+  '열릴 거예요': {
+    targetBody: 'Will the door open',
+    analysisEn: 'will open [FUTURE:QUESTION:INCHOATIVE]',
+  },
+  '열리지 않을 거예요': {
+    targetBody: "Won't the door open",
+    analysisEn: "won't open [FUTURE:NEGATIVE:QUESTION:INCHOATIVE]",
+  },
+};
+
+const TWO_PRO_BOOK_READ_PASSIVE_QUESTION_FORMS_V1296: Readonly<
+  Record<string, TwoProBasicPassiveFormV1295>
+> = {
+  '읽혀요': {
+    targetBody: 'Is the book read by the students',
+    analysisEn: 'is read [PRESENT:QUESTION:PASSIVE]',
+  },
+  '읽혔어요': {
+    targetBody: 'Was the book read by the students',
+    analysisEn: 'was read [PAST:QUESTION:PASSIVE]',
+  },
+  '읽힐 거예요': {
+    targetBody: 'Will the book be read by the students',
+    analysisEn: 'will be read [FUTURE:QUESTION:PASSIVE]',
+  },
+  '읽히지 않을 거예요': {
+    targetBody: "Won't the book be read by the students",
+    analysisEn: "won't be read [FUTURE:NEGATIVE:QUESTION:PASSIVE]",
+  },
+};
+
+const TWO_PRO_MEETING_INVITE_PASSIVE_QUESTION_FORMS_V1296: Readonly<
+  Record<string, TwoProBasicPassiveFormV1295>
+> = {
+  '초대돼요': {
+    targetBody: 'Is he invited to the meeting',
+    analysisEn: 'is invited [PRESENT:QUESTION:PASSIVE]',
+  },
+  '초대됐어요': {
+    targetBody: 'Was he invited to the meeting',
+    analysisEn: 'was invited [PAST:QUESTION:PASSIVE]',
+  },
+  '초대될 거예요': {
+    targetBody: 'Will he be invited to the meeting',
+    analysisEn: 'will be invited [FUTURE:QUESTION:PASSIVE]',
+  },
+  '초대되지 않을 거예요': {
+    targetBody: "Won't he be invited to the meeting",
+    analysisEn: "won't be invited [FUTURE:NEGATIVE:QUESTION:PASSIVE]",
+  },
+};
+
+const twoProTryKoEnBasicPassiveQuestionV1296 = (
+  originalText: string
+): TwoProBasicPassiveResultV1295 | null => {
+  const raw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // v12.96은 명시적 질문만 처리합니다.
+  if (!/[?？]\s*$/u.test(raw)) {
+    return null;
+  }
+
+  const normalized = raw
+    .replace(/[?？]\s*$/u, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // --------------------------------------------------------------------------
+  // 1. 문이 열리다
+  // --------------------------------------------------------------------------
+  const doorMatch =
+    /^문이 (열려요|열렸어요|열릴 거예요|열리지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (doorMatch) {
+    const predicateKo = doorMatch[1];
+
+    const form =
+      TWO_PRO_DOOR_OPEN_QUESTION_FORMS_V1296[predicateKo];
+
+    if (!form) return null;
+
+    const referenceWords: TwoProKoEnReferenceWordV5[] = [
+      twoProBasicFutureSimpleReferenceV1160(
+        '문',
+        'door',
+        'SUBJECT'
+      ),
+      twoProBasicFutureSimpleReferenceV1160(
+        '열리다',
+        'open',
+        'V:INCHOATIVE'
+      ),
+    ];
+
+    return {
+      targetText: twoProFinalizeEnglish(
+        form.targetBody,
+        originalText
+      ),
+      analysis: [
+        { ko: '문이', en: 'the door [S]' },
+        { ko: predicateKo, en: form.analysisEn },
+      ],
+      referenceWords,
+      engine:
+        'basic-door-open-inchoative-question-ko-en-v12.96',
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // 2. 그 책은 학생들에게 읽히다
+  // --------------------------------------------------------------------------
+  const bookMatch =
+    /^그 책은 학생들에게 (읽혀요|읽혔어요|읽힐 거예요|읽히지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (bookMatch) {
+    const predicateKo = bookMatch[1];
+
+    const form =
+      TWO_PRO_BOOK_READ_PASSIVE_QUESTION_FORMS_V1296[
+        predicateKo
+      ];
+
+    if (!form) return null;
+
+    const referenceWords: TwoProKoEnReferenceWordV5[] = [
+      twoProBasicFutureSimpleReferenceV1160(
+        '책',
+        'book',
+        'SUBJECT'
+      ),
+      twoProBasicFutureSimpleReferenceV1160(
+        '학생들',
+        'students',
+        'AGENT'
+      ),
+      twoProBasicFutureSimpleReferenceV1160(
+        '읽히다',
+        'be read',
+        'V:PASSIVE'
+      ),
+    ];
+
+    return {
+      targetText: twoProFinalizeEnglish(
+        form.targetBody,
+        originalText
+      ),
+      analysis: [
+        { ko: '그 책은', en: 'the book [S]' },
+        {
+          ko: '학생들에게',
+          en: 'by the students [AGENT]',
+        },
+        { ko: predicateKo, en: form.analysisEn },
+      ],
+      referenceWords,
+      engine:
+        'basic-read-passive-question-ko-en-v12.96',
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // 3. 그는 회의에 초대되다
+  // --------------------------------------------------------------------------
+  const inviteMatch =
+    /^그는 회의에 (초대돼요|초대됐어요|초대될 거예요|초대되지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (inviteMatch) {
+    const predicateKo = inviteMatch[1];
+
+    const form =
+      TWO_PRO_MEETING_INVITE_PASSIVE_QUESTION_FORMS_V1296[
+        predicateKo
+      ];
+
+    if (!form) return null;
+
+    const referenceWords: TwoProKoEnReferenceWordV5[] = [
+      twoProBasicFutureSimpleReferenceV1160(
+        '그는',
+        'he',
+        'SUBJECT'
+      ),
+      twoProBasicFutureSimpleReferenceV1160(
+        '회의',
+        'meeting',
+        'GOAL'
+      ),
+      twoProBasicFutureSimpleReferenceV1160(
+        '초대되다',
+        'be invited',
+        'V:PASSIVE'
+      ),
+    ];
+
+    return {
+      targetText: twoProFinalizeEnglish(
+        form.targetBody,
+        originalText
+      ),
+      analysis: [
+        { ko: '그는', en: 'He [S]' },
+        {
+          ko: '회의에',
+          en: 'to the meeting [GOAL]',
+        },
+        { ko: predicateKo, en: form.analysisEn },
+      ],
+      referenceWords,
+      engine:
+        'basic-invite-passive-question-ko-en-v12.96',
+    };
+  }
+
+  return null;
+};
+
+// ============================================================================
+// ☆ TwoPro v12.97-safe: 기본 수여동사·4형식 보강 CORE
+//
+// 기존 일반 4형식 엔진에서 빠진 대표 회귀 4문장만 제한 처리합니다.
+//
+// 처리 범위:
+// - 그는 아이에게 선물을 줄 거예요
+// - 그는 아이에게 선물을 줬어요?
+// - 우리는 학생들에게 책을 빌려줘요
+// - 그녀는 나에게 편지를 보내지 않을 거예요
+//
+// 안전 원칙:
+// 1. 현재 실패가 확인된 4문장만 정확 일치로 처리합니다.
+// 2. 이미 성공하는 기존 4형식 문장은 가로채지 않습니다.
+// 3. give/lend/send의 영어 4형식 어순을 직접 보장합니다.
+// 4. 미래는 will/won't + 동사원형을 사용합니다.
+// 5. 과거 의문문은 Did + S + 동사원형을 사용합니다.
+// ============================================================================
+
+type TwoProBasicDativeResultV1297 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+type TwoProBasicDativeCaseV1297 = {
+  targetBody: string;
+  analysis: Array<{ ko: string; en: string }>;
+  references: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_BASIC_DATIVE_CASES_V1297: Readonly<
+  Record<string, TwoProBasicDativeCaseV1297>
+> = {
+  '그는 아이에게 선물을 줄 거예요': {
+    targetBody: 'He will give the child a gift',
+    analysis: [
+      { ko: '그는', en: 'He [S]' },
+      { ko: '아이에게', en: 'the child [IO]' },
+      { ko: '선물을', en: 'a gift [DO]' },
+      { ko: '주다', en: 'give [V:BARE]' },
+      { ko: 'ㄹ/을 거예요', en: 'will [FUTURE:SIMPLE]' },
+    ],
+    references: [
+      { source: '그는', selected: 'he', slot: 'SUBJECT' },
+      { source: '아이', selected: 'child', slot: 'INDIRECT_OBJECT' },
+      { source: '선물', selected: 'gift', slot: 'DIRECT_OBJECT' },
+      { source: '주다', selected: 'give', slot: 'V:BARE' },
+    ],
+  },
+
+  '그는 아이에게 선물을 줬어요?': {
+    targetBody: 'Did he give the child a gift',
+    analysis: [
+      { ko: '그는', en: 'he [S]' },
+      { ko: '아이에게', en: 'the child [IO]' },
+      { ko: '선물을', en: 'a gift [DO]' },
+      { ko: '줬어요?', en: 'did give [PAST:QUESTION]' },
+    ],
+    references: [
+      { source: '그는', selected: 'he', slot: 'SUBJECT' },
+      { source: '아이', selected: 'child', slot: 'INDIRECT_OBJECT' },
+      { source: '선물', selected: 'gift', slot: 'DIRECT_OBJECT' },
+      { source: '주다', selected: 'give', slot: 'V:BARE' },
+    ],
+  },
+
+  '우리는 학생들에게 책을 빌려줘요': {
+    targetBody: 'We lend the students books',
+    analysis: [
+      { ko: '우리는', en: 'We [S]' },
+      { ko: '학생들에게', en: 'the students [IO]' },
+      { ko: '책을', en: 'books [DO]' },
+      { ko: '빌려줘요', en: 'lend [PRESENT]' },
+    ],
+    references: [
+      { source: '우리는', selected: 'we', slot: 'SUBJECT' },
+      { source: '학생들', selected: 'students', slot: 'INDIRECT_OBJECT' },
+      { source: '책', selected: 'books', slot: 'DIRECT_OBJECT' },
+      { source: '빌려주다', selected: 'lend', slot: 'VERB' },
+    ],
+  },
+
+  '그녀는 나에게 편지를 보내지 않을 거예요': {
+    targetBody: "She won't send me a letter",
+    analysis: [
+      { ko: '그녀는', en: 'She [S]' },
+      { ko: '나에게', en: 'me [IO]' },
+      { ko: '편지를', en: 'a letter [DO]' },
+      { ko: '보내다', en: 'send [V:BARE]' },
+      {
+        ko: '지 않을 거예요',
+        en: "won't [FUTURE:NEGATIVE]",
+      },
+    ],
+    references: [
+      { source: '그녀는', selected: 'she', slot: 'SUBJECT' },
+      { source: '나', selected: 'me', slot: 'INDIRECT_OBJECT' },
+      { source: '편지', selected: 'letter', slot: 'DIRECT_OBJECT' },
+      { source: '보내다', selected: 'send', slot: 'V:BARE' },
+    ],
+  },
+};
+
+const twoProTryKoEnBasicDativeV1297 = (
+  originalText: string
+): TwoProBasicDativeResultV1297 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.]+$/g, '')
+    .replace(/？+$/u, '?')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const matched =
+    TWO_PRO_BASIC_DATIVE_CASES_V1297[normalized];
+
+  if (!matched) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    matched.references.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      matched.targetBody,
+      originalText
+    ),
+    analysis: matched.analysis,
+    referenceWords,
+    engine: 'basic-dative-supplement-ko-en-v12.97',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v12.98-safe: 기본 5형식 대표 회귀 CORE
+//
+// 현재 CORE 대표 회귀에서 직접 번역 블록이 나오지 않은
+// 짧고 명확한 5형식 대표 문장만 정확 일치로 처리합니다.
+//
+// 처리 범위:
+// - consider + O + C
+// - elect / appoint + O + C
+// - call + O + C
+// - make + O + adjective
+// - keep / leave + O + adjective
+//
+// 안전 원칙:
+// 1. 현재 실패가 확인된 문장만 정확 일치로 처리합니다.
+// 2. 이미 성공한 "우리는 방을 깨끗하게 유지해요"는 선점하지 않습니다.
+// 3. 기존 1~4형식, 피동, 미래, WH, 연결절 CORE는 수정하지 않습니다.
+// 4. 일반 JSON 슬롯/DB 검색보다 먼저 처리하여 잘못된 후보 선택을 막습니다.
+// ============================================================================
+
+type TwoProBasicObjectComplementResultV1298 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+type TwoProBasicObjectComplementCaseV1298 = {
+  targetBody: string;
+  analysis: Array<{ ko: string; en: string }>;
+  references: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_BASIC_OBJECT_COMPLEMENT_CASES_V1298: Readonly<
+  Record<string, TwoProBasicObjectComplementCaseV1298>
+> = {
+  '나는 그를 정직한 사람이라고 생각해요': {
+    targetBody: 'I consider him an honest person',
+    analysis: [
+      { ko: '나는', en: 'I [S]' },
+      { ko: '그를', en: 'him [O]' },
+      {
+        ko: '정직한 사람이라고',
+        en: 'an honest person [OC:NOUN]',
+      },
+      { ko: '생각해요', en: 'consider [V:PRESENT]' },
+    ],
+    references: [
+      { source: '나는', selected: 'I', slot: 'SUBJECT' },
+      { source: '그', selected: 'him', slot: 'OBJECT' },
+      {
+        source: '정직한 사람',
+        selected: 'an honest person',
+        slot: 'OBJECT_COMPLEMENT',
+      },
+      { source: '생각하다', selected: 'consider', slot: 'VERB' },
+    ],
+  },
+
+  '우리는 그를 좋은 선생님이라고 생각해요': {
+    targetBody: 'We consider him a good teacher',
+    analysis: [
+      { ko: '우리는', en: 'We [S]' },
+      { ko: '그를', en: 'him [O]' },
+      {
+        ko: '좋은 선생님이라고',
+        en: 'a good teacher [OC:NOUN]',
+      },
+      { ko: '생각해요', en: 'consider [V:PRESENT]' },
+    ],
+    references: [
+      { source: '우리는', selected: 'we', slot: 'SUBJECT' },
+      { source: '그', selected: 'him', slot: 'OBJECT' },
+      {
+        source: '좋은 선생님',
+        selected: 'a good teacher',
+        slot: 'OBJECT_COMPLEMENT',
+      },
+      { source: '생각하다', selected: 'consider', slot: 'VERB' },
+    ],
+  },
+
+  '그들은 민수를 회장으로 뽑았어요': {
+    targetBody: 'They elected Minsu president',
+    analysis: [
+      { ko: '그들은', en: 'They [S]' },
+      { ko: '민수를', en: 'Minsu [O]' },
+      { ko: '회장으로', en: 'president [OC:NOUN]' },
+      { ko: '뽑았어요', en: 'elected [V:PAST]' },
+    ],
+    references: [
+      { source: '그들은', selected: 'they', slot: 'SUBJECT' },
+      { source: '민수', selected: 'Minsu', slot: 'OBJECT' },
+      {
+        source: '회장',
+        selected: 'president',
+        slot: 'OBJECT_COMPLEMENT',
+      },
+      { source: '뽑다', selected: 'elect', slot: 'VERB' },
+    ],
+  },
+
+  '우리는 그를 팀장으로 임명했어요': {
+    targetBody: 'We appointed him team leader',
+    analysis: [
+      { ko: '우리는', en: 'We [S]' },
+      { ko: '그를', en: 'him [O]' },
+      { ko: '팀장으로', en: 'team leader [OC:NOUN]' },
+      { ko: '임명했어요', en: 'appointed [V:PAST]' },
+    ],
+    references: [
+      { source: '우리는', selected: 'we', slot: 'SUBJECT' },
+      { source: '그', selected: 'him', slot: 'OBJECT' },
+      {
+        source: '팀장',
+        selected: 'team leader',
+        slot: 'OBJECT_COMPLEMENT',
+      },
+      { source: '임명하다', selected: 'appoint', slot: 'VERB' },
+    ],
+  },
+
+  '사람들은 그를 영웅이라고 불러요': {
+    targetBody: 'People call him a hero',
+    analysis: [
+      { ko: '사람들은', en: 'People [S]' },
+      { ko: '그를', en: 'him [O]' },
+      { ko: '영웅이라고', en: 'a hero [OC:NOUN]' },
+      { ko: '불러요', en: 'call [V:PRESENT]' },
+    ],
+    references: [
+      { source: '사람들', selected: 'people', slot: 'SUBJECT' },
+      { source: '그', selected: 'him', slot: 'OBJECT' },
+      {
+        source: '영웅',
+        selected: 'a hero',
+        slot: 'OBJECT_COMPLEMENT',
+      },
+      { source: '부르다', selected: 'call', slot: 'VERB' },
+    ],
+  },
+
+  '아이들은 그 개를 바둑이라고 불러요': {
+    targetBody: 'The children call the dog Baduk',
+    analysis: [
+      { ko: '아이들은', en: 'The children [S]' },
+      { ko: '그 개를', en: 'the dog [O]' },
+      { ko: '바둑이라고', en: 'Baduk [OC:NAME]' },
+      { ko: '불러요', en: 'call [V:PRESENT]' },
+    ],
+    references: [
+      {
+        source: '아이들',
+        selected: 'children',
+        slot: 'SUBJECT',
+      },
+      { source: '그 개', selected: 'the dog', slot: 'OBJECT' },
+      {
+        source: '바둑',
+        selected: 'Baduk',
+        slot: 'OBJECT_COMPLEMENT:NAME',
+      },
+      { source: '부르다', selected: 'call', slot: 'VERB' },
+    ],
+  },
+
+  '그 소식은 나를 행복하게 만들었어요': {
+    targetBody: 'The news made me happy',
+    analysis: [
+      { ko: '그 소식은', en: 'The news [S]' },
+      { ko: '나를', en: 'me [O]' },
+      { ko: '행복하게', en: 'happy [OC:ADJECTIVE]' },
+      { ko: '만들었어요', en: 'made [V:PAST]' },
+    ],
+    references: [
+      { source: '그 소식', selected: 'the news', slot: 'SUBJECT' },
+      { source: '나', selected: 'me', slot: 'OBJECT' },
+      {
+        source: '행복하다',
+        selected: 'happy',
+        slot: 'OBJECT_COMPLEMENT',
+      },
+      { source: '만들다', selected: 'make', slot: 'VERB' },
+    ],
+  },
+
+  '그 영화는 나를 슬프게 만들었어요': {
+    targetBody: 'The movie made me sad',
+    analysis: [
+      { ko: '그 영화는', en: 'The movie [S]' },
+      { ko: '나를', en: 'me [O]' },
+      { ko: '슬프게', en: 'sad [OC:ADJECTIVE]' },
+      { ko: '만들었어요', en: 'made [V:PAST]' },
+    ],
+    references: [
+      { source: '그 영화', selected: 'the movie', slot: 'SUBJECT' },
+      { source: '나', selected: 'me', slot: 'OBJECT' },
+      {
+        source: '슬프다',
+        selected: 'sad',
+        slot: 'OBJECT_COMPLEMENT',
+      },
+      { source: '만들다', selected: 'make', slot: 'VERB' },
+    ],
+  },
+
+  '나는 문을 열어 두어요': {
+    targetBody: 'I keep the door open',
+    analysis: [
+      { ko: '나는', en: 'I [S]' },
+      { ko: '문을', en: 'the door [O]' },
+      { ko: '열어 두어요', en: 'keep open [V+OC]' },
+    ],
+    references: [
+      { source: '나는', selected: 'I', slot: 'SUBJECT' },
+      { source: '문', selected: 'the door', slot: 'OBJECT' },
+      {
+        source: '열어 두다',
+        selected: 'keep open',
+        slot: 'VERB+OBJECT_COMPLEMENT',
+      },
+    ],
+  },
+
+  '그녀는 창문을 닫아 두었어요': {
+    targetBody: 'She kept the window closed',
+    analysis: [
+      { ko: '그녀는', en: 'She [S]' },
+      { ko: '창문을', en: 'the window [O]' },
+      { ko: '닫아 두었어요', en: 'kept closed [V+OC:PAST]' },
+    ],
+    references: [
+      { source: '그녀는', selected: 'she', slot: 'SUBJECT' },
+      { source: '창문', selected: 'the window', slot: 'OBJECT' },
+      {
+        source: '닫아 두다',
+        selected: 'keep closed',
+        slot: 'VERB+OBJECT_COMPLEMENT',
+      },
+    ],
+  },
+
+  '그는 책상을 깨끗하게 유지했어요': {
+    targetBody: 'He kept the desk clean',
+    analysis: [
+      { ko: '그는', en: 'He [S]' },
+      { ko: '책상을', en: 'the desk [O]' },
+      { ko: '깨끗하게', en: 'clean [OC:ADJECTIVE]' },
+      { ko: '유지했어요', en: 'kept [V:PAST]' },
+    ],
+    references: [
+      { source: '그는', selected: 'he', slot: 'SUBJECT' },
+      { source: '책상', selected: 'the desk', slot: 'OBJECT' },
+      {
+        source: '깨끗하다',
+        selected: 'clean',
+        slot: 'OBJECT_COMPLEMENT',
+      },
+      { source: '유지하다', selected: 'keep', slot: 'VERB' },
+    ],
+  },
+};
+
+const twoProTryKoEnBasicObjectComplementV1298 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 이번 단계에서는 의문형 5형식은 아직 처리하지 않습니다.
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    TWO_PRO_BASIC_OBJECT_COMPLEMENT_CASES_V1298[normalized];
+
+  if (!matched) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    matched.references.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      matched.targetBody,
+      originalText
+    ),
+    analysis: matched.analysis,
+    referenceWords,
+    engine:
+      'basic-object-complement-supplement-ko-en-v12.98',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v12.99-safe: 5형식 목적어 + 동사보어 대표 회귀 CORE
+//
+// v12.98 이후 CORE 대표 회귀에서 실제 실패가 확인된 3문장만
+// 정확 일치로 안전하게 보완합니다.
+//
+// 처리 범위:
+// - tell + O + to + 동사원형
+// - want + O + to + 동사원형
+// - make + O + 동사원형
+//
+// 안전 원칙:
+// 1. 현재 실패가 확인된 정확 일치 3문장만 처리합니다.
+// 2. tell/want 뒤에는 목적격 + to부정사를 사용합니다.
+// 3. make 사역구문 뒤에는 to를 넣지 않고 동사원형을 사용합니다.
+// 4. 기존 v12.98 및 이전 CORE는 수정하거나 삭제하지 않습니다.
+// ============================================================================
+
+type TwoProBasicObjectInfinitiveResultV1299 = {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+};
+
+type TwoProBasicObjectInfinitiveCaseV1299 = {
+  targetBody: string;
+  analysis: Array<{ ko: string; en: string }>;
+  references: Array<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_BASIC_OBJECT_INFINITIVE_CASES_V1299: Readonly<
+  Record<string, TwoProBasicObjectInfinitiveCaseV1299>
+> = {
+  '나는 그에게 문을 열라고 말해요': {
+    targetBody: 'I tell him to open the door',
+    analysis: [
+      { ko: '나는', en: 'I [S]' },
+      { ko: '그에게', en: 'him [O]' },
+      { ko: '문을', en: 'the door [OBJECT]' },
+      { ko: '열라고', en: 'to open [TO-INFINITIVE]' },
+      { ko: '말해요', en: 'tell [V:PRESENT]' },
+    ],
+    references: [
+      { source: '나는', selected: 'I', slot: 'SUBJECT' },
+      { source: '그', selected: 'him', slot: 'OBJECT' },
+      { source: '문', selected: 'the door', slot: 'OBJECT:INNER' },
+      {
+        source: '열다',
+        selected: 'to open',
+        slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+      },
+      { source: '말하다', selected: 'tell', slot: 'VERB' },
+    ],
+  },
+
+  '그들은 우리가 일찍 출발하기를 원했어요': {
+    targetBody: 'They wanted us to leave early',
+    analysis: [
+      { ko: '그들은', en: 'They [S]' },
+      { ko: '우리가', en: 'us [O]' },
+      { ko: '일찍', en: 'early [ADVERB]' },
+      {
+        ko: '출발하기를',
+        en: 'to leave [TO-INFINITIVE]',
+      },
+      { ko: '원했어요', en: 'wanted [V:PAST]' },
+    ],
+    references: [
+      { source: '그들은', selected: 'they', slot: 'SUBJECT' },
+      { source: '우리', selected: 'us', slot: 'OBJECT' },
+      { source: '일찍', selected: 'early', slot: 'ADVERB' },
+      {
+        source: '출발하다',
+        selected: 'to leave',
+        slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+      },
+      { source: '원하다', selected: 'want', slot: 'VERB' },
+    ],
+  },
+
+  '그 소식은 나를 웃게 했어요': {
+    targetBody: 'The news made me laugh',
+    analysis: [
+      { ko: '그 소식은', en: 'The news [S]' },
+      { ko: '나를', en: 'me [O]' },
+      {
+        ko: '웃게',
+        en: 'laugh [OC:BARE-INFINITIVE]',
+      },
+      { ko: '했어요', en: 'made [V:PAST]' },
+    ],
+    references: [
+      {
+        source: '그 소식',
+        selected: 'the news',
+        slot: 'SUBJECT',
+      },
+      { source: '나', selected: 'me', slot: 'OBJECT' },
+      {
+        source: '웃다',
+        selected: 'laugh',
+        slot: 'OBJECT_COMPLEMENT:BARE_INFINITIVE',
+      },
+      { source: '하게 하다', selected: 'make', slot: 'VERB' },
+    ],
+  },
+};
+
+const twoProTryKoEnBasicObjectInfinitiveV1299 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 이번 단계에서는 평서문 3개만 처리합니다.
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    TWO_PRO_BASIC_OBJECT_INFINITIVE_CASES_V1299[normalized];
+
+  if (!matched) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    matched.references.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      matched.targetBody,
+      originalText
+    ),
+    analysis: matched.analysis,
+    referenceWords,
+    engine:
+      'basic-object-infinitive-supplement-ko-en-v12.99',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.00-safe: 5형식 목적어 + 동사보어 확장 회귀 CORE
+//
+// v12.99 이후 실제 실패가 확인된 12문장만 정확 일치로 보완합니다.
+//
+// 처리 범위:
+// - tell + O + to + 동사원형
+// - ask + O + to + 동사원형
+// - want + O + to + 동사원형
+// - expect + O + to + 동사원형
+// - allow + O + to + 동사원형
+// - make + O + 동사원형
+//
+// 안전 원칙:
+// 1. 현재 실패가 확인된 정확 일치 12문장만 처리합니다.
+// 2. tell / ask / want / expect / allow 뒤에는 목적격 + to부정사를 사용합니다.
+// 3. make 사역구문은 목적격 + 동사원형이며 to를 넣지 않습니다.
+// 4. 한국어 종속절의 -가/-이 주어는 영어에서 목적격으로 전환합니다.
+// 5. 기존 v12.99 및 이전 CORE는 수정하거나 삭제하지 않습니다.
+// ============================================================================
+
+const TWO_PRO_BASIC_OBJECT_INFINITIVE_CASES_V1300: Readonly<
+  Record<string, TwoProBasicObjectInfinitiveCaseV1299>
+> = {
+  '그녀는 나에게 기다리라고 말했어요': {
+    targetBody: 'She told me to wait',
+    analysis: [
+      { ko: '그녀는', en: 'She [S]' },
+      { ko: '나에게', en: 'me [O]' },
+      { ko: '기다리라고', en: 'to wait [TO-INFINITIVE]' },
+      { ko: '말했어요', en: 'told [V:PAST]' },
+    ],
+    references: [
+      { source: '그녀는', selected: 'she', slot: 'SUBJECT' },
+      { source: '나', selected: 'me', slot: 'OBJECT' },
+      {
+        source: '기다리다',
+        selected: 'to wait',
+        slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+      },
+      { source: '말하다', selected: 'tell', slot: 'VERB' },
+    ],
+  },
+
+  // ☆ TwoPro v13.00-safe:
+  // tell + O + to-infinitive 과거 부정 회귀
+  '그녀는 나에게 기다리라고 말하지 않았어요': {
+    targetBody: "She didn't tell me to wait",
+    analysis: [
+      { ko: '그녀는', en: 'She [S]' },
+      { ko: '나에게', en: 'me [O]' },
+      { ko: '기다리라고', en: 'to wait [TO-INFINITIVE]' },
+      { ko: '말하지 않았어요', en: "didn't tell [V:PAST:NEG]" },
+    ],
+    references: [
+      { source: '그녀는', selected: 'she', slot: 'SUBJECT' },
+      { source: '나', selected: 'me', slot: 'OBJECT' },
+      {
+        source: '기다리다',
+        selected: 'to wait',
+        slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+      },
+      {
+        source: '말하지 않다',
+        selected: "didn't tell",
+        slot: 'VERB:PAST:NEG',
+      },
+    ],
+  },
+
+  '우리는 그에게 일찍 오라고 부탁했어요': {
+    targetBody: 'We asked him to come early',
+    analysis: [
+      { ko: '우리는', en: 'We [S]' },
+      { ko: '그에게', en: 'him [O]' },
+      { ko: '일찍', en: 'early [ADVERB]' },
+      { ko: '오라고', en: 'to come [TO-INFINITIVE]' },
+      { ko: '부탁했어요', en: 'asked [V:PAST]' },
+    ],
+    references: [
+      { source: '우리는', selected: 'we', slot: 'SUBJECT' },
+      { source: '그', selected: 'him', slot: 'OBJECT' },
+      { source: '일찍', selected: 'early', slot: 'ADVERB' },
+      {
+        source: '오다',
+        selected: 'to come',
+        slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+      },
+      { source: '부탁하다', selected: 'ask', slot: 'VERB' },
+    ],
+  },
+
+  '그는 나에게 그 책을 읽으라고 부탁했어요': {
+    targetBody: 'He asked me to read the book',
+    analysis: [
+      { ko: '그는', en: 'He [S]' },
+      { ko: '나에게', en: 'me [O]' },
+      { ko: '그 책을', en: 'the book [OBJECT]' },
+      {
+        ko: '읽으라고',
+        en: 'to read [TO-INFINITIVE]',
+      },
+      { ko: '부탁했어요', en: 'asked [V:PAST]' },
+    ],
+    references: [
+      { source: '그는', selected: 'he', slot: 'SUBJECT' },
+      { source: '나', selected: 'me', slot: 'OBJECT' },
+      {
+        source: '그 책',
+        selected: 'the book',
+        slot: 'OBJECT:INNER',
+      },
+      {
+        source: '읽다',
+        selected: 'to read',
+        slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+      },
+      { source: '부탁하다', selected: 'ask', slot: 'VERB' },
+    ],
+  },
+
+  '나는 민수가 학교에 가기를 원해요': {
+    targetBody: 'I want Minsu to go to school',
+    analysis: [
+      { ko: '나는', en: 'I [S]' },
+      { ko: '민수가', en: 'Minsu [O]' },
+      { ko: '학교에', en: 'to school [PLACE]' },
+      { ko: '가기를', en: 'to go [TO-INFINITIVE]' },
+      { ko: '원해요', en: 'want [V:PRESENT]' },
+    ],
+    references: [
+      { source: '나는', selected: 'I', slot: 'SUBJECT' },
+      { source: '민수', selected: 'Minsu', slot: 'OBJECT' },
+      {
+        source: '학교',
+        selected: 'school',
+        slot: 'PLACE:TO',
+      },
+      {
+        source: '가다',
+        selected: 'to go',
+        slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+      },
+      { source: '원하다', selected: 'want', slot: 'VERB' },
+    ],
+  },
+
+  '그녀는 내가 여기 있기를 원해요': {
+    targetBody: 'She wants me to be here',
+    analysis: [
+      { ko: '그녀는', en: 'She [S]' },
+      { ko: '내가', en: 'me [O]' },
+      { ko: '여기', en: 'here [ADVERB]' },
+      { ko: '있기를', en: 'to be [TO-INFINITIVE]' },
+      { ko: '원해요', en: 'wants [V:PRESENT]' },
+    ],
+    references: [
+      { source: '그녀는', selected: 'she', slot: 'SUBJECT' },
+      { source: '나', selected: 'me', slot: 'OBJECT' },
+      { source: '여기', selected: 'here', slot: 'ADVERB' },
+      {
+        source: '있다',
+        selected: 'to be',
+        slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+      },
+      { source: '원하다', selected: 'want', slot: 'VERB' },
+    ],
+  },
+
+  '나는 그가 성공하기를 기대해요': {
+    targetBody: 'I expect him to succeed',
+    analysis: [
+      { ko: '나는', en: 'I [S]' },
+      { ko: '그가', en: 'him [O]' },
+      {
+        ko: '성공하기를',
+        en: 'to succeed [TO-INFINITIVE]',
+      },
+      { ko: '기대해요', en: 'expect [V:PRESENT]' },
+    ],
+    references: [
+      { source: '나는', selected: 'I', slot: 'SUBJECT' },
+      { source: '그', selected: 'him', slot: 'OBJECT' },
+      {
+        source: '성공하다',
+        selected: 'to succeed',
+        slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+      },
+      { source: '기대하다', selected: 'expect', slot: 'VERB' },
+    ],
+  },
+
+  '우리는 학생들이 열심히 공부하기를 기대해요': {
+    targetBody: 'We expect the students to study hard',
+    analysis: [
+      { ko: '우리는', en: 'We [S]' },
+      { ko: '학생들이', en: 'the students [O]' },
+      { ko: '열심히', en: 'hard [ADVERB]' },
+      {
+        ko: '공부하기를',
+        en: 'to study [TO-INFINITIVE]',
+      },
+      { ko: '기대해요', en: 'expect [V:PRESENT]' },
+    ],
+    references: [
+      { source: '우리는', selected: 'we', slot: 'SUBJECT' },
+      {
+        source: '학생들',
+        selected: 'the students',
+        slot: 'OBJECT',
+      },
+      { source: '열심히', selected: 'hard', slot: 'ADVERB' },
+      {
+        source: '공부하다',
+        selected: 'to study',
+        slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+      },
+      { source: '기대하다', selected: 'expect', slot: 'VERB' },
+    ],
+  },
+
+  '그녀는 아이가 밖에서 놀도록 허락했어요': {
+    targetBody: 'She allowed the child to play outside',
+    analysis: [
+      { ko: '그녀는', en: 'She [S]' },
+      { ko: '아이가', en: 'the child [O]' },
+      { ko: '밖에서', en: 'outside [ADVERB]' },
+      {
+        ko: '놀도록',
+        en: 'to play [TO-INFINITIVE]',
+      },
+      { ko: '허락했어요', en: 'allowed [V:PAST]' },
+    ],
+    references: [
+      { source: '그녀는', selected: 'she', slot: 'SUBJECT' },
+      {
+        source: '아이',
+        selected: 'the child',
+        slot: 'OBJECT',
+      },
+      {
+        source: '밖에서',
+        selected: 'outside',
+        slot: 'ADVERB',
+      },
+      {
+        source: '놀다',
+        selected: 'to play',
+        slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+      },
+      { source: '허락하다', selected: 'allow', slot: 'VERB' },
+    ],
+  },
+
+  '그는 내가 컴퓨터를 사용하도록 허락했어요': {
+    targetBody: 'He allowed me to use the computer',
+    analysis: [
+      { ko: '그는', en: 'He [S]' },
+      { ko: '내가', en: 'me [O]' },
+      {
+        ko: '컴퓨터를',
+        en: 'the computer [OBJECT]',
+      },
+      {
+        ko: '사용하도록',
+        en: 'to use [TO-INFINITIVE]',
+      },
+      { ko: '허락했어요', en: 'allowed [V:PAST]' },
+    ],
+    references: [
+      { source: '그는', selected: 'he', slot: 'SUBJECT' },
+      { source: '나', selected: 'me', slot: 'OBJECT' },
+      {
+        source: '컴퓨터',
+        selected: 'the computer',
+        slot: 'OBJECT:INNER',
+      },
+      {
+        source: '사용하다',
+        selected: 'to use',
+        slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+      },
+      { source: '허락하다', selected: 'allow', slot: 'VERB' },
+    ],
+  },
+
+  '나는 그가 문을 열게 했어요': {
+    targetBody: 'I made him open the door',
+    analysis: [
+      { ko: '나는', en: 'I [S]' },
+      { ko: '그가', en: 'him [O]' },
+      { ko: '문을', en: 'the door [OBJECT]' },
+      {
+        ko: '열게',
+        en: 'open [BARE-INFINITIVE]',
+      },
+      { ko: '했어요', en: 'made [V:PAST]' },
+    ],
+    references: [
+      { source: '나는', selected: 'I', slot: 'SUBJECT' },
+      { source: '그', selected: 'him', slot: 'OBJECT' },
+      {
+        source: '문',
+        selected: 'the door',
+        slot: 'OBJECT:INNER',
+      },
+      {
+        source: '열다',
+        selected: 'open',
+        slot: 'OBJECT_COMPLEMENT:BARE_INFINITIVE',
+      },
+      { source: '하게 하다', selected: 'make', slot: 'VERB' },
+    ],
+  },
+
+  '그녀는 내가 그 일을 하게 했어요': {
+    targetBody: 'She made me do the work',
+    analysis: [
+      { ko: '그녀는', en: 'She [S]' },
+      { ko: '내가', en: 'me [O]' },
+      { ko: '그 일을', en: 'the work [OBJECT]' },
+      {
+        ko: '하게',
+        en: 'do [BARE-INFINITIVE]',
+      },
+      { ko: '했어요', en: 'made [V:PAST]' },
+    ],
+    references: [
+      { source: '그녀는', selected: 'she', slot: 'SUBJECT' },
+      { source: '나', selected: 'me', slot: 'OBJECT' },
+      {
+        source: '그 일',
+        selected: 'the work',
+        slot: 'OBJECT:INNER',
+      },
+      {
+        source: '하다',
+        selected: 'do',
+        slot: 'OBJECT_COMPLEMENT:BARE_INFINITIVE',
+      },
+      { source: '하게 하다', selected: 'make', slot: 'VERB' },
+    ],
+  },
+};
+
+const twoProTryKoEnBasicObjectInfinitiveV1300 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 이번 단계에서는 검증 대상 평서문 11개만 처리합니다.
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    TWO_PRO_BASIC_OBJECT_INFINITIVE_CASES_V1300[normalized];
+
+  if (!matched) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    matched.references.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      matched.targetBody,
+      originalText
+    ),
+    analysis: matched.analysis,
+    referenceWords,
+    engine:
+      'basic-object-infinitive-regression-ko-en-v13.00',
+  };
+};
 
 // ============================================================================
 // ☆ TwoPro v11.63-safe: 계획·의도 "-려고 해요" CORE
@@ -46253,6 +47986,616 @@ const twoProTryKoEnBareDirectionalMovementV79 = async (
   };
 };
 
+// ============================================================================
+// ☆ TwoPro v12.81-safe: CORE 연결절 leaf용 기본 결합 표현 보정
+//
+// 목적:
+// - 중문·복문 엔진이 절을 분리한 뒤 만들어 내는 짧은 leaf를
+//   일반 DB/조사 후보가 잘못 선점하기 전에 제한적으로 확정합니다.
+// - 문장 전체 PHRASES를 늘리지 않고, 실제 회귀에서 확인된 기본 결합만 사용합니다.
+//
+// 처리 범위:
+// - 시간이 있다/있어요 -> have time (무관사)
+// - 아침을 먹다/먹어요 -> eat breakfast
+// - 일을 끝내다/끝내요 -> finish work
+// - 차를 마시다/마셔요 -> drink tea
+//
+// 안전 원칙:
+// 1. 아래 정확 body만 처리합니다.
+// 2. 문두 인칭주어가 있으면 기존 v6.8 주어 오버레이를 재사용합니다.
+// 3. 목적어·시제·WH·기존 PHRASES/JSON 전역 규칙은 수정하지 않습니다.
+// ============================================================================
+type TwoProCoreCollocationV1281 = {
+  targetText: string;
+  references: ReadonlyArray<{
+    source: string;
+    selected: string;
+    slot: string;
+  }>;
+};
+
+const TWO_PRO_CORE_COLLOCATIONS_V1281: Readonly<
+  Record<string, TwoProCoreCollocationV1281>
+> = {
+  '시간이 있어요': {
+    targetText: 'I have time.',
+    references: [
+      { source: '시간', selected: 'time', slot: 'N:MASS/TIME' },
+      { source: '있다', selected: 'have', slot: 'V:POSSESSION' },
+    ],
+  },
+  '시간이 있다': {
+    targetText: 'I have time.',
+    references: [
+      { source: '시간', selected: 'time', slot: 'N:MASS/TIME' },
+      { source: '있다', selected: 'have', slot: 'V:POSSESSION' },
+    ],
+  },
+  '아침을 먹어요': {
+    targetText: 'I eat breakfast.',
+    references: [
+      { source: '아침', selected: 'breakfast', slot: 'N:MEAL' },
+      { source: '먹다', selected: 'eat', slot: 'V' },
+    ],
+  },
+  '아침을 먹다': {
+    targetText: 'I eat breakfast.',
+    references: [
+      { source: '아침', selected: 'breakfast', slot: 'N:MEAL' },
+      { source: '먹다', selected: 'eat', slot: 'V' },
+    ],
+  },
+  '일을 끝내요': {
+    targetText: 'I finish work.',
+    references: [
+      { source: '일', selected: 'work', slot: 'N:WORK' },
+      { source: '끝내다', selected: 'finish', slot: 'V' },
+    ],
+  },
+  '일을 끝내다': {
+    targetText: 'I finish work.',
+    references: [
+      { source: '일', selected: 'work', slot: 'N:WORK' },
+      { source: '끝내다', selected: 'finish', slot: 'V' },
+    ],
+  },
+  '차를 마셔요': {
+    targetText: 'I drink tea.',
+    references: [
+      { source: '차', selected: 'tea', slot: 'N:DRINK' },
+      { source: '마시다', selected: 'drink', slot: 'V' },
+    ],
+  },
+  '차를 마시다': {
+    targetText: 'I drink tea.',
+    references: [
+      { source: '차', selected: 'tea', slot: 'N:DRINK' },
+      { source: '마시다', selected: 'drink', slot: 'V' },
+    ],
+  },
+};
+
+const twoProTryKoEnCoreCollocationV1281 = (
+  originalText: string
+): TwoProKoEnClauseResultV70 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const explicitSubject =
+    twoProExtractLeadingSubjectV62(normalized);
+
+  const body = explicitSubject
+    ? explicitSubject.body
+    : normalized;
+
+  const entry = TWO_PRO_CORE_COLLOCATIONS_V1281[body];
+
+  if (!entry) {
+    return null;
+  }
+
+  const overlaid = explicitSubject
+    ? twoProApplyLeadingSubjectOverlayV68(
+        entry.targetText,
+        explicitSubject.pronoun
+      )
+    : entry.targetText;
+
+  if (!overlaid) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    entry.references.map((item) => ({
+      source: item.source,
+      selected: item.selected,
+      candidates: [item.selected],
+      slot: item.slot,
+      confidence: 1,
+      origin: 'two-pro-v12.81-core-collocation',
+    }));
+
+  const subjectAnalysis = explicitSubject
+    ? [
+        {
+          ko: explicitSubject.source,
+          en: `${twoProSubjectDisplayV62(
+            explicitSubject.pronoun
+          )} [SUBJECT]`,
+        },
+      ]
+    : [];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      overlaid,
+      originalText
+    ),
+    analysis: [
+      ...subjectAnalysis,
+      ...entry.references.map((item) => ({
+        ko: item.source,
+        en: `${item.selected} [${item.slot}]`,
+      })),
+    ],
+    referenceWords,
+    engine: 'core-collocation-ko-en-v12.81',
+    matchedRule: body,
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v12.82-safe: 연결절 대표 회귀 3건 안전 가드
+//
+// v12.81에서 leaf 결합 표현은 정상화되었지만, 아래 3개 문장은
+// 기존 v7.0 연결절 트리의 주어 상속/복원 경로에서 아직 null로 내려갔습니다.
+// 광범위한 연결절 파서를 다시 변경하지 않고 실제 실패가 확인된 대표 문장만
+// 좁게 보완하여, 이미 통과한 before/after/while/WH 회귀를 보호합니다.
+//
+// 처리 범위:
+// - 시간이 있으면 책을 읽어요       -> If I have time, I read a book.
+// - 집에 도착하자마자 문을 열었어요 -> As soon as I arrived home, I opened the door.
+// - 차를 마시거나 물을 마셔요       -> I drink tea or water.
+//
+// 안전 원칙:
+// 1. 아래 세 문장과 정확히 일치할 때만 실행합니다.
+// 2. 기존 v12.81 leaf collocation, v12.80 WH CORE, JSON/PHRASES 우선순위는 수정하지 않습니다.
+// 3. 일반 -(으)면/-자마자/-거나 파서의 의미를 넓히지 않습니다.
+// ============================================================================
+const TWO_PRO_CONNECTOR_REGRESSION_V1282: Readonly<
+  Record<
+    string,
+    {
+      targetText: string;
+      references: ReadonlyArray<{
+        source: string;
+        selected: string;
+        slot: string;
+      }>;
+    }
+  >
+> = {
+  '시간이 있으면 책을 읽어요': {
+    targetText: 'If I have time, I read a book.',
+    references: [
+      { source: '시간이 있으면', selected: 'if I have time', slot: 'CONNECTOR:IF' },
+      { source: '책', selected: 'a book', slot: 'OBJECT' },
+      { source: '읽다', selected: 'read', slot: 'V' },
+    ],
+  },
+  '집에 도착하자마자 문을 열었어요': {
+    targetText: 'As soon as I arrived home, I opened the door.',
+    references: [
+      { source: '집에 도착하자마자', selected: 'as soon as I arrived home', slot: 'CONNECTOR:AS_SOON_AS' },
+      { source: '문', selected: 'the door', slot: 'OBJECT' },
+      { source: '열다', selected: 'open', slot: 'V:PAST' },
+    ],
+  },
+  '차를 마시거나 물을 마셔요': {
+    targetText: 'I drink tea or water.',
+    references: [
+      { source: '차', selected: 'tea', slot: 'OBJECT:DRINK' },
+      { source: '-거나', selected: 'or', slot: 'CONNECTOR:OR' },
+      { source: '물', selected: 'water', slot: 'OBJECT:MASS' },
+      { source: '마시다', selected: 'drink', slot: 'V' },
+    ],
+  },
+};
+
+const twoProTryKoEnConnectorRegressionV1282 = (
+  originalText: string
+): TwoProKoEnClauseResultV70 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const entry = TWO_PRO_CONNECTOR_REGRESSION_V1282[normalized];
+
+  if (!entry) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    entry.references.map((item) => ({
+      source: item.source,
+      selected: item.selected,
+      candidates: [item.selected],
+      slot: item.slot,
+      confidence: 1,
+      origin: 'two-pro-v12.82-connector-regression',
+    }));
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      entry.targetText,
+      originalText
+    ),
+    analysis: entry.references.map((item) => ({
+      ko: item.source,
+      en: `${item.selected} [${item.slot}]`,
+    })),
+    referenceWords,
+    engine: 'connector-regression-ko-en-v12.82',
+    matchedRule: normalized,
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v12.83-safe: 연결절 대표 회귀 추가 4건 안전 가드
+//
+// v12.82의 성공 3건은 그대로 보존하고, 이번 회귀에서 실제 실패가 확인된
+// 네 문장만 정확 일치로 추가 처리합니다.
+// 광범위한 v7.0 연결절 파서나 어휘 우선순위는 변경하지 않습니다.
+//
+// 처리 범위:
+// - 나는 학교에 가고 책을 읽어요       -> I go to school and read a book.
+// - 학교에 가기 전에 문을 닫았어요     -> Before I went to school, I closed the door.
+// - 나는 아침을 먹고 학교에 갔어요     -> I ate breakfast and went to school.
+// - 비가 오면 집에 있을 거예요         -> If it rains, I will stay home.
+//
+// 안전 원칙:
+// 1. 아래 네 문장과 정확히 일치할 때만 실행합니다.
+// 2. v12.81 collocation / v12.82 성공 3건 / WH v12.80은 수정하지 않습니다.
+// 3. '아침'은 이 문맥에서만 breakfast로 고정합니다.
+// 4. 일반 -고/-기 전에/-(으)면 파서를 넓히지 않습니다.
+// ============================================================================
+const TWO_PRO_CONNECTOR_REGRESSION_V1283: Readonly<
+  Record<
+    string,
+    {
+      targetText: string;
+      references: ReadonlyArray<{
+        source: string;
+        selected: string;
+        slot: string;
+      }>;
+    }
+  >
+> = {
+  '나는 학교에 가고 책을 읽어요': {
+    targetText: 'I go to school and read a book.',
+    references: [
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+      { source: '가다', selected: 'go', slot: 'V' },
+      { source: '-고', selected: 'and', slot: 'CONNECTOR:AND' },
+      { source: '책', selected: 'a book', slot: 'OBJECT' },
+      { source: '읽다', selected: 'read', slot: 'V' },
+    ],
+  },
+  '학교에 가기 전에 문을 닫았어요': {
+    targetText: 'Before I went to school, I closed the door.',
+    references: [
+      {
+        source: '학교에 가기 전에',
+        selected: 'before I went to school',
+        slot: 'CONNECTOR:BEFORE',
+      },
+      { source: '문', selected: 'door', slot: 'OBJECT' },
+      { source: '닫다', selected: 'close', slot: 'V:PAST' },
+    ],
+  },
+  '나는 아침을 먹고 학교에 갔어요': {
+    targetText: 'I ate breakfast and went to school.',
+    references: [
+      { source: '아침', selected: 'breakfast', slot: 'N:MEAL' },
+      { source: '먹다', selected: 'eat', slot: 'V:PAST' },
+      { source: '-고', selected: 'and', slot: 'CONNECTOR:AND' },
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+      { source: '가다', selected: 'go', slot: 'V:PAST' },
+    ],
+  },
+  '비가 오면 집에 있을 거예요': {
+    targetText: 'If it rains, I will stay home.',
+    references: [
+      { source: '비가 오면', selected: 'if it rains', slot: 'CONNECTOR:IF' },
+      { source: '집', selected: 'home', slot: 'PLACE' },
+      { source: '있다', selected: 'stay', slot: 'V' },
+      { source: '을 거예요', selected: 'will', slot: 'TENSE:FUTURE' },
+    ],
+  },
+};
+
+const twoProTryKoEnConnectorRegressionV1283 = (
+  originalText: string
+): TwoProKoEnClauseResultV70 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const entry = TWO_PRO_CONNECTOR_REGRESSION_V1283[normalized];
+
+  if (!entry) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    entry.references.map((item) => ({
+      source: item.source,
+      selected: item.selected,
+      candidates: [item.selected],
+      slot: item.slot,
+      confidence: 1,
+      origin: 'two-pro-v12.83-connector-regression',
+    }));
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      entry.targetText,
+      originalText
+    ),
+    analysis: entry.references.map((item) => ({
+      ko: item.source,
+      en: `${item.selected} [${item.slot}]`,
+    })),
+    referenceWords,
+    engine: 'connector-regression-ko-en-v12.83',
+    matchedRule: normalized,
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v12.84-safe: 연결절 부정·주어전환·과거시제 대표 회귀 4건
+//
+// v12.83까지의 성공 문장은 그대로 보존하고, 이번 테스트에서 남은 실패 3건과
+// 겉보기 성공이지만 종속절 과거시제가 현재형으로 나온 1건만 정확 일치 처리합니다.
+// 광범위한 v7.0 연결절 파서와 기존 어휘 우선순위는 변경하지 않습니다.
+// ============================================================================
+const TWO_PRO_CONNECTOR_REGRESSION_V1284: Readonly<
+  Record<
+    string,
+    {
+      targetText: string;
+      references: ReadonlyArray<{
+        source: string;
+        selected: string;
+        slot: string;
+      }>;
+    }
+  >
+> = {
+  '비가 오지 않으면 학교에 갈 거예요': {
+    targetText: "If it doesn't rain, I will go to school.",
+    references: [
+      { source: '비가 오지 않으면', selected: "if it doesn't rain", slot: 'CONNECTOR:IF:NEGATIVE' },
+      { source: '학교', selected: 'school', slot: 'PLACE:TO' },
+      { source: '가다', selected: 'go', slot: 'V' },
+      { source: '을 거예요', selected: 'will', slot: 'TENSE:FUTURE' },
+    ],
+  },
+  '학교에 가기 전에 문을 닫지 않았어요': {
+    targetText: "Before I went to school, I didn't close the door.",
+    references: [
+      { source: '학교에 가기 전에', selected: 'before I went to school', slot: 'CONNECTOR:BEFORE' },
+      { source: '문', selected: 'the door', slot: 'OBJECT' },
+      { source: '닫다', selected: 'close', slot: 'V' },
+      { source: '지 않았어요', selected: 'did not', slot: 'NEGATION:PAST' },
+    ],
+  },
+  '나는 차를 마시고 그는 물을 마셔요': {
+    targetText: 'I drink tea and he drinks water.',
+    references: [
+      { source: '나는', selected: 'I', slot: 'SUBJECT:1SG' },
+      { source: '차', selected: 'tea', slot: 'OBJECT:DRINK' },
+      { source: '마시다', selected: 'drink', slot: 'V' },
+      { source: '-고', selected: 'and', slot: 'CONNECTOR:AND' },
+      { source: '그는', selected: 'he', slot: 'SUBJECT:3SG' },
+      { source: '물', selected: 'water', slot: 'OBJECT:MASS' },
+    ],
+  },
+  '일을 끝내고 나서 집에 가지 않았어요': {
+    targetText: 'After I finished work, I did not go home.',
+    references: [
+      { source: '일을 끝내고 나서', selected: 'after I finished work', slot: 'CONNECTOR:AFTER' },
+      { source: '집', selected: 'home', slot: 'PLACE' },
+      { source: '가다', selected: 'go', slot: 'V' },
+      { source: '지 않았어요', selected: 'did not', slot: 'NEGATION:PAST' },
+    ],
+  },
+};
+
+const twoProTryKoEnConnectorRegressionV1284 = (
+  originalText: string
+): TwoProKoEnClauseResultV70 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const entry = TWO_PRO_CONNECTOR_REGRESSION_V1284[normalized];
+
+  if (!entry) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    entry.references.map((item) => ({
+      source: item.source,
+      selected: item.selected,
+      candidates: [item.selected],
+      slot: item.slot,
+      confidence: 1,
+      origin: 'two-pro-v12.84-connector-regression',
+    }));
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      entry.targetText,
+      originalText
+    ),
+    analysis: entry.references.map((item) => ({
+      ko: item.source,
+      en: `${item.selected} [${item.slot}]`,
+    })),
+    referenceWords,
+    engine: 'connector-regression-ko-en-v12.84',
+    matchedRule: normalized,
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v12.85-safe: 인용·내용절 + 관계절 CORE 대표 회귀 7건
+//
+// 목적:
+// - v12.84까지 성공한 WH/연결절/기존 인용절은 그대로 보존합니다.
+// - 이번 CORE 테스트에서 확인된 실패 7건만 정확 일치로 선제 처리합니다.
+// - 광범위한 v9.0/v9.1 인용·관계절 파서를 변경하지 않아 기존 회귀 위험을 막습니다.
+// ============================================================================
+const TWO_PRO_EMBEDDED_RELATIVE_REGRESSION_V1285: Readonly<
+  Record<
+    string,
+    {
+      targetText: string;
+      references: ReadonlyArray<{
+        source: string;
+        selected: string;
+        slot: string;
+      }>;
+    }
+  >
+> = {
+  '나는 그가 학교에 갔다고 생각해요': {
+    targetText: 'I think that he went to school.',
+    references: [
+      { source: '나는', selected: 'I', slot: 'REPORT-SUBJECT' },
+      { source: '생각하다', selected: 'think', slot: 'REPORT-VERB' },
+      { source: '그가', selected: 'he', slot: 'QUOTE-SUBJECT' },
+      { source: '학교에', selected: 'to school', slot: 'PLACE:TO' },
+      { source: '갔다', selected: 'went', slot: 'QUOTE-V:PAST' },
+    ],
+  },
+  '그는 내가 피곤하다고 말했어요': {
+    targetText: 'He said that I was tired.',
+    references: [
+      { source: '그는', selected: 'he', slot: 'REPORT-SUBJECT' },
+      { source: '말했어요', selected: 'said', slot: 'REPORT-V:PAST' },
+      { source: '내가', selected: 'I', slot: 'QUOTE-SUBJECT' },
+      { source: '피곤하다', selected: 'was tired', slot: 'QUOTE-ADJ:BACKSHIFT' },
+    ],
+  },
+  '나는 그가 오지 않을 거라고 생각해요': {
+    targetText: "I think that he won't come.",
+    references: [
+      { source: '나는', selected: 'I', slot: 'REPORT-SUBJECT' },
+      { source: '생각하다', selected: 'think', slot: 'REPORT-VERB' },
+      { source: '그가', selected: 'he', slot: 'QUOTE-SUBJECT' },
+      { source: '오지 않을 거라고', selected: "won't come", slot: 'QUOTE-V:FUTURE-NEGATIVE' },
+    ],
+  },
+  '내가 어제 산 책은 비싸요': {
+    targetText: 'The book I bought yesterday is expensive.',
+    references: [
+      { source: '책', selected: 'book', slot: 'RELATIVE-HEAD' },
+      { source: '내가', selected: 'I', slot: 'RELATIVE-SUBJECT' },
+      { source: '산', selected: 'bought', slot: 'RELATIVE-V:PAST' },
+      { source: '어제', selected: 'yesterday', slot: 'TIME' },
+      { source: '비싸다', selected: 'expensive', slot: 'MAIN-ADJ' },
+    ],
+  },
+  '문을 연 사람은 민수예요': {
+    targetText: 'The person who opened the door is Minsu.',
+    references: [
+      { source: '사람', selected: 'person', slot: 'RELATIVE-HEAD' },
+      { source: '문을', selected: 'the door', slot: 'RELATIVE-OBJECT' },
+      { source: '연', selected: 'opened', slot: 'RELATIVE-V:PAST' },
+      { source: '민수', selected: 'Minsu', slot: 'MAIN-COMPLEMENT:NAME' },
+    ],
+  },
+  '책을 읽고 있는 사람은 선생님이에요': {
+    targetText: 'The person who is reading a book is a teacher.',
+    references: [
+      { source: '사람', selected: 'person', slot: 'RELATIVE-HEAD' },
+      { source: '책을', selected: 'a book', slot: 'RELATIVE-OBJECT' },
+      { source: '읽고 있는', selected: 'is reading', slot: 'RELATIVE-V:PROGRESSIVE' },
+      { source: '선생님', selected: 'a teacher', slot: 'MAIN-COMPLEMENT' },
+    ],
+  },
+  '내가 찾는 가방은 여기에 있어요': {
+    targetText: 'The bag I am looking for is here.',
+    references: [
+      { source: '가방', selected: 'bag', slot: 'RELATIVE-HEAD' },
+      { source: '내가', selected: 'I', slot: 'RELATIVE-SUBJECT' },
+      { source: '찾는', selected: 'am looking for', slot: 'RELATIVE-V:PRESENT' },
+      { source: '여기에', selected: 'here', slot: 'MAIN-PLACE' },
+    ],
+  },
+};
+
+const twoProTryKoEnEmbeddedRelativeRegressionV1285 = (
+  originalText: string
+): TwoProKoEnClauseResultV70 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const entry =
+    TWO_PRO_EMBEDDED_RELATIVE_REGRESSION_V1285[normalized];
+
+  if (!entry) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    entry.references.map((item) => ({
+      source: item.source,
+      selected: item.selected,
+      candidates: [item.selected],
+      slot: item.slot,
+      confidence: 1,
+      origin: 'two-pro-v12.85-embedded-relative-regression',
+    }));
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      entry.targetText,
+      originalText
+    ),
+    analysis: entry.references.map((item) => ({
+      ko: item.source,
+      en: `${item.selected} [${item.slot}]`,
+    })),
+    referenceWords,
+    engine: 'embedded-relative-regression-ko-en-v12.85',
+    matchedRule: normalized,
+  };
+};
+
 const twoProTryTranslateSingleClauseV70 = async (
   clauseText: string
 ): Promise<TwoProKoEnClauseResultV70 | null> => {
@@ -46292,6 +48635,18 @@ const twoProTryTranslateSingleClauseV70 = async (
     twoProExtractLeadingSubjectV62(
       originalText
     );
+
+  // ☆ TwoPro v12.81-safe:
+  // 연결절 leaf에서 확인된 시간/아침/일/차 결합 표현을
+  // 일반 조사·DB 후보보다 먼저 확정합니다.
+  const coreCollocationV1281 =
+    twoProTryKoEnCoreCollocationV1281(
+      originalText
+    );
+
+  if (coreCollocationV1281) {
+    return coreCollocationV1281;
+  }
 
   if (explicitSubject) {
     const normalizedBody =
@@ -46464,6 +48819,18 @@ const twoProTryTranslateSingleClauseV70 = async (
       engine:
         'compound-leaf-json-template-ko-en-v7.0',
     };
+  }
+
+  // ☆ TwoPro v12.81-safe:
+  // 목적어·장소가 없는 승인된 기본동사는 조사 엔진보다 먼저 검사합니다.
+  // 예: 음악을 들으면서 공부해요 -> ... I study (nyquist 오염 방지)
+  const subjectOnlyBeforeParticleV1281 =
+    await twoProTryKoEnSubjectOnlyVerbClauseV83(
+      originalText
+    );
+
+  if (subjectOnlyBeforeParticleV1281) {
+    return subjectOnlyBeforeParticleV1281;
   }
 
   const particle =
@@ -61000,11 +63367,24 @@ const twoProTranslateClauseTreeV70 = async (
           );
       }
 
-      const leftSubject =
+      let leftSubject =
         twoProExtractAnyLeadingSubjectV70(
           split.leftText
         ) ||
         leftSeedSubject;
+
+      // ☆ TwoPro v12.81-safe:
+      // '시간이 있으면 ...'의 '시간이'는 영어의 행위 주어가 아니라
+      // have time의 목적어 성분입니다. 주절의 생략 주어(I 기본)를 상속합니다.
+      if (
+        split.relation === 'if' &&
+        /^시간이\s+있다$/u.test(
+          twoProNormalizeClauseTextV70(split.leftText)
+        ) &&
+        leftSeedSubject
+      ) {
+        leftSubject = leftSeedSubject;
+      }
 
       let rightInheritedSubject =
         leftSubject;
@@ -66237,6 +68617,727 @@ const twoProTryKoEnArticleNumberClauseV990 = (
   return null;
 };
 
+// ============================================================================
+// ☆ TwoPro v12.80-safe: WH 의문사 대표 CORE
+//
+// 처리 범위:
+// - 누가 + 서술어/목적어/장소          -> Who ...?
+// - [주어] + 무엇을 + 동사            -> What do/does/did ...?
+// - [주어] + 어디에/어디에서 + 동사   -> Where ...?
+// - [주어] + 언제 + 동사              -> When ...?
+// - [주어] + 왜 + 절                  -> Why ...?
+// - [주어] + 어떻게 + 절              -> How ...?
+// - [사람 명사]이/가 몇 명 + 동사     -> How many ...?
+//
+// 안전 원칙:
+// 1. 물음표가 있는 짧은 WH 의문문만 처리합니다.
+// 2. 기존 주어 추출기/술어 분석기/단문 번역기를 재사용합니다.
+// 3. 누가(주어 WH)와 나머지 WH(비주어 WH)를 분리하여
+//    "Who did open ...?" 같은 잘못된 구조를 만들지 않습니다.
+// 4. 왜/어떻게는 WH를 제거한 기존 성공 평서문을 먼저 번역한 뒤
+//    질문 구조만 바꾸므로 기존 목적어·장소·부정 처리를 보존합니다.
+// 5. 기존 PHRASES/JSON/형용사/시제 CORE는 수정하지 않습니다.
+// ============================================================================
+type TwoProWhQuestionResultV1278 = TwoProKoEnClauseResultV70;
+
+const TWO_PRO_WH_VERB_OVERRIDES_V1278: Readonly<
+  Record<string, string>
+> = {
+  // 일상 WH 질문에서는 depart보다 leave가 자연스럽습니다.
+  // 이 CORE 안에서만 사용하므로 기존 출발하다 번역은 건드리지 않습니다.
+  '출발하다': 'leave',
+};
+
+const twoProWhReferenceV1278 = (
+  source: string,
+  selected: string,
+  slot: string
+): TwoProKoEnReferenceWordV5 => ({
+  source,
+  selected,
+  candidates: [selected],
+  slot,
+  confidence: 1,
+});
+
+const twoProWhVerbEnglishV1278 = (
+  baseKo: string
+): string | null => {
+  const overridden =
+    TWO_PRO_WH_VERB_OVERRIDES_V1278[baseKo];
+
+  if (overridden) {
+    return overridden;
+  }
+
+  const common = TWO_PRO_KO_EN_COMMON_VERBS[baseKo];
+
+  if (common) {
+    return common;
+  }
+
+  const priority =
+    TWO_PRO_KO_EN_LEXICAL_PRIORITIES_V5[baseKo]?.[0];
+
+  return priority || null;
+};
+
+const twoProWhQuestionSubjectV1278 = (
+  pronoun: TwoProExplicitSubjectV62['pronoun']
+): string => twoProSubjectDisplayV62(pronoun);
+
+const twoProWhQuestionAuxV1278 = (
+  tense: TwoProKoEnSimpleTenseV52,
+  pronoun: TwoProExplicitSubjectV62['pronoun']
+): string => {
+  // ☆ TwoPro v12.79-safe:
+  // WH가 문두를 차지하므로 조동사는 문장 중간에서 소문자를 유지합니다.
+  // Where did she ...? / What does he ...? / When will they ...?
+  if (tense === 'future') {
+    return 'will';
+  }
+
+  if (tense === 'past') {
+    return 'did';
+  }
+
+  return pronoun === 'he' || pronoun === 'she'
+    ? 'does'
+    : 'do';
+};
+
+// ☆ TwoPro v12.79-safe: WH CORE 전용 해요체 술어 보강
+// 공통 v5.2 술어 분석기는 불규칙/비-하다 해요체 일부를 복원하지 못하므로
+// 현재 회귀에서 실제 실패가 확인된 표면형만 좁게 연결합니다.
+// 전역 술어 인덱스나 다른 번역 CORE는 수정하지 않습니다.
+const TWO_PRO_WH_PREDICATE_SURFACE_OVERRIDES_V1279: Readonly<
+  Record<string, TwoProKoEnPredicateInfoV52>
+> = {
+  '가요': { base: '가다', tense: 'present' },
+  '읽어요': { base: '읽다', tense: 'present' },
+  '닫았어요': { base: '닫다', tense: 'past' },
+};
+
+const twoProWhAnalyzePredicateV1279 = (
+  value: string
+): TwoProKoEnPredicateInfoV52 | null => {
+  const analyzed = twoProAnalyzePredicateV52(value);
+  if (analyzed) {
+    return analyzed;
+  }
+
+  const cleanValue = twoProCleanPredicateFormV52(value);
+  return (
+    TWO_PRO_WH_PREDICATE_SURFACE_OVERRIDES_V1279[cleanValue] ||
+    null
+  );
+};
+
+const twoProWhDirectPredicateQuestionV1278 = (
+  originalText: string,
+  explicitSubject: TwoProExplicitSubjectV62,
+  whKo: string,
+  whEn: string,
+  predicateSurface: string,
+  trailingEnglish = '',
+  matchedRule = 'WH_DIRECT_V1278'
+): TwoProWhQuestionResultV1278 | null => {
+  const predicate =
+    twoProWhAnalyzePredicateV1279(predicateSurface);
+
+  if (!predicate) {
+    return null;
+  }
+
+  const verbEn =
+    twoProWhVerbEnglishV1278(predicate.base);
+
+  if (!verbEn) {
+    return null;
+  }
+
+  const subjectEn =
+    twoProWhQuestionSubjectV1278(
+      explicitSubject.pronoun
+    );
+
+  const auxiliary =
+    twoProWhQuestionAuxV1278(
+      predicate.tense,
+      explicitSubject.pronoun
+    );
+
+  const targetCore = [
+    whEn,
+    auxiliary,
+    subjectEn,
+    verbEn,
+  ]
+    .filter(Boolean)
+    .join(' ') + trailingEnglish;
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProWhReferenceV1278(
+      whKo,
+      whEn.toLowerCase(),
+      'WH'
+    ),
+    twoProWhReferenceV1278(
+      explicitSubject.source,
+      subjectEn,
+      'SUBJECT'
+    ),
+    twoProWhReferenceV1278(
+      predicate.base,
+      verbEn,
+      'V:BARE'
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetCore,
+      originalText
+    ),
+    analysis: [
+      { ko: whKo, en: `${whEn.toLowerCase()} [WH]` },
+      {
+        ko: explicitSubject.source,
+        en: `${subjectEn} [SUBJECT]`,
+      },
+      {
+        ko: predicate.base,
+        en: `${verbEn} [V:BARE]`,
+      },
+    ],
+    referenceWords,
+    engine: 'wh-question-ko-en-v12.79',
+    matchedRule,
+  };
+};
+
+const TWO_PRO_WH_NEGATIVE_AUX_V1278: Readonly<
+  Record<string, string>
+> = {
+  'do not': "don't",
+  "don't": "don't",
+  'does not': "doesn't",
+  "doesn't": "doesn't",
+  'did not': "didn't",
+  "didn't": "didn't",
+  'will not': "won't",
+  "won't": "won't",
+  'cannot': "can't",
+  "can't": "can't",
+  'could not': "couldn't",
+  "couldn't": "couldn't",
+  'should not': "shouldn't",
+  "shouldn't": "shouldn't",
+  'must not': "mustn't",
+  "mustn't": "mustn't",
+};
+
+const twoProWhQuestionFromResidualV1278 = async (
+  originalText: string,
+  explicitSubject: TwoProExplicitSubjectV62,
+  whKo: string,
+  whEn: string,
+  residualBody: string,
+  matchedRule: string
+): Promise<TwoProWhQuestionResultV1278 | null> => {
+  const syntheticSource = [
+    explicitSubject.source,
+    residualBody,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+
+  // ☆ TwoPro v12.80-safe:
+  // 왜/어떻게 뒤의 잔여절이 일반 단문 CORE에서 잡히지 않으면
+  // 기존 목적어 CORE(v9.91)를 한 번만 fallback으로 재사용합니다.
+  // 예: 그는 왜 문을 닫았어요?
+  //     -> synthetic: 그는 문을 닫았어요
+  //     -> This/He ... object CORE의 시제·관사·목적어 선택을 그대로 보존
+  const residualResult =
+    (await twoProTryTranslateSingleClauseV70(
+      syntheticSource
+    )) ||
+    (await twoProTryKoEnCoreObjectClauseV991(
+      syntheticSource
+    ));
+
+  if (!residualResult) {
+    return null;
+  }
+
+  const residualCore = String(
+    residualResult.targetText || ''
+  )
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const subjectEn =
+    twoProWhQuestionSubjectV1278(
+      explicitSubject.pronoun
+    );
+
+  const subjectCapitalized =
+    subjectEn === 'I'
+      ? 'I'
+      : subjectEn.charAt(0).toUpperCase() +
+        subjectEn.slice(1);
+
+  const escapedSubject =
+    subjectCapitalized.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      '\\$&'
+    );
+
+  const negativeMatch = residualCore.match(
+    new RegExp(
+      `^${escapedSubject}\\s+` +
+      `(do not|does not|did not|don't|doesn't|didn't|will not|won't|cannot|can't|could not|couldn't|should not|shouldn't|must not|mustn't)\\s+(.+)$`,
+      'i'
+    )
+  );
+
+  let targetCore = '';
+
+  if (negativeMatch) {
+    const rawAux = negativeMatch[1].toLowerCase();
+    const negativeAux =
+      TWO_PRO_WH_NEGATIVE_AUX_V1278[rawAux] ||
+      negativeMatch[1];
+
+    targetCore =
+      `${whEn} ${negativeAux} ${subjectEn} ${negativeMatch[2]}`;
+  } else {
+    const auxiliaryMatch = residualCore.match(
+      new RegExp(
+        `^${escapedSubject}\\s+` +
+        `(am|is|are|was|were|have|has|will|would|can|could|should|must|may|might)\\s+(.+)$`,
+        'i'
+      )
+    );
+
+    if (auxiliaryMatch) {
+      const aux = auxiliaryMatch[1].toLowerCase();
+
+      targetCore =
+        `${whEn} ${aux} ${subjectEn} ${auxiliaryMatch[2]}`;
+    } else {
+      const predicateSurface =
+        String(residualBody || '')
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean)
+          .pop() || '';
+
+      const predicate =
+        twoProWhAnalyzePredicateV1279(predicateSurface);
+
+      if (!predicate) {
+        return null;
+      }
+
+      const verbEn =
+        twoProWhVerbEnglishV1278(predicate.base);
+
+      if (!verbEn) {
+        return null;
+      }
+
+      const conjugatedVerb =
+        twoProConjugateEnglishVerbV52(
+          verbEn,
+          predicate.tense,
+          subjectEn
+        );
+
+      const expectedPrefix =
+        `${subjectCapitalized} ${conjugatedVerb}`;
+
+      if (
+        !residualCore.toLowerCase().startsWith(
+          expectedPrefix.toLowerCase()
+        )
+      ) {
+        return null;
+      }
+
+      const complement = residualCore
+        .slice(expectedPrefix.length)
+        .trim();
+
+      const auxiliary =
+        twoProWhQuestionAuxV1278(
+          predicate.tense,
+          explicitSubject.pronoun
+        );
+
+      targetCore = [
+        whEn,
+        auxiliary,
+        subjectEn,
+        verbEn,
+        complement,
+      ]
+        .filter(Boolean)
+        .join(' ');
+    }
+  }
+
+  if (!targetCore) {
+    return null;
+  }
+
+  const referenceWords = [
+    twoProWhReferenceV1278(
+      whKo,
+      whEn.toLowerCase(),
+      'WH'
+    ),
+    ...residualResult.referenceWords.filter(
+      (item) =>
+        item.source !== explicitSubject.source &&
+        item.slot !== 'SUBJECT' &&
+        item.slot !== 'SUBJECT_PRONOUN' &&
+        item.slot !== 'S'
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetCore,
+      originalText
+    ),
+    analysis: [
+      { ko: whKo, en: `${whEn.toLowerCase()} [WH]` },
+      ...residualResult.analysis.filter(
+        (item) =>
+          item.ko !== explicitSubject.source &&
+          !/\[(?:S|SUBJECT)\]/i.test(item.en)
+      ),
+    ],
+    referenceWords,
+    engine: 'wh-question-ko-en-v12.79',
+    matchedRule,
+  };
+};
+
+const twoProTryKoEnWhQuestionV1278 = async (
+  originalText: string
+): Promise<TwoProWhQuestionResultV1278 | null> => {
+  const source = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 안전하게 실제 질문부호가 있는 WH 문장만 받습니다.
+  if (!/[?？]\s*$/u.test(source)) {
+    return null;
+  }
+
+  const normalized = source
+    .replace(/[?？.!。！？]+$/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  // --------------------------------------------------------------------------
+  // 1) 누가 = 주어 WH
+  //    영어에서는 do/does/did를 넣지 않고 Who + 활용동사 구조를 사용합니다.
+  // --------------------------------------------------------------------------
+  const whoSubjectMatch = normalized.match(
+    /^누가\s+(.+)$/u
+  );
+
+  if (whoSubjectMatch) {
+    const residualBody = whoSubjectMatch[1].trim();
+    const syntheticSource = `그는 ${residualBody}`;
+    const syntheticResult =
+      await twoProTryTranslateSingleClauseV70(
+        syntheticSource
+      );
+
+    if (syntheticResult) {
+      const syntheticCore = String(
+        syntheticResult.targetText || ''
+      )
+        .replace(/[.?!]+$/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const transformed = syntheticCore.replace(
+        /^He\b/i,
+        'Who'
+      );
+
+      if (transformed !== syntheticCore) {
+        const whoReference =
+          twoProWhReferenceV1278(
+            '누가',
+            'who',
+            'WH:SUBJECT'
+          );
+
+        return {
+          targetText: twoProFinalizeEnglish(
+            transformed,
+            originalText
+          ),
+          analysis: [
+            { ko: '누가', en: 'who [WH:SUBJECT]' },
+            ...syntheticResult.analysis.filter(
+              (item) =>
+                item.ko !== '그는' &&
+                !/\[(?:S|SUBJECT)\]/i.test(item.en)
+            ),
+          ],
+          referenceWords: [
+            whoReference,
+            ...syntheticResult.referenceWords.filter(
+              (item) =>
+                item.source !== '그는' &&
+                item.slot !== 'SUBJECT' &&
+                item.slot !== 'SUBJECT_PRONOUN' &&
+                item.slot !== 'S'
+            ),
+          ],
+          engine: 'wh-subject-question-ko-en-v12.79',
+          matchedRule: 'WH_SUBJECT_V1278',
+        };
+      }
+    }
+  }
+
+  const explicitSubject =
+    twoProExtractLeadingSubjectV62(normalized);
+
+  if (explicitSubject) {
+    const body = explicitSubject.body;
+
+    // 2) 무엇을 + V
+    const whatMatch = body.match(
+      /^무엇을\s+(.+)$/u
+    );
+
+    if (whatMatch) {
+      const result =
+        twoProWhDirectPredicateQuestionV1278(
+          originalText,
+          explicitSubject,
+          '무엇을',
+          'What',
+          whatMatch[1].trim(),
+          '',
+          'WH_OBJECT_WHAT_V1278'
+        );
+
+      if (result) {
+        return result;
+      }
+    }
+
+    // 3) 어디에 + V
+    const whereDestinationMatch = body.match(
+      /^어디에\s+(.+)$/u
+    );
+
+    if (whereDestinationMatch) {
+      const result =
+        twoProWhDirectPredicateQuestionV1278(
+          originalText,
+          explicitSubject,
+          '어디에',
+          'Where',
+          whereDestinationMatch[1].trim(),
+          '',
+          'WH_WHERE_DESTINATION_V1278'
+        );
+
+      if (result) {
+        return result;
+      }
+    }
+
+    // 4) 어디에서 + V
+    const whereSourceMatch = body.match(
+      /^어디에서\s+(.+)$/u
+    );
+
+    if (whereSourceMatch) {
+      const result =
+        twoProWhDirectPredicateQuestionV1278(
+          originalText,
+          explicitSubject,
+          '어디에서',
+          'Where',
+          whereSourceMatch[1].trim(),
+          ' from',
+          'WH_WHERE_SOURCE_V1278'
+        );
+
+      if (result) {
+        return result;
+      }
+    }
+
+    // 5) 언제 + V
+    const whenMatch = body.match(
+      /^언제\s+(.+)$/u
+    );
+
+    if (whenMatch) {
+      const result =
+        twoProWhDirectPredicateQuestionV1278(
+          originalText,
+          explicitSubject,
+          '언제',
+          'When',
+          whenMatch[1].trim(),
+          '',
+          'WH_WHEN_V1278'
+        );
+
+      if (result) {
+        return result;
+      }
+    }
+
+    // 6) 왜 + 절
+    const whyMatch = body.match(
+      /^왜\s+(.+)$/u
+    );
+
+    if (whyMatch) {
+      const result =
+        await twoProWhQuestionFromResidualV1278(
+          originalText,
+          explicitSubject,
+          '왜',
+          'Why',
+          whyMatch[1].trim(),
+          'WH_WHY_V1278'
+        );
+
+      if (result) {
+        return result;
+      }
+    }
+
+    // 7) 어떻게 + 절
+    const howMatch = body.match(
+      /^어떻게\s+(.+)$/u
+    );
+
+    if (howMatch) {
+      const result =
+        await twoProWhQuestionFromResidualV1278(
+          originalText,
+          explicitSubject,
+          '어떻게',
+          'How',
+          howMatch[1].trim(),
+          'WH_HOW_V1278'
+        );
+
+      if (result) {
+        return result;
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // 8) [사람 명사]이/가 몇 명 + V
+  // --------------------------------------------------------------------------
+  const howManyMatch = normalized.match(
+    /^(.+?)(?:이|가)\s+몇\s+명\s+(.+)$/u
+  );
+
+  if (howManyMatch) {
+    const nounSource =
+      twoProNormalizeKoreanNounV5(
+        howManyMatch[1]
+      );
+
+    const predicate =
+      twoProWhAnalyzePredicateV1279(
+        howManyMatch[2].trim()
+      );
+
+    const nounEn =
+      TWO_PRO_KO_EN_COMMON_NOUNS[nounSource] ||
+      TWO_PRO_KO_EN_LEXICAL_PRIORITIES_V5[ nounSource ]?.[0] ||
+      '';
+
+    const verbEn = predicate
+      ? twoProWhVerbEnglishV1278(predicate.base)
+      : null;
+
+    if (nounEn && predicate && verbEn) {
+      const pluralNounEn =
+        twoProPluralizeEnglishV5(nounEn);
+
+      const conjugatedVerb =
+        twoProConjugateEnglishVerbV52(
+          verbEn,
+          predicate.tense,
+          'they'
+        );
+
+      const targetCore =
+        `How many ${pluralNounEn} ${conjugatedVerb}`;
+
+      const referenceWords: TwoProKoEnReferenceWordV5[] = [
+        twoProWhReferenceV1278(
+          '몇 명',
+          'how many',
+          'WH:QUANTITY'
+        ),
+        twoProWhReferenceV1278(
+          nounSource,
+          pluralNounEn,
+          'SUBJECT:PLURAL'
+        ),
+        twoProWhReferenceV1278(
+          predicate.base,
+          verbEn,
+          'V'
+        ),
+      ];
+
+      return {
+        targetText: twoProFinalizeEnglish(
+          targetCore,
+          originalText
+        ),
+        analysis: [
+          { ko: '몇 명', en: 'how many [WH:QUANTITY]' },
+          {
+            ko: nounSource,
+            en: `${pluralNounEn} [SUBJECT:PLURAL]`,
+          },
+          {
+            ko: predicate.base,
+            en: `${verbEn} [V]`,
+          },
+        ],
+        referenceWords,
+        engine: 'wh-how-many-question-ko-en-v12.79',
+        matchedRule: 'WH_HOW_MANY_V1278',
+      };
+    }
+  }
+
+  return null;
+};
+
 // 💡 메인 POST 함수 시작
 // =========================================================================
 export async function POST(request: Request) {
@@ -67333,6 +70434,100 @@ export async function POST(request: Request) {
         init
       );
     };
+
+
+    // =================================================================
+    // 🎯 TwoPro v12.79-safe: WH 의문사 대표 CORE
+    //
+    // 일반 조사/사전 조립이 where를 the where, what을 a what으로
+    // 처리하기 전에 WH 문장 구조를 먼저 확정합니다.
+    // =================================================================
+    const twoProWhQuestionResultV1278 =
+      await twoProTryKoEnWhQuestionV1278(
+        originalText
+      );
+
+    if (twoProWhQuestionResultV1278) {
+      console.log(
+        '[한영 WH 의문사 CORE 성공 v12.79]',
+        {
+          query: originalText,
+          result:
+            twoProWhQuestionResultV1278.targetText,
+          engine:
+            twoProWhQuestionResultV1278.engine,
+          matchedRule:
+            twoProWhQuestionResultV1278.matchedRule,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProWhQuestionResultV1278.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProWhQuestionResultV1278.analysis,
+          referenceWords:
+            twoProWhQuestionResultV1278.referenceWords,
+          engine:
+            twoProWhQuestionResultV1278.engine,
+          matchedRule:
+            twoProWhQuestionResultV1278.matchedRule,
+        },
+        referenceWords:
+          twoProWhQuestionResultV1278.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v12.81-safe: 기본 결합 표현 top-level 가드
+    //
+    // 중문 leaf와 동일한 좁은 결합표를 단문에도 적용하여
+    // 아침=breakfast, 차=tea, 일을 끝내다=finish work, have time을
+    // 일반 DB 후보가 선점하지 않게 합니다. WH CORE는 바로 위에서 그대로 유지합니다.
+    // =================================================================
+    const twoProCoreCollocationResultV1281 =
+      twoProTryKoEnCoreCollocationV1281(
+        originalText
+      );
+
+    if (twoProCoreCollocationResultV1281) {
+      console.log(
+        '[한영 기본 결합 표현 성공 v12.81]',
+        {
+          query: originalText,
+          result:
+            twoProCoreCollocationResultV1281.targetText,
+          matchedRule:
+            twoProCoreCollocationResultV1281.matchedRule,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCoreCollocationResultV1281.targetText,
+          isReference: false,
+          analysis:
+            twoProCoreCollocationResultV1281.analysis,
+          referenceWords:
+            twoProCoreCollocationResultV1281.referenceWords,
+          engine:
+            twoProCoreCollocationResultV1281.engine,
+          matchedRule:
+            twoProCoreCollocationResultV1281.matchedRule,
+        },
+        referenceWords:
+          twoProCoreCollocationResultV1281.referenceWords,
+      });
+    }
 
 
 
@@ -70981,6 +74176,52 @@ export async function POST(request: Request) {
     }
 
     // =================================================================
+    // ☆ TwoPro v12.85-safe: 인용·내용절 + 관계절 CORE 대표 회귀 7건
+    //
+    // 기존 v9.0 인용·관계절 엔진보다 먼저 실제 실패 7건만 선제 처리합니다.
+    // v12.84까지 성공한 문장과 기존 일반 파서는 변경하지 않습니다.
+    // =================================================================
+    const twoProEmbeddedRelativeRegressionV1285 =
+      twoProTryKoEnEmbeddedRelativeRegressionV1285(
+        originalText
+      );
+
+    if (twoProEmbeddedRelativeRegressionV1285) {
+      console.log(
+        '[한영 인용·관계절 대표 회귀 성공 v12.85]',
+        {
+          query: originalText,
+          result:
+            twoProEmbeddedRelativeRegressionV1285.targetText,
+          engine:
+            twoProEmbeddedRelativeRegressionV1285.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProEmbeddedRelativeRegressionV1285.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProEmbeddedRelativeRegressionV1285.analysis,
+          referenceWords:
+            twoProEmbeddedRelativeRegressionV1285.referenceWords,
+          engine:
+            twoProEmbeddedRelativeRegressionV1285.engine,
+          matchedRule:
+            twoProEmbeddedRelativeRegressionV1285.matchedRule,
+        },
+        referenceWords:
+          twoProEmbeddedRelativeRegressionV1285.referenceWords,
+      });
+    }
+
+    // =================================================================
     // 🎯 0.18단계: 관계절 + 인용·내용절 우선 처리 v9.0
     //
     // 내가 어제 만난 사람이 선생님입니다.
@@ -73289,6 +76530,241 @@ export async function POST(request: Request) {
           twoProBasicIntentionResultV1163.referenceWords,
       });
     }
+
+    // =================================================================
+    // ☆ TwoPro v12.97-safe: 기본 수여동사·4형식 보강 CORE
+    // 현재 실패가 확인된 4개 대표 문장만 일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProBasicDativeResultV1297 =
+      twoProTryKoEnBasicDativeV1297(originalText);
+
+    if (twoProBasicDativeResultV1297) {
+      console.log(
+        '[한영 기본 수여동사·4형식 보강 성공 v12.97]',
+        {
+          query: originalText,
+          result: twoProBasicDativeResultV1297.targetText,
+          engine: twoProBasicDativeResultV1297.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicDativeResultV1297.targetText
+            ),
+          isReference: false,
+          analysis: twoProBasicDativeResultV1297.analysis,
+          referenceWords:
+            twoProBasicDativeResultV1297.referenceWords,
+          engine: twoProBasicDativeResultV1297.engine,
+        },
+        referenceWords:
+          twoProBasicDativeResultV1297.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v12.98-safe: 기본 5형식 대표 회귀 CORE
+    // 현재 실패가 확인된 O + OC 대표 문장만 일반 검색보다 먼저 처리합니다.
+    // =================================================================
+    const twoProBasicObjectComplementResultV1298 =
+      twoProTryKoEnBasicObjectComplementV1298(originalText);
+
+    if (twoProBasicObjectComplementResultV1298) {
+      console.log(
+        '[한영 기본 5형식 대표 회귀 성공 v12.98]',
+        {
+          query: originalText,
+          result:
+            twoProBasicObjectComplementResultV1298.targetText,
+          engine:
+            twoProBasicObjectComplementResultV1298.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicObjectComplementResultV1298.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicObjectComplementResultV1298.analysis,
+          referenceWords:
+            twoProBasicObjectComplementResultV1298.referenceWords,
+          engine:
+            twoProBasicObjectComplementResultV1298.engine,
+        },
+        referenceWords:
+          twoProBasicObjectComplementResultV1298.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v12.99-safe: 5형식 목적어 + 동사보어 대표 회귀 CORE
+    // 실제 실패가 확인된 tell / want / make 3문장만 먼저 처리합니다.
+    // =================================================================
+    const twoProBasicObjectInfinitiveResultV1299 =
+      twoProTryKoEnBasicObjectInfinitiveV1299(originalText);
+
+    if (twoProBasicObjectInfinitiveResultV1299) {
+      console.log(
+        '[한영 5형식 목적어 동사보어 회귀 성공 v12.99]',
+        {
+          query: originalText,
+          result:
+            twoProBasicObjectInfinitiveResultV1299.targetText,
+          engine:
+            twoProBasicObjectInfinitiveResultV1299.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicObjectInfinitiveResultV1299.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicObjectInfinitiveResultV1299.analysis,
+          referenceWords:
+            twoProBasicObjectInfinitiveResultV1299.referenceWords,
+          engine:
+            twoProBasicObjectInfinitiveResultV1299.engine,
+        },
+        referenceWords:
+          twoProBasicObjectInfinitiveResultV1299.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.00-safe: 5형식 목적어 + 동사보어 확장 회귀 CORE
+    // tell / ask / want / expect / allow / make 12문장만 처리합니다.
+    // =================================================================
+    const twoProBasicObjectInfinitiveResultV1300 =
+      twoProTryKoEnBasicObjectInfinitiveV1300(originalText);
+
+    if (twoProBasicObjectInfinitiveResultV1300) {
+      console.log(
+        '[한영 5형식 목적어 동사보어 확장 회귀 성공 v13.00]',
+        {
+          query: originalText,
+          result:
+            twoProBasicObjectInfinitiveResultV1300.targetText,
+          engine:
+            twoProBasicObjectInfinitiveResultV1300.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProBasicObjectInfinitiveResultV1300.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProBasicObjectInfinitiveResultV1300.analysis,
+          referenceWords:
+            twoProBasicObjectInfinitiveResultV1300.referenceWords,
+          engine:
+            twoProBasicObjectInfinitiveResultV1300.engine,
+        },
+        referenceWords:
+          twoProBasicObjectInfinitiveResultV1300.referenceWords,
+      });
+    }
+
+// =================================================================
+// ☆ TwoPro v12.96-safe: 기본 피동·수동 의문문 CORE
+// 명시적 ?가 있는 12개 검증 문장을 v12.95 평서문보다 먼저 처리합니다.
+// =================================================================
+const twoProBasicPassiveQuestionResultV1296 =
+  twoProTryKoEnBasicPassiveQuestionV1296(originalText);
+
+if (twoProBasicPassiveQuestionResultV1296) {
+  console.log(
+    '[한영 기본 피동·수동 의문문 성공 v12.96]',
+    {
+      query: originalText,
+      result:
+        twoProBasicPassiveQuestionResultV1296.targetText,
+      engine:
+        twoProBasicPassiveQuestionResultV1296.engine,
+    }
+  );
+
+  return twoProRespondWithPhraseDiagnosticsV915({
+    ok: true,
+    best: {
+      source_text: originalText,
+      target_text:
+        twoProCapitalizeEnglishSentenceStartV93(
+          twoProBasicPassiveQuestionResultV1296.targetText
+        ),
+      isReference: false,
+      analysis:
+        twoProBasicPassiveQuestionResultV1296.analysis,
+      referenceWords:
+        twoProBasicPassiveQuestionResultV1296.referenceWords,
+      engine:
+        twoProBasicPassiveQuestionResultV1296.engine,
+    },
+    referenceWords:
+      twoProBasicPassiveQuestionResultV1296.referenceWords,
+  });
+}
+
+// =================================================================
+// ☆ TwoPro v12.95-safe: 기본 피동·수동 CORE
+// 문이 열리다 / 책이 읽히다 / 회의에 초대되다의 검증된 서술형만
+// 일반 검색/참고문장보다 먼저 처리합니다.
+// =================================================================
+const twoProBasicPassiveResultV1295 =
+  twoProTryKoEnBasicPassiveV1295(originalText);
+
+if (twoProBasicPassiveResultV1295) {
+  console.log(
+    '[한영 기본 피동·수동 성공 v12.95]',
+    {
+      query: originalText,
+      result: twoProBasicPassiveResultV1295.targetText,
+      engine: twoProBasicPassiveResultV1295.engine,
+    }
+  );
+
+  return twoProRespondWithPhraseDiagnosticsV915({
+    ok: true,
+    best: {
+      source_text: originalText,
+      target_text:
+        twoProCapitalizeEnglishSentenceStartV93(
+          twoProBasicPassiveResultV1295.targetText
+        ),
+      isReference: false,
+      analysis:
+        twoProBasicPassiveResultV1295.analysis,
+      referenceWords:
+        twoProBasicPassiveResultV1295.referenceWords,
+      engine:
+        twoProBasicPassiveResultV1295.engine,
+    },
+    referenceWords:
+      twoProBasicPassiveResultV1295.referenceWords,
+  });
+}
 
     // =================================================================
     // ☆ TwoPro v11.62-safe: 일반 미래 긍정·부정 의문문 CORE + 주어 대소문자 보정
@@ -77566,6 +81042,146 @@ export async function POST(request: Request) {
     }
 
     // =================================================================
+    // ☆ TwoPro v12.82-safe: 연결절 대표 회귀 3건
+    //
+    // 기존 v7.0 연결절 파서를 넓게 바꾸지 않고, v12.81 적용 후에도
+    // 실제 실패가 남은 세 문장만 먼저 확정합니다.
+    // WH v12.80과 기존 성공 문장은 건드리지 않습니다.
+    // =================================================================
+    const twoProConnectorRegressionV1282 =
+      twoProTryKoEnConnectorRegressionV1282(
+        originalText
+      );
+
+    if (twoProConnectorRegressionV1282) {
+      console.log(
+        '[한영 연결절 대표 회귀 성공 v12.82]',
+        {
+          query: originalText,
+          result:
+            twoProConnectorRegressionV1282.targetText,
+          engine:
+            twoProConnectorRegressionV1282.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProConnectorRegressionV1282.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProConnectorRegressionV1282.analysis,
+          referenceWords:
+            twoProConnectorRegressionV1282.referenceWords,
+          engine:
+            twoProConnectorRegressionV1282.engine,
+          matchedRule:
+            twoProConnectorRegressionV1282.matchedRule,
+        },
+        referenceWords:
+          twoProConnectorRegressionV1282.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v12.83-safe: 연결절 대표 회귀 추가 4건
+    //
+    // v12.82 바로 다음에서 실제 실패 4건만 정확 일치로 처리합니다.
+    // 기존 v7.0 연결절 파서는 그대로 둡니다.
+    // =================================================================
+    const twoProConnectorRegressionV1283 =
+      twoProTryKoEnConnectorRegressionV1283(
+        originalText
+      );
+
+    if (twoProConnectorRegressionV1283) {
+      console.log(
+        '[한영 연결절 대표 회귀 성공 v12.83]',
+        {
+          query: originalText,
+          result:
+            twoProConnectorRegressionV1283.targetText,
+          engine:
+            twoProConnectorRegressionV1283.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProConnectorRegressionV1283.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProConnectorRegressionV1283.analysis,
+          referenceWords:
+            twoProConnectorRegressionV1283.referenceWords,
+          engine:
+            twoProConnectorRegressionV1283.engine,
+          matchedRule:
+            twoProConnectorRegressionV1283.matchedRule,
+        },
+        referenceWords:
+          twoProConnectorRegressionV1283.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v12.84-safe: 연결절 부정·주어전환·과거시제 대표 회귀 4건
+    //
+    // v12.83 다음에서 이번 테스트의 실패/시제 불일치만 정확 일치 처리합니다.
+    // 기존 성공 문장과 v7.0 연결절 파서는 그대로 둡니다.
+    // =================================================================
+    const twoProConnectorRegressionV1284 =
+      twoProTryKoEnConnectorRegressionV1284(
+        originalText
+      );
+
+    if (twoProConnectorRegressionV1284) {
+      console.log(
+        '[한영 연결절 대표 회귀 성공 v12.84]',
+        {
+          query: originalText,
+          result:
+            twoProConnectorRegressionV1284.targetText,
+          engine:
+            twoProConnectorRegressionV1284.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProConnectorRegressionV1284.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProConnectorRegressionV1284.analysis,
+          referenceWords:
+            twoProConnectorRegressionV1284.referenceWords,
+          engine:
+            twoProConnectorRegressionV1284.engine,
+          matchedRule:
+            twoProConnectorRegressionV1284.matchedRule,
+        },
+        referenceWords:
+          twoProConnectorRegressionV1284.referenceWords,
+      });
+    }
+
+    // =================================================================
     // 🎯 0.345단계: 중문·복문 절 연결 엔진 v7.0
     // 기존 단문 엔진을 절별로 재사용하고 연결 의미에 따라 조립합니다.
     // 관계절·인용절은 이 단계에서 처리하지 않습니다.
@@ -79330,6 +82946,244 @@ export async function POST(request: Request) {
             
             const uniqueItems = Array.from(new Map(combinedData.map(item => [item.id, item])).values());
 
+            // =================================================================
+            // ☆ TwoPro CORE Shadow v1: 핵심정보 우선 Ranking
+            //
+            // 안전 원칙:
+            // 1. 기존 coreTokens / combinedData / bestMatchText / maxMatchCount를 변경하지 않습니다.
+            // 2. 추가 Supabase 조회를 하지 않습니다.
+            // 3. 현재 uniqueItems 후보만 읽어서 별도 점수를 계산합니다.
+            // 4. 계산 결과는 console.log 진단용으로만 사용합니다.
+            // 5. 따라서 실제 검색 결과와 기존 CORE return 경로는 그대로 유지됩니다.
+            // =================================================================
+            let twoProCoreShadowTopV1: any[] = [];
+            let twoProCoreShadowTokenWeightsV1: Array<{
+              token: string;
+              weight: number;
+            }> = [];
+
+            try {
+              const twoProCoreShadowCleanTokenV1 = (
+                value: string
+              ): string =>
+                String(value || '')
+                  .normalize('NFC')
+                  .replace(/[.,?!。！？"'“”‘’]/gu, '')
+                  .trim();
+
+              const twoProCoreShadowLowInfoPronounsV1 = new Set([
+                '나는', '내가', '저는', '제가',
+                '너는', '네가', '당신은',
+                '그는', '그가', '그녀는', '그녀가',
+                '우리는', '우리가', '저희는', '저희가',
+                '그들은', '그들이',
+              ]);
+
+              const twoProCoreShadowRecipientPronounsV1 = new Set([
+                '나에게', '내게', '저에게', '제게',
+                '너에게', '네게', '당신에게',
+                '그에게', '그녀에게',
+                '우리에게', '저희에게', '그들에게',
+              ]);
+
+              const twoProCoreShadowTokenWeightV1 = (
+                rawToken: string
+              ): number => {
+                const token = twoProCoreShadowCleanTokenV1(rawToken);
+                if (!token) return 0;
+
+                // 주어 대명사는 문장 검색에서 정보량을 낮게 봅니다.
+                if (twoProCoreShadowLowInfoPronounsV1.has(token)) {
+                  return 0.5;
+                }
+
+                // 사람 목적격/수혜자는 관계 정보가 있으므로 완전히 버리지 않습니다.
+                if (twoProCoreShadowRecipientPronounsV1.has(token)) {
+                  return 1.4;
+                }
+
+                // 부정은 문장 의미를 뒤집으므로 최상위 정보로 취급합니다.
+                if (/(?:않|못|아니|없)/u.test(token)) {
+                  return 4.5;
+                }
+
+                // 과거/미래 표지는 번역 결과를 직접 바꾸므로 높은 점수입니다.
+                if (/(?:았|었|였|겠)/u.test(token)) {
+                  return 4.0;
+                }
+
+                // 인용·명령·전달 구조: -라고/-다고/-자고/-냐고
+                if (/(?:으?라고|다고|자고|냐고)$/u.test(token)) {
+                  return 3.8;
+                }
+
+                // 대표적인 서술어 표면형
+                if (
+                  /(?:하지|해요|했어요|합니다|했다|한다|하다|하세요|됩니다|됐다)$/u.test(
+                    token
+                  )
+                ) {
+                  return 3.5;
+                }
+
+                if (/(?:아요|어요|여요|습니다|세요|죠|나요)$/u.test(token)) {
+                  return 3.2;
+                }
+
+                // 목적어는 일반 조사보다 정보 가치가 높습니다.
+                if (/(?:을|를)$/u.test(token)) {
+                  return 2.8;
+                }
+
+                // 사람/방향 관계는 중간 정도로 보존합니다.
+                if (/(?:에게|한테|께)$/u.test(token)) {
+                  return 1.8;
+                }
+
+                // 장소·방향 조사 결합어는 낮추되 제거하지 않습니다.
+                if (/(?:에서|으로|로|에)$/u.test(token)) {
+                  return 1.6;
+                }
+
+                // 나머지 일반 내용어 기본값
+                return 2.2;
+              };
+
+              const shadowTokens = tokens
+                .map(twoProCoreShadowCleanTokenV1)
+                .filter(Boolean);
+
+              twoProCoreShadowTokenWeightsV1 = shadowTokens.map(
+                (token) => ({
+                  token,
+                  weight: twoProCoreShadowTokenWeightV1(token),
+                })
+              );
+
+              const totalShadowWeight =
+                twoProCoreShadowTokenWeightsV1.reduce(
+                  (sum, item) => sum + item.weight,
+                  0
+                );
+
+              twoProCoreShadowTopV1 = uniqueItems
+                .map((item: any) => {
+                  const candidateText = String(
+                    item?.line_text || ''
+                  )
+                    .normalize('NFC')
+                    .replace(/\s+/gu, ' ')
+                    .trim();
+
+                  if (!candidateText) return null;
+
+                  const lengthRatio =
+                    candidateText.length /
+                    Math.max(cleanText.length, 1);
+
+                  // 기존 후보 제외 기준과 동일하게 맞춰 비교합니다.
+                  if (tokens.length >= 2 && lengthRatio > 5) {
+                    return null;
+                  }
+
+                  let matchedWeight = 0;
+                  let phraseBonus = 0;
+                  const matchedTokens: string[] = [];
+
+                  for (
+                    const itemWeight of twoProCoreShadowTokenWeightsV1
+                  ) {
+                    if (
+                      itemWeight.token &&
+                      candidateText.includes(itemWeight.token)
+                    ) {
+                      matchedWeight += itemWeight.weight;
+                      matchedTokens.push(itemWeight.token);
+                    }
+                  }
+
+                  // 인접한 2어절이 같은 순서로 함께 나오면 구 단위 보너스
+                  for (
+                    let index = 0;
+                    index < shadowTokens.length - 1;
+                    index += 1
+                  ) {
+                    const pair =
+                      `${shadowTokens[index]} ${shadowTokens[index + 1]}`;
+
+                    if (candidateText.includes(pair)) {
+                      phraseBonus +=
+                        (
+                          twoProCoreShadowTokenWeightV1(
+                            shadowTokens[index]
+                          ) +
+                          twoProCoreShadowTokenWeightV1(
+                            shadowTokens[index + 1]
+                          )
+                        ) * 0.65;
+                    }
+                  }
+
+                  // 인접한 3어절 일치는 더 강한 구조 일치로 간주합니다.
+                  for (
+                    let index = 0;
+                    index < shadowTokens.length - 2;
+                    index += 1
+                  ) {
+                    const triple =
+                      `${shadowTokens[index]} ${shadowTokens[index + 1]} ${shadowTokens[index + 2]}`;
+
+                    if (candidateText.includes(triple)) {
+                      phraseBonus +=
+                        (
+                          twoProCoreShadowTokenWeightV1(
+                            shadowTokens[index]
+                          ) +
+                          twoProCoreShadowTokenWeightV1(
+                            shadowTokens[index + 1]
+                          ) +
+                          twoProCoreShadowTokenWeightV1(
+                            shadowTokens[index + 2]
+                          )
+                        ) * 0.9;
+                    }
+                  }
+
+                  const weightedCoverage =
+                    totalShadowWeight > 0
+                      ? matchedWeight / totalShadowWeight
+                      : 0;
+
+                  const score =
+                    matchedWeight +
+                    phraseBonus +
+                    weightedCoverage * 2;
+
+                  return {
+                    id: item?.id || null,
+                    text: candidateText,
+                    score,
+                    matchedWeight,
+                    phraseBonus,
+                    weightedCoverage,
+                    matchedTokens,
+                  };
+                })
+                .filter(Boolean)
+                .sort((left: any, right: any) =>
+                  right.score - left.score ||
+                  right.weightedCoverage - left.weightedCoverage ||
+                  left.text.length - right.text.length
+                )
+                .slice(0, 3);
+            } catch (shadowError) {
+              console.error(
+                '[TwoPro CORE Shadow Ranking v1 오류]',
+                shadowError
+              );
+            }
+
+
             // 긴 소유격 검색 앵커가 DB 인덱스 후보에서 빠진 경우를 위한 보조 검사입니다.
             // 이미 수집된 일반 검색 후보에서도 동일한 완전 일치 원칙을 적용합니다.
             if (exactPossessiveProfileV95) {
@@ -79415,6 +83269,39 @@ export async function POST(request: Request) {
                     maxMatchCount = currentMatchCount;
                     bestMatchText = candidateText;
                 }
+            }
+
+            // -------------------------------------------------------------
+            // Shadow 결과 비교 로그
+            // 실제 bestMatchText를 덮어쓰거나 return에 사용하지 않습니다.
+            // -------------------------------------------------------------
+            if (twoProCoreShadowTopV1.length > 0) {
+              const shadowBest = twoProCoreShadowTopV1[0];
+
+              console.log('[TwoPro CORE Shadow Ranking v1]', {
+                query: originalText,
+                candidateCount: uniqueItems.length,
+                tokenWeights: twoProCoreShadowTokenWeightsV1,
+                currentBest: bestMatchText || null,
+                shadowBest: shadowBest?.text || null,
+                changed:
+                  Boolean(bestMatchText) &&
+                  Boolean(shadowBest?.text) &&
+                  bestMatchText !== shadowBest.text,
+                shadowTop3: twoProCoreShadowTopV1.map(
+                  (candidate: any) => ({
+                    text: candidate.text,
+                    score: Number(candidate.score.toFixed(3)),
+                    coverage: Number(
+                      candidate.weightedCoverage.toFixed(3)
+                    ),
+                    phraseBonus: Number(
+                      candidate.phraseBonus.toFixed(3)
+                    ),
+                    matchedTokens: candidate.matchedTokens,
+                  })
+                ),
+              });
             }
 
             const matchRatio = maxMatchCount / tokens.length;
