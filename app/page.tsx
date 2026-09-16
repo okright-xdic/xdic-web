@@ -440,6 +440,12 @@ const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[
   const andMatchesPartial: any[] = [];
   const orMatchesBoundary: any[] = [];
   const orMatchesPartial: any[] = [];
+
+  // TwoPro CORE exact-AND 고신뢰 후보
+  const twoProExactAndMatches: any[] = [];
+
+  // TwoPro exact + family 고신뢰 후보
+  const twoProFamilyMatches: any[] = [];
   
   const frontTightMatches: any[] = []; 
   const frontPartialMatches: any[] = []; 
@@ -490,6 +496,10 @@ const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[
       dictStandalone.push(item);
     } else if (textNoSpace.includes(lowerKeywordNoSpace)) {
       dictPartialMatch.push(item); 
+    } else if (Number(item._twoProDbPriority) === 2) {
+      twoProExactAndMatches.push(item);
+    } else if (Number(item._twoProDbPriority) === 3) {
+      twoProFamilyMatches.push(item);
     } else if (item.split_type === 'front') {
       const splitTarget = (item.split_keyword || '').toLowerCase();
       if (isStrictStandalone(textOriginal, splitTarget)) frontTightMatches.push(item);
@@ -531,6 +541,58 @@ const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[
     }
   });
 
+  const sortedTwoProExactAndMatches =
+    [...twoProExactAndMatches].sort(
+      (a, b) => {
+        const countA =
+          Number(
+            a._twoProDbExactAndCount || 0
+          );
+
+        const countB =
+          Number(
+            b._twoProDbExactAndCount || 0
+          );
+
+        if (countA !== countB) {
+          return countB - countA;
+        }
+
+        const weightA =
+          Number(
+            a._twoProDbExactAndWeight || 0
+          );
+
+        const weightB =
+          Number(
+            b._twoProDbExactAndWeight || 0
+          );
+
+        if (weightA !== weightB) {
+          return weightB - weightA;
+        }
+
+        const catA =
+          a.category_id != null
+            ? Number(a.category_id)
+            : 12;
+
+        const catB =
+          b.category_id != null
+            ? Number(b.category_id)
+            : 12;
+
+        if (catA !== catB) {
+          return catA - catB;
+        }
+
+        return (
+          Number(a._db_index || 0) -
+          Number(b._db_index || 0)
+        );
+      }
+    );
+
   const hasTight = corpusSuperTight.length > 0 || dictSuperTight.length > 0 || corpusStandalone.length > 0 || dictStandalone.length > 0;
 
 if (hasTight && !isSplitMode) {
@@ -544,6 +606,13 @@ if (hasTight && !isSplitMode) {
     // 검색어 전체가 포함된 관련 결과
     ...sortByCategory(dictPartialMatch),
     ...sortByCategory(corpusPartialMatch),
+
+    // TwoPro CORE exact-AND 고신뢰 결과
+    ...sortedTwoProExactAndMatches,
+
+    // TwoPro exact + family 고신뢰 결과
+    ...sortByCategory(twoProFamilyMatches),
+
     ...sortByRelevanceAndCategory(
       andMatchesBoundary
     ),
@@ -587,6 +656,8 @@ if (hasTight && !isSplitMode) {
       ...combinedTightSplit, 
       ...sortByCategory(dictPartialMatch),
       ...sortByCategory(corpusPartialMatch),
+      ...sortedTwoProExactAndMatches,
+      ...sortByCategory(twoProFamilyMatches),
       ...sortByRelevanceAndCategory(andMatchesBoundary),
       ...sortByRelevanceAndCategory(andMatchesPartial),
       ...combinedPartialSplit, 
@@ -664,6 +735,55 @@ const twoProNormalizeDbShadowV1 = (value: string): string =>
     .normalize('NFC')
     .replace(/^[\s.,:;!?()[\]{}"'“”‘’]+|[\s.,:;!?()[\]{}"'“”‘’]+$/g, '')
     .trim();
+
+// ============================================================
+// TwoPro Exact Token Boundary v7.2
+//
+// exact token은 다른 한국어 단어의 내부 문자열로
+// 일치시키지 않습니다.
+//
+// 예:
+// "문을"   → "문을 열어요"       O
+// "문을"   → "창문을 열어요"     X
+//
+// "책을"   → "책을 샀어요"       O
+//
+// relaxed family("말", "열" 등)는 활용형을 잡아야 하므로
+// 이 함수와 별도로 기존 relaxed boundary를 사용합니다.
+// ============================================================
+const twoProHasExactTokenBoundaryV72 = (
+  text: string,
+  token: string
+): boolean => {
+  const normalizedText =
+    String(text || '')
+      .normalize('NFC');
+
+  const normalizedToken =
+    twoProNormalizeDbShadowV1(
+      token
+    );
+
+  if (!normalizedToken) {
+    return false;
+  }
+
+  const escapedToken =
+    normalizedToken.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      '\\$&'
+    );
+
+  const exactBoundaryRegexV72 =
+    new RegExp(
+      `(?:^|[^가-힣A-Za-z0-9_])${escapedToken}(?=[^가-힣A-Za-z0-9_]|$)`,
+      'iu'
+    );
+
+  return exactBoundaryRegexV72.test(
+    normalizedText
+  );
+};
 
 const twoProBuildDbShadowProfilesV1 = (queryText: string): TwoProDbShadowTokenV1[] => {
   const tokens = String(queryText || '')
@@ -826,7 +946,43 @@ const twoProBuildDbShadowAnchorsV2 = (
 ): TwoProDbShadowAnchorV2[] => {
   const anchors: TwoProDbShadowAnchorV2[] = [];
 
-  for (let index = 0; index < profiles.length - 1; index += 1) {
+  const addAnchorV3 = (
+    text: string,
+    weight: number,
+    left: string,
+    right: string
+  ) => {
+    const normalizedText = String(text || '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!normalizedText) {
+      return;
+    }
+
+    // "문을 열" 같은 비교적 짧은 결합도 허용하지만
+    // 단독 1~2글자 수준의 위험한 검색은 하지 않습니다.
+    const compactLength = normalizedText
+      .replace(/\s+/g, '')
+      .length;
+
+    if (compactLength < 3) {
+      return;
+    }
+
+    anchors.push({
+      text: normalizedText,
+      weight,
+      left,
+      right,
+    });
+  };
+
+  for (
+    let index = 0;
+    index < profiles.length - 1;
+    index += 1
+  ) {
     const left = profiles[index];
     const right = profiles[index + 1];
 
@@ -838,57 +994,90 @@ const twoProBuildDbShadowAnchorsV2 = (
       continue;
     }
 
-    const leftText = twoProNormalizeDbShadowV1(left.surface);
-    const rightText = twoProRightAnchorFormV2(right);
+    const leftText =
+      twoProNormalizeDbShadowV1(left.surface);
 
-    if (!leftText || !rightText) {
-      continue;
-    }
+    // ------------------------------------------------------------
+    // 1. 정확 표면형
+    //
+    // 예:
+    // 문을 + 열라고       -> "문을 열라고"
+    // 열라고 + 말해요     -> "열라고 말해요"
+    // 기다리라고 + 말하지 -> "기다리라고 말하지"
+    // 말하지 + 않았어요   -> "말하지 않았어요"
+    //
+    // 사용자가 실제 입력한 구를 최대한 그대로 DB에서 찾아봅니다.
+    // ------------------------------------------------------------
+    const rightExactText =
+      twoProNormalizeDbShadowV1(right.surface);
 
-    const anchorText = `${leftText} ${rightText}`
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    // 단독 1~2글자 검색은 피하되, "문을 열"처럼 전체 anchor가
-    // 3글자 이상이면 의미 결합이 충분하므로 local Shadow probe를 허용합니다.
-    const compactLength = anchorText
-      .replace(/\s+/g, '')
-      .length;
-
-    if (compactLength < 3) {
-      continue;
-    }
-
-    anchors.push({
-      text: anchorText,
-      weight:
+    if (leftText && rightExactText) {
+      addAnchorV3(
+        `${leftText} ${rightExactText}`,
         left.retrievalWeight +
-        right.retrievalWeight,
-      left: left.surface,
-      right: right.surface,
-    });
+          right.retrievalWeight +
+          1.5,
+        left.surface,
+        right.surface
+      );
+    }
+
+    // ------------------------------------------------------------
+    // 2. 기존 v2 방식의 완화형
+    //
+    // 예:
+    // 문을 + 열라고   -> "문을 열"
+    // 열라고 + 말해요 -> "열라고 말"
+    // 말하지 + 않았어요 -> "말하지 않"
+    //
+    // 정확 표면형 자료가 없을 때 활용형 차이를 넓게 회수합니다.
+    // ------------------------------------------------------------
+    const rightRelaxedText =
+      twoProRightAnchorFormV2(right);
+
+    if (
+      leftText &&
+      rightRelaxedText &&
+      rightRelaxedText !== rightExactText
+    ) {
+      addAnchorV3(
+        `${leftText} ${rightRelaxedText}`,
+        left.retrievalWeight +
+          right.retrievalWeight,
+        left.surface,
+        right.surface
+      );
+    }
   }
 
-  const unique = new Map<string, TwoProDbShadowAnchorV2>();
+  // 같은 anchor는 하나만 남기고,
+  // 동일 문구라면 가중치가 높은 쪽을 보존합니다.
+  const unique =
+    new Map<string, TwoProDbShadowAnchorV2>();
 
   for (const anchor of anchors) {
-    const key = anchor.text.toLocaleLowerCase();
+    const key =
+      anchor.text.toLocaleLowerCase();
 
     if (
       !unique.has(key) ||
-      (unique.get(key)?.weight || 0) < anchor.weight
+      (unique.get(key)?.weight || 0) <
+        anchor.weight
     ) {
       unique.set(key, anchor);
     }
   }
 
+  // v2에서는 2개였지만,
+  // v3 시험에서는
+  // 정확형 2개 + 완화형 2개까지 localhost에서 비교합니다.
   return [...unique.values()]
     .sort(
       (a, b) =>
         b.weight - a.weight ||
         b.text.length - a.text.length
     )
-    .slice(0, 2);
+    .slice(0, 4);
 };
 
 export default async function Page({ searchParams }: { searchParams: { q?: string; app?: string }; }) {
@@ -923,7 +1112,15 @@ const isSentenceSearch =
 
   let wordCount = 0;
   let baseExtracted: string[] = [];
-  let allSearchKeywords: string[] = []; 
+  let allSearchKeywords: string[] = [];
+
+  // ============================================================
+  // TwoPro CORE Search Keywords v6
+  // 문장·일반 검색 공통으로 저정보 토큰보다
+  // 핵심 의미 토큰을 우선 검색·정렬하기 위해 사용합니다.
+  // ============================================================
+  let twoProCoreSearchKeywordsV6: string[] = [];
+
   // Shadow 전용: 실제 fallback에서 선택된 핵심어를 기록만 합니다.
   let twoProCurrentRelatedSearchKeywordsShadowV1: string[] = [];
 
@@ -953,6 +1150,90 @@ const isSentenceSearch =
        if (eStopWords.has(lowerK) || kStopWords.has(lowerK)) return false; 
        return k.length >= 2 || /[가-힣]/.test(k);
     });
+
+    // ============================================================
+    // TwoPro CORE Search Keywords v6
+    //
+    // 예:
+    // 나는 그에게 문을 열라고 말해요
+    // → 열라고 / 말해요 / 문을
+    //
+    // 그녀는 나에게 기다리라고 말하지 않았어요
+    // → 기다리라고 / 말하지 / 않았어요
+    //
+    // 그녀는 책을 샀어요
+    // → 책을 / 샀어요
+    //
+    // 주어·대명사·수신자 표현은 검색 우선순위를 낮춥니다.
+    // ============================================================
+    const twoProCoreProfilesV6 =
+      twoProBuildDbShadowProfilesV1(
+        cleanQuery
+      );
+
+    twoProCoreSearchKeywordsV6 =
+      [...twoProCoreProfilesV6]
+        .filter(
+          (profile) =>
+            profile.retrievalWeight >= 3.5
+        )
+        .sort(
+          (a, b) =>
+            b.retrievalWeight -
+              a.retrievalWeight ||
+            b.rankingWeight -
+              a.rankingWeight ||
+            a.index -
+              b.index
+        )
+        .map((profile) =>
+          twoProNormalizeDbShadowV1(
+            profile.surface
+          )
+        )
+        .filter(Boolean)
+        .filter((keyword) => {
+          const isEnglishKeyword =
+            /^[a-zA-Z0-9_\s\-]+$/.test(
+              keyword
+            );
+
+          return isEnglishKeyword
+            ? keyword.length >= 3
+            : keyword.length >= 2;
+        })
+        .filter(
+          (keyword, index, array) =>
+            array.indexOf(keyword) === index
+        )
+        .slice(0, 4);
+
+    // CORE 분석으로 적절한 검색어를 얻지 못한 경우에는
+    // 기존 검색어를 그대로 사용하여 기존 동작을 보존합니다.
+    if (
+      twoProCoreSearchKeywordsV6.length === 0
+    ) {
+      twoProCoreSearchKeywordsV6 =
+        [...new Set(allSearchKeywords)]
+          .filter(Boolean)
+          .slice(0, 4);
+    }
+
+    if (
+      process.env.NODE_ENV !==
+      'production'
+    ) {
+      console.log(
+        '[X-DIC CORE Search Keywords v6]',
+        {
+          query:
+            cleanQuery,
+          allSearchKeywords,
+          coreSearchKeywords:
+            twoProCoreSearchKeywordsV6,
+        }
+      );
+    }
 
     if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 25) {
       const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
@@ -1102,49 +1383,75 @@ const isSentenceSearch =
            });
            orangeKeys.push(...orangeCandidates);
 
-// =====================================================
-// 문장 검색용 관련 핵심어 선정
-// =====================================================
-// 너무 흔한 표현은 제외하고, 의미가 강한 단어부터
-// 최대 4개까지만 관련 검색에 사용합니다.
-const relatedSearchKeywords = [
-  ...new Set(validOrKeywords)
-]
-  .filter((keyword) => {
-    const cleanKeyword = keyword
-      .replace(/[,.()\[\]:"']/g, '')
-      .trim();
+            // =====================================================
+            // TwoPro CORE 관련 핵심어 선정 v6
+            // =====================================================
+            // 문장 검색과 일반 검색에 동일하게 적용합니다.
+            //
+            // 우선:
+            // - 목적어
+            // - 핵심 명사
+            // - 핵심 동사·서술어
+            // - 인용·명령 술어
+            // - 부정·시제 정보
+            //
+            // 후순위:
+            // - 나는 / 그는 / 그녀는
+            // - 나에게 / 그에게 등 저정보 대명사 표현
+            // =====================================================
 
-    if (!cleanKeyword) {
-      return false;
-    }
+            const relatedSearchKeywordSourceV6 =
+              twoProCoreSearchKeywordsV6.length > 0
+                ? twoProCoreSearchKeywordsV6
+                : [...new Set(validOrKeywords)]
+                    .sort(
+                      (a, b) =>
+                        b.length - a.length
+                    );
 
-    const lowerKeyword =
-      cleanKeyword.toLowerCase();
+            const relatedSearchKeywords =
+              [
+                ...new Set(
+                  relatedSearchKeywordSourceV6
+                ),
+              ]
+                .filter((keyword) => {
+                  const cleanKeyword =
+                    keyword
+                      .replace(
+                        /[,.()\[\]:"']/g,
+                        ''
+                      )
+                      .trim();
 
-    // 정중 표현은 관련 용어 검색에서 제외
-    if (
-      lowerKeyword === 'please'
-    ) {
-      return false;
-    }
+                  if (!cleanKeyword) {
+                    return false;
+                  }
 
-    const isEnglishKeyword =
-      /^[a-zA-Z0-9_\s\-]+$/.test(
-        cleanKeyword
-      );
+                  const lowerKeyword =
+                    cleanKeyword.toLowerCase();
 
-    // 영어는 3글자 이상, 한국어는 2글자 이상
-    return isEnglishKeyword
-      ? cleanKeyword.length >= 3
-      : cleanKeyword.length >= 2;
-  })
-  // 긴 핵심어를 우선 검색
-  .sort((a, b) => b.length - a.length)
-  .slice(0, 4);
+                  if (
+                    lowerKeyword ===
+                    'please'
+                  ) {
+                    return false;
+                  }
 
-// 실제 검색에는 그대로 relatedSearchKeywords를 사용합니다.
-twoProCurrentRelatedSearchKeywordsShadowV1 = [...relatedSearchKeywords];
+                  const isEnglishKeyword =
+                    /^[a-zA-Z0-9_\s\-]+$/.test(
+                      cleanKeyword
+                    );
+
+                  return isEnglishKeyword
+                    ? cleanKeyword.length >= 3
+                    : cleanKeyword.length >= 2;
+                })
+                .slice(0, 4);
+
+            // Shadow 비교 로그도 실제 선택된 CORE 검색어를 기록합니다.
+            twoProCurrentRelatedSearchKeywordsShadowV1 =
+              [...relatedSearchKeywords];
 
 relatedSearchKeywords.forEach((keyword) => {
   const cleanK = keyword
@@ -1283,9 +1590,1110 @@ relatedSearchKeywords.forEach((keyword) => {
       });
       
       let isSplitModeActive = !!bestSplit;
-      results = rotateResults(results, cleanQuery, allSearchKeywords, flexStr, isSplitModeActive);
+
+      const rankingSearchKeywordsV6 =
+        twoProCoreSearchKeywordsV6.length > 0
+          ? twoProCoreSearchKeywordsV6
+          : allSearchKeywords;
+
+      results =
+        rotateResults(
+          results,
+          cleanQuery,
+          rankingSearchKeywordsV6,
+          flexStr,
+          isSplitModeActive
+        );
 // 문장 검색은 관련 검색 결과를
 // 중요 카테고리와 다양성을 고려해 최대 20건으로 정리합니다.
+
+// ============================================================================
+// ☆ TwoPro DB Phrase Exact-AND Shadow v4
+//
+// 목적:
+// "기다리라고 말하지"처럼 완전한 문장으로 판정되지 않는
+// 2단어 이상의 한국어 구도 핵심 표면형 AND 검색을 시험합니다.
+//
+// 중요:
+// - localhost Shadow 전용
+// - 기존 results 변경 없음
+// - 사용자 화면 영향 없음
+// - 기존 isSentenceSearch 판정 변경 없음
+// ============================================================================
+
+const isDbCorePhraseProbeCandidateV4 =
+  process.env.NODE_ENV !== 'production' &&
+  /[가-힣]/.test(cleanQuery) &&
+  cleanQuery
+    .split(/\s+/)
+    .filter(Boolean)
+    .length >= 2;
+
+if (isDbCorePhraseProbeCandidateV4) {
+  const phraseShadowV4 =
+    twoProEvaluateDbShadowV1(
+      cleanQuery,
+      results
+    );
+
+  const phraseExactCoreTokensV4 =
+    phraseShadowV4.profiles
+      .filter(
+        (profile) =>
+          profile.retrievalWeight >= 3.5
+      )
+      .map((profile) =>
+        twoProNormalizeDbShadowV1(
+          profile.surface
+        )
+      )
+      .filter(
+        (token) =>
+          Boolean(token) &&
+          token.length >= 2
+      )
+      .filter(
+        (token, index, array) =>
+          array.indexOf(token) === index
+      )
+      .slice(0, 4);
+
+  // ============================================================
+  // TwoPro CORE Contiguous Phrase Priority v7.5
+  //
+  // 일반 검색에서는 짧은 CORE들을 각각 %token% AND로
+  // 검색하기 전에 사용자가 입력한 연속 구를 먼저 찾습니다.
+  //
+  // 예:
+  // "회의 취소"
+  // → "%회의 취소%"
+  //
+  // 따라서:
+  // "회의 취소로 인해 ..."
+  // 같은 좋은 자료도 잡을 수 있습니다.
+  //
+  // 연속 구가 발견되면 비싼 Exact-AND는 생략합니다.
+  // localhost 전용입니다.
+  // ============================================================
+  const queryWordCountV75 =
+    cleanQuery
+      .split(/\s+/)
+      .filter(Boolean)
+      .length;
+
+  const isCoreContiguousCandidateV75 =
+    !isSentenceSearch &&
+    queryWordCountV75 >= 2 &&
+    queryWordCountV75 <= 4 &&
+    phraseExactCoreTokensV4.length >= 2;
+
+  const coreContiguousPhraseV75 =
+    cleanQuery
+      .replace(
+        /[,.()\[\]:"']/g,
+        ''
+      )
+      .trim();
+
+  let hasCoreContiguousHitV75 =
+    false;
+
+  const coreContiguousRowsV75:
+    any[] = [];
+
+  const coreContiguousStartedAtV75 =
+    Date.now();
+
+  if (
+    isCoreContiguousCandidateV75 &&
+    coreContiguousPhraseV75
+  ) {
+    try {
+      const {
+        data,
+        error,
+      } =
+        await supabase
+          .from('dictionary_lines')
+          .select('*')
+          .neq('category_id', 0)
+          .ilike(
+            'line_text',
+            `%${coreContiguousPhraseV75}%`
+          )
+          .limit(30);
+
+      if (
+        !error &&
+        Array.isArray(data) &&
+        data.length > 0
+      ) {
+        hasCoreContiguousHitV75 =
+          true;
+
+        coreContiguousRowsV75.push(
+          ...data
+        );
+
+        for (const row of data) {
+          const existing =
+            resultsMap.get(row.id);
+
+          if (existing) {
+            existing._twoProDbMatch =
+              'core-contiguous-phrase';
+          } else {
+            resultsMap.set(
+              row.id,
+              {
+                ...row,
+                _twoProDbMatch:
+                  'core-contiguous-phrase',
+              }
+            );
+          }
+        }
+
+        results =
+          Array.from(
+            resultsMap.values()
+          );
+
+        results =
+          rotateResults(
+            results,
+            cleanQuery,
+            twoProCoreSearchKeywordsV6.length > 0
+              ? twoProCoreSearchKeywordsV6
+              : allSearchKeywords,
+            flexStr,
+            !!bestSplit
+          );
+      }
+
+      console.log(
+        '[X-DIC CORE Contiguous Phrase Priority v7.5]',
+        {
+          query:
+            cleanQuery,
+          phrase:
+            coreContiguousPhraseV75,
+          elapsedMs:
+            Date.now() -
+            coreContiguousStartedAtV75,
+          resultCount:
+            Array.isArray(data)
+              ? data.length
+              : 0,
+          error:
+            error?.message || null,
+          userVisibleEffect:
+            hasCoreContiguousHitV75,
+          productionEffect:
+            false,
+          samples:
+            Array.isArray(data)
+              ? data
+                  .slice(0, 5)
+                  .map((row: any) =>
+                    String(
+                      row?.line_text || ''
+                    )
+                  )
+              : [],
+        }
+      );
+    } catch (error: any) {
+      console.log(
+        '[X-DIC CORE Contiguous Phrase Priority v7.5]',
+        {
+          query:
+            cleanQuery,
+          phrase:
+            coreContiguousPhraseV75,
+          elapsedMs:
+            Date.now() -
+            coreContiguousStartedAtV75,
+          resultCount: 0,
+          error:
+            String(
+              error?.message ||
+              error ||
+              'unknown contiguous phrase error'
+            ),
+          userVisibleEffect:
+            false,
+          productionEffect:
+            false,
+          samples: [],
+        }
+      );
+    }
+  }
+
+  const phraseExactAndGroupsRawV4:
+    string[][] = [];
+
+  if (
+    phraseExactCoreTokensV4.length >= 2
+  ) {
+    // 모든 핵심어가 같은 행에 있는지 우선 검사
+    phraseExactAndGroupsRawV4.push(
+      phraseExactCoreTokensV4
+    );
+
+    // 인접 핵심어 pair도 검사
+    for (
+      let index = 0;
+      index <
+      phraseExactCoreTokensV4.length - 1;
+      index += 1
+    ) {
+      phraseExactAndGroupsRawV4.push([
+        phraseExactCoreTokensV4[index],
+        phraseExactCoreTokensV4[
+          index + 1
+        ],
+      ]);
+    }
+  }
+
+  const phraseExactAndGroupsMapV4 =
+    new Map<string, string[]>();
+
+  for (
+    const group of
+    phraseExactAndGroupsRawV4
+  ) {
+    const key = group
+      .map((token) =>
+        token.toLocaleLowerCase()
+      )
+      .join('||');
+
+    if (
+      !phraseExactAndGroupsMapV4.has(
+        key
+      )
+    ) {
+      phraseExactAndGroupsMapV4.set(
+        key,
+        group
+      );
+    }
+  }
+
+  const phraseExactAndGroupsV4 =
+    [
+      ...phraseExactAndGroupsMapV4.values(),
+    ].slice(0, 4);
+
+  const phraseExactAndStatsV4: Array<{
+    tokens: string[];
+    elapsedMs: number;
+    resultCount: number;
+    error: string | null;
+    samples: string[];
+  }> = [];
+
+  // ============================================================
+  // TwoPro CORE Exact-AND Priority v7
+  // localhost 실제 반영용
+  // ============================================================
+  const promotedExactAndRowIdsV7 =
+    new Set<string>();
+
+  for (
+    const tokens of
+    phraseExactAndGroupsV4
+  ) {
+    if (
+      hasCoreContiguousHitV75
+    ) {
+      phraseExactAndStatsV4.push({
+        tokens,
+        elapsedMs: 0,
+        resultCount: 0,
+        error:
+          'skipped: core contiguous phrase hit v7.5',
+        samples: [],
+      });
+
+      break;
+    }
+
+    const startedAt = Date.now();
+
+    try {
+      let exactAndQueryV4 =
+        supabase
+          .from('dictionary_lines')
+          .select('*')
+          .neq('category_id', 0);
+
+      for (const token of tokens) {
+        exactAndQueryV4 =
+          exactAndQueryV4.ilike(
+            'line_text',
+            `%${token}%`
+          );
+      }
+
+      const {
+        data,
+        error,
+      } =
+        await exactAndQueryV4.limit(30);
+
+      const rows =
+        Array.isArray(data)
+          ? data
+          : [];
+
+      // ------------------------------------------------------------
+      // v7.2:
+      // Supabase의 %token% 검색으로 넓게 가져온 뒤
+      // 실제 exact token 경계가 맞는 행만 남깁니다.
+      //
+      // 예:
+      // token = "문을"
+      //
+      // "문을 열어요"   → 유지
+      // "창문을 열어요" → 제외
+      // ------------------------------------------------------------
+      const safeRowsV72 =
+        rows.filter((row: any) => {
+          const rowText =
+            String(
+              row?.line_text || ''
+            );
+
+          return tokens.every(
+            (token) =>
+              twoProHasExactTokenBoundaryV72(
+                rowText,
+                token
+              )
+          );
+        });
+
+      const exactAndProfilesV74 =
+        tokens
+          .map((token) =>
+            phraseShadowV4.profiles.find(
+              (profile) =>
+                twoProNormalizeDbShadowV1(
+                  profile.surface
+                ) === token
+            )
+          )
+          .filter(Boolean) as TwoProDbShadowTokenV1[];
+
+      const exactAndWeightV7 =
+        exactAndProfilesV74.reduce(
+          (sum, profile) =>
+            sum +
+            Number(
+              profile.retrievalWeight || 0
+            ),
+          0
+        );
+
+      // ------------------------------------------------------------
+      // v7.4:
+      // 부정 활용형끼리의 exact-AND가
+      // 더 중요한 실질 의미 CORE보다 앞서는 것을 막습니다.
+      //
+      // 예:
+      // 기다리라고 + 말하지
+      //   → 의미 CORE 결합
+      //
+      // 말하지 + 않았어요
+      //   → 부정 술어 + 부정/TAM 결합
+      //
+      // 단, "먹지 않았어요"처럼 검색어 전체가
+      // 부정형 두 단어뿐인 경우에는 기존 priority 2를 유지합니다.
+      // ------------------------------------------------------------
+      const isGrammarHeavyExactAndV74 =
+        exactAndProfilesV74.length > 0 &&
+        exactAndProfilesV74.every(
+          (profile) =>
+            profile.role ===
+              'NEGATION_PREDICATE' ||
+            profile.role ===
+              'NEGATION_TAM'
+        );
+
+      const tokenSetV74 =
+        new Set(
+          tokens.map((token) =>
+            token.toLocaleLowerCase()
+          )
+        );
+
+      const hasStrongerSemanticCoreOutsideV74 =
+        phraseShadowV4.profiles.some(
+          (profile) => {
+            const normalizedSurface =
+              twoProNormalizeDbShadowV1(
+                profile.surface
+              ).toLocaleLowerCase();
+
+            if (
+              tokenSetV74.has(
+                normalizedSurface
+              )
+            ) {
+              return false;
+            }
+
+            if (
+              profile.retrievalWeight <
+              3.5
+            ) {
+              return false;
+            }
+
+            return [
+              'QUOTED_OR_COMMAND_PREDICATE',
+              'OBJECT_CONTENT',
+              'MAIN_PREDICATE',
+              'CONTENT',
+              'ENGLISH_CONTENT',
+            ].includes(
+              profile.role
+            );
+          }
+        );
+
+      const exactAndPriorityV74 =
+        isGrammarHeavyExactAndV74 &&
+        hasStrongerSemanticCoreOutsideV74
+          ? 4
+          : 2;
+
+      if (!error) {
+        for (const row of safeRowsV72) {
+          const rowId =
+            String(row?.id || '');
+
+          if (!rowId) {
+            continue;
+          }
+
+          const existing =
+            resultsMap.get(row.id);
+
+          if (existing) {
+            const oldPriority =
+              Number(
+                existing._twoProDbPriority ??
+                999
+              );
+
+            if (
+              oldPriority >
+              exactAndPriorityV74
+            ) {
+              existing._twoProDbPriority =
+                exactAndPriorityV74;
+            }
+
+            existing._twoProDbExactAndCount =
+              Math.max(
+                Number(
+                  existing
+                    ._twoProDbExactAndCount ||
+                  0
+                ),
+                tokens.length
+              );
+
+            existing._twoProDbExactAndWeight =
+              Math.max(
+                Number(
+                  existing
+                    ._twoProDbExactAndWeight ||
+                  0
+                ),
+                exactAndWeightV7
+              );
+
+            existing._twoProDbMatch =
+              'core-exact-and';
+          } else {
+            resultsMap.set(
+              row.id,
+              {
+                ...row,
+                _twoProDbPriority:
+                  exactAndPriorityV74,
+                _twoProDbExactAndCount:
+                  tokens.length,
+                _twoProDbExactAndWeight:
+                  exactAndWeightV7,
+                _twoProDbMatch:
+                  exactAndPriorityV74 === 2
+                    ? 'core-exact-and'
+                    : 'core-grammar-and',
+              }
+            );
+          }
+
+          promotedExactAndRowIdsV7.add(
+            rowId
+          );
+        }
+      }
+
+      phraseExactAndStatsV4.push({
+        tokens,
+        elapsedMs:
+          Date.now() - startedAt,
+        resultCount:
+          safeRowsV72.length,
+        error:
+          error?.message || null,
+        samples:
+          safeRowsV72
+            .slice(0, 5)
+            .map((row: any) =>
+              String(
+                row?.line_text || ''
+              )
+            ),
+      });
+    } catch (error: any) {
+      phraseExactAndStatsV4.push({
+        tokens,
+        elapsedMs:
+          Date.now() - startedAt,
+        resultCount: 0,
+        error:
+          String(
+            error?.message ||
+            error ||
+            'unknown phrase exact AND shadow error'
+          ),
+        samples: [],
+      });
+    }
+  }
+
+  if (
+    promotedExactAndRowIdsV7.size > 0
+  ) {
+    results =
+      Array.from(
+        resultsMap.values()
+      );
+
+    results =
+      rotateResults(
+        results,
+        cleanQuery,
+        twoProCoreSearchKeywordsV6.length > 0
+          ? twoProCoreSearchKeywordsV6
+          : allSearchKeywords,
+        flexStr,
+        !!bestSplit
+      );
+  }
+
+  console.log(
+    '[X-DIC CORE Exact-AND Priority v7]',
+    {
+      query:
+        cleanQuery,
+      shadowOnly:
+        promotedExactAndRowIdsV7.size === 0,
+      userVisibleEffect:
+        promotedExactAndRowIdsV7.size > 0,
+      productionEffect:
+        false,
+      promotedRowCount:
+        promotedExactAndRowIdsV7.size,
+      coreTokens:
+        phraseExactCoreTokensV4,
+      exactAndGroups:
+        phraseExactAndGroupsV4,
+      exactAndStats:
+        phraseExactAndStatsV4,
+    }
+  );
+}
+
+// ============================================================================
+// ☆ TwoPro DB Phrase One-Side Relaxed Shadow v5
+//
+// 목적:
+// exact AND가 0건인 짧은 한국어 구에서
+// 한쪽 핵심어는 EXACT로 고정하고,
+// 다른 쪽만 아주 제한적으로 동사 family anchor로 완화합니다.
+//
+// 예:
+// 기다리라고 + 말하지
+// → 기다리라고 EXACT + 말 family
+//
+// 중요:
+// - localhost Shadow 전용
+// - 기존 results 변경 없음
+// - 사용자 화면 영향 없음
+// ============================================================================
+
+if (isDbCorePhraseProbeCandidateV4) {
+  const phraseShadowV5 =
+    twoProEvaluateDbShadowV1(
+      cleanQuery,
+      results
+    );
+
+  const coreProfilesV5 =
+    phraseShadowV5.profiles.filter(
+      (profile) =>
+        profile.retrievalWeight >= 3.5
+    );
+
+  const buildFamilyAnchorV5 = (
+    surface: string
+  ): string => {
+    const normalized =
+      twoProNormalizeDbShadowV1(surface);
+
+    if (!normalized) {
+      return '';
+    }
+
+    // 인용·명령형:
+    // 기다리라고 → 기다리
+    // 열라고 → 열
+    const quotedMatch =
+      /^(.*?)(?:라고|다고|자고|냐고)$/u.exec(
+        normalized
+      );
+
+    if (
+      quotedMatch?.[1] &&
+      quotedMatch[1].length >= 1
+    ) {
+      return quotedMatch[1];
+    }
+
+    // -하지 계열:
+    // 말하지 → 말
+    // 사용하지 → 사용
+    const negativeHaMatch =
+      /^(.*?)하지$/u.exec(normalized);
+
+    if (
+      negativeHaMatch?.[1] &&
+      negativeHaMatch[1].length >= 1
+    ) {
+      return negativeHaMatch[1];
+    }
+
+    // 기존 정규화 결과도 보조적으로 재사용
+    const cleaned =
+      twoProNormalizeDbShadowV1(
+        cleanKoreanKeyword(normalized)
+      );
+
+    if (
+      cleaned &&
+      cleaned !== normalized &&
+      cleaned.length >= 2
+    ) {
+      return cleaned;
+    }
+
+    return '';
+  };
+
+  const relaxedProbeGroupsV5: Array<{
+    exact: string;
+    relaxed: string;
+    direction: string;
+  }> = [];
+
+  for (
+    let index = 0;
+    index < coreProfilesV5.length - 1;
+    index += 1
+  ) {
+    const left =
+      coreProfilesV5[index];
+
+    const right =
+      coreProfilesV5[index + 1];
+
+    const leftExact =
+      twoProNormalizeDbShadowV1(
+        left.surface
+      );
+
+    const rightExact =
+      twoProNormalizeDbShadowV1(
+        right.surface
+      );
+
+    const leftFamily =
+      buildFamilyAnchorV5(
+        left.surface
+      );
+
+    const rightFamily =
+      buildFamilyAnchorV5(
+        right.surface
+      );
+
+    // 왼쪽 EXACT + 오른쪽 family
+    if (
+      leftExact &&
+      rightFamily &&
+      rightFamily !== rightExact
+    ) {
+      relaxedProbeGroupsV5.push({
+        exact: leftExact,
+        relaxed: rightFamily,
+        direction: 'LEFT_EXACT_RIGHT_RELAXED',
+      });
+    }
+
+    // 오른쪽 EXACT + 왼쪽 family
+    if (
+      rightExact &&
+      leftFamily &&
+      leftFamily !== leftExact
+    ) {
+      relaxedProbeGroupsV5.push({
+        exact: rightExact,
+        relaxed: leftFamily,
+        direction: 'RIGHT_EXACT_LEFT_RELAXED',
+      });
+    }
+  }
+
+  const uniqueRelaxedGroupsV5 =
+    new Map<
+      string,
+      {
+        exact: string;
+        relaxed: string;
+        direction: string;
+      }
+    >();
+
+  for (
+    const group of
+    relaxedProbeGroupsV5
+  ) {
+    const key =
+      `${group.exact.toLocaleLowerCase()}||` +
+      `${group.relaxed.toLocaleLowerCase()}`;
+
+    if (
+      !uniqueRelaxedGroupsV5.has(key)
+    ) {
+      uniqueRelaxedGroupsV5.set(
+        key,
+        group
+      );
+    }
+  }
+
+  const relaxedGroupsV5 =
+    [...uniqueRelaxedGroupsV5.values()]
+      .slice(0, 4);
+
+  const relaxedStatsV5: Array<{
+    exact: string;
+    relaxed: string;
+    direction: string;
+    elapsedMs: number;
+    resultCount: number;
+    error: string | null;
+    samples: string[];
+  }> = [];
+
+  // ============================================================
+  // v7.1 localhost exact + safe-family 실제 반영 시험
+  // 문장 검색과 일반 검색에 동일하게 적용합니다.
+  //
+  // 조건:
+  // - 한국어 2단어 이상
+  // - 한쪽은 EXACT
+  // - 다른 쪽만 안전한 family anchor 사용
+  // - production / Vercel에는 아직 영향이 없습니다.
+  // ============================================================
+  const allowTwoProLocalPromotionV52 =
+    process.env.NODE_ENV !== 'production' &&
+    cleanQuery
+      .split(/\s+/)
+      .filter(Boolean)
+      .length >= 2;
+
+  const promotedRowIdsV52 =
+    new Set<string>();
+
+  for (
+    const group of relaxedGroupsV5
+  ) {
+    const startedAt =
+      Date.now();
+
+    try {
+      const {
+        data,
+        error,
+      } =
+        await supabase
+          .from('dictionary_lines')
+          .select('*')
+          .neq('category_id', 0)
+          .ilike(
+            'line_text',
+            `%${group.exact}%`
+          )
+          .ilike(
+            'line_text',
+            `%${group.relaxed}%`
+          )
+          .limit(30);
+
+const rows =
+  Array.isArray(data)
+    ? data
+    : [];
+
+// ------------------------------------------------------------
+// v5.1: relaxed root가 다른 한국어 단어 내부에 들어 있는
+// false positive를 제거합니다.
+//
+// 예:
+// relaxed = "말"
+//
+// 유지:
+// "기다리라고 말했나요"
+// "기다리라고 말해주세요"
+//
+// 제외:
+// "정말 필요한 경우"
+// "기다리라고 정말 정중하게"
+// ------------------------------------------------------------
+const escapedRelaxedV51 =
+  group.relaxed.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+
+// ------------------------------------------------------------
+// v7.3:
+// 한 글자짜리 한국어 family root는 너무 넓게 잡힐 수 있으므로
+// 활용형으로 볼 수 있는 뒤 음절만 허용합니다.
+//
+// 예:
+// "열" + "어"  → 열어        O
+// "열" + "었"  → 열었        O
+// "열" + "고"  → 열고        O
+// "열" + "지"  → 열지        O
+// "열" + "면"  → 열면        O
+// "열" + "려"  → 열려고      O
+// "열" + "린"  → 열린        O
+//
+// "열" + "쇠"  → 열쇠        X
+// "열" + "시"  → 열시        X
+//
+// "말" + "하"  → 말하다      O
+// "말" + "해"  → 말해요      O
+// "말" + "했"  → 말했어요    O
+// ------------------------------------------------------------
+const isSingleHangulFamilyV73 =
+  /^[가-힣]$/u.test(
+    group.relaxed
+  );
+
+const relaxedBoundaryRegexV51 =
+  isSingleHangulFamilyV73
+    ? new RegExp(
+        `(?:^|[^가-힣A-Za-z0-9_])${escapedRelaxedV51}(?=(?:아|어|여|하|해|했|합|고|지|면|자|려|겠|았|었|라|린|릴|립|렸|습|세)|[^가-힣A-Za-z0-9_]|$)`,
+        'iu'
+      )
+    : new RegExp(
+        `(?:^|[^가-힣A-Za-z0-9_])${escapedRelaxedV51}`,
+        'iu'
+      );
+
+      const safeRowsV51 =
+        rows.filter((row: any) => {
+          const rowText =
+            String(
+              row?.line_text || ''
+            ).normalize('NFC');
+
+          return (
+            twoProHasExactTokenBoundaryV72(
+              rowText,
+              group.exact
+            ) &&
+            relaxedBoundaryRegexV51.test(
+              rowText
+            )
+          );
+        });
+
+      // ------------------------------------------------------------
+      // v5.2:
+      // 정보량이 충분한 EXACT 쪽을 가진 경우에만
+      // localhost 실제 결과 후보로 승격합니다.
+      //
+      // 예:
+      // 기다리라고(EXACT) + 말(family) → 승격
+      //
+      // 너무 약한 TAM 중심 조합은 아직 승격하지 않습니다.
+      // ------------------------------------------------------------
+      const exactProfileV52 =
+        coreProfilesV5.find(
+          (profile) =>
+            twoProNormalizeDbShadowV1(
+              profile.surface
+            ) === group.exact
+        );
+
+      const shouldPromoteV52 =
+        allowTwoProLocalPromotionV52 &&
+        (exactProfileV52?.retrievalWeight || 0) >= 4.0;
+
+      if (shouldPromoteV52) {
+        for (const row of safeRowsV51) {
+          const rowId =
+            String(row?.id || '');
+
+          if (!rowId) {
+            continue;
+          }
+
+          const existing =
+            resultsMap.get(row.id);
+
+          if (existing) {
+            const oldPriority =
+              Number(
+                existing._twoProDbPriority ??
+                999
+              );
+
+            if (oldPriority > 3) {
+              existing._twoProDbPriority = 3;
+            }
+
+            existing._twoProDbMatch =
+              'exact+family';
+          } else {
+            resultsMap.set(
+              row.id,
+              {
+                ...row,
+                _twoProDbPriority: 3,
+                _twoProDbMatch:
+                  'exact+family',
+              }
+            );
+          }
+
+          promotedRowIdsV52.add(
+            rowId
+          );
+        }
+      }
+
+      relaxedStatsV5.push({
+        exact:
+          group.exact,
+  relaxed:
+    group.relaxed,
+  direction:
+    group.direction,
+  elapsedMs:
+    Date.now() - startedAt,
+  resultCount:
+    safeRowsV51.length,
+  error:
+    error?.message || null,
+  samples:
+    safeRowsV51
+      .slice(0, 8)
+      .map((row: any) =>
+        String(
+          row?.line_text || ''
+        )
+      ),
+});
+    } catch (error: any) {
+      relaxedStatsV5.push({
+        exact:
+          group.exact,
+        relaxed:
+          group.relaxed,
+        direction:
+          group.direction,
+        elapsedMs:
+          Date.now() - startedAt,
+        resultCount: 0,
+        error:
+          String(
+            error?.message ||
+            error ||
+            'unknown relaxed shadow error'
+          ),
+        samples: [],
+      });
+    }
+  }
+
+  // ------------------------------------------------------------
+  // v5.2에서 실제 승격된 후보가 있을 때만
+  // resultsMap에서 results를 다시 만들고
+  // 기존 rotateResults 정렬기를 그대로 재사용합니다.
+  // ------------------------------------------------------------
+  if (promotedRowIdsV52.size > 0) {
+    results =
+      Array.from(
+        resultsMap.values()
+      );
+
+    results =
+      rotateResults(
+        results,
+        cleanQuery,
+        twoProCoreSearchKeywordsV6.length > 0
+          ? twoProCoreSearchKeywordsV6
+          : allSearchKeywords,
+        flexStr,
+        !!bestSplit
+      );
+  }
+
+  console.log(
+    '[X-DIC DB Phrase One-Side Relaxed Shadow v5]',
+    {
+      query:
+        cleanQuery,
+      shadowOnly:
+        promotedRowIdsV52.size === 0,
+      userVisibleEffect:
+        promotedRowIdsV52.size > 0,
+      productionEffect:
+        false,
+      promotedRowCount:
+        promotedRowIdsV52.size,
+      relaxedGroups:
+        relaxedGroupsV5,
+      relaxedStats:
+        relaxedStatsV5,
+    }
+  );
+}
+
 if (isSentenceSearch) {
   // ------------------------------------------------------------
   // Shadow v1: 현재 후보군만 분석 (실제 화면 영향 없음)
@@ -1376,6 +2784,169 @@ if (isSentenceSearch) {
     }
   }
 
+  // ============================================================
+  // ☆ TwoPro DB Select Shadow v4
+  // EXACT CORE TOKEN AND probe
+  //
+  // 예:
+  // 기다리라고 말하지
+  // → 기다리라고 AND 말하지
+  //
+  // 나는 그에게 문을 열라고 말해요
+  // → 문을 AND 열라고 AND 말해요
+  // → 문을 AND 열라고
+  // → 열라고 AND 말해요
+  //
+  // localhost Shadow 전용이며 실제 화면에는 반영하지 않습니다.
+  // ============================================================
+
+  const shadowExactCoreTokensV4 =
+    shadow.profiles
+      .filter(
+        (profile) =>
+          profile.retrievalWeight >= 3.5
+      )
+      .map((profile) =>
+        twoProNormalizeDbShadowV1(
+          profile.surface
+        )
+      )
+      .filter(
+        (token) =>
+          Boolean(token) &&
+          token.length >= 2
+      )
+      .filter(
+        (token, index, array) =>
+          array.indexOf(token) === index
+      )
+      .slice(0, 4);
+
+  const shadowExactAndGroupsRawV4:
+    string[][] = [];
+
+  if (
+    shadowExactCoreTokensV4.length >= 2
+  ) {
+    // ① 모든 핵심 표면형이 같은 행에 존재하는지 먼저 검사
+    shadowExactAndGroupsRawV4.push(
+      shadowExactCoreTokensV4
+    );
+
+    // ② 인접 핵심어 pair도 검사
+    for (
+      let index = 0;
+      index <
+      shadowExactCoreTokensV4.length - 1;
+      index += 1
+    ) {
+      shadowExactAndGroupsRawV4.push([
+        shadowExactCoreTokensV4[index],
+        shadowExactCoreTokensV4[index + 1],
+      ]);
+    }
+  }
+
+  const shadowExactAndGroupsMapV4 =
+    new Map<string, string[]>();
+
+  for (
+    const group of shadowExactAndGroupsRawV4
+  ) {
+    const key = group
+      .map((token) =>
+        token.toLocaleLowerCase()
+      )
+      .join('||');
+
+    if (
+      !shadowExactAndGroupsMapV4.has(key)
+    ) {
+      shadowExactAndGroupsMapV4.set(
+        key,
+        group
+      );
+    }
+  }
+
+  const shadowExactAndGroupsV4 =
+    [
+      ...shadowExactAndGroupsMapV4.values(),
+    ].slice(0, 4);
+
+  const shadowExactAndStatsV4: Array<{
+    tokens: string[];
+    elapsedMs: number;
+    resultCount: number;
+    error: string | null;
+  }> = [];
+
+  if (
+    shadowProbeEnabledV2 &&
+    shadowExactAndGroupsV4.length > 0
+  ) {
+    for (
+      const tokens of shadowExactAndGroupsV4
+    ) {
+      const startedAt = Date.now();
+
+      try {
+        let exactAndQueryV4 =
+          supabase
+            .from('dictionary_lines')
+            .select('*')
+            .neq('category_id', 0);
+
+        for (const token of tokens) {
+          exactAndQueryV4 =
+            exactAndQueryV4.ilike(
+              'line_text',
+              `%${token}%`
+            );
+        }
+
+        const {
+          data,
+          error,
+        } =
+          await exactAndQueryV4.limit(30);
+
+        const rows =
+          Array.isArray(data)
+            ? data
+            : [];
+
+        shadowExactAndStatsV4.push({
+          tokens,
+          elapsedMs:
+            Date.now() - startedAt,
+          resultCount: rows.length,
+          error:
+            error?.message || null,
+        });
+
+        if (!error) {
+          for (const row of rows) {
+            shadowProbeRowsV2.push(row);
+          }
+        }
+      } catch (error: any) {
+        shadowExactAndStatsV4.push({
+          tokens,
+          elapsedMs:
+            Date.now() - startedAt,
+          resultCount: 0,
+          error:
+            String(
+              error?.message ||
+              error ||
+              'unknown exact AND shadow error'
+            ),
+        });
+      }
+    }
+  }
+
   // current 후보 + shadow probe 후보를 별도 Map으로만 병합합니다.
   // 실제 results에는 합치지 않습니다.
   const shadowMergedMapV2 =
@@ -1457,6 +3028,11 @@ if (isSentenceSearch) {
         shadowAnchorsV2,
       shadowProbeStats:
         shadowProbeStatsV2,
+
+      shadowExactCoreTokensV4,
+      shadowExactAndGroupsV4,
+      shadowExactAndStatsV4,
+
       shadowProbeUniqueRows:
         new Set(
           shadowProbeRowsV2.map(
