@@ -83077,6 +83077,218 @@ if (twoProBasicPassiveResultV1295) {
 
                   if (!candidateText) return null;
 
+                  // ========================================================
+                  // TwoPro CORE Exact Token Boundary Match v2
+                  //
+                  // 일반 검색 v7.x에서 검증한 원칙을
+                  // CORE Shadow Ranking에도 적용합니다.
+                  //
+                  // 한국어:
+                  // 책 → 책       O
+                  // 책 → 책을     O
+                  // 책 → 책이     O
+                  // 책 → 정책     X
+                  // 책 → 공책     X
+                  // 책 → 책상     X
+                  //
+                  // 아직 Shadow Ranking에만 적용하며
+                  // 실제 번역 결과에는 영향을 주지 않습니다.
+                  // ========================================================
+                  const twoProCoreShadowTokenMatchV2 = (
+                    text: string,
+                    token: string
+                  ): boolean => {
+                    const normalizedText =
+                      String(text || '')
+                        .normalize('NFC');
+
+                    const normalizedToken =
+                      String(token || '')
+                        .normalize('NFC')
+                        .trim();
+
+                    if (!normalizedToken) {
+                      return false;
+                    }
+
+                    const escapedToken =
+                      normalizedToken.replace(
+                        /[.*+?^${}()|[\]\\]/g,
+                        '\\$&'
+                      );
+
+                    const isKoreanToken =
+                      /^[가-힣]+$/u.test(
+                        normalizedToken
+                      );
+
+                    if (!isKoreanToken) {
+                      const exactEnglishRegex =
+                        new RegExp(
+                          `(?:^|[^A-Za-z0-9_])${escapedToken}(?=[^A-Za-z0-9_]|$)`,
+                          'iu'
+                        );
+
+                      return exactEnglishRegex.test(
+                        normalizedText
+                      );
+                    }
+
+                    const exactKoreanRegex =
+                      new RegExp(
+                        `(?:^|[^가-힣A-Za-z0-9_])${escapedToken}(?=[^가-힣A-Za-z0-9_]|$)`,
+                        'iu'
+                      );
+
+                    if (
+                      exactKoreanRegex.test(
+                        normalizedText
+                      )
+                    ) {
+                      return true;
+                    }
+
+                    const koreanParticleRegex =
+                      new RegExp(
+                        `(?:^|[^가-힣A-Za-z0-9_])${escapedToken}(?:에게|에서|께서|으로|부터|까지|은|는|이|가|을|를|에|로|와|과|의|도|만|랑)(?=[^가-힣A-Za-z0-9_]|$)`,
+                        'iu'
+                      );
+
+                    return koreanParticleRegex.test(
+                      normalizedText
+                    );
+                  };
+
+                  // ========================================================
+                  // TwoPro CORE Safe Semantic Concept Match v3
+                  //
+                  // 일반 검색 v7.x에서 실제 검증된 원칙을
+                  // CORE Shadow Ranking에도 보수적으로 적용합니다.
+                  //
+                  // 1. 정확 표면형은 항상 최우선
+                  // 2. 의미가 확실한 안전한 표현만 같은 개념으로 인정
+                  // 3. 짧은 어간의 무차별 substring 검색은 하지 않음
+                  // 4. 아직 Shadow Ranking에만 적용
+                  // ========================================================
+                  const twoProCoreShadowSemanticTokenMatchV3 = (
+                    text: string,
+                    token: string
+                  ): boolean => {
+                    const normalizedText =
+                      String(text || '')
+                        .normalize('NFC');
+
+                    const normalizedToken =
+                      String(token || '')
+                        .normalize('NFC')
+                        .trim();
+
+                    if (!normalizedToken) {
+                      return false;
+                    }
+
+                    // ------------------------------------------------------
+                    // PURCHASE 의미군
+                    //
+                    // 일반 검색 v7.6에서 검증한:
+                    // 구매 → 사다 계열
+                    // ------------------------------------------------------
+                    if (
+                      /^(?:구매|구입|매입)$/u.test(
+                        normalizedToken
+                      )
+                    ) {
+                      const purchaseVerbRegex =
+                        /(?:^|[^가-힣A-Za-z0-9_])(?:사|사서|사고|사는|사려고|사려|사면|사기|사기는|샀|샀다|샀어요|산|살|살까|살게|살려고|살래)(?=[^가-힣A-Za-z0-9_]|$)/iu;
+
+                      if (
+                        purchaseVerbRegex.test(
+                          normalizedText
+                        )
+                      ) {
+                        return true;
+                      }
+                    }
+
+                    // ------------------------------------------------------
+                    // -하지 계열
+                    //
+                    // 말하지 → 말하다 / 말해요 / 말했나요 / 말했다 ...
+                    //
+                    // 단순 "말" substring 검색이 아니라
+                    // 하다 계열 활용만 허용합니다.
+                    // ------------------------------------------------------
+                    if (
+                      normalizedToken.endsWith('하지') &&
+                      normalizedToken.length >= 3
+                    ) {
+                      const baseStem =
+                        normalizedToken.slice(0, -2);
+
+                      if (baseStem) {
+                        const escapedStem =
+                          baseStem.replace(
+                            /[.*+?^${}()|[\]\\]/g,
+                            '\\$&'
+                          );
+
+                        const haPredicateRegex =
+                          new RegExp(
+                            `(?:^|[^가-힣A-Za-z0-9_])${escapedStem}(?:하|해|했|할|한|하는|하지|합니다|한다|했다|하세요)[가-힣]*(?=[^가-힣A-Za-z0-9_]|$)`,
+                            'iu'
+                          );
+
+                        if (
+                          haPredicateRegex.test(
+                            normalizedText
+                          )
+                        ) {
+                          return true;
+                        }
+                      }
+                    }
+
+                    // ------------------------------------------------------
+                    // -라고 인용·명령 서술어
+                    //
+                    // 열라고 → 열어 / 열었다 / 열고 / 열지 ...
+                    //
+                    // "열"만 substring으로 찾지 않으므로
+                    // 열차 같은 단어는 일치시키지 않습니다.
+                    // ------------------------------------------------------
+                    if (
+                      normalizedToken.endsWith('라고') &&
+                      normalizedToken.length >= 3
+                    ) {
+                      const quotedStem =
+                        normalizedToken.slice(0, -2);
+
+                      if (quotedStem) {
+                        const escapedStem =
+                          quotedStem.replace(
+                            /[.*+?^${}()|[\]\\]/g,
+                            '\\$&'
+                          );
+
+                        const quotedPredicateRegex =
+                          new RegExp(
+                            `(?:^|[^가-힣A-Za-z0-9_])${escapedStem}(?:어|어서|었|었다|었어요|고|면|지|기|려고|려|는|다|세요)[가-힣]*(?=[^가-힣A-Za-z0-9_]|$)`,
+                            'iu'
+                          );
+
+                        if (
+                          quotedPredicateRegex.test(
+                            normalizedText
+                          )
+                        ) {
+                          return true;
+                        }
+                      }
+                    }
+
+                    return false;
+                  };
+
                   const lengthRatio =
                     candidateText.length /
                     Math.max(cleanText.length, 1);
@@ -83087,18 +83299,42 @@ if (twoProBasicPassiveResultV1295) {
                   }
 
                   let matchedWeight = 0;
+                  let semanticMatchedWeight = 0;
                   let phraseBonus = 0;
+
                   const matchedTokens: string[] = [];
+                  const semanticMatchedTokens: string[] = [];
 
                   for (
                     const itemWeight of twoProCoreShadowTokenWeightsV1
                   ) {
+                    if (!itemWeight.token) {
+                      continue;
+                    }
+
                     if (
-                      itemWeight.token &&
-                      candidateText.includes(itemWeight.token)
+                      twoProCoreShadowTokenMatchV2(
+                        candidateText,
+                        itemWeight.token
+                      )
                     ) {
                       matchedWeight += itemWeight.weight;
                       matchedTokens.push(itemWeight.token);
+                      continue;
+                    }
+
+                    if (
+                      twoProCoreShadowSemanticTokenMatchV3(
+                        candidateText,
+                        itemWeight.token
+                      )
+                    ) {
+                      semanticMatchedWeight +=
+                        itemWeight.weight * 0.9;
+
+                      semanticMatchedTokens.push(
+                        itemWeight.token
+                      );
                     }
                   }
 
@@ -83149,36 +83385,100 @@ if (twoProBasicPassiveResultV1295) {
                     }
                   }
 
+                  // ========================================================
+                  // TwoPro CORE Semantic Ranking Tier v3
+                  //
+                  // 우선순위:
+                  // 5 = 정확 핵심어 2개 이상
+                  // 4 = 정확 핵심어 + 안전 의미군
+                  // 3 = 정확 핵심어 1개
+                  // 2 = 안전 의미군 2개 이상
+                  // 1 = 안전 의미군 1개
+                  // 0 = 핵심 개념 일치 없음
+                  //
+                  // 점수보다 tier를 먼저 비교합니다.
+                  // 아직 Shadow Ranking에만 적용합니다.
+                  // ========================================================
+
+                  const exactMatchCount =
+                    matchedTokens.length;
+
+                  const semanticMatchCount =
+                    semanticMatchedTokens.length;
+
+                  const totalConceptMatches =
+                    exactMatchCount +
+                    semanticMatchCount;
+
+                  const effectiveMatchedWeight =
+                    matchedWeight +
+                    semanticMatchedWeight;
+
                   const weightedCoverage =
                     totalShadowWeight > 0
-                      ? matchedWeight / totalShadowWeight
+                      ? effectiveMatchedWeight /
+                        totalShadowWeight
                       : 0;
 
+                  let priorityTier = 0;
+
+                  if (exactMatchCount >= 2) {
+                    priorityTier = 5;
+                  } else if (
+                    exactMatchCount >= 1 &&
+                    semanticMatchCount >= 1
+                  ) {
+                    priorityTier = 4;
+                  } else if (exactMatchCount >= 1) {
+                    priorityTier = 3;
+                  } else if (semanticMatchCount >= 2) {
+                    priorityTier = 2;
+                  } else if (semanticMatchCount >= 1) {
+                    priorityTier = 1;
+                  }
+
                   const score =
-                    matchedWeight +
+                    effectiveMatchedWeight +
                     phraseBonus +
                     weightedCoverage * 2;
 
                   return {
                     id: item?.id || null,
                     text: candidateText,
+
+                    priorityTier,
                     score,
+
                     matchedWeight,
+                    semanticMatchedWeight,
+                    effectiveMatchedWeight,
+
+                    exactMatchCount,
+                    semanticMatchCount,
+                    totalConceptMatches,
+
                     phraseBonus,
                     weightedCoverage,
+
                     matchedTokens,
+                    semanticMatchedTokens,
                   };
                 })
                 .filter(Boolean)
                 .sort((left: any, right: any) =>
+                  right.priorityTier - left.priorityTier ||
+                  right.exactMatchCount - left.exactMatchCount ||
+                  right.totalConceptMatches -
+                    left.totalConceptMatches ||
                   right.score - left.score ||
-                  right.weightedCoverage - left.weightedCoverage ||
+                  right.weightedCoverage -
+                    left.weightedCoverage ||
                   left.text.length - right.text.length
                 )
                 .slice(0, 3);
             } catch (shadowError) {
               console.error(
-                '[TwoPro CORE Shadow Ranking v1 오류]',
+                '[TwoPro CORE Shadow Ranking v2 오류]',
                 shadowError
               );
             }
@@ -83278,7 +83578,7 @@ if (twoProBasicPassiveResultV1295) {
             if (twoProCoreShadowTopV1.length > 0) {
               const shadowBest = twoProCoreShadowTopV1[0];
 
-              console.log('[TwoPro CORE Shadow Ranking v1]', {
+              console.log('[TwoPro CORE Shadow Ranking v3]', {
                 query: originalText,
                 candidateCount: uniqueItems.length,
                 tokenWeights: twoProCoreShadowTokenWeightsV1,
@@ -83298,7 +83598,20 @@ if (twoProBasicPassiveResultV1295) {
                     phraseBonus: Number(
                       candidate.phraseBonus.toFixed(3)
                     ),
-                    matchedTokens: candidate.matchedTokens,
+                    priorityTier:
+                      candidate.priorityTier,
+
+                    exactMatchCount:
+                      candidate.exactMatchCount,
+
+                    semanticMatchCount:
+                      candidate.semanticMatchCount,
+
+                    matchedTokens:
+                      candidate.matchedTokens,
+
+                    semanticMatchedTokens:
+                      candidate.semanticMatchedTokens,
                   })
                 ),
               });

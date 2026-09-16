@@ -737,6 +737,48 @@ const twoProNormalizeDbShadowV1 = (value: string): string =>
     .trim();
 
 // ============================================================
+// TwoPro Safe Single-Hangul CORE v7.6
+//
+// 1음절이라도 의미량이 높은 내용어는
+// "결합 검색용 CORE"에서 사용할 수 있습니다.
+//
+// 예:
+// 책 / 문 / 집 / 물 / 밥 / 차 / 돈
+//
+// 반면 기존 stopword / 조사 / 어미는 제외합니다.
+// 이 규칙은 단독 %책% 검색용이 아니라
+// CORE 결합 검색용으로만 사용합니다.
+// ============================================================
+const twoProIsSafeSingleHangulCoreV76 = (
+  value: string
+): boolean => {
+  const normalized =
+    twoProNormalizeDbShadowV1(
+      value
+    );
+
+  if (
+    !/^[가-힣]$/u.test(normalized)
+  ) {
+    return false;
+  }
+
+  if (
+    kStopWords.has(normalized)
+  ) {
+    return false;
+  }
+
+  if (
+    kSuffixes.includes(normalized)
+  ) {
+    return false;
+  }
+
+  return true;
+};
+
+// ============================================================
 // TwoPro Exact Token Boundary v7.2
 //
 // exact token은 다른 한국어 단어의 내부 문자열로
@@ -774,9 +816,16 @@ const twoProHasExactTokenBoundaryV72 = (
       '\\$&'
     );
 
+  const isKoreanTokenV76 =
+    /^[가-힣]+$/u.test(
+      normalizedToken
+    );
+
   const exactBoundaryRegexV72 =
     new RegExp(
-      `(?:^|[^가-힣A-Za-z0-9_])${escapedToken}(?=[^가-힣A-Za-z0-9_]|$)`,
+      isKoreanTokenV76
+        ? `(?:^|[^가-힣A-Za-z0-9_])${escapedToken}(?:(?:에게|에서|께서|으로|부터|까지|은|는|이|가|을|를|에|로|와|과|의|도|만|랑))?(?=[^가-힣A-Za-z0-9_]|$)`
+        : `(?:^|[^가-힣A-Za-z0-9_])${escapedToken}(?=[^가-힣A-Za-z0-9_]|$)`,
       'iu'
     );
 
@@ -1650,7 +1699,12 @@ if (isDbCorePhraseProbeCandidateV4) {
       .filter(
         (token) =>
           Boolean(token) &&
-          token.length >= 2
+          (
+            token.length >= 2 ||
+            twoProIsSafeSingleHangulCoreV76(
+              token
+            )
+          )
       )
       .filter(
         (token, index, array) =>
@@ -1831,6 +1885,411 @@ if (isDbCorePhraseProbeCandidateV4) {
     }
   }
 
+  // ============================================================
+  // TwoPro CORE Semantic Family Priority v7.6
+  //
+  // 사용자의 검색어와 DB의 실제 표현이 달라도
+  // 고신뢰 의미 family가 확인된 경우 결합 검색합니다.
+  //
+  // 현재 첫 고신뢰 family:
+  // 구매 / 구입 → 사다 계열
+  //
+  // 예:
+  // 책 구매
+  // → 책을 사...
+  // → 책을 샀...
+  // → 책을 산...
+  // → 책을 살...
+  //
+  // "정책을 사용", "공책을 사다", "방해책" 등은
+  // 아래 boundary 검사에서 제거합니다.
+  // ============================================================
+  let hasCoreSemanticFamilyHitV76 =
+    false;
+
+  if (
+    !hasCoreContiguousHitV75 &&
+    !isSentenceSearch &&
+    queryWordCountV75 === 2
+  ) {
+    const queryTokensV76 =
+      cleanQuery
+        .replace(
+          /[,.()\[\]:"']/g,
+          ''
+        )
+        .trim()
+        .split(/\s+/)
+        .map(
+          twoProNormalizeDbShadowV1
+        )
+        .filter(Boolean);
+
+    const leftTokenV76 =
+      queryTokensV76[0] || '';
+
+    const rightTokenV76 =
+      queryTokensV76[1] || '';
+
+    const purchaseSemanticTargetsV76 =
+      new Set([
+        '구매',
+        '구매하기',
+        '구입',
+        '구입하기',
+      ]);
+
+    const isPurchaseSemanticQueryV76 =
+      /^[가-힣]+$/u.test(
+        leftTokenV76
+      ) &&
+      purchaseSemanticTargetsV76.has(
+        rightTokenV76
+      );
+
+    if (
+      isPurchaseSemanticQueryV76
+    ) {
+      const lastCharV76 =
+        leftTokenV76[
+          leftTokenV76.length - 1
+        ];
+
+      const lastCodeV76 =
+        lastCharV76.charCodeAt(0);
+
+      const hasJongseongV76 =
+        lastCodeV76 >= 0xac00 &&
+        lastCodeV76 <= 0xd7a3 &&
+        (
+          (
+            lastCodeV76 -
+            0xac00
+          ) %
+          28
+        ) > 0;
+
+      const objectParticleV76 =
+        hasJongseongV76
+          ? '을'
+          : '를';
+
+      const semanticProbePhrasesV76 =
+        [
+          ...new Set([
+            `${leftTokenV76}${objectParticleV76} 사`,
+            `${leftTokenV76}${objectParticleV76} 샀`,
+            `${leftTokenV76}${objectParticleV76} 산`,
+            `${leftTokenV76}${objectParticleV76} 살`,
+            `${leftTokenV76} 사`,
+            `${leftTokenV76} 샀`,
+            `${leftTokenV76} 산`,
+            `${leftTokenV76} 살`,
+          ]),
+        ];
+
+      const semanticStartedAtV76 =
+        Date.now();
+
+      try {
+        const escapedLeftV76 =
+          leftTokenV76.replace(
+            /[.*+?^${}()|[\]\\]/g,
+            '\\$&'
+          );
+
+        const safePurchaseRegexV76 =
+          new RegExp(
+            `(?:^|[^가-힣A-Za-z0-9_])${escapedLeftV76}(?:은|는|이|가|을|를|도|만)?\\s*(?:사(?=(?:기|고|는|도|려|러|면|서|야|주|세|지|겠|보|다|\\s|[.,?!]|$))|샀|산(?=(?:다|다면|\\s|[.,?!]|$))|살(?=(?:게|까|수|때|\\s|[.,?!]|$)))`,
+            'iu'
+          );
+
+        // ========================================================
+        // TwoPro Semantic Family Sequential Probe v7.7
+        //
+        // 여러 의미 후보를 OR로 한꺼번에 검색하지 않습니다.
+        // 가장 강한 구부터 하나씩 검색하고,
+        // 충분한 고신뢰 결과를 얻으면 즉시 중단합니다.
+        //
+        // 예:
+        // 책 구매
+        // 1차 → "책을 사"
+        //
+        // 여기서 충분한 자료가 나오면
+        // "책을 샀", "책을 산", "책을 살" 등은
+        // 추가 DB 검색하지 않습니다.
+        // ========================================================
+        const semanticRowsMapV77 =
+          new Map<string, any>();
+
+        const safeSemanticRowsMapV77 =
+          new Map<string, any>();
+
+        const semanticProbeStatsV77: Array<{
+          phrase: string;
+          elapsedMs: number;
+          resultCount: number;
+          safeResultCount: number;
+          error: string | null;
+        }> = [];
+
+        let semanticErrorV77:
+          string | null = null;
+
+        for (
+          const phrase of
+          semanticProbePhrasesV76
+        ) {
+          const probeStartedAtV77 =
+            Date.now();
+
+          const {
+            data,
+            error: probeErrorV77,
+          } =
+            await supabase
+              .from(
+                'dictionary_lines'
+              )
+              .select('*')
+              .neq(
+                'category_id',
+                0
+              )
+              .ilike(
+                'line_text',
+                `%${phrase}%`
+              )
+              .limit(30);
+
+          const probeRowsV77 =
+            Array.isArray(data)
+              ? data
+              : [];
+
+          const safeProbeRowsV77 =
+            probeRowsV77.filter(
+              (row: any) =>
+                safePurchaseRegexV76.test(
+                  String(
+                    row?.line_text || ''
+                  ).normalize('NFC')
+                )
+            );
+
+          for (
+            const row of
+            probeRowsV77
+          ) {
+            if (row?.id) {
+              semanticRowsMapV77.set(
+                String(row.id),
+                row
+              );
+            }
+          }
+
+          for (
+            const row of
+            safeProbeRowsV77
+          ) {
+            if (row?.id) {
+              safeSemanticRowsMapV77.set(
+                String(row.id),
+                row
+              );
+            }
+          }
+
+          semanticProbeStatsV77.push({
+            phrase,
+            elapsedMs:
+              Date.now() -
+              probeStartedAtV77,
+            resultCount:
+              probeRowsV77.length,
+            safeResultCount:
+              safeProbeRowsV77.length,
+            error:
+              probeErrorV77?.message ||
+              null,
+          });
+
+          if (probeErrorV77) {
+            semanticErrorV77 =
+              probeErrorV77.message;
+
+            // timeout 이후 다음 후보를 연속해서
+            // 다시 검색하지 않습니다.
+            break;
+          }
+
+          // X-DIC Insight 및 첫 페이지에 사용할
+          // 충분한 고신뢰 자료가 확보되면 종료합니다.
+          if (
+            safeSemanticRowsMapV77.size >= 8
+          ) {
+            break;
+          }
+        }
+
+        const semanticRowsV76 =
+          Array.from(
+            semanticRowsMapV77.values()
+          );
+
+        const safeSemanticRowsV76 =
+          Array.from(
+            safeSemanticRowsMapV77.values()
+          );
+
+        const error =
+          semanticErrorV77
+            ? {
+                message:
+                  semanticErrorV77,
+              }
+            : null;
+
+        console.log(
+          '[X-DIC CORE Semantic Sequential Probe v7.7]',
+          {
+            query:
+              cleanQuery,
+            probeStats:
+              semanticProbeStatsV77,
+            rawResultCount:
+              semanticRowsV76.length,
+            safeResultCount:
+              safeSemanticRowsV76.length,
+          }
+        );
+
+        if (
+          !error &&
+          safeSemanticRowsV76.length > 0
+        ) {
+          hasCoreSemanticFamilyHitV76 =
+            true;
+
+          for (
+            const row of
+            safeSemanticRowsV76
+          ) {
+            const existing =
+              resultsMap.get(
+                row.id
+              );
+
+            if (existing) {
+              const oldPriority =
+                Number(
+                  existing
+                    ._twoProDbPriority ??
+                  999
+                );
+
+              if (
+                oldPriority > 3
+              ) {
+                existing._twoProDbPriority =
+                  3;
+
+                existing._twoProDbMatch =
+                  'core-semantic-family-v76';
+              }
+            } else {
+              resultsMap.set(
+                row.id,
+                {
+                  ...row,
+                  _twoProDbPriority: 3,
+                  _twoProDbMatch:
+                    'core-semantic-family-v76',
+                }
+              );
+            }
+          }
+
+          results =
+            Array.from(
+              resultsMap.values()
+            );
+
+          results =
+            rotateResults(
+              results,
+              cleanQuery,
+              twoProCoreSearchKeywordsV6.length > 0
+                ? twoProCoreSearchKeywordsV6
+                : allSearchKeywords,
+              flexStr,
+              !!bestSplit
+            );
+        }
+
+        console.log(
+          '[X-DIC CORE Semantic Family Priority v7.6]',
+          {
+            query:
+              cleanQuery,
+            semanticFamily:
+              'PURCHASE',
+            probePhrases:
+              semanticProbePhrasesV76,
+            elapsedMs:
+              Date.now() -
+              semanticStartedAtV76,
+            rawResultCount:
+              semanticRowsV76.length,
+            safeResultCount:
+              safeSemanticRowsV76.length,
+            error:
+              error?.message || null,
+            userVisibleEffect:
+              hasCoreSemanticFamilyHitV76,
+            productionEffect:
+              false,
+            samples:
+              safeSemanticRowsV76
+                .slice(0, 5)
+                .map((row: any) =>
+                  String(
+                    row?.line_text || ''
+                  )
+                ),
+          }
+        );
+      } catch (error: any) {
+        console.log(
+          '[X-DIC CORE Semantic Family Priority v7.6]',
+          {
+            query:
+              cleanQuery,
+            semanticFamily:
+              'PURCHASE',
+            elapsedMs:
+              Date.now() -
+              semanticStartedAtV76,
+            rawResultCount: 0,
+            safeResultCount: 0,
+            error:
+              String(
+                error?.message ||
+                error ||
+                'unknown semantic family error'
+              ),
+            userVisibleEffect:
+              false,
+            productionEffect:
+              false,
+            samples: [],
+          }
+        );
+      }
+    }
+  }
+
   const phraseExactAndGroupsRawV4:
     string[][] = [];
 
@@ -1908,14 +2367,17 @@ if (isDbCorePhraseProbeCandidateV4) {
     phraseExactAndGroupsV4
   ) {
     if (
-      hasCoreContiguousHitV75
+      hasCoreContiguousHitV75 ||
+      hasCoreSemanticFamilyHitV76
     ) {
       phraseExactAndStatsV4.push({
         tokens,
         elapsedMs: 0,
         resultCount: 0,
         error:
-          'skipped: core contiguous phrase hit v7.5',
+          hasCoreContiguousHitV75
+            ? 'skipped: core contiguous phrase hit v7.5'
+            : 'skipped: core semantic family hit v7.6',
         samples: [],
       });
 
