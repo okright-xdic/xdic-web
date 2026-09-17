@@ -446,6 +446,11 @@ const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[
 
   // TwoPro exact + family 고신뢰 후보
   const twoProFamilyMatches: any[] = [];
+
+  // TwoPro v7.4.2
+  // 3 CORE 이상 검색에서 exact + family 두 요소만 확인된
+  // 중간 신뢰도 지원 후보
+  const twoProSupportingFamilyMatches: any[] = [];
   
   const frontTightMatches: any[] = []; 
   const frontPartialMatches: any[] = []; 
@@ -500,6 +505,11 @@ const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[
       twoProExactAndMatches.push(item);
     } else if (Number(item._twoProDbPriority) === 3) {
       twoProFamilyMatches.push(item);
+    } else if (
+      Number(item._twoProDbPriority) === 5 &&
+      item._twoProDbMatch === 'exact+family-support-v742'
+    ) {
+      twoProSupportingFamilyMatches.push(item);
     } else if (item.split_type === 'front') {
       const splitTarget = (item.split_keyword || '').toLowerCase();
       if (isStrictStandalone(textOriginal, splitTarget)) frontTightMatches.push(item);
@@ -613,6 +623,10 @@ if (hasTight && !isSplitMode) {
     // TwoPro exact + family 고신뢰 결과
     ...sortByCategory(twoProFamilyMatches),
 
+    // TwoPro v7.4.2
+    // 3 CORE 이상 검색의 exact + family 지원 결과
+    ...sortByCategory(twoProSupportingFamilyMatches),
+
     ...sortByRelevanceAndCategory(
       andMatchesBoundary
     ),
@@ -658,6 +672,7 @@ if (hasTight && !isSplitMode) {
       ...sortByCategory(corpusPartialMatch),
       ...sortedTwoProExactAndMatches,
       ...sortByCategory(twoProFamilyMatches),
+      ...sortByCategory(twoProSupportingFamilyMatches),
       ...sortByRelevanceAndCategory(andMatchesBoundary),
       ...sortByRelevanceAndCategory(andMatchesPartial),
       ...combinedPartialSplit, 
@@ -1671,7 +1686,6 @@ relatedSearchKeywords.forEach((keyword) => {
 // ============================================================================
 
 const isDbCorePhraseProbeCandidateV4 =
-  process.env.NODE_ENV !== 'production' &&
   /[가-힣]/.test(cleanQuery) &&
   cleanQuery
     .split(/\s+/)
@@ -2888,13 +2902,18 @@ if (isDbCorePhraseProbeCandidateV4) {
   // - production / Vercel에는 아직 영향이 없습니다.
   // ============================================================
   const allowTwoProLocalPromotionV52 =
-    process.env.NODE_ENV !== 'production' &&
     cleanQuery
       .split(/\s+/)
       .filter(Boolean)
       .length >= 2;
 
   const promotedRowIdsV52 =
+    new Set<string>();
+
+  // v7.4.2
+  // 3 CORE 이상에서 2 CORE exact+family까지만 맞은
+  // 중간 신뢰도 후보를 별도로 기록합니다.
+  const supportingRowIdsV742 =
     new Set<string>();
 
   for (
@@ -2918,7 +2937,9 @@ if (isDbCorePhraseProbeCandidateV4) {
           )
           .ilike(
             'line_text',
-            `%${group.relaxed}%`
+            /^[가-힣]$/u.test(group.relaxed)
+              ? `% ${group.relaxed}%`
+              : `%${group.relaxed}%`
           )
           .limit(30);
 
@@ -3021,12 +3042,126 @@ const relaxedBoundaryRegexV51 =
             ) === group.exact
         );
 
+      // ------------------------------------------------------------
+      // v7.4.1:
+      // CORE가 3개 이상인 검색에서는
+      // exact + family 2개만 맞았다고 바로 승격하지 않습니다.
+      //
+      // 예:
+      // "나는 그에게 문을 열라고 말해요"
+      //
+      // 핵심:
+      // 문을 / 열라고 / 말해요
+      //
+      // 기존:
+      // 문을(EXACT) + 열(family)
+      // → "문을 열다" 계열만으로도 승격 가능
+      //
+      // 보강:
+      // CORE가 3개 이상이면 현재 exact + family 외에
+      // 나머지 CORE 중 하나가 같은 행에서 EXACT로
+      // 추가 확인되어야 승격합니다.
+      //
+      // CORE가 2개인
+      // "기다리라고 말하지"는 기존 동작을 그대로 유지합니다.
+      // ------------------------------------------------------------
+
+      const promotionRowsV741 =
+        coreProfilesV5.length < 3
+          ? safeRowsV51
+          : safeRowsV51.filter(
+              (row: any) => {
+                const rowText =
+                  String(
+                    row?.line_text || ''
+                  ).normalize('NFC');
+
+                return coreProfilesV5.some(
+                  (profile) => {
+                    const profileExact =
+                      twoProNormalizeDbShadowV1(
+                        profile.surface
+                      );
+
+                    if (!profileExact) {
+                      return false;
+                    }
+
+                    // 현재 exact 쪽은 이미 확인되었으므로 제외
+                    if (
+                      profileExact ===
+                      group.exact
+                    ) {
+                      return false;
+                    }
+
+                    const profileFamily =
+                      buildFamilyAnchorV5(
+                        profile.surface
+                      );
+
+                    // 현재 relaxed 쪽을 만든 원래 CORE도 제외
+                    if (
+                      profileFamily &&
+                      profileFamily ===
+                        group.relaxed
+                    ) {
+                      return false;
+                    }
+
+                    return (
+                      twoProHasExactTokenBoundaryV72(
+                        rowText,
+                        profileExact
+                      )
+                    );
+                  }
+                );
+              }
+            );
+
+      // ------------------------------------------------------------
+      // v7.4.2:
+      // CORE가 3개 이상인 경우,
+      // v7.4.1 고신뢰 승격에는 실패했지만
+      // exact + safe-family 두 의미 요소가 확인된 행은
+      // 단일 CORE fallback보다 한 단계 높은 지원 후보로 보존합니다.
+      //
+      // 예:
+      // 문을(EXACT) + 열(family)
+      // → 말해요 하나만 있는 행보다 우선
+      //
+      // 단:
+      // priority 3 고신뢰보다 아래에 둡니다.
+      // ------------------------------------------------------------
+      const promotionRowIdsV741 =
+        new Set(
+          promotionRowsV741.map((row: any) =>
+            String(row?.id || '')
+          )
+        );
+
+      const supportingRowsV742 =
+        coreProfilesV5.length >= 3
+          ? safeRowsV51.filter(
+              (row: any) => {
+                const rowId =
+                  String(row?.id || '');
+
+                return (
+                  Boolean(rowId) &&
+                  !promotionRowIdsV741.has(rowId)
+                );
+              }
+            )
+          : [];
+
       const shouldPromoteV52 =
         allowTwoProLocalPromotionV52 &&
         (exactProfileV52?.retrievalWeight || 0) >= 4.0;
 
       if (shouldPromoteV52) {
-        for (const row of safeRowsV51) {
+        for (const row of promotionRowsV741) {
           const rowId =
             String(row?.id || '');
 
@@ -3068,6 +3203,61 @@ const relaxedBoundaryRegexV51 =
         }
       }
 
+      // ------------------------------------------------------------
+      // v7.4.2:
+      // 고신뢰 priority 3에는 못 올라갔지만,
+      // exact + safe-family가 함께 확인된 3-CORE 검색 결과는
+      // priority 5 지원 후보로 보존합니다.
+      // ------------------------------------------------------------
+      if (
+        allowTwoProLocalPromotionV52 &&
+        coreProfilesV5.length >= 3 &&
+        (exactProfileV52?.retrievalWeight || 0) >= 4.0
+      ) {
+        for (const row of supportingRowsV742) {
+          const rowId =
+            String(row?.id || '');
+
+          if (!rowId) {
+            continue;
+          }
+
+          const existing =
+            resultsMap.get(row.id);
+
+          if (existing) {
+            const oldPriority =
+              Number(
+                existing._twoProDbPriority ??
+                999
+              );
+
+            // 이미 더 강한 priority 2/3 판정이면 건드리지 않습니다.
+            if (oldPriority > 5) {
+              existing._twoProDbPriority =
+                5;
+
+              existing._twoProDbMatch =
+                'exact+family-support-v742';
+            }
+          } else {
+            resultsMap.set(
+              row.id,
+              {
+                ...row,
+                _twoProDbPriority: 5,
+                _twoProDbMatch:
+                  'exact+family-support-v742',
+              }
+            );
+          }
+
+          supportingRowIdsV742.add(
+            rowId
+          );
+        }
+      }
+
       relaxedStatsV5.push({
         exact:
           group.exact,
@@ -3078,11 +3268,11 @@ const relaxedBoundaryRegexV51 =
   elapsedMs:
     Date.now() - startedAt,
   resultCount:
-    safeRowsV51.length,
+    promotionRowsV741.length,
   error:
     error?.message || null,
   samples:
-    safeRowsV51
+    promotionRowsV741
       .slice(0, 8)
       .map((row: any) =>
         String(
@@ -3117,7 +3307,10 @@ const relaxedBoundaryRegexV51 =
   // resultsMap에서 results를 다시 만들고
   // 기존 rotateResults 정렬기를 그대로 재사용합니다.
   // ------------------------------------------------------------
-  if (promotedRowIdsV52.size > 0) {
+  if (
+    promotedRowIdsV52.size > 0 ||
+    supportingRowIdsV742.size > 0
+  ) {
     results =
       Array.from(
         resultsMap.values()

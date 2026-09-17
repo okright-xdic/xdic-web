@@ -2875,6 +2875,40 @@ if (
     else alert('🌟 PC 환경입니다.\n키보드에서 [ Ctrl + D ] 를 동시에 눌러 엑스딕을 즐겨찾기에 추가해주세요!');
   };
 
+  // ================================================================
+  // ☆ TwoPro 2026-09-17-safe:
+  // 사용자가 직접 입력한 한 글자 한글 내용어 하이라이트 허용
+  //
+  // 기존 sanitizeHighlightKeys()의 한 글자 차단은 그대로 유지합니다.
+  // 다만 "책 구매"의 "책"처럼 검색어 자체가 한 글자 내용어인 경우에만
+  // 별도로 안전하게 살립니다.
+  //
+  // '한', '을', '를', '이', '가', '수' 등의 기능어는
+  // HIGHLIGHT_STOPWORDS에 의해 계속 제외됩니다.
+  // ================================================================
+  const directSingleKoreanQueryKeys = useMemo(() => {
+    const tokens = String(displayQuery || '')
+      .normalize('NFC')
+      .replace(/[.,:;!?()[\]{}"'“”‘’]+/g, ' ')
+      .split(/\s+/)
+      .map((token) => token.trim())
+      .filter(Boolean);
+
+    return Array.from(
+      new Set(
+        tokens.filter((token) => {
+          const compareKey =
+            token.toLocaleLowerCase();
+
+          return (
+            /^[가-힣]$/u.test(token) &&
+            !HIGHLIGHT_STOPWORDS.has(compareKey)
+          );
+        })
+      )
+    );
+  }, [displayQuery]);
+
   const safeOrangeKeys = useMemo(
     () => sanitizeHighlightKeys(orangeKeys || []),
     [orangeKeys]
@@ -4775,10 +4809,27 @@ const hasXdicInsight =
     const safeBlueKeys =
       sanitizeHighlightKeys(derivedBlueKeys);
 
-    const allKeys = sanitizeHighlightKeys([
-      ...safeOrangeKeys,
-      ...safeBlueKeys,
-    ]);
+    // 일반 하이라이트 키는 기존 안전 필터를 그대로 사용합니다.
+    // 사용자가 직접 입력한 한 글자 한글 내용어만 필터 이후 별도로 추가합니다.
+    const allKeys = [
+      ...sanitizeHighlightKeys([
+        ...safeOrangeKeys,
+        ...safeBlueKeys,
+      ]),
+      ...directSingleKoreanQueryKeys,
+    ]
+      .filter(
+        (key, index, array) =>
+          array.findIndex(
+            (item) =>
+              item.toLocaleLowerCase() ===
+              key.toLocaleLowerCase()
+          ) === index
+      )
+      .sort(
+        (a, b) =>
+          b.length - a.length
+      );
 
     if (allKeys.length === 0) {
       return (
@@ -4793,8 +4844,12 @@ const hasXdicInsight =
       );
     }
 
+    // 직접 검색한 한 글자 한글 내용어는 주황색 검색어로 취급합니다.
     const orangeKeySet = new Set(
-      safeOrangeKeys.map((key) =>
+      [
+        ...safeOrangeKeys,
+        ...directSingleKoreanQueryKeys,
+      ].map((key) =>
         key.toLocaleLowerCase()
       )
     );
@@ -4805,10 +4860,53 @@ const hasXdicInsight =
       )
     );
 
+    const directSingleKoreanQueryKeySet =
+      new Set(
+        directSingleKoreanQueryKeys.map((key) =>
+          key.toLocaleLowerCase()
+        )
+      );
+
     const escapedRegexParts =
       allKeys.map((key) => {
         const escaped =
           escapeHighlightRegExp(key);
+
+        const compareKey =
+          key.toLocaleLowerCase();
+
+        // ------------------------------------------------------------
+        // "책 구매"의 "책" 같은 직접 입력 한 글자 내용어
+        //
+        // 허용:
+        //   책
+        //   책을
+        //   책이
+        //   책은
+        //   책에서
+        //   책으로
+        //
+        // 차단:
+        //   정책
+        //   책상
+        //
+        // 즉 한 글자라고 해서 모든 문자열 내부를 색칠하지 않습니다.
+        // ------------------------------------------------------------
+        if (
+          directSingleKoreanQueryKeySet.has(
+            compareKey
+          )
+        ) {
+          return (
+            `(?<![가-힣])${escaped}` +
+            `(?=` +
+              `$|` +
+              `[^가-힣]|` +
+              `(?:은|는|이|가|을|를|와|과|의|에|도|만|로|으로|에서|에게|께|부터|까지|처럼|보다)` +
+              `(?=$|[^가-힣])` +
+            `)`
+          );
+        }
 
         // 영어는 단어 경계를 적용하고,
         // 한국어는 '자료'가 '자료를' 안에서도 대응되도록 부분 일치를 허용합니다.
