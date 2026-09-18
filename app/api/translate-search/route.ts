@@ -11757,6 +11757,33 @@ const twoProTryKoEnTellObjectInfinitiveV1301 = (
       ],
     },
 
+    '계속 일하라고': {
+      target: 'to keep working',
+      references: [
+        {
+          source: '계속 일하다',
+          selected: 'to keep working',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '일찍 출발하라고': {
+      target: 'to leave early',
+      references: [
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
+        },
+        {
+          source: '출발하다',
+          selected: 'to leave',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
     '밖에 나가라고': {
       target: 'to go outside',
       references: [
@@ -13209,6 +13236,6476 @@ const twoProTryKoEnAskObjectInfinitiveFutureQuestionV1308 = (
       baseResult.referenceWords,
     engine:
       'basic-ask-object-infinitive-future-question-ko-en-v13.08',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.13-safe: make + O + bare infinitive 일반 사역문 CORE
+//
+// 현재 회귀에서 실패가 확인된
+//   [주어] + [목적어]를 + [동작]게 + 하다
+// 구조를 제한적으로 일반화합니다.
+//
+// 처리 범위:
+// - 그는/그녀는
+// - 나를/아이를
+// - 기다리게 / 웃게 / 일하게 / 울게 / 일찍 출발하게
+// - 해요 / 했어요 / 하지 않아요 / 하지 않았어요
+//
+// 안전 원칙:
+// 1. 기존 v12.99/v13.00의 make exact 회귀는 그대로 유지합니다.
+// 2. make 사역구문은 반드시 make + O + 동사원형이며 to를 넣지 않습니다.
+// 3. 현재 3인칭 단수 긍정은 makes, 과거는 made입니다.
+// 4. 현재 부정은 doesn't make, 과거 부정은 didn't make입니다.
+// 5. doesn't/didn't 뒤에서는 반드시 make 원형을 사용합니다.
+// 6. 명시적 ?/？ 입력은 아직 처리하지 않아 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnMakeObjectBareInfinitiveV1313 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그는|그녀는)\s+(나를|아이를)\s+(.+?)\s+(해요|했어요|하지 않아요|하지 않았어요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const complementKo = matched[3];
+  const predicateKo = matched[4];
+
+  const subjectMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        source: string;
+      }
+    >
+  > = {
+    그는: {
+      target: 'He',
+      source: '그',
+    },
+    그녀는: {
+      target: 'She',
+      source: '그녀',
+    },
+  };
+
+  const objectMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        source: string;
+      }
+    >
+  > = {
+    나를: {
+      target: 'me',
+      source: '나',
+    },
+    아이를: {
+      target: 'the child',
+      source: '아이',
+    },
+  };
+
+  const complementMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        source: string;
+        references: Array<{
+          source: string;
+          selected: string;
+          slot: string;
+        }>;
+      }
+    >
+  > = {
+    기다리게: {
+      target: 'wait',
+      source: '기다리다',
+      references: [
+        {
+          source: '기다리다',
+          selected: 'wait',
+          slot: 'OBJECT_COMPLEMENT:BARE_INFINITIVE',
+        },
+      ],
+    },
+
+    웃게: {
+      target: 'laugh',
+      source: '웃다',
+      references: [
+        {
+          source: '웃다',
+          selected: 'laugh',
+          slot: 'OBJECT_COMPLEMENT:BARE_INFINITIVE',
+        },
+      ],
+    },
+
+    일하게: {
+      target: 'work',
+      source: '일하다',
+      references: [
+        {
+          source: '일하다',
+          selected: 'work',
+          slot: 'OBJECT_COMPLEMENT:BARE_INFINITIVE',
+        },
+      ],
+    },
+
+    울게: {
+      target: 'cry',
+      source: '울다',
+      references: [
+        {
+          source: '울다',
+          selected: 'cry',
+          slot: 'OBJECT_COMPLEMENT:BARE_INFINITIVE',
+        },
+      ],
+    },
+
+    '일찍 출발하게': {
+      target: 'leave early',
+      source: '출발하다',
+      references: [
+        {
+          source: '출발하다',
+          selected: 'leave',
+          slot: 'OBJECT_COMPLEMENT:BARE_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
+        },
+      ],
+    },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+  const complement = complementMap[complementKo];
+
+  if (
+    !subject ||
+    !object ||
+    !complement
+  ) {
+    return null;
+  }
+
+  let predicateEn = '';
+  let predicateSlot = '';
+
+  if (predicateKo === '해요') {
+    predicateEn = 'makes';
+    predicateSlot = 'VERB:PRESENT';
+  } else if (predicateKo === '했어요') {
+    predicateEn = 'made';
+    predicateSlot = 'VERB:PAST';
+  } else if (predicateKo === '하지 않아요') {
+    predicateEn = "doesn't make";
+    predicateSlot = 'VERB:PRESENT:NEG';
+  } else if (predicateKo === '하지 않았어요') {
+    predicateEn = "didn't make";
+    predicateSlot = 'VERB:PAST:NEG';
+  } else {
+    return null;
+  }
+
+  const targetBody =
+    `${subject.target} ${predicateEn} ${object.target} ${complement.target}`;
+
+  const analysis: Array<{
+    ko: string;
+    en: string;
+  }> = [
+    {
+      ko: subjectKo,
+      en: `${subject.target} [S]`,
+    },
+    {
+      ko: objectKo,
+      en: `${object.target} [O]`,
+    },
+    {
+      ko: complementKo,
+      en:
+        `${complement.target} ` +
+        '[OC:BARE-INFINITIVE]',
+    },
+    {
+      ko: predicateKo,
+      en: `${predicateEn} [${predicateSlot}]`,
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subject.source,
+      selected: subject.target,
+      slot: 'SUBJECT',
+    },
+    {
+      source: object.source,
+      selected: object.target,
+      slot: 'OBJECT',
+    },
+    ...complement.references,
+    {
+      source: '하게 하다',
+      selected: 'make',
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-make-object-bare-infinitive-ko-en-v13.13',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.14-safe: make + O + bare infinitive 현재·과거 의문문 CORE
+//
+// v13.13 평서문 CORE를 그대로 재사용하여 명시적 ?/？ 입력만
+// Do/Does/Did 및 Don't/Doesn't/Didn't 의문문으로 변환합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.13의 허용 주어·목적어·동작 범위만 재사용합니다.
+// 2. 현재 긍정: Does + S + make + O + bare infinitive?
+// 3. 과거 긍정: Did + S + make + O + bare infinitive?
+// 4. 현재 부정: Doesn't + S + make + O + bare infinitive?
+// 5. 과거 부정: Didn't + S + make + O + bare infinitive?
+// 6. 조동사 뒤에서는 makes/made가 아니라 반드시 make 원형을 사용합니다.
+// 7. 목적어 뒤 동사에도 to를 붙이지 않습니다.
+// ============================================================================
+const twoProTryKoEnMakeObjectBareInfinitiveQuestionV1314 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  // 검증된 v13.13 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnMakeObjectBareInfinitiveV1313(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(해요|했어요|하지 않아요|하지 않았어요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '해요') {
+    const presentMatch =
+      /^(He|She)\s+makes\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentMatch) {
+      return null;
+    }
+
+    const subject =
+      presentMatch[1].toLowerCase();
+
+    questionBody =
+      `Does ${subject} make ${presentMatch[2]}`;
+
+    predicateAnalysis =
+      'Does ... make [VERB:PRESENT:QUESTION]';
+  } else if (predicateKo === '했어요') {
+    const pastMatch =
+      /^(He|She)\s+made\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastMatch) {
+      return null;
+    }
+
+    const subject =
+      pastMatch[1].toLowerCase();
+
+    questionBody =
+      `Did ${subject} make ${pastMatch[2]}`;
+
+    predicateAnalysis =
+      'Did ... make [VERB:PAST:QUESTION]';
+  } else if (predicateKo === '하지 않아요') {
+    const presentNegativeMatch =
+      /^(He|She)\s+doesn't\s+make\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      presentNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Doesn't ${subject} make ${presentNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Doesn't ... make [VERB:PRESENT:NEG:QUESTION]";
+  } else if (predicateKo === '하지 않았어요') {
+    const pastNegativeMatch =
+      /^(He|She)\s+didn't\s+make\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      pastNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Didn't ${subject} make ${pastNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Didn't ... make [VERB:PAST:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-make-object-bare-infinitive-question-ko-en-v13.14',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.15-safe: make + O + bare infinitive 미래 평서문 CORE
+//
+// v13.13의 검증된 사역 평서문 해석을 그대로 재사용하고,
+// "하게 할 거예요 / 하게 하지 않을 거예요"만
+// will make / won't make 형태로 조립합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.13 / v13.14 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.13에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 긍정 미래: S + will make + O + bare infinitive
+// 4. 부정 미래: S + won't make + O + bare infinitive
+// 5. will / won't 뒤에서는 반드시 make 원형을 사용합니다.
+// 6. 목적어 뒤 동사에도 to를 붙이지 않습니다.
+// 7. 명시적 ?/？ 입력은 처리하지 않아 미래 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnMakeObjectBareInfinitiveFutureV1315 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const futureMatch =
+    /^(.*?)(할 거예요|하지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (!futureMatch) {
+    return null;
+  }
+
+  const predicateKo = futureMatch[2];
+
+  // v13.13이 검증한 동일 평서문 형태로 바꾸어
+  // 주어·목적어·bare infinitive 해석을 그대로 재사용합니다.
+  const basePredicateKo =
+    predicateKo === '할 거예요'
+      ? '해요'
+      : '하지 않아요';
+
+  const baseStatementText =
+    `${futureMatch[1]}${basePredicateKo}`.trim();
+
+  const baseResult =
+    twoProTryKoEnMakeObjectBareInfinitiveV1313(
+      baseStatementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let targetBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '할 거예요') {
+    const presentMatch =
+      /^(He|She)\s+makes\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentMatch) {
+      return null;
+    }
+
+    const subjectRaw = presentMatch[1];
+    const subject =
+      subjectRaw.charAt(0).toUpperCase() +
+      subjectRaw.slice(1).toLowerCase();
+
+    targetBody =
+      `${subject} will make ${presentMatch[2]}`;
+
+    predicateAnalysis =
+      'will make [VERB:FUTURE]';
+  } else {
+    const negativePresentMatch =
+      /^(He|She)\s+doesn't\s+make\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativePresentMatch) {
+      return null;
+    }
+
+    const subjectRaw =
+      negativePresentMatch[1];
+    const subject =
+      subjectRaw.charAt(0).toUpperCase() +
+      subjectRaw.slice(1).toLowerCase();
+
+    targetBody =
+      `${subject} won't make ${negativePresentMatch[2]}`;
+
+    predicateAnalysis =
+      "won't make [VERB:FUTURE:NEG]";
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === basePredicateKo
+        ? {
+            ko: predicateKo,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-make-object-bare-infinitive-future-ko-en-v13.15',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.16-safe: make + O + bare infinitive 미래 의문문 CORE
+//
+// v13.15 미래 평서문 CORE를 그대로 재사용하여,
+// "하게 할 거예요? / 하게 하지 않을 거예요?"만
+// Will / Won't 질문으로 도치합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.13~v13.15 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.15에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 긍정 미래 질문: Will + S + make + O + bare infinitive?
+// 4. 부정 미래 질문: Won't + S + make + O + bare infinitive?
+// 5. will / won't 뒤에서는 반드시 make 원형을 사용합니다.
+// 6. 목적어 뒤 동사에도 to를 붙이지 않습니다.
+// 7. 명시적 ?/？ 입력만 처리하여 미래 평서문 CORE와 충돌하지 않습니다.
+// ============================================================================
+const twoProTryKoEnMakeObjectBareInfinitiveFutureQuestionV1316 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  // 검증된 v13.15 미래 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnMakeObjectBareInfinitiveFutureV1315(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(할 거예요|하지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '할 거예요') {
+    const positiveMatch =
+      /^(He|She)\s+will\s+make\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!positiveMatch) {
+      return null;
+    }
+
+    const subject =
+      positiveMatch[1].toLowerCase();
+
+    questionBody =
+      `Will ${subject} make ${positiveMatch[2]}`;
+
+    predicateAnalysis =
+      'Will ... make [VERB:FUTURE:QUESTION]';
+  } else {
+    const negativeMatch =
+      /^(He|She)\s+won't\s+make\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativeMatch) {
+      return null;
+    }
+
+    const subject =
+      negativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Won't ${subject} make ${negativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Won't ... make [VERB:FUTURE:NEG:QUESTION]";
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-make-object-bare-infinitive-future-question-ko-en-v13.16',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.54-safe: allow 목적어 표지 확장
+// - 기존 나에게 / 아이에게를 그대로 유지하고, 자연스러운 한국어 주격형 내가 / 아이가도
+//   영어 목적격 me / the child로 안전하게 해석합니다.
+// - v13.18~v13.20은 v13.17을 재사용하므로 같은 표지 확장이 자동 적용됩니다.
+// - 기존 CORE/분기/결과 생성 로직은 삭제하지 않습니다.
+// ============================================================================
+// ☆ TwoPro v13.17-safe: allow + O + to-infinitive 일반 문형 CORE
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 나에게 / 아이에게 / 내가 / 아이가
+// - 들어가도록 / 밖에서 놀도록 / 계속 일하도록 / 컴퓨터를 사용하도록 / 일찍 떠나도록
+// - 허락해요 / 허락했어요 / 허락하지 않아요 / 허락하지 않았어요
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.16 코드는 수정하거나 삭제하지 않습니다.
+// 2. allow 구문은 반드시 allow + O + to-infinitive입니다.
+// 3. 현재 3인칭 단수 긍정은 allows, 과거는 allowed입니다.
+// 4. 현재 부정은 doesn't allow, 과거 부정은 didn't allow입니다.
+// 5. doesn't/didn't 뒤에서는 반드시 allow 원형을 사용합니다.
+// 6. 목적어 뒤 동사에는 반드시 to를 붙입니다.
+// 7. 명시적 ?/？ 입력은 아직 처리하지 않아 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnAllowObjectToInfinitiveV1317 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그는|그녀는)\s+(나에게|아이에게|내가|아이가)\s+(.+?)\s+(허락해요|허락했어요|허락하지 않아요|허락하지 않았어요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const complementKo = matched[3];
+  const predicateKo = matched[4];
+
+  const subjectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    그는: { target: 'He', source: '그' },
+    그녀는: { target: 'She', source: '그녀' },
+  };
+
+  const objectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    나에게: { target: 'me', source: '나' },
+    아이에게: { target: 'the child', source: '아이' },
+    내가: { target: 'me', source: '나' },
+    아이가: { target: 'the child', source: '아이' },
+  };
+
+  const complementMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        references: Array<{
+          source: string;
+          selected: string;
+          slot: string;
+        }>;
+      }
+    >
+  > = {
+    들어가도록: {
+      target: 'to enter',
+      references: [
+        {
+          source: '들어가다',
+          selected: 'to enter',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+    '밖에서 놀도록': {
+      target: 'to play outside',
+      references: [
+        {
+          source: '놀다',
+          selected: 'to play',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '밖에서',
+          selected: 'outside',
+          slot: 'ADVERB',
+        },
+      ],
+    },
+    '계속 일하도록': {
+      target: 'to keep working',
+      references: [
+        {
+          source: '계속 일하다',
+          selected: 'to keep working',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+    '컴퓨터를 사용하도록': {
+      target: 'to use the computer',
+      references: [
+        {
+          source: '컴퓨터',
+          selected: 'the computer',
+          slot: 'OBJECT',
+        },
+        {
+          source: '사용하다',
+          selected: 'to use',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+    '일찍 떠나도록': {
+      target: 'to leave early',
+      references: [
+        {
+          source: '떠나다',
+          selected: 'to leave',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
+        },
+      ],
+    },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+  const complement = complementMap[complementKo];
+
+  if (!subject || !object || !complement) {
+    return null;
+  }
+
+  let predicateEn = '';
+  let predicateSlot = '';
+
+  if (predicateKo === '허락해요') {
+    predicateEn = 'allows';
+    predicateSlot = 'VERB:PRESENT';
+  } else if (predicateKo === '허락했어요') {
+    predicateEn = 'allowed';
+    predicateSlot = 'VERB:PAST';
+  } else if (predicateKo === '허락하지 않아요') {
+    predicateEn = "doesn't allow";
+    predicateSlot = 'VERB:PRESENT:NEG';
+  } else if (predicateKo === '허락하지 않았어요') {
+    predicateEn = "didn't allow";
+    predicateSlot = 'VERB:PAST:NEG';
+  } else {
+    return null;
+  }
+
+  const targetBody =
+    `${subject.target} ${predicateEn} ${object.target} ${complement.target}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    { ko: subjectKo, en: `${subject.target} [S]` },
+    { ko: objectKo, en: `${object.target} [O]` },
+    {
+      ko: complementKo,
+      en: `${complement.target} [OC:TO-INFINITIVE]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${predicateEn} [${predicateSlot}]`,
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subject.source,
+      selected: subject.target,
+      slot: 'SUBJECT',
+    },
+    {
+      source: object.source,
+      selected: object.target,
+      slot: 'OBJECT',
+    },
+    ...complement.references,
+    {
+      source: '허락하다',
+      selected: 'allow',
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-allow-object-to-infinitive-ko-en-v13.17',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.18-safe: allow + O + to-infinitive 현재·과거 의문문 CORE
+//
+// v13.17 평서문 CORE를 그대로 재사용하여 명시적 ?/？ 입력만
+// Do/Does/Did 및 Don't/Doesn't/Didn't 의문문으로 변환합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.17의 허용 주어·목적어·동작 범위만 재사용합니다.
+// 2. 현재 긍정: Does + S + allow + O + to-infinitive?
+// 3. 과거 긍정: Did + S + allow + O + to-infinitive?
+// 4. 현재 부정: Doesn't + S + allow + O + to-infinitive?
+// 5. 과거 부정: Didn't + S + allow + O + to-infinitive?
+// 6. 조동사 뒤에서는 allows/allowed가 아니라 반드시 allow 원형을 사용합니다.
+// 7. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// ============================================================================
+const twoProTryKoEnAllowObjectToInfinitiveQuestionV1318 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  // 검증된 v13.17 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnAllowObjectToInfinitiveV1317(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(허락해요|허락했어요|허락하지 않아요|허락하지 않았어요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '허락해요') {
+    const presentMatch =
+      /^(He|She)\s+allows\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentMatch) {
+      return null;
+    }
+
+    const subject =
+      presentMatch[1].toLowerCase();
+
+    questionBody =
+      `Does ${subject} allow ${presentMatch[2]}`;
+
+    predicateAnalysis =
+      'Does ... allow [VERB:PRESENT:QUESTION]';
+  } else if (predicateKo === '허락했어요') {
+    const pastMatch =
+      /^(He|She)\s+allowed\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastMatch) {
+      return null;
+    }
+
+    const subject =
+      pastMatch[1].toLowerCase();
+
+    questionBody =
+      `Did ${subject} allow ${pastMatch[2]}`;
+
+    predicateAnalysis =
+      'Did ... allow [VERB:PAST:QUESTION]';
+  } else if (predicateKo === '허락하지 않아요') {
+    const presentNegativeMatch =
+      /^(He|She)\s+doesn't\s+allow\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      presentNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Doesn't ${subject} allow ${presentNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Doesn't ... allow [VERB:PRESENT:NEG:QUESTION]";
+  } else if (predicateKo === '허락하지 않았어요') {
+    const pastNegativeMatch =
+      /^(He|She)\s+didn't\s+allow\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      pastNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Didn't ${subject} allow ${pastNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Didn't ... allow [VERB:PAST:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-allow-object-to-infinitive-question-ko-en-v13.18',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.19-safe: allow + O + to-infinitive 미래 평서문 CORE
+//
+// v13.17의 검증된 허가 평서문 해석을 그대로 재사용하고,
+// "허락할 거예요 / 허락하지 않을 거예요"만
+// will allow / won't allow 형태로 조립합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.17 / v13.18 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.17에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 긍정 미래: S + will allow + O + to-infinitive
+// 4. 부정 미래: S + won't allow + O + to-infinitive
+// 5. will / won't 뒤에서는 반드시 allow 원형을 사용합니다.
+// 6. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// 7. 명시적 ?/？ 입력은 처리하지 않아 미래 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnAllowObjectToInfinitiveFutureV1319 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const futureMatch =
+    /^(.*?)(허락할 거예요|허락하지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (!futureMatch) {
+    return null;
+  }
+
+  const predicateKo = futureMatch[2];
+
+  // v13.17이 이미 검증한 현재형으로 바꾸어
+  // 주어·목적어·to-infinitive 해석을 그대로 재사용합니다.
+  const basePredicateKo =
+    predicateKo === '허락할 거예요'
+      ? '허락해요'
+      : '허락하지 않아요';
+
+  const baseStatementText =
+    `${futureMatch[1]}${basePredicateKo}`.trim();
+
+  const baseResult =
+    twoProTryKoEnAllowObjectToInfinitiveV1317(
+      baseStatementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let targetBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '허락할 거예요') {
+    const presentMatch =
+      /^(He|She)\s+allows\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentMatch) {
+      return null;
+    }
+
+    const subjectRaw = presentMatch[1];
+    const subject =
+      subjectRaw.charAt(0).toUpperCase() +
+      subjectRaw.slice(1).toLowerCase();
+
+    targetBody =
+      `${subject} will allow ${presentMatch[2]}`;
+
+    predicateAnalysis =
+      'will allow [VERB:FUTURE]';
+  } else {
+    const negativePresentMatch =
+      /^(He|She)\s+doesn't\s+allow\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativePresentMatch) {
+      return null;
+    }
+
+    const subjectRaw =
+      negativePresentMatch[1];
+    const subject =
+      subjectRaw.charAt(0).toUpperCase() +
+      subjectRaw.slice(1).toLowerCase();
+
+    targetBody =
+      `${subject} won't allow ${negativePresentMatch[2]}`;
+
+    predicateAnalysis =
+      "won't allow [VERB:FUTURE:NEG]";
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === basePredicateKo
+        ? {
+            ko: predicateKo,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-allow-object-to-infinitive-future-ko-en-v13.19',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.20-safe: allow + O + to-infinitive 미래 의문문 CORE
+//
+// v13.19 미래 평서문 CORE를 그대로 재사용하여,
+// "허락할 거예요? / 허락하지 않을 거예요?"를
+// Will / Won't 질문으로 도치합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.17~v13.19 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.19에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 긍정 미래 질문: Will + S + allow + O + to-infinitive?
+// 4. 부정 미래 질문: Won't + S + allow + O + to-infinitive?
+// 5. will / won't 뒤에서는 반드시 allow 원형을 사용합니다.
+// 6. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// 7. 명시적 ?/？ 입력만 처리하여 미래 평서문 CORE와 충돌하지 않습니다.
+// ============================================================================
+const twoProTryKoEnAllowObjectToInfinitiveFutureQuestionV1320 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  // 검증된 v13.19 미래 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnAllowObjectToInfinitiveFutureV1319(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(허락할 거예요|허락하지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '허락할 거예요') {
+    const positiveMatch =
+      /^(He|She)\s+will\s+allow\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!positiveMatch) {
+      return null;
+    }
+
+    const subject =
+      positiveMatch[1].toLowerCase();
+
+    questionBody =
+      `Will ${subject} allow ${positiveMatch[2]}`;
+
+    predicateAnalysis =
+      'Will ... allow [VERB:FUTURE:QUESTION]';
+  } else {
+    const negativeMatch =
+      /^(He|She)\s+won't\s+allow\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativeMatch) {
+      return null;
+    }
+
+    const subject =
+      negativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Won't ${subject} allow ${negativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Won't ... allow [VERB:FUTURE:NEG:QUESTION]";
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-allow-object-to-infinitive-future-question-ko-en-v13.20',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.21-safe: force + O + to-infinitive 일반 강요문 CORE
+//
+// 현재 회귀에서 실패가 확인된
+//   [주어] + [사람]에게 + [동작]도록 + 강요하다
+// 구조를 제한적으로 일반화합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 나에게 / 아이에게
+// - 기다리도록 / 공부하도록 / 일하도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록 / 일찍 떠나도록
+// - 강요해요 / 강요했어요 / 강요하지 않아요 / 강요하지 않았어요
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.20 코드는 수정하거나 삭제하지 않습니다.
+// 2. force 구문은 반드시 force + O + to-infinitive입니다.
+// 3. 현재 3인칭 단수 긍정은 forces, 과거는 forced입니다.
+// 4. 현재 부정은 doesn't force, 과거 부정은 didn't force입니다.
+// 5. doesn't/didn't 뒤에서는 반드시 force 원형을 사용합니다.
+// 6. 목적어 뒤 동사에는 반드시 to를 붙입니다.
+// 7. 명시적 ?/？ 입력은 아직 처리하지 않아 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnForceObjectToInfinitiveV1321 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(강요해요|강요했어요|강요하지 않아요|강요하지 않았어요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const complementKo = matched[3];
+  const predicateKo = matched[4];
+
+  const subjectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    그는: { target: 'He', source: '그' },
+    그녀는: { target: 'She', source: '그녀' },
+  };
+
+  const objectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    나에게: { target: 'me', source: '나' },
+    아이에게: { target: 'the child', source: '아이' },
+  };
+
+  const complementMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        references: Array<{
+          source: string;
+          selected: string;
+          slot: string;
+        }>;
+      }
+    >
+  > = {
+    기다리도록: {
+      target: 'to wait',
+      references: [
+        {
+          source: '기다리다',
+          selected: 'to wait',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    공부하도록: {
+      target: 'to study',
+      references: [
+        {
+          source: '공부하다',
+          selected: 'to study',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    일하도록: {
+      target: 'to work',
+      references: [
+        {
+          source: '일하다',
+          selected: 'to work',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '책을 읽도록': {
+      target: 'to read the book',
+      references: [
+        {
+          source: '책',
+          selected: 'the book',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '읽다',
+          selected: 'to read',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '계속 일하도록': {
+      target: 'to keep working',
+      references: [
+        {
+          source: '계속 일하다',
+          selected: 'to keep working',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '일찍 출발하도록': {
+      target: 'to leave early',
+      references: [
+        {
+          source: '출발하다',
+          selected: 'to leave',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
+        },
+      ],
+    },
+
+    '일찍 떠나도록': {
+      target: 'to leave early',
+      references: [
+        {
+          source: '떠나다',
+          selected: 'to leave',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
+        },
+      ],
+    },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+  const complement = complementMap[complementKo];
+
+  if (!subject || !object || !complement) {
+    return null;
+  }
+
+  let predicateEn = '';
+  let predicateSlot = '';
+
+  if (predicateKo === '강요해요') {
+    predicateEn = 'forces';
+    predicateSlot = 'VERB:PRESENT';
+  } else if (predicateKo === '강요했어요') {
+    predicateEn = 'forced';
+    predicateSlot = 'VERB:PAST';
+  } else if (predicateKo === '강요하지 않아요') {
+    predicateEn = "doesn't force";
+    predicateSlot = 'VERB:PRESENT:NEG';
+  } else if (predicateKo === '강요하지 않았어요') {
+    predicateEn = "didn't force";
+    predicateSlot = 'VERB:PAST:NEG';
+  } else {
+    return null;
+  }
+
+  const targetBody =
+    `${subject.target} ${predicateEn} ${object.target} ${complement.target}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    { ko: subjectKo, en: `${subject.target} [S]` },
+    { ko: objectKo, en: `${object.target} [O]` },
+    {
+      ko: complementKo,
+      en: `${complement.target} [OC:TO-INFINITIVE]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${predicateEn} [${predicateSlot}]`,
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subject.source,
+      selected: subject.target,
+      slot: 'SUBJECT',
+    },
+    {
+      source: object.source,
+      selected: object.target,
+      slot: 'OBJECT',
+    },
+    ...complement.references,
+    {
+      source: '강요하다',
+      selected: 'force',
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-force-object-to-infinitive-ko-en-v13.21',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.22-safe: force + O + to-infinitive 현재·과거 의문문 CORE
+//
+// v13.21 평서문 CORE를 그대로 재사용하여 명시적 ?/？ 입력만
+// Does/Did 및 Doesn't/Didn't 의문문으로 변환합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.21의 허용 주어·목적어·동작 범위만 재사용합니다.
+// 2. 현재 긍정: Does + S + force + O + to-infinitive?
+// 3. 과거 긍정: Did + S + force + O + to-infinitive?
+// 4. 현재 부정: Doesn't + S + force + O + to-infinitive?
+// 5. 과거 부정: Didn't + S + force + O + to-infinitive?
+// 6. 조동사 뒤에서는 forces/forced가 아니라 반드시 force 원형을 사용합니다.
+// 7. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// ============================================================================
+const twoProTryKoEnForceObjectToInfinitiveQuestionV1322 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  // 검증된 v13.21 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnForceObjectToInfinitiveV1321(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(강요해요|강요했어요|강요하지 않아요|강요하지 않았어요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '강요해요') {
+    const presentMatch =
+      /^(He|She)\s+forces\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentMatch) {
+      return null;
+    }
+
+    const subject =
+      presentMatch[1].toLowerCase();
+
+    questionBody =
+      `Does ${subject} force ${presentMatch[2]}`;
+
+    predicateAnalysis =
+      'Does ... force [VERB:PRESENT:QUESTION]';
+  } else if (predicateKo === '강요했어요') {
+    const pastMatch =
+      /^(He|She)\s+forced\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastMatch) {
+      return null;
+    }
+
+    const subject =
+      pastMatch[1].toLowerCase();
+
+    questionBody =
+      `Did ${subject} force ${pastMatch[2]}`;
+
+    predicateAnalysis =
+      'Did ... force [VERB:PAST:QUESTION]';
+  } else if (predicateKo === '강요하지 않아요') {
+    const presentNegativeMatch =
+      /^(He|She)\s+doesn't\s+force\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      presentNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Doesn't ${subject} force ${presentNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Doesn't ... force [VERB:PRESENT:NEG:QUESTION]";
+  } else if (predicateKo === '강요하지 않았어요') {
+    const pastNegativeMatch =
+      /^(He|She)\s+didn't\s+force\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      pastNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Didn't ${subject} force ${pastNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Didn't ... force [VERB:PAST:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-force-object-to-infinitive-question-ko-en-v13.22',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.23-safe: force + O + to-infinitive 미래 평서문 CORE
+//
+// v13.21의 검증된 강요 평서문 해석을 그대로 재사용하고,
+// "강요할 거예요 / 강요하지 않을 거예요"만
+// will force / won't force 형태로 조립합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.21 / v13.22 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.21에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 긍정 미래: S + will force + O + to-infinitive
+// 4. 부정 미래: S + won't force + O + to-infinitive
+// 5. will / won't 뒤에서는 반드시 force 원형을 사용합니다.
+// 6. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// 7. 명시적 ?/？ 입력은 처리하지 않아 미래 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnForceObjectToInfinitiveFutureV1323 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const futureMatch =
+    /^(.*?)(강요할 거예요|강요하지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (!futureMatch) {
+    return null;
+  }
+
+  const predicateKo = futureMatch[2];
+
+  // v13.21에서 이미 검증된 현재형으로 바꾸어
+  // 주어·목적어·to-infinitive 해석을 그대로 재사용합니다.
+  const basePredicateKo =
+    predicateKo === '강요할 거예요'
+      ? '강요해요'
+      : '강요하지 않아요';
+
+  const baseStatementText =
+    `${futureMatch[1]}${basePredicateKo}`.trim();
+
+  const baseResult =
+    twoProTryKoEnForceObjectToInfinitiveV1321(
+      baseStatementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let targetBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '강요할 거예요') {
+    const presentMatch =
+      /^(He|She)\s+forces\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentMatch) {
+      return null;
+    }
+
+    const subjectRaw = presentMatch[1];
+    const subject =
+      subjectRaw.charAt(0).toUpperCase() +
+      subjectRaw.slice(1).toLowerCase();
+
+    targetBody =
+      `${subject} will force ${presentMatch[2]}`;
+
+    predicateAnalysis =
+      'will force [VERB:FUTURE]';
+  } else {
+    const negativePresentMatch =
+      /^(He|She)\s+doesn't\s+force\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativePresentMatch) {
+      return null;
+    }
+
+    const subjectRaw =
+      negativePresentMatch[1];
+    const subject =
+      subjectRaw.charAt(0).toUpperCase() +
+      subjectRaw.slice(1).toLowerCase();
+
+    targetBody =
+      `${subject} won't force ${negativePresentMatch[2]}`;
+
+    predicateAnalysis =
+      "won't force [VERB:FUTURE:NEG]";
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === basePredicateKo
+        ? {
+            ko: predicateKo,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-force-object-to-infinitive-future-ko-en-v13.23',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.24-safe: force + O + to-infinitive 미래 의문문 CORE
+//
+// v13.23 미래 평서문 CORE를 그대로 재사용하여,
+// "강요할 거예요? / 강요하지 않을 거예요?"를
+// Will / Won't 질문으로 도치합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.21~v13.23 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.23에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 긍정 미래 질문: Will + S + force + O + to-infinitive?
+// 4. 부정 미래 질문: Won't + S + force + O + to-infinitive?
+// 5. will / won't 뒤에서는 반드시 force 원형을 사용합니다.
+// 6. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// 7. 명시적 ?/？ 입력만 처리하여 미래 평서문 CORE와 충돌하지 않습니다.
+// ============================================================================
+const twoProTryKoEnForceObjectToInfinitiveFutureQuestionV1324 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  // 검증된 v13.23 미래 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnForceObjectToInfinitiveFutureV1323(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(강요할 거예요|강요하지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '강요할 거예요') {
+    const positiveMatch =
+      /^(He|She)\s+will\s+force\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!positiveMatch) {
+      return null;
+    }
+
+    const subject =
+      positiveMatch[1].toLowerCase();
+
+    questionBody =
+      `Will ${subject} force ${positiveMatch[2]}`;
+
+    predicateAnalysis =
+      'Will ... force [VERB:FUTURE:QUESTION]';
+  } else {
+    const negativeMatch =
+      /^(He|She)\s+won't\s+force\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativeMatch) {
+      return null;
+    }
+
+    const subject =
+      negativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Won't ${subject} force ${negativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Won't ... force [VERB:FUTURE:NEG:QUESTION]";
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-force-object-to-infinitive-future-question-ko-en-v13.24',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.25-safe: persuade + O + to-infinitive 일반 설득문 CORE
+//
+// 현재 회귀에서 실패가 확인된
+//   [주어] + [사람]에게 + [동작]도록 + 설득하다
+// 구조를 제한적으로 일반화합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 나에게 / 아이에게
+// - 기다리도록 / 공부하도록 / 일하도록 / 일찍 떠나도록
+// - 설득해요 / 설득했어요 / 설득하지 않아요 / 설득하지 않았어요
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.24 코드는 수정하거나 삭제하지 않습니다.
+// 2. persuade 구문은 반드시 persuade + O + to-infinitive입니다.
+// 3. 현재 3인칭 단수 긍정은 persuades, 과거는 persuaded입니다.
+// 4. 현재 부정은 doesn't persuade, 과거 부정은 didn't persuade입니다.
+// 5. doesn't/didn't 뒤에서는 반드시 persuade 원형을 사용합니다.
+// 6. 목적어 뒤 동사에는 반드시 to를 붙입니다.
+// 7. 명시적 ?/？ 입력은 아직 처리하지 않아 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnPersuadeObjectToInfinitiveV1325 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(설득해요|설득했어요|설득하지 않아요|설득하지 않았어요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const complementKo = matched[3];
+  const predicateKo = matched[4];
+
+  const subjectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    그는: { target: 'He', source: '그' },
+    그녀는: { target: 'She', source: '그녀' },
+  };
+
+  const objectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    나에게: { target: 'me', source: '나' },
+    아이에게: { target: 'the child', source: '아이' },
+  };
+
+  const complementMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        references: Array<{
+          source: string;
+          selected: string;
+          slot: string;
+        }>;
+      }
+    >
+  > = {
+    기다리도록: {
+      target: 'to wait',
+      references: [
+        {
+          source: '기다리다',
+          selected: 'to wait',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    공부하도록: {
+      target: 'to study',
+      references: [
+        {
+          source: '공부하다',
+          selected: 'to study',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    일하도록: {
+      target: 'to work',
+      references: [
+        {
+          source: '일하다',
+          selected: 'to work',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '일찍 떠나도록': {
+      target: 'to leave early',
+      references: [
+        {
+          source: '떠나다',
+          selected: 'to leave',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
+        },
+      ],
+    },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+  const complement = complementMap[complementKo];
+
+  if (!subject || !object || !complement) {
+    return null;
+  }
+
+  let predicateEn = '';
+  let predicateSlot = '';
+
+  if (predicateKo === '설득해요') {
+    predicateEn = 'persuades';
+    predicateSlot = 'VERB:PRESENT';
+  } else if (predicateKo === '설득했어요') {
+    predicateEn = 'persuaded';
+    predicateSlot = 'VERB:PAST';
+  } else if (predicateKo === '설득하지 않아요') {
+    predicateEn = "doesn't persuade";
+    predicateSlot = 'VERB:PRESENT:NEG';
+  } else if (predicateKo === '설득하지 않았어요') {
+    predicateEn = "didn't persuade";
+    predicateSlot = 'VERB:PAST:NEG';
+  } else {
+    return null;
+  }
+
+  const targetBody =
+    `${subject.target} ${predicateEn} ${object.target} ${complement.target}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    { ko: subjectKo, en: `${subject.target} [S]` },
+    { ko: objectKo, en: `${object.target} [O]` },
+    {
+      ko: complementKo,
+      en: `${complement.target} [OC:TO-INFINITIVE]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${predicateEn} [${predicateSlot}]`,
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subject.source,
+      selected: subject.target,
+      slot: 'SUBJECT',
+    },
+    {
+      source: object.source,
+      selected: object.target,
+      slot: 'OBJECT',
+    },
+    ...complement.references,
+    {
+      source: '설득하다',
+      selected: 'persuade',
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-persuade-object-to-infinitive-ko-en-v13.25',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.26-safe: persuade + O + to-infinitive 현재·과거 의문문 CORE
+//
+// v13.25 평서문 CORE를 그대로 재사용하여 명시적 ?/？ 입력만
+// Does/Did 및 Doesn't/Didn't 의문문으로 변환합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.25의 허용 주어·목적어·동작 범위만 재사용합니다.
+// 2. 현재 긍정: Does + S + persuade + O + to-infinitive?
+// 3. 과거 긍정: Did + S + persuade + O + to-infinitive?
+// 4. 현재 부정: Doesn't + S + persuade + O + to-infinitive?
+// 5. 과거 부정: Didn't + S + persuade + O + to-infinitive?
+// 6. 조동사 뒤에서는 persuades/persuaded가 아니라 반드시 persuade 원형을 사용합니다.
+// 7. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// ============================================================================
+const twoProTryKoEnPersuadeObjectToInfinitiveQuestionV1326 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  // 검증된 v13.25 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnPersuadeObjectToInfinitiveV1325(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(설득해요|설득했어요|설득하지 않아요|설득하지 않았어요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '설득해요') {
+    const presentMatch =
+      /^(He|She)\s+persuades\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentMatch) {
+      return null;
+    }
+
+    const subject =
+      presentMatch[1].toLowerCase();
+
+    questionBody =
+      `Does ${subject} persuade ${presentMatch[2]}`;
+
+    predicateAnalysis =
+      'Does ... persuade [VERB:PRESENT:QUESTION]';
+  } else if (predicateKo === '설득했어요') {
+    const pastMatch =
+      /^(He|She)\s+persuaded\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastMatch) {
+      return null;
+    }
+
+    const subject =
+      pastMatch[1].toLowerCase();
+
+    questionBody =
+      `Did ${subject} persuade ${pastMatch[2]}`;
+
+    predicateAnalysis =
+      'Did ... persuade [VERB:PAST:QUESTION]';
+  } else if (predicateKo === '설득하지 않아요') {
+    const presentNegativeMatch =
+      /^(He|She)\s+doesn't\s+persuade\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      presentNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Doesn't ${subject} persuade ${presentNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Doesn't ... persuade [VERB:PRESENT:NEG:QUESTION]";
+  } else if (predicateKo === '설득하지 않았어요') {
+    const pastNegativeMatch =
+      /^(He|She)\s+didn't\s+persuade\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      pastNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Didn't ${subject} persuade ${pastNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Didn't ... persuade [VERB:PAST:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-persuade-object-to-infinitive-question-ko-en-v13.26',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.27-safe: persuade + O + to-infinitive 미래 평서문 CORE
+//
+// v13.25의 검증된 설득 평서문 해석을 그대로 재사용하고,
+// "설득할 거예요 / 설득하지 않을 거예요"만
+// will persuade / won't persuade 형태로 조립합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.25 / v13.26 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.25에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 긍정 미래: S + will persuade + O + to-infinitive
+// 4. 부정 미래: S + won't persuade + O + to-infinitive
+// 5. will / won't 뒤에서는 반드시 persuade 원형을 사용합니다.
+// 6. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// 7. 명시적 ?/？ 입력은 처리하지 않아 미래 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnPersuadeObjectToInfinitiveFutureV1327 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const futureMatch =
+    /^(.*?)(설득할 거예요|설득하지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (!futureMatch) {
+    return null;
+  }
+
+  const predicateKo = futureMatch[2];
+
+  // v13.25에서 이미 검증된 현재형으로 바꾸어
+  // 주어·목적어·to-infinitive 해석을 그대로 재사용합니다.
+  const basePredicateKo =
+    predicateKo === '설득할 거예요'
+      ? '설득해요'
+      : '설득하지 않아요';
+
+  const baseStatementText =
+    `${futureMatch[1]}${basePredicateKo}`.trim();
+
+  const baseResult =
+    twoProTryKoEnPersuadeObjectToInfinitiveV1325(
+      baseStatementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let targetBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '설득할 거예요') {
+    const presentMatch =
+      /^(He|She)\s+persuades\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentMatch) {
+      return null;
+    }
+
+    const subjectRaw = presentMatch[1];
+    const subject =
+      subjectRaw.charAt(0).toUpperCase() +
+      subjectRaw.slice(1).toLowerCase();
+
+    targetBody =
+      `${subject} will persuade ${presentMatch[2]}`;
+
+    predicateAnalysis =
+      'will persuade [VERB:FUTURE]';
+  } else {
+    const negativePresentMatch =
+      /^(He|She)\s+doesn't\s+persuade\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativePresentMatch) {
+      return null;
+    }
+
+    const subjectRaw =
+      negativePresentMatch[1];
+    const subject =
+      subjectRaw.charAt(0).toUpperCase() +
+      subjectRaw.slice(1).toLowerCase();
+
+    targetBody =
+      `${subject} won't persuade ${negativePresentMatch[2]}`;
+
+    predicateAnalysis =
+      "won't persuade [VERB:FUTURE:NEG]";
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === basePredicateKo
+        ? {
+            ko: predicateKo,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-persuade-object-to-infinitive-future-ko-en-v13.27',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.28-safe: persuade + O + to-infinitive 미래 의문문 CORE
+//
+// v13.27 미래 평서문 CORE를 그대로 재사용하여,
+// "설득할 거예요? / 설득하지 않을 거예요?"를
+// Will / Won't 질문으로 도치합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.25~v13.27 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.27에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 긍정 미래 질문: Will + S + persuade + O + to-infinitive?
+// 4. 부정 미래 질문: Won't + S + persuade + O + to-infinitive?
+// 5. will / won't 뒤에서는 반드시 persuade 원형을 사용합니다.
+// 6. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// 7. 명시적 ?/？ 입력만 처리하여 미래 평서문 CORE와 충돌하지 않습니다.
+// ============================================================================
+const twoProTryKoEnPersuadeObjectToInfinitiveFutureQuestionV1328 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  // 검증된 v13.27 미래 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnPersuadeObjectToInfinitiveFutureV1327(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(설득할 거예요|설득하지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '설득할 거예요') {
+    const positiveMatch =
+      /^(He|She)\s+will\s+persuade\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!positiveMatch) {
+      return null;
+    }
+
+    const subject =
+      positiveMatch[1].toLowerCase();
+
+    questionBody =
+      `Will ${subject} persuade ${positiveMatch[2]}`;
+
+    predicateAnalysis =
+      'Will ... persuade [VERB:FUTURE:QUESTION]';
+  } else {
+    const negativeMatch =
+      /^(He|She)\s+won't\s+persuade\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativeMatch) {
+      return null;
+    }
+
+    const subject =
+      negativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Won't ${subject} persuade ${negativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Won't ... persuade [VERB:FUTURE:NEG:QUESTION]";
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-persuade-object-to-infinitive-future-question-ko-en-v13.28',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.29-safe: encourage + O + to-infinitive 일반 격려문 CORE
+//
+// 현재 회귀에서 실패가 확인된
+//   [주어] + [사람]에게 + [동작]도록 + 격려하다
+// 구조를 제한적으로 일반화합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 나에게 / 아이에게
+// - 공부하도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 격려해요 / 격려했어요 / 격려하지 않아요 / 격려하지 않았어요
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.28 코드는 수정하거나 삭제하지 않습니다.
+// 2. encourage 구문은 반드시 encourage + O + to-infinitive입니다.
+// 3. 현재 3인칭 단수 긍정은 encourages, 과거는 encouraged입니다.
+// 4. 현재 부정은 doesn't encourage, 과거 부정은 didn't encourage입니다.
+// 5. doesn't/didn't 뒤에서는 반드시 encourage 원형을 사용합니다.
+// 6. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// 7. 명시적 ?/？ 입력은 아직 처리하지 않아 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnEncourageObjectToInfinitiveV1329 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(격려해요|격려했어요|격려하지 않아요|격려하지 않았어요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const complementKo = matched[3];
+  const predicateKo = matched[4];
+
+  const subjectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    그는: { target: 'He', source: '그' },
+    그녀는: { target: 'She', source: '그녀' },
+  };
+
+  const objectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    나에게: { target: 'me', source: '나' },
+    아이에게: { target: 'the child', source: '아이' },
+  };
+
+  const complementMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        references: Array<{
+          source: string;
+          selected: string;
+          slot: string;
+        }>;
+      }
+    >
+  > = {
+    공부하도록: {
+      target: 'to study',
+      references: [
+        {
+          source: '공부하다',
+          selected: 'to study',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '책을 읽도록': {
+      target: 'to read the book',
+      references: [
+        {
+          source: '책',
+          selected: 'the book',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '읽다',
+          selected: 'to read',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '계속 일하도록': {
+      target: 'to keep working',
+      references: [
+        {
+          source: '계속',
+          selected: 'keep',
+          slot: 'OBJECT_COMPLEMENT:ASPECT',
+        },
+        {
+          source: '일하다',
+          selected: 'working',
+          slot: 'OBJECT_COMPLEMENT:GERUND',
+        },
+      ],
+    },
+
+    '일찍 출발하도록': {
+      target: 'to leave early',
+      references: [
+        {
+          source: '출발하다',
+          selected: 'to leave',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
+        },
+      ],
+    },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+  const complement = complementMap[complementKo];
+
+  if (!subject || !object || !complement) {
+    return null;
+  }
+
+  let predicateEn = '';
+  let predicateSlot = '';
+
+  if (predicateKo === '격려해요') {
+    predicateEn = 'encourages';
+    predicateSlot = 'VERB:PRESENT';
+  } else if (predicateKo === '격려했어요') {
+    predicateEn = 'encouraged';
+    predicateSlot = 'VERB:PAST';
+  } else if (predicateKo === '격려하지 않아요') {
+    predicateEn = "doesn't encourage";
+    predicateSlot = 'VERB:PRESENT:NEG';
+  } else if (predicateKo === '격려하지 않았어요') {
+    predicateEn = "didn't encourage";
+    predicateSlot = 'VERB:PAST:NEG';
+  } else {
+    return null;
+  }
+
+  const targetBody =
+    `${subject.target} ${predicateEn} ${object.target} ${complement.target}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    { ko: subjectKo, en: `${subject.target} [S]` },
+    { ko: objectKo, en: `${object.target} [O]` },
+    {
+      ko: complementKo,
+      en: `${complement.target} [OC:TO-INFINITIVE]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${predicateEn} [${predicateSlot}]`,
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subject.source,
+      selected: subject.target,
+      slot: 'SUBJECT',
+    },
+    {
+      source: object.source,
+      selected: object.target,
+      slot: 'OBJECT',
+    },
+    ...complement.references,
+    {
+      source: '격려하다',
+      selected: 'encourage',
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-encourage-object-to-infinitive-ko-en-v13.29',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.30-safe: encourage + O + to-infinitive 현재·과거 의문문 CORE
+//
+// v13.29 평서문 CORE를 그대로 재사용하여 명시적 ?/？ 입력만
+// Does/Did 및 Doesn't/Didn't 의문문으로 변환합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.29의 허용 주어·목적어·동작 범위만 재사용합니다.
+// 2. 현재 긍정: Does + S + encourage + O + to-infinitive?
+// 3. 과거 긍정: Did + S + encourage + O + to-infinitive?
+// 4. 현재 부정: Doesn't + S + encourage + O + to-infinitive?
+// 5. 과거 부정: Didn't + S + encourage + O + to-infinitive?
+// 6. 조동사 뒤에서는 encourages/encouraged가 아니라 반드시 encourage 원형을 사용합니다.
+// 7. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// ============================================================================
+const twoProTryKoEnEncourageObjectToInfinitiveQuestionV1330 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  // 검증된 v13.29 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnEncourageObjectToInfinitiveV1329(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(격려해요|격려했어요|격려하지 않아요|격려하지 않았어요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '격려해요') {
+    const presentMatch =
+      /^(He|She)\s+encourages\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentMatch) {
+      return null;
+    }
+
+    const subject = presentMatch[1].toLowerCase();
+
+    questionBody =
+      `Does ${subject} encourage ${presentMatch[2]}`;
+
+    predicateAnalysis =
+      'Does ... encourage [VERB:PRESENT:QUESTION]';
+  } else if (predicateKo === '격려했어요') {
+    const pastMatch =
+      /^(He|She)\s+encouraged\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastMatch) {
+      return null;
+    }
+
+    const subject = pastMatch[1].toLowerCase();
+
+    questionBody =
+      `Did ${subject} encourage ${pastMatch[2]}`;
+
+    predicateAnalysis =
+      'Did ... encourage [VERB:PAST:QUESTION]';
+  } else if (predicateKo === '격려하지 않아요') {
+    const presentNegativeMatch =
+      /^(He|She)\s+doesn't\s+encourage\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      presentNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Doesn't ${subject} encourage ${presentNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Doesn't ... encourage [VERB:PRESENT:NEG:QUESTION]";
+  } else if (predicateKo === '격려하지 않았어요') {
+    const pastNegativeMatch =
+      /^(He|She)\s+didn't\s+encourage\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      pastNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Didn't ${subject} encourage ${pastNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Didn't ... encourage [VERB:PAST:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-encourage-object-to-infinitive-question-ko-en-v13.30',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.31-safe: encourage + O + to-infinitive 미래 평서문 CORE
+//
+// v13.29에서 이미 검증된 주어·목적어·동작 해석을 그대로 재사용하여
+// "격려할 거예요 / 격려하지 않을 거예요"만 미래형으로 확장합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.29~v13.30 코드는 수정하거나 삭제하지 않습니다.
+// 2. 긍정 미래: will encourage + O + to-infinitive
+// 3. 부정 미래: won't encourage + O + to-infinitive
+// 4. will / won't 뒤에서는 반드시 encourage 원형을 사용합니다.
+// 5. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// 6. v13.29에서 검증된 주어·목적어·동작 범위만 허용합니다.
+// 7. 명시적 ?/？ 입력은 처리하지 않아 미래 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnEncourageObjectToInfinitiveFutureV1331 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const futureMatch =
+    /^(.*?)(격려할 거예요|격려하지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (!futureMatch) {
+    return null;
+  }
+
+  const predicateKo = futureMatch[2];
+
+  // v13.29에서 이미 검증된 현재형으로 바꾸어
+  // 주어·목적어·to-infinitive 해석을 그대로 재사용합니다.
+  const basePredicateKo =
+    predicateKo === '격려할 거예요'
+      ? '격려해요'
+      : '격려하지 않아요';
+
+  const baseStatementText =
+    `${futureMatch[1]}${basePredicateKo}`.trim();
+
+  const baseResult =
+    twoProTryKoEnEncourageObjectToInfinitiveV1329(
+      baseStatementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let targetBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '격려할 거예요') {
+    const presentMatch =
+      /^(He|She)\s+encourages\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentMatch) {
+      return null;
+    }
+
+    const subjectRaw = presentMatch[1];
+    const subject =
+      subjectRaw.charAt(0).toUpperCase() +
+      subjectRaw.slice(1).toLowerCase();
+
+    targetBody =
+      `${subject} will encourage ${presentMatch[2]}`;
+
+    predicateAnalysis =
+      'will encourage [VERB:FUTURE]';
+  } else {
+    const negativePresentMatch =
+      /^(He|She)\s+doesn't\s+encourage\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativePresentMatch) {
+      return null;
+    }
+
+    const subjectRaw =
+      negativePresentMatch[1];
+    const subject =
+      subjectRaw.charAt(0).toUpperCase() +
+      subjectRaw.slice(1).toLowerCase();
+
+    targetBody =
+      `${subject} won't encourage ${negativePresentMatch[2]}`;
+
+    predicateAnalysis =
+      "won't encourage [VERB:FUTURE:NEG]";
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === basePredicateKo
+        ? {
+            ko: predicateKo,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-encourage-object-to-infinitive-future-ko-en-v13.31',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.32-safe: encourage + O + to-infinitive 미래 의문문 CORE
+//
+// v13.31 미래 평서문 CORE를 그대로 재사용하여,
+// "격려할 거예요? / 격려하지 않을 거예요?"를
+// Will / Won't 질문으로 도치합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.29~v13.31 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.31에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 긍정 미래 질문: Will + S + encourage + O + to-infinitive?
+// 4. 부정 미래 질문: Won't + S + encourage + O + to-infinitive?
+// 5. will / won't 뒤에서는 반드시 encourage 원형을 사용합니다.
+// 6. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// 7. 명시적 ?/？ 입력만 처리하여 미래 평서문 CORE와 충돌하지 않습니다.
+// ============================================================================
+const twoProTryKoEnEncourageObjectToInfinitiveFutureQuestionV1332 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  // 검증된 v13.31 미래 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnEncourageObjectToInfinitiveFutureV1331(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(격려할 거예요|격려하지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '격려할 거예요') {
+    const positiveMatch =
+      /^(He|She)\s+will\s+encourage\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!positiveMatch) {
+      return null;
+    }
+
+    const subject =
+      positiveMatch[1].toLowerCase();
+
+    questionBody =
+      `Will ${subject} encourage ${positiveMatch[2]}`;
+
+    predicateAnalysis =
+      'Will ... encourage [VERB:FUTURE:QUESTION]';
+  } else {
+    const negativeMatch =
+      /^(He|She)\s+won't\s+encourage\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativeMatch) {
+      return null;
+    }
+
+    const subject =
+      negativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Won't ${subject} encourage ${negativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Won't ... encourage [VERB:FUTURE:NEG:QUESTION]";
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-encourage-object-to-infinitive-future-question-ko-en-v13.32',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.33-safe: want + O + to-infinitive 일반 희망·요구문 CORE
+//
+// 현재 회귀에서 실패가 확인된
+//   [주어] + [종속절 주어 -가/-이] + [동작]기를 + 원하다
+// 구조를 제한적으로 일반화합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 내가 / 아이가  -> 영어 목적격 me / the child
+// - 공부하기를 / 책을 읽기를 / 계속 일하기를 / 일찍 출발하기를
+// - 원해요 / 원했어요 / 원하지 않아요 / 원하지 않았어요
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.32 코드는 수정하거나 삭제하지 않습니다.
+// 2. want 구문은 반드시 want + O + to-infinitive입니다.
+// 3. 한국어 종속절의 내가/아이가를 영어 목적격 me/the child로 변환합니다.
+// 4. 현재 3인칭 단수 긍정은 wants, 과거는 wanted입니다.
+// 5. 현재 부정은 doesn't want, 과거 부정은 didn't want입니다.
+// 6. doesn't/didn't 뒤에서는 반드시 want 원형을 사용합니다.
+// 7. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// 8. 명시적 ?/？ 입력은 아직 처리하지 않아 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnWantObjectToInfinitiveV1333 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그는|그녀는)\s+(내가|아이가)\s+(.+?)\s+(원해요|원했어요|원하지 않아요|원하지 않았어요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const complementKo = matched[3];
+  const predicateKo = matched[4];
+
+  const subjectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    그는: { target: 'He', source: '그' },
+    그녀는: { target: 'She', source: '그녀' },
+  };
+
+  const objectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    내가: { target: 'me', source: '나' },
+    아이가: { target: 'the child', source: '아이' },
+  };
+
+  const complementMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        references: Array<{
+          source: string;
+          selected: string;
+          slot: string;
+        }>;
+      }
+    >
+  > = {
+    공부하기를: {
+      target: 'to study',
+      references: [
+        {
+          source: '공부하다',
+          selected: 'to study',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '책을 읽기를': {
+      target: 'to read the book',
+      references: [
+        {
+          source: '책',
+          selected: 'the book',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '읽다',
+          selected: 'to read',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '계속 일하기를': {
+      target: 'to keep working',
+      references: [
+        {
+          source: '계속',
+          selected: 'keep',
+          slot: 'OBJECT_COMPLEMENT:ASPECT',
+        },
+        {
+          source: '일하다',
+          selected: 'working',
+          slot: 'OBJECT_COMPLEMENT:GERUND',
+        },
+      ],
+    },
+
+    '일찍 출발하기를': {
+      target: 'to leave early',
+      references: [
+        {
+          source: '출발하다',
+          selected: 'to leave',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
+        },
+      ],
+    },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+  const complement = complementMap[complementKo];
+
+  if (!subject || !object || !complement) {
+    return null;
+  }
+
+  let predicateEn = '';
+  let predicateSlot = '';
+
+  if (predicateKo === '원해요') {
+    predicateEn = 'wants';
+    predicateSlot = 'VERB:PRESENT';
+  } else if (predicateKo === '원했어요') {
+    predicateEn = 'wanted';
+    predicateSlot = 'VERB:PAST';
+  } else if (predicateKo === '원하지 않아요') {
+    predicateEn = "doesn't want";
+    predicateSlot = 'VERB:PRESENT:NEG';
+  } else if (predicateKo === '원하지 않았어요') {
+    predicateEn = "didn't want";
+    predicateSlot = 'VERB:PAST:NEG';
+  } else {
+    return null;
+  }
+
+  const targetBody =
+    `${subject.target} ${predicateEn} ${object.target} ${complement.target}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    { ko: subjectKo, en: `${subject.target} [S]` },
+    {
+      ko: objectKo,
+      en: `${object.target} [O:EMBEDDED-SUBJECT]`,
+    },
+    {
+      ko: complementKo,
+      en: `${complement.target} [OC:TO-INFINITIVE]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${predicateEn} [${predicateSlot}]`,
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subject.source,
+      selected: subject.target,
+      slot: 'SUBJECT',
+    },
+    {
+      source: object.source,
+      selected: object.target,
+      slot: 'OBJECT:EMBEDDED_SUBJECT',
+    },
+    ...complement.references,
+    {
+      source: '원하다',
+      selected: 'want',
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-want-object-to-infinitive-ko-en-v13.33',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.34-safe: want + O + to-infinitive 현재·과거 의문문 CORE
+//
+// v13.33 평서문 CORE를 그대로 재사용하여 명시적 ?/？ 입력만
+// Does/Did 및 Doesn't/Didn't 의문문으로 변환합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.33 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.33에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 현재 긍정: Does + S + want + O + to-infinitive?
+// 4. 과거 긍정: Did + S + want + O + to-infinitive?
+// 5. 현재 부정: Doesn't + S + want + O + to-infinitive?
+// 6. 과거 부정: Didn't + S + want + O + to-infinitive?
+// 7. 조동사 뒤에서는 wants/wanted가 아니라 반드시 want 원형을 사용합니다.
+// 8. 종속절 주어 내가/아이가의 영어 목적격 me/the child와 to-infinitive를 그대로 유지합니다.
+// ============================================================================
+const twoProTryKoEnWantObjectToInfinitiveQuestionV1334 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  // 검증된 v13.33 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnWantObjectToInfinitiveV1333(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(원해요|원했어요|원하지 않아요|원하지 않았어요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '원해요') {
+    const presentMatch =
+      /^(He|She)\s+wants\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentMatch) {
+      return null;
+    }
+
+    const subject = presentMatch[1].toLowerCase();
+
+    questionBody =
+      `Does ${subject} want ${presentMatch[2]}`;
+
+    predicateAnalysis =
+      'Does ... want [VERB:PRESENT:QUESTION]';
+  } else if (predicateKo === '원했어요') {
+    const pastMatch =
+      /^(He|She)\s+wanted\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastMatch) {
+      return null;
+    }
+
+    const subject = pastMatch[1].toLowerCase();
+
+    questionBody =
+      `Did ${subject} want ${pastMatch[2]}`;
+
+    predicateAnalysis =
+      'Did ... want [VERB:PAST:QUESTION]';
+  } else if (predicateKo === '원하지 않아요') {
+    const presentNegativeMatch =
+      /^(He|She)\s+doesn't\s+want\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      presentNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Doesn't ${subject} want ${presentNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Doesn't ... want [VERB:PRESENT:NEG:QUESTION]";
+  } else if (predicateKo === '원하지 않았어요') {
+    const pastNegativeMatch =
+      /^(He|She)\s+didn't\s+want\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      pastNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Didn't ${subject} want ${pastNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Didn't ... want [VERB:PAST:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-want-object-to-infinitive-question-ko-en-v13.34',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.35-safe: want + O + to-infinitive 미래 평서문 CORE
+//
+// v13.33에서 검증된 목적어·to-infinitive 해석을 그대로 재사용하여
+// 미래 긍정/부정 평서문만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 내가 / 아이가 -> 영어 목적격 me / the child
+// - 공부하기를 / 책을 읽기를 / 계속 일하기를 / 일찍 출발하기를
+// - 원할 거예요 / 원하지 않을 거예요
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.34 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.33에서 이미 성공한 목적어·동작 해석만 재사용합니다.
+// 3. 미래 긍정은 will want + O + to-infinitive를 사용합니다.
+// 4. 미래 부정은 won't want + O + to-infinitive를 사용합니다.
+// 5. will/won't 뒤에서는 반드시 want 원형을 사용합니다.
+// 6. 내가/아이가 -> me/the child 변환은 v13.33 결과를 그대로 유지합니다.
+// 7. 명시적 ?/？ 입력은 처리하지 않아 미래 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnWantObjectToInfinitiveFutureV1335 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalizedRaw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalizedRaw ||
+    /[?？]\s*$/u.test(normalizedRaw)
+  ) {
+    return null;
+  }
+
+  const normalized = normalizedRaw
+    .replace(/[.!]+$/g, '')
+    .trim();
+
+  const matched =
+    /^(그는|그녀는)\s+(내가|아이가)\s+(.+?)\s+(원할 거예요|원하지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const predicateKo = matched[4];
+
+  const baseStatement =
+    predicateKo === '원할 거예요'
+      ? normalized.replace(/원할 거예요$/u, '원해요')
+      : normalized.replace(
+          /원하지 않을 거예요$/u,
+          '원하지 않아요'
+        );
+
+  // 검증된 v13.33 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnWantObjectToInfinitiveV1333(
+      baseStatement
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let targetBody = '';
+  let basePredicateKo = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '원할 거예요') {
+    const positiveMatch =
+      /^(He|She)\s+wants\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!positiveMatch) {
+      return null;
+    }
+
+    targetBody =
+      `${positiveMatch[1]} will want ${positiveMatch[2]}`;
+    basePredicateKo = '원해요';
+    predicateAnalysis =
+      'will want [VERB:FUTURE]';
+  } else if (
+    predicateKo === '원하지 않을 거예요'
+  ) {
+    const negativeMatch =
+      /^(He|She)\s+doesn't\s+want\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativeMatch) {
+      return null;
+    }
+
+    targetBody =
+      `${negativeMatch[1]} won't want ${negativeMatch[2]}`;
+    basePredicateKo = '원하지 않아요';
+    predicateAnalysis =
+      "won't want [VERB:FUTURE:NEG]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === basePredicateKo
+        ? {
+            ko: predicateKo,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-want-object-to-infinitive-future-ko-en-v13.35',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.36-safe: want + O + to-infinitive 미래 의문문 CORE
+//
+// v13.35에서 검증된 미래 긍정/부정 평서문 결과를 그대로 재사용하여
+// 명시적 ?/？ 입력만 미래 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 내가 / 아이가 -> 영어 목적격 me / the child
+// - 공부하기를 / 책을 읽기를 / 계속 일하기를 / 일찍 출발하기를
+// - 원할 거예요? / 원하지 않을 거예요?
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.35 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.35에서 이미 성공한 미래 평서문 해석만 재사용합니다.
+// 3. 미래 긍정 의문문은 Will + S + want + O + to-infinitive? 입니다.
+// 4. 미래 부정 의문문은 Won't + S + want + O + to-infinitive? 입니다.
+// 5. will/won't 뒤에서는 반드시 want 원형을 사용합니다.
+// 6. 내가/아이가 -> me/the child 및 동작 보어는 v13.35 결과를 그대로 유지합니다.
+// ============================================================================
+const twoProTryKoEnWantObjectToInfinitiveFutureQuestionV1336 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(원할 거예요|원하지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  // 검증된 v13.35 미래 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnWantObjectToInfinitiveFutureV1335(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '원할 거예요') {
+    const positiveMatch =
+      /^(He|She)\s+will\s+want\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!positiveMatch) {
+      return null;
+    }
+
+    const subject = positiveMatch[1].toLowerCase();
+
+    questionBody =
+      `Will ${subject} want ${positiveMatch[2]}`;
+    predicateAnalysis =
+      'Will ... want [VERB:FUTURE:QUESTION]';
+  } else if (
+    predicateKo === '원하지 않을 거예요'
+  ) {
+    const negativeMatch =
+      /^(He|She)\s+won't\s+want\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativeMatch) {
+      return null;
+    }
+
+    const subject = negativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Won't ${subject} want ${negativeMatch[2]}`;
+    predicateAnalysis =
+      "Won't ... want [VERB:FUTURE:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-want-object-to-infinitive-future-question-ko-en-v13.36',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.37-safe: expect + O + to-infinitive 현재·과거 평서문 CORE
+//
+// v13.33에서 이미 검증된 주어·목적어·to-infinitive 해석을 그대로 재사용하여
+// 기대하다(expect) 현재/과거 긍정·부정 평서문만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 내가 / 아이가 -> 영어 목적격 me / the child
+// - 공부하기를 / 책을 읽기를 / 계속 일하기를 / 일찍 출발하기를
+// - 기대해요 / 기대했어요 / 기대하지 않아요 / 기대하지 않았어요
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.36 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.33에서 성공한 목적어·동작 보어 해석만 재사용합니다.
+// 3. 현재 긍정은 expects + O + to-infinitive를 사용합니다.
+// 4. 과거 긍정은 expected + O + to-infinitive를 사용합니다.
+// 5. 현재 부정은 doesn't expect + O + to-infinitive를 사용합니다.
+// 6. 과거 부정은 didn't expect + O + to-infinitive를 사용합니다.
+// 7. 명시적 ?/？ 입력은 처리하지 않아 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnExpectObjectToInfinitiveV1337 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalizedRaw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalizedRaw ||
+    /[?？]\s*$/u.test(normalizedRaw)
+  ) {
+    return null;
+  }
+
+  const normalized = normalizedRaw
+    .replace(/[.!]+$/g, '')
+    .trim();
+
+  const matched =
+    /^(그는|그녀는)\s+(내가|아이가)\s+(.+?)\s+(기대해요|기대했어요|기대하지 않아요|기대하지 않았어요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const predicateKo = matched[4];
+
+  const predicateMap: Readonly<
+    Record<
+      string,
+      {
+        basePredicateKo: string;
+        expectPredicateEn: string;
+        predicateSlot: string;
+      }
+    >
+  > = {
+    기대해요: {
+      basePredicateKo: '원해요',
+      expectPredicateEn: 'expects',
+      predicateSlot: 'VERB:PRESENT',
+    },
+    기대했어요: {
+      basePredicateKo: '원했어요',
+      expectPredicateEn: 'expected',
+      predicateSlot: 'VERB:PAST',
+    },
+    '기대하지 않아요': {
+      basePredicateKo: '원하지 않아요',
+      expectPredicateEn: "doesn't expect",
+      predicateSlot: 'VERB:PRESENT:NEG',
+    },
+    '기대하지 않았어요': {
+      basePredicateKo: '원하지 않았어요',
+      expectPredicateEn: "didn't expect",
+      predicateSlot: 'VERB:PAST:NEG',
+    },
+  };
+
+  const predicateInfo = predicateMap[predicateKo];
+
+  if (!predicateInfo) {
+    return null;
+  }
+
+  const baseStatement =
+    normalized.slice(0, normalized.length - predicateKo.length) +
+    predicateInfo.basePredicateKo;
+
+  // 검증된 v13.33 want + O + to-infinitive 해석을 빌려
+  // 주어·목적어·동작 보어를 동일하게 유지합니다.
+  const baseResult =
+    twoProTryKoEnWantObjectToInfinitiveV1333(
+      baseStatement
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let targetBody = '';
+
+  if (predicateKo === '기대해요') {
+    const m = /^(He|She)\s+wants\s+(.+)$/i.exec(baseTarget);
+    if (!m) return null;
+    targetBody = `${m[1]} expects ${m[2]}`;
+  } else if (predicateKo === '기대했어요') {
+    const m = /^(He|She)\s+wanted\s+(.+)$/i.exec(baseTarget);
+    if (!m) return null;
+    targetBody = `${m[1]} expected ${m[2]}`;
+  } else if (predicateKo === '기대하지 않아요') {
+    const m = /^(He|She)\s+doesn't\s+want\s+(.+)$/i.exec(baseTarget);
+    if (!m) return null;
+    targetBody = `${m[1]} doesn't expect ${m[2]}`;
+  } else if (predicateKo === '기대하지 않았어요') {
+    const m = /^(He|She)\s+didn't\s+want\s+(.+)$/i.exec(baseTarget);
+    if (!m) return null;
+    targetBody = `${m[1]} didn't expect ${m[2]}`;
+  } else {
+    return null;
+  }
+
+  const analysis = baseResult.analysis.map((item) =>
+    item.ko === predicateInfo.basePredicateKo
+      ? {
+          ko: predicateKo,
+          en: `${predicateInfo.expectPredicateEn} [${predicateInfo.predicateSlot}]`,
+        }
+      : item
+  );
+
+  const referenceWords = baseResult.referenceWords.map((item) =>
+    item.source === '원하다'
+      ? {
+          ...item,
+          source: '기대하다',
+          selected: 'expect',
+          candidates: ['expect'],
+        }
+      : item
+  );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-expect-object-to-infinitive-ko-en-v13.37',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.38-safe: expect + O + to-infinitive 현재·과거 의문문 CORE
+//
+// v13.37 평서문 CORE를 그대로 재사용하여 명시적 ?/？ 입력만
+// Does/Did 및 Doesn't/Didn't 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 내가 / 아이가 -> 영어 목적격 me / the child
+// - 공부하기를 / 책을 읽기를 / 계속 일하기를 / 일찍 출발하기를
+// - 기대해요? / 기대했어요? / 기대하지 않아요? / 기대하지 않았어요?
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.37 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.37에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 현재 긍정: Does + S + expect + O + to-infinitive?
+// 4. 과거 긍정: Did + S + expect + O + to-infinitive?
+// 5. 현재 부정: Doesn't + S + expect + O + to-infinitive?
+// 6. 과거 부정: Didn't + S + expect + O + to-infinitive?
+// 7. 조동사 뒤에서는 expects/expected가 아니라 반드시 expect 원형을 사용합니다.
+// 8. 종속절 주어 내가/아이가의 영어 목적격 me/the child와 to-infinitive를 그대로 유지합니다.
+// ============================================================================
+const twoProTryKoEnExpectObjectToInfinitiveQuestionV1338 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  // 검증된 v13.37 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnExpectObjectToInfinitiveV1337(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(기대해요|기대했어요|기대하지 않아요|기대하지 않았어요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '기대해요') {
+    const presentMatch =
+      /^(He|She)\s+expects\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentMatch) {
+      return null;
+    }
+
+    const subject = presentMatch[1].toLowerCase();
+
+    questionBody =
+      `Does ${subject} expect ${presentMatch[2]}`;
+
+    predicateAnalysis =
+      'Does ... expect [VERB:PRESENT:QUESTION]';
+  } else if (predicateKo === '기대했어요') {
+    const pastMatch =
+      /^(He|She)\s+expected\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastMatch) {
+      return null;
+    }
+
+    const subject = pastMatch[1].toLowerCase();
+
+    questionBody =
+      `Did ${subject} expect ${pastMatch[2]}`;
+
+    predicateAnalysis =
+      'Did ... expect [VERB:PAST:QUESTION]';
+  } else if (predicateKo === '기대하지 않아요') {
+    const presentNegativeMatch =
+      /^(He|She)\s+doesn't\s+expect\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      presentNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Doesn't ${subject} expect ${presentNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Doesn't ... expect [VERB:PRESENT:NEG:QUESTION]";
+  } else if (predicateKo === '기대하지 않았어요') {
+    const pastNegativeMatch =
+      /^(He|She)\s+didn't\s+expect\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      pastNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Didn't ${subject} expect ${pastNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Didn't ... expect [VERB:PAST:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-expect-object-to-infinitive-question-ko-en-v13.38',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.39-safe: expect + O + to-infinitive 미래 평서문 CORE
+//
+// v13.37에서 검증된 목적어·to-infinitive 해석을 그대로 재사용하여
+// 미래 긍정/부정 평서문만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 내가 / 아이가 -> 영어 목적격 me / the child
+// - 공부하기를 / 책을 읽기를 / 계속 일하기를 / 일찍 출발하기를
+// - 기대할 거예요 / 기대하지 않을 거예요
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.38 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.37에서 이미 성공한 주어·목적어·동작 보어 해석만 재사용합니다.
+// 3. 미래 긍정은 will expect + O + to-infinitive를 사용합니다.
+// 4. 미래 부정은 won't expect + O + to-infinitive를 사용합니다.
+// 5. will/won't 뒤에서는 반드시 expect 원형을 사용합니다.
+// 6. 내가/아이가 -> me/the child 및 to-infinitive는 v13.37 결과를 그대로 유지합니다.
+// 7. 명시적 ?/？ 입력은 처리하지 않아 향후 미래 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnExpectObjectToInfinitiveFutureV1339 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalizedRaw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalizedRaw ||
+    /[?？]\s*$/u.test(normalizedRaw)
+  ) {
+    return null;
+  }
+
+  const normalized = normalizedRaw
+    .replace(/[.!]+$/g, '')
+    .trim();
+
+  const matched =
+    /^(그는|그녀는)\s+(내가|아이가)\s+(.+?)\s+(기대할 거예요|기대하지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const predicateKo = matched[4];
+
+  const baseStatement =
+    predicateKo === '기대할 거예요'
+      ? normalized.replace(
+          /기대할 거예요$/u,
+          '기대해요'
+        )
+      : normalized.replace(
+          /기대하지 않을 거예요$/u,
+          '기대하지 않아요'
+        );
+
+  // 검증된 v13.37 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnExpectObjectToInfinitiveV1337(
+      baseStatement
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let targetBody = '';
+  let basePredicateKo = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '기대할 거예요') {
+    const positiveMatch =
+      /^(He|She)\s+expects\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!positiveMatch) {
+      return null;
+    }
+
+    targetBody =
+      `${positiveMatch[1]} will expect ${positiveMatch[2]}`;
+    basePredicateKo = '기대해요';
+    predicateAnalysis =
+      'will expect [VERB:FUTURE]';
+  } else if (
+    predicateKo === '기대하지 않을 거예요'
+  ) {
+    const negativeMatch =
+      /^(He|She)\s+doesn't\s+expect\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativeMatch) {
+      return null;
+    }
+
+    targetBody =
+      `${negativeMatch[1]} won't expect ${negativeMatch[2]}`;
+    basePredicateKo = '기대하지 않아요';
+    predicateAnalysis =
+      "won't expect [VERB:FUTURE:NEG]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === basePredicateKo
+        ? {
+            ko: predicateKo,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-expect-object-to-infinitive-future-ko-en-v13.39',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.40-safe: expect + O + to-infinitive 미래 의문문 CORE
+//
+// v13.39에서 검증된 미래 긍정/부정 평서문 결과를 그대로 재사용하여
+// 명시적 ?/？ 입력만 미래 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 내가 / 아이가 -> 영어 목적격 me / the child
+// - 공부하기를 / 책을 읽기를 / 계속 일하기를 / 일찍 출발하기를
+// - 기대할 거예요? / 기대하지 않을 거예요?
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.39 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.39에서 이미 성공한 미래 평서문 해석만 재사용합니다.
+// 3. 미래 긍정 의문문은 Will + S + expect + O + to-infinitive? 입니다.
+// 4. 미래 부정 의문문은 Won't + S + expect + O + to-infinitive? 입니다.
+// 5. will/won't 뒤에서는 반드시 expect 원형을 사용합니다.
+// 6. 내가/아이가 -> me/the child 및 동작 보어는 v13.39 결과를 그대로 유지합니다.
+// ============================================================================
+const twoProTryKoEnExpectObjectToInfinitiveFutureQuestionV1340 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(기대할 거예요|기대하지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  // 검증된 v13.39 미래 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnExpectObjectToInfinitiveFutureV1339(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '기대할 거예요') {
+    const positiveMatch =
+      /^(He|She)\s+will\s+expect\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!positiveMatch) {
+      return null;
+    }
+
+    const subject = positiveMatch[1].toLowerCase();
+
+    questionBody =
+      `Will ${subject} expect ${positiveMatch[2]}`;
+    predicateAnalysis =
+      'Will ... expect [VERB:FUTURE:QUESTION]';
+  } else if (
+    predicateKo === '기대하지 않을 거예요'
+  ) {
+    const negativeMatch =
+      /^(He|She)\s+won't\s+expect\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativeMatch) {
+      return null;
+    }
+
+    const subject = negativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Won't ${subject} expect ${negativeMatch[2]}`;
+    predicateAnalysis =
+      "Won't ... expect [VERB:FUTURE:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-expect-object-to-infinitive-future-question-ko-en-v13.40',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.41-safe: advise + O + to-infinitive 현재·과거 평서문 CORE
+//
+// 현재 회귀에서 실패가 확인된
+//   [주어] + [사람]에게 + [동작]도록 + 조언하다
+// 구조를 제한적으로 일반화합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 나에게 / 아이에게
+// - 공부하도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 조언해요 / 조언했어요 / 조언하지 않아요 / 조언하지 않았어요
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.40 코드는 수정하거나 삭제하지 않습니다.
+// 2. advise 구문은 반드시 advise + O + to-infinitive입니다.
+// 3. 현재 3인칭 단수 긍정은 advises, 과거는 advised입니다.
+// 4. 현재 부정은 doesn't advise, 과거 부정은 didn't advise입니다.
+// 5. doesn't/didn't 뒤에서는 반드시 advise 원형을 사용합니다.
+// 6. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// 7. 명시적 ?/？ 입력은 처리하지 않아 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnAdviseObjectToInfinitiveV1341 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(조언해요|조언했어요|조언하지 않아요|조언하지 않았어요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const complementKo = matched[3];
+  const predicateKo = matched[4];
+
+  const subjectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    그는: { target: 'He', source: '그' },
+    그녀는: { target: 'She', source: '그녀' },
+  };
+
+  const objectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    나에게: { target: 'me', source: '나' },
+    아이에게: { target: 'the child', source: '아이' },
+  };
+
+  const complementMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        references: Array<{
+          source: string;
+          selected: string;
+          slot: string;
+        }>;
+      }
+    >
+  > = {
+    공부하도록: {
+      target: 'to study',
+      references: [
+        {
+          source: '공부하다',
+          selected: 'to study',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '책을 읽도록': {
+      target: 'to read the book',
+      references: [
+        {
+          source: '책',
+          selected: 'the book',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '읽다',
+          selected: 'to read',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '계속 일하도록': {
+      target: 'to keep working',
+      references: [
+        {
+          source: '계속',
+          selected: 'keep',
+          slot: 'OBJECT_COMPLEMENT:ASPECT',
+        },
+        {
+          source: '일하다',
+          selected: 'working',
+          slot: 'OBJECT_COMPLEMENT:GERUND',
+        },
+      ],
+    },
+
+    '일찍 출발하도록': {
+      target: 'to leave early',
+      references: [
+        {
+          source: '출발하다',
+          selected: 'to leave',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
+        },
+      ],
+    },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+  const complement = complementMap[complementKo];
+
+  if (!subject || !object || !complement) {
+    return null;
+  }
+
+  let predicateEn = '';
+  let predicateSlot = '';
+
+  if (predicateKo === '조언해요') {
+    predicateEn = 'advises';
+    predicateSlot = 'VERB:PRESENT';
+  } else if (predicateKo === '조언했어요') {
+    predicateEn = 'advised';
+    predicateSlot = 'VERB:PAST';
+  } else if (predicateKo === '조언하지 않아요') {
+    predicateEn = "doesn't advise";
+    predicateSlot = 'VERB:PRESENT:NEG';
+  } else if (predicateKo === '조언하지 않았어요') {
+    predicateEn = "didn't advise";
+    predicateSlot = 'VERB:PAST:NEG';
+  } else {
+    return null;
+  }
+
+  const targetBody =
+    `${subject.target} ${predicateEn} ${object.target} ${complement.target}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    { ko: subjectKo, en: `${subject.target} [S]` },
+    { ko: objectKo, en: `${object.target} [O]` },
+    {
+      ko: complementKo,
+      en: `${complement.target} [OC:TO-INFINITIVE]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${predicateEn} [${predicateSlot}]`,
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subject.source,
+      selected: subject.target,
+      slot: 'SUBJECT',
+    },
+    {
+      source: object.source,
+      selected: object.target,
+      slot: 'OBJECT',
+    },
+    ...complement.references,
+    {
+      source: '조언하다',
+      selected: 'advise',
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-advise-object-to-infinitive-ko-en-v13.41',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.42-safe: advise + O + to-infinitive 현재·과거 의문문 CORE
+//
+// v13.41 평서문 CORE를 그대로 재사용하여 명시적 ?/？ 입력만
+// Does/Did 및 Doesn't/Didn't 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 나에게 / 아이에게
+// - 공부하도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 조언해요? / 조언했어요? / 조언하지 않아요? / 조언하지 않았어요?
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.41 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.41에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 현재 긍정: Does + S + advise + O + to-infinitive?
+// 4. 과거 긍정: Did + S + advise + O + to-infinitive?
+// 5. 현재 부정: Doesn't + S + advise + O + to-infinitive?
+// 6. 과거 부정: Didn't + S + advise + O + to-infinitive?
+// 7. 조동사 뒤에서는 advises/advised가 아니라 반드시 advise 원형을 사용합니다.
+// 8. v13.41에서 검증된 목적어와 to-infinitive 조합을 그대로 유지합니다.
+// ============================================================================
+const twoProTryKoEnAdviseObjectToInfinitiveQuestionV1342 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  // 검증된 v13.41 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnAdviseObjectToInfinitiveV1341(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(조언해요|조언했어요|조언하지 않아요|조언하지 않았어요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '조언해요') {
+    const presentMatch =
+      /^(He|She)\s+advises\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentMatch) {
+      return null;
+    }
+
+    const subject = presentMatch[1].toLowerCase();
+
+    questionBody =
+      `Does ${subject} advise ${presentMatch[2]}`;
+
+    predicateAnalysis =
+      'Does ... advise [VERB:PRESENT:QUESTION]';
+  } else if (predicateKo === '조언했어요') {
+    const pastMatch =
+      /^(He|She)\s+advised\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastMatch) {
+      return null;
+    }
+
+    const subject = pastMatch[1].toLowerCase();
+
+    questionBody =
+      `Did ${subject} advise ${pastMatch[2]}`;
+
+    predicateAnalysis =
+      'Did ... advise [VERB:PAST:QUESTION]';
+  } else if (predicateKo === '조언하지 않아요') {
+    const presentNegativeMatch =
+      /^(He|She)\s+doesn't\s+advise\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      presentNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Doesn't ${subject} advise ${presentNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Doesn't ... advise [VERB:PRESENT:NEG:QUESTION]";
+  } else if (predicateKo === '조언하지 않았어요') {
+    const pastNegativeMatch =
+      /^(He|She)\s+didn't\s+advise\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      pastNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Didn't ${subject} advise ${pastNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Didn't ... advise [VERB:PAST:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-advise-object-to-infinitive-question-ko-en-v13.42',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.43-safe: advise + O + to-infinitive 미래 평서문 CORE
+//
+// v13.41에서 검증된 목적어·to-infinitive 해석을 그대로 재사용하여
+// 미래 긍정/부정 평서문만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 나에게 / 아이에게
+// - 공부하도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 조언할 거예요 / 조언하지 않을 거예요
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.42 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.41에서 이미 성공한 주어·목적어·동작 보어 해석만 재사용합니다.
+// 3. 미래 긍정은 will advise + O + to-infinitive를 사용합니다.
+// 4. 미래 부정은 won't advise + O + to-infinitive를 사용합니다.
+// 5. will/won't 뒤에서는 반드시 advise 원형을 사용합니다.
+// 6. 목적어와 to-infinitive는 v13.41 결과를 그대로 유지합니다.
+// 7. 명시적 ?/？ 입력은 처리하지 않아 향후 미래 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnAdviseObjectToInfinitiveFutureV1343 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalizedRaw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalizedRaw ||
+    /[?？]\s*$/u.test(normalizedRaw)
+  ) {
+    return null;
+  }
+
+  const normalized = normalizedRaw
+    .replace(/[.!]+$/g, '')
+    .trim();
+
+  const matched =
+    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(조언할 거예요|조언하지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const predicateKo = matched[4];
+
+  const baseStatement =
+    predicateKo === '조언할 거예요'
+      ? normalized.replace(
+          /조언할 거예요$/u,
+          '조언해요'
+        )
+      : normalized.replace(
+          /조언하지 않을 거예요$/u,
+          '조언하지 않아요'
+        );
+
+  // 검증된 v13.41 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnAdviseObjectToInfinitiveV1341(
+      baseStatement
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let targetBody = '';
+  let basePredicateKo = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '조언할 거예요') {
+    const positiveMatch =
+      /^(He|She)\s+advises\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!positiveMatch) {
+      return null;
+    }
+
+    targetBody =
+      `${positiveMatch[1]} will advise ${positiveMatch[2]}`;
+    basePredicateKo = '조언해요';
+    predicateAnalysis =
+      'will advise [VERB:FUTURE]';
+  } else if (
+    predicateKo === '조언하지 않을 거예요'
+  ) {
+    const negativeMatch =
+      /^(He|She)\s+doesn't\s+advise\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativeMatch) {
+      return null;
+    }
+
+    targetBody =
+      `${negativeMatch[1]} won't advise ${negativeMatch[2]}`;
+    basePredicateKo = '조언하지 않아요';
+    predicateAnalysis =
+      "won't advise [VERB:FUTURE:NEG]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === basePredicateKo
+        ? {
+            ko: predicateKo,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-advise-object-to-infinitive-future-ko-en-v13.43',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.44-safe: advise + O + to-infinitive 미래 의문문 CORE
+//
+// v13.43 미래 평서문 CORE를 그대로 재사용하여 명시적 ?/？ 입력만
+// Will / Won't 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 나에게 / 아이에게
+// - 공부하도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 조언할 거예요? / 조언하지 않을 거예요?
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.43 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.43에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 미래 긍정: Will + S + advise + O + to-infinitive?
+// 4. 미래 부정: Won't + S + advise + O + to-infinitive?
+// 5. will/won't 뒤에서는 반드시 advise 원형을 사용합니다.
+// 6. v13.43에서 검증된 목적어와 to-infinitive 조합을 그대로 유지합니다.
+// ============================================================================
+const twoProTryKoEnAdviseObjectToInfinitiveFutureQuestionV1344 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(조언할 거예요|조언하지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  // 검증된 v13.43 미래 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnAdviseObjectToInfinitiveFutureV1343(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '조언할 거예요') {
+    const positiveMatch =
+      /^(He|She)\s+will\s+advise\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!positiveMatch) {
+      return null;
+    }
+
+    const subject = positiveMatch[1].toLowerCase();
+
+    questionBody =
+      `Will ${subject} advise ${positiveMatch[2]}`;
+
+    predicateAnalysis =
+      'Will ... advise [VERB:FUTURE:QUESTION]';
+  } else if (
+    predicateKo === '조언하지 않을 거예요'
+  ) {
+    const negativeMatch =
+      /^(He|She)\s+won't\s+advise\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativeMatch) {
+      return null;
+    }
+
+    const subject = negativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Won't ${subject} advise ${negativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Won't ... advise [VERB:FUTURE:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-advise-object-to-infinitive-future-question-ko-en-v13.44',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.45-safe: ask + O + to-infinitive 현재·과거 평서문 CORE
+//
+// 현재 회귀에서 실패가 확인된
+//   [주어] + [사람]에게 + [동작]도록 + 요청하다
+// 구조를 제한적으로 일반화합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 나에게 / 아이에게
+// - 기다리도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 요청해요 / 요청했어요 / 요청하지 않아요 / 요청하지 않았어요
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.44 코드는 수정하거나 삭제하지 않습니다.
+// 2. 한국어 "요청하다"는 이 사람 목적어 + to-infinitive 문형에서 자연스러운 ask로 처리합니다.
+// 3. 현재 3인칭 단수 긍정은 asks, 과거는 asked입니다.
+// 4. 현재 부정은 doesn't ask, 과거 부정은 didn't ask입니다.
+// 5. doesn't/didn't 뒤에서는 반드시 ask 원형을 사용합니다.
+// 6. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// 7. 명시적 ?/？ 입력은 처리하지 않아 향후 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnAskObjectToInfinitiveV1345 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(요청해요|요청했어요|요청하지 않아요|요청하지 않았어요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const complementKo = matched[3];
+  const predicateKo = matched[4];
+
+  const subjectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    그는: { target: 'He', source: '그' },
+    그녀는: { target: 'She', source: '그녀' },
+  };
+
+  const objectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    나에게: { target: 'me', source: '나' },
+    아이에게: { target: 'the child', source: '아이' },
+  };
+
+  const complementMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        references: Array<{
+          source: string;
+          selected: string;
+          slot: string;
+        }>;
+      }
+    >
+  > = {
+    기다리도록: {
+      target: 'to wait',
+      references: [
+        {
+          source: '기다리다',
+          selected: 'to wait',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '책을 읽도록': {
+      target: 'to read the book',
+      references: [
+        {
+          source: '책',
+          selected: 'the book',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '읽다',
+          selected: 'to read',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '계속 일하도록': {
+      target: 'to keep working',
+      references: [
+        {
+          source: '계속',
+          selected: 'keep',
+          slot: 'OBJECT_COMPLEMENT:ASPECT',
+        },
+        {
+          source: '일하다',
+          selected: 'working',
+          slot: 'OBJECT_COMPLEMENT:GERUND',
+        },
+      ],
+    },
+
+    '일찍 출발하도록': {
+      target: 'to leave early',
+      references: [
+        {
+          source: '출발하다',
+          selected: 'to leave',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
+        },
+      ],
+    },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+  const complement = complementMap[complementKo];
+
+  if (!subject || !object || !complement) {
+    return null;
+  }
+
+  let predicateEn = '';
+  let predicateSlot = '';
+
+  if (predicateKo === '요청해요') {
+    predicateEn = 'asks';
+    predicateSlot = 'VERB:PRESENT';
+  } else if (predicateKo === '요청했어요') {
+    predicateEn = 'asked';
+    predicateSlot = 'VERB:PAST';
+  } else if (predicateKo === '요청하지 않아요') {
+    predicateEn = "doesn't ask";
+    predicateSlot = 'VERB:PRESENT:NEG';
+  } else if (predicateKo === '요청하지 않았어요') {
+    predicateEn = "didn't ask";
+    predicateSlot = 'VERB:PAST:NEG';
+  } else {
+    return null;
+  }
+
+  const targetBody =
+    `${subject.target} ${predicateEn} ${object.target} ${complement.target}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    { ko: subjectKo, en: `${subject.target} [S]` },
+    { ko: objectKo, en: `${object.target} [O]` },
+    {
+      ko: complementKo,
+      en: `${complement.target} [OC:TO-INFINITIVE]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${predicateEn} [${predicateSlot}]`,
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subject.source,
+      selected: subject.target,
+      slot: 'SUBJECT',
+    },
+    {
+      source: object.source,
+      selected: object.target,
+      slot: 'OBJECT',
+    },
+    ...complement.references,
+    {
+      source: '요청하다',
+      selected: 'ask',
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-ask-object-to-infinitive-ko-en-v13.45',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.46-safe: ask + O + to-infinitive 현재·과거 의문문 CORE
+//
+// v13.45 현재·과거 평서문 CORE를 그대로 재사용하여 명시적 ?/？ 입력만
+// Does / Did / Doesn't / Didn't 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 나에게 / 아이에게
+// - 기다리도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 요청해요? / 요청했어요? / 요청하지 않아요? / 요청하지 않았어요?
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.45 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.45에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 현재 긍정: Does + S + ask + O + to-infinitive?
+// 4. 과거 긍정: Did + S + ask + O + to-infinitive?
+// 5. 현재 부정: Doesn't + S + ask + O + to-infinitive?
+// 6. 과거 부정: Didn't + S + ask + O + to-infinitive?
+// 7. does/did/doesn't/didn't 뒤에서는 반드시 ask 원형을 사용합니다.
+// ============================================================================
+const twoProTryKoEnAskObjectToInfinitiveQuestionV1346 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(요청해요|요청했어요|요청하지 않아요|요청하지 않았어요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  // 검증된 v13.45 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnAskObjectToInfinitiveV1345(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '요청해요') {
+    const presentMatch =
+      /^(He|She)\s+asks\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentMatch) {
+      return null;
+    }
+
+    const subject = presentMatch[1].toLowerCase();
+
+    questionBody =
+      `Does ${subject} ask ${presentMatch[2]}`;
+
+    predicateAnalysis =
+      'Does ... ask [VERB:PRESENT:QUESTION]';
+  } else if (predicateKo === '요청했어요') {
+    const pastMatch =
+      /^(He|She)\s+asked\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastMatch) {
+      return null;
+    }
+
+    const subject = pastMatch[1].toLowerCase();
+
+    questionBody =
+      `Did ${subject} ask ${pastMatch[2]}`;
+
+    predicateAnalysis =
+      'Did ... ask [VERB:PAST:QUESTION]';
+  } else if (predicateKo === '요청하지 않아요') {
+    const presentNegativeMatch =
+      /^(He|She)\s+doesn't\s+ask\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      presentNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Doesn't ${subject} ask ${presentNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Doesn't ... ask [VERB:PRESENT:NEG:QUESTION]";
+  } else if (predicateKo === '요청하지 않았어요') {
+    const pastNegativeMatch =
+      /^(He|She)\s+didn't\s+ask\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!pastNegativeMatch) {
+      return null;
+    }
+
+    const subject =
+      pastNegativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Didn't ${subject} ask ${pastNegativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Didn't ... ask [VERB:PAST:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-ask-object-to-infinitive-question-ko-en-v13.46',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.47-safe: ask + O + to-infinitive 미래 평서문 CORE
+//
+// v13.45에서 검증된 목적어·to-infinitive 해석을 그대로 재사용하여
+// 미래 긍정/부정 평서문만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 나에게 / 아이에게
+// - 기다리도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 요청할 거예요 / 요청하지 않을 거예요
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.46 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.45에서 이미 성공한 주어·목적어·동작 보어 해석만 재사용합니다.
+// 3. 미래 긍정은 will ask + O + to-infinitive를 사용합니다.
+// 4. 미래 부정은 won't ask + O + to-infinitive를 사용합니다.
+// 5. will/won't 뒤에서는 반드시 ask 원형을 사용합니다.
+// 6. 목적어와 to-infinitive는 v13.45 결과를 그대로 유지합니다.
+// 7. 명시적 ?/？ 입력은 처리하지 않아 향후 미래 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnAskObjectToInfinitiveFutureV1347 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalizedRaw = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalizedRaw ||
+    /[?？]\s*$/u.test(normalizedRaw)
+  ) {
+    return null;
+  }
+
+  const normalized = normalizedRaw
+    .replace(/[.!]+$/g, '')
+    .trim();
+
+  const matched =
+    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(요청할 거예요|요청하지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const predicateKo = matched[4];
+
+  const baseStatement =
+    predicateKo === '요청할 거예요'
+      ? normalized.replace(
+          /요청할 거예요$/u,
+          '요청해요'
+        )
+      : normalized.replace(
+          /요청하지 않을 거예요$/u,
+          '요청하지 않아요'
+        );
+
+  // 검증된 v13.45 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnAskObjectToInfinitiveV1345(
+      baseStatement
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let targetBody = '';
+  let basePredicateKo = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '요청할 거예요') {
+    const positiveMatch =
+      /^(He|She)\s+asks\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!positiveMatch) {
+      return null;
+    }
+
+    targetBody =
+      `${positiveMatch[1]} will ask ${positiveMatch[2]}`;
+    basePredicateKo = '요청해요';
+    predicateAnalysis =
+      'will ask [VERB:FUTURE]';
+  } else if (
+    predicateKo === '요청하지 않을 거예요'
+  ) {
+    const negativeMatch =
+      /^(He|She)\s+doesn't\s+ask\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativeMatch) {
+      return null;
+    }
+
+    targetBody =
+      `${negativeMatch[1]} won't ask ${negativeMatch[2]}`;
+    basePredicateKo = '요청하지 않아요';
+    predicateAnalysis =
+      "won't ask [VERB:FUTURE:NEG]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === basePredicateKo
+        ? {
+            ko: predicateKo,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-ask-object-to-infinitive-future-ko-en-v13.47',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.48-safe: ask + O + to-infinitive 미래 의문문 CORE
+//
+// v13.47 미래 평서문 CORE를 그대로 재사용하여 명시적 ?/？ 입력만
+// Will / Won't 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 나에게 / 아이에게
+// - 기다리도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 요청할 거예요? / 요청하지 않을 거예요?
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.47 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.47에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 미래 긍정: Will + S + ask + O + to-infinitive?
+// 4. 미래 부정: Won't + S + ask + O + to-infinitive?
+// 5. will/won't 뒤에서는 반드시 ask 원형을 사용합니다.
+// 6. v13.47에서 검증된 목적어와 to-infinitive 조합을 그대로 유지합니다.
+// ============================================================================
+const twoProTryKoEnAskObjectToInfinitiveFutureQuestionV1348 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(요청할 거예요|요청하지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  // 검증된 v13.47 미래 평서문 해석을 그대로 재사용합니다.
+  const baseResult =
+    twoProTryKoEnAskObjectToInfinitiveFutureV1347(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '요청할 거예요') {
+    const positiveMatch =
+      /^(He|She)\s+will\s+ask\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!positiveMatch) {
+      return null;
+    }
+
+    const subject = positiveMatch[1].toLowerCase();
+
+    questionBody =
+      `Will ${subject} ask ${positiveMatch[2]}`;
+
+    predicateAnalysis =
+      'Will ... ask [VERB:FUTURE:QUESTION]';
+  } else if (
+    predicateKo === '요청하지 않을 거예요'
+  ) {
+    const negativeMatch =
+      /^(He|She)\s+won't\s+ask\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativeMatch) {
+      return null;
+    }
+
+    const subject = negativeMatch[1].toLowerCase();
+
+    questionBody =
+      `Won't ${subject} ask ${negativeMatch[2]}`;
+
+    predicateAnalysis =
+      "Won't ... ask [VERB:FUTURE:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-ask-object-to-infinitive-future-question-ko-en-v13.48',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.50-safe: order + O + to-infinitive 현재·과거 평서문 CORE
+//
+// 현재 회귀에서 실패가 확인된
+//   [주어] + [사람]에게 + [동작]도록 + 명령하다
+// 구조를 제한적으로 일반화합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 나에게 / 아이에게
+// - 기다리도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 명령해요 / 명령했어요 / 명령하지 않아요 / 명령하지 않았어요
+//
+// 안전 원칙:
+// 1. 기존 v13.00~v13.49 코드는 수정하거나 삭제하지 않습니다.
+// 2. order 구문은 반드시 order + O + to-infinitive입니다.
+// 3. 현재 3인칭 단수 긍정은 orders, 과거는 ordered입니다.
+// 4. 현재 부정은 doesn't order, 과거 부정은 didn't order입니다.
+// 5. doesn't/didn't 뒤에서는 반드시 order 원형을 사용합니다.
+// 6. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// 7. 명시적 ?/？ 입력은 처리하지 않아 향후 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnOrderObjectToInfinitiveV1350 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(명령해요|명령했어요|명령하지 않아요|명령하지 않았어요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const complementKo = matched[3];
+  const predicateKo = matched[4];
+
+  const subjectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    그는: { target: 'He', source: '그' },
+    그녀는: { target: 'She', source: '그녀' },
+  };
+
+  const objectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    나에게: { target: 'me', source: '나' },
+    아이에게: { target: 'the child', source: '아이' },
+  };
+
+  const complementMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        references: Array<{
+          source: string;
+          selected: string;
+          slot: string;
+        }>;
+      }
+    >
+  > = {
+    기다리도록: {
+      target: 'to wait',
+      references: [
+        {
+          source: '기다리다',
+          selected: 'to wait',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '책을 읽도록': {
+      target: 'to read the book',
+      references: [
+        {
+          source: '책',
+          selected: 'the book',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '읽다',
+          selected: 'to read',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '계속 일하도록': {
+      target: 'to keep working',
+      references: [
+        {
+          source: '계속',
+          selected: 'keep',
+          slot: 'OBJECT_COMPLEMENT:ASPECT',
+        },
+        {
+          source: '일하다',
+          selected: 'working',
+          slot: 'OBJECT_COMPLEMENT:GERUND',
+        },
+      ],
+    },
+
+    '일찍 출발하도록': {
+      target: 'to leave early',
+      references: [
+        {
+          source: '출발하다',
+          selected: 'to leave',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
+        },
+      ],
+    },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+  const complement = complementMap[complementKo];
+
+  if (!subject || !object || !complement) {
+    return null;
+  }
+
+  let predicateEn = '';
+  let predicateSlot = '';
+
+  if (predicateKo === '명령해요') {
+    predicateEn = 'orders';
+    predicateSlot = 'VERB:PRESENT';
+  } else if (predicateKo === '명령했어요') {
+    predicateEn = 'ordered';
+    predicateSlot = 'VERB:PAST';
+  } else if (predicateKo === '명령하지 않아요') {
+    predicateEn = "doesn't order";
+    predicateSlot = 'VERB:PRESENT:NEG';
+  } else if (predicateKo === '명령하지 않았어요') {
+    predicateEn = "didn't order";
+    predicateSlot = 'VERB:PAST:NEG';
+  } else {
+    return null;
+  }
+
+  const targetBody =
+    `${subject.target} ${predicateEn} ${object.target} ${complement.target}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    { ko: subjectKo, en: `${subject.target} [S]` },
+    { ko: objectKo, en: `${object.target} [O]` },
+    {
+      ko: complementKo,
+      en: `${complement.target} [OC:TO-INFINITIVE]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${predicateEn} [${predicateSlot}]`,
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subject.source,
+      selected: subject.target,
+      slot: 'SUBJECT',
+    },
+    {
+      source: object.source,
+      selected: object.target,
+      slot: 'OBJECT',
+    },
+    ...complement.references,
+    {
+      source: '명령하다',
+      selected: 'order',
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-order-object-to-infinitive-ko-en-v13.50',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.51-safe: order + O + to-infinitive 현재·과거 의문문 CORE
+//
+// v13.50의 검증된 평서문 결과를 재사용하여 명시적 ?/？ 입력만 의문문으로 전환합니다.
+// 처리 범위:
+// - 명령해요? / 명령했어요?
+// - 명령하지 않아요? / 명령하지 않았어요?
+// - v13.50이 지원하는 주어·목적어·동작 보어 조합만 허용
+//
+// 안전 원칙:
+// 1. v13.50 평서문 CORE는 수정하지 않습니다.
+// 2. 현재 긍정은 Does + S + order ..., 과거 긍정은 Did + S + order ...
+// 3. 현재 부정은 Doesn't + S + order ..., 과거 부정은 Didn't + S + order ...
+// 4. 조동사 뒤에서는 반드시 order 원형을 사용합니다.
+// 5. ?/？가 없는 입력은 처리하지 않습니다.
+// ============================================================================
+const twoProTryKoEnOrderObjectToInfinitiveQuestionV1351 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const body = normalized.replace(/[?？]\s*$/u, '').trim();
+
+  const matched =
+    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(명령해요|명령했어요|명령하지 않아요|명령하지 않았어요)$/u.exec(
+      body
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const predicateKo = matched[4];
+  const baseResult =
+    twoProTryKoEnOrderObjectToInfinitiveV1350(body);
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '명령해요') {
+    const m = /^(He|She)\s+orders\s+(.+)$/i.exec(baseTarget);
+    if (!m) return null;
+    questionBody = `Does ${m[1].toLowerCase()} order ${m[2]}`;
+    predicateAnalysis = 'Does ... order [VERB:PRESENT:QUESTION]';
+  } else if (predicateKo === '명령했어요') {
+    const m = /^(He|She)\s+ordered\s+(.+)$/i.exec(baseTarget);
+    if (!m) return null;
+    questionBody = `Did ${m[1].toLowerCase()} order ${m[2]}`;
+    predicateAnalysis = 'Did ... order [VERB:PAST:QUESTION]';
+  } else if (predicateKo === '명령하지 않아요') {
+    const m = /^(He|She)\s+doesn't\s+order\s+(.+)$/i.exec(baseTarget);
+    if (!m) return null;
+    questionBody = `Doesn't ${m[1].toLowerCase()} order ${m[2]}`;
+    predicateAnalysis = "Doesn't ... order [VERB:PRESENT:NEG:QUESTION]";
+  } else if (predicateKo === '명령하지 않았어요') {
+    const m = /^(He|She)\s+didn't\s+order\s+(.+)$/i.exec(baseTarget);
+    if (!m) return null;
+    questionBody = `Didn't ${m[1].toLowerCase()} order ${m[2]}`;
+    predicateAnalysis = "Didn't ... order [VERB:PAST:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis = baseResult.analysis.map((item) =>
+    item.ko === predicateKo
+      ? {
+          ko: `${predicateKo}?`,
+          en: predicateAnalysis,
+        }
+      : item
+  );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-order-object-to-infinitive-question-ko-en-v13.51',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.52-safe: order + O + to-infinitive 미래 평서문 CORE
+//
+// v13.50의 검증된 주어·목적어·동작 보어 조합을 그대로 재사용하여
+// 미래 긍정/부정만 안전하게 확장합니다.
+// 처리 범위:
+// - 명령할 거예요 / 명령하지 않을 거예요
+// - v13.50이 지원하는 주어·목적어·동작 보어 조합만 허용
+//
+// 안전 원칙:
+// 1. v13.50/v13.51 CORE는 수정하지 않습니다.
+// 2. 미래 긍정은 will order, 미래 부정은 won't order를 사용합니다.
+// 3. will/won't 뒤에서는 반드시 order 원형을 사용합니다.
+// 4. ?/？가 있는 입력은 처리하지 않아 향후 미래 의문문 CORE와 분리합니다.
+// 5. 주어·목적어·보어 해석은 v13.50의 검증된 결과만 재사용합니다.
+// ============================================================================
+const twoProTryKoEnOrderObjectToInfinitiveFutureV1352 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(명령할 거예요|명령하지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const predicateKo = matched[4];
+  const basePredicateKo =
+    predicateKo === '명령할 거예요'
+      ? '명령해요'
+      : '명령하지 않아요';
+
+  const baseBody = normalized.replace(
+    new RegExp(`${predicateKo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'u'),
+    basePredicateKo
+  );
+
+  const baseResult =
+    twoProTryKoEnOrderObjectToInfinitiveV1350(baseBody);
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  let targetBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '명령할 거예요') {
+    const m = /^(He|She)\s+orders\s+(.+)$/i.exec(baseTarget);
+    if (!m) return null;
+    targetBody = `${m[1]} will order ${m[2]}`;
+    predicateAnalysis = 'will order [VERB:FUTURE]';
+  } else if (predicateKo === '명령하지 않을 거예요') {
+    const m = /^(He|She)\s+doesn't\s+order\s+(.+)$/i.exec(baseTarget);
+    if (!m) return null;
+    targetBody = `${m[1]} won't order ${m[2]}`;
+    predicateAnalysis = "won't order [VERB:FUTURE:NEG]";
+  } else {
+    return null;
+  }
+
+  const analysis = baseResult.analysis.map((item) =>
+    item.ko === basePredicateKo
+      ? {
+          ko: predicateKo,
+          en: predicateAnalysis,
+        }
+      : item
+  );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-order-object-to-infinitive-future-ko-en-v13.52',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.53-safe: order + O + to-infinitive 미래 의문문 CORE
+//
+// v13.52의 검증된 미래 평서문 결과를 재사용하여 명시적 ?/？ 입력만
+// 미래 긍정/부정 의문문으로 전환합니다.
+// 처리 범위:
+// - 명령할 거예요? / 명령하지 않을 거예요?
+// - v13.52가 지원하는 주어·목적어·동작 보어 조합만 허용
+//
+// 안전 원칙:
+// 1. v13.50/v13.51/v13.52 CORE는 수정하지 않습니다.
+// 2. 미래 긍정은 Will + S + order ..., 미래 부정은 Won't + S + order ...
+// 3. will/won't 뒤에서는 반드시 order 원형을 사용합니다.
+// 4. ?/？가 없는 입력은 처리하지 않습니다.
+// 5. 주어·목적어·보어 해석과 referenceWords는 v13.52의 검증된 결과만 재사용합니다.
+// ============================================================================
+const twoProTryKoEnOrderObjectToInfinitiveFutureQuestionV1353 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const body = normalized.replace(/[?？]\s*$/u, '').trim();
+
+  const matched =
+    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(명령할 거예요|명령하지 않을 거예요)$/u.exec(
+      body
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const predicateKo = matched[4];
+  const baseResult =
+    twoProTryKoEnOrderObjectToInfinitiveFutureV1352(body);
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '명령할 거예요') {
+    const m = /^(He|She)\s+will\s+order\s+(.+)$/i.exec(baseTarget);
+    if (!m) return null;
+    questionBody = `Will ${m[1].toLowerCase()} order ${m[2]}`;
+    predicateAnalysis = 'Will ... order [VERB:FUTURE:QUESTION]';
+  } else if (predicateKo === '명령하지 않을 거예요') {
+    const m = /^(He|She)\s+won't\s+order\s+(.+)$/i.exec(baseTarget);
+    if (!m) return null;
+    questionBody = `Won't ${m[1].toLowerCase()} order ${m[2]}`;
+    predicateAnalysis = "Won't ... order [VERB:FUTURE:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis = baseResult.analysis.map((item) =>
+    item.ko === predicateKo
+      ? {
+          ko: `${predicateKo}?`,
+          en: predicateAnalysis,
+        }
+      : item
+  );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-order-object-to-infinitive-future-question-ko-en-v13.53',
   };
 };
 
@@ -65532,6 +72029,276 @@ const twoProExtractDbPunctuationExactEnglishV1306 = (
 
 
 // =========================================================================
+// ☆ TwoPro v13.09-safe: 문장부호 + 한국어 종결형 의미를 함께 보는 DB exact fallback
+//
+// 목적:
+// - raw punctuation exact가 없을 때도 '?'를 단순히 제거해서 평서문 DB exact로
+//   떨어지는 것을 막습니다.
+// - 격식체 '-니다?'는 대응 의문형 '-니까?'가 DB에 있으면 그것을 우선 사용합니다.
+// - '-니까.' / '-니까!'처럼 문장부호가 비표준이어도 한국어 종결형 자체가
+//   의문형이면 canonical '?' DB exact를 우선 사용합니다.
+// - 평서형 '-니다!'는 canonical '.' DB exact를 재사용하되 영어 끝을 '!'로 보존합니다.
+//
+// 예:
+//   말할 것입니다?  -> 말할 것입니까? DB exact를 우선 탐색
+//   말할 것입니다!  -> 말할 것입니다. DB exact + 영어 '!'
+//   말할 것입니까.  -> 말할 것입니까? DB exact
+//   말할 것입니까!  -> 말할 것입니까? DB exact
+// =========================================================================
+type TwoProPunctuationSemanticVariantV1309 = {
+  queryText: string;
+  forceEnglishTerminal: '' | '?' | '!';
+  reason:
+    | 'DECLARATIVE_TO_QUESTION'
+    | 'QUESTION_ENDING_CANONICAL'
+    | 'DECLARATIVE_EXCLAMATION';
+};
+
+const twoProNormalizeTerminalPunctuationV1309 = (
+  value: string
+): string => {
+  return String(value || '')
+    .normalize('NFC')
+    .replace(/。/g, '.')
+    .replace(/？/g, '?')
+    .replace(/！/g, '!')
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
+const twoProIsFormalQuestionEndingV1309 = (
+  value: string
+): boolean => {
+  const clean = twoProNormalizeTerminalPunctuationV1309(
+    value
+  )
+    .replace(/[.?!]+$/u, '')
+    .trim();
+
+  return /니까$/u.test(clean);
+};
+
+const twoProBuildPunctuationSemanticVariantsV1309 = (
+  value: string
+): TwoProPunctuationSemanticVariantV1309[] => {
+  const normalized =
+    twoProNormalizeTerminalPunctuationV1309(
+      value
+    );
+
+  const terminalMatch =
+    /([.?!])$/u.exec(normalized);
+
+  if (!terminalMatch) {
+    return [];
+  }
+
+  const terminal = terminalMatch[1];
+  const body = normalized
+    .replace(/[.?!]+$/u, '')
+    .trim();
+
+  if (!body) {
+    return [];
+  }
+
+  const variants: TwoProPunctuationSemanticVariantV1309[] = [];
+
+  // 1) 한국어 종결형 자체가 '-니까'인 경우에는 punctuation보다
+  //    의문 의미를 우선하여 canonical '?' exact를 탐색합니다.
+  if (/니까$/u.test(body) && terminal !== '?') {
+    variants.push({
+      queryText: `${body}?`,
+      forceEnglishTerminal: '?',
+      reason: 'QUESTION_ENDING_CANONICAL',
+    });
+  }
+
+  // 2) 격식 평서 '-니다?'는 대응 의문 '-니까?'를 corpus exact로 우선 탐색합니다.
+  //    입니다? -> 입니까?, 합니다? -> 합니까?, 갑니다? -> 갑니까?
+  if (
+    terminal === '?' &&
+    /니다$/u.test(body) &&
+    !/니까$/u.test(body)
+  ) {
+    const questionBody =
+      body.replace(/니다$/u, '니까');
+
+    variants.push({
+      queryText: `${questionBody}?`,
+      forceEnglishTerminal: '?',
+      reason: 'DECLARATIVE_TO_QUESTION',
+    });
+  }
+
+  // 3) 격식 평서 '-니다!'는 동일 평서문 '.' exact를 재사용하되
+  //    영어 출력의 끝 문장부호만 '!'로 보존합니다.
+  if (
+    terminal === '!' &&
+    /니다$/u.test(body) &&
+    !/니까$/u.test(body)
+  ) {
+    variants.push({
+      queryText: `${body}.`,
+      forceEnglishTerminal: '!',
+      reason: 'DECLARATIVE_EXCLAMATION',
+    });
+  }
+
+  const deduped = new Map<
+    string,
+    TwoProPunctuationSemanticVariantV1309
+  >();
+
+  for (const variant of variants) {
+    const key =
+      `${variant.queryText}\u0000${variant.forceEnglishTerminal}`;
+
+    if (!deduped.has(key)) {
+      deduped.set(key, variant);
+    }
+  }
+
+  return [...deduped.values()];
+};
+
+const twoProForceEnglishTerminalV1309 = (
+  english: string,
+  terminal: '' | '?' | '!'
+): string => {
+  const clean = String(english || '')
+    .replace(/[.?!]+$/u, '')
+    .trim();
+
+  if (!clean) {
+    return clean;
+  }
+
+  if (!terminal) {
+    return clean;
+  }
+
+  return `${clean}${terminal}`;
+};
+
+
+// =========================================================================
+// ☆ TwoPro v13.11-safe: 문장부호 exact용 한국어 공백 비의존 비교
+//
+// v13.10은 DB 후보를 가져올 때 canonical 한국어 전체 문자열을 같은 공백 형태로
+// 포함해야 했습니다. DB 원문에 '그 쪽/그쪽'처럼 공백 차이가 있으면 후보 자체가
+// 조회되지 않을 수 있습니다.
+//
+// v13.11은:
+// 1) DB 후보 조회에서는 한국어 토큰 사이를 '%'로 연결하여 공백 차이를 허용하고,
+// 2) 실제 exact 판정에서는 한국어 쪽의 공백만 제거한 뒤 문장부호까지 엄격히 비교합니다.
+// 다른 글자/어절이 추가된 문장은 exact로 인정하지 않습니다.
+// =========================================================================
+const twoProNormalizeKoPunctuationNoSpaceV1311 = (
+  value: string
+): string => {
+  return String(value || '')
+    .normalize('NFC')
+    .replace(/。/g, '.')
+    .replace(/？/g, '?')
+    .replace(/！/g, '!')
+    .replace(/\s+/g, '')
+    .trim();
+};
+
+const twoProExtractDbPunctuationNoSpaceExactEnglishV1311 = (
+  lineText: string,
+  koreanInput: string
+): string | null => {
+  const line = String(lineText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const normalizedInput =
+    twoProNormalizeKoPunctuationNoSpaceV1311(
+      koreanInput
+    );
+
+  if (
+    !line ||
+    !normalizedInput ||
+    !/[.?!]$/u.test(normalizedInput) ||
+    !/[가-힣]/u.test(line) ||
+    !/[A-Za-z]/.test(line)
+  ) {
+    return null;
+  }
+
+  const englishCandidates: string[] = [];
+
+  for (let index = 1; index < line.length; index += 1) {
+    const left = line.slice(0, index);
+    const right = line.slice(index);
+
+    if (
+      twoProNormalizeKoPunctuationNoSpaceV1311(
+        left
+      ) === normalizedInput &&
+      /[A-Za-z]/.test(right)
+    ) {
+      const english =
+        twoProCleanDbExactEnglishV92(right);
+
+      if (english && /[A-Za-z]/.test(english)) {
+        englishCandidates.push(english);
+      }
+    }
+
+    if (
+      twoProNormalizeKoPunctuationNoSpaceV1311(
+        right
+      ) === normalizedInput &&
+      /[A-Za-z]/.test(left)
+    ) {
+      const english =
+        twoProCleanDbExactEnglishV92(left);
+
+      if (english && /[A-Za-z]/.test(english)) {
+        englishCandidates.push(english);
+      }
+    }
+  }
+
+  if (!englishCandidates.length) {
+    return null;
+  }
+
+  return [...new Set(englishCandidates)]
+    .sort((a, b) => b.length - a.length)[0];
+};
+
+const twoProBuildIlikeTokenPatternV1311 = (
+  value: string
+): string => {
+  const tokens = String(value || '')
+    .normalize('NFC')
+    .replace(/[.?!。？！]+$/u, '')
+    .trim()
+    .split(/\s+/u)
+    .filter(Boolean);
+
+  if (!tokens.length) {
+    return '';
+  }
+
+  const escapedTokens = tokens.map((token) =>
+    token
+      .replace(/\\/g, '\\\\')
+      .replace(/%/g, '\\%')
+      .replace(/_/g, '\\_')
+  );
+
+  return `%${escapedTokens.join('%')}%`;
+};
+
+
+// =========================================================================
 // 🎯 TwoPro v9.8-safe: DB 명사절 격조사 변형 완전 일치
 //
 // DB 원문과 입력문이 '...는 것이 ...의 일이다' /
@@ -71107,6 +77874,401 @@ export async function POST(request: Request) {
     }
 
     // =================================================================
+    // ☆ TwoPro v13.12-safe: PHRASES 공통 응답 함수 선언 순서 보정
+    //
+    // v13.06/v13.09/v13.10/v13.11 문장부호 DB exact 경로가
+    // twoProRespondWithPhraseDiagnosticsV915()를 호출할 때,
+    // 기존 선언 위치가 더 아래에 있어 TDZ ReferenceError가 발생했습니다.
+    //
+    // 로직 자체는 바꾸지 않고, 기존 v9.15 matchedPhrases + 공통 응답 함수 블록을
+    // 문장부호 exact 경로보다 앞쪽으로 이동합니다.
+    // =================================================================
+
+    // =================================================================
+    // 🎯 TwoPro v9.15: phrases 최장 일치 결과와 공통 응답 진단
+    // =================================================================
+    const matchedPhrasesV915 =
+      twoProFindLongestPhraseMatchesV915(
+        originalText
+      );
+
+    const twoProRespondWithPhraseDiagnosticsV915 = (
+      payload: any,
+      init?: any
+    ) => {
+      if (!payload?.best) {
+        return NextResponse.json(payload, init);
+      }
+
+      const existingReferenceWords = Array.isArray(
+        payload.best.referenceWords
+      )
+        ? payload.best.referenceWords
+        : Array.isArray(payload.referenceWords)
+          ? payload.referenceWords
+          : [];
+
+      const appliedPhraseKeys = new Set(
+        existingReferenceWords
+          .filter(
+            (item: any) =>
+              item?.origin ===
+              'rules-ko-en-phrases.json'
+          )
+          .map(
+            (item: any) =>
+              String(
+                item?.phraseRule ||
+                item?.source ||
+                ''
+              )
+          )
+          .filter(Boolean)
+      );
+
+      const baseEngine = String(
+        payload.best.engine || 'legacy-ko-en'
+      );
+
+      const directPhraseEngine =
+        baseEngine.startsWith('phrase-') ||
+        Boolean(payload.best.phraseApplied);
+
+      const normalizeEnglishForPhraseReferenceV916 = (
+        value: unknown
+      ): string =>
+        String(value || '')
+          .normalize('NFC')
+          .toLocaleLowerCase()
+          .replace(/[.,!?;:'"“”‘’()[\]{}]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+      const normalizedTargetForPhraseV916 =
+        normalizeEnglishForPhraseReferenceV916(
+          payload.best.target_text
+        );
+
+      // v9.22:
+      // PHRASES의 명령형과 최종 문장 속 비정형 활용을 연결합니다.
+      //
+      // 서명해 주세요 → please sign
+      // ... before signing
+      //
+      // 'please'를 제거한 핵심 동사가 최종 결과에
+      // 기본형·3인칭·과거형·동명사형으로 나타나는지 제한적으로 확인합니다.
+      const twoProPhraseEnglishReferencedV922 = (
+        phraseEnglish: string,
+        targetEnglish: string
+      ): boolean => {
+        const phrase =
+          normalizeEnglishForPhraseReferenceV916(
+            phraseEnglish
+          );
+
+        const target =
+          normalizeEnglishForPhraseReferenceV916(
+            targetEnglish
+          );
+
+        if (!phrase || !target) {
+          return false;
+        }
+
+        if (target.includes(phrase)) {
+          return true;
+        }
+
+        const withoutPlease = phrase
+          .replace(/^please\s+/, '')
+          .trim();
+
+        if (
+          withoutPlease &&
+          target.includes(withoutPlease)
+        ) {
+          return true;
+        }
+
+        const words = withoutPlease
+          .split(/\s+/)
+          .filter(Boolean);
+
+        if (words.length !== 1) {
+          return false;
+        }
+
+        const base = words[0]
+          .replace(/[^a-z0-9'’-]/gi, '')
+          .toLowerCase();
+
+        if (!base) {
+          return false;
+        }
+
+        const variants = new Set<string>([
+          base,
+          `${base}s`,
+          `${base}ed`,
+          `${base}ing`,
+        ]);
+
+        if (base.endsWith('e')) {
+          variants.add(
+            `${base.slice(0, -1)}ing`
+          );
+        }
+
+        if (
+          /[^aeiou]y$/i.test(base)
+        ) {
+          variants.add(
+            `${base.slice(0, -1)}ies`
+          );
+          variants.add(
+            `${base.slice(0, -1)}ied`
+          );
+        }
+
+        const targetWords = new Set(
+          target
+            .split(/\s+/)
+            .map((word) =>
+              word.replace(
+                /[^a-z0-9'’-]/gi,
+                ''
+              )
+            )
+            .filter(Boolean)
+        );
+
+        return [...variants].some(
+          (variant) =>
+            targetWords.has(variant)
+        );
+      };
+
+      const diagnosticMatches =
+        matchedPhrasesV915.map((match) => {
+          const embeddedEnglish =
+            twoProEmbeddedPhraseEnglishV915(
+              match.en
+            );
+
+          const applied =
+            directPhraseEngine ||
+            appliedPhraseKeys.has(match.ko);
+
+          const normalizedPhraseEnglish =
+            normalizeEnglishForPhraseReferenceV916(
+              embeddedEnglish
+            );
+
+          const referenced =
+            applied ||
+            twoProPhraseEnglishReferencedV922(
+              embeddedEnglish,
+              normalizedTargetForPhraseV916
+            );
+
+          return {
+            ko: match.ko,
+            en: embeddedEnglish,
+            start: match.start,
+            end: match.end,
+            sourceFile: match.sourceFile,
+            applied,
+            referenced,
+          };
+        });
+
+      const phraseApplied =
+        diagnosticMatches.some(
+          (match) => match.applied
+        );
+
+      const phraseReferenced =
+        diagnosticMatches.some(
+          (match) => match.referenced
+        );
+
+      const existingKeys = new Set(
+        existingReferenceWords.map(
+          (item: any) =>
+            `${String(item?.source || '')}\u0000${String(
+              item?.selected || ''
+            )}`
+        )
+      );
+
+      // 실제 조립에 사용되었거나 최종 영어 결과에 확인된 구를
+      // 화면의 '참고 표현'에 합칩니다.
+      const visiblePhraseReferences =
+        diagnosticMatches
+          .filter((match) => match.referenced)
+          .map((match) =>
+            twoProPhraseReferenceWordV915({
+              ...match,
+              sourceFile:
+                'rules-ko-en-phrases.json',
+            })
+          )
+          .filter((item: any) => {
+            const key = `${item.source}\u0000${item.selected}`;
+            return !existingKeys.has(key);
+          });
+
+      // v9.21:
+      // PHRASES와 기존 참고 표현이 포함 관계이면 더 긴 한국어 구를 우선합니다.
+      //
+      // 예:
+      // 그 총명한 소년 → the bright boy
+      // 총명한 소년 → bright boy
+      // 두 줄을 함께 표시하지 않습니다.
+      const normalizeReferenceV921 = (
+        value: unknown
+      ): string =>
+        String(value || '')
+          .normalize('NFC')
+          .toLocaleLowerCase()
+          .replace(
+            /[\s.,!?;:'"“”‘’()[\]{}…·]+/g,
+            ''
+          )
+          .trim();
+
+      const referenceCandidatesV921 = [
+        ...visiblePhraseReferences,
+        ...existingReferenceWords,
+      ]
+        .map((item: any, index: number) => ({
+          item,
+          index,
+          sourceNormalized:
+            normalizeReferenceV921(
+              item?.source
+            ),
+          selectedNormalized:
+            normalizeReferenceV921(
+              item?.selected
+            ),
+        }))
+        .filter(
+          (candidate) =>
+            Boolean(
+              candidate.sourceNormalized
+            ) &&
+            Boolean(
+              candidate.selectedNormalized
+            )
+        )
+        .sort(
+          (left, right) =>
+            right.sourceNormalized.length -
+              left.sourceNormalized.length ||
+            left.index - right.index
+        );
+
+      const dedupedReferenceCandidatesV921:
+        typeof referenceCandidatesV921 = [];
+
+      for (
+        const candidate
+        of referenceCandidatesV921
+      ) {
+        const overlapsExisting =
+          dedupedReferenceCandidatesV921.some(
+            (existing) => {
+              const sourceOverlaps =
+                existing.sourceNormalized.includes(
+                  candidate.sourceNormalized
+                ) ||
+                candidate.sourceNormalized.includes(
+                  existing.sourceNormalized
+                );
+
+              const selectedOverlaps =
+                existing.selectedNormalized.includes(
+                  candidate.selectedNormalized
+                ) ||
+                candidate.selectedNormalized.includes(
+                  existing.selectedNormalized
+                );
+
+              return (
+                sourceOverlaps &&
+                selectedOverlaps
+              );
+            }
+          );
+
+        if (!overlapsExisting) {
+          dedupedReferenceCandidatesV921.push(
+            candidate
+          );
+        }
+      }
+
+      const mergedReferenceWords =
+        dedupedReferenceCandidatesV921
+          .sort(
+            (left, right) =>
+              left.index - right.index
+          )
+          .map(
+            (candidate) =>
+              candidate.item
+          )
+          .slice(0, 4);
+
+      if (diagnosticMatches.length) {
+        console.log(
+          '[한영 PHRASES 최장 구 매칭 v9.15]',
+          {
+            query: originalText,
+            baseEngine,
+            phraseApplied,
+            phraseReferenced,
+            matchedPhrases: diagnosticMatches,
+          }
+        );
+      }
+
+      const reportedEngine =
+        phraseApplied &&
+        !baseEngine.includes('phrase-')
+          ? `${baseEngine}+phrase-slot-v1`
+          : baseEngine;
+
+      const nextBest = {
+        ...payload.best,
+        referenceWords: mergedReferenceWords,
+        engine: reportedEngine,
+        baseEngine,
+        phraseEngine:
+          'rules-ko-en-phrases-longest-match-v1',
+        phraseApplied,
+        phraseReferenced,
+        matchedPhrases: diagnosticMatches,
+      };
+
+      return NextResponse.json(
+        {
+          ...payload,
+          best: nextBest,
+          referenceWords: mergedReferenceWords,
+          phraseEngine:
+            'rules-ko-en-phrases-longest-match-v1',
+          phraseApplied,
+          phraseReferenced,
+          matchedPhrases: diagnosticMatches,
+        },
+        init
+      );
+    };
+
+
+    // =================================================================
     // ☆ TwoPro v13.06-safe: 사용자가 입력한 문장부호를 보존한 DB exact 최우선
     //
     // 중요:
@@ -71280,8 +78442,619 @@ export async function POST(request: Request) {
       }
     }
 
+    // =================================================================
+    // ☆ TwoPro v13.09-safe: raw punctuation exact가 없을 때의 의미 보존 exact
+    //
+    // 같은 본문의 punctuation을 무시한 일반 exact로 바로 떨어지기 전에,
+    // 한국어 격식 종결형과 사용자가 입력한 punctuation을 함께 해석하여
+    // 대응하는 corpus exact가 실제 존재하는지 한 번 더 확인합니다.
+    // =================================================================
+    const punctuationSemanticVariantsV1309 =
+      twoProBuildPunctuationSemanticVariantsV1309(
+        rawOriginalTextV1306
+      );
+
+    if (punctuationSemanticVariantsV1309.length) {
+      try {
+        const supabaseUrlV1309 =
+          process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+        const supabaseKeyV1309 =
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+        if (
+          supabaseUrlV1309 &&
+          supabaseKeyV1309
+        ) {
+          const supabaseV1309 =
+            createClient(
+              supabaseUrlV1309,
+              supabaseKeyV1309
+            );
+
+          for (
+            const variantV1309 of
+            punctuationSemanticVariantsV1309
+          ) {
+            const escapedVariantQueryV1309 =
+              variantV1309.queryText
+                .replace(/\\/g, '\\\\')
+                .replace(/%/g, '\\%')
+                .replace(/_/g, '\\_');
+
+            const {
+              data: semanticExactDataV1309,
+              error: semanticExactErrorV1309,
+            } = await supabaseV1309
+              .from('dictionary_lines')
+              .select(
+                'id, line_text, source_order, category_id'
+              )
+              .ilike(
+                'line_text',
+                `%${escapedVariantQueryV1309}%`
+              )
+              .order(
+                'source_order',
+                { ascending: true }
+              )
+              .limit(50);
+
+            if (semanticExactErrorV1309) {
+              console.error(
+                '[한영 문장부호 의미보존 DB exact 조회 오류 v13.09]',
+                {
+                  query:
+                    variantV1309.queryText,
+                  error:
+                    semanticExactErrorV1309.message,
+                }
+              );
+
+              continue;
+            }
+
+            if (!semanticExactDataV1309?.length) {
+              continue;
+            }
+
+            for (
+              const itemV1309 of
+              semanticExactDataV1309
+            ) {
+              const semanticExactEnglishV1309 =
+                twoProExtractDbPunctuationExactEnglishV1306(
+                  String(
+                    itemV1309?.line_text || ''
+                  ),
+                  variantV1309.queryText
+                );
+
+              if (!semanticExactEnglishV1309) {
+                continue;
+              }
+
+              let finalizedSemanticExactEnglishV1309 =
+                twoProFinalizeEnglish(
+                  semanticExactEnglishV1309,
+                  variantV1309.queryText
+                );
+
+              if (
+                variantV1309.forceEnglishTerminal
+              ) {
+                finalizedSemanticExactEnglishV1309 =
+                  twoProForceEnglishTerminalV1309(
+                    finalizedSemanticExactEnglishV1309,
+                    variantV1309.forceEnglishTerminal
+                  );
+              }
+
+              const semanticExactReferenceWordsV1309 =
+                twoProBuildDbExactReferenceWordsV968(
+                  rawOriginalTextV1306,
+                  finalizedSemanticExactEnglishV1309
+                );
+
+              console.log(
+                '[한영 문장부호 의미보존 DB Exact Match 성공 v13.09]',
+                {
+                  query:
+                    rawOriginalTextV1306,
+                  canonicalQuery:
+                    variantV1309.queryText,
+                  reason:
+                    variantV1309.reason,
+                  result:
+                    finalizedSemanticExactEnglishV1309,
+                  lineId:
+                    itemV1309?.id,
+                  categoryId:
+                    itemV1309?.category_id,
+                  sourceOrder:
+                    itemV1309?.source_order,
+                }
+              );
+
+              return twoProRespondWithPhraseDiagnosticsV915({
+                ok: true,
+                best: {
+                  source_text:
+                    rawOriginalTextV1306,
+                  target_text:
+                    finalizedSemanticExactEnglishV1309,
+                  isReference: false,
+                  analysis:
+                    semanticExactReferenceWordsV1309.map(
+                      (reference: any) => ({
+                        ko: reference.source,
+                        en:
+                          `${reference.selected} ` +
+                          `[${reference.slot}]`,
+                      })
+                    ),
+                  referenceWords:
+                    semanticExactReferenceWordsV1309,
+                  engine:
+                    'db-punctuation-semantic-exact-ko-en-v13.09',
+                  matchedLineId:
+                    itemV1309?.id || null,
+                  exactMatch: true,
+                  punctuationExact: false,
+                  punctuationSemanticExact: true,
+                  punctuationCanonicalQuery:
+                    variantV1309.queryText,
+                  punctuationSemanticReason:
+                    variantV1309.reason,
+                  exactMatchSourceLine:
+                    String(
+                      itemV1309?.line_text || ''
+                    ),
+                },
+                referenceWords:
+                  semanticExactReferenceWordsV1309,
+                exactMatch: true,
+                punctuationSemanticExact: true,
+                punctuationCanonicalQuery:
+                  variantV1309.queryText,
+                punctuationSemanticReason:
+                  variantV1309.reason,
+                exactMatchSourceLine:
+                  String(
+                    itemV1309?.line_text || ''
+                  ),
+              });
+            }
+          }
+        }
+      } catch (
+        punctuationSemanticExceptionV1309
+      ) {
+        console.error(
+          '[한영 문장부호 의미보존 DB exact 예외 v13.09]',
+          punctuationSemanticExceptionV1309
+        );
+      }
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.10-safe: '-니다?' -> '-니까?' corpus bridge 보강
+    //
+    // v13.09의 canonical exact가 환경/원문 경계 차이로 잡히지 않는 경우를 위해
+    // '?'를 제외한 canonical 한국어 전체를 한 번 더 DB에서 찾은 뒤,
+    // 실제 bilingual line의 한국어 쪽이 '-니까?' canonical과 정확히 대응하는지
+    // 검사합니다.
+    //
+    // 예:
+    //   내 남동생은 ... 말할 것입니다?
+    //   -> 내 남동생은 ... 말할 것입니까?
+    //
+    // 안전 원칙:
+    // 1. 명시적 '?' 입력만 처리합니다.
+    // 2. 한국어 본문이 '-니다'로 끝날 때만 처리합니다.
+    // 3. DB에서 실제 '-니까?' 대응 bilingual line을 찾은 경우에만 반환합니다.
+    // 4. 기존 v13.00~v13.09 코드는 수정/삭제하지 않습니다.
+    // =================================================================
+    const normalizedRawForFormalBridgeV1310 =
+      twoProNormalizeTerminalPunctuationV1309(
+        rawOriginalTextV1306
+      );
+
+    const formalBridgeTerminalV1310 =
+      /([?])$/u.exec(
+        normalizedRawForFormalBridgeV1310
+      )?.[1] || '';
+
+    const formalBridgeBodyV1310 =
+      normalizedRawForFormalBridgeV1310
+        .replace(/[.?!]+$/u, '')
+        .trim();
+
+    if (
+      formalBridgeTerminalV1310 === '?' &&
+      /니다$/u.test(formalBridgeBodyV1310) &&
+      !/니까$/u.test(formalBridgeBodyV1310)
+    ) {
+      const formalQuestionBodyV1310 =
+        formalBridgeBodyV1310.replace(
+          /니다$/u,
+          '니까'
+        );
+
+      const formalQuestionCanonicalV1310 =
+        `${formalQuestionBodyV1310}?`;
+
+      try {
+        const supabaseUrlV1310 =
+          process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+        const supabaseKeyV1310 =
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+        if (
+          supabaseUrlV1310 &&
+          supabaseKeyV1310
+        ) {
+          const supabaseV1310 =
+            createClient(
+              supabaseUrlV1310,
+              supabaseKeyV1310
+            );
+
+          // punctuation 자체는 ilike 검색어에서 제외하여
+          // bilingual line 경계/표기 차이에 더 강하게 찾습니다.
+          const escapedFormalQuestionBodyV1310 =
+            formalQuestionBodyV1310
+              .replace(/\\/g, '\\\\')
+              .replace(/%/g, '\\%')
+              .replace(/_/g, '\\_');
+
+          const {
+            data: formalBridgeDataV1310,
+            error: formalBridgeErrorV1310,
+          } = await supabaseV1310
+            .from('dictionary_lines')
+            .select(
+              'id, line_text, source_order, category_id'
+            )
+            .ilike(
+              'line_text',
+              `%${escapedFormalQuestionBodyV1310}%`
+            )
+            .order(
+              'source_order',
+              { ascending: true }
+            )
+            .limit(100);
+
+          if (formalBridgeErrorV1310) {
+            console.error(
+              '[한영 격식 의문문 corpus bridge 조회 오류 v13.10]',
+              formalBridgeErrorV1310.message
+            );
+          } else if (
+            formalBridgeDataV1310?.length
+          ) {
+            for (
+              const itemV1310 of
+              formalBridgeDataV1310
+            ) {
+              const formalBridgeEnglishV1310 =
+                twoProExtractDbPunctuationExactEnglishV1306(
+                  String(
+                    itemV1310?.line_text || ''
+                  ),
+                  formalQuestionCanonicalV1310
+                );
+
+              if (!formalBridgeEnglishV1310) {
+                continue;
+              }
+
+              let finalizedFormalBridgeEnglishV1310 =
+                twoProFinalizeEnglish(
+                  formalBridgeEnglishV1310,
+                  formalQuestionCanonicalV1310
+                );
+
+              finalizedFormalBridgeEnglishV1310 =
+                twoProForceEnglishTerminalV1309(
+                  finalizedFormalBridgeEnglishV1310,
+                  '?'
+                );
+
+              const formalBridgeReferenceWordsV1310 =
+                twoProBuildDbExactReferenceWordsV968(
+                  rawOriginalTextV1306,
+                  finalizedFormalBridgeEnglishV1310
+                );
+
+              console.log(
+                '[한영 격식 의문문 corpus bridge 성공 v13.10]',
+                {
+                  query:
+                    rawOriginalTextV1306,
+                  canonicalQuery:
+                    formalQuestionCanonicalV1310,
+                  result:
+                    finalizedFormalBridgeEnglishV1310,
+                  lineId:
+                    itemV1310?.id,
+                  categoryId:
+                    itemV1310?.category_id,
+                  sourceOrder:
+                    itemV1310?.source_order,
+                }
+              );
+
+              return twoProRespondWithPhraseDiagnosticsV915({
+                ok: true,
+                best: {
+                  source_text:
+                    rawOriginalTextV1306,
+                  target_text:
+                    finalizedFormalBridgeEnglishV1310,
+                  isReference: false,
+                  analysis:
+                    formalBridgeReferenceWordsV1310.map(
+                      (reference: any) => ({
+                        ko: reference.source,
+                        en:
+                          `${reference.selected} ` +
+                          `[${reference.slot}]`,
+                      })
+                    ),
+                  referenceWords:
+                    formalBridgeReferenceWordsV1310,
+                  engine:
+                    'db-formal-question-bridge-ko-en-v13.10',
+                  matchedLineId:
+                    itemV1310?.id || null,
+                  exactMatch: true,
+                  punctuationSemanticExact: true,
+                  punctuationCanonicalQuery:
+                    formalQuestionCanonicalV1310,
+                  punctuationSemanticReason:
+                    'DECLARATIVE_TO_FORMAL_QUESTION_BRIDGE',
+                  exactMatchSourceLine:
+                    String(
+                      itemV1310?.line_text || ''
+                    ),
+                },
+                referenceWords:
+                  formalBridgeReferenceWordsV1310,
+                exactMatch: true,
+                punctuationSemanticExact: true,
+                punctuationCanonicalQuery:
+                  formalQuestionCanonicalV1310,
+                punctuationSemanticReason:
+                  'DECLARATIVE_TO_FORMAL_QUESTION_BRIDGE',
+                exactMatchSourceLine:
+                  String(
+                    itemV1310?.line_text || ''
+                  ),
+              });
+            }
+          }
+        }
+      } catch (
+        formalBridgeExceptionV1310
+      ) {
+        console.error(
+          '[한영 격식 의문문 corpus bridge 예외 v13.10]',
+          formalBridgeExceptionV1310
+        );
+      }
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.11-safe: '-니다?' -> '-니까?' 공백 비의존 corpus bridge
+    //
+    // v13.10의 full-substring ILIKE가 DB 원문의 공백 차이 때문에 후보를 못 가져온
+    // 경우만 한 번 더 보강합니다.
+    //
+    // 예:
+    //   검색 입력:  ... 그 쪽을 ... 말할 것입니다?
+    //   DB 원문:    ... 그쪽을 ... 말할 것입니까?
+    //
+    // 후보 조회는 각 토큰 사이를 '%'로 연결하지만, 최종 exact 판정은
+    // 한국어 공백만 제거한 전체 문장 + '?'가 완전히 같은 경우에만 통과합니다.
+    // =================================================================
+    const normalizedRawForFormalBridgeV1311 =
+      twoProNormalizeTerminalPunctuationV1309(
+        rawOriginalTextV1306
+      );
+
+    const formalBridgeTerminalV1311 =
+      /([?])$/u.exec(
+        normalizedRawForFormalBridgeV1311
+      )?.[1] || '';
+
+    const formalBridgeBodyV1311 =
+      normalizedRawForFormalBridgeV1311
+        .replace(/[.?!]+$/u, '')
+        .trim();
+
+    if (
+      formalBridgeTerminalV1311 === '?' &&
+      /니다$/u.test(formalBridgeBodyV1311) &&
+      !/니까$/u.test(formalBridgeBodyV1311)
+    ) {
+      const formalQuestionBodyV1311 =
+        formalBridgeBodyV1311.replace(
+          /니다$/u,
+          '니까'
+        );
+
+      const formalQuestionCanonicalV1311 =
+        `${formalQuestionBodyV1311}?`;
+
+      const tokenPatternV1311 =
+        twoProBuildIlikeTokenPatternV1311(
+          formalQuestionBodyV1311
+        );
+
+      if (tokenPatternV1311) {
+        try {
+          const supabaseUrlV1311 =
+            process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+          const supabaseKeyV1311 =
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+          if (
+            supabaseUrlV1311 &&
+            supabaseKeyV1311
+          ) {
+            const supabaseV1311 =
+              createClient(
+                supabaseUrlV1311,
+                supabaseKeyV1311
+              );
+
+            const {
+              data: formalBridgeDataV1311,
+              error: formalBridgeErrorV1311,
+            } = await supabaseV1311
+              .from('dictionary_lines')
+              .select(
+                'id, line_text, source_order, category_id'
+              )
+              .ilike(
+                'line_text',
+                tokenPatternV1311
+              )
+              .order(
+                'source_order',
+                { ascending: true }
+              )
+              .limit(200);
+
+            if (formalBridgeErrorV1311) {
+              console.error(
+                '[한영 격식 의문문 공백 비의존 bridge 조회 오류 v13.11]',
+                formalBridgeErrorV1311.message
+              );
+            } else if (
+              formalBridgeDataV1311?.length
+            ) {
+              for (
+                const itemV1311 of
+                formalBridgeDataV1311
+              ) {
+                const formalBridgeEnglishV1311 =
+                  twoProExtractDbPunctuationNoSpaceExactEnglishV1311(
+                    String(
+                      itemV1311?.line_text || ''
+                    ),
+                    formalQuestionCanonicalV1311
+                  );
+
+                if (!formalBridgeEnglishV1311) {
+                  continue;
+                }
+
+                let finalizedFormalBridgeEnglishV1311 =
+                  twoProFinalizeEnglish(
+                    formalBridgeEnglishV1311,
+                    formalQuestionCanonicalV1311
+                  );
+
+                finalizedFormalBridgeEnglishV1311 =
+                  twoProForceEnglishTerminalV1309(
+                    finalizedFormalBridgeEnglishV1311,
+                    '?'
+                  );
+
+                const formalBridgeReferenceWordsV1311 =
+                  twoProBuildDbExactReferenceWordsV968(
+                    rawOriginalTextV1306,
+                    finalizedFormalBridgeEnglishV1311
+                  );
+
+                console.log(
+                  '[한영 격식 의문문 공백 비의존 corpus bridge 성공 v13.11]',
+                  {
+                    query:
+                      rawOriginalTextV1306,
+                    canonicalQuery:
+                      formalQuestionCanonicalV1311,
+                    tokenPattern:
+                      tokenPatternV1311,
+                    result:
+                      finalizedFormalBridgeEnglishV1311,
+                    lineId:
+                      itemV1311?.id,
+                    categoryId:
+                      itemV1311?.category_id,
+                    sourceOrder:
+                      itemV1311?.source_order,
+                  }
+                );
+
+                return twoProRespondWithPhraseDiagnosticsV915({
+                  ok: true,
+                  best: {
+                    source_text:
+                      rawOriginalTextV1306,
+                    target_text:
+                      finalizedFormalBridgeEnglishV1311,
+                    isReference: false,
+                    analysis:
+                      formalBridgeReferenceWordsV1311.map(
+                        (reference: any) => ({
+                          ko: reference.source,
+                          en:
+                            `${reference.selected} ` +
+                            `[${reference.slot}]`,
+                        })
+                      ),
+                    referenceWords:
+                      formalBridgeReferenceWordsV1311,
+                    engine:
+                      'db-formal-question-nospace-bridge-ko-en-v13.11',
+                    matchedLineId:
+                      itemV1311?.id || null,
+                    exactMatch: true,
+                    punctuationSemanticExact: true,
+                    punctuationCanonicalQuery:
+                      formalQuestionCanonicalV1311,
+                    punctuationSemanticReason:
+                      'DECLARATIVE_TO_FORMAL_QUESTION_NOSPACE_BRIDGE',
+                    exactMatchSourceLine:
+                      String(
+                        itemV1311?.line_text || ''
+                      ),
+                  },
+                  referenceWords:
+                    formalBridgeReferenceWordsV1311,
+                  exactMatch: true,
+                  punctuationSemanticExact: true,
+                  punctuationCanonicalQuery:
+                    formalQuestionCanonicalV1311,
+                  punctuationSemanticReason:
+                    'DECLARATIVE_TO_FORMAL_QUESTION_NOSPACE_BRIDGE',
+                  exactMatchSourceLine:
+                    String(
+                      itemV1311?.line_text || ''
+                    ),
+                });
+              }
+            }
+          }
+        } catch (
+          formalBridgeExceptionV1311
+        ) {
+          console.error(
+            '[한영 격식 의문문 공백 비의존 corpus bridge 예외 v13.11]',
+            formalBridgeExceptionV1311
+          );
+        }
+      }
+    }
+
     // 기존 동작을 그대로 보존합니다.
-    // 문장부호 exact가 없을 때만 기존 . / ! 제거 후 CORE 체인으로 진행합니다.
+    // raw/semantic/v13.10/v13.11 punctuation exact가 없을 때만 기존 CORE 체인으로 진행합니다.
     originalText =
       rawOriginalTextV1306
         .replace(/[.!]+$/, '');
@@ -71986,390 +79759,6 @@ export async function POST(request: Request) {
         ],
       });
     }
-
-    // =================================================================
-    // 🎯 TwoPro v9.15: phrases 최장 일치 결과와 공통 응답 진단
-    // =================================================================
-    const matchedPhrasesV915 =
-      twoProFindLongestPhraseMatchesV915(
-        originalText
-      );
-
-    const twoProRespondWithPhraseDiagnosticsV915 = (
-      payload: any,
-      init?: any
-    ) => {
-      if (!payload?.best) {
-        return NextResponse.json(payload, init);
-      }
-
-      const existingReferenceWords = Array.isArray(
-        payload.best.referenceWords
-      )
-        ? payload.best.referenceWords
-        : Array.isArray(payload.referenceWords)
-          ? payload.referenceWords
-          : [];
-
-      const appliedPhraseKeys = new Set(
-        existingReferenceWords
-          .filter(
-            (item: any) =>
-              item?.origin ===
-              'rules-ko-en-phrases.json'
-          )
-          .map(
-            (item: any) =>
-              String(
-                item?.phraseRule ||
-                item?.source ||
-                ''
-              )
-          )
-          .filter(Boolean)
-      );
-
-      const baseEngine = String(
-        payload.best.engine || 'legacy-ko-en'
-      );
-
-      const directPhraseEngine =
-        baseEngine.startsWith('phrase-') ||
-        Boolean(payload.best.phraseApplied);
-
-      const normalizeEnglishForPhraseReferenceV916 = (
-        value: unknown
-      ): string =>
-        String(value || '')
-          .normalize('NFC')
-          .toLocaleLowerCase()
-          .replace(/[.,!?;:'"“”‘’()[\]{}]/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-
-      const normalizedTargetForPhraseV916 =
-        normalizeEnglishForPhraseReferenceV916(
-          payload.best.target_text
-        );
-
-      // v9.22:
-      // PHRASES의 명령형과 최종 문장 속 비정형 활용을 연결합니다.
-      //
-      // 서명해 주세요 → please sign
-      // ... before signing
-      //
-      // 'please'를 제거한 핵심 동사가 최종 결과에
-      // 기본형·3인칭·과거형·동명사형으로 나타나는지 제한적으로 확인합니다.
-      const twoProPhraseEnglishReferencedV922 = (
-        phraseEnglish: string,
-        targetEnglish: string
-      ): boolean => {
-        const phrase =
-          normalizeEnglishForPhraseReferenceV916(
-            phraseEnglish
-          );
-
-        const target =
-          normalizeEnglishForPhraseReferenceV916(
-            targetEnglish
-          );
-
-        if (!phrase || !target) {
-          return false;
-        }
-
-        if (target.includes(phrase)) {
-          return true;
-        }
-
-        const withoutPlease = phrase
-          .replace(/^please\s+/, '')
-          .trim();
-
-        if (
-          withoutPlease &&
-          target.includes(withoutPlease)
-        ) {
-          return true;
-        }
-
-        const words = withoutPlease
-          .split(/\s+/)
-          .filter(Boolean);
-
-        if (words.length !== 1) {
-          return false;
-        }
-
-        const base = words[0]
-          .replace(/[^a-z0-9'’-]/gi, '')
-          .toLowerCase();
-
-        if (!base) {
-          return false;
-        }
-
-        const variants = new Set<string>([
-          base,
-          `${base}s`,
-          `${base}ed`,
-          `${base}ing`,
-        ]);
-
-        if (base.endsWith('e')) {
-          variants.add(
-            `${base.slice(0, -1)}ing`
-          );
-        }
-
-        if (
-          /[^aeiou]y$/i.test(base)
-        ) {
-          variants.add(
-            `${base.slice(0, -1)}ies`
-          );
-          variants.add(
-            `${base.slice(0, -1)}ied`
-          );
-        }
-
-        const targetWords = new Set(
-          target
-            .split(/\s+/)
-            .map((word) =>
-              word.replace(
-                /[^a-z0-9'’-]/gi,
-                ''
-              )
-            )
-            .filter(Boolean)
-        );
-
-        return [...variants].some(
-          (variant) =>
-            targetWords.has(variant)
-        );
-      };
-
-      const diagnosticMatches =
-        matchedPhrasesV915.map((match) => {
-          const embeddedEnglish =
-            twoProEmbeddedPhraseEnglishV915(
-              match.en
-            );
-
-          const applied =
-            directPhraseEngine ||
-            appliedPhraseKeys.has(match.ko);
-
-          const normalizedPhraseEnglish =
-            normalizeEnglishForPhraseReferenceV916(
-              embeddedEnglish
-            );
-
-          const referenced =
-            applied ||
-            twoProPhraseEnglishReferencedV922(
-              embeddedEnglish,
-              normalizedTargetForPhraseV916
-            );
-
-          return {
-            ko: match.ko,
-            en: embeddedEnglish,
-            start: match.start,
-            end: match.end,
-            sourceFile: match.sourceFile,
-            applied,
-            referenced,
-          };
-        });
-
-      const phraseApplied =
-        diagnosticMatches.some(
-          (match) => match.applied
-        );
-
-      const phraseReferenced =
-        diagnosticMatches.some(
-          (match) => match.referenced
-        );
-
-      const existingKeys = new Set(
-        existingReferenceWords.map(
-          (item: any) =>
-            `${String(item?.source || '')}\u0000${String(
-              item?.selected || ''
-            )}`
-        )
-      );
-
-      // 실제 조립에 사용되었거나 최종 영어 결과에 확인된 구를
-      // 화면의 '참고 표현'에 합칩니다.
-      const visiblePhraseReferences =
-        diagnosticMatches
-          .filter((match) => match.referenced)
-          .map((match) =>
-            twoProPhraseReferenceWordV915({
-              ...match,
-              sourceFile:
-                'rules-ko-en-phrases.json',
-            })
-          )
-          .filter((item: any) => {
-            const key = `${item.source}\u0000${item.selected}`;
-            return !existingKeys.has(key);
-          });
-
-      // v9.21:
-      // PHRASES와 기존 참고 표현이 포함 관계이면 더 긴 한국어 구를 우선합니다.
-      //
-      // 예:
-      // 그 총명한 소년 → the bright boy
-      // 총명한 소년 → bright boy
-      // 두 줄을 함께 표시하지 않습니다.
-      const normalizeReferenceV921 = (
-        value: unknown
-      ): string =>
-        String(value || '')
-          .normalize('NFC')
-          .toLocaleLowerCase()
-          .replace(
-            /[\s.,!?;:'"“”‘’()[\]{}…·]+/g,
-            ''
-          )
-          .trim();
-
-      const referenceCandidatesV921 = [
-        ...visiblePhraseReferences,
-        ...existingReferenceWords,
-      ]
-        .map((item: any, index: number) => ({
-          item,
-          index,
-          sourceNormalized:
-            normalizeReferenceV921(
-              item?.source
-            ),
-          selectedNormalized:
-            normalizeReferenceV921(
-              item?.selected
-            ),
-        }))
-        .filter(
-          (candidate) =>
-            Boolean(
-              candidate.sourceNormalized
-            ) &&
-            Boolean(
-              candidate.selectedNormalized
-            )
-        )
-        .sort(
-          (left, right) =>
-            right.sourceNormalized.length -
-              left.sourceNormalized.length ||
-            left.index - right.index
-        );
-
-      const dedupedReferenceCandidatesV921:
-        typeof referenceCandidatesV921 = [];
-
-      for (
-        const candidate
-        of referenceCandidatesV921
-      ) {
-        const overlapsExisting =
-          dedupedReferenceCandidatesV921.some(
-            (existing) => {
-              const sourceOverlaps =
-                existing.sourceNormalized.includes(
-                  candidate.sourceNormalized
-                ) ||
-                candidate.sourceNormalized.includes(
-                  existing.sourceNormalized
-                );
-
-              const selectedOverlaps =
-                existing.selectedNormalized.includes(
-                  candidate.selectedNormalized
-                ) ||
-                candidate.selectedNormalized.includes(
-                  existing.selectedNormalized
-                );
-
-              return (
-                sourceOverlaps &&
-                selectedOverlaps
-              );
-            }
-          );
-
-        if (!overlapsExisting) {
-          dedupedReferenceCandidatesV921.push(
-            candidate
-          );
-        }
-      }
-
-      const mergedReferenceWords =
-        dedupedReferenceCandidatesV921
-          .sort(
-            (left, right) =>
-              left.index - right.index
-          )
-          .map(
-            (candidate) =>
-              candidate.item
-          )
-          .slice(0, 4);
-
-      if (diagnosticMatches.length) {
-        console.log(
-          '[한영 PHRASES 최장 구 매칭 v9.15]',
-          {
-            query: originalText,
-            baseEngine,
-            phraseApplied,
-            phraseReferenced,
-            matchedPhrases: diagnosticMatches,
-          }
-        );
-      }
-
-      const reportedEngine =
-        phraseApplied &&
-        !baseEngine.includes('phrase-')
-          ? `${baseEngine}+phrase-slot-v1`
-          : baseEngine;
-
-      const nextBest = {
-        ...payload.best,
-        referenceWords: mergedReferenceWords,
-        engine: reportedEngine,
-        baseEngine,
-        phraseEngine:
-          'rules-ko-en-phrases-longest-match-v1',
-        phraseApplied,
-        phraseReferenced,
-        matchedPhrases: diagnosticMatches,
-      };
-
-      return NextResponse.json(
-        {
-          ...payload,
-          best: nextBest,
-          referenceWords: mergedReferenceWords,
-          phraseEngine:
-            'rules-ko-en-phrases-longest-match-v1',
-          phraseApplied,
-          phraseReferenced,
-          matchedPhrases: diagnosticMatches,
-        },
-        init
-      );
-    };
-
 
     // =================================================================
     // 🎯 TwoPro v12.79-safe: WH 의문사 대표 CORE
@@ -78960,6 +86349,1678 @@ export async function POST(request: Request) {
     }
 
     // =================================================================
+    // ☆ TwoPro v13.13-safe: make + O + bare infinitive 일반 사역문 CORE
+    // =================================================================
+    const twoProMakeObjectBareInfinitiveResultV1313 =
+      twoProTryKoEnMakeObjectBareInfinitiveV1313(
+        originalText
+      );
+
+    if (twoProMakeObjectBareInfinitiveResultV1313) {
+      console.log(
+        '[한영 make 목적어 동사원형 사역문 성공 v13.13]',
+        {
+          query: originalText,
+          result:
+            twoProMakeObjectBareInfinitiveResultV1313.targetText,
+          engine:
+            twoProMakeObjectBareInfinitiveResultV1313.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProMakeObjectBareInfinitiveResultV1313.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProMakeObjectBareInfinitiveResultV1313.analysis,
+          referenceWords:
+            twoProMakeObjectBareInfinitiveResultV1313.referenceWords,
+          engine:
+            twoProMakeObjectBareInfinitiveResultV1313.engine,
+        },
+        referenceWords:
+          twoProMakeObjectBareInfinitiveResultV1313.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.14-safe: make + O + bare infinitive 현재·과거 의문문 CORE
+    // =================================================================
+    const twoProMakeObjectBareInfinitiveQuestionResultV1314 =
+      twoProTryKoEnMakeObjectBareInfinitiveQuestionV1314(
+        originalText
+      );
+
+    if (
+      twoProMakeObjectBareInfinitiveQuestionResultV1314
+    ) {
+      console.log(
+        '[한영 make 목적어 동사원형 사역 의문문 성공 v13.14]',
+        {
+          query: originalText,
+          result:
+            twoProMakeObjectBareInfinitiveQuestionResultV1314.targetText,
+          engine:
+            twoProMakeObjectBareInfinitiveQuestionResultV1314.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProMakeObjectBareInfinitiveQuestionResultV1314.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProMakeObjectBareInfinitiveQuestionResultV1314.analysis,
+          referenceWords:
+            twoProMakeObjectBareInfinitiveQuestionResultV1314.referenceWords,
+          engine:
+            twoProMakeObjectBareInfinitiveQuestionResultV1314.engine,
+        },
+        referenceWords:
+          twoProMakeObjectBareInfinitiveQuestionResultV1314.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.15-safe: make + O + bare infinitive 미래 평서문 CORE
+    // =================================================================
+    const twoProMakeObjectBareInfinitiveFutureResultV1315 =
+      twoProTryKoEnMakeObjectBareInfinitiveFutureV1315(
+        originalText
+      );
+
+    if (
+      twoProMakeObjectBareInfinitiveFutureResultV1315
+    ) {
+      console.log(
+        '[한영 make 목적어 동사원형 사역 미래 평서문 성공 v13.15]',
+        {
+          query: originalText,
+          result:
+            twoProMakeObjectBareInfinitiveFutureResultV1315.targetText,
+          engine:
+            twoProMakeObjectBareInfinitiveFutureResultV1315.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProMakeObjectBareInfinitiveFutureResultV1315.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProMakeObjectBareInfinitiveFutureResultV1315.analysis,
+          referenceWords:
+            twoProMakeObjectBareInfinitiveFutureResultV1315.referenceWords,
+          engine:
+            twoProMakeObjectBareInfinitiveFutureResultV1315.engine,
+        },
+        referenceWords:
+          twoProMakeObjectBareInfinitiveFutureResultV1315.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.16-safe: make + O + bare infinitive 미래 의문문 CORE
+    // =================================================================
+    const twoProMakeObjectBareInfinitiveFutureQuestionResultV1316 =
+      twoProTryKoEnMakeObjectBareInfinitiveFutureQuestionV1316(
+        originalText
+      );
+
+    if (
+      twoProMakeObjectBareInfinitiveFutureQuestionResultV1316
+    ) {
+      console.log(
+        '[한영 make 목적어 동사원형 사역 미래 의문문 성공 v13.16]',
+        {
+          query: originalText,
+          result:
+            twoProMakeObjectBareInfinitiveFutureQuestionResultV1316.targetText,
+          engine:
+            twoProMakeObjectBareInfinitiveFutureQuestionResultV1316.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProMakeObjectBareInfinitiveFutureQuestionResultV1316.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProMakeObjectBareInfinitiveFutureQuestionResultV1316.analysis,
+          referenceWords:
+            twoProMakeObjectBareInfinitiveFutureQuestionResultV1316.referenceWords,
+          engine:
+            twoProMakeObjectBareInfinitiveFutureQuestionResultV1316.engine,
+        },
+        referenceWords:
+          twoProMakeObjectBareInfinitiveFutureQuestionResultV1316.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.17-safe: allow + O + to-infinitive 일반 문형 CORE
+    // =================================================================
+    const twoProAllowObjectToInfinitiveResultV1317 =
+      twoProTryKoEnAllowObjectToInfinitiveV1317(
+        originalText
+      );
+
+    if (twoProAllowObjectToInfinitiveResultV1317) {
+      console.log(
+        '[한영 allow 목적어 to부정사 허가문 성공 v13.17]',
+        {
+          query: originalText,
+          result:
+            twoProAllowObjectToInfinitiveResultV1317.targetText,
+          engine:
+            twoProAllowObjectToInfinitiveResultV1317.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProAllowObjectToInfinitiveResultV1317.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProAllowObjectToInfinitiveResultV1317.analysis,
+          referenceWords:
+            twoProAllowObjectToInfinitiveResultV1317.referenceWords,
+          engine:
+            twoProAllowObjectToInfinitiveResultV1317.engine,
+        },
+        referenceWords:
+          twoProAllowObjectToInfinitiveResultV1317.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.18-safe: allow + O + to-infinitive 현재·과거 의문문 CORE
+    // =================================================================
+    const twoProAllowObjectToInfinitiveQuestionResultV1318 =
+      twoProTryKoEnAllowObjectToInfinitiveQuestionV1318(
+        originalText
+      );
+
+    if (
+      twoProAllowObjectToInfinitiveQuestionResultV1318
+    ) {
+      console.log(
+        '[한영 allow 목적어 to부정사 허가 의문문 성공 v13.18]',
+        {
+          query: originalText,
+          result:
+            twoProAllowObjectToInfinitiveQuestionResultV1318.targetText,
+          engine:
+            twoProAllowObjectToInfinitiveQuestionResultV1318.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProAllowObjectToInfinitiveQuestionResultV1318.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProAllowObjectToInfinitiveQuestionResultV1318.analysis,
+          referenceWords:
+            twoProAllowObjectToInfinitiveQuestionResultV1318.referenceWords,
+          engine:
+            twoProAllowObjectToInfinitiveQuestionResultV1318.engine,
+        },
+        referenceWords:
+          twoProAllowObjectToInfinitiveQuestionResultV1318.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.19-safe: allow + O + to-infinitive 미래 평서문 CORE
+    // =================================================================
+    const twoProAllowObjectToInfinitiveFutureResultV1319 =
+      twoProTryKoEnAllowObjectToInfinitiveFutureV1319(
+        originalText
+      );
+
+    if (
+      twoProAllowObjectToInfinitiveFutureResultV1319
+    ) {
+      console.log(
+        '[한영 allow 목적어 to부정사 허가 미래 평서문 성공 v13.19]',
+        {
+          query: originalText,
+          result:
+            twoProAllowObjectToInfinitiveFutureResultV1319.targetText,
+          engine:
+            twoProAllowObjectToInfinitiveFutureResultV1319.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProAllowObjectToInfinitiveFutureResultV1319.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProAllowObjectToInfinitiveFutureResultV1319.analysis,
+          referenceWords:
+            twoProAllowObjectToInfinitiveFutureResultV1319.referenceWords,
+          engine:
+            twoProAllowObjectToInfinitiveFutureResultV1319.engine,
+        },
+        referenceWords:
+          twoProAllowObjectToInfinitiveFutureResultV1319.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.20-safe: allow + O + to-infinitive 미래 의문문 CORE
+    // =================================================================
+    const twoProAllowObjectToInfinitiveFutureQuestionResultV1320 =
+      twoProTryKoEnAllowObjectToInfinitiveFutureQuestionV1320(
+        originalText
+      );
+
+    if (
+      twoProAllowObjectToInfinitiveFutureQuestionResultV1320
+    ) {
+      console.log(
+        '[한영 allow 목적어 to부정사 허가 미래 의문문 성공 v13.20]',
+        {
+          query: originalText,
+          result:
+            twoProAllowObjectToInfinitiveFutureQuestionResultV1320.targetText,
+          engine:
+            twoProAllowObjectToInfinitiveFutureQuestionResultV1320.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProAllowObjectToInfinitiveFutureQuestionResultV1320.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProAllowObjectToInfinitiveFutureQuestionResultV1320.analysis,
+          referenceWords:
+            twoProAllowObjectToInfinitiveFutureQuestionResultV1320.referenceWords,
+          engine:
+            twoProAllowObjectToInfinitiveFutureQuestionResultV1320.engine,
+        },
+        referenceWords:
+          twoProAllowObjectToInfinitiveFutureQuestionResultV1320.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.21-safe: force + O + to-infinitive 일반 강요문 CORE
+    // =================================================================
+    const twoProForceObjectToInfinitiveResultV1321 =
+      twoProTryKoEnForceObjectToInfinitiveV1321(
+        originalText
+      );
+
+    if (twoProForceObjectToInfinitiveResultV1321) {
+      console.log(
+        '[한영 force 목적어 to부정사 강요문 성공 v13.21]',
+        {
+          query: originalText,
+          result:
+            twoProForceObjectToInfinitiveResultV1321.targetText,
+          engine:
+            twoProForceObjectToInfinitiveResultV1321.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProForceObjectToInfinitiveResultV1321.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProForceObjectToInfinitiveResultV1321.analysis,
+          referenceWords:
+            twoProForceObjectToInfinitiveResultV1321.referenceWords,
+          engine:
+            twoProForceObjectToInfinitiveResultV1321.engine,
+        },
+        referenceWords:
+          twoProForceObjectToInfinitiveResultV1321.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.22-safe: force + O + to-infinitive 현재·과거 의문문 CORE
+    // =================================================================
+    const twoProForceObjectToInfinitiveQuestionResultV1322 =
+      twoProTryKoEnForceObjectToInfinitiveQuestionV1322(
+        originalText
+      );
+
+    if (
+      twoProForceObjectToInfinitiveQuestionResultV1322
+    ) {
+      console.log(
+        '[한영 force 목적어 to부정사 강요 의문문 성공 v13.22]',
+        {
+          query: originalText,
+          result:
+            twoProForceObjectToInfinitiveQuestionResultV1322.targetText,
+          engine:
+            twoProForceObjectToInfinitiveQuestionResultV1322.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProForceObjectToInfinitiveQuestionResultV1322.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProForceObjectToInfinitiveQuestionResultV1322.analysis,
+          referenceWords:
+            twoProForceObjectToInfinitiveQuestionResultV1322.referenceWords,
+          engine:
+            twoProForceObjectToInfinitiveQuestionResultV1322.engine,
+        },
+        referenceWords:
+          twoProForceObjectToInfinitiveQuestionResultV1322.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.23-safe: force + O + to-infinitive 미래 평서문 CORE
+    // =================================================================
+    const twoProForceObjectToInfinitiveFutureResultV1323 =
+      twoProTryKoEnForceObjectToInfinitiveFutureV1323(
+        originalText
+      );
+
+    if (
+      twoProForceObjectToInfinitiveFutureResultV1323
+    ) {
+      console.log(
+        '[한영 force 목적어 to부정사 강요 미래 평서문 성공 v13.23]',
+        {
+          query: originalText,
+          result:
+            twoProForceObjectToInfinitiveFutureResultV1323.targetText,
+          engine:
+            twoProForceObjectToInfinitiveFutureResultV1323.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProForceObjectToInfinitiveFutureResultV1323.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProForceObjectToInfinitiveFutureResultV1323.analysis,
+          referenceWords:
+            twoProForceObjectToInfinitiveFutureResultV1323.referenceWords,
+          engine:
+            twoProForceObjectToInfinitiveFutureResultV1323.engine,
+        },
+        referenceWords:
+          twoProForceObjectToInfinitiveFutureResultV1323.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.24-safe: force + O + to-infinitive 미래 의문문 CORE
+    // =================================================================
+    const twoProForceObjectToInfinitiveFutureQuestionResultV1324 =
+      twoProTryKoEnForceObjectToInfinitiveFutureQuestionV1324(
+        originalText
+      );
+
+    if (
+      twoProForceObjectToInfinitiveFutureQuestionResultV1324
+    ) {
+      console.log(
+        '[한영 force 목적어 to부정사 강요 미래 의문문 성공 v13.24]',
+        {
+          query: originalText,
+          result:
+            twoProForceObjectToInfinitiveFutureQuestionResultV1324.targetText,
+          engine:
+            twoProForceObjectToInfinitiveFutureQuestionResultV1324.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProForceObjectToInfinitiveFutureQuestionResultV1324.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProForceObjectToInfinitiveFutureQuestionResultV1324.analysis,
+          referenceWords:
+            twoProForceObjectToInfinitiveFutureQuestionResultV1324.referenceWords,
+          engine:
+            twoProForceObjectToInfinitiveFutureQuestionResultV1324.engine,
+        },
+        referenceWords:
+          twoProForceObjectToInfinitiveFutureQuestionResultV1324.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.25-safe: persuade + O + to-infinitive 일반 설득문 CORE
+    // =================================================================
+    const twoProPersuadeObjectToInfinitiveResultV1325 =
+      twoProTryKoEnPersuadeObjectToInfinitiveV1325(
+        originalText
+      );
+
+    if (twoProPersuadeObjectToInfinitiveResultV1325) {
+      console.log(
+        '[한영 persuade 목적어 to부정사 설득문 성공 v13.25]',
+        {
+          query: originalText,
+          result:
+            twoProPersuadeObjectToInfinitiveResultV1325.targetText,
+          engine:
+            twoProPersuadeObjectToInfinitiveResultV1325.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProPersuadeObjectToInfinitiveResultV1325.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProPersuadeObjectToInfinitiveResultV1325.analysis,
+          referenceWords:
+            twoProPersuadeObjectToInfinitiveResultV1325.referenceWords,
+          engine:
+            twoProPersuadeObjectToInfinitiveResultV1325.engine,
+        },
+        referenceWords:
+          twoProPersuadeObjectToInfinitiveResultV1325.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.26-safe: persuade + O + to-infinitive 현재·과거 의문문 CORE
+    // =================================================================
+    const twoProPersuadeObjectToInfinitiveQuestionResultV1326 =
+      twoProTryKoEnPersuadeObjectToInfinitiveQuestionV1326(
+        originalText
+      );
+
+    if (
+      twoProPersuadeObjectToInfinitiveQuestionResultV1326
+    ) {
+      console.log(
+        '[한영 persuade 목적어 to부정사 설득 의문문 성공 v13.26]',
+        {
+          query: originalText,
+          result:
+            twoProPersuadeObjectToInfinitiveQuestionResultV1326.targetText,
+          engine:
+            twoProPersuadeObjectToInfinitiveQuestionResultV1326.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProPersuadeObjectToInfinitiveQuestionResultV1326.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProPersuadeObjectToInfinitiveQuestionResultV1326.analysis,
+          referenceWords:
+            twoProPersuadeObjectToInfinitiveQuestionResultV1326.referenceWords,
+          engine:
+            twoProPersuadeObjectToInfinitiveQuestionResultV1326.engine,
+        },
+        referenceWords:
+          twoProPersuadeObjectToInfinitiveQuestionResultV1326.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.27-safe: persuade + O + to-infinitive 미래 평서문 CORE
+    // =================================================================
+    const twoProPersuadeObjectToInfinitiveFutureResultV1327 =
+      twoProTryKoEnPersuadeObjectToInfinitiveFutureV1327(
+        originalText
+      );
+
+    if (
+      twoProPersuadeObjectToInfinitiveFutureResultV1327
+    ) {
+      console.log(
+        '[한영 persuade 목적어 to부정사 설득 미래 평서문 성공 v13.27]',
+        {
+          query: originalText,
+          result:
+            twoProPersuadeObjectToInfinitiveFutureResultV1327.targetText,
+          engine:
+            twoProPersuadeObjectToInfinitiveFutureResultV1327.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProPersuadeObjectToInfinitiveFutureResultV1327.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProPersuadeObjectToInfinitiveFutureResultV1327.analysis,
+          referenceWords:
+            twoProPersuadeObjectToInfinitiveFutureResultV1327.referenceWords,
+          engine:
+            twoProPersuadeObjectToInfinitiveFutureResultV1327.engine,
+        },
+        referenceWords:
+          twoProPersuadeObjectToInfinitiveFutureResultV1327.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.28-safe: persuade + O + to-infinitive 미래 의문문 CORE
+    // =================================================================
+    const twoProPersuadeObjectToInfinitiveFutureQuestionResultV1328 =
+      twoProTryKoEnPersuadeObjectToInfinitiveFutureQuestionV1328(
+        originalText
+      );
+
+    if (
+      twoProPersuadeObjectToInfinitiveFutureQuestionResultV1328
+    ) {
+      console.log(
+        '[한영 persuade 목적어 to부정사 설득 미래 의문문 성공 v13.28]',
+        {
+          query: originalText,
+          result:
+            twoProPersuadeObjectToInfinitiveFutureQuestionResultV1328.targetText,
+          engine:
+            twoProPersuadeObjectToInfinitiveFutureQuestionResultV1328.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProPersuadeObjectToInfinitiveFutureQuestionResultV1328.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProPersuadeObjectToInfinitiveFutureQuestionResultV1328.analysis,
+          referenceWords:
+            twoProPersuadeObjectToInfinitiveFutureQuestionResultV1328.referenceWords,
+          engine:
+            twoProPersuadeObjectToInfinitiveFutureQuestionResultV1328.engine,
+        },
+        referenceWords:
+          twoProPersuadeObjectToInfinitiveFutureQuestionResultV1328.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.29-safe: encourage + O + to-infinitive 일반 격려문 CORE
+    // =================================================================
+    const twoProEncourageObjectToInfinitiveResultV1329 =
+      twoProTryKoEnEncourageObjectToInfinitiveV1329(
+        originalText
+      );
+
+    if (twoProEncourageObjectToInfinitiveResultV1329) {
+      console.log(
+        '[한영 encourage 목적어 to부정사 격려문 성공 v13.29]',
+        {
+          query: originalText,
+          result:
+            twoProEncourageObjectToInfinitiveResultV1329.targetText,
+          engine:
+            twoProEncourageObjectToInfinitiveResultV1329.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProEncourageObjectToInfinitiveResultV1329.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProEncourageObjectToInfinitiveResultV1329.analysis,
+          referenceWords:
+            twoProEncourageObjectToInfinitiveResultV1329.referenceWords,
+          engine:
+            twoProEncourageObjectToInfinitiveResultV1329.engine,
+        },
+        referenceWords:
+          twoProEncourageObjectToInfinitiveResultV1329.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.30-safe: encourage + O + to-infinitive 현재·과거 의문문 CORE
+    // =================================================================
+    const twoProEncourageObjectToInfinitiveQuestionResultV1330 =
+      twoProTryKoEnEncourageObjectToInfinitiveQuestionV1330(
+        originalText
+      );
+
+    if (
+      twoProEncourageObjectToInfinitiveQuestionResultV1330
+    ) {
+      console.log(
+        '[한영 encourage 목적어 to부정사 격려 의문문 성공 v13.30]',
+        {
+          query: originalText,
+          result:
+            twoProEncourageObjectToInfinitiveQuestionResultV1330.targetText,
+          engine:
+            twoProEncourageObjectToInfinitiveQuestionResultV1330.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProEncourageObjectToInfinitiveQuestionResultV1330.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProEncourageObjectToInfinitiveQuestionResultV1330.analysis,
+          referenceWords:
+            twoProEncourageObjectToInfinitiveQuestionResultV1330.referenceWords,
+          engine:
+            twoProEncourageObjectToInfinitiveQuestionResultV1330.engine,
+        },
+        referenceWords:
+          twoProEncourageObjectToInfinitiveQuestionResultV1330.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.31-safe: encourage + O + to-infinitive 미래 평서문 CORE
+    // =================================================================
+    const twoProEncourageObjectToInfinitiveFutureResultV1331 =
+      twoProTryKoEnEncourageObjectToInfinitiveFutureV1331(
+        originalText
+      );
+
+    if (
+      twoProEncourageObjectToInfinitiveFutureResultV1331
+    ) {
+      console.log(
+        '[한영 encourage 목적어 to부정사 격려 미래 평서문 성공 v13.31]',
+        {
+          query: originalText,
+          result:
+            twoProEncourageObjectToInfinitiveFutureResultV1331.targetText,
+          engine:
+            twoProEncourageObjectToInfinitiveFutureResultV1331.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProEncourageObjectToInfinitiveFutureResultV1331.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProEncourageObjectToInfinitiveFutureResultV1331.analysis,
+          referenceWords:
+            twoProEncourageObjectToInfinitiveFutureResultV1331.referenceWords,
+          engine:
+            twoProEncourageObjectToInfinitiveFutureResultV1331.engine,
+        },
+        referenceWords:
+          twoProEncourageObjectToInfinitiveFutureResultV1331.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.32-safe: encourage + O + to-infinitive 미래 의문문 CORE
+    // =================================================================
+    const twoProEncourageObjectToInfinitiveFutureQuestionResultV1332 =
+      twoProTryKoEnEncourageObjectToInfinitiveFutureQuestionV1332(
+        originalText
+      );
+
+    if (
+      twoProEncourageObjectToInfinitiveFutureQuestionResultV1332
+    ) {
+      console.log(
+        '[한영 encourage 목적어 to부정사 격려 미래 의문문 성공 v13.32]',
+        {
+          query: originalText,
+          result:
+            twoProEncourageObjectToInfinitiveFutureQuestionResultV1332.targetText,
+          engine:
+            twoProEncourageObjectToInfinitiveFutureQuestionResultV1332.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProEncourageObjectToInfinitiveFutureQuestionResultV1332.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProEncourageObjectToInfinitiveFutureQuestionResultV1332.analysis,
+          referenceWords:
+            twoProEncourageObjectToInfinitiveFutureQuestionResultV1332.referenceWords,
+          engine:
+            twoProEncourageObjectToInfinitiveFutureQuestionResultV1332.engine,
+        },
+        referenceWords:
+          twoProEncourageObjectToInfinitiveFutureQuestionResultV1332.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.33-safe: want + O + to-infinitive 현재·과거 평서문 CORE
+    // =================================================================
+    const twoProWantObjectToInfinitiveResultV1333 =
+      twoProTryKoEnWantObjectToInfinitiveV1333(
+        originalText
+      );
+
+    if (twoProWantObjectToInfinitiveResultV1333) {
+      console.log(
+        '[한영 want 목적어 to부정사 희망문 성공 v13.33]',
+        {
+          query: originalText,
+          result:
+            twoProWantObjectToInfinitiveResultV1333.targetText,
+          engine:
+            twoProWantObjectToInfinitiveResultV1333.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProWantObjectToInfinitiveResultV1333.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProWantObjectToInfinitiveResultV1333.analysis,
+          referenceWords:
+            twoProWantObjectToInfinitiveResultV1333.referenceWords,
+          engine:
+            twoProWantObjectToInfinitiveResultV1333.engine,
+        },
+        referenceWords:
+          twoProWantObjectToInfinitiveResultV1333.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.34-safe: want + O + to-infinitive 현재·과거 의문문 CORE
+    // =================================================================
+    const twoProWantObjectToInfinitiveQuestionResultV1334 =
+      twoProTryKoEnWantObjectToInfinitiveQuestionV1334(
+        originalText
+      );
+
+    if (twoProWantObjectToInfinitiveQuestionResultV1334) {
+      console.log(
+        '[한영 want 목적어 to부정사 희망 의문문 성공 v13.34]',
+        {
+          query: originalText,
+          result:
+            twoProWantObjectToInfinitiveQuestionResultV1334.targetText,
+          engine:
+            twoProWantObjectToInfinitiveQuestionResultV1334.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProWantObjectToInfinitiveQuestionResultV1334.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProWantObjectToInfinitiveQuestionResultV1334.analysis,
+          referenceWords:
+            twoProWantObjectToInfinitiveQuestionResultV1334.referenceWords,
+          engine:
+            twoProWantObjectToInfinitiveQuestionResultV1334.engine,
+        },
+        referenceWords:
+          twoProWantObjectToInfinitiveQuestionResultV1334.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.35-safe: want + O + to-infinitive 미래 평서문 CORE
+    // =================================================================
+    const twoProWantObjectToInfinitiveFutureResultV1335 =
+      twoProTryKoEnWantObjectToInfinitiveFutureV1335(
+        originalText
+      );
+
+    if (twoProWantObjectToInfinitiveFutureResultV1335) {
+      console.log(
+        '[한영 want 목적어 to부정사 희망 미래 평서문 성공 v13.35]',
+        {
+          query: originalText,
+          result:
+            twoProWantObjectToInfinitiveFutureResultV1335.targetText,
+          engine:
+            twoProWantObjectToInfinitiveFutureResultV1335.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProWantObjectToInfinitiveFutureResultV1335.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProWantObjectToInfinitiveFutureResultV1335.analysis,
+          referenceWords:
+            twoProWantObjectToInfinitiveFutureResultV1335.referenceWords,
+          engine:
+            twoProWantObjectToInfinitiveFutureResultV1335.engine,
+        },
+        referenceWords:
+          twoProWantObjectToInfinitiveFutureResultV1335.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.36-safe: want + O + to-infinitive 미래 의문문 CORE
+    // =================================================================
+    const twoProWantObjectToInfinitiveFutureQuestionResultV1336 =
+      twoProTryKoEnWantObjectToInfinitiveFutureQuestionV1336(
+        originalText
+      );
+
+    if (twoProWantObjectToInfinitiveFutureQuestionResultV1336) {
+      console.log(
+        '[한영 want 목적어 to부정사 희망 미래 의문문 성공 v13.36]',
+        {
+          query: originalText,
+          result:
+            twoProWantObjectToInfinitiveFutureQuestionResultV1336.targetText,
+          engine:
+            twoProWantObjectToInfinitiveFutureQuestionResultV1336.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProWantObjectToInfinitiveFutureQuestionResultV1336.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProWantObjectToInfinitiveFutureQuestionResultV1336.analysis,
+          referenceWords:
+            twoProWantObjectToInfinitiveFutureQuestionResultV1336.referenceWords,
+          engine:
+            twoProWantObjectToInfinitiveFutureQuestionResultV1336.engine,
+        },
+        referenceWords:
+          twoProWantObjectToInfinitiveFutureQuestionResultV1336.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.37-safe: expect + O + to-infinitive 현재·과거 평서문 CORE
+    // =================================================================
+    const twoProExpectObjectToInfinitiveResultV1337 =
+      twoProTryKoEnExpectObjectToInfinitiveV1337(
+        originalText
+      );
+
+    if (twoProExpectObjectToInfinitiveResultV1337) {
+      console.log(
+        '[한영 expect 목적어 to부정사 기대문 성공 v13.37]',
+        {
+          query: originalText,
+          result:
+            twoProExpectObjectToInfinitiveResultV1337.targetText,
+          engine:
+            twoProExpectObjectToInfinitiveResultV1337.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProExpectObjectToInfinitiveResultV1337.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProExpectObjectToInfinitiveResultV1337.analysis,
+          referenceWords:
+            twoProExpectObjectToInfinitiveResultV1337.referenceWords,
+          engine:
+            twoProExpectObjectToInfinitiveResultV1337.engine,
+        },
+        referenceWords:
+          twoProExpectObjectToInfinitiveResultV1337.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.38-safe: expect + O + to-infinitive 현재·과거 의문문 CORE
+    // =================================================================
+    const twoProExpectObjectToInfinitiveQuestionResultV1338 =
+      twoProTryKoEnExpectObjectToInfinitiveQuestionV1338(
+        originalText
+      );
+
+    if (twoProExpectObjectToInfinitiveQuestionResultV1338) {
+      console.log(
+        '[한영 expect 목적어 to부정사 기대 의문문 성공 v13.38]',
+        {
+          query: originalText,
+          result:
+            twoProExpectObjectToInfinitiveQuestionResultV1338.targetText,
+          engine:
+            twoProExpectObjectToInfinitiveQuestionResultV1338.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProExpectObjectToInfinitiveQuestionResultV1338.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProExpectObjectToInfinitiveQuestionResultV1338.analysis,
+          referenceWords:
+            twoProExpectObjectToInfinitiveQuestionResultV1338.referenceWords,
+          engine:
+            twoProExpectObjectToInfinitiveQuestionResultV1338.engine,
+        },
+        referenceWords:
+          twoProExpectObjectToInfinitiveQuestionResultV1338.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.39-safe: expect + O + to-infinitive 미래 평서문 CORE
+    // =================================================================
+    const twoProExpectObjectToInfinitiveFutureResultV1339 =
+      twoProTryKoEnExpectObjectToInfinitiveFutureV1339(
+        originalText
+      );
+
+    if (twoProExpectObjectToInfinitiveFutureResultV1339) {
+      console.log(
+        '[한영 expect 목적어 to부정사 기대 미래 평서문 성공 v13.39]',
+        {
+          query: originalText,
+          result:
+            twoProExpectObjectToInfinitiveFutureResultV1339.targetText,
+          engine:
+            twoProExpectObjectToInfinitiveFutureResultV1339.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProExpectObjectToInfinitiveFutureResultV1339.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProExpectObjectToInfinitiveFutureResultV1339.analysis,
+          referenceWords:
+            twoProExpectObjectToInfinitiveFutureResultV1339.referenceWords,
+          engine:
+            twoProExpectObjectToInfinitiveFutureResultV1339.engine,
+        },
+        referenceWords:
+          twoProExpectObjectToInfinitiveFutureResultV1339.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.40-safe: expect + O + to-infinitive 미래 의문문 CORE
+    // =================================================================
+    const twoProExpectObjectToInfinitiveFutureQuestionResultV1340 =
+      twoProTryKoEnExpectObjectToInfinitiveFutureQuestionV1340(
+        originalText
+      );
+
+    if (twoProExpectObjectToInfinitiveFutureQuestionResultV1340) {
+      console.log(
+        '[한영 expect 목적어 to부정사 기대 미래 의문문 성공 v13.40]',
+        {
+          query: originalText,
+          result:
+            twoProExpectObjectToInfinitiveFutureQuestionResultV1340.targetText,
+          engine:
+            twoProExpectObjectToInfinitiveFutureQuestionResultV1340.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProExpectObjectToInfinitiveFutureQuestionResultV1340.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProExpectObjectToInfinitiveFutureQuestionResultV1340.analysis,
+          referenceWords:
+            twoProExpectObjectToInfinitiveFutureQuestionResultV1340.referenceWords,
+          engine:
+            twoProExpectObjectToInfinitiveFutureQuestionResultV1340.engine,
+        },
+        referenceWords:
+          twoProExpectObjectToInfinitiveFutureQuestionResultV1340.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.41-safe: advise + O + to-infinitive 현재·과거 평서문 CORE
+    // =================================================================
+    const twoProAdviseObjectToInfinitiveResultV1341 =
+      twoProTryKoEnAdviseObjectToInfinitiveV1341(
+        originalText
+      );
+
+    if (twoProAdviseObjectToInfinitiveResultV1341) {
+      console.log(
+        '[한영 advise 목적어 to부정사 조언문 성공 v13.41]',
+        {
+          query: originalText,
+          result:
+            twoProAdviseObjectToInfinitiveResultV1341.targetText,
+          engine:
+            twoProAdviseObjectToInfinitiveResultV1341.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProAdviseObjectToInfinitiveResultV1341.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProAdviseObjectToInfinitiveResultV1341.analysis,
+          referenceWords:
+            twoProAdviseObjectToInfinitiveResultV1341.referenceWords,
+          engine:
+            twoProAdviseObjectToInfinitiveResultV1341.engine,
+        },
+        referenceWords:
+          twoProAdviseObjectToInfinitiveResultV1341.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.42-safe: advise + O + to-infinitive 현재·과거 의문문 CORE
+    // =================================================================
+    const twoProAdviseObjectToInfinitiveQuestionResultV1342 =
+      twoProTryKoEnAdviseObjectToInfinitiveQuestionV1342(
+        originalText
+      );
+
+    if (twoProAdviseObjectToInfinitiveQuestionResultV1342) {
+      console.log(
+        '[한영 advise 목적어 to부정사 의문문 성공 v13.42]',
+        {
+          query: originalText,
+          result:
+            twoProAdviseObjectToInfinitiveQuestionResultV1342.targetText,
+          engine:
+            twoProAdviseObjectToInfinitiveQuestionResultV1342.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProAdviseObjectToInfinitiveQuestionResultV1342.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProAdviseObjectToInfinitiveQuestionResultV1342.analysis,
+          referenceWords:
+            twoProAdviseObjectToInfinitiveQuestionResultV1342.referenceWords,
+          engine:
+            twoProAdviseObjectToInfinitiveQuestionResultV1342.engine,
+        },
+        referenceWords:
+          twoProAdviseObjectToInfinitiveQuestionResultV1342.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.43-safe: advise + O + to-infinitive 미래 평서문 CORE
+    // =================================================================
+    const twoProAdviseObjectToInfinitiveFutureResultV1343 =
+      twoProTryKoEnAdviseObjectToInfinitiveFutureV1343(
+        originalText
+      );
+
+    if (twoProAdviseObjectToInfinitiveFutureResultV1343) {
+      console.log(
+        '[한영 advise 목적어 to부정사 미래 조언문 성공 v13.43]',
+        {
+          query: originalText,
+          result:
+            twoProAdviseObjectToInfinitiveFutureResultV1343.targetText,
+          engine:
+            twoProAdviseObjectToInfinitiveFutureResultV1343.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProAdviseObjectToInfinitiveFutureResultV1343.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProAdviseObjectToInfinitiveFutureResultV1343.analysis,
+          referenceWords:
+            twoProAdviseObjectToInfinitiveFutureResultV1343.referenceWords,
+          engine:
+            twoProAdviseObjectToInfinitiveFutureResultV1343.engine,
+        },
+        referenceWords:
+          twoProAdviseObjectToInfinitiveFutureResultV1343.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.44-safe: advise + O + to-infinitive 미래 의문문 CORE
+    // =================================================================
+    const twoProAdviseObjectToInfinitiveFutureQuestionResultV1344 =
+      twoProTryKoEnAdviseObjectToInfinitiveFutureQuestionV1344(
+        originalText
+      );
+
+    if (twoProAdviseObjectToInfinitiveFutureQuestionResultV1344) {
+      console.log(
+        '[한영 advise 목적어 to부정사 미래 의문문 성공 v13.44]',
+        {
+          query: originalText,
+          result:
+            twoProAdviseObjectToInfinitiveFutureQuestionResultV1344.targetText,
+          engine:
+            twoProAdviseObjectToInfinitiveFutureQuestionResultV1344.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProAdviseObjectToInfinitiveFutureQuestionResultV1344.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProAdviseObjectToInfinitiveFutureQuestionResultV1344.analysis,
+          referenceWords:
+            twoProAdviseObjectToInfinitiveFutureQuestionResultV1344.referenceWords,
+          engine:
+            twoProAdviseObjectToInfinitiveFutureQuestionResultV1344.engine,
+        },
+        referenceWords:
+          twoProAdviseObjectToInfinitiveFutureQuestionResultV1344.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.45-safe: ask + O + to-infinitive 현재·과거 평서문 CORE
+    // =================================================================
+    const twoProAskObjectToInfinitiveResultV1345 =
+      twoProTryKoEnAskObjectToInfinitiveV1345(
+        originalText
+      );
+
+    if (twoProAskObjectToInfinitiveResultV1345) {
+      console.log(
+        '[한영 ask 목적어 to부정사 요청문 성공 v13.45]',
+        {
+          query: originalText,
+          result:
+            twoProAskObjectToInfinitiveResultV1345.targetText,
+          engine:
+            twoProAskObjectToInfinitiveResultV1345.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProAskObjectToInfinitiveResultV1345.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProAskObjectToInfinitiveResultV1345.analysis,
+          referenceWords:
+            twoProAskObjectToInfinitiveResultV1345.referenceWords,
+          engine:
+            twoProAskObjectToInfinitiveResultV1345.engine,
+        },
+        referenceWords:
+          twoProAskObjectToInfinitiveResultV1345.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.46-safe: ask + O + to-infinitive 현재·과거 의문문 CORE
+    // =================================================================
+    const twoProAskObjectToInfinitiveQuestionResultV1346 =
+      twoProTryKoEnAskObjectToInfinitiveQuestionV1346(
+        originalText
+      );
+
+    if (twoProAskObjectToInfinitiveQuestionResultV1346) {
+      console.log(
+        '[한영 ask 목적어 to부정사 요청 의문문 성공 v13.46]',
+        {
+          query: originalText,
+          result:
+            twoProAskObjectToInfinitiveQuestionResultV1346.targetText,
+          engine:
+            twoProAskObjectToInfinitiveQuestionResultV1346.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProAskObjectToInfinitiveQuestionResultV1346.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProAskObjectToInfinitiveQuestionResultV1346.analysis,
+          referenceWords:
+            twoProAskObjectToInfinitiveQuestionResultV1346.referenceWords,
+          engine:
+            twoProAskObjectToInfinitiveQuestionResultV1346.engine,
+        },
+        referenceWords:
+          twoProAskObjectToInfinitiveQuestionResultV1346.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.47-safe: ask + O + to-infinitive 미래 평서문 CORE
+    // =================================================================
+    const twoProAskObjectToInfinitiveFutureResultV1347 =
+      twoProTryKoEnAskObjectToInfinitiveFutureV1347(
+        originalText
+      );
+
+    if (twoProAskObjectToInfinitiveFutureResultV1347) {
+      console.log(
+        '[한영 ask 목적어 to부정사 요청 미래문 성공 v13.47]',
+        {
+          query: originalText,
+          result:
+            twoProAskObjectToInfinitiveFutureResultV1347.targetText,
+          engine:
+            twoProAskObjectToInfinitiveFutureResultV1347.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProAskObjectToInfinitiveFutureResultV1347.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProAskObjectToInfinitiveFutureResultV1347.analysis,
+          referenceWords:
+            twoProAskObjectToInfinitiveFutureResultV1347.referenceWords,
+          engine:
+            twoProAskObjectToInfinitiveFutureResultV1347.engine,
+        },
+        referenceWords:
+          twoProAskObjectToInfinitiveFutureResultV1347.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.48-safe: ask + O + to-infinitive 미래 의문문 CORE
+    // =================================================================
+    const twoProAskObjectToInfinitiveFutureQuestionResultV1348 =
+      twoProTryKoEnAskObjectToInfinitiveFutureQuestionV1348(
+        originalText
+      );
+
+    if (twoProAskObjectToInfinitiveFutureQuestionResultV1348) {
+      console.log(
+        '[한영 ask 목적어 to부정사 요청 미래 의문문 성공 v13.48]',
+        {
+          query: originalText,
+          result:
+            twoProAskObjectToInfinitiveFutureQuestionResultV1348.targetText,
+          engine:
+            twoProAskObjectToInfinitiveFutureQuestionResultV1348.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProAskObjectToInfinitiveFutureQuestionResultV1348.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProAskObjectToInfinitiveFutureQuestionResultV1348.analysis,
+          referenceWords:
+            twoProAskObjectToInfinitiveFutureQuestionResultV1348.referenceWords,
+          engine:
+            twoProAskObjectToInfinitiveFutureQuestionResultV1348.engine,
+        },
+        referenceWords:
+          twoProAskObjectToInfinitiveFutureQuestionResultV1348.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.52-safe: order + O + to-infinitive 미래 평서문 CORE
+    // =================================================================
+    const twoProOrderObjectToInfinitiveFutureResultV1352 =
+      twoProTryKoEnOrderObjectToInfinitiveFutureV1352(
+        originalText
+      );
+
+    if (twoProOrderObjectToInfinitiveFutureResultV1352) {
+      console.log(
+        '[한영 order 목적어 to부정사 미래 평서문 성공 v13.52]',
+        {
+          query: originalText,
+          result:
+            twoProOrderObjectToInfinitiveFutureResultV1352.targetText,
+          engine:
+            twoProOrderObjectToInfinitiveFutureResultV1352.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProOrderObjectToInfinitiveFutureResultV1352.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProOrderObjectToInfinitiveFutureResultV1352.analysis,
+          referenceWords:
+            twoProOrderObjectToInfinitiveFutureResultV1352.referenceWords,
+          engine:
+            twoProOrderObjectToInfinitiveFutureResultV1352.engine,
+        },
+        referenceWords:
+          twoProOrderObjectToInfinitiveFutureResultV1352.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.53-safe: order + O + to-infinitive 미래 의문문 CORE
+    // =================================================================
+    const twoProOrderObjectToInfinitiveFutureQuestionResultV1353 =
+      twoProTryKoEnOrderObjectToInfinitiveFutureQuestionV1353(
+        originalText
+      );
+
+    if (twoProOrderObjectToInfinitiveFutureQuestionResultV1353) {
+      console.log(
+        '[한영 order 목적어 to부정사 미래 의문문 성공 v13.53]',
+        {
+          query: originalText,
+          result:
+            twoProOrderObjectToInfinitiveFutureQuestionResultV1353.targetText,
+          engine:
+            twoProOrderObjectToInfinitiveFutureQuestionResultV1353.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProOrderObjectToInfinitiveFutureQuestionResultV1353.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProOrderObjectToInfinitiveFutureQuestionResultV1353.analysis,
+          referenceWords:
+            twoProOrderObjectToInfinitiveFutureQuestionResultV1353.referenceWords,
+          engine:
+            twoProOrderObjectToInfinitiveFutureQuestionResultV1353.engine,
+        },
+        referenceWords:
+          twoProOrderObjectToInfinitiveFutureQuestionResultV1353.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.51-safe: order + O + to-infinitive 현재·과거 의문문 CORE
+    // =================================================================
+    const twoProOrderObjectToInfinitiveQuestionResultV1351 =
+      twoProTryKoEnOrderObjectToInfinitiveQuestionV1351(
+        originalText
+      );
+
+    if (twoProOrderObjectToInfinitiveQuestionResultV1351) {
+      console.log(
+        '[한영 order 목적어 to부정사 현재·과거 의문문 성공 v13.51]',
+        {
+          query: originalText,
+          result:
+            twoProOrderObjectToInfinitiveQuestionResultV1351.targetText,
+          engine:
+            twoProOrderObjectToInfinitiveQuestionResultV1351.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProOrderObjectToInfinitiveQuestionResultV1351.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProOrderObjectToInfinitiveQuestionResultV1351.analysis,
+          referenceWords:
+            twoProOrderObjectToInfinitiveQuestionResultV1351.referenceWords,
+          engine:
+            twoProOrderObjectToInfinitiveQuestionResultV1351.engine,
+        },
+        referenceWords:
+          twoProOrderObjectToInfinitiveQuestionResultV1351.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.50-safe: order + O + to-infinitive 현재·과거 평서문 CORE
+    // =================================================================
+    const twoProOrderObjectToInfinitiveResultV1350 =
+      twoProTryKoEnOrderObjectToInfinitiveV1350(
+        originalText
+      );
+
+    if (twoProOrderObjectToInfinitiveResultV1350) {
+      console.log(
+        '[한영 order 목적어 to부정사 명령문 성공 v13.50]',
+        {
+          query: originalText,
+          result:
+            twoProOrderObjectToInfinitiveResultV1350.targetText,
+          engine:
+            twoProOrderObjectToInfinitiveResultV1350.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProOrderObjectToInfinitiveResultV1350.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProOrderObjectToInfinitiveResultV1350.analysis,
+          referenceWords:
+            twoProOrderObjectToInfinitiveResultV1350.referenceWords,
+          engine:
+            twoProOrderObjectToInfinitiveResultV1350.engine,
+        },
+        referenceWords:
+          twoProOrderObjectToInfinitiveResultV1350.referenceWords,
+      });
+    }
+
+    // =================================================================
     // ☆ TwoPro v12.96-safe: 기본 피동·수동 의문문 CORE
 
 // =================================================================
@@ -84846,11 +93907,67 @@ if (twoProBasicPassiveResultV1295) {
                     }
                   );
 
-                  const finalizedExactEnglishV968 =
+                  let finalizedExactEnglishV968 =
                     twoProFinalizeEnglish(
                       exactEnglish,
                       originalText
                     );
+
+                  const rawTerminalV1309 =
+                    /([.?!。？！])$/u.exec(
+                      rawOriginalTextV1306
+                    )?.[1] || '';
+
+                  const normalizedRawTerminalV1309 =
+                    rawTerminalV1309 === '？'
+                      ? '?'
+                      : rawTerminalV1309 === '！'
+                        ? '!'
+                        : rawTerminalV1309 === '。'
+                          ? '.'
+                          : rawTerminalV1309;
+
+                  // 명시적 '?' 입력인데 DB 일반 exact가 영어 평서문을 반환하면
+                  // punctuation 무시 exact로 강등시키지 않습니다.
+                  // v13.06 raw exact / v13.09 semantic exact / 기존 CORE가 먼저 처리합니다.
+                  if (
+                    normalizedRawTerminalV1309 === '?' &&
+                    !/[?]$/u.test(
+                      finalizedExactEnglishV968
+                    )
+                  ) {
+                    console.log(
+                      '[한영 DB Exact punctuation mismatch skip v13.09]',
+                      {
+                        query:
+                          rawOriginalTextV1306,
+                        candidate:
+                          finalizedExactEnglishV968,
+                        lineId:
+                          item?.id,
+                      }
+                    );
+
+                    continue;
+                  }
+
+                  // 명시적 '!' 입력이 평서형으로 fallback된 경우에는
+                  // 사용자가 입력한 느낌표를 영어 출력에도 보존합니다.
+                  if (
+                    normalizedRawTerminalV1309 === '!' &&
+                    !twoProIsFormalQuestionEndingV1309(
+                      rawOriginalTextV1306
+                    ) &&
+                    !/[?]$/u.test(
+                      finalizedExactEnglishV968
+                    )
+                  ) {
+                    finalizedExactEnglishV968 =
+                      twoProForceEnglishTerminalV1309(
+                        finalizedExactEnglishV968,
+                        '!'
+                      );
+                  }
 
                   const exactReferenceWordsV968 =
                     twoProBuildDbExactReferenceWordsV968(
