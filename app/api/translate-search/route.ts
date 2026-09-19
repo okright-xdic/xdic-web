@@ -14048,6 +14048,54 @@ const twoProTryKoEnAllowObjectToInfinitiveV1317 = (
         },
       ],
     },
+    '보고서를 제출하도록': {
+      target: 'to submit the report',
+      references: [
+        {
+          source: '보고서',
+          selected: 'the report',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '제출하다',
+          selected: 'to submit',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '규칙을 따르도록': {
+      target: 'to follow the rules',
+      references: [
+        {
+          source: '규칙',
+          selected: 'the rules',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '따르다',
+          selected: 'to follow',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '일찍 도착하도록': {
+      target: 'to arrive early',
+      references: [
+        {
+          source: '도착하다',
+          selected: 'to arrive',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
+        },
+      ],
+    },
+
     '계속 일하도록': {
       target: 'to keep working',
       references: [
@@ -14614,8 +14662,8 @@ const twoProTryKoEnAllowObjectToInfinitiveFutureQuestionV1320 = (
 //
 // 처리 범위:
 // - 그는 / 그녀는
-// - 나에게 / 아이에게
-// - 기다리도록 / 공부하도록 / 일하도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록 / 일찍 떠나도록
+// - 나에게 / 아이에게 / 학생에게
+// - 기다리도록 / 공부하도록 / 일하도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록 / 일찍 떠나도록 / 보고서를 제출하도록 / 규칙을 따르도록 / 일찍 도착하도록
 // - 강요해요 / 강요했어요 / 강요하지 않아요 / 강요하지 않았어요
 //
 // 안전 원칙:
@@ -14645,7 +14693,7 @@ const twoProTryKoEnForceObjectToInfinitiveV1321 = (
   }
 
   const matched =
-    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(강요해요|강요했어요|강요하지 않아요|강요하지 않았어요)$/u.exec(
+    /^(그는|그녀는)\s+(나에게|아이에게|학생에게)\s+(.+?)\s+(강요해요|강요했어요|강요하지 않아요|강요하지 않았어요)$/u.exec(
       normalized
     );
 
@@ -14670,6 +14718,7 @@ const twoProTryKoEnForceObjectToInfinitiveV1321 = (
   > = {
     나에게: { target: 'me', source: '나' },
     아이에게: { target: 'the child', source: '아이' },
+    학생에게: { target: 'the student', source: '학생' },
   };
 
   const complementMap: Readonly<
@@ -14741,6 +14790,54 @@ const twoProTryKoEnForceObjectToInfinitiveV1321 = (
           source: '계속 일하다',
           selected: 'to keep working',
           slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '보고서를 제출하도록': {
+      target: 'to submit the report',
+      references: [
+        {
+          source: '보고서',
+          selected: 'the report',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '제출하다',
+          selected: 'to submit',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '규칙을 따르도록': {
+      target: 'to follow the rules',
+      references: [
+        {
+          source: '규칙',
+          selected: 'the rules',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '따르다',
+          selected: 'to follow',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '일찍 도착하도록': {
+      target: 'to arrive early',
+      references: [
+        {
+          source: '도착하다',
+          selected: 'to arrive',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
         },
       ],
     },
@@ -15302,8 +15399,9 @@ const twoProTryKoEnForceObjectToInfinitiveFutureQuestionV1324 = (
 //
 // 처리 범위:
 // - 그는 / 그녀는
-// - 나에게 / 아이에게
+// - 나에게 / 아이에게 / 학생에게
 // - 기다리도록 / 공부하도록 / 일하도록 / 일찍 떠나도록
+// - 보고서를 제출하도록 / 규칙을 따르도록 / 일찍 도착하도록 / 계속 일하도록
 // - 설득해요 / 설득했어요 / 설득하지 않아요 / 설득하지 않았어요
 //
 // 안전 원칙:
@@ -15333,7 +15431,7 @@ const twoProTryKoEnPersuadeObjectToInfinitiveV1325 = (
   }
 
   const matched =
-    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(설득해요|설득했어요|설득하지 않아요|설득하지 않았어요)$/u.exec(
+    /^(그는|그녀는)\s+(나에게|아이에게|학생에게)\s+(.+?)\s+(설득해요|설득했어요|설득하지 않아요|설득하지 않았어요)$/u.exec(
       normalized
     );
 
@@ -15358,6 +15456,7 @@ const twoProTryKoEnPersuadeObjectToInfinitiveV1325 = (
   > = {
     나에게: { target: 'me', source: '나' },
     아이에게: { target: 'the child', source: '아이' },
+    학생에게: { target: 'the student', source: '학생' },
   };
 
   const complementMap: Readonly<
@@ -15418,6 +15517,65 @@ const twoProTryKoEnPersuadeObjectToInfinitiveV1325 = (
           source: '일찍',
           selected: 'early',
           slot: 'ADVERB',
+        },
+      ],
+    },
+
+    '보고서를 제출하도록': {
+      target: 'to submit the report',
+      references: [
+        {
+          source: '보고서',
+          selected: 'the report',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '제출하다',
+          selected: 'to submit',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '규칙을 따르도록': {
+      target: 'to follow the rules',
+      references: [
+        {
+          source: '규칙',
+          selected: 'the rules',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '따르다',
+          selected: 'to follow',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '일찍 도착하도록': {
+      target: 'to arrive early',
+      references: [
+        {
+          source: '도착하다',
+          selected: 'to arrive',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
+        },
+      ],
+    },
+
+    '계속 일하도록': {
+      target: 'to keep working',
+      references: [
+        {
+          source: '계속 일하다',
+          selected: 'to keep working',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
         },
       ],
     },
@@ -15947,8 +16105,9 @@ const twoProTryKoEnPersuadeObjectToInfinitiveFutureQuestionV1328 = (
 //
 // 처리 범위:
 // - 그는 / 그녀는
-// - 나에게 / 아이에게
+// - 나에게 / 아이에게 / 학생에게
 // - 공부하도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 보고서를 제출하도록 / 규칙을 따르도록 / 일찍 도착하도록
 // - 격려해요 / 격려했어요 / 격려하지 않아요 / 격려하지 않았어요
 //
 // 안전 원칙:
@@ -15978,7 +16137,7 @@ const twoProTryKoEnEncourageObjectToInfinitiveV1329 = (
   }
 
   const matched =
-    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(격려해요|격려했어요|격려하지 않아요|격려하지 않았어요)$/u.exec(
+    /^(그는|그녀는)\s+(나에게|아이에게|학생에게)\s+(.+?)\s+(격려해요|격려했어요|격려하지 않아요|격려하지 않았어요)$/u.exec(
       normalized
     );
 
@@ -16003,6 +16162,7 @@ const twoProTryKoEnEncourageObjectToInfinitiveV1329 = (
   > = {
     나에게: { target: 'me', source: '나' },
     아이에게: { target: 'the child', source: '아이' },
+    학생에게: { target: 'the student', source: '학생' },
   };
 
   const complementMap: Readonly<
@@ -16041,6 +16201,54 @@ const twoProTryKoEnEncourageObjectToInfinitiveV1329 = (
           source: '읽다',
           selected: 'to read',
           slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '보고서를 제출하도록': {
+      target: 'to submit the report',
+      references: [
+        {
+          source: '보고서',
+          selected: 'the report',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '제출하다',
+          selected: 'to submit',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '규칙을 따르도록': {
+      target: 'to follow the rules',
+      references: [
+        {
+          source: '규칙',
+          selected: 'the rules',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '따르다',
+          selected: 'to follow',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '일찍 도착하도록': {
+      target: 'to arrive early',
+      references: [
+        {
+          source: '도착하다',
+          selected: 'to arrive',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
         },
       ],
     },
@@ -17868,8 +18076,9 @@ const twoProTryKoEnExpectObjectToInfinitiveFutureQuestionV1340 = (
 //
 // 처리 범위:
 // - 그는 / 그녀는
-// - 나에게 / 아이에게
+// - 나에게 / 아이에게 / 학생에게
 // - 공부하도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 보고서를 제출하도록 / 규칙을 따르도록 / 일찍 도착하도록
 // - 조언해요 / 조언했어요 / 조언하지 않아요 / 조언하지 않았어요
 //
 // 안전 원칙:
@@ -17899,7 +18108,7 @@ const twoProTryKoEnAdviseObjectToInfinitiveV1341 = (
   }
 
   const matched =
-    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(조언해요|조언했어요|조언하지 않아요|조언하지 않았어요)$/u.exec(
+    /^(그는|그녀는)\s+(나에게|아이에게|학생에게)\s+(.+?)\s+(조언해요|조언했어요|조언하지 않아요|조언하지 않았어요)$/u.exec(
       normalized
     );
 
@@ -17924,6 +18133,7 @@ const twoProTryKoEnAdviseObjectToInfinitiveV1341 = (
   > = {
     나에게: { target: 'me', source: '나' },
     아이에게: { target: 'the child', source: '아이' },
+    학생에게: { target: 'the student', source: '학생' },
   };
 
   const complementMap: Readonly<
@@ -17962,6 +18172,54 @@ const twoProTryKoEnAdviseObjectToInfinitiveV1341 = (
           source: '읽다',
           selected: 'to read',
           slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '보고서를 제출하도록': {
+      target: 'to submit the report',
+      references: [
+        {
+          source: '보고서',
+          selected: 'the report',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '제출하다',
+          selected: 'to submit',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '규칙을 따르도록': {
+      target: 'to follow the rules',
+      references: [
+        {
+          source: '규칙',
+          selected: 'the rules',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '따르다',
+          selected: 'to follow',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '일찍 도착하도록': {
+      target: 'to arrive early',
+      references: [
+        {
+          source: '도착하다',
+          selected: 'to arrive',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
         },
       ],
     },
@@ -18090,8 +18348,9 @@ const twoProTryKoEnAdviseObjectToInfinitiveV1341 = (
 //
 // 처리 범위:
 // - 그는 / 그녀는
-// - 나에게 / 아이에게
+// - 나에게 / 아이에게 / 학생에게
 // - 공부하도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 보고서를 제출하도록 / 규칙을 따르도록 / 일찍 도착하도록
 // - 조언해요? / 조언했어요? / 조언하지 않아요? / 조언하지 않았어요?
 //
 // 안전 원칙:
@@ -18261,8 +18520,9 @@ const twoProTryKoEnAdviseObjectToInfinitiveQuestionV1342 = (
 //
 // 처리 범위:
 // - 그는 / 그녀는
-// - 나에게 / 아이에게
+// - 나에게 / 아이에게 / 학생에게
 // - 공부하도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 보고서를 제출하도록 / 규칙을 따르도록 / 일찍 도착하도록
 // - 조언할 거예요 / 조언하지 않을 거예요
 //
 // 안전 원칙:
@@ -18294,7 +18554,7 @@ const twoProTryKoEnAdviseObjectToInfinitiveFutureV1343 = (
     .trim();
 
   const matched =
-    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(조언할 거예요|조언하지 않을 거예요)$/u.exec(
+    /^(그는|그녀는)\s+(나에게|아이에게|학생에게)\s+(.+?)\s+(조언할 거예요|조언하지 않을 거예요)$/u.exec(
       normalized
     );
 
@@ -18401,8 +18661,9 @@ const twoProTryKoEnAdviseObjectToInfinitiveFutureV1343 = (
 //
 // 처리 범위:
 // - 그는 / 그녀는
-// - 나에게 / 아이에게
+// - 나에게 / 아이에게 / 학생에게
 // - 공부하도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 보고서를 제출하도록 / 규칙을 따르도록 / 일찍 도착하도록
 // - 조언할 거예요? / 조언하지 않을 거예요?
 //
 // 안전 원칙:
@@ -18537,8 +18798,9 @@ const twoProTryKoEnAdviseObjectToInfinitiveFutureQuestionV1344 = (
 //
 // 처리 범위:
 // - 그는 / 그녀는
-// - 나에게 / 아이에게
+// - 나에게 / 아이에게 / 학생에게
 // - 기다리도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 보고서를 제출하도록 / 규칙을 따르도록 / 일찍 도착하도록
 // - 요청해요 / 요청했어요 / 요청하지 않아요 / 요청하지 않았어요
 //
 // 안전 원칙:
@@ -18568,7 +18830,7 @@ const twoProTryKoEnAskObjectToInfinitiveV1345 = (
   }
 
   const matched =
-    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(요청해요|요청했어요|요청하지 않아요|요청하지 않았어요)$/u.exec(
+    /^(그는|그녀는)\s+(나에게|아이에게|학생에게)\s+(.+?)\s+(요청해요|요청했어요|요청하지 않아요|요청하지 않았어요)$/u.exec(
       normalized
     );
 
@@ -18593,6 +18855,7 @@ const twoProTryKoEnAskObjectToInfinitiveV1345 = (
   > = {
     나에게: { target: 'me', source: '나' },
     아이에게: { target: 'the child', source: '아이' },
+    학생에게: { target: 'the student', source: '학생' },
   };
 
   const complementMap: Readonly<
@@ -18631,6 +18894,54 @@ const twoProTryKoEnAskObjectToInfinitiveV1345 = (
           source: '읽다',
           selected: 'to read',
           slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '보고서를 제출하도록': {
+      target: 'to submit the report',
+      references: [
+        {
+          source: '보고서',
+          selected: 'the report',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '제출하다',
+          selected: 'to submit',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '규칙을 따르도록': {
+      target: 'to follow the rules',
+      references: [
+        {
+          source: '규칙',
+          selected: 'the rules',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '따르다',
+          selected: 'to follow',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '일찍 도착하도록': {
+      target: 'to arrive early',
+      references: [
+        {
+          source: '도착하다',
+          selected: 'to arrive',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
         },
       ],
     },
@@ -18759,8 +19070,9 @@ const twoProTryKoEnAskObjectToInfinitiveV1345 = (
 //
 // 처리 범위:
 // - 그는 / 그녀는
-// - 나에게 / 아이에게
+// - 나에게 / 아이에게 / 학생에게
 // - 기다리도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 보고서를 제출하도록 / 규칙을 따르도록 / 일찍 도착하도록
 // - 요청해요? / 요청했어요? / 요청하지 않아요? / 요청하지 않았어요?
 //
 // 안전 원칙:
@@ -18930,8 +19242,9 @@ const twoProTryKoEnAskObjectToInfinitiveQuestionV1346 = (
 //
 // 처리 범위:
 // - 그는 / 그녀는
-// - 나에게 / 아이에게
+// - 나에게 / 아이에게 / 학생에게
 // - 기다리도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 보고서를 제출하도록 / 규칙을 따르도록 / 일찍 도착하도록
 // - 요청할 거예요 / 요청하지 않을 거예요
 //
 // 안전 원칙:
@@ -18963,7 +19276,7 @@ const twoProTryKoEnAskObjectToInfinitiveFutureV1347 = (
     .trim();
 
   const matched =
-    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(요청할 거예요|요청하지 않을 거예요)$/u.exec(
+    /^(그는|그녀는)\s+(나에게|아이에게|학생에게)\s+(.+?)\s+(요청할 거예요|요청하지 않을 거예요)$/u.exec(
       normalized
     );
 
@@ -19071,8 +19384,9 @@ const twoProTryKoEnAskObjectToInfinitiveFutureV1347 = (
 //
 // 처리 범위:
 // - 그는 / 그녀는
-// - 나에게 / 아이에게
+// - 나에게 / 아이에게 / 학생에게
 // - 기다리도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 보고서를 제출하도록 / 규칙을 따르도록 / 일찍 도착하도록
 // - 요청할 거예요? / 요청하지 않을 거예요?
 //
 // 안전 원칙:
@@ -19207,8 +19521,8 @@ const twoProTryKoEnAskObjectToInfinitiveFutureQuestionV1348 = (
 //
 // 처리 범위:
 // - 그는 / 그녀는
-// - 나에게 / 아이에게
-// - 기다리도록 / 책을 읽도록 / 계속 일하도록 / 일찍 출발하도록
+// - 나에게 / 아이에게 / 학생에게
+// - 기다리도록 / 책을 읽도록 / 보고서를 제출하도록 / 규칙을 따르도록 / 일찍 도착하도록 / 계속 일하도록 / 일찍 출발하도록
 // - 명령해요 / 명령했어요 / 명령하지 않아요 / 명령하지 않았어요
 //
 // 안전 원칙:
@@ -19238,7 +19552,7 @@ const twoProTryKoEnOrderObjectToInfinitiveV1350 = (
   }
 
   const matched =
-    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(명령해요|명령했어요|명령하지 않아요|명령하지 않았어요)$/u.exec(
+    /^(그는|그녀는)\s+(나에게|아이에게|학생에게)\s+(.+?)\s+(명령해요|명령했어요|명령하지 않아요|명령하지 않았어요)$/u.exec(
       normalized
     );
 
@@ -19263,6 +19577,7 @@ const twoProTryKoEnOrderObjectToInfinitiveV1350 = (
   > = {
     나에게: { target: 'me', source: '나' },
     아이에게: { target: 'the child', source: '아이' },
+    학생에게: { target: 'the student', source: '학생' },
   };
 
   const complementMap: Readonly<
@@ -19301,6 +19616,54 @@ const twoProTryKoEnOrderObjectToInfinitiveV1350 = (
           source: '읽다',
           selected: 'to read',
           slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '보고서를 제출하도록': {
+      target: 'to submit the report',
+      references: [
+        {
+          source: '보고서',
+          selected: 'the report',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '제출하다',
+          selected: 'to submit',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '규칙을 따르도록': {
+      target: 'to follow the rules',
+      references: [
+        {
+          source: '규칙',
+          selected: 'the rules',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '따르다',
+          selected: 'to follow',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '일찍 도착하도록': {
+      target: 'to arrive early',
+      references: [
+        {
+          source: '도착하다',
+          selected: 'to arrive',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
         },
       ],
     },
@@ -19453,7 +19816,7 @@ const twoProTryKoEnOrderObjectToInfinitiveQuestionV1351 = (
   const body = normalized.replace(/[?？]\s*$/u, '').trim();
 
   const matched =
-    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(명령해요|명령했어요|명령하지 않아요|명령하지 않았어요)$/u.exec(
+    /^(그는|그녀는)\s+(나에게|아이에게|학생에게)\s+(.+?)\s+(명령해요|명령했어요|명령하지 않아요|명령하지 않았어요)$/u.exec(
       body
     );
 
@@ -19551,7 +19914,7 @@ const twoProTryKoEnOrderObjectToInfinitiveFutureV1352 = (
   }
 
   const matched =
-    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(명령할 거예요|명령하지 않을 거예요)$/u.exec(
+    /^(그는|그녀는)\s+(나에게|아이에게|학생에게)\s+(.+?)\s+(명령할 거예요|명령하지 않을 거예요)$/u.exec(
       normalized
     );
 
@@ -19651,7 +20014,7 @@ const twoProTryKoEnOrderObjectToInfinitiveFutureQuestionV1353 = (
   const body = normalized.replace(/[?？]\s*$/u, '').trim();
 
   const matched =
-    /^(그는|그녀는)\s+(나에게|아이에게)\s+(.+?)\s+(명령할 거예요|명령하지 않을 거예요)$/u.exec(
+    /^(그는|그녀는)\s+(나에게|아이에게|학생에게)\s+(.+?)\s+(명령할 거예요|명령하지 않을 거예요)$/u.exec(
       body
     );
 
@@ -77864,6 +78227,596 @@ const twoProTryKoEnWhQuestionV1278 = async (
 
 // 💡 메인 POST 함수 시작
 // =========================================================================
+
+// ============================================================================
+// ☆ TwoPro v13.57-safe: require + O + to-infinitive 일반 요구문 CORE
+//
+// 현재 회귀에서 실패가 확인된
+//   [주어] + [사람]에게 + [동작]도록 + 요구하다
+// 구조를 기존 제한형 v10.24와 분리하여 안전하게 일반화합니다.
+//
+// 처리 범위:
+// - 그는 / 그녀는
+// - 나에게 / 학생에게
+// - 보고서를 제출하도록 / 규칙을 따르도록 / 일찍 도착하도록 / 계속 일하도록
+// - 요구해요 / 요구했어요 / 요구하지 않아요 / 요구하지 않았어요
+//
+// 안전 원칙:
+// 1. 기존 v10.24 및 v13.00~v13.56 코드는 수정하거나 삭제하지 않습니다.
+// 2. require 구문은 반드시 require + O + to-infinitive입니다.
+// 3. 현재 3인칭 단수 긍정은 requires, 과거는 required입니다.
+// 4. 현재 부정은 doesn't require, 과거 부정은 didn't require입니다.
+// 5. doesn't/didn't 뒤에서는 반드시 require 원형을 사용합니다.
+// 6. 명시적 ?/？ 입력은 처리하지 않아 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnRequireObjectToInfinitiveV1357 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그는|그녀는)\s+(나에게|학생에게)\s+(.+?)\s+(요구해요|요구했어요|요구하지 않아요|요구하지 않았어요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const complementKo = matched[3];
+  const predicateKo = matched[4];
+
+  const subjectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    그는: { target: 'He', source: '그' },
+    그녀는: { target: 'She', source: '그녀' },
+  };
+
+  const objectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    나에게: { target: 'me', source: '나' },
+    학생에게: { target: 'the student', source: '학생' },
+  };
+
+  const complementMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        references: Array<{
+          source: string;
+          selected: string;
+          slot: string;
+        }>;
+      }
+    >
+  > = {
+    '보고서를 제출하도록': {
+      target: 'to submit the report',
+      references: [
+        {
+          source: '보고서',
+          selected: 'the report',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '제출하다',
+          selected: 'to submit',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '규칙을 따르도록': {
+      target: 'to follow the rules',
+      references: [
+        {
+          source: '규칙',
+          selected: 'the rules',
+          slot: 'OBJECT_COMPLEMENT:OBJECT',
+        },
+        {
+          source: '따르다',
+          selected: 'to follow',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+
+    '일찍 도착하도록': {
+      target: 'to arrive early',
+      references: [
+        {
+          source: '도착하다',
+          selected: 'to arrive',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+        {
+          source: '일찍',
+          selected: 'early',
+          slot: 'ADVERB',
+        },
+      ],
+    },
+
+    '계속 일하도록': {
+      target: 'to keep working',
+      references: [
+        {
+          source: '계속 일하다',
+          selected: 'to keep working',
+          slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+        },
+      ],
+    },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+  const complement = complementMap[complementKo];
+
+  if (!subject || !object || !complement) {
+    return null;
+  }
+
+  let predicateEn = '';
+  let predicateSlot = '';
+
+  if (predicateKo === '요구해요') {
+    predicateEn = 'requires';
+    predicateSlot = 'VERB:PRESENT';
+  } else if (predicateKo === '요구했어요') {
+    predicateEn = 'required';
+    predicateSlot = 'VERB:PAST';
+  } else if (predicateKo === '요구하지 않아요') {
+    predicateEn = "doesn't require";
+    predicateSlot = 'VERB:PRESENT:NEG';
+  } else if (predicateKo === '요구하지 않았어요') {
+    predicateEn = "didn't require";
+    predicateSlot = 'VERB:PAST:NEG';
+  } else {
+    return null;
+  }
+
+  const targetBody =
+    `${subject.target} ${predicateEn} ${object.target} ${complement.target}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    { ko: subjectKo, en: `${subject.target} [S]` },
+    { ko: objectKo, en: `${object.target} [O]` },
+    {
+      ko: complementKo,
+      en: `${complement.target} [OC:TO-INFINITIVE]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${predicateEn} [${predicateSlot}]`,
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subject.source,
+      selected: subject.target,
+      slot: 'SUBJECT',
+    },
+    {
+      source: object.source,
+      selected: object.target,
+      slot: 'OBJECT',
+    },
+    ...complement.references,
+    {
+      source: '요구하다',
+      selected: 'require',
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-require-object-to-infinitive-ko-en-v13.57',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.58-safe: require + O + to-infinitive 현재·과거 의문문 CORE
+//
+// v13.57의 검증된 평서문 CORE를 그대로 재사용하여 명시적 ?/？ 입력만
+// Does/Did 및 Doesn't/Didn't 의문문으로 변환합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.57 및 이전 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.57에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 현재 긍정: Does + S + require + O + to-infinitive?
+// 4. 과거 긍정: Did + S + require + O + to-infinitive?
+// 5. 현재 부정: Doesn't + S + require + O + to-infinitive?
+// 6. 과거 부정: Didn't + S + require + O + to-infinitive?
+// 7. 조동사 뒤에서는 requires/required가 아니라 반드시 require 원형을 사용합니다.
+// ============================================================================
+const twoProTryKoEnRequireObjectToInfinitiveQuestionV1358 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const baseResult =
+    twoProTryKoEnRequireObjectToInfinitiveV1357(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(요구해요|요구했어요|요구하지 않아요|요구하지 않았어요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '요구해요') {
+    const m = /^(He|She)\s+requires\s+(.+)$/i.exec(baseTarget);
+    if (!m) return null;
+    questionBody = `Does ${m[1].toLowerCase()} require ${m[2]}`;
+    predicateAnalysis = 'Does ... require [VERB:PRESENT:QUESTION]';
+  } else if (predicateKo === '요구했어요') {
+    const m = /^(He|She)\s+required\s+(.+)$/i.exec(baseTarget);
+    if (!m) return null;
+    questionBody = `Did ${m[1].toLowerCase()} require ${m[2]}`;
+    predicateAnalysis = 'Did ... require [VERB:PAST:QUESTION]';
+  } else if (predicateKo === '요구하지 않아요') {
+    const m = /^(He|She)\s+doesn't\s+require\s+(.+)$/i.exec(baseTarget);
+    if (!m) return null;
+    questionBody = `Doesn't ${m[1].toLowerCase()} require ${m[2]}`;
+    predicateAnalysis = "Doesn't ... require [VERB:PRESENT:NEG:QUESTION]";
+  } else if (predicateKo === '요구하지 않았어요') {
+    const m = /^(He|She)\s+didn't\s+require\s+(.+)$/i.exec(baseTarget);
+    if (!m) return null;
+    questionBody = `Didn't ${m[1].toLowerCase()} require ${m[2]}`;
+    predicateAnalysis = "Didn't ... require [VERB:PAST:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis = baseResult.analysis.map((item) =>
+    item.ko === predicateKo
+      ? { ko: `${predicateKo}?`, en: predicateAnalysis }
+      : item
+  );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-require-object-to-infinitive-question-ko-en-v13.58',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.59-safe: require + O + to-infinitive 미래 평서문 CORE
+//
+// v13.57의 검증된 요구 평서문 해석을 그대로 재사용하고,
+// "요구할 거예요 / 요구하지 않을 거예요"만
+// will require / won't require 형태로 조립합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.57 / v13.58 및 이전 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.57에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 긍정 미래: S + will require + O + to-infinitive
+// 4. 부정 미래: S + won't require + O + to-infinitive
+// 5. will / won't 뒤에서는 반드시 require 원형을 사용합니다.
+// 6. 목적어 뒤에는 반드시 to-infinitive를 유지합니다.
+// 7. 명시적 ?/？ 입력은 처리하지 않아 미래 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnRequireObjectToInfinitiveFutureV1359 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const futureMatch =
+    /^(.*?)(요구할 거예요|요구하지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (!futureMatch) {
+    return null;
+  }
+
+  const predicateKo = futureMatch[2];
+
+  // v13.57에서 이미 검증된 현재형으로 바꾸어
+  // 주어·목적어·to-infinitive 해석을 그대로 재사용합니다.
+  const basePredicateKo =
+    predicateKo === '요구할 거예요'
+      ? '요구해요'
+      : '요구하지 않아요';
+
+  const baseStatementText =
+    `${futureMatch[1]}${basePredicateKo}`.trim();
+
+  const baseResult =
+    twoProTryKoEnRequireObjectToInfinitiveV1357(
+      baseStatementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let targetBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '요구할 거예요') {
+    const presentMatch =
+      /^(He|She)\s+requires\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!presentMatch) {
+      return null;
+    }
+
+    const subjectRaw = presentMatch[1];
+    const subject =
+      subjectRaw.charAt(0).toUpperCase() +
+      subjectRaw.slice(1).toLowerCase();
+
+    targetBody =
+      `${subject} will require ${presentMatch[2]}`;
+
+    predicateAnalysis =
+      'will require [VERB:FUTURE]';
+  } else {
+    const negativePresentMatch =
+      /^(He|She)\s+doesn't\s+require\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!negativePresentMatch) {
+      return null;
+    }
+
+    const subjectRaw =
+      negativePresentMatch[1];
+    const subject =
+      subjectRaw.charAt(0).toUpperCase() +
+      subjectRaw.slice(1).toLowerCase();
+
+    targetBody =
+      `${subject} won't require ${negativePresentMatch[2]}`;
+
+    predicateAnalysis =
+      "won't require [VERB:FUTURE:NEG]";
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === basePredicateKo
+        ? {
+            ko: predicateKo,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-require-object-to-infinitive-future-ko-en-v13.59',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.60-safe: require + O + to-infinitive 미래 의문문 CORE
+//
+// v13.59의 검증된 미래 평서문 결과를 재사용하여 명시적 ?/？ 입력만
+// 미래 긍정/부정 의문문으로 전환합니다.
+//
+// 안전 원칙:
+// 1. 기존 v13.57/v13.58/v13.59 및 이전 코드는 수정하거나 삭제하지 않습니다.
+// 2. v13.59에서 성공하는 주어·목적어·동작 범위만 허용합니다.
+// 3. 미래 긍정: Will + S + require + O + to-infinitive?
+// 4. 미래 부정: Won't + S + require + O + to-infinitive?
+// 5. will/won't 뒤에서는 반드시 require 원형을 사용합니다.
+// 6. ?/？가 없는 입력은 처리하지 않습니다.
+// 7. 주어·목적어·보어 해석과 referenceWords는 v13.59 결과를 재사용합니다.
+// ============================================================================
+const twoProTryKoEnRequireObjectToInfinitiveFutureQuestionV1360 = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const futureMatch =
+    /^(.*?)(요구할 거예요|요구하지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!futureMatch) {
+    return null;
+  }
+
+  const predicateKo = futureMatch[2];
+
+  const baseResult =
+    twoProTryKoEnRequireObjectToInfinitiveFutureV1359(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '요구할 거예요') {
+    const m =
+      /^(He|She)\s+will\s+require\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!m) {
+      return null;
+    }
+
+    questionBody =
+      `Will ${m[1].toLowerCase()} require ${m[2]}`;
+
+    predicateAnalysis =
+      'Will ... require [VERB:FUTURE:QUESTION]';
+  } else if (
+    predicateKo === '요구하지 않을 거예요'
+  ) {
+    const m =
+      /^(He|She)\s+won't\s+require\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!m) {
+      return null;
+    }
+
+    questionBody =
+      `Won't ${m[1].toLowerCase()} require ${m[2]}`;
+
+    predicateAnalysis =
+      "Won't ... require [VERB:FUTURE:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-require-object-to-infinitive-future-question-ko-en-v13.60',
+  };
+};
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -86855,6 +87808,173 @@ export async function POST(request: Request) {
         },
         referenceWords:
           twoProForceObjectToInfinitiveFutureQuestionResultV1324.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.57-safe: require + O + to-infinitive 일반 요구문 CORE
+    // =================================================================
+    const twoProRequireObjectToInfinitiveResultV1357 =
+      twoProTryKoEnRequireObjectToInfinitiveV1357(
+        originalText
+      );
+
+    if (twoProRequireObjectToInfinitiveResultV1357) {
+      console.log(
+        '[한영 require 목적어 to부정사 요구문 성공 v13.57]',
+        {
+          query: originalText,
+          result:
+            twoProRequireObjectToInfinitiveResultV1357.targetText,
+          engine:
+            twoProRequireObjectToInfinitiveResultV1357.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProRequireObjectToInfinitiveResultV1357.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProRequireObjectToInfinitiveResultV1357.analysis,
+          referenceWords:
+            twoProRequireObjectToInfinitiveResultV1357.referenceWords,
+          engine:
+            twoProRequireObjectToInfinitiveResultV1357.engine,
+        },
+        referenceWords:
+          twoProRequireObjectToInfinitiveResultV1357.referenceWords,
+      });
+    }
+
+
+
+    // =================================================================
+    // ☆ TwoPro v13.58-safe: require + O + to-infinitive 현재·과거 의문문 CORE
+    // =================================================================
+    const twoProRequireObjectToInfinitiveQuestionResultV1358 =
+      twoProTryKoEnRequireObjectToInfinitiveQuestionV1358(
+        originalText
+      );
+
+    if (twoProRequireObjectToInfinitiveQuestionResultV1358) {
+      console.log(
+        '[한영 require 목적어 to부정사 요구 의문문 성공 v13.58]',
+        {
+          query: originalText,
+          result:
+            twoProRequireObjectToInfinitiveQuestionResultV1358.targetText,
+          engine:
+            twoProRequireObjectToInfinitiveQuestionResultV1358.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProRequireObjectToInfinitiveQuestionResultV1358.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProRequireObjectToInfinitiveQuestionResultV1358.analysis,
+          referenceWords:
+            twoProRequireObjectToInfinitiveQuestionResultV1358.referenceWords,
+          engine:
+            twoProRequireObjectToInfinitiveQuestionResultV1358.engine,
+        },
+        referenceWords:
+          twoProRequireObjectToInfinitiveQuestionResultV1358.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.59-safe: require + O + to-infinitive 미래 평서문 CORE
+    // =================================================================
+    const twoProRequireObjectToInfinitiveFutureResultV1359 =
+      twoProTryKoEnRequireObjectToInfinitiveFutureV1359(
+        originalText
+      );
+
+    if (twoProRequireObjectToInfinitiveFutureResultV1359) {
+      console.log(
+        '[한영 require 목적어 to부정사 요구 미래 평서문 성공 v13.59]',
+        {
+          query: originalText,
+          result:
+            twoProRequireObjectToInfinitiveFutureResultV1359.targetText,
+          engine:
+            twoProRequireObjectToInfinitiveFutureResultV1359.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProRequireObjectToInfinitiveFutureResultV1359.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProRequireObjectToInfinitiveFutureResultV1359.analysis,
+          referenceWords:
+            twoProRequireObjectToInfinitiveFutureResultV1359.referenceWords,
+          engine:
+            twoProRequireObjectToInfinitiveFutureResultV1359.engine,
+        },
+        referenceWords:
+          twoProRequireObjectToInfinitiveFutureResultV1359.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.60-safe: require + O + to-infinitive 미래 의문문 CORE
+    // =================================================================
+    const twoProRequireObjectToInfinitiveFutureQuestionResultV1360 =
+      twoProTryKoEnRequireObjectToInfinitiveFutureQuestionV1360(
+        originalText
+      );
+
+    if (twoProRequireObjectToInfinitiveFutureQuestionResultV1360) {
+      console.log(
+        '[한영 require 목적어 to부정사 미래 의문문 성공 v13.60]',
+        {
+          query: originalText,
+          result:
+            twoProRequireObjectToInfinitiveFutureQuestionResultV1360.targetText,
+          engine:
+            twoProRequireObjectToInfinitiveFutureQuestionResultV1360.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProRequireObjectToInfinitiveFutureQuestionResultV1360.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProRequireObjectToInfinitiveFutureQuestionResultV1360.analysis,
+          referenceWords:
+            twoProRequireObjectToInfinitiveFutureQuestionResultV1360.referenceWords,
+          engine:
+            twoProRequireObjectToInfinitiveFutureQuestionResultV1360.engine,
+        },
+        referenceWords:
+          twoProRequireObjectToInfinitiveFutureQuestionResultV1360.referenceWords,
       });
     }
 
