@@ -1344,53 +1344,87 @@ const isSentenceSearch =
         });
     };
 
-    promises.push(fetchExactPhrase(safeExactQuery, true));
-    
-    if (safeExactQuery !== safeNoSpaceQuery && safeNoSpaceQuery.length >= 2) {
-      promises.push(fetchExactPhrase(safeNoSpaceQuery, true));
+    // ============================================================
+    // TwoPro Sentence Exact-First v1
+    //
+    // 문장 검색은 매우 저렴한 line_text = query를 먼저 1회 확인합니다.
+    // 정확 일치가 있으면 초기 전체문장 ILIKE 7종 / no-space / RPC를
+    // 실행하지 않고, 아래 관련 CORE 검색 단계에서 필요한 자료만 보강합니다.
+    // 단어·전문용어 검색은 기존 경로를 그대로 유지합니다.
+    // ============================================================
+    let twoProSentenceExactFastHitV1 = false;
+
+    if (isSentenceSearch && safeExactQuery) {
+      try {
+        const { data, error } = await supabase
+          .from('dictionary_lines')
+          .select('*')
+          .eq('line_text', safeExactQuery)
+          .limit(10);
+
+        if (!error && Array.isArray(data) && data.length > 0) {
+          twoProSentenceExactFastHitV1 = true;
+
+          data.forEach((item: any) => {
+            item.is_exact_priority = true;
+            addRes(item);
+          });
+        }
+      } catch (error) {
+        // Exact-first probe가 실패하면 아래 기존 검색 경로로 그대로 복귀합니다.
+        twoProSentenceExactFastHitV1 = false;
+      }
     }
 
-    if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 25) {
-      const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
-      let splitPairs: any[] = [];
-      for (let i = 1; i < safeQuery.length; i++) {
-        splitPairs.push({ p1: safeQuery.slice(0, i), p2: safeQuery.slice(i) });
-      }
+    if (!twoProSentenceExactFastHitV1) {
+      promises.push(fetchExactPhrase(safeExactQuery, true));
       
-      splitPairs.forEach(pair => {
-         const spaceCorrected = `${pair.p1} ${pair.p2}`;
-         promises.push(fetchExactPhrase(spaceCorrected, true));
-      });
-
-      const validPairs = splitPairs.filter(p => p.p1.length >= 2 && p.p2.length >= 2);
-      if (validPairs.length > 0) {
-         bestSplit = validPairs.reduce((prev, curr) => Math.abs(curr.p1.length - curr.p2.length) < Math.abs(prev.p1.length - prev.p2.length) ? curr : prev);
-      } else if (splitPairs.length > 0) {
-         bestSplit = splitPairs.reduce((prev, curr) => Math.abs(curr.p1.length - curr.p2.length) < Math.abs(prev.p1.length - prev.p2.length) ? curr : prev);
+      if (safeExactQuery !== safeNoSpaceQuery && safeNoSpaceQuery.length >= 2) {
+        promises.push(fetchExactPhrase(safeNoSpaceQuery, true));
       }
-    }
 
-    if (cleanQuery.includes(' ') && noSpaceQuery.length >= 2) {
-      promises.push((async () => {
-        try {
-          const { data } = await supabase.rpc('search_dictionary_smart', { keyword: noSpaceQuery });
-          if (Array.isArray(data)) data.forEach(item => addRes({ ...item, is_rpc: true }));
-        } catch(e) {}
-      })());
-    }
+      if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 25) {
+        const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
+        let splitPairs: any[] = [];
+        for (let i = 1; i < safeQuery.length; i++) {
+          splitPairs.push({ p1: safeQuery.slice(0, i), p2: safeQuery.slice(i) });
+        }
+        
+        splitPairs.forEach(pair => {
+           const spaceCorrected = `${pair.p1} ${pair.p2}`;
+           promises.push(fetchExactPhrase(spaceCorrected, true));
+        });
 
-    if (bestSplit) {
-      promises.push((async () => {
-        try {
-          const { data } = await supabase.from('dictionary_lines')
-            .select('*')
-            .ilike('line_text', `%${bestSplit!.p1}%`)
-            .ilike('line_text', `%${bestSplit!.p2}%`)
-            .order('category_id', { ascending: true })
-            .limit(50);
-          if (data) data.forEach(item => addRes(item));
-        } catch(e) {}
-      })());
+        const validPairs = splitPairs.filter(p => p.p1.length >= 2 && p.p2.length >= 2);
+        if (validPairs.length > 0) {
+           bestSplit = validPairs.reduce((prev, curr) => Math.abs(curr.p1.length - curr.p2.length) < Math.abs(prev.p1.length - prev.p2.length) ? curr : prev);
+        } else if (splitPairs.length > 0) {
+           bestSplit = splitPairs.reduce((prev, curr) => Math.abs(curr.p1.length - curr.p2.length) < Math.abs(prev.p1.length - prev.p2.length) ? curr : prev);
+        }
+      }
+
+      if (cleanQuery.includes(' ') && noSpaceQuery.length >= 2) {
+        promises.push((async () => {
+          try {
+            const { data } = await supabase.rpc('search_dictionary_smart', { keyword: noSpaceQuery });
+            if (Array.isArray(data)) data.forEach(item => addRes({ ...item, is_rpc: true }));
+          } catch(e) {}
+        })());
+      }
+
+      if (bestSplit) {
+        promises.push((async () => {
+          try {
+            const { data } = await supabase.from('dictionary_lines')
+              .select('*')
+              .ilike('line_text', `%${bestSplit!.p1}%`)
+              .ilike('line_text', `%${bestSplit!.p2}%`)
+              .order('category_id', { ascending: true })
+              .limit(50);
+            if (data) data.forEach(item => addRes(item));
+          } catch(e) {}
+        })());
+      }
     }
 
     await Promise.all(promises);
@@ -1526,10 +1560,15 @@ relatedSearchKeywords.forEach((keyword) => {
     return;
   }
 
-  // 기존의 단어 경계 중심 검색도 유지합니다.
-  fallbackPromises.push(
-    fetchExactPhrase(cleanK, false)
-  );
+  // Exact-first가 실제 정확 일치를 잡은 문장에서는
+  // 아래 단일 %keyword% 관련 검색이 동일한 관련 후보를 보강하므로,
+  // keyword마다 eq + ILIKE 7종을 다시 반복하지 않습니다.
+  // Exact-first가 아니면 기존 동작을 그대로 유지합니다.
+  if (!twoProSentenceExactFastHitV1) {
+    fallbackPromises.push(
+      fetchExactPhrase(cleanK, false)
+    );
+  }
 
   // ===================================================
   // 영어·한국어 공통 관련 문장 검색
@@ -3370,7 +3409,7 @@ if (isSentenceSearch) {
   // - 사용자 화면은 currentSelected를 그대로 사용합니다.
   // ------------------------------------------------------------
   const shadowProbeEnabledV2 =
-    process.env.NODE_ENV !== 'production';
+    process.env.XDIC_ENABLE_DB_SHADOW_PROBE === '1';
 
   const shadowAnchorsV2 =
     twoProBuildDbShadowAnchorsV2(

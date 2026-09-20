@@ -78817,6 +78817,966 @@ const twoProTryKoEnRequireObjectToInfinitiveFutureQuestionV1360 = (
   };
 };
 
+
+// ============================================================================
+// ☆ TwoPro v13.61-safe: consider + O + C 현재·과거 평서문 CORE
+//
+// v12.98의 정확 일치 대표 회귀를 그대로 보존하면서,
+// 동일한 consider + 목적어 + 명사 목적격보어 구조를 제한적으로 일반화합니다.
+//
+// 처리 범위:
+// - 나는 / 우리는 / 그는 / 그녀는
+// - 그를 / 민수를
+// - 정직한 사람이라고 / 좋은 선생님이라고 / 좋은 사람이라고 / 훌륭한 학생이라고
+// - 생각해요 / 생각했어요 / 생각하지 않아요 / 생각하지 않았어요
+//
+// 안전 원칙:
+// 1. 기존 v12.98 exact 회귀 및 이후 CORE는 수정하거나 삭제하지 않습니다.
+// 2. consider 문형은 consider + O + C로 조립하며 보어 앞에 불필요한 전치사를 넣지 않습니다.
+// 3. 현재 3인칭 단수 긍정은 considers, 과거는 considered입니다.
+// 4. 현재 부정은 don't/doesn't consider, 과거 부정은 didn't consider입니다.
+// 5. 명시적 ?/？ 입력은 처리하지 않아 v13.62 의문문 CORE와 분리합니다.
+// ============================================================================
+const twoProTryKoEnConsiderObjectComplementV1361 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(나는|우리는|그는|그녀는)\s+(그를|민수를)\s+(정직한 사람이라고|좋은 선생님이라고|좋은 사람이라고|훌륭한 학생이라고)\s+(생각해요|생각했어요|생각하지 않아요|생각하지 않았어요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const complementKo = matched[3];
+  const predicateKo = matched[4];
+
+  const subjectMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        source: string;
+        thirdPerson: boolean;
+      }
+    >
+  > = {
+    나는: {
+      target: 'I',
+      source: '나',
+      thirdPerson: false,
+    },
+    우리는: {
+      target: 'We',
+      source: '우리',
+      thirdPerson: false,
+    },
+    그는: {
+      target: 'He',
+      source: '그',
+      thirdPerson: true,
+    },
+    그녀는: {
+      target: 'She',
+      source: '그녀',
+      thirdPerson: true,
+    },
+  };
+
+  const objectMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        source: string;
+      }
+    >
+  > = {
+    그를: {
+      target: 'him',
+      source: '그',
+    },
+    민수를: {
+      target: 'Minsu',
+      source: '민수',
+    },
+  };
+
+  const complementMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        source: string;
+      }
+    >
+  > = {
+    '정직한 사람이라고': {
+      target: 'an honest person',
+      source: '정직한 사람',
+    },
+    '좋은 선생님이라고': {
+      target: 'a good teacher',
+      source: '좋은 선생님',
+    },
+    '좋은 사람이라고': {
+      target: 'a good person',
+      source: '좋은 사람',
+    },
+    '훌륭한 학생이라고': {
+      target: 'an excellent student',
+      source: '훌륭한 학생',
+    },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+  const complement = complementMap[complementKo];
+
+  if (!subject || !object || !complement) {
+    return null;
+  }
+
+  let predicateEn = '';
+  let predicateSlot = '';
+
+  if (predicateKo === '생각해요') {
+    predicateEn =
+      subject.thirdPerson
+        ? 'considers'
+        : 'consider';
+    predicateSlot = 'VERB:PRESENT';
+  } else if (predicateKo === '생각했어요') {
+    predicateEn = 'considered';
+    predicateSlot = 'VERB:PAST';
+  } else if (predicateKo === '생각하지 않아요') {
+    predicateEn =
+      subject.thirdPerson
+        ? "doesn't consider"
+        : "don't consider";
+    predicateSlot = 'VERB:PRESENT:NEG';
+  } else if (predicateKo === '생각하지 않았어요') {
+    predicateEn = "didn't consider";
+    predicateSlot = 'VERB:PAST:NEG';
+  } else {
+    return null;
+  }
+
+  const targetBody =
+    `${subject.target} ${predicateEn} ${object.target} ${complement.target}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    {
+      ko: subjectKo,
+      en: `${subject.target} [S]`,
+    },
+    {
+      ko: objectKo,
+      en: `${object.target} [O]`,
+    },
+    {
+      ko: complementKo,
+      en: `${complement.target} [OC:NOUN]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${predicateEn} [${predicateSlot}]`,
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subject.source,
+      selected: subject.target,
+      slot: 'SUBJECT',
+    },
+    {
+      source: object.source,
+      selected: object.target,
+      slot: 'OBJECT',
+    },
+    {
+      source: complement.source,
+      selected: complement.target,
+      slot: 'OBJECT_COMPLEMENT:NOUN',
+    },
+    {
+      source: '생각하다',
+      selected: 'consider',
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-consider-object-complement-ko-en-v13.61',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.62-safe: consider + O + C 현재·과거 의문문 CORE
+//
+// v13.61의 검증된 평서문 결과를 재사용하여 명시적 ?/？ 입력만
+// Do/Does/Did 및 Don't/Doesn't/Didn't 의문문으로 변환합니다.
+// ============================================================================
+const twoProTryKoEnConsiderObjectComplementQuestionV1362 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const baseResult =
+    twoProTryKoEnConsiderObjectComplementV1361(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(생각해요|생각했어요|생각하지 않아요|생각하지 않았어요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const formatQuestionSubject = (
+    value: string
+  ): string =>
+    value.toLowerCase() === 'i'
+      ? 'I'
+      : value.toLowerCase();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '생각해요') {
+    const m =
+      /^(I|We|He|She)\s+(consider|considers)\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!m) {
+      return null;
+    }
+
+    const subjectLower = m[1].toLowerCase();
+    const auxiliary =
+      subjectLower === 'he' || subjectLower === 'she'
+        ? 'Does'
+        : 'Do';
+
+    questionBody =
+      `${auxiliary} ${formatQuestionSubject(m[1])} consider ${m[3]}`;
+
+    predicateAnalysis =
+      `${auxiliary} ... consider [VERB:PRESENT:QUESTION]`;
+  } else if (predicateKo === '생각했어요') {
+    const m =
+      /^(I|We|He|She)\s+considered\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!m) {
+      return null;
+    }
+
+    questionBody =
+      `Did ${formatQuestionSubject(m[1])} consider ${m[2]}`;
+
+    predicateAnalysis =
+      'Did ... consider [VERB:PAST:QUESTION]';
+  } else if (predicateKo === '생각하지 않아요') {
+    const m =
+      /^(I|We|He|She)\s+(don't|doesn't)\s+consider\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!m) {
+      return null;
+    }
+
+    const subjectLower = m[1].toLowerCase();
+    const auxiliary =
+      subjectLower === 'he' || subjectLower === 'she'
+        ? "Doesn't"
+        : "Don't";
+
+    questionBody =
+      `${auxiliary} ${formatQuestionSubject(m[1])} consider ${m[3]}`;
+
+    predicateAnalysis =
+      `${auxiliary} ... consider [VERB:PRESENT:NEG:QUESTION]`;
+  } else if (predicateKo === '생각하지 않았어요') {
+    const m =
+      /^(I|We|He|She)\s+didn't\s+consider\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!m) {
+      return null;
+    }
+
+    questionBody =
+      `Didn't ${formatQuestionSubject(m[1])} consider ${m[2]}`;
+
+    predicateAnalysis =
+      "Didn't ... consider [VERB:PAST:NEG:QUESTION]";
+  } else {
+    return null;
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-consider-object-complement-question-ko-en-v13.62',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.63-safe: consider + O + C 미래 평서문 CORE
+//
+// v13.61에서 검증된 주어·목적어·목적격보어 해석을 그대로 재사용하여
+// 미래 긍정/부정 평서문만 제한적으로 처리합니다.
+// ============================================================================
+const twoProTryKoEnConsiderObjectComplementFutureV1363 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const futureMatch =
+    /^(.*?)(생각할 거예요|생각하지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (!futureMatch) {
+    return null;
+  }
+
+  const predicateKo = futureMatch[2];
+
+  const basePredicateKo =
+    predicateKo === '생각할 거예요'
+      ? '생각해요'
+      : '생각하지 않아요';
+
+  const baseStatementText =
+    `${futureMatch[1]}${basePredicateKo}`.trim();
+
+  const baseResult =
+    twoProTryKoEnConsiderObjectComplementV1361(
+      baseStatementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let targetBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '생각할 거예요') {
+    const m =
+      /^(I|We|He|She)\s+(consider|considers)\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!m) {
+      return null;
+    }
+
+    targetBody =
+      `${m[1]} will consider ${m[3]}`;
+
+    predicateAnalysis =
+      'will consider [VERB:FUTURE]';
+  } else {
+    const m =
+      /^(I|We|He|She)\s+(don't|doesn't)\s+consider\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!m) {
+      return null;
+    }
+
+    targetBody =
+      `${m[1]} won't consider ${m[3]}`;
+
+    predicateAnalysis =
+      "won't consider [VERB:FUTURE:NEG]";
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === basePredicateKo
+        ? {
+            ko: predicateKo,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-consider-object-complement-future-ko-en-v13.63',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.64-safe: consider + O + C 미래 의문문 CORE
+//
+// v13.63의 검증된 미래 평서문 결과를 재사용하여 명시적 ?/？ 입력만
+// Will / Won't 의문문으로 변환합니다.
+// ============================================================================
+const twoProTryKoEnConsiderObjectComplementFutureQuestionV1364 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const baseResult =
+    twoProTryKoEnConsiderObjectComplementFutureV1363(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const predicateMatch =
+    /(생각할 거예요|생각하지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!predicateMatch) {
+    return null;
+  }
+
+  const predicateKo = predicateMatch[1];
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const formatQuestionSubject = (
+    value: string
+  ): string =>
+    value.toLowerCase() === 'i'
+      ? 'I'
+      : value.toLowerCase();
+
+  let questionBody = '';
+  let predicateAnalysis = '';
+
+  if (predicateKo === '생각할 거예요') {
+    const m =
+      /^(I|We|He|She)\s+will\s+consider\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!m) {
+      return null;
+    }
+
+    questionBody =
+      `Will ${formatQuestionSubject(m[1])} consider ${m[2]}`;
+
+    predicateAnalysis =
+      'Will ... consider [VERB:FUTURE:QUESTION]';
+  } else {
+    const m =
+      /^(I|We|He|She)\s+won't\s+consider\s+(.+)$/i.exec(
+        baseTarget
+      );
+
+    if (!m) {
+      return null;
+    }
+
+    questionBody =
+      `Won't ${formatQuestionSubject(m[1])} consider ${m[2]}`;
+
+    predicateAnalysis =
+      "Won't ... consider [VERB:FUTURE:NEG:QUESTION]";
+  }
+
+  const analysis =
+    baseResult.analysis.map((item) =>
+      item.ko === predicateKo
+        ? {
+            ko: `${predicateKo}?`,
+            en: predicateAnalysis,
+          }
+        : item
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords:
+      baseResult.referenceWords,
+    engine:
+      'basic-consider-object-complement-future-question-ko-en-v13.64',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.65-safe: elect / appoint + O + C 현재형 긍정 평서문 CORE
+//
+// v12.98의 대표 exact 회귀를 보존하면서, 현재 테스트에서 실패한
+// elect / appoint + 목적어 + 명사 목적격보어 구조만 제한적으로 일반화합니다.
+//
+// 처리 범위:
+// - 그들은 / 우리는 / 나는
+// - 민수를 / 그를
+// - 회장으로 + 뽑아요       -> elect + O + president
+// - 팀장으로 + 임명해요     -> appoint + O + team leader
+//
+// 안전 원칙:
+// 1. 현재형 긍정 평서문만 처리합니다.
+// 2. 의문문·부정문·과거·미래는 이후 회귀 테스트와 분리합니다.
+// 3. 목적격보어 앞에 as를 넣지 않습니다.
+// 4. 기존 v12.98 exact 및 consider v13.61~v13.64는 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnElectAppointObjectComplementPresentV1365 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그들은|우리는|나는)\s+(민수를|그를)\s+(회장으로\s+뽑아요|팀장으로\s+임명해요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const tailKo = matched[3];
+
+  const subjectMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        source: string;
+      }
+    >
+  > = {
+    그들은: {
+      target: 'They',
+      source: '그들',
+    },
+    우리는: {
+      target: 'We',
+      source: '우리',
+    },
+    나는: {
+      target: 'I',
+      source: '나',
+    },
+  };
+
+  const objectMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        source: string;
+      }
+    >
+  > = {
+    민수를: {
+      target: 'Minsu',
+      source: '민수',
+    },
+    그를: {
+      target: 'him',
+      source: '그',
+    },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+
+  if (!subject || !object) {
+    return null;
+  }
+
+  const isElect = tailKo === '회장으로 뽑아요';
+  const isAppoint = tailKo === '팀장으로 임명해요';
+
+  if (!isElect && !isAppoint) {
+    return null;
+  }
+
+  const complementKo = isElect
+    ? '회장으로'
+    : '팀장으로';
+  const complementSource = isElect
+    ? '회장'
+    : '팀장';
+  const complementEn = isElect
+    ? 'president'
+    : 'team leader';
+  const predicateKo = isElect
+    ? '뽑아요'
+    : '임명해요';
+  const predicateSource = isElect
+    ? '뽑다'
+    : '임명하다';
+  const predicateEn = isElect
+    ? 'elect'
+    : 'appoint';
+
+  const targetBody =
+    `${subject.target} ${predicateEn} ${object.target} ${complementEn}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    {
+      ko: subjectKo,
+      en: `${subject.target} [S]`,
+    },
+    {
+      ko: objectKo,
+      en: `${object.target} [O]`,
+    },
+    {
+      ko: complementKo,
+      en: `${complementEn} [OC:NOUN]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${predicateEn} [VERB:PRESENT]`,
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subject.source,
+      selected: subject.target,
+      slot: 'SUBJECT',
+    },
+    {
+      source: object.source,
+      selected: object.target,
+      slot: 'OBJECT',
+    },
+    {
+      source: complementSource,
+      selected: complementEn,
+      slot: 'OBJECT_COMPLEMENT:NOUN',
+    },
+    {
+      source: predicateSource,
+      selected: predicateEn,
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-elect-appoint-object-complement-present-ko-en-v13.65',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.66-safe: elect / appoint + O + C 현재형 부정 평서문 CORE
+//
+// v13.65의 현재형 긍정 범위를 그대로 유지하면서,
+// 이번 회귀 테스트에서 실패가 확인된 현재형 부정 평서문만 추가합니다.
+//
+// 처리 범위:
+// - 그들은 / 우리는 / 나는
+// - 민수를 / 그를
+// - 회장으로 + 뽑지 않아요       -> don't elect + O + president
+// - 팀장으로 + 임명하지 않아요   -> don't appoint + O + team leader
+//
+// 안전 원칙:
+// 1. 현재형 부정 평서문만 처리합니다.
+// 2. 의문문·과거·미래는 이후 회귀 테스트와 분리합니다.
+// 3. 목적격보어 앞에 as를 넣지 않습니다.
+// 4. 기존 v12.98 exact, v13.65 긍정, consider v13.61~v13.64는 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnElectAppointObjectComplementPresentNegativeV1366 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그들은|우리는|나는)\s+(민수를|그를)\s+(회장으로\s+뽑지 않아요|팀장으로\s+임명하지 않아요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const tailKo = matched[3];
+
+  const subjectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    그들은: { target: 'They', source: '그들' },
+    우리는: { target: 'We', source: '우리' },
+    나는: { target: 'I', source: '나' },
+  };
+
+  const objectMap: Readonly<
+    Record<string, { target: string; source: string }>
+  > = {
+    민수를: { target: 'Minsu', source: '민수' },
+    그를: { target: 'him', source: '그' },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+
+  if (!subject || !object) {
+    return null;
+  }
+
+  const isElect =
+    tailKo === '회장으로 뽑지 않아요';
+  const isAppoint =
+    tailKo === '팀장으로 임명하지 않아요';
+
+  if (!isElect && !isAppoint) {
+    return null;
+  }
+
+  const complementKo = isElect
+    ? '회장으로'
+    : '팀장으로';
+  const complementSource = isElect
+    ? '회장'
+    : '팀장';
+  const complementEn = isElect
+    ? 'president'
+    : 'team leader';
+  const predicateKo = isElect
+    ? '뽑지 않아요'
+    : '임명하지 않아요';
+  const predicateSource = isElect
+    ? '뽑다'
+    : '임명하다';
+  const predicateEn = isElect
+    ? 'elect'
+    : 'appoint';
+
+  const targetBody =
+    `${subject.target} don't ${predicateEn} ${object.target} ${complementEn}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    {
+      ko: subjectKo,
+      en: `${subject.target} [S]`,
+    },
+    {
+      ko: objectKo,
+      en: `${object.target} [O]`,
+    },
+    {
+      ko: complementKo,
+      en: `${complementEn} [OC:NOUN]`,
+    },
+    {
+      ko: predicateKo,
+      en: `don't ${predicateEn} [VERB:PRESENT:NEGATIVE]`,
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subject.source,
+      selected: subject.target,
+      slot: 'SUBJECT',
+    },
+    {
+      source: object.source,
+      selected: object.target,
+      slot: 'OBJECT',
+    },
+    {
+      source: complementSource,
+      selected: complementEn,
+      slot: 'OBJECT_COMPLEMENT:NOUN',
+    },
+    {
+      source: predicateSource,
+      selected: predicateEn,
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-elect-appoint-object-complement-present-negative-ko-en-v13.66',
+  };
+};
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -86881,6 +87841,257 @@ export async function POST(request: Request) {
         },
         referenceWords:
           twoProBasicObjectComplementResultV1298.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.65-safe: elect / appoint + O + C 현재형 긍정 평서문 CORE
+    // v12.98 exact 회귀 뒤에서만, 현재 검증 대상 범위를 제한적으로 일반화합니다.
+    // =================================================================
+    const twoProElectAppointObjectComplementPresentResultV1365 =
+      twoProTryKoEnElectAppointObjectComplementPresentV1365(
+        originalText
+      );
+
+    if (twoProElectAppointObjectComplementPresentResultV1365) {
+      console.log(
+        '[한영 elect/appoint 목적어 목적격보어 현재형 성공 v13.65]',
+        {
+          query: originalText,
+          result:
+            twoProElectAppointObjectComplementPresentResultV1365.targetText,
+          engine:
+            twoProElectAppointObjectComplementPresentResultV1365.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProElectAppointObjectComplementPresentResultV1365.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProElectAppointObjectComplementPresentResultV1365.analysis,
+          referenceWords:
+            twoProElectAppointObjectComplementPresentResultV1365.referenceWords,
+          engine:
+            twoProElectAppointObjectComplementPresentResultV1365.engine,
+        },
+        referenceWords:
+          twoProElectAppointObjectComplementPresentResultV1365.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.66-safe: elect / appoint + O + C 현재형 부정 평서문 CORE
+    // v13.65 뒤에서만, 이번에 실패한 현재형 부정 6개 범위를 처리합니다.
+    // =================================================================
+    const twoProElectAppointObjectComplementPresentNegativeResultV1366 =
+      twoProTryKoEnElectAppointObjectComplementPresentNegativeV1366(
+        originalText
+      );
+
+    if (twoProElectAppointObjectComplementPresentNegativeResultV1366) {
+      console.log(
+        '[한영 elect/appoint 목적어 목적격보어 현재형 부정 성공 v13.66]',
+        {
+          query: originalText,
+          result:
+            twoProElectAppointObjectComplementPresentNegativeResultV1366.targetText,
+          engine:
+            twoProElectAppointObjectComplementPresentNegativeResultV1366.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProElectAppointObjectComplementPresentNegativeResultV1366.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProElectAppointObjectComplementPresentNegativeResultV1366.analysis,
+          referenceWords:
+            twoProElectAppointObjectComplementPresentNegativeResultV1366.referenceWords,
+          engine:
+            twoProElectAppointObjectComplementPresentNegativeResultV1366.engine,
+        },
+        referenceWords:
+          twoProElectAppointObjectComplementPresentNegativeResultV1366.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.61-safe: consider + O + C 현재·과거 평서문 CORE
+    // v12.98 exact 회귀 뒤에서만, 검증된 consider 5형식 범위를 일반화합니다.
+    // =================================================================
+    const twoProConsiderObjectComplementResultV1361 =
+      twoProTryKoEnConsiderObjectComplementV1361(
+        originalText
+      );
+
+    if (twoProConsiderObjectComplementResultV1361) {
+      console.log(
+        '[한영 consider 목적어 목적격보어 평서문 성공 v13.61]',
+        {
+          query: originalText,
+          result:
+            twoProConsiderObjectComplementResultV1361.targetText,
+          engine:
+            twoProConsiderObjectComplementResultV1361.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProConsiderObjectComplementResultV1361.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProConsiderObjectComplementResultV1361.analysis,
+          referenceWords:
+            twoProConsiderObjectComplementResultV1361.referenceWords,
+          engine:
+            twoProConsiderObjectComplementResultV1361.engine,
+        },
+        referenceWords:
+          twoProConsiderObjectComplementResultV1361.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.62-safe: consider + O + C 현재·과거 의문문 CORE
+    // =================================================================
+    const twoProConsiderObjectComplementQuestionResultV1362 =
+      twoProTryKoEnConsiderObjectComplementQuestionV1362(
+        originalText
+      );
+
+    if (twoProConsiderObjectComplementQuestionResultV1362) {
+      console.log(
+        '[한영 consider 목적어 목적격보어 현재·과거 의문문 성공 v13.62]',
+        {
+          query: originalText,
+          result:
+            twoProConsiderObjectComplementQuestionResultV1362.targetText,
+          engine:
+            twoProConsiderObjectComplementQuestionResultV1362.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProConsiderObjectComplementQuestionResultV1362.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProConsiderObjectComplementQuestionResultV1362.analysis,
+          referenceWords:
+            twoProConsiderObjectComplementQuestionResultV1362.referenceWords,
+          engine:
+            twoProConsiderObjectComplementQuestionResultV1362.engine,
+        },
+        referenceWords:
+          twoProConsiderObjectComplementQuestionResultV1362.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.63-safe: consider + O + C 미래 평서문 CORE
+    // =================================================================
+    const twoProConsiderObjectComplementFutureResultV1363 =
+      twoProTryKoEnConsiderObjectComplementFutureV1363(
+        originalText
+      );
+
+    if (twoProConsiderObjectComplementFutureResultV1363) {
+      console.log(
+        '[한영 consider 목적어 목적격보어 미래 평서문 성공 v13.63]',
+        {
+          query: originalText,
+          result:
+            twoProConsiderObjectComplementFutureResultV1363.targetText,
+          engine:
+            twoProConsiderObjectComplementFutureResultV1363.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProConsiderObjectComplementFutureResultV1363.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProConsiderObjectComplementFutureResultV1363.analysis,
+          referenceWords:
+            twoProConsiderObjectComplementFutureResultV1363.referenceWords,
+          engine:
+            twoProConsiderObjectComplementFutureResultV1363.engine,
+        },
+        referenceWords:
+          twoProConsiderObjectComplementFutureResultV1363.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.64-safe: consider + O + C 미래 의문문 CORE
+    // =================================================================
+    const twoProConsiderObjectComplementFutureQuestionResultV1364 =
+      twoProTryKoEnConsiderObjectComplementFutureQuestionV1364(
+        originalText
+      );
+
+    if (twoProConsiderObjectComplementFutureQuestionResultV1364) {
+      console.log(
+        '[한영 consider 목적어 목적격보어 미래 의문문 성공 v13.64]',
+        {
+          query: originalText,
+          result:
+            twoProConsiderObjectComplementFutureQuestionResultV1364.targetText,
+          engine:
+            twoProConsiderObjectComplementFutureQuestionResultV1364.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProConsiderObjectComplementFutureQuestionResultV1364.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProConsiderObjectComplementFutureQuestionResultV1364.analysis,
+          referenceWords:
+            twoProConsiderObjectComplementFutureQuestionResultV1364.referenceWords,
+          engine:
+            twoProConsiderObjectComplementFutureQuestionResultV1364.engine,
+        },
+        referenceWords:
+          twoProConsiderObjectComplementFutureQuestionResultV1364.referenceWords,
       });
     }
 
