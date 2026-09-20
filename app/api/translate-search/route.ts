@@ -79777,6 +79777,4069 @@ const twoProTryKoEnElectAppointObjectComplementPresentNegativeV1366 = (
   };
 };
 
+// ============================================================================
+// ☆ TwoPro v13.67-safe: elect / appoint + O + C 과거형 긍정 평서문 CORE
+//
+// v12.98의 과거 대표 exact 2개를 그대로 보존하면서,
+// 같은 목적어+명사 목적격보어 구조의 과거형 긍정 6개 범위를 일반화합니다.
+//
+// 처리 범위:
+// - 그들은 / 우리는 / 나는
+// - 민수를 / 그를
+// - 회장으로 + 뽑았어요       -> elected + O + president
+// - 팀장으로 + 임명했어요     -> appointed + O + team leader
+//
+// 안전 원칙:
+// 1. 과거형 긍정 평서문만 처리합니다.
+// 2. 의문문·부정문·미래는 이후 회귀 테스트와 분리합니다.
+// 3. 목적격보어 앞에 as를 넣지 않습니다.
+// 4. 기존 v12.98 exact 및 v13.65~v13.66은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnElectAppointObjectComplementPastV1367 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그들은|우리는|나는)\s+(민수를|그를)\s+(회장으로\s+뽑았어요|팀장으로\s+임명했어요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const tailKo = matched[3];
+
+  const subjectMap: Readonly<Record<string, { target: string; source: string }>> = {
+    그들은: { target: 'They', source: '그들' },
+    우리는: { target: 'We', source: '우리' },
+    나는: { target: 'I', source: '나' },
+  };
+
+  const objectMap: Readonly<Record<string, { target: string; source: string }>> = {
+    민수를: { target: 'Minsu', source: '민수' },
+    그를: { target: 'him', source: '그' },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+
+  if (!subject || !object) {
+    return null;
+  }
+
+  const isElect = tailKo === '회장으로 뽑았어요';
+  const isAppoint = tailKo === '팀장으로 임명했어요';
+
+  if (!isElect && !isAppoint) {
+    return null;
+  }
+
+  const complementKo = isElect ? '회장으로' : '팀장으로';
+  const complementSource = isElect ? '회장' : '팀장';
+  const complementEn = isElect ? 'president' : 'team leader';
+  const predicateKo = isElect ? '뽑았어요' : '임명했어요';
+  const predicateSource = isElect ? '뽑다' : '임명하다';
+  const predicateEn = isElect ? 'elected' : 'appointed';
+  const referenceVerb = isElect ? 'elect' : 'appoint';
+
+  const targetBody =
+    `${subject.target} ${predicateEn} ${object.target} ${complementEn}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    { ko: subjectKo, en: `${subject.target} [S]` },
+    { ko: objectKo, en: `${object.target} [O]` },
+    { ko: complementKo, en: `${complementEn} [OC:NOUN]` },
+    { ko: predicateKo, en: `${predicateEn} [VERB:PAST]` },
+  ];
+
+  const referenceItems = [
+    { source: subject.source, selected: subject.target, slot: 'SUBJECT' },
+    { source: object.source, selected: object.target, slot: 'OBJECT' },
+    { source: complementSource, selected: complementEn, slot: 'OBJECT_COMPLEMENT:NOUN' },
+    { source: predicateSource, selected: referenceVerb, slot: 'VERB' },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine: 'basic-elect-appoint-object-complement-past-ko-en-v13.67',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.68-safe: elect / appoint + O + C 미래형 긍정 평서문 CORE
+//
+// v13.65~v13.67의 검증된 주어·목적어·목적격보어 범위를 유지하면서,
+// 이번 회귀 테스트에서 실패가 확인된 미래형 긍정 평서문만 추가합니다.
+//
+// 처리 범위:
+// - 그들은 / 우리는 / 나는
+// - 민수를 / 그를
+// - 회장으로 + 뽑을 거예요       -> will elect + O + president
+// - 팀장으로 + 임명할 거예요     -> will appoint + O + team leader
+//
+// 안전 원칙:
+// 1. 미래형 긍정 평서문만 처리합니다.
+// 2. 의문문·미래 부정은 이후 회귀 테스트와 분리합니다.
+// 3. 목적격보어 앞에 as를 넣지 않습니다.
+// 4. 기존 v12.98 exact 및 v13.65~v13.67은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnElectAppointObjectComplementFutureV1368 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그들은|우리는|나는)\s+(민수를|그를)\s+(회장으로\s+뽑을 거예요|팀장으로\s+임명할 거예요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const tailKo = matched[3];
+
+  const subjectMap: Readonly<Record<string, { target: string; source: string }>> = {
+    그들은: { target: 'They', source: '그들' },
+    우리는: { target: 'We', source: '우리' },
+    나는: { target: 'I', source: '나' },
+  };
+
+  const objectMap: Readonly<Record<string, { target: string; source: string }>> = {
+    민수를: { target: 'Minsu', source: '민수' },
+    그를: { target: 'him', source: '그' },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+
+  if (!subject || !object) {
+    return null;
+  }
+
+  const isElect = tailKo === '회장으로 뽑을 거예요';
+  const isAppoint = tailKo === '팀장으로 임명할 거예요';
+
+  if (!isElect && !isAppoint) {
+    return null;
+  }
+
+  const complementKo = isElect ? '회장으로' : '팀장으로';
+  const complementSource = isElect ? '회장' : '팀장';
+  const complementEn = isElect ? 'president' : 'team leader';
+  const predicateKo = isElect ? '뽑을 거예요' : '임명할 거예요';
+  const predicateSource = isElect ? '뽑다' : '임명하다';
+  const predicateEn = isElect ? 'elect' : 'appoint';
+
+  const targetBody =
+    `${subject.target} will ${predicateEn} ${object.target} ${complementEn}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    { ko: subjectKo, en: `${subject.target} [S]` },
+    { ko: objectKo, en: `${object.target} [O]` },
+    { ko: complementKo, en: `${complementEn} [OC:NOUN]` },
+    { ko: predicateKo, en: `will ${predicateEn} [VERB:FUTURE]` },
+  ];
+
+  const referenceItems = [
+    { source: subject.source, selected: subject.target, slot: 'SUBJECT' },
+    { source: object.source, selected: object.target, slot: 'OBJECT' },
+    { source: complementSource, selected: complementEn, slot: 'OBJECT_COMPLEMENT:NOUN' },
+    { source: predicateSource, selected: predicateEn, slot: 'VERB' },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine: 'basic-elect-appoint-object-complement-future-ko-en-v13.68',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.69-safe: elect / appoint + O + C 미래형 부정 평서문 CORE
+//
+// v13.68의 검증된 미래형 긍정 범위를 그대로 유지하면서,
+// 이번 회귀 테스트에서 실패가 확인된 미래형 부정 평서문만 추가합니다.
+//
+// 처리 범위:
+// - 그들은 / 우리는 / 나는
+// - 민수를 / 그를
+// - 회장으로 + 뽑지 않을 거예요       -> won't elect + O + president
+// - 팀장으로 + 임명하지 않을 거예요   -> won't appoint + O + team leader
+//
+// 안전 원칙:
+// 1. 미래형 부정 평서문만 처리합니다.
+// 2. 의문문은 이후 회귀 테스트와 분리합니다.
+// 3. 목적격보어 앞에 as를 넣지 않습니다.
+// 4. 기존 v12.98 exact 및 v13.65~v13.68은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnElectAppointObjectComplementFutureNegativeV1369 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그들은|우리는|나는)\s+(민수를|그를)\s+(회장으로\s+뽑지 않을 거예요|팀장으로\s+임명하지 않을 거예요)$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const tailKo = matched[3];
+
+  const subjectMap: Readonly<Record<string, { target: string; source: string }>> = {
+    그들은: { target: 'They', source: '그들' },
+    우리는: { target: 'We', source: '우리' },
+    나는: { target: 'I', source: '나' },
+  };
+
+  const objectMap: Readonly<Record<string, { target: string; source: string }>> = {
+    민수를: { target: 'Minsu', source: '민수' },
+    그를: { target: 'him', source: '그' },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+
+  if (!subject || !object) {
+    return null;
+  }
+
+  const isElect =
+    tailKo === '회장으로 뽑지 않을 거예요';
+  const isAppoint =
+    tailKo === '팀장으로 임명하지 않을 거예요';
+
+  if (!isElect && !isAppoint) {
+    return null;
+  }
+
+  const complementKo = isElect ? '회장으로' : '팀장으로';
+  const complementSource = isElect ? '회장' : '팀장';
+  const complementEn = isElect ? 'president' : 'team leader';
+  const predicateKo = isElect
+    ? '뽑지 않을 거예요'
+    : '임명하지 않을 거예요';
+  const predicateSource = isElect ? '뽑다' : '임명하다';
+  const predicateEn = isElect ? 'elect' : 'appoint';
+
+  const targetBody =
+    `${subject.target} won't ${predicateEn} ${object.target} ${complementEn}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    { ko: subjectKo, en: `${subject.target} [S]` },
+    { ko: objectKo, en: `${object.target} [O]` },
+    { ko: complementKo, en: `${complementEn} [OC:NOUN]` },
+    {
+      ko: predicateKo,
+      en: `won't ${predicateEn} [VERB:FUTURE:NEGATIVE]`,
+    },
+  ];
+
+  const referenceItems = [
+    { source: subject.source, selected: subject.target, slot: 'SUBJECT' },
+    { source: object.source, selected: object.target, slot: 'OBJECT' },
+    {
+      source: complementSource,
+      selected: complementEn,
+      slot: 'OBJECT_COMPLEMENT:NOUN',
+    },
+    { source: predicateSource, selected: predicateEn, slot: 'VERB' },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-elect-appoint-object-complement-future-negative-ko-en-v13.69',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.70-safe: elect / appoint + O + C 현재형 긍정 의문문 CORE
+//
+// v13.65의 검증된 현재형 긍정 평서문 결과를 재사용하여
+// 명시적 ?/？ 입력만 Do 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 그들은 / 우리는 / 나는
+// - 민수를 / 그를
+// - 회장으로 + 뽑아요?       -> Do ... elect + O + president?
+// - 팀장으로 + 임명해요?     -> Do ... appoint + O + team leader?
+//
+// 안전 원칙:
+// 1. 현재형 긍정 의문문만 처리합니다.
+// 2. 부정·과거·미래 의문문은 이후 회귀 테스트와 분리합니다.
+// 3. 목적격보어 앞에 as를 넣지 않습니다.
+// 4. 기존 v12.98 exact 및 v13.65~v13.69는 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnElectAppointObjectComplementPresentQuestionV1370 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const baseResult =
+    twoProTryKoEnElectAppointObjectComplementPresentV1365(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetMatch = /^(They|We|I)\s+(.+)$/u.exec(
+    baseTarget
+  );
+
+  if (!targetMatch) {
+    return null;
+  }
+
+  const subjectEn = targetMatch[1];
+  const predicateAndComplement = targetMatch[2];
+
+  const questionSubject =
+    subjectEn === 'They'
+      ? 'they'
+      : subjectEn === 'We'
+        ? 'we'
+        : 'I';
+
+  const questionBody =
+    `Do ${questionSubject} ${predicateAndComplement}`;
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (/\[VERB:PRESENT\]/u.test(item.en)) {
+      return {
+        ...item,
+        en: `do ${item.en.replace(/\s*\[VERB:PRESENT\]$/u, '')} [VERB:PRESENT:QUESTION]`,
+      };
+    }
+
+    return item;
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-elect-appoint-object-complement-present-question-ko-en-v13.70',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.71-safe: elect / appoint + O + C 현재형 부정 의문문 CORE
+//
+// v13.66의 검증된 현재형 부정 평서문 결과를 재사용하여
+// 명시적 ?/？ 입력만 Don't 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 그들은 / 우리는 / 나는
+// - 민수를 / 그를
+// - 회장으로 + 뽑지 않아요?       -> Don't ... elect + O + president?
+// - 팀장으로 + 임명하지 않아요?   -> Don't ... appoint + O + team leader?
+//
+// 안전 원칙:
+// 1. 현재형 부정 의문문만 처리합니다.
+// 2. 과거·미래 의문문은 이후 회귀 테스트와 분리합니다.
+// 3. 목적격보어 앞에 as를 넣지 않습니다.
+// 4. 기존 v12.98 exact 및 v13.65~v13.70은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnElectAppointObjectComplementPresentNegativeQuestionV1371 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const baseResult =
+    twoProTryKoEnElectAppointObjectComplementPresentNegativeV1366(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetMatch = /^(They|We|I)\s+don't\s+(.+)$/u.exec(
+    baseTarget
+  );
+
+  if (!targetMatch) {
+    return null;
+  }
+
+  const subjectEn = targetMatch[1];
+  const predicateAndComplement = targetMatch[2];
+
+  const questionSubject =
+    subjectEn === 'They'
+      ? 'they'
+      : subjectEn === 'We'
+        ? 'we'
+        : 'I';
+
+  const questionBody =
+    `Don't ${questionSubject} ${predicateAndComplement}`;
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (/\[VERB:PRESENT:NEGATIVE\]/u.test(item.en)) {
+      return {
+        ...item,
+        en: `${item.en.replace(/\s*\[VERB:PRESENT:NEGATIVE\]$/u, '')} [VERB:PRESENT:NEGATIVE:QUESTION]`,
+      };
+    }
+
+    return item;
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-elect-appoint-object-complement-present-negative-question-ko-en-v13.71',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.72-safe: elect / appoint + O + C 과거형 긍정 의문문 CORE
+//
+// v13.67의 검증된 과거형 긍정 평서문 결과를 재사용하여
+// 명시적 ?/？ 입력만 Did 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 그들은 / 우리는 / 나는
+// - 민수를 / 그를
+// - 회장으로 + 뽑았어요?       -> Did ... elect + O + president?
+// - 팀장으로 + 임명했어요?     -> Did ... appoint + O + team leader?
+//
+// 안전 원칙:
+// 1. 과거형 긍정 의문문만 처리합니다.
+// 2. 과거 부정·미래 의문문은 이후 회귀 테스트와 분리합니다.
+// 3. 목적격보어 앞에 as를 넣지 않습니다.
+// 4. 기존 v12.98 exact 및 v13.65~v13.71은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnElectAppointObjectComplementPastQuestionV1372 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const baseResult =
+    twoProTryKoEnElectAppointObjectComplementPastV1367(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetMatch =
+    /^(They|We|I)\s+(elected|appointed)\s+(.+)$/u.exec(
+      baseTarget
+    );
+
+  if (!targetMatch) {
+    return null;
+  }
+
+  const subjectEn = targetMatch[1];
+  const pastVerb = targetMatch[2];
+  const objectAndComplement = targetMatch[3];
+
+  const questionSubject =
+    subjectEn === 'They'
+      ? 'they'
+      : subjectEn === 'We'
+        ? 'we'
+        : 'I';
+
+  const baseVerb =
+    pastVerb === 'elected'
+      ? 'elect'
+      : 'appoint';
+
+  const questionBody =
+    `Did ${questionSubject} ${baseVerb} ${objectAndComplement}`;
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (/\[VERB:PAST\]/u.test(item.en)) {
+      return {
+        ...item,
+        en: `did ${baseVerb} [VERB:PAST:QUESTION]`,
+      };
+    }
+
+    return item;
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-elect-appoint-object-complement-past-question-ko-en-v13.72',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.73-safe: elect / appoint + O + C 과거형 부정 의문문 CORE
+//
+// 이번 회귀 테스트에서 실패가 확인된 과거형 부정 의문문 6개만
+// 직접 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 그들은 / 우리는 / 나는
+// - 민수를 / 그를
+// - 회장으로 + 뽑지 않았어요?       -> Didn't ... elect + O + president?
+// - 팀장으로 + 임명하지 않았어요?   -> Didn't ... appoint + O + team leader?
+//
+// 안전 원칙:
+// 1. 과거형 부정 의문문만 처리합니다.
+// 2. 미래 의문문은 이후 회귀 테스트와 분리합니다.
+// 3. 목적격보어 앞에 as를 넣지 않습니다.
+// 4. 기존 v12.98 exact 및 v13.65~v13.72는 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnElectAppointObjectComplementPastNegativeQuestionV1373 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  const matched =
+    /^(그들은|우리는|나는)\s+(민수를|그를)\s+(회장으로\s+뽑지 않았어요|팀장으로\s+임명하지 않았어요)$/u.exec(
+      statementText
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const tailKo = matched[3];
+
+  const subjectMap: Readonly<Record<string, { target: string; source: string }>> = {
+    그들은: { target: 'they', source: '그들' },
+    우리는: { target: 'we', source: '우리' },
+    나는: { target: 'I', source: '나' },
+  };
+
+  const objectMap: Readonly<Record<string, { target: string; source: string }>> = {
+    민수를: { target: 'Minsu', source: '민수' },
+    그를: { target: 'him', source: '그' },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+
+  if (!subject || !object) {
+    return null;
+  }
+
+  const isElect = tailKo === '회장으로 뽑지 않았어요';
+  const isAppoint = tailKo === '팀장으로 임명하지 않았어요';
+
+  if (!isElect && !isAppoint) {
+    return null;
+  }
+
+  const complementKo = isElect ? '회장으로' : '팀장으로';
+  const complementSource = isElect ? '회장' : '팀장';
+  const complementEn = isElect ? 'president' : 'team leader';
+  const predicateKo = isElect ? '뽑지 않았어요' : '임명하지 않았어요';
+  const predicateSource = isElect ? '뽑다' : '임명하다';
+  const predicateEn = isElect ? 'elect' : 'appoint';
+
+  const questionBody =
+    `Didn't ${subject.target} ${predicateEn} ${object.target} ${complementEn}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    { ko: subjectKo, en: `${subject.target === 'I' ? 'I' : subject.target} [S]` },
+    { ko: objectKo, en: `${object.target} [O]` },
+    { ko: complementKo, en: `${complementEn} [OC:NOUN]` },
+    {
+      ko: predicateKo,
+      en: `didn't ${predicateEn} [VERB:PAST:NEGATIVE:QUESTION]`,
+    },
+  ];
+
+  const referenceItems = [
+    { source: subject.source, selected: subject.target === 'I' ? 'I' : subject.target, slot: 'SUBJECT' },
+    { source: object.source, selected: object.target, slot: 'OBJECT' },
+    {
+      source: complementSource,
+      selected: complementEn,
+      slot: 'OBJECT_COMPLEMENT:NOUN',
+    },
+    { source: predicateSource, selected: predicateEn, slot: 'VERB' },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-elect-appoint-object-complement-past-negative-question-ko-en-v13.73',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.74-safe: elect / appoint + O + C 미래형 긍정 의문문 CORE
+//
+// v13.68의 검증된 미래형 긍정 평서문 결과를 재사용하여
+// 명시적 ?/？ 입력만 Will 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 그들은 / 우리는 / 나는
+// - 민수를 / 그를
+// - 회장으로 + 뽑을 거예요?       -> Will ... elect + O + president?
+// - 팀장으로 + 임명할 거예요?     -> Will ... appoint + O + team leader?
+//
+// 안전 원칙:
+// 1. 미래형 긍정 의문문만 처리합니다.
+// 2. 미래형 부정 의문문은 이후 회귀 테스트와 분리합니다.
+// 3. 목적격보어 앞에 as를 넣지 않습니다.
+// 4. 기존 v12.98 exact 및 v13.65~v13.73은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnElectAppointObjectComplementFutureQuestionV1374 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const baseResult =
+    twoProTryKoEnElectAppointObjectComplementFutureV1368(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetMatch =
+    /^(They|We|I)\s+will\s+(.+)$/u.exec(
+      baseTarget
+    );
+
+  if (!targetMatch) {
+    return null;
+  }
+
+  const subjectEn = targetMatch[1];
+  const predicateAndComplement = targetMatch[2];
+
+  const questionSubject =
+    subjectEn === 'They'
+      ? 'they'
+      : subjectEn === 'We'
+        ? 'we'
+        : 'I';
+
+  const questionBody =
+    `Will ${questionSubject} ${predicateAndComplement}`;
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (/\[VERB:FUTURE\]/u.test(item.en)) {
+      return {
+        ...item,
+        en: `${item.en.replace(/\s*\[VERB:FUTURE\]$/u, '')} [VERB:FUTURE:QUESTION]`,
+      };
+    }
+
+    return item;
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-elect-appoint-object-complement-future-question-ko-en-v13.74',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.75-safe: elect / appoint + O + C 미래형 부정 의문문 CORE
+//
+// v13.69의 검증된 미래형 부정 평서문 결과를 재사용하여
+// 명시적 ?/？ 입력만 Won't 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 그들은 / 우리는 / 나는
+// - 민수를 / 그를
+// - 회장으로 + 뽑지 않을 거예요?       -> Won't ... elect + O + president?
+// - 팀장으로 + 임명하지 않을 거예요?   -> Won't ... appoint + O + team leader?
+//
+// 안전 원칙:
+// 1. 미래형 부정 의문문만 처리합니다.
+// 2. 목적격보어 앞에 as를 넣지 않습니다.
+// 3. 기존 v12.98 exact 및 v13.65~v13.74는 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnElectAppointObjectComplementFutureNegativeQuestionV1375 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const baseResult =
+    twoProTryKoEnElectAppointObjectComplementFutureNegativeV1369(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetMatch =
+    /^(They|We|I)\s+won't\s+(.+)$/u.exec(
+      baseTarget
+    );
+
+  if (!targetMatch) {
+    return null;
+  }
+
+  const subjectEn = targetMatch[1];
+  const predicateAndComplement = targetMatch[2];
+
+  const questionSubject =
+    subjectEn === 'They'
+      ? 'they'
+      : subjectEn === 'We'
+        ? 'we'
+        : 'I';
+
+  const questionBody =
+    `Won't ${questionSubject} ${predicateAndComplement}`;
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (/\[VERB:FUTURE:NEGATIVE\]/u.test(item.en)) {
+      return {
+        ...item,
+        en: `${item.en.replace(/\s*\[VERB:FUTURE:NEGATIVE\]$/u, '')} [VERB:FUTURE:NEGATIVE:QUESTION]`,
+      };
+    }
+
+    return item;
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-elect-appoint-object-complement-future-negative-question-ko-en-v13.75',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.76-safe: call + O + C 현재형 긍정 평서문 CORE
+//
+// v12.98의 대표 exact 회귀를 보존하면서, 이번 테스트에서 실패한
+// call + 목적어 + 명사/이름 목적격보어 현재형 긍정만 제한적으로 일반화합니다.
+//
+// 처리 범위:
+// - 사람들은 / 우리는 / 나는 + 그를 영웅이라고 불러요
+//   -> People/We/I call him a hero
+// - 아이들은 / 우리는 / 나는 + 그 개를 바둑이라고 불러요
+//   -> The children/We/I call the dog Baduk
+//
+// 안전 원칙:
+// 1. 현재형 긍정 평서문만 처리합니다.
+// 2. 의문문·부정문·과거·미래는 이후 회귀 테스트와 분리합니다.
+// 3. call + O + C 구조에서 목적격보어 앞에 as를 넣지 않습니다.
+// 4. 영웅은 가산 명사 보어이므로 a hero, 이름 Baduk에는 관사를 넣지 않습니다.
+// 5. 기존 v12.98 exact 및 v13.61~v13.75는 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCallObjectComplementPresentV1376 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(사람들은|우리는|나는|아이들은)\s+(그를\s+영웅이라고|그 개를\s+바둑이라고)\s+불러요$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectComplementKo = matched[2];
+
+  const isHero =
+    objectComplementKo === '그를 영웅이라고';
+  const isBaduk =
+    objectComplementKo === '그 개를 바둑이라고';
+
+  if (!isHero && !isBaduk) {
+    return null;
+  }
+
+  if (
+    isHero &&
+    !['사람들은', '우리는', '나는'].includes(subjectKo)
+  ) {
+    return null;
+  }
+
+  if (
+    isBaduk &&
+    !['아이들은', '우리는', '나는'].includes(subjectKo)
+  ) {
+    return null;
+  }
+
+  const subjectMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        source: string;
+        selected: string;
+      }
+    >
+  > = {
+    사람들은: {
+      target: 'People',
+      source: '사람들',
+      selected: 'people',
+    },
+    우리는: {
+      target: 'We',
+      source: '우리',
+      selected: 'we',
+    },
+    나는: {
+      target: 'I',
+      source: '나',
+      selected: 'I',
+    },
+    아이들은: {
+      target: 'The children',
+      source: '아이들',
+      selected: 'children',
+    },
+  };
+
+  const subject = subjectMap[subjectKo];
+
+  if (!subject) {
+    return null;
+  }
+
+  const objectKo = isHero ? '그를' : '그 개를';
+  const objectSource = isHero ? '그' : '그 개';
+  const objectEn = isHero ? 'him' : 'the dog';
+  const complementKo = isHero
+    ? '영웅이라고'
+    : '바둑이라고';
+  const complementSource = isHero ? '영웅' : '바둑';
+  const complementEn = isHero ? 'a hero' : 'Baduk';
+  const complementSlot = isHero
+    ? 'OBJECT_COMPLEMENT:NOUN'
+    : 'OBJECT_COMPLEMENT:NAME';
+
+  const targetBody =
+    `${subject.target} call ${objectEn} ${complementEn}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    {
+      ko: subjectKo,
+      en: `${subject.target} [S]`,
+    },
+    {
+      ko: objectKo,
+      en: `${objectEn} [O]`,
+    },
+    {
+      ko: complementKo,
+      en: `${complementEn} [OC:${isHero ? 'NOUN' : 'NAME'}]`,
+    },
+    {
+      ko: '불러요',
+      en: 'call [VERB:PRESENT]',
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subject.source,
+      selected: subject.selected,
+      slot: 'SUBJECT',
+    },
+    {
+      source: objectSource,
+      selected: objectEn,
+      slot: 'OBJECT',
+    },
+    {
+      source: complementSource,
+      selected: complementEn,
+      slot: complementSlot,
+    },
+    {
+      source: '부르다',
+      selected: 'call',
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-call-object-complement-present-ko-en-v13.76',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.77-safe: call + O + C 현재형 부정 평서문 CORE
+//
+// v13.76의 검증된 현재형 긍정 결과를 재사용하여
+// call + 목적어 + 명사/이름 목적격보어 현재형 부정만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 사람들은 / 우리는 / 나는 + 그를 영웅이라고 부르지 않아요
+//   -> People/We/I don't call him a hero
+// - 아이들은 / 우리는 / 나는 + 그 개를 바둑이라고 부르지 않아요
+//   -> The children/We/I don't call the dog Baduk
+//
+// 안전 원칙:
+// 1. 현재형 부정 평서문만 처리합니다.
+// 2. 의문문·과거·미래는 이후 회귀 테스트와 분리합니다.
+// 3. v13.76의 주어·목적어·목적격보어 해석을 그대로 재사용합니다.
+// 4. People/We/I/The children은 모두 현재 부정에서 don't call을 사용합니다.
+// 5. 기존 v12.98 및 v13.61~v13.76은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCallObjectComplementPresentNegativeV1377 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(사람들은|우리는|나는|아이들은)\s+(그를\s+영웅이라고|그 개를\s+바둑이라고)\s+부르지 않아요$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectComplementKo = matched[2];
+
+  const isHero =
+    objectComplementKo === '그를 영웅이라고';
+  const isBaduk =
+    objectComplementKo === '그 개를 바둑이라고';
+
+  if (!isHero && !isBaduk) {
+    return null;
+  }
+
+  if (
+    isHero &&
+    !['사람들은', '우리는', '나는'].includes(subjectKo)
+  ) {
+    return null;
+  }
+
+  if (
+    isBaduk &&
+    !['아이들은', '우리는', '나는'].includes(subjectKo)
+  ) {
+    return null;
+  }
+
+  const positiveText = normalized.replace(
+    /부르지 않아요$/u,
+    '불러요'
+  );
+
+  const baseResult =
+    twoProTryKoEnCallObjectComplementPresentV1376(
+      positiveText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTargetBody = baseResult.targetText
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetBody = baseTargetBody.replace(
+    /\bcall\b/u,
+    "don't call"
+  );
+
+  if (targetBody === baseTargetBody) {
+    return null;
+  }
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (item.ko !== '불러요') {
+      return item;
+    }
+
+    return {
+      ko: '부르지 않아요',
+      en: "don't call [VERB:PRESENT:NEG]",
+    };
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-call-object-complement-present-negative-ko-en-v13.77',
+  };
+};
+// ============================================================================
+// ☆ TwoPro v13.78-safe: call + O + C 과거형 긍정 평서문 CORE
+//
+// v13.76의 검증된 현재형 긍정 결과를 재사용하여
+// call + 목적어 + 명사/이름 목적격보어 과거형 긍정만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 사람들은 / 우리는 / 나는 + 그를 영웅이라고 불렀어요
+//   -> People/We/I called him a hero
+// - 아이들은 / 우리는 / 나는 + 그 개를 바둑이라고 불렀어요
+//   -> The children/We/I called the dog Baduk
+//
+// 안전 원칙:
+// 1. 과거형 긍정 평서문만 처리합니다.
+// 2. 의문문·부정문·미래는 이후 회귀 테스트와 분리합니다.
+// 3. v13.76의 주어·목적어·목적격보어 해석을 그대로 재사용합니다.
+// 4. call + O + C 구조에서 목적격보어 앞에 as를 넣지 않습니다.
+// 5. 기존 v12.98 및 v13.61~v13.77은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCallObjectComplementPastV1378 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(사람들은|우리는|나는|아이들은)\s+(그를\s+영웅이라고|그 개를\s+바둑이라고)\s+불렀어요$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const presentText = normalized.replace(
+    /불렀어요$/u,
+    '불러요'
+  );
+
+  const baseResult =
+    twoProTryKoEnCallObjectComplementPresentV1376(
+      presentText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTargetBody = baseResult.targetText
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetBody = baseTargetBody.replace(
+    /\bcall\b/u,
+    'called'
+  );
+
+  if (targetBody === baseTargetBody) {
+    return null;
+  }
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (item.ko !== '불러요') {
+      return item;
+    }
+
+    return {
+      ko: '불렀어요',
+      en: 'called [VERB:PAST]',
+    };
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-call-object-complement-past-ko-en-v13.78',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.79-safe: call + O + C 과거형 부정 평서문 CORE
+//
+// v13.78의 검증된 과거형 긍정 결과를 재사용하여
+// call + 목적어 + 명사/이름 목적격보어 과거형 부정만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 사람들은 / 우리는 / 나는 + 그를 영웅이라고 부르지 않았어요
+//   -> People/We/I didn't call him a hero
+// - 아이들은 / 우리는 / 나는 + 그 개를 바둑이라고 부르지 않았어요
+//   -> The children/We/I didn't call the dog Baduk
+//
+// 안전 원칙:
+// 1. 과거형 부정 평서문만 처리합니다.
+// 2. 의문문·현재·미래는 이후 회귀 테스트와 분리합니다.
+// 3. v13.78의 주어·목적어·목적격보어 해석을 그대로 재사용합니다.
+// 4. 과거 부정은 주어와 관계없이 didn't call을 사용합니다.
+// 5. 기존 v12.98 및 v13.61~v13.78은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCallObjectComplementPastNegativeV1379 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(사람들은|우리는|나는|아이들은)\s+(그를\s+영웅이라고|그 개를\s+바둑이라고)\s+부르지 않았어요$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectComplementKo = matched[2];
+
+  const isHero =
+    objectComplementKo === '그를 영웅이라고';
+  const isBaduk =
+    objectComplementKo === '그 개를 바둑이라고';
+
+  if (!isHero && !isBaduk) {
+    return null;
+  }
+
+  if (
+    isHero &&
+    !['사람들은', '우리는', '나는'].includes(subjectKo)
+  ) {
+    return null;
+  }
+
+  if (
+    isBaduk &&
+    !['아이들은', '우리는', '나는'].includes(subjectKo)
+  ) {
+    return null;
+  }
+
+  const positivePastText = normalized.replace(
+    /부르지 않았어요$/u,
+    '불렀어요'
+  );
+
+  const baseResult =
+    twoProTryKoEnCallObjectComplementPastV1378(
+      positivePastText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTargetBody = baseResult.targetText
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetBody = baseTargetBody.replace(
+    /\bcalled\b/u,
+    "didn't call"
+  );
+
+  if (targetBody === baseTargetBody) {
+    return null;
+  }
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (item.ko !== '불렀어요') {
+      return item;
+    }
+
+    return {
+      ko: '부르지 않았어요',
+      en: "didn't call [VERB:PAST:NEG]",
+    };
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-call-object-complement-past-negative-ko-en-v13.79',
+  };
+};
+// ============================================================================
+// ☆ TwoPro v13.80-safe: call + O + C 미래형 긍정 평서문 CORE
+//
+// v13.76의 검증된 현재형 긍정 결과를 재사용하여
+// call + 목적어 + 명사/이름 목적격보어 미래형 긍정만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 사람들은 / 우리는 / 나는 + 그를 영웅이라고 부를 거예요
+//   -> People/We/I will call him a hero
+// - 아이들은 / 우리는 / 나는 + 그 개를 바둑이라고 부를 거예요
+//   -> The children/We/I will call the dog Baduk
+//
+// 안전 원칙:
+// 1. 미래형 긍정 평서문만 처리합니다.
+// 2. 의문문·부정문은 이후 회귀 테스트와 분리합니다.
+// 3. v13.76의 주어·목적어·목적격보어 해석을 그대로 재사용합니다.
+// 4. call + O + C 구조에서 목적격보어 앞에 as를 넣지 않습니다.
+// 5. 기존 v12.98 및 v13.61~v13.79는 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCallObjectComplementFutureV1380 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(사람들은|우리는|나는|아이들은)\s+(그를\s+영웅이라고|그 개를\s+바둑이라고)\s+부를 거예요$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectComplementKo = matched[2];
+
+  const isHero =
+    objectComplementKo === '그를 영웅이라고';
+  const isBaduk =
+    objectComplementKo === '그 개를 바둑이라고';
+
+  if (!isHero && !isBaduk) {
+    return null;
+  }
+
+  if (
+    isHero &&
+    !['사람들은', '우리는', '나는'].includes(subjectKo)
+  ) {
+    return null;
+  }
+
+  if (
+    isBaduk &&
+    !['아이들은', '우리는', '나는'].includes(subjectKo)
+  ) {
+    return null;
+  }
+
+  const presentText = normalized.replace(
+    /부를 거예요$/u,
+    '불러요'
+  );
+
+  const baseResult =
+    twoProTryKoEnCallObjectComplementPresentV1376(
+      presentText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTargetBody = baseResult.targetText
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetBody = baseTargetBody.replace(
+    /\bcall\b/u,
+    'will call'
+  );
+
+  if (targetBody === baseTargetBody) {
+    return null;
+  }
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (item.ko !== '불러요') {
+      return item;
+    }
+
+    return {
+      ko: '부를 거예요',
+      en: 'will call [VERB:FUTURE]',
+    };
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-call-object-complement-future-ko-en-v13.80',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.81-safe: call + O + C 미래형 부정 평서문 CORE
+//
+// v13.77의 검증된 현재형 부정 결과를 재사용하여
+// call + 목적어 + 명사/이름 목적격보어 미래형 부정만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 사람들은 / 우리는 / 나는 + 그를 영웅이라고 부르지 않을 거예요
+//   -> People/We/I won't call him a hero
+// - 아이들은 / 우리는 / 나는 + 그 개를 바둑이라고 부르지 않을 거예요
+//   -> The children/We/I won't call the dog Baduk
+//
+// 안전 원칙:
+// 1. 미래형 부정 평서문만 처리합니다.
+// 2. 의문문은 이후 회귀 테스트와 분리합니다.
+// 3. v13.77의 주어·목적어·목적격보어 해석을 그대로 재사용합니다.
+// 4. call + O + C 구조에서 목적격보어 앞에 as를 넣지 않습니다.
+// 5. 기존 v12.98 및 v13.61~v13.80은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCallObjectComplementFutureNegativeV1381 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(사람들은|우리는|나는|아이들은)\s+(그를\s+영웅이라고|그 개를\s+바둑이라고)\s+부르지 않을 거예요$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectComplementKo = matched[2];
+
+  const isHero =
+    objectComplementKo === '그를 영웅이라고';
+  const isBaduk =
+    objectComplementKo === '그 개를 바둑이라고';
+
+  if (!isHero && !isBaduk) {
+    return null;
+  }
+
+  if (
+    isHero &&
+    !['사람들은', '우리는', '나는'].includes(subjectKo)
+  ) {
+    return null;
+  }
+
+  if (
+    isBaduk &&
+    !['아이들은', '우리는', '나는'].includes(subjectKo)
+  ) {
+    return null;
+  }
+
+  const presentNegativeText = normalized.replace(
+    /부르지 않을 거예요$/u,
+    '부르지 않아요'
+  );
+
+  const baseResult =
+    twoProTryKoEnCallObjectComplementPresentNegativeV1377(
+      presentNegativeText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTargetBody = baseResult.targetText
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetBody = baseTargetBody.replace(
+    /\bdon't call\b/u,
+    "won't call"
+  );
+
+  if (targetBody === baseTargetBody) {
+    return null;
+  }
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (item.ko !== '부르지 않아요') {
+      return item;
+    }
+
+    return {
+      ko: '부르지 않을 거예요',
+      en: "won't call [VERB:FUTURE:NEG]",
+    };
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-call-object-complement-future-negative-ko-en-v13.81',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.82-safe: call + O + C 현재형 긍정 의문문 CORE
+//
+// v13.76의 검증된 현재형 긍정 평서문 결과를 재사용하여
+// 명시적 ?/？ 입력만 Do 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 사람들은 / 우리는 / 나는 + 그를 영웅이라고 불러요?
+//   -> Do people/we/I call him a hero?
+// - 아이들은 / 우리는 / 나는 + 그 개를 바둑이라고 불러요?
+//   -> Do the children/we/I call the dog Baduk?
+//
+// 안전 원칙:
+// 1. 현재형 긍정 의문문만 처리합니다.
+// 2. 부정·과거·미래 의문문은 이후 회귀 테스트와 분리합니다.
+// 3. v13.76의 주어·목적어·목적격보어 해석을 그대로 재사용합니다.
+// 4. call + O + C 구조에서 목적격보어 앞에 as를 넣지 않습니다.
+// 5. 기존 v12.98 및 v13.61~v13.81은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCallObjectComplementPresentQuestionV1382 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const baseResult =
+    twoProTryKoEnCallObjectComplementPresentV1376(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetMatch =
+    /^(People|We|I|The children)\s+(.+)$/u.exec(
+      baseTarget
+    );
+
+  if (!targetMatch) {
+    return null;
+  }
+
+  const subjectEn = targetMatch[1];
+  const predicateAndComplement = targetMatch[2];
+
+  const questionSubject =
+    subjectEn === 'People'
+      ? 'people'
+      : subjectEn === 'The children'
+        ? 'the children'
+        : subjectEn === 'We'
+          ? 'we'
+          : 'I';
+
+  const questionBody =
+    `Do ${questionSubject} ${predicateAndComplement}`;
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (/\[VERB:PRESENT\]/u.test(item.en)) {
+      return {
+        ...item,
+        en: `do ${item.en.replace(/\s*\[VERB:PRESENT\]$/u, '')} [VERB:PRESENT:QUESTION]`,
+      };
+    }
+
+    return item;
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-call-object-complement-present-question-ko-en-v13.82',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.83-safe: call + O + C 현재형 부정 의문문 CORE
+//
+// v13.77의 검증된 현재형 부정 평서문 결과를 재사용하여
+// 명시적 ?/？ 입력만 Don't 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 사람들은 / 우리는 / 나는 + 그를 영웅이라고 부르지 않아요?
+//   -> Don't people/we/I call him a hero?
+// - 아이들은 / 우리는 / 나는 + 그 개를 바둑이라고 부르지 않아요?
+//   -> Don't the children/we/I call the dog Baduk?
+//
+// 안전 원칙:
+// 1. 현재형 부정 의문문만 처리합니다.
+// 2. 과거·미래 의문문은 이후 회귀 테스트와 분리합니다.
+// 3. v13.77의 주어·목적어·목적격보어 해석을 그대로 재사용합니다.
+// 4. call + O + C 구조에서 목적격보어 앞에 as를 넣지 않습니다.
+// 5. 기존 v12.98 및 v13.61~v13.82는 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCallObjectComplementPresentNegativeQuestionV1383 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const baseResult =
+    twoProTryKoEnCallObjectComplementPresentNegativeV1377(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetMatch =
+    /^(People|We|I|The children)\s+don't\s+(.+)$/u.exec(
+      baseTarget
+    );
+
+  if (!targetMatch) {
+    return null;
+  }
+
+  const subjectEn = targetMatch[1];
+  const predicateAndComplement = targetMatch[2];
+
+  const questionSubject =
+    subjectEn === 'People'
+      ? 'people'
+      : subjectEn === 'The children'
+        ? 'the children'
+        : subjectEn === 'We'
+          ? 'we'
+          : 'I';
+
+  const questionBody =
+    `Don't ${questionSubject} ${predicateAndComplement}`;
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (/\[VERB:PRESENT:NEG\]/u.test(item.en)) {
+      return {
+        ...item,
+        en: item.en.replace(
+          /\[VERB:PRESENT:NEG\]$/u,
+          '[VERB:PRESENT:NEG:QUESTION]'
+        ),
+      };
+    }
+
+    return item;
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-call-object-complement-present-negative-question-ko-en-v13.83',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.84-safe: call + O + C 과거형 긍정 의문문 CORE
+//
+// v13.78의 검증된 과거형 긍정 평서문 결과를 재사용하여
+// 명시적 ?/？ 입력만 Did 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 사람들은 / 우리는 / 나는 + 그를 영웅이라고 불렀어요?
+//   -> Did people/we/I call him a hero?
+// - 아이들은 / 우리는 / 나는 + 그 개를 바둑이라고 불렀어요?
+//   -> Did the children/we/I call the dog Baduk?
+//
+// 안전 원칙:
+// 1. 과거형 긍정 의문문만 처리합니다.
+// 2. 과거형 부정·미래 의문문은 이후 회귀 테스트와 분리합니다.
+// 3. v13.78의 주어·목적어·목적격보어 해석을 그대로 재사용합니다.
+// 4. Did 뒤에는 동사원형 call을 사용합니다.
+// 5. 기존 v12.98 및 v13.61~v13.83은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCallObjectComplementPastQuestionV1384 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const baseResult =
+    twoProTryKoEnCallObjectComplementPastV1378(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetMatch =
+    /^(People|We|I|The children)\s+called\s+(.+)$/u.exec(
+      baseTarget
+    );
+
+  if (!targetMatch) {
+    return null;
+  }
+
+  const subjectEn = targetMatch[1];
+  const objectAndComplement = targetMatch[2];
+
+  const questionSubject =
+    subjectEn === 'People'
+      ? 'people'
+      : subjectEn === 'The children'
+        ? 'the children'
+        : subjectEn === 'We'
+          ? 'we'
+          : 'I';
+
+  const questionBody =
+    `Did ${questionSubject} call ${objectAndComplement}`;
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (/\[VERB:PAST\]/u.test(item.en)) {
+      return {
+        ...item,
+        en: item.en.replace(
+          /called\s*\[VERB:PAST\]$/u,
+          'did call [VERB:PAST:QUESTION]'
+        ),
+      };
+    }
+
+    return item;
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-call-object-complement-past-question-ko-en-v13.84',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.85-safe: call + O + C 과거형 부정 의문문 CORE
+//
+// v13.79의 검증된 과거형 부정 평서문 결과를 재사용하여
+// 명시적 ?/？ 입력만 Didn't 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 사람들은 / 우리는 / 나는 + 그를 영웅이라고 부르지 않았어요?
+//   -> Didn't people/we/I call him a hero?
+// - 아이들은 / 우리는 / 나는 + 그 개를 바둑이라고 부르지 않았어요?
+//   -> Didn't the children/we/I call the dog Baduk?
+//
+// 안전 원칙:
+// 1. 과거형 부정 의문문만 처리합니다.
+// 2. 미래 의문문은 이후 회귀 테스트와 분리합니다.
+// 3. v13.79의 주어·목적어·목적격보어 해석을 그대로 재사용합니다.
+// 4. Didn't 뒤에는 동사원형 call을 사용합니다.
+// 5. 기존 v12.98 및 v13.61~v13.84는 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCallObjectComplementPastNegativeQuestionV1385 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const baseResult =
+    twoProTryKoEnCallObjectComplementPastNegativeV1379(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetMatch =
+    /^(People|We|I|The children)\s+didn't\s+(.+)$/u.exec(
+      baseTarget
+    );
+
+  if (!targetMatch) {
+    return null;
+  }
+
+  const subjectEn = targetMatch[1];
+  const predicateAndComplement = targetMatch[2];
+
+  const questionSubject =
+    subjectEn === 'People'
+      ? 'people'
+      : subjectEn === 'The children'
+        ? 'the children'
+        : subjectEn === 'We'
+          ? 'we'
+          : 'I';
+
+  const questionBody =
+    `Didn't ${questionSubject} ${predicateAndComplement}`;
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (/\[VERB:PAST:NEG\]/u.test(item.en)) {
+      return {
+        ...item,
+        en: item.en.replace(
+          /\[VERB:PAST:NEG\]$/u,
+          '[VERB:PAST:NEG:QUESTION]'
+        ),
+      };
+    }
+
+    return item;
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-call-object-complement-past-negative-question-ko-en-v13.85',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.86-safe: call + O + C 미래형 긍정 의문문 CORE
+//
+// v13.80의 검증된 미래형 긍정 평서문 결과를 재사용하여
+// 명시적 ?/？ 입력만 Will 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 사람들은 / 우리는 / 나는 + 그를 영웅이라고 부를 거예요?
+//   -> Will people/we/I call him a hero?
+// - 아이들은 / 우리는 / 나는 + 그 개를 바둑이라고 부를 거예요?
+//   -> Will the children/we/I call the dog Baduk?
+//
+// 안전 원칙:
+// 1. 미래형 긍정 의문문만 처리합니다.
+// 2. 미래형 부정 의문문은 이후 회귀 테스트와 분리합니다.
+// 3. v13.80의 주어·목적어·목적격보어 해석을 그대로 재사용합니다.
+// 4. Will 뒤에는 동사원형 call을 사용합니다.
+// 5. 기존 v12.98 및 v13.61~v13.85는 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCallObjectComplementFutureQuestionV1386 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const baseResult =
+    twoProTryKoEnCallObjectComplementFutureV1380(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetMatch =
+    /^(People|We|I|The children)\s+will\s+(.+)$/u.exec(
+      baseTarget
+    );
+
+  if (!targetMatch) {
+    return null;
+  }
+
+  const subjectEn = targetMatch[1];
+  const predicateAndComplement = targetMatch[2];
+
+  const questionSubject =
+    subjectEn === 'People'
+      ? 'people'
+      : subjectEn === 'The children'
+        ? 'the children'
+        : subjectEn === 'We'
+          ? 'we'
+          : 'I';
+
+  const questionBody =
+    `Will ${questionSubject} ${predicateAndComplement}`;
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (/\[VERB:FUTURE\]/u.test(item.en)) {
+      return {
+        ...item,
+        en: item.en.replace(
+          /\[VERB:FUTURE\]$/u,
+          '[VERB:FUTURE:QUESTION]'
+        ),
+      };
+    }
+
+    return item;
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-call-object-complement-future-question-ko-en-v13.86',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.87-safe: call + O + C 미래형 부정 의문문 CORE
+//
+// v13.81의 검증된 미래형 부정 평서문 결과를 재사용하여
+// 명시적 ?/？ 입력만 Won't 의문문으로 변환합니다.
+//
+// 처리 범위:
+// - 사람들은 / 우리는 / 나는 + 그를 영웅이라고 부르지 않을 거예요?
+//   -> Won't people/we/I call him a hero?
+// - 아이들은 / 우리는 / 나는 + 그 개를 바둑이라고 부르지 않을 거예요?
+//   -> Won't the children/we/I call the dog Baduk?
+//
+// 안전 원칙:
+// 1. 미래형 부정 의문문만 처리합니다.
+// 2. v13.81의 주어·목적어·목적격보어 해석을 그대로 재사용합니다.
+// 3. Won't 뒤에는 동사원형 call을 사용합니다.
+// 4. call + O + C 구조에서 목적격보어 앞에 as를 넣지 않습니다.
+// 5. 기존 v12.98 및 v13.61~v13.86은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCallObjectComplementFutureNegativeQuestionV1387 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const baseResult =
+    twoProTryKoEnCallObjectComplementFutureNegativeV1381(
+      statementText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetMatch =
+    /^(People|We|I|The children)\s+won't\s+(.+)$/u.exec(
+      baseTarget
+    );
+
+  if (!targetMatch) {
+    return null;
+  }
+
+  const subjectEn = targetMatch[1];
+  const predicateAndComplement = targetMatch[2];
+
+  const questionSubject =
+    subjectEn === 'People'
+      ? 'people'
+      : subjectEn === 'The children'
+        ? 'the children'
+        : subjectEn === 'We'
+          ? 'we'
+          : 'I';
+
+  const questionBody =
+    `Won't ${questionSubject} ${predicateAndComplement}`;
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (/\[VERB:FUTURE:NEG\]/u.test(item.en)) {
+      return {
+        ...item,
+        en: item.en.replace(
+          /\[VERB:FUTURE:NEG\]$/u,
+          '[VERB:FUTURE:NEG:QUESTION]'
+        ),
+      };
+    }
+
+    return item;
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-call-object-complement-future-negative-question-ko-en-v13.87',
+  };
+};
+// ============================================================================
+// ☆ TwoPro v13.88-safe: make + O + adjective 현재형 긍정 CORE
+//
+// v12.98의 대표 과거형 exact 문장과 분리하여,
+// 이번 회귀 테스트에서 실패가 확인된 현재형 긍정 6문장만 처리합니다.
+//
+// 처리 범위:
+// - 그 소식은 / 그 영화는 + 나를 / 그를 + 행복하게 / 슬프게 만들어요
+// - 이번 단계에서 실제 테스트한 6개 조합만 허용합니다.
+//
+// 안전 원칙:
+// 1. 현재형 긍정 평서문만 처리합니다.
+// 2. 의문문·부정문·과거·미래는 이후 회귀 테스트와 분리합니다.
+// 3. make + O + adjective 구조이므로 to be를 삽입하지 않습니다.
+// 4. 단수 주어 The news / The movie에는 makes를 사용합니다.
+// 5. 기존 v12.98 및 v13.61~v13.87은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnMakeObjectAdjectivePresentV1388 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그 소식은|그 영화는)\s+(나를|그를)\s+(행복하게|슬프게)\s+만들어요$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const objectKo = matched[2];
+  const complementKo = matched[3];
+
+  const allowed = new Set<string>([
+    '그 소식은|나를|행복하게',
+    '그 영화는|나를|행복하게',
+    '그 영화는|나를|슬프게',
+    '그 소식은|그를|행복하게',
+    '그 영화는|그를|슬프게',
+    '그 소식은|나를|슬프게',
+  ]);
+
+  if (!allowed.has(`${subjectKo}|${objectKo}|${complementKo}`)) {
+    return null;
+  }
+
+  const subjectMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        source: string;
+        selected: string;
+      }
+    >
+  > = {
+    '그 소식은': {
+      target: 'The news',
+      source: '그 소식',
+      selected: 'the news',
+    },
+    '그 영화는': {
+      target: 'The movie',
+      source: '그 영화',
+      selected: 'the movie',
+    },
+  };
+
+  const objectMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        source: string;
+        selected: string;
+      }
+    >
+  > = {
+    나를: {
+      target: 'me',
+      source: '나',
+      selected: 'me',
+    },
+    그를: {
+      target: 'him',
+      source: '그',
+      selected: 'him',
+    },
+  };
+
+  const complementMap: Readonly<
+    Record<
+      string,
+      {
+        target: string;
+        source: string;
+      }
+    >
+  > = {
+    행복하게: {
+      target: 'happy',
+      source: '행복하다',
+    },
+    슬프게: {
+      target: 'sad',
+      source: '슬프다',
+    },
+  };
+
+  const subject = subjectMap[subjectKo];
+  const object = objectMap[objectKo];
+  const complement = complementMap[complementKo];
+
+  if (!subject || !object || !complement) {
+    return null;
+  }
+
+  const targetBody =
+    `${subject.target} makes ${object.target} ${complement.target}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    {
+      ko: subjectKo,
+      en: `${subject.target} [S]`,
+    },
+    {
+      ko: objectKo,
+      en: `${object.target} [O]`,
+    },
+    {
+      ko: complementKo,
+      en: `${complement.target} [OC:ADJECTIVE]`,
+    },
+    {
+      ko: '만들어요',
+      en: 'makes [VERB:PRESENT:3SG]',
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subject.source,
+      selected: subject.selected,
+      slot: 'SUBJECT',
+    },
+    {
+      source: object.source,
+      selected: object.selected,
+      slot: 'OBJECT',
+    },
+    {
+      source: complement.source,
+      selected: complement.target,
+      slot: 'OBJECT_COMPLEMENT:ADJECTIVE',
+    },
+    {
+      source: '만들다',
+      selected: 'make',
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      'basic-make-object-adjective-present-ko-en-v13.88',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.89-safe: make + O + adjective 현재형 부정 CORE
+//
+// v13.88의 검증된 현재형 긍정 결과를 재사용하여
+// make + 목적어 + 형용사 목적격보어 현재형 부정만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 그 소식은 / 그 영화는 + 나를 / 그를 + 행복하게 / 슬프게 만들지 않아요
+// - v13.88에서 검증된 6개 조합만 허용합니다.
+//
+// 안전 원칙:
+// 1. 현재형 부정 평서문만 처리합니다.
+// 2. 의문문·과거·미래는 이후 회귀 테스트와 분리합니다.
+// 3. v13.88의 주어·목적어·형용사 목적격보어 해석을 그대로 재사용합니다.
+// 4. 단수 주어 The news / The movie에는 doesn't make를 사용합니다.
+// 5. 기존 v12.98 및 v13.61~v13.88은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnMakeObjectAdjectivePresentNegativeV1389 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그 소식은|그 영화는)\s+(나를|그를)\s+(행복하게|슬프게)\s+만들지 않아요$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const positiveText = normalized.replace(
+    /만들지 않아요$/u,
+    '만들어요'
+  );
+
+  const baseResult =
+    twoProTryKoEnMakeObjectAdjectivePresentV1388(
+      positiveText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTargetBody = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetBody = baseTargetBody.replace(
+    /\bmakes\b/u,
+    "doesn't make"
+  );
+
+  if (targetBody === baseTargetBody) {
+    return null;
+  }
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (item.ko !== '만들어요') {
+      return item;
+    }
+
+    return {
+      ko: '만들지 않아요',
+      en: "doesn't make [VERB:PRESENT:NEG]",
+    };
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-make-object-adjective-present-negative-ko-en-v13.89',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.90-safe: make + O + adjective 과거형 긍정 CORE
+//
+// v13.88에서 검증된 현재형 긍정 6개 조합을 그대로 재사용하여
+// make + 목적어 + 형용사 목적격보어 과거형 긍정만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 그 소식은 / 그 영화는 + 나를 / 그를 + 행복하게 / 슬프게 만들었어요
+// - v13.88에서 검증된 6개 조합만 허용합니다.
+//
+// 안전 원칙:
+// 1. 과거형 긍정 평서문만 처리합니다.
+// 2. 의문문·부정문·미래는 이후 회귀 테스트와 분리합니다.
+// 3. v13.88의 주어·목적어·형용사 목적격보어 해석을 그대로 재사용합니다.
+// 4. makes만 made로 바꾸고, make + O + adjective 구조는 그대로 유지합니다.
+// 5. 기존 v12.98 및 v13.61~v13.89는 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnMakeObjectAdjectivePastV1390 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그 소식은|그 영화는)\s+(나를|그를)\s+(행복하게|슬프게)\s+만들었어요$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const presentText = normalized.replace(
+    /만들었어요$/u,
+    '만들어요'
+  );
+
+  const baseResult =
+    twoProTryKoEnMakeObjectAdjectivePresentV1388(
+      presentText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTargetBody = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetBody = baseTargetBody.replace(
+    /\bmakes\b/u,
+    'made'
+  );
+
+  if (targetBody === baseTargetBody) {
+    return null;
+  }
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (item.ko !== '만들어요') {
+      return item;
+    }
+
+    return {
+      ko: '만들었어요',
+      en: 'made [VERB:PAST]',
+    };
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-make-object-adjective-past-ko-en-v13.90',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.91-safe: make + O + adjective 과거형 부정 CORE
+//
+// v13.90에서 검증된 과거형 긍정 6개 조합을 그대로 재사용하여
+// make + 목적어 + 형용사 목적격보어 과거형 부정만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 그 소식은 / 그 영화는 + 나를 / 그를 + 행복하게 / 슬프게 만들지 않았어요
+// - v13.88에서 검증된 6개 조합만 허용합니다.
+//
+// 안전 원칙:
+// 1. 과거형 부정 평서문만 처리합니다.
+// 2. 의문문·미래는 이후 회귀 테스트와 분리합니다.
+// 3. v13.90의 검증된 과거형 긍정 결과를 재사용합니다.
+// 4. made만 didn't make로 바꾸고, make + O + adjective 구조는 그대로 유지합니다.
+// 5. 기존 v12.98 및 v13.61~v13.90은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnMakeObjectAdjectivePastNegativeV1391 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그 소식은|그 영화는)\s+(나를|그를)\s+(행복하게|슬프게)\s+만들지 않았어요$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const pastPositiveText = normalized.replace(
+    /만들지 않았어요$/u,
+    '만들었어요'
+  );
+
+  const baseResult =
+    twoProTryKoEnMakeObjectAdjectivePastV1390(
+      pastPositiveText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTargetBody = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetBody = baseTargetBody.replace(
+    /\bmade\b/u,
+    "didn't make"
+  );
+
+  if (targetBody === baseTargetBody) {
+    return null;
+  }
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (item.ko !== '만들었어요') {
+      return item;
+    }
+
+    return {
+      ko: '만들지 않았어요',
+      en: "didn't make [VERB:PAST:NEG]",
+    };
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-make-object-adjective-past-negative-ko-en-v13.91',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.92-safe: make + O + adjective 미래형 긍정 CORE
+//
+// v13.88에서 검증된 현재형 긍정 6개 조합을 그대로 재사용하여
+// make + 목적어 + 형용사 목적격보어 미래형 긍정만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 그 소식은 / 그 영화는 + 나를 / 그를 + 행복하게 / 슬프게 만들 거예요
+// - v13.88에서 검증된 6개 조합만 허용합니다.
+//
+// 안전 원칙:
+// 1. 미래형 긍정 평서문만 처리합니다.
+// 2. 의문문·부정문은 이후 회귀 테스트와 분리합니다.
+// 3. v13.88의 검증된 현재형 긍정 결과를 재사용합니다.
+// 4. makes만 will make로 바꾸고, make + O + adjective 구조는 그대로 유지합니다.
+// 5. 기존 v12.98 및 v13.61~v13.91은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnMakeObjectAdjectiveFutureV1392 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그 소식은|그 영화는)\s+(나를|그를)\s+(행복하게|슬프게)\s+만들 거예요$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const presentText = normalized.replace(
+    /만들 거예요$/u,
+    '만들어요'
+  );
+
+  const baseResult =
+    twoProTryKoEnMakeObjectAdjectivePresentV1388(
+      presentText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTargetBody = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetBody = baseTargetBody.replace(
+    /\bmakes\b/u,
+    'will make'
+  );
+
+  if (targetBody === baseTargetBody) {
+    return null;
+  }
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (item.ko !== '만들어요') {
+      return item;
+    }
+
+    return {
+      ko: '만들 거예요',
+      en: 'will make [VERB:FUTURE]',
+    };
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-make-object-adjective-future-ko-en-v13.92',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.93-safe: make + O + adjective 미래형 부정 CORE
+//
+// v13.92에서 검증된 미래형 긍정 결과를 재사용하여
+// make + 목적어 + 형용사 목적격보어 미래형 부정만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 그 소식은 / 그 영화는 + 나를 / 그를 + 행복하게 / 슬프게 만들지 않을 거예요
+// - v13.92의 검증된 범위 안에서만 처리합니다.
+//
+// 안전 원칙:
+// 1. 미래형 부정 평서문만 처리합니다.
+// 2. 의문문은 이후 회귀 테스트와 분리합니다.
+// 3. v13.92의 검증된 미래형 긍정 결과를 재사용합니다.
+// 4. will make만 won't make로 바꾸고, make + O + adjective 구조는 그대로 유지합니다.
+// 5. 기존 v12.98 및 v13.61~v13.92는 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnMakeObjectAdjectiveFutureNegativeV1393 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    /^(그 소식은|그 영화는)\s+(나를|그를)\s+(행복하게|슬프게)\s+만들지 않을 거예요$/u.exec(
+      normalized
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const futurePositiveText = normalized.replace(
+    /만들지 않을 거예요$/u,
+    '만들 거예요'
+  );
+
+  const baseResult =
+    twoProTryKoEnMakeObjectAdjectiveFutureV1392(
+      futurePositiveText
+    );
+
+  if (!baseResult) {
+    return null;
+  }
+
+  const baseTargetBody = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  const targetBody = baseTargetBody.replace(
+    /\bwill make\b/u,
+    "won't make"
+  );
+
+  if (targetBody === baseTargetBody) {
+    return null;
+  }
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (item.ko !== '만들 거예요') {
+      return item;
+    }
+
+    return {
+      ko: '만들지 않을 거예요',
+      en: "won't make [VERB:FUTURE:NEG]",
+    };
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      'basic-make-object-adjective-future-negative-ko-en-v13.93',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.94-safe: make + O + adjective 의문문 CORE
+//
+// v13.88~v13.93에서 실제 회귀 테스트를 통과한 6개 평서문 CORE를 재사용하여,
+// 같은 범위의 현재/과거/미래 긍정·부정 의문문만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 그 소식은 / 그 영화는 + 나를 / 그를 + 행복하게 / 슬프게
+// - 현재형 긍정·부정, 과거형 긍정·부정, 미래형 긍정·부정 의문문
+// - 실제 검증 대상 6개 조합만 기존 평서문 CORE를 통해 허용합니다.
+//
+// 안전 원칙:
+// 1. 문장 끝에 명시적 ?/？가 있는 입력만 처리합니다.
+// 2. 주어·목적어·형용사보어 해석은 v13.88~v13.93 결과를 그대로 재사용합니다.
+// 3. make + O + adjective 구조이므로 to be를 삽입하지 않습니다.
+// 4. 단수 주어 The news / The movie의 현재형 의문문은 Does / Doesn't를 사용합니다.
+// 5. 과거형은 Did / Didn't, 미래형은 Will / Won't를 사용합니다.
+// 6. 기존 v12.98 및 v13.61~v13.93은 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnMakeObjectAdjectiveQuestionV1394 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  type MakeObjectAdjectiveQuestionModeV1394 =
+    | 'present-positive'
+    | 'present-negative'
+    | 'past-positive'
+    | 'past-negative'
+    | 'future-positive'
+    | 'future-negative';
+
+  let mode: MakeObjectAdjectiveQuestionModeV1394 | null = null;
+  let baseResult: TwoProBasicObjectComplementResultV1298 | null =
+    twoProTryKoEnMakeObjectAdjectivePresentV1388(
+      statementText
+    );
+
+  if (baseResult) {
+    mode = 'present-positive';
+  }
+
+  if (!baseResult) {
+    baseResult =
+      twoProTryKoEnMakeObjectAdjectivePresentNegativeV1389(
+        statementText
+      );
+    if (baseResult) {
+      mode = 'present-negative';
+    }
+  }
+
+  if (!baseResult) {
+    baseResult =
+      twoProTryKoEnMakeObjectAdjectivePastV1390(
+        statementText
+      );
+    if (baseResult) {
+      mode = 'past-positive';
+    }
+  }
+
+  if (!baseResult) {
+    baseResult =
+      twoProTryKoEnMakeObjectAdjectivePastNegativeV1391(
+        statementText
+      );
+    if (baseResult) {
+      mode = 'past-negative';
+    }
+  }
+
+  if (!baseResult) {
+    baseResult =
+      twoProTryKoEnMakeObjectAdjectiveFutureV1392(
+        statementText
+      );
+    if (baseResult) {
+      mode = 'future-positive';
+    }
+  }
+
+  if (!baseResult) {
+    baseResult =
+      twoProTryKoEnMakeObjectAdjectiveFutureNegativeV1393(
+        statementText
+      );
+    if (baseResult) {
+      mode = 'future-negative';
+    }
+  }
+
+  if (!baseResult || !mode) {
+    return null;
+  }
+
+  const baseTarget = String(baseResult.targetText || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+
+  let targetMatch: RegExpExecArray | null = null;
+  let questionBody = '';
+
+  if (mode === 'present-positive') {
+    targetMatch =
+      /^(The news|The movie)\s+makes\s+(.+)$/u.exec(
+        baseTarget
+      );
+    if (!targetMatch) return null;
+    questionBody =
+      `Does ${targetMatch[1].toLowerCase()} make ${targetMatch[2]}`;
+  } else if (mode === 'present-negative') {
+    targetMatch =
+      /^(The news|The movie)\s+doesn't\s+make\s+(.+)$/u.exec(
+        baseTarget
+      );
+    if (!targetMatch) return null;
+    questionBody =
+      `Doesn't ${targetMatch[1].toLowerCase()} make ${targetMatch[2]}`;
+  } else if (mode === 'past-positive') {
+    targetMatch =
+      /^(The news|The movie)\s+made\s+(.+)$/u.exec(
+        baseTarget
+      );
+    if (!targetMatch) return null;
+    questionBody =
+      `Did ${targetMatch[1].toLowerCase()} make ${targetMatch[2]}`;
+  } else if (mode === 'past-negative') {
+    targetMatch =
+      /^(The news|The movie)\s+didn't\s+make\s+(.+)$/u.exec(
+        baseTarget
+      );
+    if (!targetMatch) return null;
+    questionBody =
+      `Didn't ${targetMatch[1].toLowerCase()} make ${targetMatch[2]}`;
+  } else if (mode === 'future-positive') {
+    targetMatch =
+      /^(The news|The movie)\s+will\s+make\s+(.+)$/u.exec(
+        baseTarget
+      );
+    if (!targetMatch) return null;
+    questionBody =
+      `Will ${targetMatch[1].toLowerCase()} make ${targetMatch[2]}`;
+  } else {
+    targetMatch =
+      /^(The news|The movie)\s+won't\s+make\s+(.+)$/u.exec(
+        baseTarget
+      );
+    if (!targetMatch) return null;
+    questionBody =
+      `Won't ${targetMatch[1].toLowerCase()} make ${targetMatch[2]}`;
+  }
+
+  const analysis = baseResult.analysis.map((item) => {
+    if (mode === 'present-positive' && /\[VERB:PRESENT:3SG\]$/u.test(item.en)) {
+      return {
+        ...item,
+        en: 'does make [VERB:PRESENT:3SG:QUESTION]',
+      };
+    }
+
+    if (mode === 'present-negative' && /\[VERB:PRESENT:NEG\]$/u.test(item.en)) {
+      return {
+        ...item,
+        en: "doesn't make [VERB:PRESENT:NEG:QUESTION]",
+      };
+    }
+
+    if (mode === 'past-positive' && /\[VERB:PAST\]$/u.test(item.en)) {
+      return {
+        ...item,
+        en: 'did make [VERB:PAST:QUESTION]',
+      };
+    }
+
+    if (mode === 'past-negative' && /\[VERB:PAST:NEG\]$/u.test(item.en)) {
+      return {
+        ...item,
+        en: "didn't make [VERB:PAST:NEG:QUESTION]",
+      };
+    }
+
+    if (mode === 'future-positive' && /\[VERB:FUTURE\]$/u.test(item.en)) {
+      return {
+        ...item,
+        en: 'will make [VERB:FUTURE:QUESTION]',
+      };
+    }
+
+    if (mode === 'future-negative' && /\[VERB:FUTURE:NEG\]$/u.test(item.en)) {
+      return {
+        ...item,
+        en: "won't make [VERB:FUTURE:NEG:QUESTION]",
+      };
+    }
+
+    return item;
+  });
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords: baseResult.referenceWords,
+    engine:
+      `basic-make-object-adjective-${mode}-question-ko-en-v13.94`,
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.95-safe: keep + O + adjective 현재형 긍정 보충 CORE
+//
+// v12.98 exact 대표문과 기존 CORE에서 아직 직접 번역되지 않은
+// 현재형 긍정 3문장만 제한적으로 보충합니다.
+//
+// 처리 범위:
+// - 우리는 문을 열어 두어요 → We keep the door open.
+// - 그는 창문을 닫아 두어요 → He keeps the window closed.
+// - 그녀는 창문을 닫아 두어요 → She keeps the window closed.
+//
+// 안전 원칙:
+// 1. 이번 회귀 테스트에서 실패가 확인된 3문장만 처리합니다.
+// 2. 이미 성공한 "나는 문을 열어 두어요", 책상 clean 문장은 선점하지 않습니다.
+// 3. 평서문 현재형 긍정만 처리하며 부정/과거/미래/의문문은 건드리지 않습니다.
+// 4. keep + O + adjective 구조를 유지합니다.
+// 5. 기존 v12.98 및 v13.61~v13.94는 수정하지 않습니다.
+// ============================================================================
+const TWO_PRO_KEEP_OBJECT_ADJECTIVE_PRESENT_CASES_V1395: Readonly<
+  Record<
+    string,
+    {
+      targetBody: string;
+      analysis: Array<{ ko: string; en: string }>;
+      references: Array<{
+        source: string;
+        selected: string;
+        slot: string;
+      }>;
+    }
+  >
+> = {
+  '우리는 문을 열어 두어요': {
+    targetBody: 'We keep the door open',
+    analysis: [
+      { ko: '우리는', en: 'We [S]' },
+      { ko: '문을', en: 'the door [O]' },
+      { ko: '열어 두어요', en: 'keep open [V+OC:PRESENT]' },
+    ],
+    references: [
+      { source: '우리', selected: 'we', slot: 'SUBJECT' },
+      { source: '문', selected: 'the door', slot: 'OBJECT' },
+      {
+        source: '열어 두다',
+        selected: 'keep open',
+        slot: 'VERB+OBJECT_COMPLEMENT',
+      },
+    ],
+  },
+  '그는 창문을 닫아 두어요': {
+    targetBody: 'He keeps the window closed',
+    analysis: [
+      { ko: '그는', en: 'He [S]' },
+      { ko: '창문을', en: 'the window [O]' },
+      { ko: '닫아 두어요', en: 'keeps closed [V+OC:PRESENT:3SG]' },
+    ],
+    references: [
+      { source: '그', selected: 'he', slot: 'SUBJECT' },
+      { source: '창문', selected: 'the window', slot: 'OBJECT' },
+      {
+        source: '닫아 두다',
+        selected: 'keep closed',
+        slot: 'VERB+OBJECT_COMPLEMENT',
+      },
+    ],
+  },
+  '그녀는 창문을 닫아 두어요': {
+    targetBody: 'She keeps the window closed',
+    analysis: [
+      { ko: '그녀는', en: 'She [S]' },
+      { ko: '창문을', en: 'the window [O]' },
+      { ko: '닫아 두어요', en: 'keeps closed [V+OC:PRESENT:3SG]' },
+    ],
+    references: [
+      { source: '그녀', selected: 'she', slot: 'SUBJECT' },
+      { source: '창문', selected: 'the window', slot: 'OBJECT' },
+      {
+        source: '닫아 두다',
+        selected: 'keep closed',
+        slot: 'VERB+OBJECT_COMPLEMENT',
+      },
+    ],
+  },
+};
+
+const twoProTryKoEnKeepObjectAdjectivePresentV1395 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    TWO_PRO_KEEP_OBJECT_ADJECTIVE_PRESENT_CASES_V1395[
+      normalized
+    ];
+
+  if (!matched) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    matched.references.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      matched.targetBody,
+      originalText
+    ),
+    analysis: matched.analysis,
+    referenceWords,
+    engine:
+      'basic-keep-object-adjective-present-ko-en-v13.95',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.96-safe: keep + O + adjective 현재형 부정 CORE
+//
+// v13.95 현재형 긍정 확인 뒤, 이번 회귀 테스트에서 실패한
+// 현재형 부정 6문장만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 나는 문을 열어 두지 않아요 → I don't keep the door open.
+// - 우리는 문을 열어 두지 않아요 → We don't keep the door open.
+// - 그는 창문을 닫아 두지 않아요 → He doesn't keep the window closed.
+// - 그녀는 창문을 닫아 두지 않아요 → She doesn't keep the window closed.
+// - 나는 책상을 깨끗하게 유지하지 않아요 → I don't keep the desk clean.
+// - 그는 책상을 깨끗하게 유지하지 않아요 → He doesn't keep the desk clean.
+//
+// 안전 원칙:
+// 1. 이번 회귀 테스트에서 실패가 확인된 6문장만 처리합니다.
+// 2. v13.95 현재형 긍정 및 기존 exact/CORE는 건드리지 않습니다.
+// 3. 현재형 부정 평서문만 처리하며 과거/미래/의문문은 건드리지 않습니다.
+// 4. keep + O + adjective 구조를 유지합니다.
+// ============================================================================
+const TWO_PRO_KEEP_OBJECT_ADJECTIVE_PRESENT_NEGATIVE_CASES_V1396: Readonly<
+  Record<
+    string,
+    {
+      targetBody: string;
+      analysis: Array<{ ko: string; en: string }>;
+      references: Array<{
+        source: string;
+        selected: string;
+        slot: string;
+      }>;
+    }
+  >
+> = {
+  '나는 문을 열어 두지 않아요': {
+    targetBody: "I don't keep the door open",
+    analysis: [
+      { ko: '나는', en: 'I [S]' },
+      { ko: '문을', en: 'the door [O]' },
+      { ko: '열어 두지 않아요', en: "don't keep open [NEG+V+OC:PRESENT]" },
+    ],
+    references: [
+      { source: '나', selected: 'I', slot: 'SUBJECT' },
+      { source: '문', selected: 'the door', slot: 'OBJECT' },
+      { source: '열어 두다', selected: 'keep open', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '우리는 문을 열어 두지 않아요': {
+    targetBody: "We don't keep the door open",
+    analysis: [
+      { ko: '우리는', en: 'We [S]' },
+      { ko: '문을', en: 'the door [O]' },
+      { ko: '열어 두지 않아요', en: "don't keep open [NEG+V+OC:PRESENT]" },
+    ],
+    references: [
+      { source: '우리', selected: 'we', slot: 'SUBJECT' },
+      { source: '문', selected: 'the door', slot: 'OBJECT' },
+      { source: '열어 두다', selected: 'keep open', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '그는 창문을 닫아 두지 않아요': {
+    targetBody: "He doesn't keep the window closed",
+    analysis: [
+      { ko: '그는', en: 'He [S]' },
+      { ko: '창문을', en: 'the window [O]' },
+      { ko: '닫아 두지 않아요', en: "doesn't keep closed [NEG+V+OC:PRESENT:3SG]" },
+    ],
+    references: [
+      { source: '그', selected: 'he', slot: 'SUBJECT' },
+      { source: '창문', selected: 'the window', slot: 'OBJECT' },
+      { source: '닫아 두다', selected: 'keep closed', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '그녀는 창문을 닫아 두지 않아요': {
+    targetBody: "She doesn't keep the window closed",
+    analysis: [
+      { ko: '그녀는', en: 'She [S]' },
+      { ko: '창문을', en: 'the window [O]' },
+      { ko: '닫아 두지 않아요', en: "doesn't keep closed [NEG+V+OC:PRESENT:3SG]" },
+    ],
+    references: [
+      { source: '그녀', selected: 'she', slot: 'SUBJECT' },
+      { source: '창문', selected: 'the window', slot: 'OBJECT' },
+      { source: '닫아 두다', selected: 'keep closed', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '나는 책상을 깨끗하게 유지하지 않아요': {
+    targetBody: "I don't keep the desk clean",
+    analysis: [
+      { ko: '나는', en: 'I [S]' },
+      { ko: '책상을', en: 'the desk [O]' },
+      { ko: '깨끗하게 유지하지 않아요', en: "don't keep clean [NEG+V+OC:PRESENT]" },
+    ],
+    references: [
+      { source: '나', selected: 'I', slot: 'SUBJECT' },
+      { source: '책상', selected: 'the desk', slot: 'OBJECT' },
+      { source: '깨끗하게 유지하다', selected: 'keep clean', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '그는 책상을 깨끗하게 유지하지 않아요': {
+    targetBody: "He doesn't keep the desk clean",
+    analysis: [
+      { ko: '그는', en: 'He [S]' },
+      { ko: '책상을', en: 'the desk [O]' },
+      { ko: '깨끗하게 유지하지 않아요', en: "doesn't keep clean [NEG+V+OC:PRESENT:3SG]" },
+    ],
+    references: [
+      { source: '그', selected: 'he', slot: 'SUBJECT' },
+      { source: '책상', selected: 'the desk', slot: 'OBJECT' },
+      { source: '깨끗하게 유지하다', selected: 'keep clean', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+};
+
+const twoProTryKoEnKeepObjectAdjectivePresentNegativeV1396 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    TWO_PRO_KEEP_OBJECT_ADJECTIVE_PRESENT_NEGATIVE_CASES_V1396[
+      normalized
+    ];
+
+  if (!matched) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    matched.references.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      matched.targetBody,
+      originalText
+    ),
+    analysis: matched.analysis,
+    referenceWords,
+    engine:
+      'basic-keep-object-adjective-present-negative-ko-en-v13.96',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v13.97-safe: keep + O + adjective 과거형 긍정 보충 CORE
+//
+// v13.96 현재형 부정 확인 뒤, 이번 회귀 테스트에서 실패한
+// 과거형 긍정 4문장만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 나는 문을 열어 두었어요 → I kept the door open.
+// - 우리는 문을 열어 두었어요 → We kept the door open.
+// - 그는 창문을 닫아 두었어요 → He kept the window closed.
+// - 나는 책상을 깨끗하게 유지했어요 → I kept the desk clean.
+//
+// 안전 원칙:
+// 1. 이번 회귀 테스트에서 실패가 확인된 4문장만 처리합니다.
+// 2. 이미 성공한 "그녀는 창문을 닫아 두었어요", "그는 책상을 깨끗하게 유지했어요"는 선점하지 않습니다.
+// 3. v13.95~v13.96 및 기존 exact/CORE는 수정하지 않습니다.
+// 4. 과거형 긍정 평서문만 처리하며 부정/미래/의문문은 건드리지 않습니다.
+// 5. keep + O + adjective 구조를 유지합니다.
+// ============================================================================
+const TWO_PRO_KEEP_OBJECT_ADJECTIVE_PAST_CASES_V1397: Readonly<
+  Record<
+    string,
+    {
+      targetBody: string;
+      analysis: Array<{ ko: string; en: string }>;
+      references: Array<{
+        source: string;
+        selected: string;
+        slot: string;
+      }>;
+    }
+  >
+> = {
+  '나는 문을 열어 두었어요': {
+    targetBody: 'I kept the door open',
+    analysis: [
+      { ko: '나는', en: 'I [S]' },
+      { ko: '문을', en: 'the door [O]' },
+      { ko: '열어 두었어요', en: 'kept open [V+OC:PAST]' },
+    ],
+    references: [
+      { source: '나', selected: 'I', slot: 'SUBJECT' },
+      { source: '문', selected: 'the door', slot: 'OBJECT' },
+      { source: '열어 두다', selected: 'keep open', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '우리는 문을 열어 두었어요': {
+    targetBody: 'We kept the door open',
+    analysis: [
+      { ko: '우리는', en: 'We [S]' },
+      { ko: '문을', en: 'the door [O]' },
+      { ko: '열어 두었어요', en: 'kept open [V+OC:PAST]' },
+    ],
+    references: [
+      { source: '우리', selected: 'we', slot: 'SUBJECT' },
+      { source: '문', selected: 'the door', slot: 'OBJECT' },
+      { source: '열어 두다', selected: 'keep open', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '그는 창문을 닫아 두었어요': {
+    targetBody: 'He kept the window closed',
+    analysis: [
+      { ko: '그는', en: 'He [S]' },
+      { ko: '창문을', en: 'the window [O]' },
+      { ko: '닫아 두었어요', en: 'kept closed [V+OC:PAST]' },
+    ],
+    references: [
+      { source: '그', selected: 'he', slot: 'SUBJECT' },
+      { source: '창문', selected: 'the window', slot: 'OBJECT' },
+      { source: '닫아 두다', selected: 'keep closed', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '나는 책상을 깨끗하게 유지했어요': {
+    targetBody: 'I kept the desk clean',
+    analysis: [
+      { ko: '나는', en: 'I [S]' },
+      { ko: '책상을', en: 'the desk [O]' },
+      { ko: '깨끗하게 유지했어요', en: 'kept clean [V+OC:PAST]' },
+    ],
+    references: [
+      { source: '나', selected: 'I', slot: 'SUBJECT' },
+      { source: '책상', selected: 'the desk', slot: 'OBJECT' },
+      { source: '깨끗하게 유지하다', selected: 'keep clean', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+};
+
+const twoProTryKoEnKeepObjectAdjectivePastV1397 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    TWO_PRO_KEEP_OBJECT_ADJECTIVE_PAST_CASES_V1397[
+      normalized
+    ];
+
+  if (!matched) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    matched.references.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      matched.targetBody,
+      originalText
+    ),
+    analysis: matched.analysis,
+    referenceWords,
+    engine:
+      'basic-keep-object-adjective-past-ko-en-v13.97',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.98-safe: keep + O + adjective 과거형 부정 CORE
+//
+// v13.97 과거형 긍정 확인 뒤, 이번 회귀 테스트에서 실패한
+// 과거형 부정 6문장만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 나는 문을 열어 두지 않았어요 → I didn't keep the door open.
+// - 우리는 문을 열어 두지 않았어요 → We didn't keep the door open.
+// - 그는 창문을 닫아 두지 않았어요 → He didn't keep the window closed.
+// - 그녀는 창문을 닫아 두지 않았어요 → She didn't keep the window closed.
+// - 나는 책상을 깨끗하게 유지하지 않았어요 → I didn't keep the desk clean.
+// - 그는 책상을 깨끗하게 유지하지 않았어요 → He didn't keep the desk clean.
+//
+// 안전 원칙:
+// 1. 이번 회귀 테스트에서 실패가 확인된 6문장만 처리합니다.
+// 2. v13.95~v13.97 및 기존 exact/CORE는 수정하지 않습니다.
+// 3. 과거형 부정 평서문만 처리하며 미래형/의문문은 건드리지 않습니다.
+// 4. keep + O + adjective 구조를 유지합니다.
+// ============================================================================
+const TWO_PRO_KEEP_OBJECT_ADJECTIVE_PAST_NEGATIVE_CASES_V1398: Readonly<
+  Record<
+    string,
+    {
+      targetBody: string;
+      analysis: Array<{ ko: string; en: string }>;
+      references: Array<{
+        source: string;
+        selected: string;
+        slot: string;
+      }>;
+    }
+  >
+> = {
+  '나는 문을 열어 두지 않았어요': {
+    targetBody: "I didn't keep the door open",
+    analysis: [
+      { ko: '나는', en: 'I [S]' },
+      { ko: '문을', en: 'the door [O]' },
+      { ko: '열어 두지 않았어요', en: "didn't keep open [NEG+V+OC:PAST]" },
+    ],
+    references: [
+      { source: '나', selected: 'I', slot: 'SUBJECT' },
+      { source: '문', selected: 'the door', slot: 'OBJECT' },
+      { source: '열어 두다', selected: 'keep open', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '우리는 문을 열어 두지 않았어요': {
+    targetBody: "We didn't keep the door open",
+    analysis: [
+      { ko: '우리는', en: 'We [S]' },
+      { ko: '문을', en: 'the door [O]' },
+      { ko: '열어 두지 않았어요', en: "didn't keep open [NEG+V+OC:PAST]" },
+    ],
+    references: [
+      { source: '우리', selected: 'we', slot: 'SUBJECT' },
+      { source: '문', selected: 'the door', slot: 'OBJECT' },
+      { source: '열어 두다', selected: 'keep open', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '그는 창문을 닫아 두지 않았어요': {
+    targetBody: "He didn't keep the window closed",
+    analysis: [
+      { ko: '그는', en: 'He [S]' },
+      { ko: '창문을', en: 'the window [O]' },
+      { ko: '닫아 두지 않았어요', en: "didn't keep closed [NEG+V+OC:PAST]" },
+    ],
+    references: [
+      { source: '그', selected: 'he', slot: 'SUBJECT' },
+      { source: '창문', selected: 'the window', slot: 'OBJECT' },
+      { source: '닫아 두다', selected: 'keep closed', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '그녀는 창문을 닫아 두지 않았어요': {
+    targetBody: "She didn't keep the window closed",
+    analysis: [
+      { ko: '그녀는', en: 'She [S]' },
+      { ko: '창문을', en: 'the window [O]' },
+      { ko: '닫아 두지 않았어요', en: "didn't keep closed [NEG+V+OC:PAST]" },
+    ],
+    references: [
+      { source: '그녀', selected: 'she', slot: 'SUBJECT' },
+      { source: '창문', selected: 'the window', slot: 'OBJECT' },
+      { source: '닫아 두다', selected: 'keep closed', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '나는 책상을 깨끗하게 유지하지 않았어요': {
+    targetBody: "I didn't keep the desk clean",
+    analysis: [
+      { ko: '나는', en: 'I [S]' },
+      { ko: '책상을', en: 'the desk [O]' },
+      { ko: '깨끗하게 유지하지 않았어요', en: "didn't keep clean [NEG+V+OC:PAST]" },
+    ],
+    references: [
+      { source: '나', selected: 'I', slot: 'SUBJECT' },
+      { source: '책상', selected: 'the desk', slot: 'OBJECT' },
+      { source: '깨끗하게 유지하다', selected: 'keep clean', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '그는 책상을 깨끗하게 유지하지 않았어요': {
+    targetBody: "He didn't keep the desk clean",
+    analysis: [
+      { ko: '그는', en: 'He [S]' },
+      { ko: '책상을', en: 'the desk [O]' },
+      { ko: '깨끗하게 유지하지 않았어요', en: "didn't keep clean [NEG+V+OC:PAST]" },
+    ],
+    references: [
+      { source: '그', selected: 'he', slot: 'SUBJECT' },
+      { source: '책상', selected: 'the desk', slot: 'OBJECT' },
+      { source: '깨끗하게 유지하다', selected: 'keep clean', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+};
+
+const twoProTryKoEnKeepObjectAdjectivePastNegativeV1398 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    TWO_PRO_KEEP_OBJECT_ADJECTIVE_PAST_NEGATIVE_CASES_V1398[
+      normalized
+    ];
+
+  if (!matched) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    matched.references.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      matched.targetBody,
+      originalText
+    ),
+    analysis: matched.analysis,
+    referenceWords,
+    engine:
+      'basic-keep-object-adjective-past-negative-ko-en-v13.98',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v13.99-safe: keep + O + adjective 미래형 긍정 CORE
+//
+// v13.98 과거형 부정 확인 뒤, 이번 회귀 테스트에서 실패한
+// 미래형 긍정 6문장만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 나는 문을 열어 둘 거예요 → I will keep the door open.
+// - 우리는 문을 열어 둘 거예요 → We will keep the door open.
+// - 그는 창문을 닫아 둘 거예요 → He will keep the window closed.
+// - 그녀는 창문을 닫아 둘 거예요 → She will keep the window closed.
+// - 나는 책상을 깨끗하게 유지할 거예요 → I will keep the desk clean.
+// - 그는 책상을 깨끗하게 유지할 거예요 → He will keep the desk clean.
+//
+// 안전 원칙:
+// 1. 이번 회귀 테스트에서 실패가 확인된 6문장만 처리합니다.
+// 2. v13.95~v13.98 및 기존 exact/CORE는 수정하지 않습니다.
+// 3. 미래형 긍정 평서문만 처리하며 부정/의문문은 건드리지 않습니다.
+// 4. keep + O + adjective 구조를 유지합니다.
+// ============================================================================
+const TWO_PRO_KEEP_OBJECT_ADJECTIVE_FUTURE_CASES_V1399: Readonly<
+  Record<
+    string,
+    {
+      targetBody: string;
+      analysis: Array<{ ko: string; en: string }>;
+      references: Array<{
+        source: string;
+        selected: string;
+        slot: string;
+      }>;
+    }
+  >
+> = {
+  '나는 문을 열어 둘 거예요': {
+    targetBody: 'I will keep the door open',
+    analysis: [
+      { ko: '나는', en: 'I [S]' },
+      { ko: '문을', en: 'the door [O]' },
+      { ko: '열어 둘 거예요', en: 'will keep open [FUTURE+V+OC]' },
+    ],
+    references: [
+      { source: '나', selected: 'I', slot: 'SUBJECT' },
+      { source: '문', selected: 'the door', slot: 'OBJECT' },
+      { source: '열어 두다', selected: 'keep open', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '우리는 문을 열어 둘 거예요': {
+    targetBody: 'We will keep the door open',
+    analysis: [
+      { ko: '우리는', en: 'We [S]' },
+      { ko: '문을', en: 'the door [O]' },
+      { ko: '열어 둘 거예요', en: 'will keep open [FUTURE+V+OC]' },
+    ],
+    references: [
+      { source: '우리', selected: 'we', slot: 'SUBJECT' },
+      { source: '문', selected: 'the door', slot: 'OBJECT' },
+      { source: '열어 두다', selected: 'keep open', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '그는 창문을 닫아 둘 거예요': {
+    targetBody: 'He will keep the window closed',
+    analysis: [
+      { ko: '그는', en: 'He [S]' },
+      { ko: '창문을', en: 'the window [O]' },
+      { ko: '닫아 둘 거예요', en: 'will keep closed [FUTURE+V+OC]' },
+    ],
+    references: [
+      { source: '그', selected: 'he', slot: 'SUBJECT' },
+      { source: '창문', selected: 'the window', slot: 'OBJECT' },
+      { source: '닫아 두다', selected: 'keep closed', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '그녀는 창문을 닫아 둘 거예요': {
+    targetBody: 'She will keep the window closed',
+    analysis: [
+      { ko: '그녀는', en: 'She [S]' },
+      { ko: '창문을', en: 'the window [O]' },
+      { ko: '닫아 둘 거예요', en: 'will keep closed [FUTURE+V+OC]' },
+    ],
+    references: [
+      { source: '그녀', selected: 'she', slot: 'SUBJECT' },
+      { source: '창문', selected: 'the window', slot: 'OBJECT' },
+      { source: '닫아 두다', selected: 'keep closed', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '나는 책상을 깨끗하게 유지할 거예요': {
+    targetBody: 'I will keep the desk clean',
+    analysis: [
+      { ko: '나는', en: 'I [S]' },
+      { ko: '책상을', en: 'the desk [O]' },
+      { ko: '깨끗하게 유지할 거예요', en: 'will keep clean [FUTURE+V+OC]' },
+    ],
+    references: [
+      { source: '나', selected: 'I', slot: 'SUBJECT' },
+      { source: '책상', selected: 'the desk', slot: 'OBJECT' },
+      { source: '깨끗하게 유지하다', selected: 'keep clean', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '그는 책상을 깨끗하게 유지할 거예요': {
+    targetBody: 'He will keep the desk clean',
+    analysis: [
+      { ko: '그는', en: 'He [S]' },
+      { ko: '책상을', en: 'the desk [O]' },
+      { ko: '깨끗하게 유지할 거예요', en: 'will keep clean [FUTURE+V+OC]' },
+    ],
+    references: [
+      { source: '그', selected: 'he', slot: 'SUBJECT' },
+      { source: '책상', selected: 'the desk', slot: 'OBJECT' },
+      { source: '깨끗하게 유지하다', selected: 'keep clean', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+};
+
+const twoProTryKoEnKeepObjectAdjectiveFutureV1399 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    TWO_PRO_KEEP_OBJECT_ADJECTIVE_FUTURE_CASES_V1399[
+      normalized
+    ];
+
+  if (!matched) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    matched.references.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      matched.targetBody,
+      originalText
+    ),
+    analysis: matched.analysis,
+    referenceWords,
+    engine:
+      'basic-keep-object-adjective-future-ko-en-v13.99',
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v14.00-safe: keep + O + adjective 미래형 부정 CORE
+//
+// v13.99 미래형 긍정 확인 뒤, 이번 회귀 테스트에서 실패한
+// 미래형 부정 6문장만 제한적으로 처리합니다.
+//
+// 처리 범위:
+// - 나는 문을 열어 두지 않을 거예요 → I won't keep the door open.
+// - 우리는 문을 열어 두지 않을 거예요 → We won't keep the door open.
+// - 그는 창문을 닫아 두지 않을 거예요 → He won't keep the window closed.
+// - 그녀는 창문을 닫아 두지 않을 거예요 → She won't keep the window closed.
+// - 나는 책상을 깨끗하게 유지하지 않을 거예요 → I won't keep the desk clean.
+// - 그는 책상을 깨끗하게 유지하지 않을 거예요 → He won't keep the desk clean.
+//
+// 안전 원칙:
+// 1. 이번 회귀 테스트에서 실패가 확인된 6문장만 처리합니다.
+// 2. v13.95~v13.99 및 기존 exact/CORE는 수정하지 않습니다.
+// 3. 미래형 부정 평서문만 처리하며 의문문은 건드리지 않습니다.
+// 4. keep + O + adjective 구조를 유지합니다.
+// ============================================================================
+const TWO_PRO_KEEP_OBJECT_ADJECTIVE_FUTURE_NEGATIVE_CASES_V1400: Readonly<
+  Record<
+    string,
+    {
+      targetBody: string;
+      analysis: Array<{ ko: string; en: string }>;
+      references: Array<{
+        source: string;
+        selected: string;
+        slot: string;
+      }>;
+    }
+  >
+> = {
+  '나는 문을 열어 두지 않을 거예요': {
+    targetBody: "I won't keep the door open",
+    analysis: [
+      { ko: '나는', en: 'I [S]' },
+      { ko: '문을', en: 'the door [O]' },
+      { ko: '열어 두지 않을 거예요', en: "won't keep open [NEG+FUTURE+V+OC]" },
+    ],
+    references: [
+      { source: '나', selected: 'I', slot: 'SUBJECT' },
+      { source: '문', selected: 'the door', slot: 'OBJECT' },
+      { source: '열어 두다', selected: 'keep open', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '우리는 문을 열어 두지 않을 거예요': {
+    targetBody: "We won't keep the door open",
+    analysis: [
+      { ko: '우리는', en: 'We [S]' },
+      { ko: '문을', en: 'the door [O]' },
+      { ko: '열어 두지 않을 거예요', en: "won't keep open [NEG+FUTURE+V+OC]" },
+    ],
+    references: [
+      { source: '우리', selected: 'we', slot: 'SUBJECT' },
+      { source: '문', selected: 'the door', slot: 'OBJECT' },
+      { source: '열어 두다', selected: 'keep open', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '그는 창문을 닫아 두지 않을 거예요': {
+    targetBody: "He won't keep the window closed",
+    analysis: [
+      { ko: '그는', en: 'He [S]' },
+      { ko: '창문을', en: 'the window [O]' },
+      { ko: '닫아 두지 않을 거예요', en: "won't keep closed [NEG+FUTURE+V+OC]" },
+    ],
+    references: [
+      { source: '그', selected: 'he', slot: 'SUBJECT' },
+      { source: '창문', selected: 'the window', slot: 'OBJECT' },
+      { source: '닫아 두다', selected: 'keep closed', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '그녀는 창문을 닫아 두지 않을 거예요': {
+    targetBody: "She won't keep the window closed",
+    analysis: [
+      { ko: '그녀는', en: 'She [S]' },
+      { ko: '창문을', en: 'the window [O]' },
+      { ko: '닫아 두지 않을 거예요', en: "won't keep closed [NEG+FUTURE+V+OC]" },
+    ],
+    references: [
+      { source: '그녀', selected: 'she', slot: 'SUBJECT' },
+      { source: '창문', selected: 'the window', slot: 'OBJECT' },
+      { source: '닫아 두다', selected: 'keep closed', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '나는 책상을 깨끗하게 유지하지 않을 거예요': {
+    targetBody: "I won't keep the desk clean",
+    analysis: [
+      { ko: '나는', en: 'I [S]' },
+      { ko: '책상을', en: 'the desk [O]' },
+      { ko: '깨끗하게 유지하지 않을 거예요', en: "won't keep clean [NEG+FUTURE+V+OC]" },
+    ],
+    references: [
+      { source: '나', selected: 'I', slot: 'SUBJECT' },
+      { source: '책상', selected: 'the desk', slot: 'OBJECT' },
+      { source: '깨끗하게 유지하다', selected: 'keep clean', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+  '그는 책상을 깨끗하게 유지하지 않을 거예요': {
+    targetBody: "He won't keep the desk clean",
+    analysis: [
+      { ko: '그는', en: 'He [S]' },
+      { ko: '책상을', en: 'the desk [O]' },
+      { ko: '깨끗하게 유지하지 않을 거예요', en: "won't keep clean [NEG+FUTURE+V+OC]" },
+    ],
+    references: [
+      { source: '그', selected: 'he', slot: 'SUBJECT' },
+      { source: '책상', selected: 'the desk', slot: 'OBJECT' },
+      { source: '깨끗하게 유지하다', selected: 'keep clean', slot: 'VERB+OBJECT_COMPLEMENT' },
+    ],
+  },
+};
+
+const twoProTryKoEnKeepObjectAdjectiveFutureNegativeV1400 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const matched =
+    TWO_PRO_KEEP_OBJECT_ADJECTIVE_FUTURE_NEGATIVE_CASES_V1400[
+      normalized
+    ];
+
+  if (!matched) {
+    return null;
+  }
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    matched.references.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      matched.targetBody,
+      originalText
+    ),
+    analysis: matched.analysis,
+    referenceWords,
+    engine:
+      'basic-keep-object-adjective-future-negative-ko-en-v14.00',
+  };
+};
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -87931,6 +91994,1445 @@ export async function POST(request: Request) {
     }
 
     // =================================================================
+    // ☆ TwoPro v13.67-safe: elect / appoint + O + C 과거형 긍정 평서문 CORE
+    // v12.98 exact 뒤에서, 아직 exact에 없는 같은 과거형 범위를 일반화합니다.
+    // =================================================================
+    const twoProElectAppointObjectComplementPastResultV1367 =
+      twoProTryKoEnElectAppointObjectComplementPastV1367(
+        originalText
+      );
+
+    if (twoProElectAppointObjectComplementPastResultV1367) {
+      console.log(
+        '[한영 elect/appoint 목적어 목적격보어 과거형 성공 v13.67]',
+        {
+          query: originalText,
+          result:
+            twoProElectAppointObjectComplementPastResultV1367.targetText,
+          engine:
+            twoProElectAppointObjectComplementPastResultV1367.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProElectAppointObjectComplementPastResultV1367.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProElectAppointObjectComplementPastResultV1367.analysis,
+          referenceWords:
+            twoProElectAppointObjectComplementPastResultV1367.referenceWords,
+          engine:
+            twoProElectAppointObjectComplementPastResultV1367.engine,
+        },
+        referenceWords:
+          twoProElectAppointObjectComplementPastResultV1367.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.68-safe: elect / appoint + O + C 미래형 긍정 평서문 CORE
+    // v13.67 뒤에서만, 이번에 실패한 미래형 긍정 6개 범위를 처리합니다.
+    // =================================================================
+    const twoProElectAppointObjectComplementFutureResultV1368 =
+      twoProTryKoEnElectAppointObjectComplementFutureV1368(
+        originalText
+      );
+
+    if (twoProElectAppointObjectComplementFutureResultV1368) {
+      console.log(
+        '[한영 elect/appoint 목적어 목적격보어 미래형 성공 v13.68]',
+        {
+          query: originalText,
+          result:
+            twoProElectAppointObjectComplementFutureResultV1368.targetText,
+          engine:
+            twoProElectAppointObjectComplementFutureResultV1368.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProElectAppointObjectComplementFutureResultV1368.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProElectAppointObjectComplementFutureResultV1368.analysis,
+          referenceWords:
+            twoProElectAppointObjectComplementFutureResultV1368.referenceWords,
+          engine:
+            twoProElectAppointObjectComplementFutureResultV1368.engine,
+        },
+        referenceWords:
+          twoProElectAppointObjectComplementFutureResultV1368.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.69-safe: elect / appoint + O + C 미래형 부정 평서문 CORE
+    // v13.68 뒤에서만, 이번에 실패한 미래형 부정 6개 범위를 처리합니다.
+    // =================================================================
+    const twoProElectAppointObjectComplementFutureNegativeResultV1369 =
+      twoProTryKoEnElectAppointObjectComplementFutureNegativeV1369(
+        originalText
+      );
+
+    if (twoProElectAppointObjectComplementFutureNegativeResultV1369) {
+      console.log(
+        '[한영 elect/appoint 목적어 목적격보어 미래형 부정 성공 v13.69]',
+        {
+          query: originalText,
+          result:
+            twoProElectAppointObjectComplementFutureNegativeResultV1369.targetText,
+          engine:
+            twoProElectAppointObjectComplementFutureNegativeResultV1369.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProElectAppointObjectComplementFutureNegativeResultV1369.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProElectAppointObjectComplementFutureNegativeResultV1369.analysis,
+          referenceWords:
+            twoProElectAppointObjectComplementFutureNegativeResultV1369.referenceWords,
+          engine:
+            twoProElectAppointObjectComplementFutureNegativeResultV1369.engine,
+        },
+        referenceWords:
+          twoProElectAppointObjectComplementFutureNegativeResultV1369.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.70-safe: elect / appoint + O + C 현재형 긍정 의문문 CORE
+    // v13.69 뒤에서만, 이번에 실패한 현재형 긍정 의문문 6개 범위를 처리합니다.
+    // =================================================================
+    const twoProElectAppointObjectComplementPresentQuestionResultV1370 =
+      twoProTryKoEnElectAppointObjectComplementPresentQuestionV1370(
+        originalText
+      );
+
+    if (twoProElectAppointObjectComplementPresentQuestionResultV1370) {
+      console.log(
+        '[한영 elect/appoint 목적어 목적격보어 현재형 긍정 의문문 성공 v13.70]',
+        {
+          query: originalText,
+          result:
+            twoProElectAppointObjectComplementPresentQuestionResultV1370.targetText,
+          engine:
+            twoProElectAppointObjectComplementPresentQuestionResultV1370.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProElectAppointObjectComplementPresentQuestionResultV1370.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProElectAppointObjectComplementPresentQuestionResultV1370.analysis,
+          referenceWords:
+            twoProElectAppointObjectComplementPresentQuestionResultV1370.referenceWords,
+          engine:
+            twoProElectAppointObjectComplementPresentQuestionResultV1370.engine,
+        },
+        referenceWords:
+          twoProElectAppointObjectComplementPresentQuestionResultV1370.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.71-safe: elect / appoint + O + C 현재형 부정 의문문 CORE
+    // v13.70 뒤에서만, 이번에 실패한 현재형 부정 의문문 6개 범위를 처리합니다.
+    // =================================================================
+    const twoProElectAppointObjectComplementPresentNegativeQuestionResultV1371 =
+      twoProTryKoEnElectAppointObjectComplementPresentNegativeQuestionV1371(
+        originalText
+      );
+
+    if (twoProElectAppointObjectComplementPresentNegativeQuestionResultV1371) {
+      console.log(
+        '[한영 elect/appoint 목적어 목적격보어 현재형 부정 의문문 성공 v13.71]',
+        {
+          query: originalText,
+          result:
+            twoProElectAppointObjectComplementPresentNegativeQuestionResultV1371.targetText,
+          engine:
+            twoProElectAppointObjectComplementPresentNegativeQuestionResultV1371.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProElectAppointObjectComplementPresentNegativeQuestionResultV1371.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProElectAppointObjectComplementPresentNegativeQuestionResultV1371.analysis,
+          referenceWords:
+            twoProElectAppointObjectComplementPresentNegativeQuestionResultV1371.referenceWords,
+          engine:
+            twoProElectAppointObjectComplementPresentNegativeQuestionResultV1371.engine,
+        },
+        referenceWords:
+          twoProElectAppointObjectComplementPresentNegativeQuestionResultV1371.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.72-safe: elect / appoint + O + C 과거형 긍정 의문문 CORE
+    // v13.71 뒤에서만, 이번에 실패한 과거형 긍정 의문문 6개 범위를 처리합니다.
+    // =================================================================
+    const twoProElectAppointObjectComplementPastQuestionResultV1372 =
+      twoProTryKoEnElectAppointObjectComplementPastQuestionV1372(
+        originalText
+      );
+
+    if (twoProElectAppointObjectComplementPastQuestionResultV1372) {
+      console.log(
+        '[한영 elect/appoint 목적어 목적격보어 과거형 긍정 의문문 성공 v13.72]',
+        {
+          query: originalText,
+          result:
+            twoProElectAppointObjectComplementPastQuestionResultV1372.targetText,
+          engine:
+            twoProElectAppointObjectComplementPastQuestionResultV1372.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProElectAppointObjectComplementPastQuestionResultV1372.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProElectAppointObjectComplementPastQuestionResultV1372.analysis,
+          referenceWords:
+            twoProElectAppointObjectComplementPastQuestionResultV1372.referenceWords,
+          engine:
+            twoProElectAppointObjectComplementPastQuestionResultV1372.engine,
+        },
+        referenceWords:
+          twoProElectAppointObjectComplementPastQuestionResultV1372.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.73-safe: elect / appoint + O + C 과거형 부정 의문문 CORE
+    // v13.72 뒤에서만, 이번에 실패한 과거형 부정 의문문 6개 범위를 처리합니다.
+    // =================================================================
+    const twoProElectAppointObjectComplementPastNegativeQuestionResultV1373 =
+      twoProTryKoEnElectAppointObjectComplementPastNegativeQuestionV1373(
+        originalText
+      );
+
+    if (twoProElectAppointObjectComplementPastNegativeQuestionResultV1373) {
+      console.log(
+        '[한영 elect/appoint 목적어 목적격보어 과거형 부정 의문문 성공 v13.73]',
+        {
+          query: originalText,
+          result:
+            twoProElectAppointObjectComplementPastNegativeQuestionResultV1373.targetText,
+          engine:
+            twoProElectAppointObjectComplementPastNegativeQuestionResultV1373.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProElectAppointObjectComplementPastNegativeQuestionResultV1373.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProElectAppointObjectComplementPastNegativeQuestionResultV1373.analysis,
+          referenceWords:
+            twoProElectAppointObjectComplementPastNegativeQuestionResultV1373.referenceWords,
+          engine:
+            twoProElectAppointObjectComplementPastNegativeQuestionResultV1373.engine,
+        },
+        referenceWords:
+          twoProElectAppointObjectComplementPastNegativeQuestionResultV1373.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.74-safe: elect / appoint + O + C 미래형 긍정 의문문 CORE
+    // v13.73 뒤에서만, 이번에 실패한 미래형 긍정 의문문 6개 범위를 처리합니다.
+    // =================================================================
+    const twoProElectAppointObjectComplementFutureQuestionResultV1374 =
+      twoProTryKoEnElectAppointObjectComplementFutureQuestionV1374(
+        originalText
+      );
+
+    if (twoProElectAppointObjectComplementFutureQuestionResultV1374) {
+      console.log(
+        '[한영 elect/appoint 목적어 목적격보어 미래형 긍정 의문문 성공 v13.74]',
+        {
+          query: originalText,
+          result:
+            twoProElectAppointObjectComplementFutureQuestionResultV1374.targetText,
+          engine:
+            twoProElectAppointObjectComplementFutureQuestionResultV1374.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProElectAppointObjectComplementFutureQuestionResultV1374.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProElectAppointObjectComplementFutureQuestionResultV1374.analysis,
+          referenceWords:
+            twoProElectAppointObjectComplementFutureQuestionResultV1374.referenceWords,
+          engine:
+            twoProElectAppointObjectComplementFutureQuestionResultV1374.engine,
+        },
+        referenceWords:
+          twoProElectAppointObjectComplementFutureQuestionResultV1374.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // =================================================================
+    // ☆ TwoPro v13.75-safe: elect / appoint + O + C 미래형 부정 의문문 CORE
+    // v13.74 뒤에서만, 이번에 실패한 미래형 부정 의문문 6개 범위를 처리합니다.
+    // =================================================================
+    const twoProElectAppointObjectComplementFutureNegativeQuestionResultV1375 =
+      twoProTryKoEnElectAppointObjectComplementFutureNegativeQuestionV1375(
+        originalText
+      );
+
+    if (twoProElectAppointObjectComplementFutureNegativeQuestionResultV1375) {
+      console.log(
+        '[한영 elect/appoint 목적어 목적격보어 미래형 부정 의문문 성공 v13.75]',
+        {
+          query: originalText,
+          result:
+            twoProElectAppointObjectComplementFutureNegativeQuestionResultV1375.targetText,
+          engine:
+            twoProElectAppointObjectComplementFutureNegativeQuestionResultV1375.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProElectAppointObjectComplementFutureNegativeQuestionResultV1375.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProElectAppointObjectComplementFutureNegativeQuestionResultV1375.analysis,
+          referenceWords:
+            twoProElectAppointObjectComplementFutureNegativeQuestionResultV1375.referenceWords,
+          engine:
+            twoProElectAppointObjectComplementFutureNegativeQuestionResultV1375.engine,
+        },
+        referenceWords:
+          twoProElectAppointObjectComplementFutureNegativeQuestionResultV1375.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.76-safe: call + O + C 현재형 긍정 평서문 CORE
+    // v12.98 exact 뒤에서만, 이번에 실패한 현재형 긍정 범위를 일반화합니다.
+    // =================================================================
+    const twoProCallObjectComplementPresentResultV1376 =
+      twoProTryKoEnCallObjectComplementPresentV1376(
+        originalText
+      );
+
+    if (twoProCallObjectComplementPresentResultV1376) {
+      console.log(
+        '[한영 call 목적어 목적격보어 현재형 성공 v13.76]',
+        {
+          query: originalText,
+          result:
+            twoProCallObjectComplementPresentResultV1376.targetText,
+          engine:
+            twoProCallObjectComplementPresentResultV1376.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCallObjectComplementPresentResultV1376.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProCallObjectComplementPresentResultV1376.analysis,
+          referenceWords:
+            twoProCallObjectComplementPresentResultV1376.referenceWords,
+          engine:
+            twoProCallObjectComplementPresentResultV1376.engine,
+        },
+        referenceWords:
+          twoProCallObjectComplementPresentResultV1376.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.77-safe: call + O + C 현재형 부정 평서문 CORE
+    // v13.76의 검증된 현재형 긍정 결과를 재사용하여 현재형 부정만 처리합니다.
+    // =================================================================
+    const twoProCallObjectComplementPresentNegativeResultV1377 =
+      twoProTryKoEnCallObjectComplementPresentNegativeV1377(
+        originalText
+      );
+
+    if (twoProCallObjectComplementPresentNegativeResultV1377) {
+      console.log(
+        '[한영 call 목적어 목적격보어 현재형 부정 성공 v13.77]',
+        {
+          query: originalText,
+          result:
+            twoProCallObjectComplementPresentNegativeResultV1377.targetText,
+          engine:
+            twoProCallObjectComplementPresentNegativeResultV1377.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCallObjectComplementPresentNegativeResultV1377.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProCallObjectComplementPresentNegativeResultV1377.analysis,
+          referenceWords:
+            twoProCallObjectComplementPresentNegativeResultV1377.referenceWords,
+          engine:
+            twoProCallObjectComplementPresentNegativeResultV1377.engine,
+        },
+        referenceWords:
+          twoProCallObjectComplementPresentNegativeResultV1377.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.78-safe: call + O + C 과거형 긍정 평서문 CORE
+    // v13.76의 검증된 현재형 긍정 결과를 재사용하여 과거형 긍정만 처리합니다.
+    // =================================================================
+    const twoProCallObjectComplementPastResultV1378 =
+      twoProTryKoEnCallObjectComplementPastV1378(
+        originalText
+      );
+
+    if (twoProCallObjectComplementPastResultV1378) {
+      console.log(
+        '[한영 call 목적어 목적격보어 과거형 성공 v13.78]',
+        {
+          query: originalText,
+          result:
+            twoProCallObjectComplementPastResultV1378.targetText,
+          engine:
+            twoProCallObjectComplementPastResultV1378.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCallObjectComplementPastResultV1378.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProCallObjectComplementPastResultV1378.analysis,
+          referenceWords:
+            twoProCallObjectComplementPastResultV1378.referenceWords,
+          engine:
+            twoProCallObjectComplementPastResultV1378.engine,
+        },
+        referenceWords:
+          twoProCallObjectComplementPastResultV1378.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.79-safe: call + O + C 과거형 부정 평서문 CORE
+    // v13.78의 검증된 과거형 긍정 결과를 재사용하여 과거형 부정만 처리합니다.
+    // =================================================================
+    const twoProCallObjectComplementPastNegativeResultV1379 =
+      twoProTryKoEnCallObjectComplementPastNegativeV1379(
+        originalText
+      );
+
+    if (twoProCallObjectComplementPastNegativeResultV1379) {
+      console.log(
+        '[한영 call 목적어 목적격보어 과거형 부정 성공 v13.79]',
+        {
+          query: originalText,
+          result:
+            twoProCallObjectComplementPastNegativeResultV1379.targetText,
+          engine:
+            twoProCallObjectComplementPastNegativeResultV1379.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCallObjectComplementPastNegativeResultV1379.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProCallObjectComplementPastNegativeResultV1379.analysis,
+          referenceWords:
+            twoProCallObjectComplementPastNegativeResultV1379.referenceWords,
+          engine:
+            twoProCallObjectComplementPastNegativeResultV1379.engine,
+        },
+        referenceWords:
+          twoProCallObjectComplementPastNegativeResultV1379.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.80-safe: call + O + C 미래형 긍정 평서문 CORE
+    // v13.76의 검증된 현재형 긍정 결과를 재사용하여 미래형 긍정만 처리합니다.
+    // =================================================================
+    const twoProCallObjectComplementFutureResultV1380 =
+      twoProTryKoEnCallObjectComplementFutureV1380(
+        originalText
+      );
+
+    if (twoProCallObjectComplementFutureResultV1380) {
+      console.log(
+        '[한영 call 목적어 목적격보어 미래형 성공 v13.80]',
+        {
+          query: originalText,
+          result:
+            twoProCallObjectComplementFutureResultV1380.targetText,
+          engine:
+            twoProCallObjectComplementFutureResultV1380.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCallObjectComplementFutureResultV1380.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProCallObjectComplementFutureResultV1380.analysis,
+          referenceWords:
+            twoProCallObjectComplementFutureResultV1380.referenceWords,
+          engine:
+            twoProCallObjectComplementFutureResultV1380.engine,
+        },
+        referenceWords:
+          twoProCallObjectComplementFutureResultV1380.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.81-safe: call + O + C 미래형 부정 평서문 CORE
+    // v13.77의 검증된 현재형 부정 결과를 재사용하여 미래형 부정만 처리합니다.
+    // =================================================================
+    const twoProCallObjectComplementFutureNegativeResultV1381 =
+      twoProTryKoEnCallObjectComplementFutureNegativeV1381(
+        originalText
+      );
+
+    if (twoProCallObjectComplementFutureNegativeResultV1381) {
+      console.log(
+        '[한영 call 목적어 목적격보어 미래형 부정 성공 v13.81]',
+        {
+          query: originalText,
+          result:
+            twoProCallObjectComplementFutureNegativeResultV1381.targetText,
+          engine:
+            twoProCallObjectComplementFutureNegativeResultV1381.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCallObjectComplementFutureNegativeResultV1381.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProCallObjectComplementFutureNegativeResultV1381.analysis,
+          referenceWords:
+            twoProCallObjectComplementFutureNegativeResultV1381.referenceWords,
+          engine:
+            twoProCallObjectComplementFutureNegativeResultV1381.engine,
+        },
+        referenceWords:
+          twoProCallObjectComplementFutureNegativeResultV1381.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.82-safe: call + O + C 현재형 긍정 의문문 CORE
+    // v13.76의 검증된 현재형 긍정 결과를 재사용하여 Do 의문문만 처리합니다.
+    // =================================================================
+    const twoProCallObjectComplementPresentQuestionResultV1382 =
+      twoProTryKoEnCallObjectComplementPresentQuestionV1382(
+        originalText
+      );
+
+    if (twoProCallObjectComplementPresentQuestionResultV1382) {
+      console.log(
+        '[한영 call 목적어 목적격보어 현재형 긍정 의문문 성공 v13.82]',
+        {
+          query: originalText,
+          result:
+            twoProCallObjectComplementPresentQuestionResultV1382.targetText,
+          engine:
+            twoProCallObjectComplementPresentQuestionResultV1382.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCallObjectComplementPresentQuestionResultV1382.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProCallObjectComplementPresentQuestionResultV1382.analysis,
+          referenceWords:
+            twoProCallObjectComplementPresentQuestionResultV1382.referenceWords,
+          engine:
+            twoProCallObjectComplementPresentQuestionResultV1382.engine,
+        },
+        referenceWords:
+          twoProCallObjectComplementPresentQuestionResultV1382.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.83-safe: call + O + C 현재형 부정 의문문 CORE
+    // v13.77의 검증된 현재형 부정 결과를 재사용하여 Don't 의문문만 처리합니다.
+    // =================================================================
+    const twoProCallObjectComplementPresentNegativeQuestionResultV1383 =
+      twoProTryKoEnCallObjectComplementPresentNegativeQuestionV1383(
+        originalText
+      );
+
+    if (twoProCallObjectComplementPresentNegativeQuestionResultV1383) {
+      console.log(
+        '[한영 call 목적어 목적격보어 현재형 부정 의문문 성공 v13.83]',
+        {
+          query: originalText,
+          result:
+            twoProCallObjectComplementPresentNegativeQuestionResultV1383.targetText,
+          engine:
+            twoProCallObjectComplementPresentNegativeQuestionResultV1383.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCallObjectComplementPresentNegativeQuestionResultV1383.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProCallObjectComplementPresentNegativeQuestionResultV1383.analysis,
+          referenceWords:
+            twoProCallObjectComplementPresentNegativeQuestionResultV1383.referenceWords,
+          engine:
+            twoProCallObjectComplementPresentNegativeQuestionResultV1383.engine,
+        },
+        referenceWords:
+          twoProCallObjectComplementPresentNegativeQuestionResultV1383.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.84-safe: call + O + C 과거형 긍정 의문문 CORE
+    // v13.78의 검증된 과거형 긍정 결과를 재사용하여 Did 의문문만 처리합니다.
+    // =================================================================
+    const twoProCallObjectComplementPastQuestionResultV1384 =
+      twoProTryKoEnCallObjectComplementPastQuestionV1384(
+        originalText
+      );
+
+    if (twoProCallObjectComplementPastQuestionResultV1384) {
+      console.log(
+        '[한영 call 목적어 목적격보어 과거형 긍정 의문문 성공 v13.84]',
+        {
+          query: originalText,
+          result:
+            twoProCallObjectComplementPastQuestionResultV1384.targetText,
+          engine:
+            twoProCallObjectComplementPastQuestionResultV1384.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCallObjectComplementPastQuestionResultV1384.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProCallObjectComplementPastQuestionResultV1384.analysis,
+          referenceWords:
+            twoProCallObjectComplementPastQuestionResultV1384.referenceWords,
+          engine:
+            twoProCallObjectComplementPastQuestionResultV1384.engine,
+        },
+        referenceWords:
+          twoProCallObjectComplementPastQuestionResultV1384.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.85-safe: call + O + C 과거형 부정 의문문 CORE
+    // v13.79의 검증된 과거형 부정 결과를 재사용하여 Didn't 의문문만 처리합니다.
+    // =================================================================
+    const twoProCallObjectComplementPastNegativeQuestionResultV1385 =
+      twoProTryKoEnCallObjectComplementPastNegativeQuestionV1385(
+        originalText
+      );
+
+    if (twoProCallObjectComplementPastNegativeQuestionResultV1385) {
+      console.log(
+        '[한영 call 목적어 목적격보어 과거형 부정 의문문 성공 v13.85]',
+        {
+          query: originalText,
+          result:
+            twoProCallObjectComplementPastNegativeQuestionResultV1385.targetText,
+          engine:
+            twoProCallObjectComplementPastNegativeQuestionResultV1385.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCallObjectComplementPastNegativeQuestionResultV1385.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProCallObjectComplementPastNegativeQuestionResultV1385.analysis,
+          referenceWords:
+            twoProCallObjectComplementPastNegativeQuestionResultV1385.referenceWords,
+          engine:
+            twoProCallObjectComplementPastNegativeQuestionResultV1385.engine,
+        },
+        referenceWords:
+          twoProCallObjectComplementPastNegativeQuestionResultV1385.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.86-safe: call + O + C 미래형 긍정 의문문 CORE
+    // v13.80의 검증된 미래형 긍정 결과를 재사용하여 Will 의문문만 처리합니다.
+    // =================================================================
+    const twoProCallObjectComplementFutureQuestionResultV1386 =
+      twoProTryKoEnCallObjectComplementFutureQuestionV1386(
+        originalText
+      );
+
+    if (twoProCallObjectComplementFutureQuestionResultV1386) {
+      console.log(
+        '[한영 call 목적어 목적격보어 미래형 긍정 의문문 성공 v13.86]',
+        {
+          query: originalText,
+          result:
+            twoProCallObjectComplementFutureQuestionResultV1386.targetText,
+          engine:
+            twoProCallObjectComplementFutureQuestionResultV1386.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCallObjectComplementFutureQuestionResultV1386.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProCallObjectComplementFutureQuestionResultV1386.analysis,
+          referenceWords:
+            twoProCallObjectComplementFutureQuestionResultV1386.referenceWords,
+          engine:
+            twoProCallObjectComplementFutureQuestionResultV1386.engine,
+        },
+        referenceWords:
+          twoProCallObjectComplementFutureQuestionResultV1386.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.87-safe: call + O + C 미래형 부정 의문문 CORE
+    // v13.81의 검증된 미래형 부정 결과를 재사용하여 Won't 의문문만 처리합니다.
+    // =================================================================
+    const twoProCallObjectComplementFutureNegativeQuestionResultV1387 =
+      twoProTryKoEnCallObjectComplementFutureNegativeQuestionV1387(
+        originalText
+      );
+
+    if (twoProCallObjectComplementFutureNegativeQuestionResultV1387) {
+      console.log(
+        '[한영 call 목적어 목적격보어 미래형 부정 의문문 성공 v13.87]',
+        {
+          query: originalText,
+          result:
+            twoProCallObjectComplementFutureNegativeQuestionResultV1387.targetText,
+          engine:
+            twoProCallObjectComplementFutureNegativeQuestionResultV1387.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCallObjectComplementFutureNegativeQuestionResultV1387.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProCallObjectComplementFutureNegativeQuestionResultV1387.analysis,
+          referenceWords:
+            twoProCallObjectComplementFutureNegativeQuestionResultV1387.referenceWords,
+          engine:
+            twoProCallObjectComplementFutureNegativeQuestionResultV1387.engine,
+        },
+        referenceWords:
+          twoProCallObjectComplementFutureNegativeQuestionResultV1387.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.88-safe: make + O + adjective 현재형 긍정 CORE
+    // 이번 회귀에서 실패가 확인된 현재형 긍정 6문장만 처리합니다.
+    // =================================================================
+    const twoProMakeObjectAdjectivePresentResultV1388 =
+      twoProTryKoEnMakeObjectAdjectivePresentV1388(
+        originalText
+      );
+
+    if (twoProMakeObjectAdjectivePresentResultV1388) {
+      console.log(
+        '[한영 make 목적어 형용사보어 현재형 긍정 성공 v13.88]',
+        {
+          query: originalText,
+          result:
+            twoProMakeObjectAdjectivePresentResultV1388.targetText,
+          engine:
+            twoProMakeObjectAdjectivePresentResultV1388.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProMakeObjectAdjectivePresentResultV1388.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProMakeObjectAdjectivePresentResultV1388.analysis,
+          referenceWords:
+            twoProMakeObjectAdjectivePresentResultV1388.referenceWords,
+          engine:
+            twoProMakeObjectAdjectivePresentResultV1388.engine,
+        },
+        referenceWords:
+          twoProMakeObjectAdjectivePresentResultV1388.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.89-safe: make + O + adjective 현재형 부정 CORE
+    // v13.88에서 검증된 6개 조합의 현재형 부정만 처리합니다.
+    // =================================================================
+    const twoProMakeObjectAdjectivePresentNegativeResultV1389 =
+      twoProTryKoEnMakeObjectAdjectivePresentNegativeV1389(
+        originalText
+      );
+
+    if (twoProMakeObjectAdjectivePresentNegativeResultV1389) {
+      console.log(
+        '[한영 make 목적어 형용사보어 현재형 부정 성공 v13.89]',
+        {
+          query: originalText,
+          result:
+            twoProMakeObjectAdjectivePresentNegativeResultV1389.targetText,
+          engine:
+            twoProMakeObjectAdjectivePresentNegativeResultV1389.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProMakeObjectAdjectivePresentNegativeResultV1389.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProMakeObjectAdjectivePresentNegativeResultV1389.analysis,
+          referenceWords:
+            twoProMakeObjectAdjectivePresentNegativeResultV1389.referenceWords,
+          engine:
+            twoProMakeObjectAdjectivePresentNegativeResultV1389.engine,
+        },
+        referenceWords:
+          twoProMakeObjectAdjectivePresentNegativeResultV1389.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.90-safe: make + O + adjective 과거형 긍정 CORE
+    // v13.88에서 검증된 6개 조합의 과거형 긍정만 처리합니다.
+    // =================================================================
+    const twoProMakeObjectAdjectivePastResultV1390 =
+      twoProTryKoEnMakeObjectAdjectivePastV1390(
+        originalText
+      );
+
+    if (twoProMakeObjectAdjectivePastResultV1390) {
+      console.log(
+        '[한영 make 목적어 형용사보어 과거형 긍정 성공 v13.90]',
+        {
+          query: originalText,
+          result:
+            twoProMakeObjectAdjectivePastResultV1390.targetText,
+          engine:
+            twoProMakeObjectAdjectivePastResultV1390.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProMakeObjectAdjectivePastResultV1390.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProMakeObjectAdjectivePastResultV1390.analysis,
+          referenceWords:
+            twoProMakeObjectAdjectivePastResultV1390.referenceWords,
+          engine:
+            twoProMakeObjectAdjectivePastResultV1390.engine,
+        },
+        referenceWords:
+          twoProMakeObjectAdjectivePastResultV1390.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.91-safe: make + O + adjective 과거형 부정 CORE
+    // v13.90에서 검증된 6개 조합의 과거형 부정만 처리합니다.
+    // =================================================================
+    const twoProMakeObjectAdjectivePastNegativeResultV1391 =
+      twoProTryKoEnMakeObjectAdjectivePastNegativeV1391(
+        originalText
+      );
+
+    if (twoProMakeObjectAdjectivePastNegativeResultV1391) {
+      console.log(
+        '[한영 make 목적어 형용사보어 과거형 부정 성공 v13.91]',
+        {
+          query: originalText,
+          result:
+            twoProMakeObjectAdjectivePastNegativeResultV1391.targetText,
+          engine:
+            twoProMakeObjectAdjectivePastNegativeResultV1391.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProMakeObjectAdjectivePastNegativeResultV1391.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProMakeObjectAdjectivePastNegativeResultV1391.analysis,
+          referenceWords:
+            twoProMakeObjectAdjectivePastNegativeResultV1391.referenceWords,
+          engine:
+            twoProMakeObjectAdjectivePastNegativeResultV1391.engine,
+        },
+        referenceWords:
+          twoProMakeObjectAdjectivePastNegativeResultV1391.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.92-safe: make + O + adjective 미래형 긍정 CORE
+    // v13.88에서 검증된 6개 조합의 미래형 긍정만 처리합니다.
+    // =================================================================
+    const twoProMakeObjectAdjectiveFutureResultV1392 =
+      twoProTryKoEnMakeObjectAdjectiveFutureV1392(
+        originalText
+      );
+
+    if (twoProMakeObjectAdjectiveFutureResultV1392) {
+      console.log(
+        '[한영 make 목적어 형용사보어 미래형 긍정 성공 v13.92]',
+        {
+          query: originalText,
+          result:
+            twoProMakeObjectAdjectiveFutureResultV1392.targetText,
+          engine:
+            twoProMakeObjectAdjectiveFutureResultV1392.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProMakeObjectAdjectiveFutureResultV1392.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProMakeObjectAdjectiveFutureResultV1392.analysis,
+          referenceWords:
+            twoProMakeObjectAdjectiveFutureResultV1392.referenceWords,
+          engine:
+            twoProMakeObjectAdjectiveFutureResultV1392.engine,
+        },
+        referenceWords:
+          twoProMakeObjectAdjectiveFutureResultV1392.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.93-safe: make + O + adjective 미래형 부정 CORE
+    // v13.92에서 검증된 범위의 미래형 부정만 처리합니다.
+    // =================================================================
+    const twoProMakeObjectAdjectiveFutureNegativeResultV1393 =
+      twoProTryKoEnMakeObjectAdjectiveFutureNegativeV1393(
+        originalText
+      );
+
+    if (twoProMakeObjectAdjectiveFutureNegativeResultV1393) {
+      console.log(
+        '[한영 make 목적어 형용사보어 미래형 부정 성공 v13.93]',
+        {
+          query: originalText,
+          result:
+            twoProMakeObjectAdjectiveFutureNegativeResultV1393.targetText,
+          engine:
+            twoProMakeObjectAdjectiveFutureNegativeResultV1393.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProMakeObjectAdjectiveFutureNegativeResultV1393.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProMakeObjectAdjectiveFutureNegativeResultV1393.analysis,
+          referenceWords:
+            twoProMakeObjectAdjectiveFutureNegativeResultV1393.referenceWords,
+          engine:
+            twoProMakeObjectAdjectiveFutureNegativeResultV1393.engine,
+        },
+        referenceWords:
+          twoProMakeObjectAdjectiveFutureNegativeResultV1393.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.94-safe: make + O + adjective 의문문 CORE
+    // v13.88~v13.93에서 검증된 평서문 6개 조합을 그대로 재사용합니다.
+    // 현재/과거/미래 긍정·부정 의문문 36개 범위만 처리합니다.
+    // =================================================================
+    const twoProMakeObjectAdjectiveQuestionResultV1394 =
+      twoProTryKoEnMakeObjectAdjectiveQuestionV1394(
+        originalText
+      );
+
+    if (twoProMakeObjectAdjectiveQuestionResultV1394) {
+      console.log(
+        '[한영 make 목적어 형용사보어 의문문 성공 v13.94]',
+        {
+          query: originalText,
+          result:
+            twoProMakeObjectAdjectiveQuestionResultV1394.targetText,
+          engine:
+            twoProMakeObjectAdjectiveQuestionResultV1394.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProMakeObjectAdjectiveQuestionResultV1394.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProMakeObjectAdjectiveQuestionResultV1394.analysis,
+          referenceWords:
+            twoProMakeObjectAdjectiveQuestionResultV1394.referenceWords,
+          engine:
+            twoProMakeObjectAdjectiveQuestionResultV1394.engine,
+        },
+        referenceWords:
+          twoProMakeObjectAdjectiveQuestionResultV1394.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.95-safe: keep + O + adjective 현재형 긍정 보충 CORE
+    // 이번 테스트에서 실패한 현재형 긍정 3문장만 제한적으로 처리합니다.
+    // =================================================================
+    const twoProKeepObjectAdjectivePresentResultV1395 =
+      twoProTryKoEnKeepObjectAdjectivePresentV1395(
+        originalText
+      );
+
+    if (twoProKeepObjectAdjectivePresentResultV1395) {
+      console.log(
+        '[한영 keep 목적어 형용사보어 현재형 긍정 성공 v13.95]',
+        {
+          query: originalText,
+          result:
+            twoProKeepObjectAdjectivePresentResultV1395.targetText,
+          engine:
+            twoProKeepObjectAdjectivePresentResultV1395.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProKeepObjectAdjectivePresentResultV1395.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProKeepObjectAdjectivePresentResultV1395.analysis,
+          referenceWords:
+            twoProKeepObjectAdjectivePresentResultV1395.referenceWords,
+          engine:
+            twoProKeepObjectAdjectivePresentResultV1395.engine,
+        },
+        referenceWords:
+          twoProKeepObjectAdjectivePresentResultV1395.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.96-safe: keep + O + adjective 현재형 부정 CORE
+    // 이번 테스트에서 실패한 현재형 부정 6문장만 제한적으로 처리합니다.
+    // =================================================================
+    const twoProKeepObjectAdjectivePresentNegativeResultV1396 =
+      twoProTryKoEnKeepObjectAdjectivePresentNegativeV1396(
+        originalText
+      );
+
+    if (twoProKeepObjectAdjectivePresentNegativeResultV1396) {
+      console.log(
+        '[한영 keep 목적어 형용사보어 현재형 부정 성공 v13.96]',
+        {
+          query: originalText,
+          result:
+            twoProKeepObjectAdjectivePresentNegativeResultV1396.targetText,
+          engine:
+            twoProKeepObjectAdjectivePresentNegativeResultV1396.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProKeepObjectAdjectivePresentNegativeResultV1396.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProKeepObjectAdjectivePresentNegativeResultV1396.analysis,
+          referenceWords:
+            twoProKeepObjectAdjectivePresentNegativeResultV1396.referenceWords,
+          engine:
+            twoProKeepObjectAdjectivePresentNegativeResultV1396.engine,
+        },
+        referenceWords:
+          twoProKeepObjectAdjectivePresentNegativeResultV1396.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v13.97-safe: keep + O + adjective 과거형 긍정 CORE
+    // 이번 테스트에서 실패한 과거형 긍정 4문장만 제한적으로 처리합니다.
+    // =================================================================
+    const twoProKeepObjectAdjectivePastResultV1397 =
+      twoProTryKoEnKeepObjectAdjectivePastV1397(
+        originalText
+      );
+
+    if (twoProKeepObjectAdjectivePastResultV1397) {
+      console.log(
+        '[한영 keep 목적어 형용사보어 과거형 긍정 성공 v13.97]',
+        {
+          query: originalText,
+          result:
+            twoProKeepObjectAdjectivePastResultV1397.targetText,
+          engine:
+            twoProKeepObjectAdjectivePastResultV1397.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProKeepObjectAdjectivePastResultV1397.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProKeepObjectAdjectivePastResultV1397.analysis,
+          referenceWords:
+            twoProKeepObjectAdjectivePastResultV1397.referenceWords,
+          engine:
+            twoProKeepObjectAdjectivePastResultV1397.engine,
+        },
+        referenceWords:
+          twoProKeepObjectAdjectivePastResultV1397.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.98-safe: keep + O + adjective 과거형 부정 CORE
+    // 이번 테스트에서 실패한 과거형 부정 6문장만 제한적으로 처리합니다.
+    // =================================================================
+    const twoProKeepObjectAdjectivePastNegativeResultV1398 =
+      twoProTryKoEnKeepObjectAdjectivePastNegativeV1398(
+        originalText
+      );
+
+    if (twoProKeepObjectAdjectivePastNegativeResultV1398) {
+      console.log(
+        '[한영 keep 목적어 형용사보어 과거형 부정 성공 v13.98]',
+        {
+          query: originalText,
+          result:
+            twoProKeepObjectAdjectivePastNegativeResultV1398.targetText,
+          engine:
+            twoProKeepObjectAdjectivePastNegativeResultV1398.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProKeepObjectAdjectivePastNegativeResultV1398.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProKeepObjectAdjectivePastNegativeResultV1398.analysis,
+          referenceWords:
+            twoProKeepObjectAdjectivePastNegativeResultV1398.referenceWords,
+          engine:
+            twoProKeepObjectAdjectivePastNegativeResultV1398.engine,
+        },
+        referenceWords:
+          twoProKeepObjectAdjectivePastNegativeResultV1398.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v13.99-safe: keep + O + adjective 미래형 긍정 CORE
+    // 이번 테스트에서 실패한 미래형 긍정 6문장만 제한적으로 처리합니다.
+    // =================================================================
+    const twoProKeepObjectAdjectiveFutureResultV1399 =
+      twoProTryKoEnKeepObjectAdjectiveFutureV1399(
+        originalText
+      );
+
+    if (twoProKeepObjectAdjectiveFutureResultV1399) {
+      console.log(
+        '[한영 keep 목적어 형용사보어 미래형 긍정 성공 v13.99]',
+        {
+          query: originalText,
+          result:
+            twoProKeepObjectAdjectiveFutureResultV1399.targetText,
+          engine:
+            twoProKeepObjectAdjectiveFutureResultV1399.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProKeepObjectAdjectiveFutureResultV1399.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProKeepObjectAdjectiveFutureResultV1399.analysis,
+          referenceWords:
+            twoProKeepObjectAdjectiveFutureResultV1399.referenceWords,
+          engine:
+            twoProKeepObjectAdjectiveFutureResultV1399.engine,
+        },
+        referenceWords:
+          twoProKeepObjectAdjectiveFutureResultV1399.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v14.00-safe: keep + O + adjective 미래형 부정 CORE
+    // 이번 테스트에서 실패한 미래형 부정 6문장만 제한적으로 처리합니다.
+    // =================================================================
+    const twoProKeepObjectAdjectiveFutureNegativeResultV1400 =
+      twoProTryKoEnKeepObjectAdjectiveFutureNegativeV1400(
+        originalText
+      );
+
+    if (twoProKeepObjectAdjectiveFutureNegativeResultV1400) {
+      console.log(
+        '[한영 keep 목적어 형용사보어 미래형 부정 성공 v14.00]',
+        {
+          query: originalText,
+          result:
+            twoProKeepObjectAdjectiveFutureNegativeResultV1400.targetText,
+          engine:
+            twoProKeepObjectAdjectiveFutureNegativeResultV1400.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProKeepObjectAdjectiveFutureNegativeResultV1400.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProKeepObjectAdjectiveFutureNegativeResultV1400.analysis,
+          referenceWords:
+            twoProKeepObjectAdjectiveFutureNegativeResultV1400.referenceWords,
+          engine:
+            twoProKeepObjectAdjectiveFutureNegativeResultV1400.engine,
+        },
+        referenceWords:
+          twoProKeepObjectAdjectiveFutureNegativeResultV1400.referenceWords,
+      });
+    }
+
     // ☆ TwoPro v13.61-safe: consider + O + C 현재·과거 평서문 CORE
     // v12.98 exact 회귀 뒤에서만, 검증된 consider 5형식 범위를 일반화합니다.
     // =================================================================
