@@ -32,7 +32,7 @@ export default function AdSensePlaceholder(props: {
       className="relative w-full my-6 bg-slate-50 border border-dashed border-slate-200 rounded-lg flex flex-col items-center justify-center overflow-hidden"
     >
       {/* 🌟 수정 포인트 2: 로컬(PC) 환경에서 빈 공간일 때 텍스트가 박스 정중앙에 예쁘게 보이도록 절대좌표 적용 */}
-      {debugLabel ? (
+      {process.env.NODE_ENV !== 'production' && debugLabel ? (
         <div className="absolute inset-0 flex items-center justify-center text-[12px] text-slate-400 font-medium pointer-events-none z-0">
           [광고 예약 영역] {debugLabel}
         </div>
