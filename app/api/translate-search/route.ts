@@ -105722,10 +105722,17 @@ if (twoProBasicPassiveResultV1295) {
     // =================================================================
     // ☆ TwoPro Slot Similarity v1 — Stage 7 Shadow Mode
     //
-    // 기존 JSON 슬롯 템플릿이 결과를 만들지 못했을 때만 실행합니다.
-    // helper/DB 조회가 실패해도 기존 번역 route에는 영향을 주지 않습니다.
+    // Shadow Mode는 실제 번역 결과가 아닌 진단용이므로
+    // 기본적으로 실행하지 않습니다.
+    // 필요할 때만 환경변수로 다시 활성화합니다.
     // =================================================================
-    if (!twoProTemplateResult) {
+    const twoProEnableSlotSimilarityShadowV1 =
+      process.env.TWO_PRO_ENABLE_SLOT_SIMILARITY_SHADOW === '1';
+
+    if (
+      !twoProTemplateResult &&
+      twoProEnableSlotSimilarityShadowV1
+    ) {
       let twoProShadowSupabaseV1:
         any = undefined;
 
