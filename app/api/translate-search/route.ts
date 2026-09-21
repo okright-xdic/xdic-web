@@ -86045,6 +86045,1916 @@ const twoProTryKoEnFeelObjectIngQuestionV1409 = (
   };
 };
 
+
+// ============================================================================
+// ☆ TwoPro v14.10-safe: notice + O + -ing 평서문 CORE
+//
+// 이번 회귀 테스트에서 번역 블록이 표시되지 않은
+// notice + 목적어 + 현재분사(-ing) 지각동사 5형식 평서문 36개만 처리합니다.
+//
+// 처리 범위:
+// - 나는 + 그가 + 방을 나가고 있는 것을 + 알아차리다
+// - 우리는 + 아이가 + 울고 있는 것을 + 알아차리다
+// - 그는 + 민수가 + 나를 보고 있는 것을 + 알아차리다
+// - 그녀는 + 그가 + 문을 닫고 있는 것을 + 알아차리다
+// - 나는 + 아이가 + 손을 흔들고 있는 것을 + 알아차리다
+// - 우리는 + 민수가 + 우리를 따라오고 있는 것을 + 알아차리다
+// - 현재형 긍정·부정, 과거형 긍정·부정, 미래형 긍정·부정 평서문
+//
+// 안전 원칙:
+// 1. 이번 회귀 테스트의 6개 주어·목적어·-ing 조합만 처리합니다.
+// 2. 문장 끝이 ?/？인 의문문은 처리하지 않습니다.
+// 3. notice + O + -ing 구조를 유지하며 to를 삽입하지 않습니다.
+// 4. 현재형 3인칭 단수는 notices, 부정은 doesn't notice를 사용합니다.
+// 5. 과거형은 noticed/didn't notice, 미래형은 will notice/won't notice를 사용합니다.
+// 6. 기존 v12.98~v14.09 CORE는 수정하지 않습니다.
+// ============================================================================
+type TwoProNoticeObjectIngStatementModeV1410 =
+  | 'present-positive'
+  | 'present-negative'
+  | 'past-positive'
+  | 'past-negative'
+  | 'future-positive'
+  | 'future-negative';
+
+const TWO_PRO_NOTICE_OBJECT_ING_PREDICATE_MODES_V1410: Readonly<
+  Record<string, TwoProNoticeObjectIngStatementModeV1410>
+> = {
+  '알아차려요': 'present-positive',
+  '알아차리지 않아요': 'present-negative',
+  '알아차렸어요': 'past-positive',
+  '알아차리지 않았어요': 'past-negative',
+  '알아차릴 거예요': 'future-positive',
+  '알아차리지 않을 거예요': 'future-negative',
+};
+
+const TWO_PRO_NOTICE_OBJECT_ING_SUBJECTS_V1410: Readonly<
+  Record<
+    string,
+    {
+      en: string;
+      referenceSource: string;
+      referenceSelected: string;
+      thirdPersonSingular: boolean;
+    }
+  >
+> = {
+  '나는': {
+    en: 'I',
+    referenceSource: '나',
+    referenceSelected: 'I',
+    thirdPersonSingular: false,
+  },
+  '우리는': {
+    en: 'We',
+    referenceSource: '우리',
+    referenceSelected: 'we',
+    thirdPersonSingular: false,
+  },
+  '그는': {
+    en: 'He',
+    referenceSource: '그',
+    referenceSelected: 'he',
+    thirdPersonSingular: true,
+  },
+  '그녀는': {
+    en: 'She',
+    referenceSource: '그녀',
+    referenceSelected: 'she',
+    thirdPersonSingular: true,
+  },
+};
+
+const TWO_PRO_NOTICE_OBJECT_ING_OBJECTS_V1410: Readonly<
+  Record<
+    string,
+    {
+      en: string;
+      referenceSource: string;
+      referenceSelected: string;
+    }
+  >
+> = {
+  '그가': {
+    en: 'him',
+    referenceSource: '그',
+    referenceSelected: 'him',
+  },
+  '아이가': {
+    en: 'the child',
+    referenceSource: '아이',
+    referenceSelected: 'the child',
+  },
+  '민수가': {
+    en: 'Minsu',
+    referenceSource: '민수',
+    referenceSelected: 'Minsu',
+  },
+};
+
+const TWO_PRO_NOTICE_OBJECT_ING_COMPLEMENTS_V1410: Readonly<
+  Record<
+    string,
+    {
+      en: string;
+      referenceSource: string;
+      referenceSelected: string;
+    }
+  >
+> = {
+  '방을 나가고 있는 것을': {
+    en: 'leaving the room',
+    referenceSource: '방을 나가다',
+    referenceSelected: 'leaving the room',
+  },
+  '울고 있는 것을': {
+    en: 'crying',
+    referenceSource: '울다',
+    referenceSelected: 'crying',
+  },
+  '나를 보고 있는 것을': {
+    en: 'looking at me',
+    referenceSource: '나를 보다',
+    referenceSelected: 'looking at me',
+  },
+  '문을 닫고 있는 것을': {
+    en: 'closing the door',
+    referenceSource: '문을 닫다',
+    referenceSelected: 'closing the door',
+  },
+  '손을 흔들고 있는 것을': {
+    en: 'waving',
+    referenceSource: '손을 흔들다',
+    referenceSelected: 'waving',
+  },
+  '우리를 따라오고 있는 것을': {
+    en: 'following us',
+    referenceSource: '우리를 따라오다',
+    referenceSelected: 'following us',
+  },
+};
+
+const TWO_PRO_NOTICE_OBJECT_ING_ALLOWED_COMBINATIONS_V1410 =
+  new Set<string>([
+    '나는|그가|방을 나가고 있는 것을',
+    '우리는|아이가|울고 있는 것을',
+    '그는|민수가|나를 보고 있는 것을',
+    '그녀는|그가|문을 닫고 있는 것을',
+    '나는|아이가|손을 흔들고 있는 것을',
+    '우리는|민수가|우리를 따라오고 있는 것을',
+  ]);
+
+const twoProTryKoEnNoticeObjectIngStatementV1410 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[.!]+\s*$/g, '')
+    .trim();
+
+  const match =
+    /^(나는|우리는|그는|그녀는)\s+(그가|아이가|민수가)\s+(방을 나가고 있는 것을|울고 있는 것을|나를 보고 있는 것을|문을 닫고 있는 것을|손을 흔들고 있는 것을|우리를 따라오고 있는 것을)\s+(알아차려요|알아차리지 않아요|알아차렸어요|알아차리지 않았어요|알아차릴 거예요|알아차리지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectKo = match[1];
+  const objectKo = match[2];
+  const complementKo = match[3];
+  const predicateKo = match[4];
+
+  const combinationKey =
+    `${subjectKo}|${objectKo}|${complementKo}`;
+
+  if (
+    !TWO_PRO_NOTICE_OBJECT_ING_ALLOWED_COMBINATIONS_V1410.has(
+      combinationKey
+    )
+  ) {
+    return null;
+  }
+
+  const subjectInfo =
+    TWO_PRO_NOTICE_OBJECT_ING_SUBJECTS_V1410[subjectKo];
+  const objectInfo =
+    TWO_PRO_NOTICE_OBJECT_ING_OBJECTS_V1410[objectKo];
+  const complementInfo =
+    TWO_PRO_NOTICE_OBJECT_ING_COMPLEMENTS_V1410[complementKo];
+  const mode =
+    TWO_PRO_NOTICE_OBJECT_ING_PREDICATE_MODES_V1410[
+      predicateKo
+    ];
+
+  if (
+    !subjectInfo ||
+    !objectInfo ||
+    !complementInfo ||
+    !mode
+  ) {
+    return null;
+  }
+
+  let verbPhrase = '';
+  let modeLabel = '';
+
+  if (mode === 'present-positive') {
+    verbPhrase = subjectInfo.thirdPersonSingular
+      ? 'notices'
+      : 'notice';
+    modeLabel = 'PRESENT';
+  } else if (mode === 'present-negative') {
+    verbPhrase = subjectInfo.thirdPersonSingular
+      ? "doesn't notice"
+      : "don't notice";
+    modeLabel = 'PRESENT:NEG';
+  } else if (mode === 'past-positive') {
+    verbPhrase = 'noticed';
+    modeLabel = 'PAST';
+  } else if (mode === 'past-negative') {
+    verbPhrase = "didn't notice";
+    modeLabel = 'PAST:NEG';
+  } else if (mode === 'future-positive') {
+    verbPhrase = 'will notice';
+    modeLabel = 'FUTURE';
+  } else {
+    verbPhrase = "won't notice";
+    modeLabel = 'FUTURE:NEG';
+  }
+
+  const targetBody =
+    `${subjectInfo.en} ${verbPhrase} ${objectInfo.en} ${complementInfo.en}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    {
+      ko: subjectKo,
+      en: `${subjectInfo.en} [S]`,
+    },
+    {
+      ko: objectKo,
+      en: `${objectInfo.en} [O]`,
+    },
+    {
+      ko: complementKo,
+      en: `${complementInfo.en} [OC:V-ING]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${verbPhrase} [V:${modeLabel}]`,
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicFutureSimpleReferenceV1160(
+      subjectInfo.referenceSource,
+      subjectInfo.referenceSelected,
+      'SUBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      objectInfo.referenceSource,
+      objectInfo.referenceSelected,
+      'OBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      complementInfo.referenceSource,
+      complementInfo.referenceSelected,
+      'OBJECT_COMPLEMENT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      '알아차리다',
+      'notice',
+      'VERB'
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      `basic-notice-object-ing-${mode}-ko-en-v14.10`,
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v14.11-safe: notice + O + -ing 의문문 CORE
+//
+// v14.10에서 실제 회귀 테스트를 통과한 6개 notice + O + -ing 조합을
+// 그대로 유지하면서, 같은 현재/과거/미래 긍정·부정 의문문 36개만 처리합니다.
+//
+// 안전 원칙:
+// 1. 문장 끝에 명시적 ?/？가 있는 입력만 처리합니다.
+// 2. v14.10의 6개 주어·목적어·-ing 조합 밖으로 일반화하지 않습니다.
+// 3. notice + O + -ing 구조를 유지하며 to를 삽입하지 않습니다.
+// 4. 현재형은 Do/Does, 부정은 Don't/Doesn't를 사용합니다.
+// 5. 과거형은 Did/Didn't, 미래형은 Will/Won't를 사용합니다.
+// 6. 기존 v14.10 평서문 CORE는 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnNoticeObjectIngQuestionV1411 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const match =
+    /^(나는|우리는|그는|그녀는)\s+(그가|아이가|민수가)\s+(방을 나가고 있는 것을|울고 있는 것을|나를 보고 있는 것을|문을 닫고 있는 것을|손을 흔들고 있는 것을|우리를 따라오고 있는 것을)\s+(알아차려요|알아차리지 않아요|알아차렸어요|알아차리지 않았어요|알아차릴 거예요|알아차리지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectKo = match[1];
+  const objectKo = match[2];
+  const complementKo = match[3];
+  const predicateKo = match[4];
+
+  const combinationKey =
+    `${subjectKo}|${objectKo}|${complementKo}`;
+
+  if (
+    !TWO_PRO_NOTICE_OBJECT_ING_ALLOWED_COMBINATIONS_V1410.has(
+      combinationKey
+    )
+  ) {
+    return null;
+  }
+
+  const subjectInfo =
+    TWO_PRO_NOTICE_OBJECT_ING_SUBJECTS_V1410[subjectKo];
+  const objectInfo =
+    TWO_PRO_NOTICE_OBJECT_ING_OBJECTS_V1410[objectKo];
+  const complementInfo =
+    TWO_PRO_NOTICE_OBJECT_ING_COMPLEMENTS_V1410[complementKo];
+  const mode =
+    TWO_PRO_NOTICE_OBJECT_ING_PREDICATE_MODES_V1410[
+      predicateKo
+    ];
+
+  if (
+    !subjectInfo ||
+    !objectInfo ||
+    !complementInfo ||
+    !mode
+  ) {
+    return null;
+  }
+
+  let auxiliary = '';
+
+  if (mode === 'present-positive') {
+    auxiliary = subjectInfo.thirdPersonSingular
+      ? 'Does'
+      : 'Do';
+  } else if (mode === 'present-negative') {
+    auxiliary = subjectInfo.thirdPersonSingular
+      ? "Doesn't"
+      : "Don't";
+  } else if (mode === 'past-positive') {
+    auxiliary = 'Did';
+  } else if (mode === 'past-negative') {
+    auxiliary = "Didn't";
+  } else if (mode === 'future-positive') {
+    auxiliary = 'Will';
+  } else {
+    auxiliary = "Won't";
+  }
+
+  const questionSubject =
+    subjectInfo.en === 'I'
+      ? 'I'
+      : subjectInfo.en.toLowerCase();
+
+  const questionBody =
+    `${auxiliary} ${questionSubject} notice ${objectInfo.en} ${complementInfo.en}`;
+
+  const modeLabel =
+    mode === 'present-positive'
+      ? 'PRESENT:QUESTION'
+      : mode === 'present-negative'
+        ? 'PRESENT:NEG:QUESTION'
+        : mode === 'past-positive'
+          ? 'PAST:QUESTION'
+          : mode === 'past-negative'
+            ? 'PAST:NEG:QUESTION'
+            : mode === 'future-positive'
+              ? 'FUTURE:QUESTION'
+              : 'FUTURE:NEG:QUESTION';
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    {
+      ko: subjectKo,
+      en: `${subjectInfo.en} [S]`,
+    },
+    {
+      ko: objectKo,
+      en: `${objectInfo.en} [O]`,
+    },
+    {
+      ko: complementKo,
+      en: `${complementInfo.en} [OC:V-ING]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${auxiliary.toLowerCase()} notice [V:${modeLabel}]`,
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicFutureSimpleReferenceV1160(
+      subjectInfo.referenceSource,
+      subjectInfo.referenceSelected,
+      'SUBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      objectInfo.referenceSource,
+      objectInfo.referenceSelected,
+      'OBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      complementInfo.referenceSource,
+      complementInfo.referenceSelected,
+      'OBJECT_COMPLEMENT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      '알아차리다',
+      'notice',
+      'VERB'
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      `basic-notice-object-ing-${mode}-question-ko-en-v14.11`,
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v14.12-safe: observe + O + -ing 평서문 CORE
+//
+// 이번 회귀 테스트에서 번역 블록이 표시되지 않은
+// observe + 목적어 + 현재분사(-ing) 지각/관찰 5형식 평서문 36개만 처리합니다.
+//
+// 처리 범위:
+// - 나는 + 그가 + 길을 건너고 있는 것을 + 관찰하다
+// - 우리는 + 아이가 + 그림을 그리고 있는 것을 + 관찰하다
+// - 그는 + 민수가 + 공을 던지고 있는 것을 + 관찰하다
+// - 그녀는 + 그가 + 문을 열고 있는 것을 + 관찰하다
+// - 나는 + 아이가 + 식물을 돌보고 있는 것을 + 관찰하다
+// - 우리는 + 민수가 + 기계를 작동시키고 있는 것을 + 관찰하다
+// - 현재형 긍정·부정, 과거형 긍정·부정, 미래형 긍정·부정 평서문
+//
+// 안전 원칙:
+// 1. 이번 회귀 테스트의 6개 주어·목적어·-ing 조합만 처리합니다.
+// 2. 문장 끝이 ?/？인 의문문은 처리하지 않습니다.
+// 3. observe + O + -ing 구조를 유지하며 to를 삽입하지 않습니다.
+// 4. 현재형 3인칭 단수는 observes, 부정은 doesn't observe를 사용합니다.
+// 5. 과거형은 observed/didn't observe, 미래형은 will observe/won't observe를 사용합니다.
+// 6. 기존 v12.98~v14.11 CORE는 수정하지 않습니다.
+// ============================================================================
+type TwoProObserveObjectIngStatementModeV1412 =
+  | 'present-positive'
+  | 'present-negative'
+  | 'past-positive'
+  | 'past-negative'
+  | 'future-positive'
+  | 'future-negative';
+
+const TWO_PRO_OBSERVE_OBJECT_ING_PREDICATE_MODES_V1412: Readonly<
+  Record<string, TwoProObserveObjectIngStatementModeV1412>
+> = {
+  '관찰해요': 'present-positive',
+  '관찰하지 않아요': 'present-negative',
+  '관찰했어요': 'past-positive',
+  '관찰하지 않았어요': 'past-negative',
+  '관찰할 거예요': 'future-positive',
+  '관찰하지 않을 거예요': 'future-negative',
+};
+
+const TWO_PRO_OBSERVE_OBJECT_ING_SUBJECTS_V1412: Readonly<
+  Record<
+    string,
+    {
+      en: string;
+      referenceSource: string;
+      referenceSelected: string;
+      thirdPersonSingular: boolean;
+    }
+  >
+> = {
+  '나는': {
+    en: 'I',
+    referenceSource: '나',
+    referenceSelected: 'I',
+    thirdPersonSingular: false,
+  },
+  '우리는': {
+    en: 'We',
+    referenceSource: '우리',
+    referenceSelected: 'we',
+    thirdPersonSingular: false,
+  },
+  '그는': {
+    en: 'He',
+    referenceSource: '그',
+    referenceSelected: 'he',
+    thirdPersonSingular: true,
+  },
+  '그녀는': {
+    en: 'She',
+    referenceSource: '그녀',
+    referenceSelected: 'she',
+    thirdPersonSingular: true,
+  },
+};
+
+const TWO_PRO_OBSERVE_OBJECT_ING_OBJECTS_V1412: Readonly<
+  Record<
+    string,
+    {
+      en: string;
+      referenceSource: string;
+      referenceSelected: string;
+    }
+  >
+> = {
+  '그가': {
+    en: 'him',
+    referenceSource: '그',
+    referenceSelected: 'him',
+  },
+  '아이가': {
+    en: 'the child',
+    referenceSource: '아이',
+    referenceSelected: 'the child',
+  },
+  '민수가': {
+    en: 'Minsu',
+    referenceSource: '민수',
+    referenceSelected: 'Minsu',
+  },
+};
+
+const TWO_PRO_OBSERVE_OBJECT_ING_COMPLEMENTS_V1412: Readonly<
+  Record<
+    string,
+    {
+      en: string;
+      referenceSource: string;
+      referenceSelected: string;
+    }
+  >
+> = {
+  '길을 건너고 있는 것을': {
+    en: 'crossing the street',
+    referenceSource: '길을 건너다',
+    referenceSelected: 'crossing the street',
+  },
+  '그림을 그리고 있는 것을': {
+    en: 'drawing',
+    referenceSource: '그림을 그리다',
+    referenceSelected: 'drawing',
+  },
+  '공을 던지고 있는 것을': {
+    en: 'throwing the ball',
+    referenceSource: '공을 던지다',
+    referenceSelected: 'throwing the ball',
+  },
+  '문을 열고 있는 것을': {
+    en: 'opening the door',
+    referenceSource: '문을 열다',
+    referenceSelected: 'opening the door',
+  },
+  '식물을 돌보고 있는 것을': {
+    en: 'taking care of the plant',
+    referenceSource: '식물을 돌보다',
+    referenceSelected: 'taking care of the plant',
+  },
+  '기계를 작동시키고 있는 것을': {
+    en: 'operating the machine',
+    referenceSource: '기계를 작동시키다',
+    referenceSelected: 'operating the machine',
+  },
+};
+
+const TWO_PRO_OBSERVE_OBJECT_ING_ALLOWED_COMBINATIONS_V1412 =
+  new Set<string>([
+    '나는|그가|길을 건너고 있는 것을',
+    '우리는|아이가|그림을 그리고 있는 것을',
+    '그는|민수가|공을 던지고 있는 것을',
+    '그녀는|그가|문을 열고 있는 것을',
+    '나는|아이가|식물을 돌보고 있는 것을',
+    '우리는|민수가|기계를 작동시키고 있는 것을',
+  ]);
+
+const twoProTryKoEnObserveObjectIngStatementV1412 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[.!]+\s*$/g, '')
+    .trim();
+
+  const match =
+    /^(나는|우리는|그는|그녀는)\s+(그가|아이가|민수가)\s+(길을 건너고 있는 것을|그림을 그리고 있는 것을|공을 던지고 있는 것을|문을 열고 있는 것을|식물을 돌보고 있는 것을|기계를 작동시키고 있는 것을)\s+(관찰해요|관찰하지 않아요|관찰했어요|관찰하지 않았어요|관찰할 거예요|관찰하지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectKo = match[1];
+  const objectKo = match[2];
+  const complementKo = match[3];
+  const predicateKo = match[4];
+
+  const combinationKey =
+    `${subjectKo}|${objectKo}|${complementKo}`;
+
+  if (
+    !TWO_PRO_OBSERVE_OBJECT_ING_ALLOWED_COMBINATIONS_V1412.has(
+      combinationKey
+    )
+  ) {
+    return null;
+  }
+
+  const subjectInfo =
+    TWO_PRO_OBSERVE_OBJECT_ING_SUBJECTS_V1412[subjectKo];
+  const objectInfo =
+    TWO_PRO_OBSERVE_OBJECT_ING_OBJECTS_V1412[objectKo];
+  const complementInfo =
+    TWO_PRO_OBSERVE_OBJECT_ING_COMPLEMENTS_V1412[complementKo];
+  const mode =
+    TWO_PRO_OBSERVE_OBJECT_ING_PREDICATE_MODES_V1412[
+      predicateKo
+    ];
+
+  if (
+    !subjectInfo ||
+    !objectInfo ||
+    !complementInfo ||
+    !mode
+  ) {
+    return null;
+  }
+
+  let verbPhrase = '';
+  let modeLabel = '';
+
+  if (mode === 'present-positive') {
+    verbPhrase = subjectInfo.thirdPersonSingular
+      ? 'observes'
+      : 'observe';
+    modeLabel = 'PRESENT';
+  } else if (mode === 'present-negative') {
+    verbPhrase = subjectInfo.thirdPersonSingular
+      ? "doesn't observe"
+      : "don't observe";
+    modeLabel = 'PRESENT:NEG';
+  } else if (mode === 'past-positive') {
+    verbPhrase = 'observed';
+    modeLabel = 'PAST';
+  } else if (mode === 'past-negative') {
+    verbPhrase = "didn't observe";
+    modeLabel = 'PAST:NEG';
+  } else if (mode === 'future-positive') {
+    verbPhrase = 'will observe';
+    modeLabel = 'FUTURE';
+  } else {
+    verbPhrase = "won't observe";
+    modeLabel = 'FUTURE:NEG';
+  }
+
+  const targetBody =
+    `${subjectInfo.en} ${verbPhrase} ${objectInfo.en} ${complementInfo.en}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    {
+      ko: subjectKo,
+      en: `${subjectInfo.en} [S]`,
+    },
+    {
+      ko: objectKo,
+      en: `${objectInfo.en} [O]`,
+    },
+    {
+      ko: complementKo,
+      en: `${complementInfo.en} [OC:V-ING]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${verbPhrase} [V:${modeLabel}]`,
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicFutureSimpleReferenceV1160(
+      subjectInfo.referenceSource,
+      subjectInfo.referenceSelected,
+      'SUBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      objectInfo.referenceSource,
+      objectInfo.referenceSelected,
+      'OBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      complementInfo.referenceSource,
+      complementInfo.referenceSelected,
+      'OBJECT_COMPLEMENT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      '관찰하다',
+      'observe',
+      'VERB'
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      `basic-observe-object-ing-${mode}-ko-en-v14.12`,
+  };
+};
+
+
+// ============================================================================
+// ☆ TwoPro v14.13-safe: observe + O + -ing 의문문 CORE
+//
+// v14.12에서 실제 회귀 테스트를 통과한 6개 observe + O + -ing 조합을
+// 그대로 유지하면서, 같은 현재/과거/미래 긍정·부정 의문문 36개만 처리합니다.
+//
+// 안전 원칙:
+// 1. 문장 끝에 명시적 ?/？가 있는 입력만 처리합니다.
+// 2. v14.12의 6개 주어·목적어·-ing 조합 밖으로 일반화하지 않습니다.
+// 3. observe + O + -ing 구조를 유지하며 to를 삽입하지 않습니다.
+// 4. 현재형은 Do/Does, 부정은 Don't/Doesn't를 사용합니다.
+// 5. 과거형은 Did/Didn't, 미래형은 Will/Won't를 사용합니다.
+// 6. 기존 v14.12 평서문 CORE는 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnObserveObjectIngQuestionV1413 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const match =
+    /^(나는|우리는|그는|그녀는)\s+(그가|아이가|민수가)\s+(길을 건너고 있는 것을|그림을 그리고 있는 것을|공을 던지고 있는 것을|문을 열고 있는 것을|식물을 돌보고 있는 것을|기계를 작동시키고 있는 것을)\s+(관찰해요|관찰하지 않아요|관찰했어요|관찰하지 않았어요|관찰할 거예요|관찰하지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectKo = match[1];
+  const objectKo = match[2];
+  const complementKo = match[3];
+  const predicateKo = match[4];
+
+  const combinationKey =
+    `${subjectKo}|${objectKo}|${complementKo}`;
+
+  if (
+    !TWO_PRO_OBSERVE_OBJECT_ING_ALLOWED_COMBINATIONS_V1412.has(
+      combinationKey
+    )
+  ) {
+    return null;
+  }
+
+  const subjectInfo =
+    TWO_PRO_OBSERVE_OBJECT_ING_SUBJECTS_V1412[subjectKo];
+  const objectInfo =
+    TWO_PRO_OBSERVE_OBJECT_ING_OBJECTS_V1412[objectKo];
+  const complementInfo =
+    TWO_PRO_OBSERVE_OBJECT_ING_COMPLEMENTS_V1412[complementKo];
+  const mode =
+    TWO_PRO_OBSERVE_OBJECT_ING_PREDICATE_MODES_V1412[
+      predicateKo
+    ];
+
+  if (
+    !subjectInfo ||
+    !objectInfo ||
+    !complementInfo ||
+    !mode
+  ) {
+    return null;
+  }
+
+  let auxiliary = '';
+
+  if (mode === 'present-positive') {
+    auxiliary = subjectInfo.thirdPersonSingular
+      ? 'Does'
+      : 'Do';
+  } else if (mode === 'present-negative') {
+    auxiliary = subjectInfo.thirdPersonSingular
+      ? "Doesn't"
+      : "Don't";
+  } else if (mode === 'past-positive') {
+    auxiliary = 'Did';
+  } else if (mode === 'past-negative') {
+    auxiliary = "Didn't";
+  } else if (mode === 'future-positive') {
+    auxiliary = 'Will';
+  } else {
+    auxiliary = "Won't";
+  }
+
+  const questionSubject =
+    subjectInfo.en === 'I'
+      ? 'I'
+      : subjectInfo.en.toLowerCase();
+
+  const questionBody =
+    `${auxiliary} ${questionSubject} observe ${objectInfo.en} ${complementInfo.en}`;
+
+  const modeLabel =
+    mode === 'present-positive'
+      ? 'PRESENT:QUESTION'
+      : mode === 'present-negative'
+        ? 'PRESENT:NEG:QUESTION'
+        : mode === 'past-positive'
+          ? 'PAST:QUESTION'
+          : mode === 'past-negative'
+            ? 'PAST:NEG:QUESTION'
+            : mode === 'future-positive'
+              ? 'FUTURE:QUESTION'
+              : 'FUTURE:NEG:QUESTION';
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    {
+      ko: subjectKo,
+      en: `${subjectInfo.en} [S]`,
+    },
+    {
+      ko: objectKo,
+      en: `${objectInfo.en} [O]`,
+    },
+    {
+      ko: complementKo,
+      en: `${complementInfo.en} [OC:V-ING]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${auxiliary.toLowerCase()} observe [V:${modeLabel}]`,
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicFutureSimpleReferenceV1160(
+      subjectInfo.referenceSource,
+      subjectInfo.referenceSelected,
+      'SUBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      objectInfo.referenceSource,
+      objectInfo.referenceSelected,
+      'OBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      complementInfo.referenceSource,
+      complementInfo.referenceSelected,
+      'OBJECT_COMPLEMENT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      '관찰하다',
+      'observe',
+      'VERB'
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      `basic-observe-object-ing-${mode}-question-ko-en-v14.13`,
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v14.14-safe: find + O + -ing 평서문 CORE
+//
+// 이번 회귀 테스트에서 번역 블록이 표시되지 않거나 기존 fallback에 잘못 잡힌
+// find + 목적어 + 현재분사(-ing) 5형식 평서문 36개만 처리합니다.
+//
+// 처리 범위:
+// - 나는 + 그가 + 방에서 자고 있는 것을 + 발견하다
+// - 우리는 + 아이가 + 바닥에 앉아 있는 것을 + 발견하다
+// - 그는 + 민수가 + 문 앞에서 기다리고 있는 것을 + 발견하다
+// - 그녀는 + 그가 + 책을 읽고 있는 것을 + 발견하다
+// - 나는 + 아이가 + 밖에서 놀고 있는 것을 + 발견하다
+// - 우리는 + 민수가 + 컴퓨터를 사용하고 있는 것을 + 발견하다
+// - 현재형 긍정·부정, 과거형 긍정·부정, 미래형 긍정·부정 평서문
+//
+// 안전 원칙:
+// 1. 이번 회귀 테스트의 6개 주어·목적어·-ing 조합만 처리합니다.
+// 2. 문장 끝이 ?/？인 의문문은 처리하지 않습니다.
+// 3. find + O + -ing 구조를 유지하며 to를 삽입하지 않습니다.
+// 4. 현재형 3인칭 단수는 finds, 부정은 doesn't find를 사용합니다.
+// 5. 과거형은 found/didn't find, 미래형은 will find/won't find를 사용합니다.
+// 6. 기존 v12.98~v14.13 CORE는 수정하지 않습니다.
+// ============================================================================
+type TwoProFindObjectIngStatementModeV1414 =
+  | 'present-positive'
+  | 'present-negative'
+  | 'past-positive'
+  | 'past-negative'
+  | 'future-positive'
+  | 'future-negative';
+
+const TWO_PRO_FIND_OBJECT_ING_PREDICATE_MODES_V1414: Readonly<
+  Record<string, TwoProFindObjectIngStatementModeV1414>
+> = {
+  '발견해요': 'present-positive',
+  '발견하지 않아요': 'present-negative',
+  '발견했어요': 'past-positive',
+  '발견하지 않았어요': 'past-negative',
+  '발견할 거예요': 'future-positive',
+  '발견하지 않을 거예요': 'future-negative',
+};
+
+const TWO_PRO_FIND_OBJECT_ING_SUBJECTS_V1414: Readonly<
+  Record<
+    string,
+    {
+      en: string;
+      referenceSource: string;
+      referenceSelected: string;
+      thirdPersonSingular: boolean;
+    }
+  >
+> = {
+  '나는': {
+    en: 'I',
+    referenceSource: '나',
+    referenceSelected: 'I',
+    thirdPersonSingular: false,
+  },
+  '우리는': {
+    en: 'We',
+    referenceSource: '우리',
+    referenceSelected: 'we',
+    thirdPersonSingular: false,
+  },
+  '그는': {
+    en: 'He',
+    referenceSource: '그',
+    referenceSelected: 'he',
+    thirdPersonSingular: true,
+  },
+  '그녀는': {
+    en: 'She',
+    referenceSource: '그녀',
+    referenceSelected: 'she',
+    thirdPersonSingular: true,
+  },
+};
+
+const TWO_PRO_FIND_OBJECT_ING_OBJECTS_V1414: Readonly<
+  Record<
+    string,
+    {
+      en: string;
+      referenceSource: string;
+      referenceSelected: string;
+    }
+  >
+> = {
+  '그가': {
+    en: 'him',
+    referenceSource: '그',
+    referenceSelected: 'him',
+  },
+  '아이가': {
+    en: 'the child',
+    referenceSource: '아이',
+    referenceSelected: 'the child',
+  },
+  '민수가': {
+    en: 'Minsu',
+    referenceSource: '민수',
+    referenceSelected: 'Minsu',
+  },
+};
+
+const TWO_PRO_FIND_OBJECT_ING_COMPLEMENTS_V1414: Readonly<
+  Record<
+    string,
+    {
+      en: string;
+      referenceSource: string;
+      referenceSelected: string;
+    }
+  >
+> = {
+  '방에서 자고 있는 것을': {
+    en: 'sleeping in the room',
+    referenceSource: '방에서 자다',
+    referenceSelected: 'sleeping in the room',
+  },
+  '바닥에 앉아 있는 것을': {
+    en: 'sitting on the floor',
+    referenceSource: '바닥에 앉다',
+    referenceSelected: 'sitting on the floor',
+  },
+  '문 앞에서 기다리고 있는 것을': {
+    en: 'waiting at the door',
+    referenceSource: '문 앞에서 기다리다',
+    referenceSelected: 'waiting at the door',
+  },
+  '책을 읽고 있는 것을': {
+    en: 'reading a book',
+    referenceSource: '책을 읽다',
+    referenceSelected: 'reading a book',
+  },
+  '밖에서 놀고 있는 것을': {
+    en: 'playing outside',
+    referenceSource: '밖에서 놀다',
+    referenceSelected: 'playing outside',
+  },
+  '컴퓨터를 사용하고 있는 것을': {
+    en: 'using the computer',
+    referenceSource: '컴퓨터를 사용하다',
+    referenceSelected: 'using the computer',
+  },
+};
+
+const TWO_PRO_FIND_OBJECT_ING_ALLOWED_COMBINATIONS_V1414 =
+  new Set<string>([
+    '나는|그가|방에서 자고 있는 것을',
+    '우리는|아이가|바닥에 앉아 있는 것을',
+    '그는|민수가|문 앞에서 기다리고 있는 것을',
+    '그녀는|그가|책을 읽고 있는 것을',
+    '나는|아이가|밖에서 놀고 있는 것을',
+    '우리는|민수가|컴퓨터를 사용하고 있는 것을',
+  ]);
+
+const twoProTryKoEnFindObjectIngStatementV1414 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[.!]+\s*$/g, '')
+    .trim();
+
+  const match =
+    /^(나는|우리는|그는|그녀는)\s+(그가|아이가|민수가)\s+(방에서 자고 있는 것을|바닥에 앉아 있는 것을|문 앞에서 기다리고 있는 것을|책을 읽고 있는 것을|밖에서 놀고 있는 것을|컴퓨터를 사용하고 있는 것을)\s+(발견해요|발견하지 않아요|발견했어요|발견하지 않았어요|발견할 거예요|발견하지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectKo = match[1];
+  const objectKo = match[2];
+  const complementKo = match[3];
+  const predicateKo = match[4];
+
+  const combinationKey =
+    `${subjectKo}|${objectKo}|${complementKo}`;
+
+  if (
+    !TWO_PRO_FIND_OBJECT_ING_ALLOWED_COMBINATIONS_V1414.has(
+      combinationKey
+    )
+  ) {
+    return null;
+  }
+
+  const subjectInfo =
+    TWO_PRO_FIND_OBJECT_ING_SUBJECTS_V1414[subjectKo];
+  const objectInfo =
+    TWO_PRO_FIND_OBJECT_ING_OBJECTS_V1414[objectKo];
+  const complementInfo =
+    TWO_PRO_FIND_OBJECT_ING_COMPLEMENTS_V1414[complementKo];
+  const mode =
+    TWO_PRO_FIND_OBJECT_ING_PREDICATE_MODES_V1414[
+      predicateKo
+    ];
+
+  if (
+    !subjectInfo ||
+    !objectInfo ||
+    !complementInfo ||
+    !mode
+  ) {
+    return null;
+  }
+
+  let verbPhrase = '';
+  let modeLabel = '';
+
+  if (mode === 'present-positive') {
+    verbPhrase = subjectInfo.thirdPersonSingular
+      ? 'finds'
+      : 'find';
+    modeLabel = 'PRESENT';
+  } else if (mode === 'present-negative') {
+    verbPhrase = subjectInfo.thirdPersonSingular
+      ? "doesn't find"
+      : "don't find";
+    modeLabel = 'PRESENT:NEG';
+  } else if (mode === 'past-positive') {
+    verbPhrase = 'found';
+    modeLabel = 'PAST';
+  } else if (mode === 'past-negative') {
+    verbPhrase = "didn't find";
+    modeLabel = 'PAST:NEG';
+  } else if (mode === 'future-positive') {
+    verbPhrase = 'will find';
+    modeLabel = 'FUTURE';
+  } else {
+    verbPhrase = "won't find";
+    modeLabel = 'FUTURE:NEG';
+  }
+
+  const targetBody =
+    `${subjectInfo.en} ${verbPhrase} ${objectInfo.en} ${complementInfo.en}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    {
+      ko: subjectKo,
+      en: `${subjectInfo.en} [S]`,
+    },
+    {
+      ko: objectKo,
+      en: `${objectInfo.en} [O]`,
+    },
+    {
+      ko: complementKo,
+      en: `${complementInfo.en} [OC:V-ING]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${verbPhrase} [V:${modeLabel}]`,
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicFutureSimpleReferenceV1160(
+      subjectInfo.referenceSource,
+      subjectInfo.referenceSelected,
+      'SUBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      objectInfo.referenceSource,
+      objectInfo.referenceSelected,
+      'OBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      complementInfo.referenceSource,
+      complementInfo.referenceSelected,
+      'OBJECT_COMPLEMENT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      '발견하다',
+      'find',
+      'VERB'
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      `basic-find-object-ing-${mode}-ko-en-v14.14`,
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v14.15-safe: find + O + -ing 의문문 CORE
+//
+// v14.14에서 실제 회귀 테스트를 통과한 6개 find + O + -ing 조합을
+// 그대로 유지하면서, 같은 현재/과거/미래 긍정·부정 의문문 36개만 처리합니다.
+//
+// 안전 원칙:
+// 1. 문장 끝에 명시적 ?/？가 있는 입력만 처리합니다.
+// 2. v14.14의 6개 주어·목적어·-ing 조합 밖으로 일반화하지 않습니다.
+// 3. find + O + -ing 구조를 유지하며 to를 삽입하지 않습니다.
+// 4. 현재형은 Do/Does, 부정은 Don't/Doesn't를 사용합니다.
+// 5. 과거형은 Did/Didn't, 미래형은 Will/Won't를 사용합니다.
+// 6. 기존 v14.14 평서문 CORE는 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnFindObjectIngQuestionV1415 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const match =
+    /^(나는|우리는|그는|그녀는)\s+(그가|아이가|민수가)\s+(방에서 자고 있는 것을|바닥에 앉아 있는 것을|문 앞에서 기다리고 있는 것을|책을 읽고 있는 것을|밖에서 놀고 있는 것을|컴퓨터를 사용하고 있는 것을)\s+(발견해요|발견하지 않아요|발견했어요|발견하지 않았어요|발견할 거예요|발견하지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectKo = match[1];
+  const objectKo = match[2];
+  const complementKo = match[3];
+  const predicateKo = match[4];
+
+  const combinationKey =
+    `${subjectKo}|${objectKo}|${complementKo}`;
+
+  if (
+    !TWO_PRO_FIND_OBJECT_ING_ALLOWED_COMBINATIONS_V1414.has(
+      combinationKey
+    )
+  ) {
+    return null;
+  }
+
+  const subjectInfo =
+    TWO_PRO_FIND_OBJECT_ING_SUBJECTS_V1414[subjectKo];
+  const objectInfo =
+    TWO_PRO_FIND_OBJECT_ING_OBJECTS_V1414[objectKo];
+  const complementInfo =
+    TWO_PRO_FIND_OBJECT_ING_COMPLEMENTS_V1414[complementKo];
+  const mode =
+    TWO_PRO_FIND_OBJECT_ING_PREDICATE_MODES_V1414[
+      predicateKo
+    ];
+
+  if (
+    !subjectInfo ||
+    !objectInfo ||
+    !complementInfo ||
+    !mode
+  ) {
+    return null;
+  }
+
+  let auxiliary = '';
+
+  if (mode === 'present-positive') {
+    auxiliary = subjectInfo.thirdPersonSingular
+      ? 'Does'
+      : 'Do';
+  } else if (mode === 'present-negative') {
+    auxiliary = subjectInfo.thirdPersonSingular
+      ? "Doesn't"
+      : "Don't";
+  } else if (mode === 'past-positive') {
+    auxiliary = 'Did';
+  } else if (mode === 'past-negative') {
+    auxiliary = "Didn't";
+  } else if (mode === 'future-positive') {
+    auxiliary = 'Will';
+  } else {
+    auxiliary = "Won't";
+  }
+
+  const questionSubject =
+    subjectInfo.en === 'I'
+      ? 'I'
+      : subjectInfo.en.toLowerCase();
+
+  const questionBody =
+    `${auxiliary} ${questionSubject} find ${objectInfo.en} ${complementInfo.en}`;
+
+  const modeLabel =
+    mode === 'present-positive'
+      ? 'PRESENT:QUESTION'
+      : mode === 'present-negative'
+        ? 'PRESENT:NEG:QUESTION'
+        : mode === 'past-positive'
+          ? 'PAST:QUESTION'
+          : mode === 'past-negative'
+            ? 'PAST:NEG:QUESTION'
+            : mode === 'future-positive'
+              ? 'FUTURE:QUESTION'
+              : 'FUTURE:NEG:QUESTION';
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    {
+      ko: subjectKo,
+      en: `${subjectInfo.en} [S]`,
+    },
+    {
+      ko: objectKo,
+      en: `${objectInfo.en} [O]`,
+    },
+    {
+      ko: complementKo,
+      en: `${complementInfo.en} [OC:V-ING]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${auxiliary.toLowerCase()} find [V:${modeLabel}]`,
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicFutureSimpleReferenceV1160(
+      subjectInfo.referenceSource,
+      subjectInfo.referenceSelected,
+      'SUBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      objectInfo.referenceSource,
+      objectInfo.referenceSelected,
+      'OBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      complementInfo.referenceSource,
+      complementInfo.referenceSelected,
+      'OBJECT_COMPLEMENT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      '발견하다',
+      'find',
+      'VERB'
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      `basic-find-object-ing-${mode}-question-ko-en-v14.15`,
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v14.16-safe: catch + O + -ing 평서문 CORE
+//
+// 이번 회귀 테스트에서 번역 블록이 표시되지 않은
+// catch + 목적어 + 현재분사(-ing) 5형식 평서문 36개만 처리합니다.
+//
+// 처리 범위:
+// - 나는 + 그가 + 몰래 나가고 있는 것을 + 잡아내다
+// - 우리는 + 아이가 + 쿠키를 먹고 있는 것을 + 잡아내다
+// - 그는 + 민수가 + 거짓말하고 있는 것을 + 잡아내다
+// - 그녀는 + 그가 + 서랍을 뒤지고 있는 것을 + 잡아내다
+// - 나는 + 아이가 + 벽에 낙서하고 있는 것을 + 잡아내다
+// - 우리는 + 민수가 + 휴대전화를 사용하고 있는 것을 + 잡아내다
+// - 현재형 긍정·부정, 과거형 긍정·부정, 미래형 긍정·부정 평서문
+//
+// 안전 원칙:
+// 1. 이번 회귀 테스트의 6개 주어·목적어·-ing 조합만 처리합니다.
+// 2. 문장 끝이 ?/？인 의문문은 처리하지 않습니다.
+// 3. catch + O + -ing 구조를 유지하며 to를 삽입하지 않습니다.
+// 4. 현재형 3인칭 단수는 catches, 부정은 doesn't catch를 사용합니다.
+// 5. 과거형은 caught/didn't catch, 미래형은 will catch/won't catch를 사용합니다.
+// 6. 기존 v12.98~v14.15 CORE는 수정하지 않습니다.
+// ============================================================================
+type TwoProCatchObjectIngStatementModeV1416 =
+  | 'present-positive'
+  | 'present-negative'
+  | 'past-positive'
+  | 'past-negative'
+  | 'future-positive'
+  | 'future-negative';
+
+const TWO_PRO_CATCH_OBJECT_ING_PREDICATE_MODES_V1416: Readonly<
+  Record<string, TwoProCatchObjectIngStatementModeV1416>
+> = {
+  '잡아내요': 'present-positive',
+  '잡아내지 않아요': 'present-negative',
+  '잡아냈어요': 'past-positive',
+  '잡아내지 않았어요': 'past-negative',
+  '잡아낼 거예요': 'future-positive',
+  '잡아내지 않을 거예요': 'future-negative',
+};
+
+const TWO_PRO_CATCH_OBJECT_ING_SUBJECTS_V1416: Readonly<
+  Record<
+    string,
+    {
+      en: string;
+      referenceSource: string;
+      referenceSelected: string;
+      thirdPersonSingular: boolean;
+    }
+  >
+> = {
+  '나는': {
+    en: 'I',
+    referenceSource: '나',
+    referenceSelected: 'I',
+    thirdPersonSingular: false,
+  },
+  '우리는': {
+    en: 'We',
+    referenceSource: '우리',
+    referenceSelected: 'we',
+    thirdPersonSingular: false,
+  },
+  '그는': {
+    en: 'He',
+    referenceSource: '그',
+    referenceSelected: 'he',
+    thirdPersonSingular: true,
+  },
+  '그녀는': {
+    en: 'She',
+    referenceSource: '그녀',
+    referenceSelected: 'she',
+    thirdPersonSingular: true,
+  },
+};
+
+const TWO_PRO_CATCH_OBJECT_ING_OBJECTS_V1416: Readonly<
+  Record<
+    string,
+    {
+      en: string;
+      referenceSource: string;
+      referenceSelected: string;
+    }
+  >
+> = {
+  '그가': {
+    en: 'him',
+    referenceSource: '그',
+    referenceSelected: 'him',
+  },
+  '아이가': {
+    en: 'the child',
+    referenceSource: '아이',
+    referenceSelected: 'the child',
+  },
+  '민수가': {
+    en: 'Minsu',
+    referenceSource: '민수',
+    referenceSelected: 'Minsu',
+  },
+};
+
+const TWO_PRO_CATCH_OBJECT_ING_COMPLEMENTS_V1416: Readonly<
+  Record<
+    string,
+    {
+      en: string;
+      referenceSource: string;
+      referenceSelected: string;
+    }
+  >
+> = {
+  '몰래 나가고 있는 것을': {
+    en: 'sneaking out',
+    referenceSource: '몰래 나가다',
+    referenceSelected: 'sneaking out',
+  },
+  '쿠키를 먹고 있는 것을': {
+    en: 'eating cookies',
+    referenceSource: '쿠키를 먹다',
+    referenceSelected: 'eating cookies',
+  },
+  '거짓말하고 있는 것을': {
+    en: 'lying',
+    referenceSource: '거짓말하다',
+    referenceSelected: 'lying',
+  },
+  '서랍을 뒤지고 있는 것을': {
+    en: 'rummaging through the drawer',
+    referenceSource: '서랍을 뒤지다',
+    referenceSelected: 'rummaging through the drawer',
+  },
+  '벽에 낙서하고 있는 것을': {
+    en: 'scribbling on the wall',
+    referenceSource: '벽에 낙서하다',
+    referenceSelected: 'scribbling on the wall',
+  },
+  '휴대전화를 사용하고 있는 것을': {
+    en: 'using a cell phone',
+    referenceSource: '휴대전화를 사용하다',
+    referenceSelected: 'using a cell phone',
+  },
+};
+
+const TWO_PRO_CATCH_OBJECT_ING_ALLOWED_COMBINATIONS_V1416 =
+  new Set<string>([
+    '나는|그가|몰래 나가고 있는 것을',
+    '우리는|아이가|쿠키를 먹고 있는 것을',
+    '그는|민수가|거짓말하고 있는 것을',
+    '그녀는|그가|서랍을 뒤지고 있는 것을',
+    '나는|아이가|벽에 낙서하고 있는 것을',
+    '우리는|민수가|휴대전화를 사용하고 있는 것을',
+  ]);
+
+const twoProTryKoEnCatchObjectIngStatementV1416 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || /[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[.!]+\s*$/g, '')
+    .trim();
+
+  const match =
+    /^(나는|우리는|그는|그녀는)\s+(그가|아이가|민수가)\s+(몰래 나가고 있는 것을|쿠키를 먹고 있는 것을|거짓말하고 있는 것을|서랍을 뒤지고 있는 것을|벽에 낙서하고 있는 것을|휴대전화를 사용하고 있는 것을)\s+(잡아내요|잡아내지 않아요|잡아냈어요|잡아내지 않았어요|잡아낼 거예요|잡아내지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectKo = match[1];
+  const objectKo = match[2];
+  const complementKo = match[3];
+  const predicateKo = match[4];
+
+  const combinationKey =
+    `${subjectKo}|${objectKo}|${complementKo}`;
+
+  if (
+    !TWO_PRO_CATCH_OBJECT_ING_ALLOWED_COMBINATIONS_V1416.has(
+      combinationKey
+    )
+  ) {
+    return null;
+  }
+
+  const subjectInfo =
+    TWO_PRO_CATCH_OBJECT_ING_SUBJECTS_V1416[subjectKo];
+  const objectInfo =
+    TWO_PRO_CATCH_OBJECT_ING_OBJECTS_V1416[objectKo];
+  const complementInfo =
+    TWO_PRO_CATCH_OBJECT_ING_COMPLEMENTS_V1416[complementKo];
+  const mode =
+    TWO_PRO_CATCH_OBJECT_ING_PREDICATE_MODES_V1416[
+      predicateKo
+    ];
+
+  if (
+    !subjectInfo ||
+    !objectInfo ||
+    !complementInfo ||
+    !mode
+  ) {
+    return null;
+  }
+
+  let verbPhrase = '';
+  let modeLabel = '';
+
+  if (mode === 'present-positive') {
+    verbPhrase = subjectInfo.thirdPersonSingular
+      ? 'catches'
+      : 'catch';
+    modeLabel = 'PRESENT';
+  } else if (mode === 'present-negative') {
+    verbPhrase = subjectInfo.thirdPersonSingular
+      ? "doesn't catch"
+      : "don't catch";
+    modeLabel = 'PRESENT:NEG';
+  } else if (mode === 'past-positive') {
+    verbPhrase = 'caught';
+    modeLabel = 'PAST';
+  } else if (mode === 'past-negative') {
+    verbPhrase = "didn't catch";
+    modeLabel = 'PAST:NEG';
+  } else if (mode === 'future-positive') {
+    verbPhrase = 'will catch';
+    modeLabel = 'FUTURE';
+  } else {
+    verbPhrase = "won't catch";
+    modeLabel = 'FUTURE:NEG';
+  }
+
+  const targetBody =
+    `${subjectInfo.en} ${verbPhrase} ${objectInfo.en} ${complementInfo.en}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    {
+      ko: subjectKo,
+      en: `${subjectInfo.en} [S]`,
+    },
+    {
+      ko: objectKo,
+      en: `${objectInfo.en} [O]`,
+    },
+    {
+      ko: complementKo,
+      en: `${complementInfo.en} [OC:V-ING]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${verbPhrase} [V:${modeLabel}]`,
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicFutureSimpleReferenceV1160(
+      subjectInfo.referenceSource,
+      subjectInfo.referenceSelected,
+      'SUBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      objectInfo.referenceSource,
+      objectInfo.referenceSelected,
+      'OBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      complementInfo.referenceSource,
+      complementInfo.referenceSelected,
+      'OBJECT_COMPLEMENT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      '잡아내다',
+      'catch',
+      'VERB'
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      `basic-catch-object-ing-${mode}-ko-en-v14.16`,
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v14.17-safe: catch + O + -ing 의문문 CORE
+//
+// v14.16에서 실제 회귀 테스트를 통과한 6개 catch + O + -ing 조합을
+// 그대로 유지하면서, 같은 현재/과거/미래 긍정·부정 의문문 36개만 처리합니다.
+//
+// 안전 원칙:
+// 1. 문장 끝에 명시적 ?/？가 있는 입력만 처리합니다.
+// 2. v14.16의 6개 주어·목적어·-ing 조합 밖으로 일반화하지 않습니다.
+// 3. catch + O + -ing 구조를 유지하며 to를 삽입하지 않습니다.
+// 4. 현재형은 Do/Does, 부정은 Don't/Doesn't를 사용합니다.
+// 5. 과거형은 Did/Didn't, 미래형은 Will/Won't를 사용합니다.
+// 6. 기존 v14.16 평서문 CORE는 수정하지 않습니다.
+// ============================================================================
+const twoProTryKoEnCatchObjectIngQuestionV1417 = (
+  originalText: string
+): TwoProBasicObjectComplementResultV1298 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || !/[?？]\s*$/u.test(normalized)) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  if (!statementText) {
+    return null;
+  }
+
+  const match =
+    /^(나는|우리는|그는|그녀는)\s+(그가|아이가|민수가)\s+(몰래 나가고 있는 것을|쿠키를 먹고 있는 것을|거짓말하고 있는 것을|서랍을 뒤지고 있는 것을|벽에 낙서하고 있는 것을|휴대전화를 사용하고 있는 것을)\s+(잡아내요|잡아내지 않아요|잡아냈어요|잡아내지 않았어요|잡아낼 거예요|잡아내지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  const subjectKo = match[1];
+  const objectKo = match[2];
+  const complementKo = match[3];
+  const predicateKo = match[4];
+
+  const combinationKey =
+    `${subjectKo}|${objectKo}|${complementKo}`;
+
+  if (
+    !TWO_PRO_CATCH_OBJECT_ING_ALLOWED_COMBINATIONS_V1416.has(
+      combinationKey
+    )
+  ) {
+    return null;
+  }
+
+  const subjectInfo =
+    TWO_PRO_CATCH_OBJECT_ING_SUBJECTS_V1416[subjectKo];
+  const objectInfo =
+    TWO_PRO_CATCH_OBJECT_ING_OBJECTS_V1416[objectKo];
+  const complementInfo =
+    TWO_PRO_CATCH_OBJECT_ING_COMPLEMENTS_V1416[complementKo];
+  const mode =
+    TWO_PRO_CATCH_OBJECT_ING_PREDICATE_MODES_V1416[
+      predicateKo
+    ];
+
+  if (
+    !subjectInfo ||
+    !objectInfo ||
+    !complementInfo ||
+    !mode
+  ) {
+    return null;
+  }
+
+  let auxiliary = '';
+
+  if (mode === 'present-positive') {
+    auxiliary = subjectInfo.thirdPersonSingular
+      ? 'Does'
+      : 'Do';
+  } else if (mode === 'present-negative') {
+    auxiliary = subjectInfo.thirdPersonSingular
+      ? "Doesn't"
+      : "Don't";
+  } else if (mode === 'past-positive') {
+    auxiliary = 'Did';
+  } else if (mode === 'past-negative') {
+    auxiliary = "Didn't";
+  } else if (mode === 'future-positive') {
+    auxiliary = 'Will';
+  } else {
+    auxiliary = "Won't";
+  }
+
+  const questionSubject =
+    subjectInfo.en === 'I'
+      ? 'I'
+      : subjectInfo.en.toLowerCase();
+
+  const questionBody =
+    `${auxiliary} ${questionSubject} catch ${objectInfo.en} ${complementInfo.en}`;
+
+  const modeLabel =
+    mode === 'present-positive'
+      ? 'PRESENT:QUESTION'
+      : mode === 'present-negative'
+        ? 'PRESENT:NEG:QUESTION'
+        : mode === 'past-positive'
+          ? 'PAST:QUESTION'
+          : mode === 'past-negative'
+            ? 'PAST:NEG:QUESTION'
+            : mode === 'future-positive'
+              ? 'FUTURE:QUESTION'
+              : 'FUTURE:NEG:QUESTION';
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    {
+      ko: subjectKo,
+      en: `${subjectInfo.en} [S]`,
+    },
+    {
+      ko: objectKo,
+      en: `${objectInfo.en} [O]`,
+    },
+    {
+      ko: complementKo,
+      en: `${complementInfo.en} [OC:V-ING]`,
+    },
+    {
+      ko: predicateKo,
+      en: `${auxiliary.toLowerCase()} catch [V:${modeLabel}]`,
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProBasicFutureSimpleReferenceV1160(
+      subjectInfo.referenceSource,
+      subjectInfo.referenceSelected,
+      'SUBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      objectInfo.referenceSource,
+      objectInfo.referenceSelected,
+      'OBJECT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      complementInfo.referenceSource,
+      complementInfo.referenceSelected,
+      'OBJECT_COMPLEMENT'
+    ),
+    twoProBasicFutureSimpleReferenceV1160(
+      '잡아내다',
+      'catch',
+      'VERB'
+    ),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      `basic-catch-object-ing-${mode}-question-ko-en-v14.17`,
+  };
+};
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -96014,6 +97924,343 @@ export async function POST(request: Request) {
         },
         referenceWords:
           twoProFeelObjectIngQuestionResultV1409.referenceWords,
+      });
+    }
+
+
+    // =================================================================
+    // ☆ TwoPro v14.10-safe: notice + O + -ing 평서문 CORE
+    // 현재/과거/미래 긍정·부정 평서문 36개 검증 범위만 처리합니다.
+    // =================================================================
+    const twoProNoticeObjectIngStatementResultV1410 =
+      twoProTryKoEnNoticeObjectIngStatementV1410(
+        originalText
+      );
+
+    if (twoProNoticeObjectIngStatementResultV1410) {
+      console.log(
+        '[한영 notice 목적어 -ing 평서문 성공 v14.10]',
+        {
+          query: originalText,
+          result:
+            twoProNoticeObjectIngStatementResultV1410.targetText,
+          engine:
+            twoProNoticeObjectIngStatementResultV1410.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProNoticeObjectIngStatementResultV1410.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProNoticeObjectIngStatementResultV1410.analysis,
+          referenceWords:
+            twoProNoticeObjectIngStatementResultV1410.referenceWords,
+          engine:
+            twoProNoticeObjectIngStatementResultV1410.engine,
+        },
+        referenceWords:
+          twoProNoticeObjectIngStatementResultV1410.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v14.11-safe: notice + O + -ing 의문문 CORE
+    // 현재/과거/미래 긍정·부정 의문문 36개 검증 범위만 처리합니다.
+    // =================================================================
+    const twoProNoticeObjectIngQuestionResultV1411 =
+      twoProTryKoEnNoticeObjectIngQuestionV1411(
+        originalText
+      );
+
+    if (twoProNoticeObjectIngQuestionResultV1411) {
+      console.log(
+        '[한영 notice 목적어 -ing 의문문 성공 v14.11]',
+        {
+          query: originalText,
+          result:
+            twoProNoticeObjectIngQuestionResultV1411.targetText,
+          engine:
+            twoProNoticeObjectIngQuestionResultV1411.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProNoticeObjectIngQuestionResultV1411.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProNoticeObjectIngQuestionResultV1411.analysis,
+          referenceWords:
+            twoProNoticeObjectIngQuestionResultV1411.referenceWords,
+          engine:
+            twoProNoticeObjectIngQuestionResultV1411.engine,
+        },
+        referenceWords:
+          twoProNoticeObjectIngQuestionResultV1411.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v14.12-safe: observe + O + -ing 평서문 CORE
+    // 현재/과거/미래 긍정·부정 평서문 36개 검증 범위만 처리합니다.
+    // =================================================================
+    const twoProObserveObjectIngStatementResultV1412 =
+      twoProTryKoEnObserveObjectIngStatementV1412(
+        originalText
+      );
+
+    if (twoProObserveObjectIngStatementResultV1412) {
+      console.log(
+        '[한영 observe 목적어 -ing 평서문 성공 v14.12]',
+        {
+          query: originalText,
+          result:
+            twoProObserveObjectIngStatementResultV1412.targetText,
+          engine:
+            twoProObserveObjectIngStatementResultV1412.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProObserveObjectIngStatementResultV1412.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProObserveObjectIngStatementResultV1412.analysis,
+          referenceWords:
+            twoProObserveObjectIngStatementResultV1412.referenceWords,
+          engine:
+            twoProObserveObjectIngStatementResultV1412.engine,
+        },
+        referenceWords:
+          twoProObserveObjectIngStatementResultV1412.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v14.13-safe: observe + O + -ing 의문문 CORE
+    // 현재/과거/미래 긍정·부정 의문문 36개 검증 범위만 처리합니다.
+    // =================================================================
+    const twoProObserveObjectIngQuestionResultV1413 =
+      twoProTryKoEnObserveObjectIngQuestionV1413(
+        originalText
+      );
+
+    if (twoProObserveObjectIngQuestionResultV1413) {
+      console.log(
+        '[한영 observe 목적어 -ing 의문문 성공 v14.13]',
+        {
+          query: originalText,
+          result:
+            twoProObserveObjectIngQuestionResultV1413.targetText,
+          engine:
+            twoProObserveObjectIngQuestionResultV1413.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProObserveObjectIngQuestionResultV1413.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProObserveObjectIngQuestionResultV1413.analysis,
+          referenceWords:
+            twoProObserveObjectIngQuestionResultV1413.referenceWords,
+          engine:
+            twoProObserveObjectIngQuestionResultV1413.engine,
+        },
+        referenceWords:
+          twoProObserveObjectIngQuestionResultV1413.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v14.14-safe: find + O + -ing 평서문 CORE
+    // 현재/과거/미래 긍정·부정 평서문 36개 검증 범위만 처리합니다.
+    // =================================================================
+    const twoProFindObjectIngStatementResultV1414 =
+      twoProTryKoEnFindObjectIngStatementV1414(
+        originalText
+      );
+
+    if (twoProFindObjectIngStatementResultV1414) {
+      console.log(
+        '[한영 find 목적어 -ing 평서문 성공 v14.14]',
+        {
+          query: originalText,
+          result:
+            twoProFindObjectIngStatementResultV1414.targetText,
+          engine:
+            twoProFindObjectIngStatementResultV1414.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProFindObjectIngStatementResultV1414.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProFindObjectIngStatementResultV1414.analysis,
+          referenceWords:
+            twoProFindObjectIngStatementResultV1414.referenceWords,
+          engine:
+            twoProFindObjectIngStatementResultV1414.engine,
+        },
+        referenceWords:
+          twoProFindObjectIngStatementResultV1414.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v14.15-safe: find + O + -ing 의문문 CORE
+    // 현재/과거/미래 긍정·부정 의문문 36개 검증 범위만 처리합니다.
+    // =================================================================
+    const twoProFindObjectIngQuestionResultV1415 =
+      twoProTryKoEnFindObjectIngQuestionV1415(
+        originalText
+      );
+
+    if (twoProFindObjectIngQuestionResultV1415) {
+      console.log(
+        '[한영 find 목적어 -ing 의문문 성공 v14.15]',
+        {
+          query: originalText,
+          result:
+            twoProFindObjectIngQuestionResultV1415.targetText,
+          engine:
+            twoProFindObjectIngQuestionResultV1415.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProFindObjectIngQuestionResultV1415.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProFindObjectIngQuestionResultV1415.analysis,
+          referenceWords:
+            twoProFindObjectIngQuestionResultV1415.referenceWords,
+          engine:
+            twoProFindObjectIngQuestionResultV1415.engine,
+        },
+        referenceWords:
+          twoProFindObjectIngQuestionResultV1415.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v14.16-safe: catch + O + -ing 평서문 CORE
+    // 현재/과거/미래 긍정·부정 평서문 36개 검증 범위만 처리합니다.
+    // =================================================================
+    const twoProCatchObjectIngStatementResultV1416 =
+      twoProTryKoEnCatchObjectIngStatementV1416(
+        originalText
+      );
+
+    if (twoProCatchObjectIngStatementResultV1416) {
+      console.log(
+        '[한영 catch 목적어 -ing 평서문 성공 v14.16]',
+        {
+          query: originalText,
+          result:
+            twoProCatchObjectIngStatementResultV1416.targetText,
+          engine:
+            twoProCatchObjectIngStatementResultV1416.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCatchObjectIngStatementResultV1416.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProCatchObjectIngStatementResultV1416.analysis,
+          referenceWords:
+            twoProCatchObjectIngStatementResultV1416.referenceWords,
+          engine:
+            twoProCatchObjectIngStatementResultV1416.engine,
+        },
+        referenceWords:
+          twoProCatchObjectIngStatementResultV1416.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v14.17-safe: catch + O + -ing 의문문 CORE
+    // 현재/과거/미래 긍정·부정 의문문 36개 검증 범위만 처리합니다.
+    // =================================================================
+    const twoProCatchObjectIngQuestionResultV1417 =
+      twoProTryKoEnCatchObjectIngQuestionV1417(
+        originalText
+      );
+
+    if (twoProCatchObjectIngQuestionResultV1417) {
+      console.log(
+        '[한영 catch 목적어 -ing 의문문 성공 v14.17]',
+        {
+          query: originalText,
+          result:
+            twoProCatchObjectIngQuestionResultV1417.targetText,
+          engine:
+            twoProCatchObjectIngQuestionResultV1417.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProCatchObjectIngQuestionResultV1417.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProCatchObjectIngQuestionResultV1417.analysis,
+          referenceWords:
+            twoProCatchObjectIngQuestionResultV1417.referenceWords,
+          engine:
+            twoProCatchObjectIngQuestionResultV1417.engine,
+        },
+        referenceWords:
+          twoProCatchObjectIngQuestionResultV1417.referenceWords,
       });
     }
 
