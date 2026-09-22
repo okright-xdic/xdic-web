@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title:
     '영어 번역가 해설 | 문맥·품사·시제로 보는 X-DIC 번역 가이드',
   description:
-    'go와 come, see·look·watch, 관사, 전치사, 시제, book·file·plant 다의어까지 영어 번역에서 자주 헷갈리는 표현을 문맥과 문장 구조로 설명하는 X-DIC 번역가 해설 모음입니다.',
+    'go와 come, see·look·watch, ask·tell·require·persuade, 관사, 전치사, 시제, book·file·plant 다의어까지 영어 번역에서 자주 헷갈리는 표현을 문맥과 문장 구조로 설명하는 X-DIC 번역가 해설 모음입니다.',
   alternates: {
     canonical: '/english',
   },
@@ -65,7 +65,7 @@ const guideGroups = [
     id: 'grammar',
     title: '2. 문법과 문장 구조',
     description:
-      '전치사·관사·부정문·시제는 한국어와 영어가 일대일로 대응하지 않습니다. 문장의 기능과 시간 관계를 기준으로 번역합니다.',
+      '전치사·관사·부정문·시제와 사람 + to부정사 구조는 한국어와 영어가 일대일로 대응하지 않습니다. 문장의 기능과 의미 관계를 기준으로 번역합니다.',
     guides: [
       {
         href: '/english/in-on-at',
@@ -111,6 +111,16 @@ const guideGroups = [
         summary:
           '시간 부사, 진행 여부, 상태 동사, 문맥상 시간 관계를 함께 보고 영어 시제를 결정합니다.',
         examples: 'I go. · I went. · I will go.',
+      },
+      {
+        href: '/english/ask-tell-require-persuade',
+        label: '목적어 + to부정사',
+        title: 'ask · tell · require · persuade',
+        subtitle: '사람에게 부탁·지시·요구·설득할 때 구조 구별하기',
+        summary:
+          '같은 사람 + to부정사 구조라도 부탁, 지시, 규정상 요구, 설득이라는 의미 차이를 문맥으로 구별합니다.',
+        examples:
+          'Ask me to wait. · Tell me to wait. · Require me to wait. · Persuade me to wait.',
       },
     ],
   },
@@ -189,6 +199,7 @@ export default function EnglishGuideHubPage() {
     '관사': '🔤',
     '부정문': '🚫',
     '시제': '⏱️',
+    '목적어 + to부정사': '🧱',
     '다의어': '🔀',
   };
 
@@ -346,7 +357,7 @@ export default function EnglishGuideHubPage() {
                       문법과 문장 구조
                     </h3>
                     <p className="mt-0.5 text-[10px] md:text-[11px] text-slate-500">
-                      관사 · 전치사 · 부정문 · 시제
+                      관사 · 전치사 · 부정문 · 시제 · 목적어+to부정사
                     </p>
                   </div>
                 </div>
@@ -554,6 +565,8 @@ export default function EnglishGuideHubPage() {
               'book',
               'file',
               'plant',
+              'ask me to wait',
+              'tell me to wait',
             ].map((query) => (
               <Link
                 key={query}
