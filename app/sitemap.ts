@@ -35,6 +35,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/english/tense-translation',
     '/english/want-plan-going-to-will',
     '/english/ask-tell-require-persuade',
+    '/english/send-give-show-lend',
     '/english/book-noun-verb',
     '/english/file-noun-verb',
     '/english/plant-noun-verb',

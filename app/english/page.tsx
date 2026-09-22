@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title:
     '영어 번역가 해설 | 문맥·품사·시제로 보는 X-DIC 번역 가이드',
   description:
-    'go와 come, see·look·watch, ask·tell·require·persuade, want to·plan to·be going to·will, 관사, 전치사, 시제, book·file·plant 다의어까지 영어 번역에서 자주 헷갈리는 표현을 문맥과 문장 구조로 설명하는 X-DIC 번역가 해설 모음입니다.',
+    'go와 come, see·look·watch, ask·tell·require·persuade, want to·plan to·be going to·will, send·give·show·lend, 관사, 전치사, 시제, book·file·plant 다의어까지 영어 번역에서 자주 헷갈리는 표현을 문맥과 문장 구조로 설명하는 X-DIC 번역가 해설 모음입니다.',
   alternates: {
     canonical: '/english',
   },
@@ -132,6 +132,16 @@ const guideGroups = [
         examples:
           'Ask me to wait. · Tell me to wait. · Require me to wait. · Persuade me to wait.',
       },
+      {
+        href: '/english/send-give-show-lend',
+        label: '수여동사',
+        title: 'send · give · show · lend',
+        subtitle: '사람 + 사물과 to 구조를 구별하기',
+        summary:
+          'send, give, show, lend가 사람에게 사물을 전달·제공·보여 주거나 빌려주는 문장에서 어떤 어순을 취하는지 설명합니다.',
+        examples:
+          'Send me the report. · Give me the key. · Show me the photo. · Lend me the book.',
+      },
     ],
   },
   {
@@ -211,6 +221,7 @@ export default function EnglishGuideHubPage() {
     '시제': '⏱️',
     '미래 표현': '🔭',
     '목적어 + to부정사': '🧱',
+    '수여동사': '🎁',
     '다의어': '🔀',
   };
 
@@ -368,7 +379,7 @@ export default function EnglishGuideHubPage() {
                       문법과 문장 구조
                     </h3>
                     <p className="mt-0.5 text-[10px] md:text-[11px] text-slate-500">
-                      관사 · 전치사 · 부정문 · 시제 · 미래 표현 · 목적어+to부정사
+                      관사 · 전치사 · 부정문 · 시제 · 미래 표현 · 목적어+to부정사 · 수여동사
                     </p>
                   </div>
                 </div>
@@ -580,6 +591,8 @@ export default function EnglishGuideHubPage() {
               'tell me to wait',
               'I plan to go',
               "I'm going to go",
+              "Send me the report",
+              "Show me the photo",
             ].map((query) => (
               <Link
                 key={query}
