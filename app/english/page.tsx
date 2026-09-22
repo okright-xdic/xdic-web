@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title:
     '영어 번역가 해설 | 문맥·품사·시제로 보는 X-DIC 번역 가이드',
   description:
-    'go와 come, see·look·watch, ask·tell·require·persuade, 관사, 전치사, 시제, book·file·plant 다의어까지 영어 번역에서 자주 헷갈리는 표현을 문맥과 문장 구조로 설명하는 X-DIC 번역가 해설 모음입니다.',
+    'go와 come, see·look·watch, ask·tell·require·persuade, want to·plan to·be going to·will, 관사, 전치사, 시제, book·file·plant 다의어까지 영어 번역에서 자주 헷갈리는 표현을 문맥과 문장 구조로 설명하는 X-DIC 번역가 해설 모음입니다.',
   alternates: {
     canonical: '/english',
   },
@@ -113,6 +113,16 @@ const guideGroups = [
         examples: 'I go. · I went. · I will go.',
       },
       {
+        href: '/english/want-plan-going-to-will',
+        label: '미래 표현',
+        title: 'want to · plan to · be going to · will',
+        subtitle: '희망·계획·의도·미래를 구별하기',
+        summary:
+          '한국어의 “~하고 싶다”, “~할 계획이다”, “~할 거다”가 영어에서 어떤 구조로 달라지는지 의도와 상황을 기준으로 설명합니다.',
+        examples:
+          'I want to go. · I plan to go. · I’m going to go. · I’ll go.',
+      },
+      {
         href: '/english/ask-tell-require-persuade',
         label: '목적어 + to부정사',
         title: 'ask · tell · require · persuade',
@@ -199,6 +209,7 @@ export default function EnglishGuideHubPage() {
     '관사': '🔤',
     '부정문': '🚫',
     '시제': '⏱️',
+    '미래 표현': '🔭',
     '목적어 + to부정사': '🧱',
     '다의어': '🔀',
   };
@@ -357,7 +368,7 @@ export default function EnglishGuideHubPage() {
                       문법과 문장 구조
                     </h3>
                     <p className="mt-0.5 text-[10px] md:text-[11px] text-slate-500">
-                      관사 · 전치사 · 부정문 · 시제 · 목적어+to부정사
+                      관사 · 전치사 · 부정문 · 시제 · 미래 표현 · 목적어+to부정사
                     </p>
                   </div>
                 </div>
@@ -567,6 +578,8 @@ export default function EnglishGuideHubPage() {
               'plant',
               'ask me to wait',
               'tell me to wait',
+              'I plan to go',
+              "I'm going to go",
             ].map((query) => (
               <Link
                 key={query}

@@ -33,6 +33,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/english/articles-a-an-the',
     '/english/dont-do-not-doesnt',
     '/english/tense-translation',
+    '/english/want-plan-going-to-will',
     '/english/ask-tell-require-persuade',
     '/english/book-noun-verb',
     '/english/file-noun-verb',
