@@ -2971,7 +2971,7 @@ if (
   // ☆ TwoPro 2026-09-12-safe: 메인 빠른 메뉴 / 영어회화 미리보기 공용 렌더
   // - 기존 링크/핸들러/previewData 로직을 그대로 재사용
   // - PC/모바일 웹/APP 모두 검색창 바로 아래에 표시
-  // - APP에서는 즐겨찾기를 제외하고 Guide / English / Sitemap만 표시
+  // - 웹에서는 즐겨찾기 / Sitemap만 표시하고, APP에서는 Guide / English / Sitemap을 유지
   // - 웹/APP 모두 공지사항·FAQ 빠른 메뉴는 표시하지 않음
   // ================================================================
   const renderHomeQuickLinkButtons = () => (
@@ -2986,13 +2986,10 @@ if (
   </button>
 )}
 
+{displayIsApp && (
 <Link
   href="/english"
-  className={
-    displayIsApp
-      ? "group w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-white border border-violet-200 shadow-sm hover:border-violet-400 hover:bg-violet-50 rounded-full text-[10px] min-[390px]:text-[10.5px] font-extrabold text-violet-600 hover:text-violet-800 transition-all duration-300"
-      : "group flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 bg-white border border-violet-200 shadow-sm hover:border-violet-400 hover:shadow-md hover:bg-violet-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-violet-600 hover:text-violet-800 transition-all duration-300"
-  }
+  className="group w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-white border border-violet-200 shadow-sm hover:border-violet-400 hover:bg-violet-50 rounded-full text-[10px] min-[390px]:text-[10.5px] font-extrabold text-violet-600 hover:text-violet-800 transition-all duration-300"
 >
   <span className="text-[14px] group-hover:scale-110 transition-transform">📝</span>
   <span>
@@ -3000,18 +2997,17 @@ if (
     <span className="font-semibold text-violet-400">· Guide</span>
   </span>
 </Link>
+)}
 
+{displayIsApp && (
 <Link
   href="/conversation"
-  className={
-    displayIsApp
-      ? "group w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-white border border-blue-200 shadow-sm hover:border-blue-400 hover:bg-blue-50 rounded-full text-[10.5px] min-[390px]:text-[11px] font-extrabold text-blue-600 hover:text-blue-800 transition-all duration-300"
-      : "group flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 bg-white border border-blue-200 shadow-sm hover:border-blue-400 hover:shadow-md hover:bg-blue-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-blue-600 hover:text-blue-800 transition-all duration-300"
-  }
+  className="group w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-white border border-blue-200 shadow-sm hover:border-blue-400 hover:bg-blue-50 rounded-full text-[10.5px] min-[390px]:text-[11px] font-extrabold text-blue-600 hover:text-blue-800 transition-all duration-300"
 >
   <span className="text-[14px] group-hover:scale-110 transition-transform">📖</span> 
   <span>영어회화 <span className="font-semibold text-blue-400">· English</span></span>
 </Link>
+)}
 <Link
   href="/sitemap"
   className={
@@ -3185,19 +3181,19 @@ if (
       className={
         displayIsApp
           ? "w-full pt-4 pb-0"
-          : "w-full pt-8 pb-0 md:pt-12 md:pb-0"
+          : "w-full pt-4 pb-0 md:pt-5 md:pb-0"
       }
     >
       <div
         className={
           displayIsApp
             ? "flex flex-col items-center justify-center text-center gap-1 mb-3 px-0.5 w-full"
-            : "flex flex-col items-center justify-center text-center gap-2 mb-5 md:mb-6 px-1 w-full"
+            : "flex flex-col items-center justify-center text-center gap-1 mb-3 md:mb-3.5 px-1 w-full"
         }
       >
         <a
           href={displayIsApp ? '/app' : '/'}
-          className={displayIsApp ? "cursor-pointer mb-0" : "cursor-pointer mb-2"}
+          className={displayIsApp ? "cursor-pointer mb-0" : "cursor-pointer mb-0.5"}
         >
           <Image
             src="/images/LOGO_01_ChatGPT_S.jpg"
@@ -3225,10 +3221,10 @@ if (
           className={
             displayIsApp
               ? "flex flex-col items-center w-full mt-0.5 mb-1"
-              : "flex flex-col items-center w-full mt-1 mb-2"
+              : "flex flex-col items-center w-full mt-0.5 mb-1"
           }
         >
-          <div className={displayIsApp ? "mb-1" : "mb-2 md:mb-2.5"}>
+          <div className={displayIsApp ? "mb-1" : "mb-1 md:mb-1.5"}>
             <p
               className={
                 displayIsApp
@@ -3263,7 +3259,7 @@ if (
             className={
               displayIsApp
                 ? "max-w-md px-2 mb-1.5 text-[10.5px] min-[390px]:text-[11px] text-slate-600 font-medium leading-4 break-keep"
-                : "max-w-2xl px-3 mb-2.5 text-[12px] md:text-[14px] text-slate-700 font-medium leading-relaxed break-keep"
+                : "max-w-2xl px-3 mb-1 text-[12px] md:text-[14px] text-slate-700 font-medium leading-relaxed break-keep"
             }
           >
             {displayIsApp
@@ -3315,21 +3311,12 @@ if (
             }
           >
             <div>
-              <p
-                className={
-                  displayIsApp
-                    ? "text-[8px] min-[390px]:text-[8.5px] font-extrabold uppercase tracking-[0.12em] text-slate-400"
-                    : "text-[9px] md:text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-400"
-                }
-              >
-                X-DIC Core Features
-              </p>
               <h2
                 id="xdic-main-capabilities-title"
                 className={
                   displayIsApp
                     ? "text-[12.5px] min-[390px]:text-[13.5px] font-black text-slate-900"
-                    : "mt-0.5 text-[14px] md:text-[16px] font-black text-slate-900"
+                    : "text-[14px] md:text-[16px] font-black text-slate-900"
                 }
               >
                 X-DIC에서 함께 확인하세요
@@ -3363,7 +3350,7 @@ if (
             <article className={
               displayIsApp
                 ? "group relative overflow-hidden rounded-xl border border-blue-100 bg-blue-50/45 px-2 py-2 shadow-sm transition-all hover:border-blue-200 hover:shadow-md"
-                : "group relative min-h-[108px] md:min-h-[132px] overflow-hidden rounded-2xl border border-blue-100 bg-blue-50/45 px-3 py-3 md:px-3.5 md:py-3.5 shadow-sm transition-all md:hover:border-blue-200 md:hover:shadow-md"
+                : "group relative overflow-hidden rounded-2xl border border-blue-100 bg-blue-50/45 px-3 pt-3 pb-2 md:px-3.5 md:pt-3.5 md:pb-2.5 shadow-sm transition-all md:hover:border-blue-200 md:hover:shadow-md"
             }>
               <Link
                 href={`${displayIsApp ? '/app' : '/'}?q=${encodeURIComponent('나는 그에게 책을 읽으라고 가르쳤다')}`}
@@ -3423,7 +3410,7 @@ if (
             <article className={
               displayIsApp
                 ? "group relative overflow-hidden rounded-xl border border-sky-100 bg-sky-50/45 px-2 py-2 shadow-sm transition-all hover:border-sky-200 hover:shadow-md"
-                : "group relative min-h-[108px] md:min-h-[132px] overflow-hidden rounded-2xl border border-sky-100 bg-sky-50/45 px-3 py-3 md:px-3.5 md:py-3.5 shadow-sm transition-all md:hover:border-sky-200 md:hover:shadow-md"
+                : "group relative overflow-hidden rounded-2xl border border-sky-100 bg-sky-50/45 px-3 pt-3 pb-2 md:px-3.5 md:pt-3.5 md:pb-2.5 shadow-sm transition-all md:hover:border-sky-200 md:hover:shadow-md"
             }>
               <Link
                 href={`${displayIsApp ? '/app' : '/'}?q=${encodeURIComponent('갑상선기능항진증 치료')}`}
@@ -3571,6 +3558,145 @@ if (
             </article>
           </div>
         </section>
+
+        {/* ================================================================
+            ☆ TwoPro 2026-09-23-safe: 영어 보물 창고 / English Archives
+            - 웹 메인에서 Core Features와 Live Search 사이에만 표시
+            - 기존 실제 페이지(/conversation, /english, /medical, /trade-economy,
+              /travel, /business)로 연결
+            - 뉘앙스/숙어는 각각 /nuance, /idiom 전용 해설 페이지로 직접 이동
+            - 검색/번역/음성검색 로직에는 영향 없음
+           ================================================================ */}
+        {!displayIsApp && (
+          <section
+            aria-labelledby="xdic-english-archives-title"
+            className="w-full mt-4 md:mt-5"
+          >
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="relative overflow-hidden bg-gradient-to-r from-violet-100 via-purple-50 to-fuchsia-100 px-4 py-3 md:px-5 md:py-3.5">
+                {/* 
+                  보물상자 사진을 '이미지 박스'가 아니라 넓은 배경 레이어로 사용합니다.
+                  위·아래로 충분히 크게 확장해 사각형 경계가 보이지 않게 하고,
+                  오른쪽으로 갈수록 보라색 바탕에 자연스럽게 사라지게 합니다.
+                */}
+                <div
+                  className="pointer-events-none absolute -left-8 -top-14 h-[190px] w-[315px] md:-left-10 md:-top-20 md:h-[235px] md:w-[390px]"
+                  aria-hidden="true"
+                  style={{
+                    backgroundImage: "url('/treasure-chest-archives.jpg')",
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: 'cover',
+                    backgroundPosition: '72% 52%',
+                    WebkitMaskImage:
+                      'linear-gradient(to right, #000 0%, #000 46%, rgba(0,0,0,0.94) 56%, rgba(0,0,0,0.68) 68%, rgba(0,0,0,0.30) 80%, transparent 94%)',
+                    maskImage:
+                      'linear-gradient(to right, #000 0%, #000 46%, rgba(0,0,0,0.94) 56%, rgba(0,0,0,0.68) 68%, rgba(0,0,0,0.30) 80%, transparent 94%)',
+                  }}
+                />
+
+                {/* 사진 위에 아주 옅은 보라색을 얹어 원본 사진과 바의 색조를 통일합니다. */}
+                <div
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-r from-violet-100/5 via-violet-100/25 to-fuchsia-100/55"
+                  aria-hidden="true"
+                />
+
+                <div
+                  className="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-violet-300/25"
+                  aria-hidden="true"
+                />
+                <div
+                  className="absolute right-16 -bottom-10 h-20 w-20 rounded-full bg-fuchsia-300/20"
+                  aria-hidden="true"
+                />
+
+                <div className="relative flex items-center justify-between gap-3.5 pl-[150px] md:pl-[220px]">
+                  <h2
+                    id="xdic-english-archives-title"
+                    className="min-w-0 text-[18px] md:text-[21px] font-black tracking-tight text-violet-950 drop-shadow-[0_1px_0_rgba(255,255,255,0.65)]"
+                  >
+                    영어 보물 창고
+                    <span className="ml-2 text-[10.5px] md:text-[11.5px] font-bold tracking-normal text-violet-700">
+                      English Archives
+                    </span>
+                  </h2>
+
+                  <span className="hidden sm:inline shrink-0 rounded-full border border-violet-200 bg-white/80 px-2.5 py-1 text-[9px] md:text-[10px] font-bold text-violet-900 shadow-sm">
+                    X-DIC English Collection
+                  </span>
+                </div>
+              </div>
+
+              <nav
+                aria-label="영어 보물 창고 바로가기"
+                className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 md:p-3.5"
+              >
+                <Link
+                  href="/conversation"
+                  className="group flex items-center justify-center gap-1.5 rounded-xl border border-blue-100 bg-blue-50/70 px-2.5 py-2 text-[10.5px] md:text-[11.5px] font-extrabold text-blue-700 hover:border-blue-300 hover:bg-blue-100/70 hover:shadow-sm transition-all"
+                >
+                  <span aria-hidden="true">📖</span>
+                  <span>필수 영어회화</span>
+                </Link>
+
+                <Link
+                  href="/english"
+                  className="group flex items-center justify-center gap-1.5 rounded-xl border border-violet-100 bg-violet-50/70 px-2.5 py-2 text-[10.5px] md:text-[11.5px] font-extrabold text-violet-700 hover:border-violet-300 hover:bg-violet-100/70 hover:shadow-sm transition-all"
+                >
+                  <span aria-hidden="true">📝</span>
+                  <span>번역가 영어해설</span>
+                </Link>
+
+                <Link
+                  href="/medical"
+                  className="group flex items-center justify-center gap-1.5 rounded-xl border border-rose-100 bg-rose-50/70 px-2.5 py-2 text-[10.5px] md:text-[11.5px] font-extrabold text-rose-700 hover:border-rose-300 hover:bg-rose-100/70 hover:shadow-sm transition-all"
+                >
+                  <span aria-hidden="true">🩺</span>
+                  <span>전문용어: 의학</span>
+                </Link>
+
+                <Link
+                  href="/trade-economy"
+                  className="group flex items-center justify-center gap-1.5 rounded-xl border border-amber-100 bg-amber-50/70 px-2.5 py-2 text-[10.5px] md:text-[11.5px] font-extrabold text-amber-700 hover:border-amber-300 hover:bg-amber-100/70 hover:shadow-sm transition-all"
+                >
+                  <span aria-hidden="true">📈</span>
+                  <span>전문용어: 경제</span>
+                </Link>
+
+                <Link
+                  href="/travel"
+                  className="group flex items-center justify-center gap-1.5 rounded-xl border border-sky-100 bg-sky-50/70 px-2.5 py-2 text-[10.5px] md:text-[11.5px] font-extrabold text-sky-700 hover:border-sky-300 hover:bg-sky-100/70 hover:shadow-sm transition-all"
+                >
+                  <span aria-hidden="true">🧳</span>
+                  <span>실용 영어</span>
+                </Link>
+
+                <Link
+                  href="/business"
+                  className="group flex items-center justify-center gap-1.5 rounded-xl border border-indigo-100 bg-indigo-50/70 px-2.5 py-2 text-[10.5px] md:text-[11.5px] font-extrabold text-indigo-700 hover:border-indigo-300 hover:bg-indigo-100/70 hover:shadow-sm transition-all"
+                >
+                  <span aria-hidden="true">💼</span>
+                  <span>실무영어</span>
+                </Link>
+
+                <Link
+                  href="/nuance"
+                  className="group flex items-center justify-center gap-1.5 rounded-xl border border-emerald-100 bg-emerald-50/70 px-2.5 py-2 text-[10.5px] md:text-[11.5px] font-extrabold text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100/70 hover:shadow-sm transition-all"
+                >
+                  <span aria-hidden="true">🎨</span>
+                  <span>뉘앙스</span>
+                </Link>
+
+                <Link
+                  href="/idiom"
+                  className="group flex items-center justify-center gap-1.5 rounded-xl border border-orange-100 bg-orange-50/70 px-2.5 py-2 text-[10.5px] md:text-[11.5px] font-extrabold text-orange-700 hover:border-orange-300 hover:bg-orange-100/70 hover:shadow-sm transition-all"
+                >
+                  <span aria-hidden="true">🧩</span>
+                  <span>숙어해설</span>
+                </Link>
+              </nav>
+            </div>
+          </section>
+        )}
 
         {/* ================================================================
             ☆ TwoPro v1.44-safe: 10단계 3차 — Live / Popular Search UI 정리
@@ -4562,10 +4688,16 @@ if (
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="px-2 py-0.5 rounded-full border border-emerald-100 bg-emerald-50/70 text-[9px] md:text-[10px] font-extrabold text-emerald-700">
+                    <span
+                      id="xdic-nuance"
+                      className="scroll-mt-6 px-2 py-0.5 rounded-full border border-emerald-100 bg-emerald-50/70 text-[9px] md:text-[10px] font-extrabold text-emerald-700"
+                    >
                       Nuance
                     </span>
-                    <span className="px-2 py-0.5 rounded-full border border-blue-100 bg-blue-50/70 text-[9px] md:text-[10px] font-extrabold text-blue-700">
+                    <span
+                      id="xdic-idiom"
+                      className="scroll-mt-6 px-2 py-0.5 rounded-full border border-blue-100 bg-blue-50/70 text-[9px] md:text-[10px] font-extrabold text-blue-700"
+                    >
                       Idiom
                     </span>
                   </div>

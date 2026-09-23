@@ -445,7 +445,7 @@ export default function TradeEconomyPage() {
   return (
     <div className="min-h-screen bg-white font-sans">
       <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-md border-b border-slate-100 z-50 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 md:px-6 h-12 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 h-10 flex items-center justify-between">
           <Link
             href="/"
             className="flex items-center gap-2 text-slate-500 hover:text-amber-700 transition-colors font-bold text-[11px] md:text-xs bg-slate-50 hover:bg-amber-50 px-2.5 py-1 rounded-full"
@@ -460,31 +460,31 @@ export default function TradeEconomyPage() {
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-4 md:px-6 pt-14 md:pt-16 pb-16">
-        <section className="text-center mb-3 md:mb-4 animate-in fade-in slide-in-from-top-4 duration-500">
-          <p className="text-[9px] md:text-[10px] font-extrabold tracking-[0.12em] text-amber-600 uppercase mb-1">
+      <main className="max-w-5xl mx-auto px-4 md:px-6 pt-12 md:pt-13 pb-16">
+        <section className="text-center mb-2 md:mb-2.5 animate-in fade-in slide-in-from-top-4 duration-500">
+          <p className="text-[8.5px] md:text-[9.5px] font-extrabold tracking-[0.11em] text-amber-600 uppercase mb-0.5">
             X-DIC Trade &amp; Economy Terminology
           </p>
 
-          <h1 className="text-[24px] md:text-[30px] font-black text-slate-900 leading-tight tracking-tight">
+          <h1 className="text-[21px] md:text-[26px] font-black text-slate-900 leading-[1.18] tracking-tight">
             무역/경제 전문 검색
-            <span className="ml-1.5 text-[11px] md:text-[13px] font-bold text-amber-600 align-middle">
+            <span className="ml-1.5 text-[10px] md:text-[11px] font-bold text-amber-600 align-middle">
               Trade&amp;Economy
             </span>
           </h1>
 
-          <p className="mt-1.5 text-[10px] md:text-[12px] font-bold tracking-tight">
+          <p className="mt-1 text-[9.5px] md:text-[10.5px] font-bold tracking-tight">
             <span className="text-blue-600">Ko-En</span><span className="text-slate-400"> / </span><span className="text-emerald-600">En-Ko</span><span className="text-slate-500"> Terminology</span>
           </p>
 
-          <p className="max-w-3xl mx-auto mt-2 text-[11px] md:text-[12.5px] text-slate-500 leading-5 md:leading-[1.65] break-keep">
+          <p className="max-w-3xl mx-auto mt-1.5 text-[10.5px] md:text-[11.5px] text-slate-500 leading-[1.45] break-keep">
             X-DIC 무역·경제 허브는 무역서류·물류, 계약·결제, 환율·금융, 경제지표 분야에서
             접하는 영어·한국어 전문용어를 한영·영한 사전 데이터와 연결해 탐색할 수 있도록 구성했습니다.
             용어를 선택하면 X-DIC 메인 검색 결과에서 관련 전문용어와 병렬 데이터를 이어서 확인할 수 있습니다.
           </p>
         </section>
 
-        <section aria-labelledby="trade-economy-search-title" className="mb-4 md:mb-5">
+        <section aria-labelledby="trade-economy-search-title" className="mb-2.5 md:mb-3">
           <h2 id="trade-economy-search-title" className="sr-only">
             무역·경제 용어 한영·영한 검색
           </h2>
@@ -492,12 +492,12 @@ export default function TradeEconomyPage() {
           <div className="relative max-w-2xl mx-auto">
             <form
               onSubmit={handleSearch}
-              className="flex items-center w-full h-12 md:h-14 bg-white rounded-xl border border-amber-300 shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-amber-100 transition-all"
+              className="flex items-center w-full h-11 md:h-12 bg-white rounded-xl border border-amber-300 shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-amber-100 transition-all"
             >
-              <div className="pl-4 md:pl-5 text-amber-500">
+              <div className="pl-3.5 md:pl-4 text-amber-500">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 md:h-5 md:w-5"
+                  className="h-4 w-4 md:h-[18px] md:w-[18px]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -516,74 +516,74 @@ export default function TradeEconomyPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="예: bill of lading / 선하증권 / exchange rate"
-                className="flex-grow min-w-0 h-full px-3 md:px-4 text-sm md:text-base outline-none font-medium text-slate-800"
+                className="flex-grow min-w-0 h-full px-3 md:px-3.5 text-[12px] md:text-sm outline-none font-medium text-slate-800"
                 autoComplete="off"
               />
 
               <button
                 type="submit"
-                className="h-full px-5 md:px-6 bg-amber-600 text-white font-black text-sm md:text-base hover:bg-amber-700 transition-colors"
+                className="h-full px-4.5 md:px-5 bg-amber-600 text-white font-black text-[12px] md:text-sm hover:bg-amber-700 transition-colors"
               >
                 검색
               </button>
             </form>
 
-            <p className="mt-1.5 text-center text-[10px] md:text-[11px] text-slate-400 font-medium">
+            <p className="mt-1 text-center text-[9px] md:text-[10px] text-slate-400 font-medium">
               검색어는 이 브라우저의 ‘나만의 무역·경제 용어 보물창고’에 저장됩니다.
             </p>
           </div>
         </section>
 
         {/* Guide */}
-        <section aria-labelledby="trade-economy-guide-title" className="mb-3.5 md:mb-4">
-          <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 md:p-4">
-            <div className="mb-2.5">
-              <p className="text-[9px] md:text-[10px] font-bold text-amber-600 mb-1">
+        <section aria-labelledby="trade-economy-guide-title" className="mb-2.5 md:mb-3">
+          <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-2.5 md:p-3">
+            <div className="mb-1.5">
+              <p className="text-[8.5px] md:text-[9.5px] font-bold text-amber-600 mb-0.5">
                 Trade &amp; Economy Terminology Guide
               </p>
               <h2
                 id="trade-economy-guide-title"
-                className="text-[16px] md:text-[18px] font-black text-slate-900 leading-tight"
+                className="text-[14px] md:text-[16px] font-black text-slate-900 leading-tight"
               >
                 X-DIC에서 무역·경제 용어를 찾는 방법
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <article className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 md:px-3.5 md:py-3">
-                <h3 className="font-extrabold text-slate-900 text-[12px] md:text-[13px] mb-1">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 md:gap-2">
+              <article className="rounded-lg bg-white border border-slate-200 px-2.5 py-2 md:px-3 md:py-2.5">
+                <h3 className="font-extrabold text-slate-900 text-[10.5px] md:text-[11.5px] mb-0.5 leading-tight">
                   ① 한글·영어 전문용어 검색
                 </h3>
-                <p className="text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.5]">
+                <p className="text-[9.5px] md:text-[10.5px] text-slate-600 leading-[1.4]">
                   무역서류, 계약, 결제, 물류, 환율, 금융 및 경제지표 용어를 한글 또는 영어로 입력하면
                   X-DIC 메인 검색 결과에서 관련 한영·영한 데이터를 확인할 수 있습니다.
                 </p>
               </article>
 
-              <article className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 md:px-3.5 md:py-3">
-                <h3 className="font-extrabold text-slate-900 text-[12px] md:text-[13px] mb-1">
+              <article className="rounded-lg bg-white border border-slate-200 px-2.5 py-2 md:px-3 md:py-2.5">
+                <h3 className="font-extrabold text-slate-900 text-[10.5px] md:text-[11.5px] mb-0.5 leading-tight">
                   ② 긴 실무 표현부터 확인
                 </h3>
-                <p className="text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.5]">
+                <p className="text-[9.5px] md:text-[10.5px] text-slate-600 leading-[1.4]">
                   letter of credit, bill of lading, payment terms처럼 여러 단어가 한 개념을 이루는 경우
                   전체 구를 먼저 검색하면 단어별 검색보다 의미를 정확히 파악하기 쉽습니다.
                 </p>
               </article>
 
-              <article className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 md:px-3.5 md:py-3">
-                <h3 className="font-extrabold text-slate-900 text-[12px] md:text-[13px] mb-1">
+              <article className="rounded-lg bg-white border border-slate-200 px-2.5 py-2 md:px-3 md:py-2.5">
+                <h3 className="font-extrabold text-slate-900 text-[10.5px] md:text-[11.5px] mb-0.5 leading-tight">
                   ③ 거래 흐름에 따라 연관 용어 탐색
                 </h3>
-                <p className="text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.5]">
+                <p className="text-[9.5px] md:text-[10.5px] text-slate-600 leading-[1.4]">
                   견적 → 주문 → 계약 → 선적 → 통관 → 결제처럼 실제 업무 흐름에 따라 관련 용어를 이어서 탐색할 수 있습니다.
                 </p>
               </article>
 
-              <article className="rounded-lg bg-white border border-slate-200 px-3 py-2.5 md:px-3.5 md:py-3">
-                <h3 className="font-extrabold text-slate-900 text-[12px] md:text-[13px] mb-1">
+              <article className="rounded-lg bg-white border border-slate-200 px-2.5 py-2 md:px-3 md:py-2.5">
+                <h3 className="font-extrabold text-slate-900 text-[10.5px] md:text-[11.5px] mb-0.5 leading-tight">
                   ④ 개인 검색 기록 활용
                 </h3>
-                <p className="text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.5]">
+                <p className="text-[9.5px] md:text-[10.5px] text-slate-600 leading-[1.4]">
                   이 페이지에서 직접 검색한 최근 용어는 현재 브라우저에 저장되어 다시 찾아보기 쉽도록 도와줍니다.
                 </p>
               </article>
@@ -592,8 +592,8 @@ export default function TradeEconomyPage() {
         </section>
 
         {/* Fields */}
-        <section aria-labelledby="trade-economy-fields-title" className="mb-3.5 md:mb-4">
-          <div className="mb-2.5">
+        <section aria-labelledby="trade-economy-fields-title" className="mb-3 md:mb-3.5">
+          <div className="mb-2">
             <p className="text-[9px] md:text-[10px] font-bold text-amber-600 mb-1">
               Explore by field
             </p>

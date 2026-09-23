@@ -229,7 +229,7 @@ export default function NuanceWidget({
               className="flex items-center gap-1.5 text-[14px] md:text-[15px] font-black text-slate-800 leading-tight"
             >
               <span className="text-sm" aria-hidden="true">💡</span>
-              영단어 Nuance
+              뉘앙스 Nuance
             </h2>
             <p className="mt-0.5 text-[9px] md:text-[10px] text-slate-400">
               {dailyRotation ? '매일 다른 3개 · 의미·쓰임 차이' : '단어의 의미·쓰임 차이'}
@@ -286,7 +286,7 @@ export default function NuanceWidget({
             >
               <span className="text-sm" aria-hidden="true">📘</span>
               <span>
-                필수 숙어
+                숙어해설
                 <span className="ml-1 text-[10px] md:text-[11px] font-bold text-blue-500">
                   Idioms
                 </span>

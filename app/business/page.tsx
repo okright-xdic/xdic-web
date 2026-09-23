@@ -473,7 +473,7 @@ export default function BusinessPage() {
   return (
     <div className="min-h-screen bg-white font-sans">
       <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-md border-b border-slate-100 z-50 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 md:px-6 h-12 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 h-10 flex items-center justify-between">
           <Link
             href="/"
             className="flex items-center gap-2 text-slate-500 hover:text-indigo-700 transition-colors font-bold text-[11px] md:text-xs bg-slate-50 hover:bg-indigo-50 px-2.5 py-1 rounded-full"
@@ -488,54 +488,54 @@ export default function BusinessPage() {
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-4 md:px-6 pt-16 md:pt-20 pb-20">
-        <section className="text-center mb-4 md:mb-5">
-          <p className="text-[9px] md:text-[10px] font-extrabold tracking-[0.12em] text-indigo-600 uppercase mb-1">
+      <main className="max-w-5xl mx-auto px-4 md:px-6 pt-12 md:pt-13 pb-20">
+        <section className="text-center mb-2 md:mb-2.5">
+          <p className="text-[8.5px] md:text-[9.5px] font-extrabold tracking-[0.11em] text-indigo-600 uppercase mb-0.5">
             X-DIC Practical Business English
           </p>
 
-          <h1 className="text-[24px] md:text-[30px] font-black text-slate-900 leading-tight tracking-tight">
+          <h1 className="text-[21px] md:text-[26px] font-black text-slate-900 leading-[1.18] tracking-tight">
             실무 영어
-            <span className="ml-1.5 text-[11px] md:text-[13px] font-bold text-indigo-600 align-middle">
+            <span className="ml-1.5 text-[10px] md:text-[11px] font-bold text-indigo-600 align-middle">
               X-DIC Business
             </span>
           </h1>
 
-          <p className="mt-1.5 text-[10px] md:text-[12px] font-bold tracking-tight text-slate-500">
+          <p className="mt-1 text-[9.5px] md:text-[10.5px] font-bold tracking-tight text-slate-500">
             <span className="text-indigo-600">Practical Business English</span>
             <span className="text-slate-300"> · </span>
             <span className="text-slate-500">Ko-En / En-Ko</span>
           </p>
 
-          <p className="max-w-3xl mx-auto mt-2 text-[11px] md:text-[12.5px] text-slate-500 leading-5 md:leading-[1.65] break-keep">
+          <p className="max-w-3xl mx-auto mt-1.5 text-[10.5px] md:text-[11.5px] text-slate-500 leading-[1.45] break-keep">
             이메일, 회의, 전화, 일정, 요청·보고, 협상·계약에서 자주 쓰는 실무 영어를
             X-DIC 한영·영한 검색과 함께 살펴보세요. 같은 업무 의도를 여러 방식으로 표현하는 법과
             정중도·업무 톤의 차이도 함께 확인할 수 있습니다.
           </p>
 
-          <div className="mt-2 flex flex-wrap justify-center gap-2">
+          <div className="mt-1.5 flex flex-wrap justify-center gap-1.5">
             <a
               href="#business-situations"
-              className="px-2.5 py-1 rounded-full border border-indigo-100 bg-indigo-50 text-[10px] md:text-[11px] font-bold text-indigo-700"
+              className="px-2 py-0.5 rounded-full border border-indigo-100 bg-indigo-50 text-[9px] md:text-[10px] font-bold text-indigo-700"
             >
               상황별 실무 영어
             </a>
             <a
               href="#business-intents"
-              className="px-2.5 py-1 rounded-full border border-violet-100 bg-violet-50 text-[10px] md:text-[11px] font-bold text-violet-700"
+              className="px-2 py-0.5 rounded-full border border-violet-100 bg-violet-50 text-[9px] md:text-[10px] font-bold text-violet-700"
             >
               업무 의도별 표현
             </a>
             <Link
               href="/conversation?type=business"
-              className="px-2.5 py-1 rounded-full border border-slate-200 bg-white text-[10px] md:text-[11px] font-bold text-slate-600 hover:border-indigo-200 hover:text-indigo-700 transition-colors"
+              className="px-2 py-0.5 rounded-full border border-slate-200 bg-white text-[9px] md:text-[10px] font-bold text-slate-600 hover:border-indigo-200 hover:text-indigo-700 transition-colors"
             >
               비즈니스 영어회화 더 보기 →
             </Link>
           </div>
         </section>
 
-        <section aria-labelledby="business-search-title" className="mb-5 md:mb-6">
+        <section aria-labelledby="business-search-title" className="mb-2.5 md:mb-3">
           <h2 id="business-search-title" className="sr-only">
             실무 영어 문장과 표현 검색
           </h2>
@@ -543,12 +543,12 @@ export default function BusinessPage() {
           <div className="relative max-w-2xl mx-auto">
             <form
               onSubmit={handleSearch}
-              className="flex items-center w-full h-12 md:h-14 bg-white rounded-xl border border-indigo-300 shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-indigo-100 transition-all"
+              className="flex items-center w-full h-11 md:h-12 bg-white rounded-xl border border-indigo-300 shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-indigo-100 transition-all"
             >
-              <div className="pl-4 md:pl-5 text-indigo-500">
+              <div className="pl-3.5 md:pl-4 text-indigo-500">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4 md:h-5 md:w-5"
+                  className="h-4 w-4 md:h-[18px] md:w-[18px]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -567,37 +567,37 @@ export default function BusinessPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="예: 회의를 연기할 수 있을까요? / Please confirm receipt."
-                className="flex-grow min-w-0 h-full px-3 md:px-4 text-sm md:text-base outline-none font-medium text-slate-800"
+                className="flex-grow min-w-0 h-full px-3 md:px-3.5 text-[12px] md:text-sm outline-none font-medium text-slate-800"
                 autoComplete="off"
               />
 
               <button
                 type="submit"
-                className="h-full px-5 md:px-6 bg-indigo-600 text-white font-black text-sm md:text-base hover:bg-indigo-700 transition-colors"
+                className="h-full px-4.5 md:px-5 bg-indigo-600 text-white font-black text-[12px] md:text-sm hover:bg-indigo-700 transition-colors"
               >
                 검색
               </button>
             </form>
 
-            <p className="mt-1.5 text-center text-[10px] md:text-[11px] text-slate-400 font-medium">
+            <p className="mt-1 text-center text-[9px] md:text-[10px] text-slate-400 font-medium">
               검색하면 X-DIC 메인 결과로 이동하며 최근 검색어는 현재 브라우저에 저장됩니다.
             </p>
           </div>
         </section>
 
-        <section aria-labelledby="business-guide-title" className="mb-8 md:mb-10">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 md:p-6">
-            <p className="text-[11px] md:text-xs font-bold text-indigo-600 mb-1">
+        <section aria-labelledby="business-guide-title" className="mb-3 md:mb-3.5">
+          <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-2.5 md:p-3">
+            <p className="text-[8.5px] md:text-[9.5px] font-bold text-indigo-600 mb-0.5">
               Practical Business English Guide
             </p>
             <h2
               id="business-guide-title"
-              className="text-lg md:text-2xl font-black text-slate-900"
+              className="text-[14px] md:text-[16px] font-black text-slate-900 leading-tight"
             >
               X-DIC Business를 활용하는 방법
             </h2>
 
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+            <div className="mt-1.5 grid grid-cols-2 md:grid-cols-4 gap-1.5 md:gap-2">
               {[
                 [
                   '① 한국어·영어 실무 문장 검색',
@@ -618,12 +618,12 @@ export default function BusinessPage() {
               ].map(([title, text]) => (
                 <article
                   key={title}
-                  className="rounded-xl bg-white border border-slate-200 p-4"
+                  className="rounded-lg bg-white border border-slate-200 px-2.5 py-2 md:px-3 md:py-2.5"
                 >
-                  <h3 className="font-extrabold text-slate-900 text-sm md:text-base mb-2">
+                  <h3 className="font-extrabold text-slate-900 text-[10.5px] md:text-[11.5px] mb-0.5 leading-tight">
                     {title}
                   </h3>
-                  <p className="text-[12px] md:text-[13px] text-slate-600 leading-relaxed break-keep">
+                  <p className="text-[9.5px] md:text-[10.5px] text-slate-600 leading-[1.4] break-keep">
                     {text}
                   </p>
                 </article>
@@ -635,7 +635,7 @@ export default function BusinessPage() {
         <section
           id="business-situations"
           aria-labelledby="business-situations-title"
-          className="scroll-mt-20 mb-8 md:mb-10"
+          className="scroll-mt-20 mb-6 md:mb-7"
         >
           <div className="mb-4">
             <p className="text-[11px] md:text-xs font-bold text-indigo-600 mb-1">

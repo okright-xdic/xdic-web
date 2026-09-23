@@ -227,10 +227,10 @@ export default function EnglishGuideHubPage() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      <main className="w-full max-w-5xl mx-auto px-3.5 sm:px-5 py-5 md:py-7">
+      <main className="w-full max-w-5xl mx-auto px-3.5 sm:px-5 py-3.5 md:py-4">
         <nav
           aria-label="현재 위치"
-          className="mb-6 text-xs md:text-sm text-slate-500"
+          className="mb-3 text-[11px] md:text-[12px] text-slate-500"
         >
           <Link href="/" className="font-medium hover:text-blue-700">
             X-DIC 홈
@@ -239,18 +239,18 @@ export default function EnglishGuideHubPage() {
           <span className="text-slate-700">번역가 해설</span>
         </nav>
 
-        <header className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/65 via-white to-violet-50/35 px-4 md:px-6 py-4 md:py-5 shadow-sm">
-          <p className="text-[10px] md:text-[11px] font-extrabold text-blue-600 mb-1">
+        <header className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/65 via-white to-violet-50/35 px-4 md:px-5 py-3 md:py-3.5 shadow-sm">
+          <p className="text-[9px] md:text-[10px] font-extrabold text-blue-600 mb-0.5">
             X-DIC Translation Notes
           </p>
 
-          <h1 className="text-[24px] md:text-[30px] font-black tracking-tight leading-tight text-slate-900">
+          <h1 className="text-[21px] md:text-[26px] font-black tracking-tight leading-[1.18] text-slate-900">
             영어를 단어 하나가 아니라
             <br className="hidden md:block" />
             문맥과 문장 구조로 이해하는 번역 가이드
           </h1>
 
-          <p className="mt-3 max-w-4xl text-[12px] md:text-[14px] leading-6 text-slate-600 break-keep">
+          <p className="mt-2 max-w-4xl text-[11px] md:text-[12px] leading-5 text-slate-600 break-keep">
             같은 한국어 표현도 영어에서는 여러 단어로 나뉘고, 같은 영어 단어도
             문장에 따라 전혀 다른 뜻이 될 수 있습니다. X-DIC 번역가 해설은
             <strong className="text-slate-800">
@@ -259,55 +259,55 @@ export default function EnglishGuideHubPage() {
             을 함께 살펴 실제 번역에서 표현을 선택하는 기준을 설명합니다.
           </p>
 
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            <span className="rounded-full border border-blue-100 bg-white px-2.5 py-1 text-[10px] md:text-[11px] font-extrabold text-blue-700">
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            <span className="rounded-full border border-blue-100 bg-white px-2 py-0.5 text-[9px] md:text-[10px] font-extrabold text-blue-700">
               총 {totalGuides}개 해설
             </span>
-            <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] md:text-[11px] font-bold text-slate-600">
+            <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[9px] md:text-[10px] font-bold text-slate-600">
               직접 작성한 번역 판단 기준
             </span>
-            <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] md:text-[11px] font-bold text-slate-600">
+            <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[9px] md:text-[10px] font-bold text-slate-600">
               실제 예문 중심
             </span>
           </div>
         </header>
 
-        <section className="mt-4 rounded-2xl border border-blue-100 bg-blue-50/45 p-3.5 md:p-4">
-          <div className="flex items-center gap-2.5">
-            <span className="text-[22px]" aria-hidden="true">🧭</span>
+        <section className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/45 p-3 md:p-3.5">
+          <div className="flex items-center gap-2">
+            <span className="text-[18px]" aria-hidden="true">🧭</span>
             <div>
               <p className="text-[10px] md:text-[11px] font-bold text-blue-600">
                 Translation Guide
               </p>
-              <h2 className="mt-0.5 text-[16px] md:text-[18px] font-extrabold">
+              <h2 className="mt-0 text-[14px] md:text-[16px] font-extrabold">
                 번역가 해설과 X-DIC 검색은 역할이 다릅니다
               </h2>
             </div>
           </div>
 
-          <div className="mt-3 grid gap-2.5 md:grid-cols-2">
-            <article className="rounded-xl bg-white border border-blue-100 px-3.5 py-3">
+          <div className="mt-2 grid gap-2 md:grid-cols-2">
+            <article className="rounded-xl bg-white border border-blue-100 px-3 py-2.5">
               <div className="flex items-center gap-2">
-                <span className="text-lg" aria-hidden="true">📝</span>
-                <p className="text-[12px] md:text-[13px] font-extrabold text-blue-700">
+                <span className="text-[15px]" aria-hidden="true">📝</span>
+                <p className="text-[11px] md:text-[12px] font-extrabold text-blue-700">
                   번역가 해설
                 </p>
               </div>
 
-              <p className="mt-1.5 text-[12px] md:text-[13px] font-bold text-slate-800">
+              <p className="mt-1 text-[11px] md:text-[12px] font-bold text-slate-800">
                 왜 이 표현을 선택하는지 설명합니다.
               </p>
 
-              <p className="mt-1.5 text-[11px] md:text-[12px] leading-5 text-slate-600">
+              <p className="mt-1 text-[10px] md:text-[11px] leading-4 text-slate-600">
                 실제 문장에서 의미를 결정하는 단서와 두 가지 이상의 해석이
                 가능한 경우를 번역 관점에서 설명합니다.
               </p>
             </article>
 
-            <article className="rounded-xl bg-white border border-emerald-100 px-3.5 py-3">
+            <article className="rounded-xl bg-white border border-emerald-100 px-3 py-2.5">
               <div className="flex items-center gap-2">
-                <span className="text-lg" aria-hidden="true">🔎</span>
-                <p className="text-[12px] md:text-[13px] font-extrabold text-emerald-700">
+                <span className="text-[15px]" aria-hidden="true">🔎</span>
+                <p className="text-[11px] md:text-[12px] font-extrabold text-emerald-700">
                   X-DIC 검색
                 </p>
               </div>
@@ -316,14 +316,14 @@ export default function EnglishGuideHubPage() {
                 실제 사전·병렬문장·번역 결과를 확인합니다.
               </p>
 
-              <div className="mt-1.5 flex items-end justify-between gap-3">
-                <p className="text-[11px] md:text-[12px] leading-5 text-slate-600">
+              <div className="mt-1 flex items-end justify-between gap-2">
+                <p className="text-[10px] md:text-[11px] leading-4 text-slate-600">
                   해설에서 판단 기준을 본 뒤 실제 검색 결과와 비교할 수 있습니다.
                 </p>
 
                 <Link
                   href="/"
-                  className="shrink-0 text-[11px] md:text-[12px] font-extrabold text-emerald-700 hover:text-emerald-900"
+                  className="shrink-0 text-[10px] md:text-[11px] font-extrabold text-emerald-700 hover:text-emerald-900"
                 >
                   검색 →
                 </Link>
@@ -332,7 +332,7 @@ export default function EnglishGuideHubPage() {
           </div>
         </section>
 
-        <section className="mt-5">
+        <section className="mt-4">
           <p className="text-[10px] md:text-[11px] font-bold text-blue-600">
             Explore by topic
           </p>

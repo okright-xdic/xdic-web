@@ -160,20 +160,20 @@ export default function NuanceClient({ initialData = [] }: { initialData: Nuance
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 md:bg-white">
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6 bg-white">
-        <header className="w-full pt-8 pb-2 md:pt-16 md:pb-6">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-8 md:mb-8">
+        <header className="w-full pt-4 pb-1 md:pt-6 md:pb-2">
+          <div className="flex flex-col md:flex-row items-center md:items-center gap-2.5 md:gap-4 mb-3 md:mb-4">
             <div className="flex-shrink-0">
               <Link href="/" className="cursor-pointer">
-                <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
+                <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="Logo" width={108} height={54} className="object-contain hover:opacity-90 transition-opacity" priority />
               </Link>
             </div>
-            <div className="flex flex-col gap-1 justify-center text-center md:text-left">
+            <div className="flex flex-col gap-0.5 justify-center text-center md:text-left">
               <Link href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
-                <h1 className="text-xl md:text-[24px] font-extrabold text-slate-800 leading-tight">
+                <h1 className="text-[17px] md:text-[20px] font-extrabold text-slate-800 leading-tight">
                   한영/영한사전 – 복합어 전문 엑스딕(X-DIC)!
                 </h1>
               </Link>
-              <p className="text-sm text-slate-500 font-medium">Korean-English/English-Korean dictionary</p>
+              <p className="text-[10px] md:text-[11px] text-slate-500 font-medium">Korean-English/English-Korean dictionary</p>
             </div>
           </div>
           <div className="w-full"><SearchInput /></div>
@@ -181,12 +181,12 @@ export default function NuanceClient({ initialData = [] }: { initialData: Nuance
       </div>
 
       <main className="w-full flex-grow bg-slate-50 pb-20">
-        <div className="max-w-4xl mx-auto mt-8 px-4 md:px-6">
+        <div className="max-w-4xl mx-auto mt-4 md:mt-5 px-4 md:px-6">
 
-          <div className="flex items-center justify-between mb-6 px-2">
-             <div className="flex items-center gap-2">
-                <span className="text-2xl">💡</span>
-                <h2 className="text-xl md:text-2xl font-black text-slate-800">
+          <div className="flex items-center justify-between mb-3 px-1">
+             <div className="flex items-center gap-1.5">
+                <span className="text-[18px] md:text-[20px]">💡</span>
+                <h2 className="text-[17px] md:text-[20px] font-black text-slate-800 leading-tight">
                    영단어 뉘앙스 해설
                 </h2>
              </div>
@@ -203,24 +203,24 @@ export default function NuanceClient({ initialData = [] }: { initialData: Nuance
           </div>
 
           {/* SSR로 전달된 게시물과 별개로 항상 보이는 고정 안내 콘텐츠 */}
-          <section className="mb-6 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4 md:p-5" aria-labelledby="nuance-guide-title">
-            <h3 id="nuance-guide-title" className="text-base md:text-lg font-extrabold text-slate-900">
+          <section className="mb-3 rounded-xl border border-emerald-100 bg-emerald-50/40 p-3 md:p-3.5" aria-labelledby="nuance-guide-title">
+            <h3 id="nuance-guide-title" className="text-[14px] md:text-[16px] font-extrabold text-slate-900 leading-tight">
               비슷한 영어 단어를 문맥과 쓰임으로 비교합니다
             </h3>
-            <p className="mt-2 text-[13px] md:text-sm text-slate-600 leading-relaxed break-keep">
+            <p className="mt-1 text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.45] break-keep">
               X-DIC 뉘앙스 해설은 사전적 뜻이 비슷한 단어라도 실제 문장에서 어떤 말과 함께 쓰이는지,
               말투와 상황에 따라 어떤 선택이 자연스러운지를 비교할 수 있도록 정리한 학습 콘텐츠입니다.
               제목을 누르면 해당 단어군의 차이와 번역 포인트를 자세히 확인할 수 있습니다.
             </p>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2.5">
+            <div className="mt-2 grid grid-cols-3 gap-1.5 md:gap-2">
               {[
                 ['뜻의 범위', '비슷한 번역어 사이에서 의미가 겹치는 부분과 달라지는 지점을 살펴봅니다.'],
                 ['문맥과 결합', '어떤 명사·동사·상황과 자주 결합하는지 비교해 실제 쓰임을 구분합니다.'],
                 ['번역 선택', '한국어로 옮길 때 문맥에 맞는 표현을 고르는 기준과 주의점을 확인합니다.'],
               ].map(([title, description]) => (
-                <article key={title} className="rounded-xl border border-emerald-100 bg-white p-3.5">
-                  <h4 className="text-sm font-extrabold text-emerald-700">{title}</h4>
-                  <p className="mt-1.5 text-[12px] md:text-[13px] text-slate-600 leading-relaxed">{description}</p>
+                <article key={title} className="rounded-lg border border-emerald-100 bg-white px-2.5 py-2 md:px-3 md:py-2.5">
+                  <h4 className="text-[10.5px] md:text-[11.5px] font-extrabold text-emerald-700 leading-tight">{title}</h4>
+                  <p className="mt-0.5 text-[9.5px] md:text-[10.5px] text-slate-600 leading-[1.4]">{description}</p>
                 </article>
               ))}
             </div>

@@ -160,20 +160,20 @@ export default function IdiomClient({ initialData = [] }: { initialData: Idiom[]
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 md:bg-white">
       <div className="flex-none w-full max-w-4xl mx-auto px-4 md:px-6 bg-white">
-        <header className="w-full pt-8 pb-2 md:pt-16 md:pb-6">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-8 md:mb-8">
+        <header className="w-full pt-4 pb-1 md:pt-6 md:pb-2">
+          <div className="flex flex-col md:flex-row items-center md:items-center gap-2.5 md:gap-4 mb-3 md:mb-4">
             <div className="flex-shrink-0">
               <Link href="/" className="cursor-pointer">
-                <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="Logo" width={140} height={70} className="object-contain hover:opacity-90 transition-opacity" priority />
+                <Image src="/images/LOGO_01_ChatGPT_S.jpg" alt="Logo" width={108} height={54} className="object-contain hover:opacity-90 transition-opacity" priority />
               </Link>
             </div>
-            <div className="flex flex-col gap-1 justify-center text-center md:text-left">
+            <div className="flex flex-col gap-0.5 justify-center text-center md:text-left">
               <Link href="/" className="cursor-pointer hover:opacity-80 transition-opacity">
-                <h1 className="text-xl md:text-[24px] font-extrabold text-slate-800 leading-tight">
+                <h1 className="text-[17px] md:text-[20px] font-extrabold text-slate-800 leading-tight">
                   한영/영한사전 – 복합어 전문 엑스딕(X-DIC)!
                 </h1>
               </Link>
-              <p className="text-sm text-slate-500 font-medium">Korean-English/English-Korean dictionary</p>
+              <p className="text-[10px] md:text-[11px] text-slate-500 font-medium">Korean-English/English-Korean dictionary</p>
             </div>
           </div>
           <div className="w-full"><SearchInput /></div>
@@ -181,13 +181,13 @@ export default function IdiomClient({ initialData = [] }: { initialData: Idiom[]
       </div>
 
       <main className="w-full flex-grow bg-slate-50 pb-20">
-        <div className="max-w-4xl mx-auto mt-8 px-4 md:px-6">
+        <div className="max-w-4xl mx-auto mt-4 md:mt-5 px-4 md:px-6">
 
-          <div className="flex items-center justify-between mb-6 px-2">
-             <div className="flex items-center gap-2">
-                <span className="text-2xl">📚</span>
-                <h2 className="text-xl md:text-2xl font-black text-slate-800">
-                   필수 숙어 해설
+          <div className="flex items-center justify-between mb-3 px-1">
+             <div className="flex items-center gap-1.5">
+                <span className="text-[18px] md:text-[20px]">📚</span>
+                <h2 className="text-[17px] md:text-[20px] font-black text-slate-800 leading-tight">
+                   숙어해설
                 </h2>
              </div>
              
@@ -203,24 +203,24 @@ export default function IdiomClient({ initialData = [] }: { initialData: Idiom[]
           </div>
 
           {/* SSR로 전달된 게시물과 별개로 항상 보이는 고정 안내 콘텐츠 */}
-          <section className="mb-6 rounded-2xl border border-blue-100 bg-blue-50/40 p-4 md:p-5" aria-labelledby="idiom-guide-title">
-            <h3 id="idiom-guide-title" className="text-base md:text-lg font-extrabold text-slate-900">
+          <section className="mb-3 rounded-xl border border-blue-100 bg-blue-50/40 p-3 md:p-3.5" aria-labelledby="idiom-guide-title">
+            <h3 id="idiom-guide-title" className="text-[14px] md:text-[16px] font-extrabold text-slate-900 leading-tight">
               숙어의 실제 의미와 번역 포인트를 함께 확인합니다
             </h3>
-            <p className="mt-2 text-[13px] md:text-sm text-slate-600 leading-relaxed break-keep">
+            <p className="mt-1 text-[10.5px] md:text-[11.5px] text-slate-600 leading-[1.45] break-keep">
               영어 숙어는 개별 단어의 뜻만 합쳐서는 자연스럽게 해석하기 어려운 경우가 많습니다.
               X-DIC 숙어 해설은 표현의 핵심 의미와 문맥상 쓰임을 중심으로, 직역과 자연스러운 한국어 번역 사이의 차이를 살펴볼 수 있도록 구성했습니다.
               제목을 누르면 각 숙어의 상세 해설을 확인할 수 있습니다.
             </p>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2.5">
+            <div className="mt-2 grid grid-cols-3 gap-1.5 md:gap-2">
               {[
                 ['핵심 의미', '표현 전체가 전달하는 중심 의미를 먼저 파악합니다.'],
                 ['직역과 실제 뜻', '단어별 직역과 실제 문맥에서 전달되는 뜻의 차이를 비교합니다.'],
                 ['번역 포인트', '한국어 문장에서 지나치게 직역하지 않고 자연스럽게 옮길 때의 기준을 확인합니다.'],
               ].map(([title, description]) => (
-                <article key={title} className="rounded-xl border border-blue-100 bg-white p-3.5">
-                  <h4 className="text-sm font-extrabold text-blue-700">{title}</h4>
-                  <p className="mt-1.5 text-[12px] md:text-[13px] text-slate-600 leading-relaxed">{description}</p>
+                <article key={title} className="rounded-lg border border-blue-100 bg-white px-2.5 py-2 md:px-3 md:py-2.5">
+                  <h4 className="text-[10.5px] md:text-[11.5px] font-extrabold text-blue-700 leading-tight">{title}</h4>
+                  <p className="mt-0.5 text-[9.5px] md:text-[10.5px] text-slate-600 leading-[1.4]">{description}</p>
                 </article>
               ))}
             </div>
