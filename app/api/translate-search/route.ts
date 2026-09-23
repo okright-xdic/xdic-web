@@ -94366,6 +94366,532 @@ const twoProTryKoEnEncourageObjectToInfinitiveQuestionV1438Slot = (
   };
 };
 
+// ============================================================================
+// ☆ TwoPro v14.39-slot-safe:
+// want + O + to-infinitive 평서문 슬롯 CORE
+//
+// 기존 v13.33에서 검증된
+//   [주어] + [종속절 주어 -가/-이] + [동작]기를 + 원하다
+// 구조를 유지하면서
+// 주어 / 종속절 주어 / to-infinitive 보어 / 시제·긍정부정을 슬롯 확장합니다.
+//
+// 처리:
+// 현재·과거·미래 × 긍정·부정 평서문
+//
+// 중요:
+// 한국어 종속절 주어는 영어에서 want의 목적격으로 변환합니다.
+// 예:
+//   내가   -> me
+//   우리가 -> us
+//   그가   -> him
+//   그녀가 -> her
+//   그들이 -> them
+//
+// 기존 v13.33 / v13.35는 fallback으로 그대로 유지합니다.
+// ============================================================================
+type TwoProWantObjectToInfinitiveModeV1439Slot =
+  | 'present-positive'
+  | 'present-negative'
+  | 'past-positive'
+  | 'past-negative'
+  | 'future-positive'
+  | 'future-negative';
+
+const TWO_PRO_WANT_EMBEDDED_SUBJECTS_V1439_SLOT: Readonly<
+  Record<
+    string,
+    {
+      en: string;
+      referenceSource: string;
+      referenceSelected: string;
+    }
+  >
+> = {
+  '내가': {
+    en: 'me',
+    referenceSource: '나',
+    referenceSelected: 'me',
+  },
+
+  '우리가': {
+    en: 'us',
+    referenceSource: '우리',
+    referenceSelected: 'us',
+  },
+
+  '그가': {
+    en: 'him',
+    referenceSource: '그',
+    referenceSelected: 'him',
+  },
+
+  '그녀가': {
+    en: 'her',
+    referenceSource: '그녀',
+    referenceSelected: 'her',
+  },
+
+  '그들이': {
+    en: 'them',
+    referenceSource: '그들',
+    referenceSelected: 'them',
+  },
+
+  '아이가': {
+    en: 'the child',
+    referenceSource: '아이',
+    referenceSelected: 'child',
+  },
+
+  '학생이': {
+    en: 'the student',
+    referenceSource: '학생',
+    referenceSelected: 'student',
+  },
+
+  '민수가': {
+    en: 'Minsu',
+    referenceSource: '민수',
+    referenceSelected: 'Minsu',
+  },
+};
+
+const TWO_PRO_WANT_COMPLEMENTS_V1439_SLOT: Readonly<
+  Record<
+    string,
+    {
+      en: string;
+      references: Array<{
+        source: string;
+        selected: string;
+        slot: string;
+      }>;
+    }
+  >
+> = {
+  '공부하기를': {
+    en: 'to study',
+    references: [
+      {
+        source: '공부하다',
+        selected: 'to study',
+        slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+      },
+    ],
+  },
+
+  '책을 읽기를': {
+    en: 'to read the book',
+    references: [
+      {
+        source: '책',
+        selected: 'the book',
+        slot: 'OBJECT_COMPLEMENT:OBJECT',
+      },
+      {
+        source: '읽다',
+        selected: 'to read',
+        slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+      },
+    ],
+  },
+
+  '계속 일하기를': {
+    en: 'to keep working',
+    references: [
+      {
+        source: '계속',
+        selected: 'keep',
+        slot: 'OBJECT_COMPLEMENT:ASPECT',
+      },
+      {
+        source: '일하다',
+        selected: 'working',
+        slot: 'OBJECT_COMPLEMENT:GERUND',
+      },
+    ],
+  },
+
+  '일찍 출발하기를': {
+    en: 'to leave early',
+    references: [
+      {
+        source: '출발하다',
+        selected: 'to leave',
+        slot: 'OBJECT_COMPLEMENT:TO_INFINITIVE',
+      },
+      {
+        source: '일찍',
+        selected: 'early',
+        slot: 'ADVERB',
+      },
+    ],
+  },
+};
+
+const TWO_PRO_WANT_MODES_V1439_SLOT: Readonly<
+  Record<string, TwoProWantObjectToInfinitiveModeV1439Slot>
+> = {
+  '원해요': 'present-positive',
+  '원하지 않아요': 'present-negative',
+  '원했어요': 'past-positive',
+  '원하지 않았어요': 'past-negative',
+  '원할 거예요': 'future-positive',
+  '원하지 않을 거예요': 'future-negative',
+};
+
+const twoProTryKoEnWantObjectToInfinitiveV1439Slot = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    /[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const statementText = normalized
+    .replace(/[.!]+\s*$/g, '')
+    .trim();
+
+  const matched =
+    /^(나는|우리는|그는|그녀는|그들은)\s+(내가|우리가|그가|그녀가|그들이|아이가|학생이|민수가)\s+(.+?)\s+(원해요|원하지 않아요|원했어요|원하지 않았어요|원할 거예요|원하지 않을 거예요)$/u.exec(
+      statementText
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const embeddedSubjectKo = matched[2];
+  const complementKo = matched[3];
+  const predicateKo = matched[4];
+
+  const subjectInfo =
+    TWO_PRO_HAVE_CAR_REPAIRED_QUESTION_SUBJECTS_V1424_SLOT[
+      subjectKo
+    ];
+
+  const embeddedSubjectInfo =
+    TWO_PRO_WANT_EMBEDDED_SUBJECTS_V1439_SLOT[
+      embeddedSubjectKo
+    ];
+
+  const complementInfo =
+    TWO_PRO_WANT_COMPLEMENTS_V1439_SLOT[
+      complementKo
+    ];
+
+  const mode =
+    TWO_PRO_WANT_MODES_V1439_SLOT[
+      predicateKo
+    ];
+
+  if (
+    !subjectInfo ||
+    !embeddedSubjectInfo ||
+    !complementInfo ||
+    !mode
+  ) {
+    return null;
+  }
+
+  let wantPhrase = '';
+
+  if (mode === 'present-positive') {
+    wantPhrase =
+      subjectInfo.thirdPersonSingular
+        ? 'wants'
+        : 'want';
+  } else if (mode === 'present-negative') {
+    wantPhrase =
+      subjectInfo.thirdPersonSingular
+        ? "doesn't want"
+        : "don't want";
+  } else if (mode === 'past-positive') {
+    wantPhrase = 'wanted';
+  } else if (mode === 'past-negative') {
+    wantPhrase = "didn't want";
+  } else if (mode === 'future-positive') {
+    wantPhrase = 'will want';
+  } else {
+    wantPhrase = "won't want";
+  }
+
+  const modeLabel =
+    mode === 'present-positive'
+      ? 'PRESENT'
+      : mode === 'present-negative'
+        ? 'PRESENT:NEG'
+        : mode === 'past-positive'
+          ? 'PAST'
+          : mode === 'past-negative'
+            ? 'PAST:NEG'
+            : mode === 'future-positive'
+              ? 'FUTURE'
+              : 'FUTURE:NEG';
+
+  const targetBody =
+    `${subjectInfo.en} ${wantPhrase} ${embeddedSubjectInfo.en} ${complementInfo.en}`;
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    {
+      ko: subjectKo,
+      en: `${subjectInfo.en} [S]`,
+    },
+    {
+      ko: embeddedSubjectKo,
+      en:
+        `${embeddedSubjectInfo.en} ` +
+        '[O:EMBEDDED-SUBJECT]',
+    },
+    {
+      ko: complementKo,
+      en:
+        `${complementInfo.en} ` +
+        '[OC:TO-INFINITIVE]',
+    },
+    {
+      ko: predicateKo,
+      en: `${wantPhrase} [V:${modeLabel}]`,
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subjectInfo.referenceSource,
+      selected: subjectInfo.referenceSelected,
+      slot: 'SUBJECT',
+    },
+    {
+      source: embeddedSubjectInfo.referenceSource,
+      selected: embeddedSubjectInfo.referenceSelected,
+      slot: 'OBJECT:EMBEDDED_SUBJECT',
+    },
+    ...complementInfo.references,
+    {
+      source: '원하다',
+      selected: 'want',
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      targetBody,
+      originalText
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      `basic-want-object-to-infinitive-${mode}-statement-ko-en-v14.39-slot`,
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v14.40-slot-safe:
+// want + O + to-infinitive 의문문 슬롯 CORE
+//
+// v14.39에서 검증된
+// 주어 / 종속절 주어 목적격 / to-infinitive 보어 / 시제·긍정부정
+// 슬롯을 그대로 재사용합니다.
+//
+// 처리:
+// 현재·과거·미래 × 긍정·부정 의문문
+//
+// 중요:
+// 한국어 종속절 주어:
+//   내가   -> me
+//   우리가 -> us
+//   그가   -> him
+//   그녀가 -> her
+//   그들이 -> them
+//
+// 기존 v13.34 / v13.36 의문문 CORE는 fallback으로 유지합니다.
+// ============================================================================
+const twoProTryKoEnWantObjectToInfinitiveQuestionV1440Slot = (
+  originalText: string
+): TwoProBasicObjectInfinitiveResultV1299 | null => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (
+    !normalized ||
+    !/[?？]\s*$/u.test(normalized)
+  ) {
+    return null;
+  }
+
+  const questionBase = normalized
+    .replace(/[?？]\s*$/u, '')
+    .trim();
+
+  const matched =
+    /^(나는|우리는|그는|그녀는|그들은)\s+(내가|우리가|그가|그녀가|그들이|아이가|학생이|민수가)\s+(.+?)\s+(원해요|원하지 않아요|원했어요|원하지 않았어요|원할 거예요|원하지 않을 거예요)$/u.exec(
+      questionBase
+    );
+
+  if (!matched) {
+    return null;
+  }
+
+  const subjectKo = matched[1];
+  const embeddedSubjectKo = matched[2];
+  const complementKo = matched[3];
+  const predicateKo = matched[4];
+
+  const subjectInfo =
+    TWO_PRO_HAVE_CAR_REPAIRED_QUESTION_SUBJECTS_V1424_SLOT[
+      subjectKo
+    ];
+
+  const embeddedSubjectInfo =
+    TWO_PRO_WANT_EMBEDDED_SUBJECTS_V1439_SLOT[
+      embeddedSubjectKo
+    ];
+
+  const complementInfo =
+    TWO_PRO_WANT_COMPLEMENTS_V1439_SLOT[
+      complementKo
+    ];
+
+  const mode =
+    TWO_PRO_WANT_MODES_V1439_SLOT[
+      predicateKo
+    ];
+
+  if (
+    !subjectInfo ||
+    !embeddedSubjectInfo ||
+    !complementInfo ||
+    !mode
+  ) {
+    return null;
+  }
+
+  let auxiliary = '';
+
+  if (mode === 'present-positive') {
+    auxiliary =
+      subjectInfo.thirdPersonSingular
+        ? 'Does'
+        : 'Do';
+  } else if (mode === 'present-negative') {
+    auxiliary =
+      subjectInfo.thirdPersonSingular
+        ? "Doesn't"
+        : "Don't";
+  } else if (mode === 'past-positive') {
+    auxiliary = 'Did';
+  } else if (mode === 'past-negative') {
+    auxiliary = "Didn't";
+  } else if (mode === 'future-positive') {
+    auxiliary = 'Will';
+  } else {
+    auxiliary = "Won't";
+  }
+
+  const questionSubject =
+    subjectInfo.en === 'I'
+      ? 'I'
+      : subjectInfo.en.toLowerCase();
+
+  const questionBody =
+    `${auxiliary} ${questionSubject} want ${embeddedSubjectInfo.en} ${complementInfo.en}`;
+
+  const modeLabel =
+    mode === 'present-positive'
+      ? 'PRESENT:QUESTION'
+      : mode === 'present-negative'
+        ? 'PRESENT:NEG:QUESTION'
+        : mode === 'past-positive'
+          ? 'PAST:QUESTION'
+          : mode === 'past-negative'
+            ? 'PAST:NEG:QUESTION'
+            : mode === 'future-positive'
+              ? 'FUTURE:QUESTION'
+              : 'FUTURE:NEG:QUESTION';
+
+  const analysis: Array<{ ko: string; en: string }> = [
+    {
+      ko: subjectKo,
+      en: `${subjectInfo.en} [S]`,
+    },
+    {
+      ko: embeddedSubjectKo,
+      en:
+        `${embeddedSubjectInfo.en} ` +
+        '[O:EMBEDDED-SUBJECT]',
+    },
+    {
+      ko: complementKo,
+      en:
+        `${complementInfo.en} ` +
+        '[OC:TO-INFINITIVE]',
+    },
+    {
+      ko: predicateKo,
+      en: `${auxiliary.toLowerCase()} want [V:${modeLabel}]`,
+    },
+  ];
+
+  const referenceItems = [
+    {
+      source: subjectInfo.referenceSource,
+      selected: subjectInfo.referenceSelected,
+      slot: 'SUBJECT',
+    },
+    {
+      source: embeddedSubjectInfo.referenceSource,
+      selected: embeddedSubjectInfo.referenceSelected,
+      slot: 'OBJECT:EMBEDDED_SUBJECT',
+    },
+    ...complementInfo.references,
+    {
+      source: '원하다',
+      selected: 'want',
+      slot: 'VERB',
+    },
+  ];
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] =
+    referenceItems.map((item) =>
+      twoProBasicFutureSimpleReferenceV1160(
+        item.source,
+        item.selected,
+        item.slot
+      )
+    );
+
+  return {
+    targetText: twoProFinalizeEnglish(
+      questionBody,
+      normalized.replace(/？/g, '?')
+    ),
+    analysis,
+    referenceWords,
+    engine:
+      `basic-want-object-to-infinitive-${mode}-question-ko-en-v14.40-slot`,
+  };
+};
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -107351,6 +107877,50 @@ export async function POST(request: Request) {
     }
 
     // =================================================================
+    // ☆ TwoPro v14.39-slot-safe:
+    // want + O + to-infinitive 평서문 슬롯 CORE
+    // =================================================================
+    const twoProWantObjectToInfinitiveResultV1439Slot =
+      twoProTryKoEnWantObjectToInfinitiveV1439Slot(
+        originalText
+      );
+
+    if (
+      twoProWantObjectToInfinitiveResultV1439Slot
+    ) {
+      console.log(
+        '[한영 want 목적어 to부정사 평서문 슬롯 성공 v14.39-slot]',
+        {
+          query: originalText,
+          result:
+            twoProWantObjectToInfinitiveResultV1439Slot.targetText,
+          engine:
+            twoProWantObjectToInfinitiveResultV1439Slot.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProWantObjectToInfinitiveResultV1439Slot.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProWantObjectToInfinitiveResultV1439Slot.analysis,
+          referenceWords:
+            twoProWantObjectToInfinitiveResultV1439Slot.referenceWords,
+          engine:
+            twoProWantObjectToInfinitiveResultV1439Slot.engine,
+        },
+        referenceWords:
+          twoProWantObjectToInfinitiveResultV1439Slot.referenceWords,
+      });
+    }
+
+    // =================================================================
     // ☆ TwoPro v13.33-safe: want + O + to-infinitive 현재·과거 평서문 CORE
     // =================================================================
     const twoProWantObjectToInfinitiveResultV1333 =
@@ -107388,6 +107958,50 @@ export async function POST(request: Request) {
         },
         referenceWords:
           twoProWantObjectToInfinitiveResultV1333.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v14.40-slot-safe:
+    // want + O + to-infinitive 의문문 슬롯 CORE
+    // =================================================================
+    const twoProWantObjectToInfinitiveQuestionResultV1440Slot =
+      twoProTryKoEnWantObjectToInfinitiveQuestionV1440Slot(
+        originalText
+      );
+
+    if (
+      twoProWantObjectToInfinitiveQuestionResultV1440Slot
+    ) {
+      console.log(
+        '[한영 want 목적어 to부정사 의문문 슬롯 성공 v14.40-slot]',
+        {
+          query: originalText,
+          result:
+            twoProWantObjectToInfinitiveQuestionResultV1440Slot.targetText,
+          engine:
+            twoProWantObjectToInfinitiveQuestionResultV1440Slot.engine,
+        }
+      );
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text:
+            twoProCapitalizeEnglishSentenceStartV93(
+              twoProWantObjectToInfinitiveQuestionResultV1440Slot.targetText
+            ),
+          isReference: false,
+          analysis:
+            twoProWantObjectToInfinitiveQuestionResultV1440Slot.analysis,
+          referenceWords:
+            twoProWantObjectToInfinitiveQuestionResultV1440Slot.referenceWords,
+          engine:
+            twoProWantObjectToInfinitiveQuestionResultV1440Slot.engine,
+        },
+        referenceWords:
+          twoProWantObjectToInfinitiveQuestionResultV1440Slot.referenceWords,
       });
     }
 
