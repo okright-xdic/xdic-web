@@ -3575,20 +3575,19 @@ if (
             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="relative overflow-hidden bg-gradient-to-r from-violet-100 via-purple-50 to-fuchsia-100 px-4 py-3 md:px-5 md:py-3.5">
                 {/* 
-                  보물상자 사진을 '이미지 박스'가 아니라 넓은 배경 레이어로 사용합니다.
-                  위·아래로 충분히 크게 확장해 사각형 경계가 보이지 않게 하고,
-                  오른쪽으로 갈수록 보라색 바탕에 자연스럽게 사라지게 합니다.
-                  모바일과 PC 모두 보물상자를 조금 더 왼쪽으로 보내고 제목 시작점을 당겨,
-                  보물상자와 '영어'가 거의 맞닿는 인상으로 배치합니다.
+                  보물상자 사진은 배너의 왼쪽 배경 영역에 고정합니다.
+                  이미지 레이어 자체의 폭을 제한해 제목 뒤까지 사진이 침범하지 않게 하고,
+                  오른쪽 끝은 마스크로 보라색 바탕에 자연스럽게 사라지게 합니다.
+                  제목의 '영어'는 그 이미지 오른쪽 끝과 약간 겹치도록 배치합니다.
                 */}
                 <div
-                  className="pointer-events-none absolute -left-12 -top-14 h-[190px] w-[315px] md:-left-12 md:-top-20 md:h-[235px] md:w-[390px]"
+                  className="pointer-events-none absolute left-0 -top-14 h-[190px] w-[205px] sm:w-[260px] md:left-0 md:-top-20 md:h-[235px] md:w-[320px]"
                   aria-hidden="true"
                   style={{
                     backgroundImage: "url('/treasure-chest-archives.jpg')",
                     backgroundRepeat: 'no-repeat',
                     backgroundSize: 'cover',
-                    backgroundPosition: '72% 52%',
+                    backgroundPosition: '78% 52%',
                     WebkitMaskImage:
                       'linear-gradient(to right, #000 0%, #000 46%, rgba(0,0,0,0.94) 56%, rgba(0,0,0,0.68) 68%, rgba(0,0,0,0.30) 80%, transparent 94%)',
                     maskImage:
@@ -3611,12 +3610,12 @@ if (
                   aria-hidden="true"
                 />
 
-                <div className="relative flex items-center justify-between gap-3.5 pl-[118px] md:pl-[150px]">
+                <div className="relative flex items-center justify-between gap-3.5 pl-[190px] sm:pl-[245px] md:pl-[300px]">
                   <h2
                     id="xdic-english-archives-title"
                     className="min-w-0 text-[18px] md:text-[21px] font-black tracking-tight text-violet-950 drop-shadow-[0_1px_0_rgba(255,255,255,0.65)]"
                   >
-                    영어 보물 창고
+                    영어 보물창고
                     <span className="ml-2 text-[10.5px] md:text-[11.5px] font-bold tracking-normal text-violet-700">
                       English Archives
                     </span>
@@ -3629,7 +3628,7 @@ if (
               </div>
 
               <nav
-                aria-label="영어 보물 창고 바로가기"
+                aria-label="영어 보물창고 바로가기"
                 className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 md:p-3.5"
               >
                 <Link
