@@ -2968,57 +2968,37 @@ if (
   // - 앱 전용 SearchInput/음성검색/와글와글/AppTodaysConversation 기능은 그대로 보존합니다.
   // ================================================================
   // ================================================================
-  // ☆ TwoPro 2026-09-12-safe: 메인 빠른 메뉴 / 영어회화 미리보기 공용 렌더
-  // - 기존 링크/핸들러/previewData 로직을 그대로 재사용
+  // ☆ TwoPro 2026-09-24-safe: 메인 빠른 메뉴 공통화
   // - PC/모바일 웹/APP 모두 검색창 바로 아래에 표시
-  // - 웹에서는 즐겨찾기 / Sitemap만 표시하고, APP에서는 Guide / English / Sitemap을 유지
-  // - 웹/APP 모두 공지사항·FAQ 빠른 메뉴는 표시하지 않음
+  // - 모든 환경에서 즐겨찾기 / Sitemap만 표시
+  // - APP 전용 Guide / English 중복 버튼 제거
+  // - 검색/번역/음성검색 로직에는 영향 없음
   // ================================================================
   const renderHomeQuickLinkButtons = () => (
     <>
-{!displayIsApp && (
-  <button
-    onClick={handleBookmarkClick}
-    className="group flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 bg-white border border-orange-200 shadow-sm hover:border-orange-400 hover:shadow-md hover:bg-orange-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-orange-600 hover:text-orange-800 transition-all duration-300"
-  >
-    <span className="text-[14px] group-hover:scale-110 transition-transform">⭐</span>
-    <span>즐겨찾기 <span className="font-semibold text-orange-400">· Save</span></span>
-  </button>
-)}
+      <button
+        onClick={handleBookmarkClick}
+        className={
+          displayIsApp
+            ? "group w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-white border border-orange-200 shadow-sm hover:border-orange-400 hover:bg-orange-50 rounded-full text-[10.5px] min-[390px]:text-[11px] font-extrabold text-orange-600 hover:text-orange-800 transition-all duration-300"
+            : "group flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 bg-white border border-orange-200 shadow-sm hover:border-orange-400 hover:shadow-md hover:bg-orange-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-orange-600 hover:text-orange-800 transition-all duration-300"
+        }
+      >
+        <span className="text-[14px] group-hover:scale-110 transition-transform">⭐</span>
+        <span>즐겨찾기 <span className="font-semibold text-orange-400">· Save</span></span>
+      </button>
 
-{displayIsApp && (
-<Link
-  href="/english"
-  className="group w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-white border border-violet-200 shadow-sm hover:border-violet-400 hover:bg-violet-50 rounded-full text-[10px] min-[390px]:text-[10.5px] font-extrabold text-violet-600 hover:text-violet-800 transition-all duration-300"
->
-  <span className="text-[14px] group-hover:scale-110 transition-transform">📝</span>
-  <span>
-    번역가 영어해설{' '}
-    <span className="font-semibold text-violet-400">· Guide</span>
-  </span>
-</Link>
-)}
-
-{displayIsApp && (
-<Link
-  href="/conversation"
-  className="group w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-white border border-blue-200 shadow-sm hover:border-blue-400 hover:bg-blue-50 rounded-full text-[10.5px] min-[390px]:text-[11px] font-extrabold text-blue-600 hover:text-blue-800 transition-all duration-300"
->
-  <span className="text-[14px] group-hover:scale-110 transition-transform">📖</span> 
-  <span>영어회화 <span className="font-semibold text-blue-400">· English</span></span>
-</Link>
-)}
-<Link
-  href="/sitemap"
-  className={
-    displayIsApp
-      ? "group col-span-2 w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-white border border-emerald-200 shadow-sm hover:border-emerald-400 hover:bg-emerald-50 rounded-full text-[10.5px] min-[390px]:text-[11px] font-extrabold text-emerald-600 hover:text-emerald-800 transition-all duration-300"
-      : "group flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 bg-white border border-emerald-200 shadow-sm hover:border-emerald-400 hover:shadow-md hover:bg-emerald-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-emerald-600 hover:text-emerald-800 transition-all duration-300"
-  }
->
-  <span className="text-[14px] group-hover:scale-110 transition-transform">🗺️</span> 
-  <span>사이트맵 <span className="font-semibold text-emerald-400">· Sitemap</span></span>
-</Link>
+      <Link
+        href="/sitemap"
+        className={
+          displayIsApp
+            ? "group w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-white border border-emerald-200 shadow-sm hover:border-emerald-400 hover:bg-emerald-50 rounded-full text-[10.5px] min-[390px]:text-[11px] font-extrabold text-emerald-600 hover:text-emerald-800 transition-all duration-300"
+            : "group flex items-center gap-1.5 px-3 md:px-3.5 py-1.5 bg-white border border-emerald-200 shadow-sm hover:border-emerald-400 hover:shadow-md hover:bg-emerald-50 rounded-full text-[12px] md:text-[13px] font-extrabold text-emerald-600 hover:text-emerald-800 transition-all duration-300"
+        }
+      >
+        <span className="text-[14px] group-hover:scale-110 transition-transform">🗺️</span>
+        <span>사이트맵 <span className="font-semibold text-emerald-400">· Sitemap</span></span>
+      </Link>
     </>
   );
   const conversationPreviewItems =
@@ -3276,9 +3256,9 @@ if (
 
 
         {/* ================================================================
-            ☆ TwoPro 2026-09-12-safe: 빠른 메뉴를 검색창 바로 아래로 통일
-            - PC/모바일 웹: Save / Guide / English / Sitemap 유지
-            - APP: Guide / English / Sitemap만 표시 (즐겨찾기 제외)
+            ☆ TwoPro 2026-09-24-safe: 빠른 메뉴를 검색창 바로 아래로 통일
+            - PC/모바일 웹/APP: 즐겨찾기 / Sitemap만 표시
+            - APP 전용 Guide / English 중복 버튼 제거
             - 웹/APP 모두 공지사항·FAQ 빠른 메뉴는 표시하지 않음
            ================================================================ */}
         <nav
@@ -3560,18 +3540,17 @@ if (
         </section>
 
         {/* ================================================================
-            ☆ TwoPro 2026-09-23-safe: 영어 보물 창고 / English Archives
-            - 웹 메인에서 Core Features와 Live Search 사이에만 표시
+            ☆ TwoPro 2026-09-24-safe: 영어 보물 창고 / English Archives
+            - PC/모바일 웹/APP 메인에서 Core Features와 Live Search 사이에 표시
             - 기존 실제 페이지(/conversation, /english, /medical, /trade-economy,
               /travel, /business)로 연결
             - 뉘앙스/숙어는 각각 /nuance, /idiom 전용 해설 페이지로 직접 이동
             - 검색/번역/음성검색 로직에는 영향 없음
            ================================================================ */}
-        {!displayIsApp && (
-          <section
-            aria-labelledby="xdic-english-archives-title"
-            className="w-full mt-4 md:mt-5"
-          >
+        <section
+          aria-labelledby="xdic-english-archives-title"
+          className={displayIsApp ? "w-full mt-3" : "w-full mt-4 md:mt-5"}
+        >
             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="relative overflow-hidden bg-gradient-to-r from-violet-100 via-purple-50 to-fuchsia-100 px-4 py-3 md:px-5 md:py-3.5">
                 {/* 
@@ -3696,8 +3675,7 @@ if (
                 </Link>
               </nav>
             </div>
-          </section>
-        )}
+        </section>
 
         {/* ================================================================
             ☆ TwoPro v1.44-safe: 10단계 3차 — Live / Popular Search UI 정리
