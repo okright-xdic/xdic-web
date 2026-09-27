@@ -38428,8 +38428,87 @@ const twoProTryKoEnAllowedEnterRoomV1037 = async (
 
   const temporalEn = temporalSource === '지금' ? 'now' : '';
 
+  // ☆ TwoPro v10.37-safe-question:
+  // be allowed to 수동문 의문문 처리
+  // 기존 평서문은 그대로 유지하고,
+  // 원문 끝에 명시적인 '?'가 있을 때만 도치합니다.
+  const isQuestionV1037 = /[?？]\s*$/u.test(
+    String(originalText || '').trim()
+  );
+
+  const subjectSelectedV1037 = String(
+    subjectBundle.selected || ''
+  ).trim();
+
+  const subjectLowerV1037 =
+    subjectSelectedV1037.toLowerCase();
+
+  const pluralLikeV1037 = [
+    'you',
+    'we',
+    'they',
+  ].includes(subjectLowerV1037);
+
+  const presentBeQuestionV1037 =
+    subjectLowerV1037 === 'i'
+      ? 'Am'
+      : pluralLikeV1037
+      ? 'Are'
+      : 'Is';
+
+  const pastBeQuestionV1037 =
+    pluralLikeV1037
+      ? 'Were'
+      : 'Was';
+
+  let targetCoreV1037 =
+    `${subjectSelectedV1037} ${verbPhrase} ` +
+    `${complement.target}` +
+    `${temporalEn ? ` ${temporalEn}` : ''}`;
+
+  if (isQuestionV1037) {
+    if (predicate.aspect === 'progressive') {
+      targetCoreV1037 =
+        `${presentBeQuestionV1037} ${subjectSelectedV1037} ` +
+        `being allowed ${complement.target}` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else if (predicate.aspect === 'negative') {
+      if (predicate.tense === 'future') {
+        targetCoreV1037 =
+          `Will ${subjectSelectedV1037} not be allowed ` +
+          `${complement.target}` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      } else if (predicate.tense === 'past') {
+        targetCoreV1037 =
+          `${pastBeQuestionV1037} ${subjectSelectedV1037} ` +
+          `not allowed ${complement.target}` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      } else {
+        targetCoreV1037 =
+          `${presentBeQuestionV1037} ${subjectSelectedV1037} ` +
+          `not allowed ${complement.target}` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      }
+    } else if (predicate.tense === 'future') {
+      targetCoreV1037 =
+        `Will ${subjectSelectedV1037} be allowed ` +
+        `${complement.target}` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else if (predicate.tense === 'past') {
+      targetCoreV1037 =
+        `${pastBeQuestionV1037} ${subjectSelectedV1037} ` +
+        `allowed ${complement.target}` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else {
+      targetCoreV1037 =
+        `${presentBeQuestionV1037} ${subjectSelectedV1037} ` +
+        `allowed ${complement.target}` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    }
+  }
+
   const targetText = twoProFinalizeEnglish(
-    `${subjectBundle.selected} ${verbPhrase} ${complement.target}${temporalEn ? ` ${temporalEn}` : ''}`,
+    targetCoreV1037,
     originalText
   );
 
@@ -38607,8 +38686,78 @@ const twoProTryKoEnAskedEnterRoomV1038 = async (
   if (!verbPhrase) return null;
 
   const temporalEn = temporalSource === '지금' ? 'now' : '';
+
+  // ☆ TwoPro v10.38-safe-question:
+  // be asked to 수동문 의문문 처리
+  // 기존 평서문은 그대로 유지하고,
+  // 원문 끝에 명시적인 '?'가 있을 때만 be동사를 앞으로 이동합니다.
+  const isQuestionV1038 = /[?？]\s*$/u.test(
+    String(originalText || '').trim()
+  );
+
+  const subjectSelectedV1038 = String(
+    subjectBundle.selected || ''
+  ).trim();
+
+  const subjectLowerV1038 =
+    subjectSelectedV1038.toLowerCase();
+
+  const pluralLikeV1038 = [
+    'you',
+    'we',
+    'they',
+  ].includes(subjectLowerV1038);
+
+  const presentBeQuestionV1038 =
+    subjectLowerV1038 === 'i'
+      ? 'Am'
+      : pluralLikeV1038
+      ? 'Are'
+      : 'Is';
+
+  const pastBeQuestionV1038 =
+    pluralLikeV1038
+      ? 'Were'
+      : 'Was';
+
+  let targetCoreV1038 =
+    `${subjectSelectedV1038} ${verbPhrase} ` +
+    `to enter the room` +
+    `${temporalEn ? ` ${temporalEn}` : ''}`;
+
+  if (isQuestionV1038) {
+    if (predicate.aspect === 'progressive') {
+      targetCoreV1038 =
+        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `being asked to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else if (predicate.aspect === 'negative') {
+      if (predicate.tense === 'past') {
+        targetCoreV1038 =
+          `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
+          `not asked to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      } else {
+        targetCoreV1038 =
+          `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+          `not asked to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      }
+    } else if (predicate.tense === 'past') {
+      targetCoreV1038 =
+        `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `asked to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else {
+      targetCoreV1038 =
+        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `asked to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    }
+  }
+
   const targetText = twoProFinalizeEnglish(
-    `${subjectBundle.selected} ${verbPhrase} to enter the room${temporalEn ? ` ${temporalEn}` : ''}`,
+    targetCoreV1038,
     originalText
   );
 
@@ -38762,8 +38911,78 @@ const twoProTryKoEnOrderedEnterRoomV1039 = async (
   if (!verbPhrase) return null;
 
   const temporalEn = temporalSource === '지금' ? 'now' : '';
+
+  // ☆ TwoPro v10.46-safe-question:
+  // be expected to 수동문 의문문 처리
+  // "예상되고 있다"도 영어에서는 상태 수동 be expected로 정규화합니다.
+  // 원문 끝에 명시적인 '?'가 있을 때만 be동사를 앞으로 이동합니다.
+  const isQuestionV1038 = /[?？]\s*$/u.test(
+    String(originalText || '').trim()
+  );
+
+  const subjectSelectedV1038 = String(
+    subjectBundle.selected || ''
+  ).trim();
+
+  const subjectLowerV1038 =
+    subjectSelectedV1038.toLowerCase();
+
+  const pluralLikeV1038 = [
+    'you',
+    'we',
+    'they',
+  ].includes(subjectLowerV1038);
+
+  const presentBeQuestionV1038 =
+    subjectLowerV1038 === 'i'
+      ? 'Am'
+      : pluralLikeV1038
+      ? 'Are'
+      : 'Is';
+
+  const pastBeQuestionV1038 =
+    pluralLikeV1038
+      ? 'Were'
+      : 'Was';
+
+  let targetCoreV1038 =
+    `${subjectSelectedV1038} ${verbPhrase} ` +
+    `to enter the room` +
+    `${temporalEn ? ` ${temporalEn}` : ''}`;
+
+  if (isQuestionV1038) {
+    if (predicate.aspect === 'progressive') {
+      targetCoreV1038 =
+        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else if (predicate.aspect === 'negative') {
+      if (predicate.tense === 'past') {
+        targetCoreV1038 =
+          `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
+          `not expected to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      } else {
+        targetCoreV1038 =
+          `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+          `not expected to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      }
+    } else if (predicate.tense === 'past') {
+      targetCoreV1038 =
+        `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else {
+      targetCoreV1038 =
+        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    }
+  }
+
   const targetText = twoProFinalizeEnglish(
-    `${subjectBundle.selected} ${verbPhrase} to enter the room${temporalEn ? ` ${temporalEn}` : ''}`,
+    targetCoreV1038,
     originalText
   );
 
@@ -38887,7 +39106,7 @@ const twoProTryKoEnForcedEnterRoomV1040 = async (
     .trim();
 
   const match = normalized.match(
-    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?방에\s+들어가도록\s+(.+)$/u
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?방에\s+들어가(?:도록|라고)\s+(.+)$/u
   );
   if (!match) return null;
 
@@ -38917,8 +39136,78 @@ const twoProTryKoEnForcedEnterRoomV1040 = async (
   if (!verbPhrase) return null;
 
   const temporalEn = temporalSource === '지금' ? 'now' : '';
+
+  // ☆ TwoPro v10.38-safe-question:
+  // be asked to 수동문 의문문 처리
+  // 기존 평서문은 그대로 유지하고,
+  // 원문 끝에 명시적인 '?'가 있을 때만 be동사를 앞으로 이동합니다.
+  const isQuestionV1038 = /[?？]\s*$/u.test(
+    String(originalText || '').trim()
+  );
+
+  const subjectSelectedV1038 = String(
+    subjectBundle.selected || ''
+  ).trim();
+
+  const subjectLowerV1038 =
+    subjectSelectedV1038.toLowerCase();
+
+  const pluralLikeV1038 = [
+    'you',
+    'we',
+    'they',
+  ].includes(subjectLowerV1038);
+
+  const presentBeQuestionV1038 =
+    subjectLowerV1038 === 'i'
+      ? 'Am'
+      : pluralLikeV1038
+      ? 'Are'
+      : 'Is';
+
+  const pastBeQuestionV1038 =
+    pluralLikeV1038
+      ? 'Were'
+      : 'Was';
+
+  let targetCoreV1038 =
+    `${subjectSelectedV1038} ${verbPhrase} ` +
+    `to enter the room` +
+    `${temporalEn ? ` ${temporalEn}` : ''}`;
+
+  if (isQuestionV1038) {
+    if (predicate.aspect === 'progressive') {
+      targetCoreV1038 =
+        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `being forced to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else if (predicate.aspect === 'negative') {
+      if (predicate.tense === 'past') {
+        targetCoreV1038 =
+          `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
+          `not forced to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      } else {
+        targetCoreV1038 =
+          `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+          `not forced to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      }
+    } else if (predicate.tense === 'past') {
+      targetCoreV1038 =
+        `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `forced to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else {
+      targetCoreV1038 =
+        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `forced to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    }
+  }
+
   const targetText = twoProFinalizeEnglish(
-    `${subjectBundle.selected} ${verbPhrase} to enter the room${temporalEn ? ` ${temporalEn}` : ''}`,
+    targetCoreV1038,
     originalText
   );
 
@@ -39073,8 +39362,78 @@ const twoProTryKoEnWarnedNotEnterRoomV1041 = async (
   if (!verbPhrase) return null;
 
   const temporalEn = temporalSource === '지금' ? 'now' : '';
+
+  // ☆ TwoPro v10.41-safe-question:
+  // be warned not to 수동문 의문문 처리
+  // 기존 평서문은 그대로 유지하고,
+  // 원문 끝에 명시적인 '?'가 있을 때만 be동사를 앞으로 이동합니다.
+  const isQuestionV1041 = /[?？]\s*$/u.test(
+    String(originalText || '').trim()
+  );
+
+  const subjectSelectedV1041 = String(
+    subjectBundle.selected || ''
+  ).trim();
+
+  const subjectLowerV1041 =
+    subjectSelectedV1041.toLowerCase();
+
+  const pluralLikeV1041 = [
+    'you',
+    'we',
+    'they',
+  ].includes(subjectLowerV1041);
+
+  const presentBeQuestionV1041 =
+    subjectLowerV1041 === 'i'
+      ? 'Am'
+      : pluralLikeV1041
+      ? 'Are'
+      : 'Is';
+
+  const pastBeQuestionV1041 =
+    pluralLikeV1041
+      ? 'Were'
+      : 'Was';
+
+  let targetCoreV1041 =
+    `${subjectSelectedV1041} ${verbPhrase} ` +
+    `not to enter the room` +
+    `${temporalEn ? ` ${temporalEn}` : ''}`;
+
+  if (isQuestionV1041) {
+    if (predicate.aspect === 'progressive') {
+      targetCoreV1041 =
+        `${presentBeQuestionV1041} ${subjectSelectedV1041} ` +
+        `being warned not to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else if (predicate.aspect === 'negative') {
+      if (predicate.tense === 'past') {
+        targetCoreV1041 =
+          `${pastBeQuestionV1041} ${subjectSelectedV1041} ` +
+          `not warned not to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      } else {
+        targetCoreV1041 =
+          `${presentBeQuestionV1041} ${subjectSelectedV1041} ` +
+          `not warned not to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      }
+    } else if (predicate.tense === 'past') {
+      targetCoreV1041 =
+        `${pastBeQuestionV1041} ${subjectSelectedV1041} ` +
+        `warned not to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else {
+      targetCoreV1041 =
+        `${presentBeQuestionV1041} ${subjectSelectedV1041} ` +
+        `warned not to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    }
+  }
+
   const targetText = twoProFinalizeEnglish(
-    `${subjectBundle.selected} ${verbPhrase} not to enter the room${temporalEn ? ` ${temporalEn}` : ''}`,
+    targetCoreV1041,
     originalText
   );
 
@@ -39228,8 +39587,78 @@ const twoProTryKoEnAdvisedEnterRoomV1042 = async (
   if (!verbPhrase) return null;
 
   const temporalEn = temporalSource === '지금' ? 'now' : '';
+
+  // ☆ TwoPro v10.46-safe-question:
+  // be expected to 수동문 의문문 처리
+  // "예상되고 있다"도 영어에서는 상태 수동 be expected로 정규화합니다.
+  // 원문 끝에 명시적인 '?'가 있을 때만 be동사를 앞으로 이동합니다.
+  const isQuestionV1038 = /[?？]\s*$/u.test(
+    String(originalText || '').trim()
+  );
+
+  const subjectSelectedV1038 = String(
+    subjectBundle.selected || ''
+  ).trim();
+
+  const subjectLowerV1038 =
+    subjectSelectedV1038.toLowerCase();
+
+  const pluralLikeV1038 = [
+    'you',
+    'we',
+    'they',
+  ].includes(subjectLowerV1038);
+
+  const presentBeQuestionV1038 =
+    subjectLowerV1038 === 'i'
+      ? 'Am'
+      : pluralLikeV1038
+      ? 'Are'
+      : 'Is';
+
+  const pastBeQuestionV1038 =
+    pluralLikeV1038
+      ? 'Were'
+      : 'Was';
+
+  let targetCoreV1038 =
+    `${subjectSelectedV1038} ${verbPhrase} ` +
+    `to enter the room` +
+    `${temporalEn ? ` ${temporalEn}` : ''}`;
+
+  if (isQuestionV1038) {
+    if (predicate.aspect === 'progressive') {
+      targetCoreV1038 =
+        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else if (predicate.aspect === 'negative') {
+      if (predicate.tense === 'past') {
+        targetCoreV1038 =
+          `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
+          `not expected to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      } else {
+        targetCoreV1038 =
+          `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+          `not expected to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      }
+    } else if (predicate.tense === 'past') {
+      targetCoreV1038 =
+        `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else {
+      targetCoreV1038 =
+        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    }
+  }
+
   const targetText = twoProFinalizeEnglish(
-    `${subjectBundle.selected} ${verbPhrase} to enter the room${temporalEn ? ` ${temporalEn}` : ''}`,
+    targetCoreV1038,
     originalText
   );
 
@@ -39383,8 +39812,78 @@ const twoProTryKoEnRequiredEnterRoomV1043 = async (
   if (!verbPhrase) return null;
 
   const temporalEn = temporalSource === '지금' ? 'now' : '';
+
+  // ☆ TwoPro v10.46-safe-question:
+  // be expected to 수동문 의문문 처리
+  // "예상되고 있다"도 영어에서는 상태 수동 be expected로 정규화합니다.
+  // 원문 끝에 명시적인 '?'가 있을 때만 be동사를 앞으로 이동합니다.
+  const isQuestionV1038 = /[?？]\s*$/u.test(
+    String(originalText || '').trim()
+  );
+
+  const subjectSelectedV1038 = String(
+    subjectBundle.selected || ''
+  ).trim();
+
+  const subjectLowerV1038 =
+    subjectSelectedV1038.toLowerCase();
+
+  const pluralLikeV1038 = [
+    'you',
+    'we',
+    'they',
+  ].includes(subjectLowerV1038);
+
+  const presentBeQuestionV1038 =
+    subjectLowerV1038 === 'i'
+      ? 'Am'
+      : pluralLikeV1038
+      ? 'Are'
+      : 'Is';
+
+  const pastBeQuestionV1038 =
+    pluralLikeV1038
+      ? 'Were'
+      : 'Was';
+
+  let targetCoreV1038 =
+    `${subjectSelectedV1038} ${verbPhrase} ` +
+    `to enter the room` +
+    `${temporalEn ? ` ${temporalEn}` : ''}`;
+
+  if (isQuestionV1038) {
+    if (predicate.aspect === 'progressive') {
+      targetCoreV1038 =
+        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else if (predicate.aspect === 'negative') {
+      if (predicate.tense === 'past') {
+        targetCoreV1038 =
+          `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
+          `not expected to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      } else {
+        targetCoreV1038 =
+          `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+          `not expected to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      }
+    } else if (predicate.tense === 'past') {
+      targetCoreV1038 =
+        `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else {
+      targetCoreV1038 =
+        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    }
+  }
+
   const targetText = twoProFinalizeEnglish(
-    `${subjectBundle.selected} ${verbPhrase} to enter the room${temporalEn ? ` ${temporalEn}` : ''}`,
+    targetCoreV1038,
     originalText
   );
 
@@ -39538,8 +40037,78 @@ const twoProTryKoEnPersuadedEnterRoomV1044 = async (
   if (!verbPhrase) return null;
 
   const temporalEn = temporalSource === '지금' ? 'now' : '';
+
+  // ☆ TwoPro v10.46-safe-question:
+  // be expected to 수동문 의문문 처리
+  // "예상되고 있다"도 영어에서는 상태 수동 be expected로 정규화합니다.
+  // 원문 끝에 명시적인 '?'가 있을 때만 be동사를 앞으로 이동합니다.
+  const isQuestionV1038 = /[?？]\s*$/u.test(
+    String(originalText || '').trim()
+  );
+
+  const subjectSelectedV1038 = String(
+    subjectBundle.selected || ''
+  ).trim();
+
+  const subjectLowerV1038 =
+    subjectSelectedV1038.toLowerCase();
+
+  const pluralLikeV1038 = [
+    'you',
+    'we',
+    'they',
+  ].includes(subjectLowerV1038);
+
+  const presentBeQuestionV1038 =
+    subjectLowerV1038 === 'i'
+      ? 'Am'
+      : pluralLikeV1038
+      ? 'Are'
+      : 'Is';
+
+  const pastBeQuestionV1038 =
+    pluralLikeV1038
+      ? 'Were'
+      : 'Was';
+
+  let targetCoreV1038 =
+    `${subjectSelectedV1038} ${verbPhrase} ` +
+    `to enter the room` +
+    `${temporalEn ? ` ${temporalEn}` : ''}`;
+
+  if (isQuestionV1038) {
+    if (predicate.aspect === 'progressive') {
+      targetCoreV1038 =
+        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else if (predicate.aspect === 'negative') {
+      if (predicate.tense === 'past') {
+        targetCoreV1038 =
+          `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
+          `not expected to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      } else {
+        targetCoreV1038 =
+          `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+          `not expected to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      }
+    } else if (predicate.tense === 'past') {
+      targetCoreV1038 =
+        `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else {
+      targetCoreV1038 =
+        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    }
+  }
+
   const targetText = twoProFinalizeEnglish(
-    `${subjectBundle.selected} ${verbPhrase} to enter the room${temporalEn ? ` ${temporalEn}` : ''}`,
+    targetCoreV1038,
     originalText
   );
 
@@ -39693,8 +40262,78 @@ const twoProTryKoEnEncouragedEnterRoomV1045 = async (
   if (!verbPhrase) return null;
 
   const temporalEn = temporalSource === '지금' ? 'now' : '';
+
+  // ☆ TwoPro v10.46-safe-question:
+  // be expected to 수동문 의문문 처리
+  // "예상되고 있다"도 영어에서는 상태 수동 be expected로 정규화합니다.
+  // 원문 끝에 명시적인 '?'가 있을 때만 be동사를 앞으로 이동합니다.
+  const isQuestionV1038 = /[?？]\s*$/u.test(
+    String(originalText || '').trim()
+  );
+
+  const subjectSelectedV1038 = String(
+    subjectBundle.selected || ''
+  ).trim();
+
+  const subjectLowerV1038 =
+    subjectSelectedV1038.toLowerCase();
+
+  const pluralLikeV1038 = [
+    'you',
+    'we',
+    'they',
+  ].includes(subjectLowerV1038);
+
+  const presentBeQuestionV1038 =
+    subjectLowerV1038 === 'i'
+      ? 'Am'
+      : pluralLikeV1038
+      ? 'Are'
+      : 'Is';
+
+  const pastBeQuestionV1038 =
+    pluralLikeV1038
+      ? 'Were'
+      : 'Was';
+
+  let targetCoreV1038 =
+    `${subjectSelectedV1038} ${verbPhrase} ` +
+    `to enter the room` +
+    `${temporalEn ? ` ${temporalEn}` : ''}`;
+
+  if (isQuestionV1038) {
+    if (predicate.aspect === 'progressive') {
+      targetCoreV1038 =
+        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else if (predicate.aspect === 'negative') {
+      if (predicate.tense === 'past') {
+        targetCoreV1038 =
+          `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
+          `not expected to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      } else {
+        targetCoreV1038 =
+          `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+          `not expected to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      }
+    } else if (predicate.tense === 'past') {
+      targetCoreV1038 =
+        `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else {
+      targetCoreV1038 =
+        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    }
+  }
+
   const targetText = twoProFinalizeEnglish(
-    `${subjectBundle.selected} ${verbPhrase} to enter the room${temporalEn ? ` ${temporalEn}` : ''}`,
+    targetCoreV1038,
     originalText
   );
 
@@ -39854,8 +40493,78 @@ const twoProTryKoEnExpectedEnterRoomV1046 = async (
   if (!verbPhrase) return null;
 
   const temporalEn = temporalSource === '지금' ? 'now' : '';
+
+  // ☆ TwoPro v10.46-safe-question:
+  // be expected to 수동문 의문문 처리
+  // "예상되고 있다"도 영어에서는 상태 수동 be expected로 정규화합니다.
+  // 원문 끝에 명시적인 '?'가 있을 때만 be동사를 앞으로 이동합니다.
+  const isQuestionV1038 = /[?？]\s*$/u.test(
+    String(originalText || '').trim()
+  );
+
+  const subjectSelectedV1038 = String(
+    subjectBundle.selected || ''
+  ).trim();
+
+  const subjectLowerV1038 =
+    subjectSelectedV1038.toLowerCase();
+
+  const pluralLikeV1038 = [
+    'you',
+    'we',
+    'they',
+  ].includes(subjectLowerV1038);
+
+  const presentBeQuestionV1038 =
+    subjectLowerV1038 === 'i'
+      ? 'Am'
+      : pluralLikeV1038
+      ? 'Are'
+      : 'Is';
+
+  const pastBeQuestionV1038 =
+    pluralLikeV1038
+      ? 'Were'
+      : 'Was';
+
+  let targetCoreV1038 =
+    `${subjectSelectedV1038} ${verbPhrase} ` +
+    `to enter the room` +
+    `${temporalEn ? ` ${temporalEn}` : ''}`;
+
+  if (isQuestionV1038) {
+    if (predicate.aspect === 'progressive') {
+      targetCoreV1038 =
+        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else if (predicate.aspect === 'negative') {
+      if (predicate.tense === 'past') {
+        targetCoreV1038 =
+          `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
+          `not expected to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      } else {
+        targetCoreV1038 =
+          `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+          `not expected to enter the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      }
+    } else if (predicate.tense === 'past') {
+      targetCoreV1038 =
+        `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else {
+      targetCoreV1038 =
+        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
+        `expected to enter the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    }
+  }
+
   const targetText = twoProFinalizeEnglish(
-    `${subjectBundle.selected} ${verbPhrase} to enter the room${temporalEn ? ` ${temporalEn}` : ''}`,
+    targetCoreV1038,
     originalText
   );
 
@@ -40017,8 +40726,71 @@ const twoProTryKoEnKnownEnterRoomV1047 = async (
   );
   if (!verbPhrase) return null;
 
+  // ☆ TwoPro v10.47-safe-question:
+  // be known to have entered 수동 완료형 의문문 처리
+  // 평서문은 기존 verbPhrase를 그대로 유지하고,
+  // 원문 끝에 '?'가 있을 때만 be동사를 앞으로 이동합니다.
+  const isQuestionV1047 = /[?？]\s*$/u.test(
+    String(originalText || '').trim()
+  );
+
+  const subjectSelectedV1047 = String(
+    subjectBundle.selected || ''
+  ).trim();
+
+  const subjectLowerV1047 =
+    subjectSelectedV1047.toLowerCase();
+
+  const pluralLikeV1047 = [
+    'you',
+    'we',
+    'they',
+  ].includes(subjectLowerV1047);
+
+  const presentBeQuestionV1047 =
+    subjectLowerV1047 === 'i'
+      ? 'Am'
+      : pluralLikeV1047
+      ? 'Are'
+      : 'Is';
+
+  const pastBeQuestionV1047 =
+    pluralLikeV1047
+      ? 'Were'
+      : 'Was';
+
+  let targetCoreV1047 =
+    `${subjectSelectedV1047} ${verbPhrase} ` +
+    `to have entered the room`;
+
+  if (isQuestionV1047) {
+    if (predicate.aspect === 'negative') {
+      if (predicate.tense === 'past') {
+        targetCoreV1047 =
+          `${pastBeQuestionV1047} ${subjectSelectedV1047} ` +
+          `not known to have entered the room`;
+      } else {
+        targetCoreV1047 =
+          `${presentBeQuestionV1047} ${subjectSelectedV1047} ` +
+          `not known to have entered the room`;
+      }
+    } else if (predicate.tense === 'past') {
+      targetCoreV1047 =
+        `${pastBeQuestionV1047} ${subjectSelectedV1047} ` +
+        `known to have entered the room`;
+    } else if (temporalEn) {
+      targetCoreV1047 =
+        `${presentBeQuestionV1047} ${subjectSelectedV1047} ` +
+        `now known to have entered the room`;
+    } else {
+      targetCoreV1047 =
+        `${presentBeQuestionV1047} ${subjectSelectedV1047} ` +
+        `known to have entered the room`;
+    }
+  }
+
   const targetText = twoProFinalizeEnglish(
-    `${subjectBundle.selected} ${verbPhrase} to have entered the room`,
+    targetCoreV1047,
     originalText
   );
 
@@ -40175,10 +40947,77 @@ const twoProTryKoEnReportedEnterRoomV1048 = async (
   );
   if (!verbPhrase) return null;
 
+  // ☆ TwoPro v10.48-safe-question:
+  // be reported to have entered 수동 완료형 의문문 처리
+  // 평서문은 기존 verbPhrase를 그대로 유지하고,
+  // 원문 끝에 '?'가 있을 때만 be동사를 앞으로 이동합니다.
+  const isQuestionV1048 = /[?？]\s*$/u.test(
+    String(originalText || '').trim()
+  );
+
+  const subjectSelectedV1048 = String(
+    subjectBundle.selected || ''
+  ).trim();
+
+  const subjectLowerV1048 =
+    subjectSelectedV1048.toLowerCase();
+
+  const pluralLikeV1048 = [
+    'you',
+    'we',
+    'they',
+  ].includes(subjectLowerV1048);
+
+  const presentBeQuestionV1048 =
+    subjectLowerV1048 === 'i'
+      ? 'Am'
+      : pluralLikeV1048
+      ? 'Are'
+      : 'Is';
+
+  const pastBeQuestionV1048 =
+    pluralLikeV1048
+      ? 'Were'
+      : 'Was';
+
+  let targetCoreV1048 =
+    `${subjectSelectedV1048} ${verbPhrase} ` +
+    `to have entered the room` +
+    `${temporalEn ? ` ${temporalEn}` : ''}`;
+
+  if (isQuestionV1048) {
+    if (predicate.aspect === 'progressive') {
+      targetCoreV1048 =
+        `${presentBeQuestionV1048} ${subjectSelectedV1048} ` +
+        `being reported to have entered the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else if (predicate.aspect === 'negative') {
+      if (predicate.tense === 'past') {
+        targetCoreV1048 =
+          `${pastBeQuestionV1048} ${subjectSelectedV1048} ` +
+          `not reported to have entered the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      } else {
+        targetCoreV1048 =
+          `${presentBeQuestionV1048} ${subjectSelectedV1048} ` +
+          `not reported to have entered the room` +
+          `${temporalEn ? ` ${temporalEn}` : ''}`;
+      }
+    } else if (predicate.tense === 'past') {
+      targetCoreV1048 =
+        `${pastBeQuestionV1048} ${subjectSelectedV1048} ` +
+        `reported to have entered the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    } else {
+      targetCoreV1048 =
+        `${presentBeQuestionV1048} ${subjectSelectedV1048} ` +
+        `reported to have entered the room` +
+        `${temporalEn ? ` ${temporalEn}` : ''}`;
+    }
+  }
+
   const targetText = twoProFinalizeEnglish(
-    `${subjectBundle.selected} ${verbPhrase} to have entered the room${
-      temporalEn ? ` ${temporalEn}` : ''
-    }`,
+    targetCoreV1048,
     originalText
   );
 
@@ -40332,8 +41171,71 @@ const twoProTryKoEnBelievedEnterRoomV1049 = async (
   );
   if (!verbPhrase) return null;
 
+  // ☆ TwoPro v10.49-safe-question:
+  // be believed to have entered 수동 완료형 의문문 처리
+  // 평서문은 기존 verbPhrase를 그대로 유지하고,
+  // 원문 끝에 '?'가 있을 때만 be동사를 앞으로 이동합니다.
+  const isQuestionV1049 = /[?？]\s*$/u.test(
+    String(originalText || '').trim()
+  );
+
+  const subjectSelectedV1049 = String(
+    subjectBundle.selected || ''
+  ).trim();
+
+  const subjectLowerV1049 =
+    subjectSelectedV1049.toLowerCase();
+
+  const pluralLikeV1049 = [
+    'you',
+    'we',
+    'they',
+  ].includes(subjectLowerV1049);
+
+  const presentBeQuestionV1049 =
+    subjectLowerV1049 === 'i'
+      ? 'Am'
+      : pluralLikeV1049
+      ? 'Are'
+      : 'Is';
+
+  const pastBeQuestionV1049 =
+    pluralLikeV1049
+      ? 'Were'
+      : 'Was';
+
+  let targetCoreV1049 =
+    `${subjectSelectedV1049} ${verbPhrase} ` +
+    `to have entered the room`;
+
+  if (isQuestionV1049) {
+    if (predicate.aspect === 'negative') {
+      if (predicate.tense === 'past') {
+        targetCoreV1049 =
+          `${pastBeQuestionV1049} ${subjectSelectedV1049} ` +
+          `not believed to have entered the room`;
+      } else {
+        targetCoreV1049 =
+          `${presentBeQuestionV1049} ${subjectSelectedV1049} ` +
+          `not believed to have entered the room`;
+      }
+    } else if (predicate.tense === 'past') {
+      targetCoreV1049 =
+        `${pastBeQuestionV1049} ${subjectSelectedV1049} ` +
+        `believed to have entered the room`;
+    } else if (temporalEn) {
+      targetCoreV1049 =
+        `${presentBeQuestionV1049} ${subjectSelectedV1049} ` +
+        `now believed to have entered the room`;
+    } else {
+      targetCoreV1049 =
+        `${presentBeQuestionV1049} ${subjectSelectedV1049} ` +
+        `believed to have entered the room`;
+    }
+  }
+
   const targetText = twoProFinalizeEnglish(
-    `${subjectBundle.selected} ${verbPhrase} to have entered the room`,
+    targetCoreV1049,
     originalText
   );
 
