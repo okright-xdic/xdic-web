@@ -487,6 +487,40 @@ export default function SayTellSpeakTalkPage() {
           </div>
         </section>
 
+        <section className="mt-10 rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5 md:p-6">
+          <h2 className="text-lg font-extrabold">작성·편집 및 검토 정보</h2>
+
+          <dl className="mt-4 grid gap-3 text-sm leading-6 md:grid-cols-2">
+            <div>
+              <dt className="font-extrabold text-slate-800">작성·편집</dt>
+              <dd className="text-slate-600">X-DIC</dd>
+            </div>
+
+            <div className="md:col-span-2">
+              <dt className="font-extrabold text-slate-800">검토 기준</dt>
+              <dd className="text-slate-600">
+                X-DIC 검색 데이터 · CORE 대표 회귀 테스트 · 문장 구조 및
+                의미 대응 검토
+              </dd>
+            </div>
+          </dl>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href="/data-policy"
+              className="text-sm font-extrabold text-emerald-700 hover:text-emerald-900"
+            >
+              데이터·편집 원칙 →
+            </Link>
+
+            <Link
+              href="/guide"
+              className="text-sm font-extrabold text-blue-700 hover:text-blue-900"
+            >
+              X-DIC 이용 안내 →
+            </Link>
+          </div>
+        </section>
         <div className="mt-10 flex flex-wrap gap-3">
           <Link
             href="/"
