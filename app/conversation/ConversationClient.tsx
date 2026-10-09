@@ -1,7 +1,7 @@
 // app/conversation/ConversationClient.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
@@ -42,6 +42,44 @@ export default function ConversationClient({ initialData = [] }: { initialData: 
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // 예문 이어듣기: 페이지의 여러 회화 항목이 한 음성 엔진을 공유하므로
+  // 한 번에 한 재생만 실행하고, 이전 재생이 뒤늦게 이어지지 않도록 번호를 관리합니다.
+const [continuousMode, setContinuousMode] =
+  useState<'en' | 'ko-en'>('ko-en');
+
+  const [continuousPlayback, setContinuousPlayback] = useState<{
+    itemKey: string;
+    exampleIndex: number;
+    status: 'playing' | 'paused';
+  } | null>(null);
+  const speechRequestRef = useRef(0);
+  const webSpeechAbortRef = useRef<(() => void) | null>(null);
+
+  const stopSpeechEngine = useCallback(async () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    // 일부 브라우저에서는 cancel() 시 onend/onerror 이벤트가 오지 않습니다.
+    // 진행 중인 Promise를 직접 끝내서 이전 이어듣기 루프가 남지 않게 합니다.
+    const abortWebSpeech = webSpeechAbortRef.current;
+    webSpeechAbortRef.current = null;
+    abortWebSpeech?.();
+
+    if (Capacitor.isNativePlatform()) {
+      try { await TextToSpeech.stop(); } catch (err) {
+        console.warn('[X-DIC 이어듣기 중지]', err);
+      }
+    }
+  }, []);
+
+  // 페이지/회화 항목/페이지 번호를 이동할 때 남은 음성을 중단합니다.
+  useEffect(() => {
+    return () => {
+      speechRequestRef.current += 1;
+      void stopSpeechEngine();
+    };
+  }, [typeParam, itemParam, currentPage, stopSpeechEngine]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -184,14 +222,20 @@ export default function ConversationClient({ initialData = [] }: { initialData: 
     const safeParts = parts.filter((part) => String(part.text || '').trim());
     if (safeParts.length === 0) return;
 
+    // 개별 스피커를 누르면 이어듣기 및 이전 개별 재생을 종료합니다.
+    const requestId = ++speechRequestRef.current;
+    setContinuousPlayback(null);
+    await stopSpeechEngine();
+    if (requestId !== speechRequestRef.current) return;
+
     if (Capacitor.isNativePlatform()) {
       try {
-        try { await TextToSpeech.stop(); } catch {}
-
         for (const part of safeParts) {
           const languageResult = await TextToSpeech.isLanguageSupported({
             lang: part.lang,
           });
+
+          if (requestId !== speechRequestRef.current) return;
 
           if (!languageResult?.supported) {
             throw new Error(`TTS_LANGUAGE_NOT_SUPPORTED:${part.lang}`);
@@ -205,15 +249,18 @@ export default function ConversationClient({ initialData = [] }: { initialData: 
             volume: 1.0,
             queueStrategy: 0,
           });
+          if (requestId !== speechRequestRef.current) return;
         }
 
         return;
       } catch (err) {
         console.warn('[X-DIC ConversationClient Native TTS]', err);
+        if (requestId !== speechRequestRef.current) return;
       }
     }
 
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      if (requestId !== speechRequestRef.current) return;
       window.speechSynthesis.cancel();
 
       const voices = window.speechSynthesis.getVoices();
@@ -250,6 +297,157 @@ export default function ConversationClient({ initialData = [] }: { initialData: 
     }
 
     alert('이 기기에서는 음성 듣기를 사용할 수 없습니다.');
+  };
+
+  // 웹은 utterance 종료 이벤트를 기다려 한 문장씩 재생합니다.
+  // 설치형 앱은 기존 Capacitor TTS speak() 완료를 기다립니다.
+  // 해당 플러그인에는 pause()/resume()이 없으므로, 일시정지 후 재개 시
+  // 현재 예문 처음부터 다시 재생하도록 웹과 앱을 동일하게 처리합니다.
+  const speakOneContinuousPart = async (
+    part: ConversationSpeakPart,
+    requestId: number
+  ): Promise<boolean> => {
+    if (requestId !== speechRequestRef.current) return false;
+
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const support = await TextToSpeech.isLanguageSupported({ lang: part.lang });
+        if (requestId !== speechRequestRef.current) return false;
+        if (!support?.supported) throw new Error(`TTS_LANGUAGE_NOT_SUPPORTED:${part.lang}`);
+
+        await TextToSpeech.speak({
+          text: part.text,
+          lang: part.lang,
+          rate: part.rate,
+          pitch: part.pitch,
+          volume: 1.0,
+          queueStrategy: 0,
+        });
+        return requestId === speechRequestRef.current;
+      } catch (err) {
+        if (requestId !== speechRequestRef.current) return false;
+        console.warn('[X-DIC 이어듣기 Native TTS]', err);
+        // 앱에서 Native 언어 지원이 실패하면 가능한 경우 웹 TTS로 전환합니다.
+      }
+    }
+
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      throw new Error('이 기기에서 음성 읽기 기능을 사용할 수 없습니다.');
+    }
+
+    return new Promise<boolean>((resolve) => {
+      if (requestId !== speechRequestRef.current) {
+        resolve(false);
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(part.text);
+      const voices = window.speechSynthesis.getVoices();
+      const languageVoices = voices.filter((voice) =>
+        voice.lang.startsWith(part.lang === 'en-US' ? 'en' : 'ko')
+      );
+
+      const preferredVoice = part.lang === 'en-US'
+        ? languageVoices.find((voice) => voice.name.includes('Google US English Male')) ||
+          languageVoices.find((voice) => voice.name.includes('Google US English')) ||
+          languageVoices[0]
+        : languageVoices.find((voice) => voice.name.includes('Google') && voice.name.includes('Male')) ||
+          languageVoices[0];
+
+      if (preferredVoice) utterance.voice = preferredVoice;
+      utterance.lang = preferredVoice?.lang || part.lang;
+      utterance.rate = part.rate;
+      utterance.pitch = part.pitch;
+      utterance.volume = 1.0;
+
+      let settled = false;
+      const finish = (completed: boolean) => {
+        if (settled) return;
+        settled = true;
+        if (webSpeechAbortRef.current === abort) webSpeechAbortRef.current = null;
+        resolve(completed && requestId === speechRequestRef.current);
+      };
+      const abort = () => finish(false);
+      webSpeechAbortRef.current = abort;
+      utterance.onend = () => finish(true);
+      utterance.onerror = () => finish(false);
+      window.speechSynthesis.speak(utterance);
+    });
+  };
+
+  type ContinuousExample = {
+    raw: string;
+    korean: string;
+    english: string;
+    speakable: boolean;
+  };
+
+  const stopContinuousPlayback = () => {
+    speechRequestRef.current += 1;
+    setContinuousPlayback(null);
+    void stopSpeechEngine();
+  };
+
+  const pauseContinuousPlayback = (itemKey: string) => {
+    if (continuousPlayback?.itemKey !== itemKey || continuousPlayback.status !== 'playing') return;
+    speechRequestRef.current += 1;
+    setContinuousPlayback((prev) =>
+      prev?.itemKey === itemKey ? { ...prev, status: 'paused' } : prev
+    );
+    void stopSpeechEngine();
+  };
+
+  const startContinuousPlayback = (
+    itemKey: string,
+    examples: ContinuousExample[],
+    fromIndex = 0
+  ) => {
+    const nextSpeakable = examples.findIndex(
+      (example, index) => index >= fromIndex && example.speakable && example.english
+    );
+    if (nextSpeakable < 0) return;
+
+    const requestId = ++speechRequestRef.current;
+    const mode = continuousMode;
+    setContinuousPlayback({ itemKey, exampleIndex: nextSpeakable, status: 'playing' });
+
+    void (async () => {
+      await stopSpeechEngine();
+      if (requestId !== speechRequestRef.current) return;
+
+      for (let index = nextSpeakable; index < examples.length; index += 1) {
+        const example = examples[index];
+        if (!example.speakable || !example.english) continue;
+        if (requestId !== speechRequestRef.current) return;
+
+        setContinuousPlayback({ itemKey, exampleIndex: index, status: 'playing' });
+        const parts: ConversationSpeakPart[] = [
+          ...(mode === 'ko-en' && example.korean
+            ? [{ text: example.korean, lang: 'ko-KR' as const, rate: 1.05, pitch: 1.0 }]
+            : []),
+          { text: example.english, lang: 'en-US', rate: 0.85, pitch: 0.95 },
+        ];
+
+        for (const part of parts) {
+          const finished = await speakOneContinuousPart(part, requestId);
+          if (requestId !== speechRequestRef.current) return;
+          if (!finished) {
+            setContinuousPlayback(null);
+            return;
+          }
+        }
+
+        // 문장 사이 짧은 쉼. 중지/일시정지 요청 시 다음 문장은 실행되지 않습니다.
+        await new Promise<void>((resolve) => setTimeout(resolve, 250));
+      }
+
+      if (requestId === speechRequestRef.current) setContinuousPlayback(null);
+    })().catch((err) => {
+      if (requestId !== speechRequestRef.current) return;
+      console.warn('[X-DIC 예문 이어듣기]', err);
+      setContinuousPlayback(null);
+      alert('이어듣기를 재생하지 못했습니다. 기기의 음성 언어 설정을 확인해주세요.');
+    });
   };
 
   const handleSpeak = async (enText: string, koText: string) => {
@@ -404,6 +602,9 @@ export default function ConversationClient({ initialData = [] }: { initialData: 
 
   const renderDescriptionV161 = (description: any, itemKey: string | number) => {
     const parsed = parseDescriptionExamplesV161(description);
+    const playbackKey = String(itemKey);
+    const thisPlayback = continuousPlayback?.itemKey === playbackKey ? continuousPlayback : null;
+    const speakableCount = parsed.examples.filter((example) => example.speakable && example.english).length;
 
     if (!parsed.hasExamples) {
       return (
@@ -425,11 +626,64 @@ export default function ConversationClient({ initialData = [] }: { initialData: 
           {parsed.marker}
         </p>
 
+        {speakableCount > 0 && (
+          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-white/80 p-2.5">
+            <button
+              type="button"
+              onClick={() => startContinuousPlayback(
+                playbackKey,
+                parsed.examples,
+                thisPlayback?.status === 'paused' ? thisPlayback.exampleIndex : 0
+              )}
+              className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs md:text-sm font-bold text-white hover:bg-blue-700 transition-colors"
+              aria-label={thisPlayback?.status === 'paused' ? '예문 이어듣기 재개' : '예문 전체 이어듣기'}
+            >
+              ▶ {thisPlayback?.status === 'paused' ? '이어듣기 재개' : '전체 이어듣기'}
+            </button>
+            <button
+              type="button"
+              onClick={() => pauseContinuousPlayback(playbackKey)}
+              disabled={thisPlayback?.status !== 'playing'}
+              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs md:text-sm font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              ⏸ 일시정지
+            </button>
+            <button
+              type="button"
+              onClick={stopContinuousPlayback}
+              disabled={!thisPlayback}
+              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs md:text-sm font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              ■ 중지
+            </button>
+            <select
+              aria-label="이어듣기 언어 선택"
+              value={continuousMode}
+              onChange={(event) => {
+                if (continuousPlayback) stopContinuousPlayback();
+                setContinuousMode(event.target.value as 'en' | 'ko-en');
+              }}
+              className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs md:text-sm font-medium text-slate-700"
+            >
+              <option value="en">영어만</option>
+              <option value="ko-en">한국어 → 영어</option>
+            </select>
+            <span role="status" aria-live="polite" className="text-xs font-medium text-blue-700">
+              {thisPlayback
+                ? `${thisPlayback.status === 'paused' ? '일시정지' : '재생 중'} · ${thisPlayback.exampleIndex + 1}번째 예문`
+                : `총 ${speakableCount}개 예문`}
+            </span>
+          </div>
+        )}
+
         <div className="space-y-1.5">
           {parsed.examples.map((example, index) => (
             <div
               key={`${String(itemKey)}-example-${index}`}
-              className="flex items-start gap-2"
+              className={`flex items-start gap-2 rounded-md transition-colors ${
+                thisPlayback?.exampleIndex === index ? 'bg-blue-100/80' : ''
+              }`}
+              aria-current={thisPlayback?.exampleIndex === index ? 'true' : undefined}
             >
               {example.speakable ? (
                 <button
@@ -951,4 +1205,3 @@ export default function ConversationClient({ initialData = [] }: { initialData: 
     </div>
   );
 }
-
