@@ -1178,7 +1178,7 @@ const [continuousMode, setContinuousMode] =
 
           {!isApp && !loading && data.length > 0 && (
             <div className="mt-12 mb-4 w-full flex justify-center">
-              <AdSensePlaceholder adSlot="2218001895" debugLabel="PC_회화_하단" minHeight={250} />
+              <AdSensePlaceholder adSlot="1918574483" debugLabel="PC_회화_하단" minHeight={250} />
             </div>
           )}
 
