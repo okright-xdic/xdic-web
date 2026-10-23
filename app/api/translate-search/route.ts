@@ -2854,6 +2854,92 @@ const twoProNormalizeEnglishProperWordsV97 = (
   return text;
 };
 
+// ============================================================================
+// ☆ TwoPro common-safe-question:
+// 명시적인 '?'가 있는 경우에만,
+// 검증된 be 수동문 평서문을 의문문 어순으로 변환합니다.
+//
+// 예:
+// I am believed ...       -> Am I believed ...?
+// He is not expected ...  -> Is he not expected ...?
+// They are being reported -> Are they being reported ...?
+// Minsu is advised ...    -> Is Minsu advised ...?
+//
+// 이미 Am / Is / Are / Was / Were로 시작하는 의문문은 건드리지 않습니다.
+// ============================================================================
+const twoProConvertSafePassiveBeQuestion = (
+  value: string
+): string => {
+  const text = String(value || '')
+    .replace(/[.?!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!text) {
+    return text;
+  }
+
+  // 이미 의문문 어순이면 그대로 둡니다.
+  if (/^(Am|Is|Are|Was|Were)\b/u.test(text)) {
+    return text;
+  }
+
+  const match =
+    /^(I|You|He|She|It|We|They|There|[A-Z][A-Za-z'’-]*)\s+(am|is|are|was|were)\s+(.+)$/u.exec(
+      text
+    );
+
+  if (!match) {
+    return text;
+  }
+
+  const subjectRaw = String(match[1] || '').trim();
+  const beRaw = String(match[2] || '')
+    .trim()
+    .toLowerCase();
+  const restRaw = String(match[3] || '').trim();
+
+  // 현재 회귀 검증을 마친 SAFE 수동 표현만 자동 변환합니다.
+  const safePassiveRest =
+    /^(?:not\s+|now\s+|being\s+)*(?:asked|ordered|forced|warned|advised|required|persuaded|encouraged|expected|known|reported|believed|thought|presumed|assumed|considered|allowed)\b/iu.test(
+      restRaw
+    );
+
+  if (!safePassiveRest) {
+    return text;
+  }
+
+  const subjectLower = subjectRaw.toLowerCase();
+
+  const subjectForQuestion =
+    subjectLower === 'i'
+      ? 'I'
+      : [
+          'you',
+          'he',
+          'she',
+          'it',
+          'we',
+          'they',
+          'there',
+        ].includes(subjectLower)
+      ? subjectLower
+      : subjectRaw;
+
+  const beForQuestion =
+    beRaw === 'am'
+      ? 'Am'
+      : beRaw === 'is'
+      ? 'Is'
+      : beRaw === 'are'
+      ? 'Are'
+      : beRaw === 'was'
+      ? 'Was'
+      : 'Were';
+
+  return `${beForQuestion} ${subjectForQuestion} ${restRaw}`;
+};
+
 const twoProFinalizeEnglish = (
   value: string,
   sourceText: string
@@ -2874,17 +2960,35 @@ const twoProFinalizeEnglish = (
     (match) => match.toUpperCase()
   );
 
-  if (!/[.?!]$/.test(text)) {
-    const sourceForPunctuation =
-      String(sourceText || '').trim();
+  const sourceForPunctuation =
+    String(sourceText || '').trim();
 
-    const sourceWithoutTerminalPeriod =
+  const sourceIsExplicitQuestion =
+    /[?？]\s*$/u.test(sourceForPunctuation);
+
+  // ☆ TwoPro common-safe-question:
+  // 원문 끝에 명시적인 '?'가 있을 때만
+  // SAFE be 수동문 의문문 변환기를 적용합니다.
+  if (sourceIsExplicitQuestion) {
+    text = twoProConvertSafePassiveBeQuestion(
+      text
+    );
+
+    // 의문문 변환 후 기존 종결부호를 제거하고,
+    // 아래에서 '?'를 다시 붙입니다.
+    text = text
+      .replace(/[.?!]+\s*$/g, '')
+      .trim();
+  }
+
+  if (!/[.?!]$/.test(text)) {
+    const sourceWithoutTerminalPunctuation =
       sourceForPunctuation
-        .replace(/[.!]+$/g, '')
+        .replace(/[.?!。！？]+$/gu, '')
         .trim();
 
     const sourceLastToken =
-      sourceWithoutTerminalPeriod
+      sourceWithoutTerminalPunctuation
         .split(/\s+/)
         .filter(Boolean)
         .pop() || '';
@@ -2899,8 +3003,6 @@ const twoProFinalizeEnglish = (
     // 평서문으로 우선 판정합니다.
     // ☆ TwoPro v11.44-safe:
     // '네모나요'처럼 형용사/상태표현의 평서 해요체도 '-나요'로 끝날 수 있습니다.
-    // v11.33은 동사 활용 사전(conjugationDB)만 확인했기 때문에
-    // '이 상자는 네모나요'를 질문으로 오인했습니다.
     // 명시적 '?'가 없는 경우, 동사 활용 사전 또는 검증된 형용사 활용표에
     // 정확히 등록된 표면형이면 평서문으로 우선 판정합니다.
     const isKnownDeclarativeNayoSurfaceV1133 =
@@ -2917,16 +3019,22 @@ const twoProFinalizeEnglish = (
       );
 
     const sourceIsQuestion =
-      /\?$/.test(sourceForPunctuation) ||
-      /(습니까|까요|인가요|건가요|니|냐)\s*$/.test(
-        sourceWithoutTerminalPeriod
+      sourceIsExplicitQuestion ||
+      /(습니까|까요|인가요|건가요|니|냐)\s*$/u.test(
+        sourceWithoutTerminalPunctuation
       ) ||
       (
-        /나요\s*$/.test(sourceWithoutTerminalPeriod) &&
+        /나요\s*$/u.test(
+          sourceWithoutTerminalPunctuation
+        ) &&
         !isKnownDeclarativeNayoSurfaceV1133
       );
 
-    text += sourceIsQuestion ? '?' : '.';
+    if (sourceIsQuestion) {
+      text += '?';
+    } else {
+      text += '.';
+    }
   }
 
   return text;
@@ -38912,77 +39020,17 @@ const twoProTryKoEnOrderedEnterRoomV1039 = async (
 
   const temporalEn = temporalSource === '지금' ? 'now' : '';
 
-  // ☆ TwoPro v10.46-safe-question:
-  // be expected to 수동문 의문문 처리
-  // "예상되고 있다"도 영어에서는 상태 수동 be expected로 정규화합니다.
-  // 원문 끝에 명시적인 '?'가 있을 때만 be동사를 앞으로 이동합니다.
-  const isQuestionV1038 = /[?？]\s*$/u.test(
-    String(originalText || '').trim()
-  );
-
-  const subjectSelectedV1038 = String(
-    subjectBundle.selected || ''
-  ).trim();
-
-  const subjectLowerV1038 =
-    subjectSelectedV1038.toLowerCase();
-
-  const pluralLikeV1038 = [
-    'you',
-    'we',
-    'they',
-  ].includes(subjectLowerV1038);
-
-  const presentBeQuestionV1038 =
-    subjectLowerV1038 === 'i'
-      ? 'Am'
-      : pluralLikeV1038
-      ? 'Are'
-      : 'Is';
-
-  const pastBeQuestionV1038 =
-    pluralLikeV1038
-      ? 'Were'
-      : 'Was';
-
-  let targetCoreV1038 =
-    `${subjectSelectedV1038} ${verbPhrase} ` +
+  // ☆ TwoPro common-safe-question 적용:
+  // 여기서는 평서문 CORE만 생성합니다.
+  // 원문 끝에 '?'가 있으면 twoProFinalizeEnglish()의
+  // 공통 be 수동문 의문문 처리기가 자동으로 도치합니다.
+  const targetCoreV1042 =
+    `${subjectBundle.selected} ${verbPhrase} ` +
     `to enter the room` +
     `${temporalEn ? ` ${temporalEn}` : ''}`;
 
-  if (isQuestionV1038) {
-    if (predicate.aspect === 'progressive') {
-      targetCoreV1038 =
-        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    } else if (predicate.aspect === 'negative') {
-      if (predicate.tense === 'past') {
-        targetCoreV1038 =
-          `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
-          `not expected to enter the room` +
-          `${temporalEn ? ` ${temporalEn}` : ''}`;
-      } else {
-        targetCoreV1038 =
-          `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-          `not expected to enter the room` +
-          `${temporalEn ? ` ${temporalEn}` : ''}`;
-      }
-    } else if (predicate.tense === 'past') {
-      targetCoreV1038 =
-        `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    } else {
-      targetCoreV1038 =
-        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    }
-  }
-
   const targetText = twoProFinalizeEnglish(
-    targetCoreV1038,
+    targetCoreV1042,
     originalText
   );
 
@@ -39588,77 +39636,17 @@ const twoProTryKoEnAdvisedEnterRoomV1042 = async (
 
   const temporalEn = temporalSource === '지금' ? 'now' : '';
 
-  // ☆ TwoPro v10.46-safe-question:
-  // be expected to 수동문 의문문 처리
-  // "예상되고 있다"도 영어에서는 상태 수동 be expected로 정규화합니다.
-  // 원문 끝에 명시적인 '?'가 있을 때만 be동사를 앞으로 이동합니다.
-  const isQuestionV1038 = /[?？]\s*$/u.test(
-    String(originalText || '').trim()
-  );
-
-  const subjectSelectedV1038 = String(
-    subjectBundle.selected || ''
-  ).trim();
-
-  const subjectLowerV1038 =
-    subjectSelectedV1038.toLowerCase();
-
-  const pluralLikeV1038 = [
-    'you',
-    'we',
-    'they',
-  ].includes(subjectLowerV1038);
-
-  const presentBeQuestionV1038 =
-    subjectLowerV1038 === 'i'
-      ? 'Am'
-      : pluralLikeV1038
-      ? 'Are'
-      : 'Is';
-
-  const pastBeQuestionV1038 =
-    pluralLikeV1038
-      ? 'Were'
-      : 'Was';
-
-  let targetCoreV1038 =
-    `${subjectSelectedV1038} ${verbPhrase} ` +
+  // ☆ TwoPro common-safe-question 적용:
+  // 여기서는 평서문 CORE만 생성합니다.
+  // 원문 끝에 '?'가 있으면 twoProFinalizeEnglish()의
+  // 공통 be 수동문 의문문 처리기가 자동으로 도치합니다.
+  const targetCoreV1042 =
+    `${subjectBundle.selected} ${verbPhrase} ` +
     `to enter the room` +
     `${temporalEn ? ` ${temporalEn}` : ''}`;
 
-  if (isQuestionV1038) {
-    if (predicate.aspect === 'progressive') {
-      targetCoreV1038 =
-        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    } else if (predicate.aspect === 'negative') {
-      if (predicate.tense === 'past') {
-        targetCoreV1038 =
-          `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
-          `not expected to enter the room` +
-          `${temporalEn ? ` ${temporalEn}` : ''}`;
-      } else {
-        targetCoreV1038 =
-          `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-          `not expected to enter the room` +
-          `${temporalEn ? ` ${temporalEn}` : ''}`;
-      }
-    } else if (predicate.tense === 'past') {
-      targetCoreV1038 =
-        `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    } else {
-      targetCoreV1038 =
-        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    }
-  }
-
   const targetText = twoProFinalizeEnglish(
-    targetCoreV1038,
+    targetCoreV1042,
     originalText
   );
 
@@ -39813,77 +39801,17 @@ const twoProTryKoEnRequiredEnterRoomV1043 = async (
 
   const temporalEn = temporalSource === '지금' ? 'now' : '';
 
-  // ☆ TwoPro v10.46-safe-question:
-  // be expected to 수동문 의문문 처리
-  // "예상되고 있다"도 영어에서는 상태 수동 be expected로 정규화합니다.
-  // 원문 끝에 명시적인 '?'가 있을 때만 be동사를 앞으로 이동합니다.
-  const isQuestionV1038 = /[?？]\s*$/u.test(
-    String(originalText || '').trim()
-  );
-
-  const subjectSelectedV1038 = String(
-    subjectBundle.selected || ''
-  ).trim();
-
-  const subjectLowerV1038 =
-    subjectSelectedV1038.toLowerCase();
-
-  const pluralLikeV1038 = [
-    'you',
-    'we',
-    'they',
-  ].includes(subjectLowerV1038);
-
-  const presentBeQuestionV1038 =
-    subjectLowerV1038 === 'i'
-      ? 'Am'
-      : pluralLikeV1038
-      ? 'Are'
-      : 'Is';
-
-  const pastBeQuestionV1038 =
-    pluralLikeV1038
-      ? 'Were'
-      : 'Was';
-
-  let targetCoreV1038 =
-    `${subjectSelectedV1038} ${verbPhrase} ` +
+  // ☆ TwoPro common-safe-question 적용:
+  // 여기서는 평서문 CORE만 생성합니다.
+  // 원문 끝에 '?'가 있으면 twoProFinalizeEnglish()의
+  // 공통 be 수동문 의문문 처리기가 자동으로 도치합니다.
+  const targetCoreV1043 =
+    `${subjectBundle.selected} ${verbPhrase} ` +
     `to enter the room` +
     `${temporalEn ? ` ${temporalEn}` : ''}`;
 
-  if (isQuestionV1038) {
-    if (predicate.aspect === 'progressive') {
-      targetCoreV1038 =
-        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    } else if (predicate.aspect === 'negative') {
-      if (predicate.tense === 'past') {
-        targetCoreV1038 =
-          `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
-          `not expected to enter the room` +
-          `${temporalEn ? ` ${temporalEn}` : ''}`;
-      } else {
-        targetCoreV1038 =
-          `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-          `not expected to enter the room` +
-          `${temporalEn ? ` ${temporalEn}` : ''}`;
-      }
-    } else if (predicate.tense === 'past') {
-      targetCoreV1038 =
-        `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    } else {
-      targetCoreV1038 =
-        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    }
-  }
-
   const targetText = twoProFinalizeEnglish(
-    targetCoreV1038,
+    targetCoreV1043,
     originalText
   );
 
@@ -40038,77 +39966,17 @@ const twoProTryKoEnPersuadedEnterRoomV1044 = async (
 
   const temporalEn = temporalSource === '지금' ? 'now' : '';
 
-  // ☆ TwoPro v10.46-safe-question:
-  // be expected to 수동문 의문문 처리
-  // "예상되고 있다"도 영어에서는 상태 수동 be expected로 정규화합니다.
-  // 원문 끝에 명시적인 '?'가 있을 때만 be동사를 앞으로 이동합니다.
-  const isQuestionV1038 = /[?？]\s*$/u.test(
-    String(originalText || '').trim()
-  );
-
-  const subjectSelectedV1038 = String(
-    subjectBundle.selected || ''
-  ).trim();
-
-  const subjectLowerV1038 =
-    subjectSelectedV1038.toLowerCase();
-
-  const pluralLikeV1038 = [
-    'you',
-    'we',
-    'they',
-  ].includes(subjectLowerV1038);
-
-  const presentBeQuestionV1038 =
-    subjectLowerV1038 === 'i'
-      ? 'Am'
-      : pluralLikeV1038
-      ? 'Are'
-      : 'Is';
-
-  const pastBeQuestionV1038 =
-    pluralLikeV1038
-      ? 'Were'
-      : 'Was';
-
-  let targetCoreV1038 =
-    `${subjectSelectedV1038} ${verbPhrase} ` +
+  // ☆ TwoPro common-safe-question 적용:
+  // 여기서는 평서문 CORE만 생성합니다.
+  // 원문 끝에 '?'가 있으면 twoProFinalizeEnglish()의
+  // 공통 be 수동문 의문문 처리기가 자동으로 도치합니다.
+  const targetCoreV1042 =
+    `${subjectBundle.selected} ${verbPhrase} ` +
     `to enter the room` +
     `${temporalEn ? ` ${temporalEn}` : ''}`;
 
-  if (isQuestionV1038) {
-    if (predicate.aspect === 'progressive') {
-      targetCoreV1038 =
-        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    } else if (predicate.aspect === 'negative') {
-      if (predicate.tense === 'past') {
-        targetCoreV1038 =
-          `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
-          `not expected to enter the room` +
-          `${temporalEn ? ` ${temporalEn}` : ''}`;
-      } else {
-        targetCoreV1038 =
-          `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-          `not expected to enter the room` +
-          `${temporalEn ? ` ${temporalEn}` : ''}`;
-      }
-    } else if (predicate.tense === 'past') {
-      targetCoreV1038 =
-        `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    } else {
-      targetCoreV1038 =
-        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    }
-  }
-
   const targetText = twoProFinalizeEnglish(
-    targetCoreV1038,
+    targetCoreV1042,
     originalText
   );
 
@@ -40263,77 +40131,17 @@ const twoProTryKoEnEncouragedEnterRoomV1045 = async (
 
   const temporalEn = temporalSource === '지금' ? 'now' : '';
 
-  // ☆ TwoPro v10.46-safe-question:
-  // be expected to 수동문 의문문 처리
-  // "예상되고 있다"도 영어에서는 상태 수동 be expected로 정규화합니다.
-  // 원문 끝에 명시적인 '?'가 있을 때만 be동사를 앞으로 이동합니다.
-  const isQuestionV1038 = /[?？]\s*$/u.test(
-    String(originalText || '').trim()
-  );
-
-  const subjectSelectedV1038 = String(
-    subjectBundle.selected || ''
-  ).trim();
-
-  const subjectLowerV1038 =
-    subjectSelectedV1038.toLowerCase();
-
-  const pluralLikeV1038 = [
-    'you',
-    'we',
-    'they',
-  ].includes(subjectLowerV1038);
-
-  const presentBeQuestionV1038 =
-    subjectLowerV1038 === 'i'
-      ? 'Am'
-      : pluralLikeV1038
-      ? 'Are'
-      : 'Is';
-
-  const pastBeQuestionV1038 =
-    pluralLikeV1038
-      ? 'Were'
-      : 'Was';
-
-  let targetCoreV1038 =
-    `${subjectSelectedV1038} ${verbPhrase} ` +
+  // ☆ TwoPro common-safe-question 적용:
+  // 여기서는 평서문 CORE만 생성합니다.
+  // 원문 끝에 '?'가 있으면 twoProFinalizeEnglish()의
+  // 공통 be 수동문 의문문 처리기가 자동으로 도치합니다.
+  const targetCoreV1042 =
+    `${subjectBundle.selected} ${verbPhrase} ` +
     `to enter the room` +
     `${temporalEn ? ` ${temporalEn}` : ''}`;
 
-  if (isQuestionV1038) {
-    if (predicate.aspect === 'progressive') {
-      targetCoreV1038 =
-        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    } else if (predicate.aspect === 'negative') {
-      if (predicate.tense === 'past') {
-        targetCoreV1038 =
-          `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
-          `not expected to enter the room` +
-          `${temporalEn ? ` ${temporalEn}` : ''}`;
-      } else {
-        targetCoreV1038 =
-          `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-          `not expected to enter the room` +
-          `${temporalEn ? ` ${temporalEn}` : ''}`;
-      }
-    } else if (predicate.tense === 'past') {
-      targetCoreV1038 =
-        `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    } else {
-      targetCoreV1038 =
-        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    }
-  }
-
   const targetText = twoProFinalizeEnglish(
-    targetCoreV1038,
+    targetCoreV1042,
     originalText
   );
 
@@ -40494,77 +40302,17 @@ const twoProTryKoEnExpectedEnterRoomV1046 = async (
 
   const temporalEn = temporalSource === '지금' ? 'now' : '';
 
-  // ☆ TwoPro v10.46-safe-question:
-  // be expected to 수동문 의문문 처리
-  // "예상되고 있다"도 영어에서는 상태 수동 be expected로 정규화합니다.
-  // 원문 끝에 명시적인 '?'가 있을 때만 be동사를 앞으로 이동합니다.
-  const isQuestionV1038 = /[?？]\s*$/u.test(
-    String(originalText || '').trim()
-  );
-
-  const subjectSelectedV1038 = String(
-    subjectBundle.selected || ''
-  ).trim();
-
-  const subjectLowerV1038 =
-    subjectSelectedV1038.toLowerCase();
-
-  const pluralLikeV1038 = [
-    'you',
-    'we',
-    'they',
-  ].includes(subjectLowerV1038);
-
-  const presentBeQuestionV1038 =
-    subjectLowerV1038 === 'i'
-      ? 'Am'
-      : pluralLikeV1038
-      ? 'Are'
-      : 'Is';
-
-  const pastBeQuestionV1038 =
-    pluralLikeV1038
-      ? 'Were'
-      : 'Was';
-
-  let targetCoreV1038 =
-    `${subjectSelectedV1038} ${verbPhrase} ` +
+  // ☆ TwoPro common-safe-question 적용:
+  // 여기서는 평서문 CORE만 생성합니다.
+  // 원문 끝에 '?'가 있으면 twoProFinalizeEnglish()의
+  // 공통 be 수동문 의문문 처리기가 자동으로 도치합니다.
+  const targetCoreV1042 =
+    `${subjectBundle.selected} ${verbPhrase} ` +
     `to enter the room` +
     `${temporalEn ? ` ${temporalEn}` : ''}`;
 
-  if (isQuestionV1038) {
-    if (predicate.aspect === 'progressive') {
-      targetCoreV1038 =
-        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    } else if (predicate.aspect === 'negative') {
-      if (predicate.tense === 'past') {
-        targetCoreV1038 =
-          `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
-          `not expected to enter the room` +
-          `${temporalEn ? ` ${temporalEn}` : ''}`;
-      } else {
-        targetCoreV1038 =
-          `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-          `not expected to enter the room` +
-          `${temporalEn ? ` ${temporalEn}` : ''}`;
-      }
-    } else if (predicate.tense === 'past') {
-      targetCoreV1038 =
-        `${pastBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    } else {
-      targetCoreV1038 =
-        `${presentBeQuestionV1038} ${subjectSelectedV1038} ` +
-        `expected to enter the room` +
-        `${temporalEn ? ` ${temporalEn}` : ''}`;
-    }
-  }
-
   const targetText = twoProFinalizeEnglish(
-    targetCoreV1038,
+    targetCoreV1042,
     originalText
   );
 
@@ -41771,6 +41519,15 @@ const twoProParseConsideredEnterRoomPredicateV1053 = (
   const fixed = TWO_PRO_CONSIDERED_ENTER_ROOM_SIMPLE_FORMS_V1053[surface];
   if (fixed) return fixed;
 
+  // ☆ TwoPro v10.53-future-safe: 기존 현재·과거형을 건드리지 않고
+  // 이번 회귀 테스트의 미래 긍정·부정 활용형 두 가지만 추가합니다.
+  if (surface === '간주될 거예요') {
+    return { tense: 'future', aspect: 'simple' };
+  }
+  if (surface === '간주되지 않을 거예요') {
+    return { tense: 'future', aspect: 'negative' };
+  }
+
   if (/^간주되고\s+있(?:어요|습니다|다)$/u.test(surface)) {
     return { tense: 'present', aspect: 'progressive' };
   }
@@ -41797,6 +41554,12 @@ const twoProConsideredEnterRoomVerbPhraseV1053 = (
   const pluralLike = ['you', 'we', 'they'].includes(lower);
   const presentBe = lower === 'i' ? 'am' : pluralLike ? 'are' : 'is';
   const pastBe = pluralLike ? 'were' : 'was';
+
+  if (predicate.tense === 'future') {
+    return predicate.aspect === 'negative'
+      ? 'will not be considered'
+      : 'will be considered';
+  }
 
   if (predicate.aspect === 'negative') {
     if (predicate.tense === 'past') return `${pastBe} not considered`;
@@ -41854,8 +41617,27 @@ const twoProTryKoEnConsideredEnterRoomV1053 = async (
   );
   if (!verbPhrase) return null;
 
+  // ☆ TwoPro v10.53-future-safe:
+  // 일반 평서문은 기존 구조 유지, 미래 의문문에서는 Will을 문두로 이동.
+  // 현재·과거 의문문은 기존 공통 SAFE be 변환기에서 계속 처리합니다.
+  const isFutureQuestionV1053 =
+    predicate.tense === 'future' &&
+    /[?？]\s*$/u.test(String(originalText || ''));
+
+  const subjectForFutureQuestionV1053 = /^(?:I|you|he|she|we|they|it)$/i.test(
+    String(subjectBundle.selected || '').trim()
+  )
+    ? (String(subjectBundle.selected).toLowerCase() === 'i'
+        ? 'I'
+        : String(subjectBundle.selected).toLowerCase())
+    : subjectBundle.selected;
+
+  const targetCoreV1053 = isFutureQuestionV1053
+    ? `Will ${subjectForFutureQuestionV1053} ${predicate.aspect === 'negative' ? 'not ' : ''}be considered to have entered the room`
+    : `${subjectBundle.selected} ${verbPhrase} to have entered the room`;
+
   const targetText = twoProFinalizeEnglish(
-    `${subjectBundle.selected} ${verbPhrase} to have entered the room`,
+    targetCoreV1053,
     originalText
   );
 
@@ -41884,6 +41666,1506 @@ const twoProTryKoEnConsideredEnterRoomV1053 = async (
     referenceWords,
     engine: 'considered-enter-room-passive-perfect-ko-en-v10.53',
   };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.53-extension-safe: "간주되다"에서 장소·동작 슬롯 확장
+// 기존 v10.53 "방에 들어간" 처리와 다른 CORE는 전혀 수정하지 않습니다.
+// 이번 회귀 대상 네 가지 동작·대상만 명시적으로 허용합니다.
+// 실패한 확장 대상 외의 입력에서는 null을 반환합니다.
+// ============================================================================
+
+type TwoProConsideredActionSlotV1053Ext = {
+  perfectEnglish: string;
+  nounKo: string;
+  nounEnglish: string;
+  nounSlot: 'PLACE' | 'OBJECT';
+  verbKo: string;
+  verbEnglish: string;
+};
+
+const TWO_PRO_CONSIDERED_ACTION_SLOTS_V1053EXT: Readonly<Record<string, TwoProConsideredActionSlotV1053Ext>> = {
+  '교실에 들어간': {
+    perfectEnglish: 'to have entered the classroom',
+    nounKo: '교실',
+    nounEnglish: 'classroom',
+    nounSlot: 'PLACE',
+    verbKo: '들어가다',
+    verbEnglish: 'enter',
+  },
+  '학교에 도착한': {
+    perfectEnglish: 'to have arrived at school',
+    nounKo: '학교',
+    nounEnglish: 'school',
+    nounSlot: 'PLACE',
+    verbKo: '도착하다',
+    verbEnglish: 'arrive',
+  },
+  '회의에 참석한': {
+    perfectEnglish: 'to have attended the meeting',
+    nounKo: '회의',
+    nounEnglish: 'meeting',
+    nounSlot: 'OBJECT',
+    verbKo: '참석하다',
+    verbEnglish: 'attend',
+  },
+  '보고서를 제출한': {
+    perfectEnglish: 'to have submitted the report',
+    nounKo: '보고서',
+    nounEnglish: 'report',
+    nounSlot: 'OBJECT',
+    verbKo: '제출하다',
+    verbEnglish: 'submit',
+  },
+};
+
+const twoProTryKoEnConsideredActionExtensionV1053Ext = async (
+  originalText: string
+): Promise<{
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null> => {
+  const normalized = String(originalText || '')
+    .normalize('NFC')
+    .replace(/[.?!。！？]+$/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim();
+
+  const match = normalized.match(
+    /^(.+?)(?:은|는|이|가)\s+(?:(지금)\s+)?(교실에 들어간|학교에 도착한|회의에 참석한|보고서를 제출한)\s+것으로\s+(.+)$/u
+  );
+  if (!match) return null;
+
+  const subjectSource = twoProCleanCapturedKo(match[1]);
+  const temporalSource = twoProCleanCapturedKo(match[2] || '');
+  const actionSource = twoProCleanCapturedKo(match[3]);
+  const actionSlot = TWO_PRO_CONSIDERED_ACTION_SLOTS_V1053EXT[actionSource];
+  const predicate = twoProParseConsideredEnterRoomPredicateV1053(
+    twoProCleanCapturedKo(match[4])
+  );
+  if (!subjectSource || !actionSlot || !predicate) return null;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+  const subjectBundle = await twoProTranslateSubjectV52(subjectSource, supabase);
+  if (!subjectBundle) return null;
+
+  const temporalEn = temporalSource === '지금' ? 'now' : '';
+  const verbPhrase = twoProConsideredEnterRoomVerbPhraseV1053(
+    predicate,
+    subjectBundle.selected,
+    Boolean(temporalEn)
+  );
+  if (!verbPhrase) return null;
+
+  // 기존 SAFE be 수동 의문문 변환기가 현재/과거형을 처리합니다.
+  // 미래형은 will을 문장 앞에 놓아 별도로 처리합니다.
+  const isFutureQuestion = predicate.tense === 'future' &&
+    /[?？]\s*$/u.test(String(originalText || ''));
+  const subjectRaw = String(subjectBundle.selected || '').trim();
+  const subjectLower = subjectRaw.toLowerCase();
+  const questionSubject = /^(?:i|you|he|she|we|they|it)$/u.test(subjectLower)
+    ? (subjectLower === 'i' ? 'I' : subjectLower)
+    : subjectRaw;
+
+  const targetCore = isFutureQuestion
+    ? `Will ${questionSubject} ${predicate.aspect === 'negative' ? 'not ' : ''}be considered ${actionSlot.perfectEnglish}`
+    : `${subjectBundle.selected} ${verbPhrase} ${actionSlot.perfectEnglish}`;
+
+  const targetText = twoProFinalizeEnglish(targetCore, originalText);
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90(actionSlot.nounKo, actionSlot.nounEnglish, 'N'),
+    twoProEmbeddedReferenceWordV90(actionSlot.verbKo, actionSlot.verbEnglish, 'V'),
+    twoProEmbeddedReferenceWordV90('간주되다', 'be considered', 'V'),
+    ...(temporalEn ? [{
+      source: temporalSource,
+      selected: temporalEn,
+      candidates: [temporalEn],
+      slot: 'ADV',
+      confidence: 1,
+    } as TwoProKoEnReferenceWordV5] : []),
+  ];
+
+  return {
+    targetText,
+    analysis: [
+      { ko: subjectBundle.source, en: `${subjectBundle.selected} [S]` },
+      ...(temporalEn ? [{ ko: temporalSource, en: `${temporalEn} [TIME]` }] : []),
+      { ko: actionSlot.nounKo, en: `${actionSlot.nounEnglish} [${actionSlot.nounSlot}]` },
+      { ko: actionSource, en: `${actionSlot.perfectEnglish} [PERF XCOMP]` },
+      { ko: '간주되다', en: 'be considered [PASSIVE V]' },
+    ],
+    referenceWords,
+    engine: 'considered-action-slot-passive-perfect-ko-en-v10.53-ext-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.53-general-passive-safe: 수동태 문장부호 회귀 보강
+// 이전에 통과한 '간주되다' v10.53 및 v12.95/12.96 수동태는 수정하지 않습니다.
+// 이 세 가지 의미 틀과 검증 가능한 활용형만 처리하며, 그 외 문장은 null입니다.
+// - 그 보고서는 + 승인되다
+// - 그는 + 회의에 + 초대되다
+// - 그녀/민수는 + 팀장으로 + 임명되다
+// '?'가 있으면 해당 문형 안에서 도치하고, '.'일 때는 평서문을 유지합니다.
+// ============================================================================
+type TwoProGeneralPassiveFormV1053GP = {
+  tense: 'present' | 'past' | 'future';
+  negative: boolean;
+};
+
+type TwoProGeneralPassiveContextV1053GP = {
+  sourceSubject: string;
+  englishSubject: string;
+  sourceComplement: string;
+  englishComplement: string;
+  nounSource: string;
+  nounEnglish: string;
+  participle: string;
+  verbSource: string;
+  englishVerb: string;
+  forms: Readonly<Record<string, TwoProGeneralPassiveFormV1053GP>>;
+};
+
+const TWO_PRO_GENERAL_PASSIVE_CONTEXTS_V1053GP: readonly TwoProGeneralPassiveContextV1053GP[] = [
+  {
+    sourceSubject: '그 보고서는', englishSubject: 'The report',
+    sourceComplement: '', englishComplement: '',
+    nounSource: '보고서', nounEnglish: 'report',
+    participle: 'approved', verbSource: '승인되다', englishVerb: 'be approved',
+    forms: {
+      '승인돼요': { tense: 'present', negative: false },
+      '승인됐어요': { tense: 'past', negative: false },
+      '승인될 거예요': { tense: 'future', negative: false },
+      '승인되지 않아요': { tense: 'present', negative: true },
+      '승인되지 않았어요': { tense: 'past', negative: true },
+      '승인되지 않을 거예요': { tense: 'future', negative: true },
+    },
+  },
+  {
+    sourceSubject: '그는', englishSubject: 'He',
+    sourceComplement: '회의에', englishComplement: 'to the meeting',
+    nounSource: '회의', nounEnglish: 'meeting',
+    participle: 'invited', verbSource: '초대되다', englishVerb: 'be invited',
+    forms: {
+      '초대돼요': { tense: 'present', negative: false },
+      '초대됐어요': { tense: 'past', negative: false },
+      '초대될 거예요': { tense: 'future', negative: false },
+      '초대되지 않아요': { tense: 'present', negative: true },
+      '초대되지 않았어요': { tense: 'past', negative: true },
+      '초대되지 않을 거예요': { tense: 'future', negative: true },
+    },
+  },
+  ...([
+    { sourceSubject: '그녀는', englishSubject: 'She' },
+    { sourceSubject: '민수는', englishSubject: 'Minsu' },
+  ] as const).map((subject) => ({
+    ...subject,
+    sourceComplement: '팀장으로', englishComplement: 'team leader',
+    nounSource: '팀장', nounEnglish: 'team leader',
+    participle: 'appointed', verbSource: '임명되다', englishVerb: 'be appointed',
+    forms: {
+      '임명돼요': { tense: 'present' as const, negative: false },
+      '임명됐어요': { tense: 'past' as const, negative: false },
+      '임명될 거예요': { tense: 'future' as const, negative: false },
+      '임명되지 않아요': { tense: 'present' as const, negative: true },
+      '임명되지 않았어요': { tense: 'past' as const, negative: true },
+      '임명되지 않을 거예요': { tense: 'future' as const, negative: true },
+    },
+  })),
+];
+
+const twoProTryKoEnGeneralPassiveV1053GP = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC').replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+
+  for (const context of TWO_PRO_GENERAL_PASSIVE_CONTEXTS_V1053GP) {
+    const prefix = `${context.sourceSubject} ${context.sourceComplement ? context.sourceComplement + ' ' : ''}`;
+    if (!normalized.startsWith(prefix)) continue;
+    const surface = normalized.slice(prefix.length);
+    const form = context.forms[surface];
+    if (!form) continue; // 정확한 어미 일치만 허용합니다.
+
+    const pluralSubject = /^(?:We|They|You)$/iu.test(context.englishSubject);
+    const presentBe = pluralSubject ? 'are' : 'is';
+    const pastBe = pluralSubject ? 'were' : 'was';
+    const be = form.tense === 'past' ? pastBe : presentBe;
+    const subjectForQuestion = context.englishSubject === 'He'
+      ? 'he' : context.englishSubject === 'She' ? 'she' : context.englishSubject === 'The report' ? 'the report' : context.englishSubject;
+    const complementSuffix = context.englishComplement ? ` ${context.englishComplement}` : '';
+
+    const core = isQuestion
+      ? (form.tense === 'future'
+        ? `Will ${subjectForQuestion} ${form.negative ? 'not ' : ''}be ${context.participle}${complementSuffix}`
+        : `${be[0].toUpperCase() + be.slice(1)} ${subjectForQuestion} ${form.negative ? 'not ' : ''}${context.participle}${complementSuffix}`)
+      : (form.tense === 'future'
+        ? `${context.englishSubject} will ${form.negative ? 'not ' : ''}be ${context.participle}${complementSuffix}`
+        : `${context.englishSubject} ${be} ${form.negative ? 'not ' : ''}${context.participle}${complementSuffix}`);
+
+    const referenceWords: TwoProKoEnReferenceWordV5[] = [
+      twoProEmbeddedReferenceWordV90(context.nounSource, context.nounEnglish, 'N'),
+      twoProEmbeddedReferenceWordV90(context.verbSource, context.englishVerb, 'V'),
+    ];
+    return {
+      targetText: twoProFinalizeEnglish(core, originalText),
+      analysis: [
+        { ko: context.sourceSubject, en: `${context.englishSubject} [S]` },
+        ...(context.sourceComplement ? [{ ko: context.sourceComplement, en: `${context.englishComplement} [COMP]` }] : []),
+        { ko: surface, en: `${context.englishVerb} [PASSIVE:${form.tense}:${form.negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+      ],
+      referenceWords,
+      engine: 'general-passive-approved-invited-appointed-ko-en-v10.53-gp-safe',
+    };
+  }
+  return null;
+};
+
+// ============================================================================
+// ☆ TwoPro v10.53-gp-aspect-safe: 일반 수동태 시제 확장 (독립 규칙)
+// 이전 v10.53 GP 단순 시제 및 기타 CORE는 변경하지 않습니다.
+// 다음처럼 명시적으로 확인된 한국어 활용만 인식합니다.
+// - is/was being approved, is being appointed
+// - has already been approved, has not been invited ... yet
+// 문장부호 '.' -> 평서문, '?' -> 의문문. 범위 밖 입력은 null입니다.
+// ============================================================================
+type TwoProGeneralPassiveAspectV1053GPA =
+  'present-progressive' | 'past-progressive' | 'present-perfect';
+
+type TwoProGeneralPassiveAspectFormV1053GPA = {
+  source: string;
+  contextIndex: number;
+  aspect: TwoProGeneralPassiveAspectV1053GPA;
+  negative: boolean;
+  adverb: 'now' | 'at that time' | 'already' | 'yet';
+};
+
+const TWO_PRO_GENERAL_PASSIVE_ASPECT_FORMS_V1053GPA: readonly TwoProGeneralPassiveAspectFormV1053GPA[] = [
+  { source: '그 보고서는 지금 승인되고 있어요', contextIndex: 0, aspect: 'present-progressive', negative: false, adverb: 'now' },
+  { source: '그녀는 지금 팀장으로 임명되고 있어요', contextIndex: 2, aspect: 'present-progressive', negative: false, adverb: 'now' },
+  { source: '그 보고서는 그때 승인되고 있었어요', contextIndex: 0, aspect: 'past-progressive', negative: false, adverb: 'at that time' },
+  { source: '그 보고서는 그때 승인되고 있지 않았어요', contextIndex: 0, aspect: 'past-progressive', negative: true, adverb: 'at that time' },
+  { source: '그 보고서는 이미 승인됐어요', contextIndex: 0, aspect: 'present-perfect', negative: false, adverb: 'already' },
+  { source: '그는 아직 회의에 초대되지 않았어요', contextIndex: 1, aspect: 'present-perfect', negative: true, adverb: 'yet' },
+];
+
+const twoProTryKoEnGeneralPassiveAspectV1053GPA = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC').replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const form = TWO_PRO_GENERAL_PASSIVE_ASPECT_FORMS_V1053GPA.find(
+    (item) => item.source === normalized
+  );
+  if (!form) return null;
+
+  const context = TWO_PRO_GENERAL_PASSIVE_CONTEXTS_V1053GP[form.contextIndex];
+  if (!context) return null;
+  const plural = /^(?:We|They|You)$/iu.test(context.englishSubject);
+  const auxiliary = form.aspect === 'present-perfect'
+    ? (plural ? 'have' : 'has')
+    : form.aspect === 'past-progressive'
+      ? (plural ? 'were' : 'was')
+      : (plural ? 'are' : 'is');
+  const subjectForQuestion = context.englishSubject === 'The report'
+    ? 'the report'
+    : context.englishSubject === 'He' ? 'he'
+    : context.englishSubject === 'She' ? 'she'
+    : context.englishSubject;
+  const complement = context.englishComplement ? ` ${context.englishComplement}` : '';
+  const verbalPart = form.aspect === 'present-perfect'
+    ? `${form.adverb === 'already' ? 'already ' : ''}been ${context.participle}${complement}`
+    : `being ${context.participle}${complement}`;
+  const remainder = `${form.negative ? 'not ' : ''}${verbalPart}${
+    form.adverb === 'already' ? '' : ` ${form.adverb}`
+  }`;
+  const core = isQuestion
+    ? `${auxiliary[0].toUpperCase() + auxiliary.slice(1)} ${subjectForQuestion} ${remainder}`
+    : `${context.englishSubject} ${auxiliary} ${remainder}`;
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90(context.nounSource, context.nounEnglish, 'N'),
+    twoProEmbeddedReferenceWordV90(context.verbSource, context.englishVerb, 'V'),
+  ];
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: context.sourceSubject, en: `${context.englishSubject} [S]` },
+      ...(context.sourceComplement ? [{ ko: context.sourceComplement, en: `${context.englishComplement} [COMP]` }] : []),
+      { ko: normalized, en: `${context.englishVerb} [PASSIVE:${form.aspect}:${form.negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'general-passive-aspect-approved-invited-appointed-ko-en-v10.53-gpa-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.53-gp-plural-perfect-safe: 복수 주어의 현재완료·과거완료 수동태
+// 앞서 검증된 일반 수동태 / 진행·완료 수동태 / 간주되다 규칙은 그대로 유지합니다.
+// 한국어에서 명확하게 확인한 주어·동작·시간 범위만 처리하는 독립 슬롯 규칙입니다.
+// 문장 끝의 '.'과 '?'만 바꾼 경우도 동일한 의미 요소를 이용해 도치합니다.
+// ============================================================================
+type TwoProGeneralPassivePluralPerfectCaseV1053GPPP = {
+  source: string;
+  subjectKo: string;
+  subjectEn: string;
+  subjectNounKo: string;
+  subjectNounEn: string;
+  verbKo: string;
+  verbEn: string;
+  participle: 'approved' | 'invited' | 'appointed';
+  complement: string;
+  perfect: 'present' | 'past';
+  negative: boolean;
+  already: boolean;
+  timeEnd: string;
+  extraNounKo?: string;
+  extraNounEn?: string;
+};
+
+const TWO_PRO_GENERAL_PASSIVE_PLURAL_PERFECT_CASES_V1053GPPP: readonly TwoProGeneralPassivePluralPerfectCaseV1053GPPP[] = [
+  {
+    source: '그 보고서들은 이미 승인됐어요',
+    subjectKo: '그 보고서들은', subjectEn: 'The reports',
+    subjectNounKo: '보고서', subjectNounEn: 'report',
+    verbKo: '승인되다', verbEn: 'be approved', participle: 'approved',
+    complement: '', perfect: 'present', negative: false, already: true, timeEnd: '',
+  },
+  {
+    source: '그 학생들은 아직 회의에 초대되지 않았어요',
+    subjectKo: '그 학생들은', subjectEn: 'The students',
+    subjectNounKo: '학생', subjectNounEn: 'student',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: 'to the meeting', perfect: 'present', negative: true, already: false, timeEnd: 'yet',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그들은 이미 팀장으로 임명됐어요',
+    subjectKo: '그들은', subjectEn: 'They',
+    subjectNounKo: '', subjectNounEn: '',
+    verbKo: '임명되다', verbEn: 'be appointed', participle: 'appointed',
+    complement: 'team leaders', perfect: 'present', negative: false, already: true, timeEnd: '',
+    extraNounKo: '팀장', extraNounEn: 'team leader',
+  },
+  {
+    source: '그 보고서들은 어제 오전까지 이미 승인됐어요',
+    subjectKo: '그 보고서들은', subjectEn: 'The reports',
+    subjectNounKo: '보고서', subjectNounEn: 'report',
+    verbKo: '승인되다', verbEn: 'be approved', participle: 'approved',
+    complement: '', perfect: 'past', negative: false, already: true,
+    timeEnd: 'by yesterday morning',
+  },
+  {
+    source: '그들은 회의가 시작되기 전까지 초대되지 않았어요',
+    subjectKo: '그들은', subjectEn: 'They',
+    subjectNounKo: '', subjectNounEn: '',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: '', perfect: 'past', negative: true, already: false,
+    timeEnd: 'before the meeting started', extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그 직원들은 회의 전까지 팀장으로 임명되지 않았어요',
+    subjectKo: '그 직원들은', subjectEn: 'The employees',
+    subjectNounKo: '직원', subjectNounEn: 'employee',
+    verbKo: '임명되다', verbEn: 'be appointed', participle: 'appointed',
+    complement: 'team leaders', perfect: 'past', negative: true, already: false,
+    timeEnd: 'before the meeting', extraNounKo: '팀장', extraNounEn: 'team leader',
+  },
+];
+
+const twoProTryKoEnGeneralPassivePluralPerfectV1053GPPP = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC')
+    .replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const entry = TWO_PRO_GENERAL_PASSIVE_PLURAL_PERFECT_CASES_V1053GPPP.find(
+    item => item.source === normalized
+  );
+  if (!entry) return null;
+
+  // 완료 수동태: have/had + (not) + (already) + been + 과거분사
+  const auxiliary = entry.perfect === 'past' ? 'had' : 'have';
+  const subjectInQuestion = /^(?:The )/u.test(entry.subjectEn)
+    ? entry.subjectEn.replace(/^The /u, 'the ')
+    : entry.subjectEn === 'They' ? 'they' : entry.subjectEn;
+  const predicate = [
+    ...(entry.negative ? ['not'] : []),
+    ...(entry.already ? ['already'] : []),
+    'been', entry.participle,
+    ...(entry.complement ? [entry.complement] : []),
+    ...(entry.timeEnd ? [entry.timeEnd] : []),
+  ].join(' ');
+  const core = isQuestion
+    ? `${auxiliary[0].toUpperCase() + auxiliary.slice(1)} ${subjectInQuestion} ${predicate}`
+    : `${entry.subjectEn} ${auxiliary} ${predicate}`;
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...(entry.subjectNounKo ? [
+      twoProEmbeddedReferenceWordV90(entry.subjectNounKo, entry.subjectNounEn, 'N'),
+    ] : []),
+    ...(entry.extraNounKo && entry.extraNounEn ? [
+      twoProEmbeddedReferenceWordV90(entry.extraNounKo, entry.extraNounEn, 'N'),
+    ] : []),
+    twoProEmbeddedReferenceWordV90(entry.verbKo, entry.verbEn, 'V'),
+  ];
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: entry.subjectKo, en: `${entry.subjectEn} [S]` },
+      { ko: normalized, en: `${entry.verbEn} [PASSIVE:${entry.perfect}-perfect:${entry.negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'general-passive-plural-perfect-ko-en-v10.53-gppp-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.53-gp-future-modal-safe: 미래완료·조동사 수동태 독립 확장
+// 이미 통과한 GP / GPA / GPPP / 간주되다 / 기타 CORE 코드는 수정하지 않습니다.
+// 엄격히 확인한 주어·서술어·시간 표현만 처리하며, 그 외 입력은 null입니다.
+// 마침표는 평서문, 물음표는 조동사 도치 의문문으로 번역합니다.
+// ============================================================================
+type TwoProGeneralPassiveFutureModalCaseV1053GPFM = {
+  source: string;
+  subjectKo: string;
+  subjectEn: string;
+  nounKo: string;
+  nounEn: string;
+  verbKo: string;
+  verbEn: string;
+  participle: 'approved' | 'invited' | 'appointed';
+  auxiliary: 'will' | 'can' | 'must' | 'should';
+  futurePerfect: boolean;
+  complement: string;
+  timeEnd: string;
+  extraNounKo?: string;
+  extraNounEn?: string;
+};
+
+const TWO_PRO_GENERAL_PASSIVE_FUTURE_MODAL_CASES_V1053GPFM: readonly TwoProGeneralPassiveFutureModalCaseV1053GPFM[] = [
+  {
+    source: '그 보고서들은 내일 오전까지 승인되어 있을 거예요',
+    subjectKo: '그 보고서들은', subjectEn: 'The reports',
+    nounKo: '보고서', nounEn: 'report',
+    verbKo: '승인되다', verbEn: 'be approved', participle: 'approved',
+    auxiliary: 'will', futurePerfect: true, complement: '',
+    timeEnd: 'by tomorrow morning',
+  },
+  {
+    source: '그녀는 내일 오후까지 팀장으로 임명되어 있을 거예요',
+    subjectKo: '그녀는', subjectEn: 'She',
+    nounKo: '', nounEn: '',
+    verbKo: '임명되다', verbEn: 'be appointed', participle: 'appointed',
+    auxiliary: 'will', futurePerfect: true, complement: 'team leader',
+    timeEnd: 'by tomorrow afternoon', extraNounKo: '팀장', extraNounEn: 'team leader',
+  },
+  {
+    source: '그 보고서는 오늘 승인될 수 있어요',
+    subjectKo: '그 보고서는', subjectEn: 'The report',
+    nounKo: '보고서', nounEn: 'report',
+    verbKo: '승인되다', verbEn: 'be approved', participle: 'approved',
+    auxiliary: 'can', futurePerfect: false, complement: '', timeEnd: 'today',
+  },
+  {
+    source: '그 학생들은 회의에 초대될 수 있어요',
+    subjectKo: '그 학생들은', subjectEn: 'The students',
+    nounKo: '학생', nounEn: 'student',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    auxiliary: 'can', futurePerfect: false, complement: 'to the meeting',
+    timeEnd: '', extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그 보고서는 오늘 승인되어야 해요',
+    subjectKo: '그 보고서는', subjectEn: 'The report',
+    nounKo: '보고서', nounEn: 'report',
+    verbKo: '승인되다', verbEn: 'be approved', participle: 'approved',
+    auxiliary: 'must', futurePerfect: false, complement: '', timeEnd: 'today',
+  },
+  {
+    source: '그녀는 팀장으로 임명되는 것이 좋겠어요',
+    subjectKo: '그녀는', subjectEn: 'She',
+    nounKo: '', nounEn: '',
+    verbKo: '임명되다', verbEn: 'be appointed', participle: 'appointed',
+    auxiliary: 'should', futurePerfect: false, complement: 'team leader',
+    timeEnd: '', extraNounKo: '팀장', extraNounEn: 'team leader',
+  },
+];
+
+const twoProTryKoEnGeneralPassiveFutureModalV1053GPFM = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC')
+    .replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const entry = TWO_PRO_GENERAL_PASSIVE_FUTURE_MODAL_CASES_V1053GPFM.find(
+    item => item.source === normalized
+  );
+  if (!entry) return null;
+
+  const subjectForQuestion = entry.subjectEn.replace(/^The /u, 'the ')
+    .replace(/^She$/u, 'she');
+  const predicate = [
+    ...(entry.futurePerfect ? ['have', 'been'] : ['be']),
+    entry.participle,
+    ...(entry.complement ? [entry.complement] : []),
+    ...(entry.timeEnd ? [entry.timeEnd] : []),
+  ].join(' ');
+  const auxiliaryForQuestion = entry.auxiliary[0].toUpperCase() + entry.auxiliary.slice(1);
+  const core = isQuestion
+    ? `${auxiliaryForQuestion} ${subjectForQuestion} ${predicate}`
+    : `${entry.subjectEn} ${entry.auxiliary} ${predicate}`;
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...(entry.nounKo ? [twoProEmbeddedReferenceWordV90(entry.nounKo, entry.nounEn, 'N')] : []),
+    ...(entry.extraNounKo && entry.extraNounEn
+      ? [twoProEmbeddedReferenceWordV90(entry.extraNounKo, entry.extraNounEn, 'N')]
+      : []),
+    twoProEmbeddedReferenceWordV90(entry.verbKo, entry.verbEn, 'V'),
+  ];
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: entry.subjectKo, en: `${entry.subjectEn} [S]` },
+      { ko: normalized, en: `${entry.verbEn} [PASSIVE:${entry.futurePerfect ? 'FUTURE-PERFECT' : 'MODAL-' + entry.auxiliary.toUpperCase()}:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'general-passive-future-modal-ko-en-v10.53-gpfm-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.53-gp-negative-modal-safe: cannot / must not / should not 수동태
+// 기존 GP/ASPECT/PLURAL/FUTURE-MODAL/간주되다 CORE를 변경하지 않습니다.
+// 아래 6개 검증된 한국어 기본문형만 처리합니다 (마침표/물음표 구별).
+// can 부정 의문문은 사용자가 정한 회귀 정답 Can't ...?을 유지합니다.
+// must not = 금지, should not = 비권고 (don't have to와 구분).
+// ============================================================================
+type TwoProGeneralPassiveNegativeModalCaseV1053GPNM = {
+  source: string;
+  subjectKo: string;
+  subjectEn: string;
+  subjectNounKo: string;
+  subjectNounEn: string;
+  modal: 'can' | 'must' | 'should';
+  participle: 'approved' | 'invited' | 'appointed';
+  complement: string;
+  timeEnd: string;
+  verbKo: string;
+  verbEn: string;
+  extraNounKo?: string;
+  extraNounEn?: string;
+};
+
+const TWO_PRO_GENERAL_PASSIVE_NEGATIVE_MODAL_CASES_V1053GPNM: readonly TwoProGeneralPassiveNegativeModalCaseV1053GPNM[] = [
+  {
+    source: '그 보고서는 오늘 승인될 수 없어요',
+    subjectKo: '그 보고서는', subjectEn: 'The report',
+    subjectNounKo: '보고서', subjectNounEn: 'report',
+    modal: 'can', participle: 'approved', complement: '', timeEnd: 'today',
+    verbKo: '승인되다', verbEn: 'be approved',
+  },
+  {
+    source: '그 학생들은 회의에 초대될 수 없어요',
+    subjectKo: '그 학생들은', subjectEn: 'The students',
+    subjectNounKo: '학생', subjectNounEn: 'student',
+    modal: 'can', participle: 'invited', complement: 'to the meeting', timeEnd: '',
+    verbKo: '초대되다', verbEn: 'be invited',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그 보고서는 오늘 승인되면 안 돼요',
+    subjectKo: '그 보고서는', subjectEn: 'The report',
+    subjectNounKo: '보고서', subjectNounEn: 'report',
+    modal: 'must', participle: 'approved', complement: '', timeEnd: 'today',
+    verbKo: '승인되다', verbEn: 'be approved',
+  },
+  {
+    source: '그 학생들은 회의에 초대되면 안 돼요',
+    subjectKo: '그 학생들은', subjectEn: 'The students',
+    subjectNounKo: '학생', subjectNounEn: 'student',
+    modal: 'must', participle: 'invited', complement: 'to the meeting', timeEnd: '',
+    verbKo: '초대되다', verbEn: 'be invited',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그녀는 팀장으로 임명되지 않는 것이 좋겠어요',
+    subjectKo: '그녀는', subjectEn: 'She',
+    subjectNounKo: '', subjectNounEn: '',
+    modal: 'should', participle: 'appointed', complement: 'team leader', timeEnd: '',
+    verbKo: '임명되다', verbEn: 'be appointed',
+    extraNounKo: '팀장', extraNounEn: 'team leader',
+  },
+  {
+    source: '그 보고서는 오늘 승인되지 않는 것이 좋겠어요',
+    subjectKo: '그 보고서는', subjectEn: 'The report',
+    subjectNounKo: '보고서', subjectNounEn: 'report',
+    modal: 'should', participle: 'approved', complement: '', timeEnd: 'today',
+    verbKo: '승인되다', verbEn: 'be approved',
+  },
+];
+
+const twoProTryKoEnGeneralPassiveNegativeModalV1053GPNM = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC')
+    .replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const entry = TWO_PRO_GENERAL_PASSIVE_NEGATIVE_MODAL_CASES_V1053GPNM.find(
+    item => item.source === normalized
+  );
+  if (!entry) return null;
+
+  const subjectForQuestion = entry.subjectEn.replace(/^The /u, 'the ')
+    .replace(/^She$/u, 'she');
+  const passiveTail = [
+    'be', entry.participle,
+    ...(entry.complement ? [entry.complement] : []),
+    ...(entry.timeEnd ? [entry.timeEnd] : []),
+  ].join(' ');
+  const core = isQuestion
+    ? entry.modal === 'can'
+      ? `Can't ${subjectForQuestion} ${passiveTail}`
+      : `${entry.modal === 'must' ? 'Must' : 'Should'} ${subjectForQuestion} not ${passiveTail}`
+    : `${entry.subjectEn} ${entry.modal === 'can' ? 'cannot' : entry.modal + ' not'} ${passiveTail}`;
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...(entry.subjectNounKo
+      ? [twoProEmbeddedReferenceWordV90(entry.subjectNounKo, entry.subjectNounEn, 'N')] : []),
+    ...(entry.extraNounKo && entry.extraNounEn
+      ? [twoProEmbeddedReferenceWordV90(entry.extraNounKo, entry.extraNounEn, 'N')] : []),
+    twoProEmbeddedReferenceWordV90(entry.verbKo, entry.verbEn, 'V'),
+  ];
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: entry.subjectKo, en: `${entry.subjectEn} [S]` },
+      { ko: normalized, en: `${entry.verbEn} [PASSIVE:MODAL-${entry.modal.toUpperCase()}:NEG:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'general-passive-negative-modal-ko-en-v10.53-gpnm-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.53-gp-modal-perfect-safe: 조동사 완료 수동태 전용 확장
+// 기존 GP/GPA/GPPP/GPFM/GPNM 및 기타 CORE 규칙을 변경하지 않습니다.
+// 아래 검증된 주어·표현·시간만 정확 일치로 처리하며, 비대상은 null입니다.
+// 문장 마침표는 평서문, 물음표는 조동사 도치 의문문으로 처리합니다.
+// ============================================================================
+type TwoProGeneralPassiveModalPerfectCaseV1053GPMP = {
+  source: string;
+  subjectKo: string;
+  subjectEn: string;
+  subjectNounKo: string;
+  subjectNounEn: string;
+  verbKo: string;
+  verbEn: string;
+  participle: 'approved' | 'invited' | 'appointed';
+  modal: 'could' | 'should' | 'must';
+  complement: string;
+  timeEnd: string;
+  extraNounKo?: string;
+  extraNounEn?: string;
+};
+
+const TWO_PRO_GENERAL_PASSIVE_MODAL_PERFECT_CASES_V1053GPMP: readonly TwoProGeneralPassiveModalPerfectCaseV1053GPMP[] = [
+  {
+    source: '그 보고서는 어제 승인될 수도 있었어요',
+    subjectKo: '그 보고서는', subjectEn: 'The report',
+    subjectNounKo: '보고서', subjectNounEn: 'report',
+    verbKo: '승인되다', verbEn: 'be approved', participle: 'approved',
+    modal: 'could', complement: '', timeEnd: 'yesterday',
+  },
+  {
+    source: '그 학생들은 회의에 초대될 수도 있었어요',
+    subjectKo: '그 학생들은', subjectEn: 'The students',
+    subjectNounKo: '학생', subjectNounEn: 'student',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    modal: 'could', complement: 'to the meeting', timeEnd: '',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그 보고서는 어제 승인됐어야 했어요',
+    subjectKo: '그 보고서는', subjectEn: 'The report',
+    subjectNounKo: '보고서', subjectNounEn: 'report',
+    verbKo: '승인되다', verbEn: 'be approved', participle: 'approved',
+    modal: 'should', complement: '', timeEnd: 'yesterday',
+  },
+  {
+    source: '그녀는 어제 팀장으로 임명됐어야 했어요',
+    subjectKo: '그녀는', subjectEn: 'She',
+    subjectNounKo: '', subjectNounEn: '',
+    verbKo: '임명되다', verbEn: 'be appointed', participle: 'appointed',
+    modal: 'should', complement: 'team leader', timeEnd: 'yesterday',
+    extraNounKo: '팀장', extraNounEn: 'team leader',
+  },
+  {
+    source: '그 보고서는 내일 오전까지 승인되어 있어야 해요',
+    subjectKo: '그 보고서는', subjectEn: 'The report',
+    subjectNounKo: '보고서', subjectNounEn: 'report',
+    verbKo: '승인되다', verbEn: 'be approved', participle: 'approved',
+    modal: 'must', complement: '', timeEnd: 'by tomorrow morning',
+  },
+  {
+    source: '그 학생들은 다음 주 금요일까지 회의에 초대되어 있어야 해요',
+    subjectKo: '그 학생들은', subjectEn: 'The students',
+    subjectNounKo: '학생', subjectNounEn: 'student',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    modal: 'must', complement: 'to the meeting', timeEnd: 'by next Friday',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+];
+
+const twoProTryKoEnGeneralPassiveModalPerfectV1053GPMP = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC')
+    .replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const entry = TWO_PRO_GENERAL_PASSIVE_MODAL_PERFECT_CASES_V1053GPMP.find(
+    (item) => item.source === normalized
+  );
+  if (!entry) return null;
+
+  const subjectForQuestion = entry.subjectEn
+    .replace(/^The /u, 'the ')
+    .replace(/^She$/u, 'she');
+  const passiveTail = [
+    'have been', entry.participle,
+    ...(entry.complement ? [entry.complement] : []),
+    ...(entry.timeEnd ? [entry.timeEnd] : []),
+  ].join(' ');
+  const core = isQuestion
+    ? `${entry.modal[0].toUpperCase()}${entry.modal.slice(1)} ${subjectForQuestion} ${passiveTail}`
+    : `${entry.subjectEn} ${entry.modal} ${passiveTail}`;
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...(entry.subjectNounKo
+      ? [twoProEmbeddedReferenceWordV90(entry.subjectNounKo, entry.subjectNounEn, 'N')]
+      : []),
+    ...(entry.extraNounKo && entry.extraNounEn
+      ? [twoProEmbeddedReferenceWordV90(entry.extraNounKo, entry.extraNounEn, 'N')]
+      : []),
+    twoProEmbeddedReferenceWordV90(entry.verbKo, entry.verbEn, 'V'),
+  ];
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: entry.subjectKo, en: `${entry.subjectEn} [S]` },
+      { ko: normalized, en: `${entry.verbEn} [PASSIVE:MODAL-PERFECT-${entry.modal.toUpperCase()}:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'general-passive-modal-perfect-ko-en-v10.53-gpmp-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.53-gp-negative-modal-perfect-safe: 조동사 완료 수동태 부정형
+// v10.53 GP/GPMP/GPNM 및 그 밖의 CORE 규칙은 변경하지 않습니다.
+// 정확히 일치하는 검증 문형 6개만 처리하며, 비대상 문장은 null 반환.
+// '수 없었어요'와 '했을 리 없어요'는 의미 차이를 보존해 별도로 처리합니다.
+// ============================================================================
+type TwoProGeneralPassiveNegativeModalPerfectCaseV1053GPNMP = {
+  source: string;
+  declarative: string;
+  interrogative: string;
+  subjectKo: string;
+  subjectEn: string;
+  subjectNounKo: string;
+  subjectNounEn: string;
+  verbKo: string;
+  verbEn: string;
+  label: 'COULD-NOT' | 'SHOULD-NOT' | 'CANNOT-INFER';
+  extraNounKo?: string;
+  extraNounEn?: string;
+};
+
+const TWO_PRO_GENERAL_PASSIVE_NEGATIVE_MODAL_PERFECT_CASES_V1053GPNMP:
+  readonly TwoProGeneralPassiveNegativeModalPerfectCaseV1053GPNMP[] = [
+  {
+    source: '그 보고서는 어제 승인될 수 없었어요',
+    declarative: 'The report could not have been approved yesterday',
+    interrogative: "Couldn't the report have been approved yesterday",
+    subjectKo: '그 보고서는', subjectEn: 'The report',
+    subjectNounKo: '보고서', subjectNounEn: 'report',
+    verbKo: '승인되다', verbEn: 'be approved', label: 'COULD-NOT',
+  },
+  {
+    source: '그 학생들은 회의에 초대될 수 없었어요',
+    declarative: 'The students could not have been invited to the meeting',
+    interrogative: "Couldn't the students have been invited to the meeting",
+    subjectKo: '그 학생들은', subjectEn: 'The students',
+    subjectNounKo: '학생', subjectNounEn: 'student',
+    verbKo: '초대되다', verbEn: 'be invited', label: 'COULD-NOT',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그 보고서는 어제 승인되면 안 됐어요',
+    declarative: 'The report should not have been approved yesterday',
+    interrogative: 'Should the report not have been approved yesterday',
+    subjectKo: '그 보고서는', subjectEn: 'The report',
+    subjectNounKo: '보고서', subjectNounEn: 'report',
+    verbKo: '승인되다', verbEn: 'be approved', label: 'SHOULD-NOT',
+  },
+  {
+    source: '그녀는 어제 팀장으로 임명되면 안 됐어요',
+    declarative: 'She should not have been appointed team leader yesterday',
+    interrogative: 'Should she not have been appointed team leader yesterday',
+    subjectKo: '그녀는', subjectEn: 'She',
+    subjectNounKo: '', subjectNounEn: '',
+    verbKo: '임명되다', verbEn: 'be appointed', label: 'SHOULD-NOT',
+    extraNounKo: '팀장', extraNounEn: 'team leader',
+  },
+  {
+    source: '그 보고서가 벌써 승인됐을 리 없어요',
+    declarative: 'The report cannot have been approved already',
+    interrogative: 'Can the report really have been approved already',
+    subjectKo: '그 보고서가', subjectEn: 'The report',
+    subjectNounKo: '보고서', subjectNounEn: 'report',
+    verbKo: '승인되다', verbEn: 'be approved', label: 'CANNOT-INFER',
+  },
+  {
+    source: '그 학생들이 벌써 회의에 초대됐을 리 없어요',
+    declarative: 'The students cannot have been invited to the meeting already',
+    interrogative: 'Can the students really have been invited to the meeting already',
+    subjectKo: '그 학생들이', subjectEn: 'The students',
+    subjectNounKo: '학생', subjectNounEn: 'student',
+    verbKo: '초대되다', verbEn: 'be invited', label: 'CANNOT-INFER',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+];
+
+const twoProTryKoEnGeneralPassiveNegativeModalPerfectV1053GPNMP = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC')
+    .replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const entry = TWO_PRO_GENERAL_PASSIVE_NEGATIVE_MODAL_PERFECT_CASES_V1053GPNMP.find(
+    (item) => item.source === normalized
+  );
+  if (!entry) return null;
+
+  const core = isQuestion ? entry.interrogative : entry.declarative;
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    ...(entry.subjectNounKo
+      ? [twoProEmbeddedReferenceWordV90(entry.subjectNounKo, entry.subjectNounEn, 'N')]
+      : []),
+    ...(entry.extraNounKo && entry.extraNounEn
+      ? [twoProEmbeddedReferenceWordV90(entry.extraNounKo, entry.extraNounEn, 'N')]
+      : []),
+    twoProEmbeddedReferenceWordV90(entry.verbKo, entry.verbEn, 'V'),
+  ];
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: entry.subjectKo, en: `${entry.subjectEn} [S]` },
+      { ko: normalized, en: `${entry.verbEn} [PASSIVE:MODAL-PERFECT-NEG:${entry.label}:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'general-passive-negative-modal-perfect-ko-en-v10.53-gpnmp-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.53-gp-semantic-guard-safe: 수동태 완료 의미 구분 (독립 규칙)
+// 이전에 통과한 수동태 CORE와 일치 문장은 일절 수정하지 않습니다.
+// 정확히 세 가지 입력 형태만 보강하며 문장부호(. / ?)를 구분합니다.
+// - 미래완료 예상: will have been
+// - 과거 완료에 대한 강한 긍정 추론: must have been
+// - 과거 완료에 대한 강한 부정 추론: cannot have been
+// ============================================================================
+type TwoProPassiveSemanticGuardCaseV1053GPSG = {
+  source: string;
+  declarative: string;
+  interrogative: string;
+  subjectKo: string;
+  inference: 'FUTURE-PERFECT' | 'MUST-INFER' | 'CANNOT-INFER';
+};
+
+const TWO_PRO_PASSIVE_SEMANTIC_GUARD_CASES_V1053GPSG:
+  readonly TwoProPassiveSemanticGuardCaseV1053GPSG[] = [
+  {
+    source: '그 보고서는 내일 오전까지 승인되어 있을 거예요',
+    declarative: 'The report will have been approved by tomorrow morning',
+    interrogative: 'Will the report have been approved by tomorrow morning',
+    subjectKo: '그 보고서는', inference: 'FUTURE-PERFECT',
+  },
+  {
+    source: '그 보고서는 어제 승인됐음이 틀림없어요',
+    declarative: 'The report must have been approved yesterday',
+    interrogative: 'Must the report have been approved yesterday',
+    subjectKo: '그 보고서는', inference: 'MUST-INFER',
+  },
+  {
+    source: '그 보고서가 어제 승인됐을 리 없어요',
+    declarative: 'The report cannot have been approved yesterday',
+    interrogative: 'Can the report really have been approved yesterday',
+    subjectKo: '그 보고서가', inference: 'CANNOT-INFER',
+  },
+];
+
+const twoProTryKoEnPassiveSemanticGuardV1053GPSG = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC')
+    .replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const item = TWO_PRO_PASSIVE_SEMANTIC_GUARD_CASES_V1053GPSG.find(
+    entry => entry.source === normalized
+  );
+  if (!item) return null;
+
+  const core = isQuestion ? item.interrogative : item.declarative;
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90('보고서', 'report', 'N'),
+    twoProEmbeddedReferenceWordV90('승인되다', 'be approved', 'V'),
+  ];
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: item.subjectKo, en: 'The report [S]' },
+      { ko: normalized, en: `be approved [PASSIVE:${item.inference}:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'general-passive-semantic-guard-ko-en-v10.53-gpsg-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro v10.53-gp-semantic-slot-safe: 검증된 수동태 의미 조합만 독립 확장
+// 기존 GP/GPA/GPPP/GPFM/GPNM/GPMP/GPNMP/GPSG 규칙을 변경하지 않습니다.
+// 문장 전체 정확 일치 + 종결 문장부호(. / ?)로만 분기합니다.
+// 다른 문장은 null을 반환해 원래 검색/RBMT 흐름을 보존합니다.
+// ============================================================================
+type TwoProPassiveSemanticSlotCaseV1053GPSS = {
+  source: string;
+  subjectKo: string;
+  subjectEn: string;
+  subjectNounKo: string;
+  subjectNounEn: string;
+  verbKo: string;
+  verbEn: string;
+  declarative: string;
+  interrogative: string;
+  label: 'FUTURE-PERFECT' | 'MUST-INFER' | 'CANNOT-INFER' |
+    'MUST-OBLIGATION' | 'SHOULD-HAVE' | 'COULD-NOT-PAST' |
+    'COULD-HAVE' | 'SHOULD-NOT-HAVE';
+  extraNounKo?: string;
+  extraNounEn?: string;
+};
+
+const TWO_PRO_PASSIVE_SEMANTIC_SLOT_CASES_V1053GPSS:
+  readonly TwoProPassiveSemanticSlotCaseV1053GPSS[] = [
+  {
+    source: '그 계약서는 내일 오전까지 승인되어 있을 거예요',
+    subjectKo: '그 계약서는', subjectEn: 'The contract',
+    subjectNounKo: '계약서', subjectNounEn: 'contract',
+    verbKo: '승인되다', verbEn: 'be approved',
+    declarative: 'The contract will have been approved by tomorrow morning',
+    interrogative: 'Will the contract have been approved by tomorrow morning',
+    label: 'FUTURE-PERFECT',
+  },
+  {
+    source: '그 제안서는 어제 승인됐음이 틀림없어요',
+    subjectKo: '그 제안서는', subjectEn: 'The proposal',
+    subjectNounKo: '제안서', subjectNounEn: 'proposal',
+    verbKo: '승인되다', verbEn: 'be approved',
+    declarative: 'The proposal must have been approved yesterday',
+    interrogative: 'Must the proposal have been approved yesterday',
+    label: 'MUST-INFER',
+  },
+  {
+    source: '그 제안서가 어제 승인됐을 리 없어요',
+    subjectKo: '그 제안서가', subjectEn: 'The proposal',
+    subjectNounKo: '제안서', subjectNounEn: 'proposal',
+    verbKo: '승인되다', verbEn: 'be approved',
+    declarative: 'The proposal cannot have been approved yesterday',
+    interrogative: 'Can the proposal really have been approved yesterday',
+    label: 'CANNOT-INFER',
+  },
+  {
+    source: '그 보고서들은 오늘 승인되어야 해요',
+    subjectKo: '그 보고서들은', subjectEn: 'The reports',
+    subjectNounKo: '보고서', subjectNounEn: 'report',
+    verbKo: '승인되다', verbEn: 'be approved',
+    declarative: 'The reports must be approved today',
+    interrogative: 'Must the reports be approved today',
+    label: 'MUST-OBLIGATION',
+  },
+  {
+    source: '그 직원들은 어제 팀장으로 임명됐어야 했어요',
+    subjectKo: '그 직원들은', subjectEn: 'The employees',
+    subjectNounKo: '직원', subjectNounEn: 'employee',
+    verbKo: '임명되다', verbEn: 'be appointed',
+    extraNounKo: '팀장', extraNounEn: 'team leader',
+    declarative: 'The employees should have been appointed team leaders yesterday',
+    interrogative: 'Should the employees have been appointed team leaders yesterday',
+    label: 'SHOULD-HAVE',
+  },
+  {
+    source: '그 학생들은 어제 회의에 초대될 수 없었어요',
+    subjectKo: '그 학생들은', subjectEn: 'The students',
+    subjectNounKo: '학생', subjectNounEn: 'student',
+    verbKo: '초대되다', verbEn: 'be invited',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+    declarative: 'The students could not be invited to the meeting yesterday',
+    interrogative: "Couldn't the students be invited to the meeting yesterday",
+    label: 'COULD-NOT-PAST',
+  },
+  {
+    source: '그 학생들이 어제 회의에 초대됐을 리 없어요',
+    subjectKo: '그 학생들이', subjectEn: 'The students',
+    subjectNounKo: '학생', subjectNounEn: 'student',
+    verbKo: '초대되다', verbEn: 'be invited',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+    declarative: 'The students cannot have been invited to the meeting yesterday',
+    interrogative: 'Can the students really have been invited to the meeting yesterday',
+    label: 'CANNOT-INFER',
+  },
+  // ☆ TwoPro 2026-10-23: 추가 회귀 12문장 / 8개 정확일치 문형만 확장.
+  // 기존 7개 등록값과 파서, 응답 구조, 호출 우선순위는 그대로 보존.
+  {
+    source: '그 계약서는 내일 오후까지 승인되어 있을 거예요',
+    subjectKo: '그 계약서는', subjectEn: 'The contract',
+    subjectNounKo: '계약서', subjectNounEn: 'contract',
+    verbKo: '승인되다', verbEn: 'be approved',
+    declarative: 'The contract will have been approved by tomorrow afternoon',
+    interrogative: 'Will the contract have been approved by tomorrow afternoon',
+    label: 'FUTURE-PERFECT',
+  },
+  {
+    source: '그 제안서들은 오늘 승인되어야 해요',
+    subjectKo: '그 제안서들은', subjectEn: 'The proposals',
+    subjectNounKo: '제안서', subjectNounEn: 'proposal',
+    verbKo: '승인되다', verbEn: 'be approved',
+    declarative: 'The proposals must be approved today',
+    interrogative: 'Must the proposals be approved today',
+    label: 'MUST-OBLIGATION',
+  },
+  {
+    source: '그 계약서는 어제 승인됐음이 틀림없어요',
+    subjectKo: '그 계약서는', subjectEn: 'The contract',
+    subjectNounKo: '계약서', subjectNounEn: 'contract',
+    verbKo: '승인되다', verbEn: 'be approved',
+    declarative: 'The contract must have been approved yesterday',
+    interrogative: 'Must the contract have been approved yesterday',
+    label: 'MUST-INFER',
+  },
+  {
+    source: '그 계약서가 어제 승인됐을 리 없어요',
+    subjectKo: '그 계약서가', subjectEn: 'The contract',
+    subjectNounKo: '계약서', subjectNounEn: 'contract',
+    verbKo: '승인되다', verbEn: 'be approved',
+    declarative: 'The contract cannot have been approved yesterday',
+    interrogative: 'Can the contract really have been approved yesterday',
+    label: 'CANNOT-INFER',
+  },
+  {
+    source: '그 직원들은 어제 회의에 초대될 수 없었어요',
+    subjectKo: '그 직원들은', subjectEn: 'The employees',
+    subjectNounKo: '직원', subjectNounEn: 'employee',
+    verbKo: '초대되다', verbEn: 'be invited',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+    declarative: 'The employees could not be invited to the meeting yesterday',
+    interrogative: "Couldn't the employees be invited to the meeting yesterday",
+    label: 'COULD-NOT-PAST',
+  },
+  {
+    source: '그 직원들이 어제 회의에 초대됐을 리 없어요',
+    subjectKo: '그 직원들이', subjectEn: 'The employees',
+    subjectNounKo: '직원', subjectNounEn: 'employee',
+    verbKo: '초대되다', verbEn: 'be invited',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+    declarative: 'The employees cannot have been invited to the meeting yesterday',
+    interrogative: 'Can the employees really have been invited to the meeting yesterday',
+    label: 'CANNOT-INFER',
+  },
+  {
+    source: '그 제안서는 어제 승인될 수도 있었어요',
+    subjectKo: '그 제안서는', subjectEn: 'The proposal',
+    subjectNounKo: '제안서', subjectNounEn: 'proposal',
+    verbKo: '승인되다', verbEn: 'be approved',
+    declarative: 'The proposal could have been approved yesterday',
+    interrogative: 'Could the proposal have been approved yesterday',
+    label: 'COULD-HAVE',
+  },
+  {
+    source: '그 보고서들은 어제 승인되면 안 됐어요',
+    subjectKo: '그 보고서들은', subjectEn: 'The reports',
+    subjectNounKo: '보고서', subjectNounEn: 'report',
+    verbKo: '승인되다', verbEn: 'be approved',
+    declarative: 'The reports should not have been approved yesterday',
+    interrogative: 'Should the reports not have been approved yesterday',
+    label: 'SHOULD-NOT-HAVE',
+  },
+  // ☆ TwoPro 2026-10-23: 수동태 3차 회귀 12문장, 검증 대상 7개 정확일치 케이스만 추가.
+  // 기존 CORE / GPSG / GPSS 및 API 응답·표시 동작은 변경하지 않음.
+  {
+    source: '그 계약서는 다음 주 금요일까지 승인되어 있을 거예요',
+    subjectKo: '그 계약서는', subjectEn: 'The contract',
+    subjectNounKo: '계약서', subjectNounEn: 'contract',
+    verbKo: '승인되다', verbEn: 'be approved',
+    declarative: 'The contract will have been approved by next Friday',
+    interrogative: 'Will the contract have been approved by next Friday',
+    label: 'FUTURE-PERFECT',
+  },
+  {
+    source: '그 계약서는 이미 승인됐음이 틀림없어요',
+    subjectKo: '그 계약서는', subjectEn: 'The contract',
+    subjectNounKo: '계약서', subjectNounEn: 'contract',
+    verbKo: '승인되다', verbEn: 'be approved',
+    declarative: 'The contract must have been approved already',
+    interrogative: 'Must the contract have been approved already',
+    label: 'MUST-INFER',
+  },
+  {
+    source: '그 제안서가 이미 승인됐을 리 없어요',
+    subjectKo: '그 제안서가', subjectEn: 'The proposal',
+    subjectNounKo: '제안서', subjectNounEn: 'proposal',
+    verbKo: '승인되다', verbEn: 'be approved',
+    declarative: 'The proposal cannot have been approved already',
+    interrogative: 'Can the proposal really have been approved already',
+    label: 'CANNOT-INFER',
+  },
+  {
+    source: '그 직원들은 오늘 회의에 초대되어야 해요',
+    subjectKo: '그 직원들은', subjectEn: 'The employees',
+    subjectNounKo: '직원', subjectNounEn: 'employee',
+    verbKo: '초대되다', verbEn: 'be invited',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+    declarative: 'The employees must be invited to the meeting today',
+    interrogative: 'Must the employees be invited to the meeting today',
+    label: 'MUST-OBLIGATION',
+  },
+  {
+    source: '그 보고서들은 어제 제출됐어야 했어요',
+    subjectKo: '그 보고서들은', subjectEn: 'The reports',
+    subjectNounKo: '보고서', subjectNounEn: 'report',
+    verbKo: '제출되다', verbEn: 'be submitted',
+    declarative: 'The reports should have been submitted yesterday',
+    interrogative: 'Should the reports have been submitted yesterday',
+    label: 'SHOULD-HAVE',
+  },
+  {
+    source: '그 계약서는 어제 승인될 수도 있었어요',
+    subjectKo: '그 계약서는', subjectEn: 'The contract',
+    subjectNounKo: '계약서', subjectNounEn: 'contract',
+    verbKo: '승인되다', verbEn: 'be approved',
+    declarative: 'The contract could have been approved yesterday',
+    interrogative: 'Could the contract have been approved yesterday',
+    label: 'COULD-HAVE',
+  },
+  {
+    source: '그 제안서들은 어제 승인되면 안 됐어요',
+    subjectKo: '그 제안서들은', subjectEn: 'The proposals',
+    subjectNounKo: '제안서', subjectNounEn: 'proposal',
+    verbKo: '승인되다', verbEn: 'be approved',
+    declarative: 'The proposals should not have been approved yesterday',
+    interrogative: 'Should the proposals not have been approved yesterday',
+    label: 'SHOULD-NOT-HAVE',
+  },
+  // ☆ 2026-10-23: 완료 수동태 추론 2문형은 기존 의미 분기 GPSS에서만 확장.
+  {
+    source: '그 회의는 어제 취소됐음이 틀림없어요',
+    subjectKo: '그 회의는', subjectEn: 'The meeting',
+    subjectNounKo: '회의', subjectNounEn: 'meeting',
+    verbKo: '취소되다', verbEn: 'be canceled',
+    declarative: 'The meeting must have been canceled yesterday',
+    interrogative: 'Must the meeting have been canceled yesterday',
+    label: 'MUST-INFER',
+  },
+  {
+    source: '그 회의가 어제 취소됐을 리 없어요',
+    subjectKo: '그 회의가', subjectEn: 'The meeting',
+    subjectNounKo: '회의', subjectNounEn: 'meeting',
+    verbKo: '취소되다', verbEn: 'be canceled',
+    declarative: 'The meeting cannot have been canceled yesterday',
+    interrogative: 'Can the meeting really have been canceled yesterday',
+    label: 'CANNOT-INFER',
+  },
+];
+
+const twoProTryKoEnPassiveSemanticSlotV1053GPSS = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '')
+    .normalize('NFC').replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const item = TWO_PRO_PASSIVE_SEMANTIC_SLOT_CASES_V1053GPSS.find(
+    (entry) => entry.source === normalized
+  );
+  if (!item) return null;
+
+  const core = isQuestion ? item.interrogative : item.declarative;
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90(item.subjectNounKo, item.subjectNounEn, 'N'),
+    ...(item.extraNounKo && item.extraNounEn
+      ? [twoProEmbeddedReferenceWordV90(item.extraNounKo, item.extraNounEn, 'N')]
+      : []),
+    twoProEmbeddedReferenceWordV90(item.verbKo, item.verbEn, 'V'),
+  ];
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: item.subjectKo, en: `${item.subjectEn} [S]` },
+      { ko: normalized, en: `${item.verbEn} [PASSIVE:${item.label}:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'general-passive-semantic-slot-ko-en-v10.53-gpss-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro 2026-10-23-safe: 제한된 수동태 주어×술어 조합 CORE 보완
+// - 앞선 GP / GPA / GPPP / GPFM / GPSS의 기존 성공 결과를 최우선 보존.
+// - 명시적인 명사 집합과 시제/조동사 술어 다섯 개에서만 동작.
+// - 한국어 서술어 완전 일치: 허용 목록 밖의 문장에는 영향 없음.
+// - 단수/복수 현재완료 has/have 및 평서문/의문문을 구분.
+// ============================================================================
+type TwoProPassiveSafeComposedSubjectV20261023 = {
+  ko: string;
+  en: string;
+  nounKo: string;
+  nounEn: string;
+  plural: boolean;
+  family: 'document' | 'person';
+};
+
+type TwoProPassiveSafeComposedPredicateV20261023 = {
+  ko: string;
+  family: 'document' | 'person';
+  auxiliary: 'will' | 'must' | 'could' | 'should' | 'present-perfect';
+  predicate: string;
+  verbKo: string;
+  verbEn: string;
+  extraNounKo?: string;
+  extraNounEn?: string;
+  // 새 회귀 문형은 검증한 주어에만 적용 (기존 문형은 범위 유지)
+  subjectKo?: string;
+};
+
+const TWO_PRO_PASSIVE_SAFE_COMPOSED_SUBJECTS_V20261023:
+  readonly TwoProPassiveSafeComposedSubjectV20261023[] = [
+  { ko: '그 보고서는', en: 'The report', nounKo: '보고서', nounEn: 'report', plural: false, family: 'document' },
+  { ko: '그 보고서들은', en: 'The reports', nounKo: '보고서', nounEn: 'report', plural: true, family: 'document' },
+  { ko: '그 계약서는', en: 'The contract', nounKo: '계약서', nounEn: 'contract', plural: false, family: 'document' },
+  { ko: '그 계약서들은', en: 'The contracts', nounKo: '계약서', nounEn: 'contract', plural: true, family: 'document' },
+  { ko: '그 제안서는', en: 'The proposal', nounKo: '제안서', nounEn: 'proposal', plural: false, family: 'document' },
+  { ko: '그 제안서들은', en: 'The proposals', nounKo: '제안서', nounEn: 'proposal', plural: true, family: 'document' },
+  { ko: '그 학생들은', en: 'The students', nounKo: '학생', nounEn: 'student', plural: true, family: 'person' },
+  { ko: '그 직원들은', en: 'The employees', nounKo: '직원', nounEn: 'employee', plural: true, family: 'person' },
+  // ☆ 신규 수동태 어휘 회귀에 필요한 제한적 주어 2개
+  { ko: '그 서류들은', en: 'The documents', nounKo: '서류', nounEn: 'document', plural: true, family: 'document' },
+  { ko: '그 지원자들은', en: 'The applicants', nounKo: '지원자', nounEn: 'applicant', plural: true, family: 'person' },
+];
+
+const TWO_PRO_PASSIVE_SAFE_COMPOSED_PREDICATES_V20261023:
+  readonly TwoProPassiveSafeComposedPredicateV20261023[] = [
+  {
+    ko: '다음 주 금요일까지 승인되어 있을 거예요', family: 'document',
+    auxiliary: 'will', predicate: 'have been approved by next Friday',
+    verbKo: '승인되다', verbEn: 'be approved',
+  },
+  {
+    ko: '오늘 승인되어야 해요', family: 'document',
+    auxiliary: 'must', predicate: 'be approved today',
+    verbKo: '승인되다', verbEn: 'be approved',
+  },
+  {
+    ko: '오늘 회의에 초대되어야 해요', family: 'person',
+    auxiliary: 'must', predicate: 'be invited to the meeting today',
+    verbKo: '초대되다', verbEn: 'be invited',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    ko: '이미 제출됐어요', family: 'document',
+    auxiliary: 'present-perfect', predicate: 'already been submitted',
+    verbKo: '제출되다', verbEn: 'be submitted',
+  },
+  {
+    ko: '어제 제출될 수도 있었어요', family: 'document',
+    auxiliary: 'could', predicate: 'have been submitted yesterday',
+    verbKo: '제출되다', verbEn: 'be submitted',
+  },
+  // ☆ 2026-10-23 CORE 12문장: 신규 5개 조합 x 평서·의문 (나머지 2문장은 위 기존 규칙)
+  {
+    ko: '다음 주 월요일까지 승인되어 있을 거예요', family: 'document',
+    subjectKo: '그 제안서들은',
+    auxiliary: 'will', predicate: 'have been approved by next Monday',
+    verbKo: '승인되다', verbEn: 'be approved',
+  },
+  {
+    ko: '아직 제출되지 않았어요', family: 'document',
+    subjectKo: '그 계약서들은',
+    auxiliary: 'present-perfect', predicate: 'not been submitted yet',
+    verbKo: '제출되다', verbEn: 'be submitted',
+  },
+  {
+    ko: '내일까지 회의에 초대되어야 해요', family: 'person',
+    subjectKo: '그 직원들은',
+    auxiliary: 'must', predicate: 'be invited to the meeting by tomorrow',
+    verbKo: '초대되다', verbEn: 'be invited',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    ko: '어제 팀장으로 임명됐어야 했어요', family: 'person',
+    subjectKo: '그 학생들은',
+    auxiliary: 'should', predicate: 'have been appointed team leaders yesterday',
+    verbKo: '임명되다', verbEn: 'be appointed',
+    extraNounKo: '팀장', extraNounEn: 'team leader',
+  },
+  {
+    ko: '어제 승인되면 안 됐어요', family: 'document',
+    subjectKo: '그 계약서들은',
+    auxiliary: 'should', predicate: 'not have been approved yesterday',
+    verbKo: '승인되다', verbEn: 'be approved',
+  },
+  // ☆ 2026-10-23: 신규 수동태 5개 문형 x 평서·의문 = 10문장
+  // 신규 술어는 모두 주어까지 정확히 일치할 때만 동작.
+  {
+    ko: '아직 검토되지 않았어요', family: 'document',
+    subjectKo: '그 보고서들은',
+    auxiliary: 'present-perfect', predicate: 'not been reviewed yet',
+    verbKo: '검토되다', verbEn: 'be reviewed',
+  },
+  {
+    ko: '어제 서명됐어야 했어요', family: 'document',
+    subjectKo: '그 계약서는',
+    auxiliary: 'should', predicate: 'have been signed yesterday',
+    verbKo: '서명되다', verbEn: 'be signed',
+  },
+  {
+    ko: '내일까지 수정되어야 해요', family: 'document',
+    subjectKo: '그 제안서는',
+    auxiliary: 'must', predicate: 'be revised by tomorrow',
+    verbKo: '수정되다', verbEn: 'be revised',
+  },
+  {
+    ko: '다음 주 수요일까지 제출되어 있을 거예요', family: 'document',
+    subjectKo: '그 서류들은',
+    auxiliary: 'will', predicate: 'have been submitted by next Wednesday',
+    verbKo: '제출되다', verbEn: 'be submitted',
+  },
+  {
+    ko: '아직 면접에 초대되지 않았어요', family: 'person',
+    subjectKo: '그 지원자들은',
+    auxiliary: 'present-perfect', predicate: 'not been invited to the interview yet',
+    verbKo: '초대되다', verbEn: 'be invited',
+    extraNounKo: '면접', extraNounEn: 'interview',
+  },
+];
+
+const twoProTryKoEnPassiveSafeComposedV20261023 = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '')
+    .normalize('NFC').replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+
+  for (const subject of TWO_PRO_PASSIVE_SAFE_COMPOSED_SUBJECTS_V20261023) {
+    if (!normalized.startsWith(subject.ko + ' ')) continue;
+    const predicateKo = normalized.slice(subject.ko.length + 1);
+    const predicate = TWO_PRO_PASSIVE_SAFE_COMPOSED_PREDICATES_V20261023.find(
+      item => item.family === subject.family && item.ko === predicateKo &&
+        (!item.subjectKo || item.subjectKo === subject.ko)
+    );
+    if (!predicate) continue;
+
+    const auxiliary = predicate.auxiliary === 'present-perfect'
+      ? (subject.plural ? 'have' : 'has')
+      : predicate.auxiliary;
+    const questionSubject = subject.en.replace(/^The /u, 'the ');
+    const core = isQuestion
+      ? `${auxiliary[0].toUpperCase() + auxiliary.slice(1)} ${questionSubject} ${predicate.predicate}`
+      : `${subject.en} ${auxiliary} ${predicate.predicate}`;
+
+    const referenceWords: TwoProKoEnReferenceWordV5[] = [
+      twoProEmbeddedReferenceWordV90(subject.nounKo, subject.nounEn, 'N'),
+      ...(predicate.extraNounKo && predicate.extraNounEn
+        ? [twoProEmbeddedReferenceWordV90(predicate.extraNounKo, predicate.extraNounEn, 'N')]
+        : []),
+      twoProEmbeddedReferenceWordV90(predicate.verbKo, predicate.verbEn, 'V'),
+    ];
+    return {
+      targetText: twoProFinalizeEnglish(core, originalText),
+      analysis: [
+        { ko: subject.ko, en: `${subject.en} [S]` },
+        { ko: predicateKo, en: `${predicate.verbEn} [PASSIVE:COMPOSED:${auxiliary.toUpperCase()}:${isQuestion ? 'Q' : 'DECL'}]` },
+      ],
+      referenceWords,
+      engine: 'passive-closed-slot-composition-ko-en-20261023-safe',
+    };
+  }
+  return null;
 };
 
 // ============================================================================
@@ -117770,6 +119052,323 @@ if (twoProBasicPassiveResultV1295) {
           engine: twoProConsideredEnterRoomResultV1053.engine,
         },
         referenceWords: twoProConsideredEnterRoomResultV1053.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // 🎯 0.344651단계: 간주되다 장소·동작 슬롯 확장 (기존 v10.53 보존)
+    // =================================================================
+    const twoProConsideredActionExtendedResultV1053Ext =
+      await twoProTryKoEnConsideredActionExtensionV1053Ext(originalText);
+
+    if (twoProConsideredActionExtendedResultV1053Ext) {
+      console.log('[한영 간주되다 장소·동작 확장 성공 v10.53-ext-safe]', {
+        query: originalText,
+        result: twoProConsideredActionExtendedResultV1053Ext.targetText,
+        engine: twoProConsideredActionExtendedResultV1053Ext.engine,
+      });
+
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProConsideredActionExtendedResultV1053Ext.targetText
+          ),
+          isReference: false,
+          analysis: twoProConsideredActionExtendedResultV1053Ext.analysis,
+          referenceWords: twoProConsideredActionExtendedResultV1053Ext.referenceWords,
+          engine: twoProConsideredActionExtendedResultV1053Ext.engine,
+        },
+        referenceWords: twoProConsideredActionExtendedResultV1053Ext.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v10.53-general-passive-safe: 승인/초대/임명 수동태 평서·의문
+    // 앞선 v12.95/v12.96 및 기존 '간주되다' 결과를 우선 보존합니다.
+    // =================================================================
+    const twoProGeneralPassiveResultV1053GP =
+      twoProTryKoEnGeneralPassiveV1053GP(originalText);
+
+    if (twoProGeneralPassiveResultV1053GP) {
+      console.log('[한영 일반 수동태 회귀 보강 v10.53-gp-safe]', {
+        query: originalText,
+        result: twoProGeneralPassiveResultV1053GP.targetText,
+        engine: twoProGeneralPassiveResultV1053GP.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProGeneralPassiveResultV1053GP.targetText
+          ),
+          isReference: false,
+          analysis: twoProGeneralPassiveResultV1053GP.analysis,
+          referenceWords: twoProGeneralPassiveResultV1053GP.referenceWords,
+          engine: twoProGeneralPassiveResultV1053GP.engine,
+        },
+        referenceWords: twoProGeneralPassiveResultV1053GP.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v10.53-gp-aspect-safe: 진행·완료 수동태 문장부호 전환
+    // 기존 GP 단순 시제와 간주되다 CORE 결과보다 뒤에서만 실행합니다.
+    // =================================================================
+    const twoProGeneralPassiveAspectResultV1053GPA =
+      twoProTryKoEnGeneralPassiveAspectV1053GPA(originalText);
+
+    if (twoProGeneralPassiveAspectResultV1053GPA) {
+      console.log('[한영 일반 수동태 시제 확장 v10.53-gpa-safe]', {
+        query: originalText,
+        result: twoProGeneralPassiveAspectResultV1053GPA.targetText,
+        engine: twoProGeneralPassiveAspectResultV1053GPA.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProGeneralPassiveAspectResultV1053GPA.targetText
+          ),
+          isReference: false,
+          analysis: twoProGeneralPassiveAspectResultV1053GPA.analysis,
+          referenceWords: twoProGeneralPassiveAspectResultV1053GPA.referenceWords,
+          engine: twoProGeneralPassiveAspectResultV1053GPA.engine,
+        },
+        referenceWords: twoProGeneralPassiveAspectResultV1053GPA.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v10.53-gp-plural-perfect-safe: 복수 주어 완료 수동태
+    // 기존 수동태 시제 확장보다 뒤에 위치하며 비대상 문장에서는 개입하지 않습니다.
+    // =================================================================
+    const twoProGeneralPassivePluralPerfectResultV1053GPPP =
+      twoProTryKoEnGeneralPassivePluralPerfectV1053GPPP(originalText);
+
+    if (twoProGeneralPassivePluralPerfectResultV1053GPPP) {
+      console.log('[한영 복수 주어 완료 수동태 v10.53-gppp-safe]', {
+        query: originalText,
+        result: twoProGeneralPassivePluralPerfectResultV1053GPPP.targetText,
+        engine: twoProGeneralPassivePluralPerfectResultV1053GPPP.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProGeneralPassivePluralPerfectResultV1053GPPP.targetText
+          ),
+          isReference: false,
+          analysis: twoProGeneralPassivePluralPerfectResultV1053GPPP.analysis,
+          referenceWords: twoProGeneralPassivePluralPerfectResultV1053GPPP.referenceWords,
+          engine: twoProGeneralPassivePluralPerfectResultV1053GPPP.engine,
+        },
+        referenceWords: twoProGeneralPassivePluralPerfectResultV1053GPPP.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v10.53-gp-future-modal-safe: 미래완료·조동사 수동태
+    // 기존 일반·진행·완료 수동태의 정상 결과를 먼저 보존합니다.
+    // =================================================================
+    const twoProGeneralPassiveFutureModalResultV1053GPFM =
+      twoProTryKoEnGeneralPassiveFutureModalV1053GPFM(originalText);
+
+    if (twoProGeneralPassiveFutureModalResultV1053GPFM) {
+      console.log('[한영 미래완료·조동사 수동태 v10.53-gpfm-safe]', {
+        query: originalText,
+        result: twoProGeneralPassiveFutureModalResultV1053GPFM.targetText,
+        engine: twoProGeneralPassiveFutureModalResultV1053GPFM.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProGeneralPassiveFutureModalResultV1053GPFM.targetText
+          ),
+          isReference: false,
+          analysis: twoProGeneralPassiveFutureModalResultV1053GPFM.analysis,
+          referenceWords: twoProGeneralPassiveFutureModalResultV1053GPFM.referenceWords,
+          engine: twoProGeneralPassiveFutureModalResultV1053GPFM.engine,
+        },
+        referenceWords: twoProGeneralPassiveFutureModalResultV1053GPFM.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v10.53-gp-negative-modal-safe: 조동사 부정 수동태 (기존 규칙 우선)
+    // =================================================================
+    const twoProGeneralPassiveNegativeModalResultV1053GPNM =
+      twoProTryKoEnGeneralPassiveNegativeModalV1053GPNM(originalText);
+
+    if (twoProGeneralPassiveNegativeModalResultV1053GPNM) {
+      console.log('[한영 부정 조동사 수동태 v10.53-gpnm-safe]', {
+        query: originalText,
+        result: twoProGeneralPassiveNegativeModalResultV1053GPNM.targetText,
+        engine: twoProGeneralPassiveNegativeModalResultV1053GPNM.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProGeneralPassiveNegativeModalResultV1053GPNM.targetText
+          ),
+          isReference: false,
+          analysis: twoProGeneralPassiveNegativeModalResultV1053GPNM.analysis,
+          referenceWords: twoProGeneralPassiveNegativeModalResultV1053GPNM.referenceWords,
+          engine: twoProGeneralPassiveNegativeModalResultV1053GPNM.engine,
+        },
+        referenceWords: twoProGeneralPassiveNegativeModalResultV1053GPNM.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v10.53-gp-modal-perfect-safe: could/should/must have been 수동태
+    // 기존 CORE 응답 분기를 모두 보존하고 비대상 입력은 통과시킵니다.
+    // =================================================================
+    const twoProGeneralPassiveModalPerfectResultV1053GPMP =
+      twoProTryKoEnGeneralPassiveModalPerfectV1053GPMP(originalText);
+
+    if (twoProGeneralPassiveModalPerfectResultV1053GPMP) {
+      console.log('[한영 조동사 완료 수동태 v10.53-gpmp-safe]', {
+        query: originalText,
+        result: twoProGeneralPassiveModalPerfectResultV1053GPMP.targetText,
+        engine: twoProGeneralPassiveModalPerfectResultV1053GPMP.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProGeneralPassiveModalPerfectResultV1053GPMP.targetText
+          ),
+          isReference: false,
+          analysis: twoProGeneralPassiveModalPerfectResultV1053GPMP.analysis,
+          referenceWords: twoProGeneralPassiveModalPerfectResultV1053GPMP.referenceWords,
+          engine: twoProGeneralPassiveModalPerfectResultV1053GPMP.engine,
+        },
+        referenceWords: twoProGeneralPassiveModalPerfectResultV1053GPMP.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v10.53-gp-negative-modal-perfect-safe: 부정 조동사 완료 수동태
+    // 위 GPMP를 포함한 기존 CORE 응답 분기 뒤에서만 실행합니다.
+    // =================================================================
+    const twoProGeneralPassiveNegativeModalPerfectResultV1053GPNMP =
+      twoProTryKoEnGeneralPassiveNegativeModalPerfectV1053GPNMP(originalText);
+
+    if (twoProGeneralPassiveNegativeModalPerfectResultV1053GPNMP) {
+      console.log('[한영 조동사 완료 부정 수동태 v10.53-gpnmp-safe]', {
+        query: originalText,
+        result: twoProGeneralPassiveNegativeModalPerfectResultV1053GPNMP.targetText,
+        engine: twoProGeneralPassiveNegativeModalPerfectResultV1053GPNMP.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProGeneralPassiveNegativeModalPerfectResultV1053GPNMP.targetText
+          ),
+          isReference: false,
+          analysis: twoProGeneralPassiveNegativeModalPerfectResultV1053GPNMP.analysis,
+          referenceWords: twoProGeneralPassiveNegativeModalPerfectResultV1053GPNMP.referenceWords,
+          engine: twoProGeneralPassiveNegativeModalPerfectResultV1053GPNMP.engine,
+        },
+        referenceWords: twoProGeneralPassiveNegativeModalPerfectResultV1053GPNMP.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v10.53-gp-semantic-guard-safe: 완료 수동태 의미 구분 (3문형)
+    // 기존 일반/진행/완료/조동사 수동태의 정상 출력은 모두 우선합니다.
+    // =================================================================
+    const twoProPassiveSemanticGuardResultV1053GPSG =
+      twoProTryKoEnPassiveSemanticGuardV1053GPSG(originalText);
+
+    if (twoProPassiveSemanticGuardResultV1053GPSG) {
+      console.log('[한영 완료 수동태 의미 구분 v10.53-gpsg-safe]', {
+        query: originalText,
+        result: twoProPassiveSemanticGuardResultV1053GPSG.targetText,
+        engine: twoProPassiveSemanticGuardResultV1053GPSG.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPassiveSemanticGuardResultV1053GPSG.targetText
+          ),
+          isReference: false,
+          analysis: twoProPassiveSemanticGuardResultV1053GPSG.analysis,
+          referenceWords: twoProPassiveSemanticGuardResultV1053GPSG.referenceWords,
+          engine: twoProPassiveSemanticGuardResultV1053GPSG.engine,
+        },
+        referenceWords: twoProPassiveSemanticGuardResultV1053GPSG.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro v10.53-gp-semantic-slot-safe: 검증된 새 주어/명사/의미 확장
+    // 앞선 모든 수동태 CORE가 실패했을 때에만 이 정확일치 규칙을 실행합니다.
+    // =================================================================
+    const twoProPassiveSemanticSlotResultV1053GPSS =
+      twoProTryKoEnPassiveSemanticSlotV1053GPSS(originalText);
+
+    if (twoProPassiveSemanticSlotResultV1053GPSS) {
+      console.log('[한영 수동태 의미·명사 안전 확장 v10.53-gpss-safe]', {
+        query: originalText,
+        result: twoProPassiveSemanticSlotResultV1053GPSS.targetText,
+        engine: twoProPassiveSemanticSlotResultV1053GPSS.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPassiveSemanticSlotResultV1053GPSS.targetText
+          ),
+          isReference: false,
+          analysis: twoProPassiveSemanticSlotResultV1053GPSS.analysis,
+          referenceWords: twoProPassiveSemanticSlotResultV1053GPSS.referenceWords,
+          engine: twoProPassiveSemanticSlotResultV1053GPSS.engine,
+        },
+        referenceWords: twoProPassiveSemanticSlotResultV1053GPSS.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro 2026-10-23-safe: 앞선 수동태 성공 CORE 뒤에서만 제한적 조합 확장
+    // =================================================================
+    const twoProPassiveSafeComposedResultV20261023 =
+      twoProTryKoEnPassiveSafeComposedV20261023(originalText);
+
+    if (twoProPassiveSafeComposedResultV20261023) {
+      console.log('[한영 수동태 제한적 주어×술어 조합 2026-10-23-safe]', {
+        query: originalText,
+        result: twoProPassiveSafeComposedResultV20261023.targetText,
+        engine: twoProPassiveSafeComposedResultV20261023.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPassiveSafeComposedResultV20261023.targetText
+          ),
+          isReference: false,
+          analysis: twoProPassiveSafeComposedResultV20261023.analysis,
+          referenceWords: twoProPassiveSafeComposedResultV20261023.referenceWords,
+          engine: twoProPassiveSafeComposedResultV20261023.engine,
+        },
+        referenceWords: twoProPassiveSafeComposedResultV20261023.referenceWords,
       });
     }
 

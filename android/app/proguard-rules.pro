@@ -19,3 +19,6 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Preserve Capacitor annotations required at runtime
+-keep @interface com.getcapacitor.** { *; }

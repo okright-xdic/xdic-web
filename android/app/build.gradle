@@ -7,8 +7,8 @@ android {
         applicationId "com.xdic.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 69
-        versionName "1.1.68"
+        versionCode 70
+        versionName "1.1.69"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -22,8 +22,18 @@ android {
             versionNameSuffix "-debug"
         }
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        // Separate, release-like build for testing R8 on a real device.
+        // Never publish this build to Google Play.
+        r8Test {
+            initWith release
+            minifyEnabled true
+            matchingFallbacks = ['release']
+            applicationIdSuffix '.r8test'
+            versionNameSuffix '-r8test'
+            signingConfig signingConfigs.debug
         }
     }
 }
