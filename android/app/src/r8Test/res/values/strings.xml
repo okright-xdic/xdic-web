@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Applied only to the r8Test build. The Play Store app label is unchanged. -->
+    <string name="app_name">X-DIC R8 TEST</string>
+    <string name="title_activity_main">X-DIC R8 TEST</string>
+</resources>

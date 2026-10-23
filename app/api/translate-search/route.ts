@@ -42991,13 +42991,13 @@ type TwoProPassiveSafeComposedSubjectV20261023 = {
   nounKo: string;
   nounEn: string;
   plural: boolean;
-  family: 'document' | 'person';
+  family: 'document' | 'person' | 'event';
 };
 
 type TwoProPassiveSafeComposedPredicateV20261023 = {
   ko: string;
-  family: 'document' | 'person';
-  auxiliary: 'will' | 'must' | 'could' | 'should' | 'present-perfect';
+  family: 'document' | 'person' | 'event';
+  auxiliary: 'will' | 'must' | 'could' | 'should' | 'can' | 'cannot' | 'present-perfect';
   predicate: string;
   verbKo: string;
   verbEn: string;
@@ -43005,6 +43005,9 @@ type TwoProPassiveSafeComposedPredicateV20261023 = {
   extraNounEn?: string;
   // 새 회귀 문형은 검증한 주어에만 적용 (기존 문형은 범위 유지)
   subjectKo?: string;
+  // 부정 추론은 단순 cannot 도치 대신 자연스러운 can ... really 사용
+  questionAuxiliary?: string;
+  questionPredicate?: string;
 };
 
 const TWO_PRO_PASSIVE_SAFE_COMPOSED_SUBJECTS_V20261023:
@@ -43020,6 +43023,16 @@ const TWO_PRO_PASSIVE_SAFE_COMPOSED_SUBJECTS_V20261023:
   // ☆ 신규 수동태 어휘 회귀에 필요한 제한적 주어 2개
   { ko: '그 서류들은', en: 'The documents', nounKo: '서류', nounEn: 'document', plural: true, family: 'document' },
   { ko: '그 지원자들은', en: 'The applicants', nounKo: '지원자', nounEn: 'applicant', plural: true, family: 'person' },
+  // ☆ 2026-10-23: 신규 수동태 회귀 검증용 주어(각 술어에서 추가로 정확 일치 검사)
+  { ko: '그 신청서들은', en: 'The applications', nounKo: '신청서', nounEn: 'application', plural: true, family: 'document' },
+  { ko: '그 안내문은', en: 'The notice', nounKo: '안내문', nounEn: 'notice', plural: false, family: 'document' },
+  { ko: '그 공지사항은', en: 'The announcement', nounKo: '공지사항', nounEn: 'announcement', plural: false, family: 'document' },
+  { ko: '그 일정은', en: 'The schedule', nounKo: '일정', nounEn: 'schedule', plural: false, family: 'event' },
+  { ko: '그 초대장들은', en: 'The invitations', nounKo: '초대장', nounEn: 'invitation', plural: true, family: 'document' },
+  { ko: '그 회의는', en: 'The meeting', nounKo: '회의', nounEn: 'meeting', plural: false, family: 'event' },
+  { ko: '그 자료들은', en: 'The materials', nounKo: '자료', nounEn: 'material', plural: true, family: 'document' },
+  { ko: '그 통지서는', en: 'The notice', nounKo: '통지서', nounEn: 'notice', plural: false, family: 'document' },
+  { ko: '그 통지서가', en: 'The notice', nounKo: '통지서', nounEn: 'notice', plural: false, family: 'document' },
 ];
 
 const TWO_PRO_PASSIVE_SAFE_COMPOSED_PREDICATES_V20261023:
@@ -43116,6 +43129,116 @@ const TWO_PRO_PASSIVE_SAFE_COMPOSED_PREDICATES_V20261023:
     verbKo: '초대되다', verbEn: 'be invited',
     extraNounKo: '면접', extraNounEn: 'interview',
   },
+  // ☆ TwoPro 2026-10-23: 24문장 안전 확장 (12주제 × 2변형, 단 11번은 평서 2개)
+  // 각 항목의 subjectKo+ko 정확 일치에만 적용. 기존 성공 규칙/자료는 그대로 유지.
+  {
+    ko: '아직 검토되지 않았어요', family: 'document', subjectKo: '그 신청서들은',
+    auxiliary: 'present-perfect', predicate: 'not been reviewed yet',
+    verbKo: '검토되다', verbEn: 'be reviewed',
+  },
+  {
+    ko: '어제 서명됐어야 했어요', family: 'document', subjectKo: '그 계약서들은',
+    auxiliary: 'should', predicate: 'have been signed yesterday',
+    verbKo: '서명되다', verbEn: 'be signed',
+  },
+  {
+    ko: '내일 오후까지 수정되어야 해요', family: 'document', subjectKo: '그 제안서는',
+    auxiliary: 'must', predicate: 'be revised by tomorrow afternoon',
+    verbKo: '수정되다', verbEn: 'be revised',
+  },
+  {
+    ko: '오늘 게시될 수 있어요', family: 'document', subjectKo: '그 안내문은',
+    auxiliary: 'can', predicate: 'be posted today',
+    verbKo: '게시되다', verbEn: 'be posted',
+  },
+  {
+    ko: '어제 게시되면 안 됐어요', family: 'document', subjectKo: '그 공지사항은',
+    auxiliary: 'should', predicate: 'not have been posted yesterday',
+    verbKo: '게시되다', verbEn: 'be posted',
+  },
+  {
+    ko: '다음 주 화요일까지 확정되어 있을 거예요', family: 'event', subjectKo: '그 일정은',
+    auxiliary: 'will', predicate: 'have been finalized by next Tuesday',
+    verbKo: '확정되다', verbEn: 'be finalized',
+  },
+  {
+    ko: '이미 발송됐어요', family: 'document', subjectKo: '그 초대장들은',
+    auxiliary: 'present-perfect', predicate: 'already been sent',
+    verbKo: '발송되다', verbEn: 'be sent',
+  },
+  {
+    ko: '아직 취소되지 않았어요', family: 'event', subjectKo: '그 회의는',
+    auxiliary: 'present-perfect', predicate: 'not been canceled yet',
+    verbKo: '취소되다', verbEn: 'be canceled',
+  },
+  {
+    ko: '어제 공개될 수도 있었어요', family: 'document', subjectKo: '그 자료들은',
+    auxiliary: 'could', predicate: 'have been released yesterday',
+    verbKo: '공개되다', verbEn: 'be released',
+  },
+  {
+    ko: '어제 승인되면 안 됐어요', family: 'document', subjectKo: '그 신청서들은',
+    auxiliary: 'should', predicate: 'not have been approved yesterday',
+    verbKo: '승인되다', verbEn: 'be approved',
+  },
+  {
+    ko: '어제 발송됐음이 틀림없어요', family: 'document', subjectKo: '그 통지서는',
+    auxiliary: 'must', predicate: 'have been sent yesterday',
+    verbKo: '발송되다', verbEn: 'be sent',
+  },
+  {
+    ko: '어제 발송됐을 리 없어요', family: 'document', subjectKo: '그 통지서가',
+    auxiliary: 'cannot', predicate: 'have been sent yesterday',
+    verbKo: '발송되다', verbEn: 'be sent',
+    questionAuxiliary: 'can', questionPredicate: 'really have been sent yesterday',
+  },
+  {
+    ko: '오늘 공개되어야 해요', family: 'document', subjectKo: '그 보고서들은',
+    auxiliary: 'must', predicate: 'be released today',
+    verbKo: '공개되다', verbEn: 'be released',
+  },
+  // ☆ TwoPro 2026-10-23: 교차 조합 CORE 회귀 8종 (평서/의문 16문장)
+  // 주어·술어 모두 완전 일치시키므로 기존 등록 조합은 변경하지 않음.
+  {
+    ko: '아직 승인되지 않았어요', family: 'document', subjectKo: '그 신청서들은',
+    auxiliary: 'present-perfect', predicate: 'not been approved yet',
+    verbKo: '승인되다', verbEn: 'be approved',
+  },
+  {
+    ko: '이미 검토됐어요', family: 'document', subjectKo: '그 계약서들은',
+    auxiliary: 'present-perfect', predicate: 'already been reviewed',
+    verbKo: '검토되다', verbEn: 'be reviewed',
+  },
+  {
+    ko: '어제 수정됐어야 했어요', family: 'document', subjectKo: '그 제안서는',
+    auxiliary: 'should', predicate: 'have been revised yesterday',
+    verbKo: '수정되다', verbEn: 'be revised',
+  },
+  {
+    ko: '어제 게시되면 안 됐어요', family: 'document', subjectKo: '그 안내문은',
+    auxiliary: 'should', predicate: 'not have been posted yesterday',
+    verbKo: '게시되다', verbEn: 'be posted',
+  },
+  {
+    ko: '다음 주 금요일까지 확정되어 있을 거예요', family: 'event', subjectKo: '그 일정은',
+    auxiliary: 'will', predicate: 'have been finalized by next Friday',
+    verbKo: '확정되다', verbEn: 'be finalized',
+  },
+  {
+    ko: '아직 발송되지 않았어요', family: 'document', subjectKo: '그 통지서는',
+    auxiliary: 'present-perfect', predicate: 'not been sent yet',
+    verbKo: '발송되다', verbEn: 'be sent',
+  },
+  {
+    ko: '내일까지 발송되어야 해요', family: 'document', subjectKo: '그 초대장들은',
+    auxiliary: 'must', predicate: 'be sent by tomorrow',
+    verbKo: '발송되다', verbEn: 'be sent',
+  },
+  {
+    ko: '어제 취소될 수도 있었어요', family: 'event', subjectKo: '그 회의는',
+    auxiliary: 'could', predicate: 'have been canceled yesterday',
+    verbKo: '취소되다', verbEn: 'be canceled',
+  },
 ];
 
 const twoProTryKoEnPassiveSafeComposedV20261023 = (
@@ -43144,8 +43267,10 @@ const twoProTryKoEnPassiveSafeComposedV20261023 = (
       ? (subject.plural ? 'have' : 'has')
       : predicate.auxiliary;
     const questionSubject = subject.en.replace(/^The /u, 'the ');
+    const questionAuxiliary = predicate.questionAuxiliary || auxiliary;
+    const questionPredicate = predicate.questionPredicate || predicate.predicate;
     const core = isQuestion
-      ? `${auxiliary[0].toUpperCase() + auxiliary.slice(1)} ${questionSubject} ${predicate.predicate}`
+      ? `${questionAuxiliary[0].toUpperCase() + questionAuxiliary.slice(1)} ${questionSubject} ${questionPredicate}`
       : `${subject.en} ${auxiliary} ${predicate.predicate}`;
 
     const referenceWords: TwoProKoEnReferenceWordV5[] = [
