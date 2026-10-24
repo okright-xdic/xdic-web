@@ -42997,7 +42997,7 @@ type TwoProPassiveSafeComposedSubjectV20261023 = {
 type TwoProPassiveSafeComposedPredicateV20261023 = {
   ko: string;
   family: 'document' | 'person' | 'event';
-  auxiliary: 'will' | 'must' | 'could' | 'should' | 'can' | 'cannot' | 'present-perfect';
+  auxiliary: 'will' | 'must' | 'could' | 'should' | 'can' | 'cannot' | 'present-perfect' | 'was' | 'were' | 'had';
   predicate: string;
   verbKo: string;
   verbEn: string;
@@ -43033,6 +43033,22 @@ const TWO_PRO_PASSIVE_SAFE_COMPOSED_SUBJECTS_V20261023:
   { ko: '그 자료들은', en: 'The materials', nounKo: '자료', nounEn: 'material', plural: true, family: 'document' },
   { ko: '그 통지서는', en: 'The notice', nounKo: '통지서', nounEn: 'notice', plural: false, family: 'document' },
   { ko: '그 통지서가', en: 'The notice', nounKo: '통지서', nounEn: 'notice', plural: false, family: 'document' },
+  // ☆ TwoPro 2026-10-24-safe: 신규 8개 수동태 회귀에서만 쓰는 제한적 주어
+  { ko: '그 안내문들은', en: 'The notices', nounKo: '안내문', nounEn: 'notice', plural: true, family: 'document' },
+  { ko: '그 서류는', en: 'The document', nounKo: '서류', nounEn: 'document', plural: false, family: 'document' },
+  { ko: '그 초대장은', en: 'The invitation', nounKo: '초대장', nounEn: 'invitation', plural: false, family: 'document' },
+  { ko: '그 회의들은', en: 'The meetings', nounKo: '회의', nounEn: 'meeting', plural: true, family: 'event' },
+  { ko: '그 통지서들은', en: 'The notices', nounKo: '통지서', nounEn: 'notice', plural: true, family: 'document' },
+  // ☆ TwoPro 2026-10-24: 단수·복수 교차 검증에서 빠진 주어만 추가
+  { ko: '그 신청서는', en: 'The application', nounKo: '신청서', nounEn: 'application', plural: false, family: 'document' },
+  { ko: '그 일정들은', en: 'The schedules', nounKo: '일정', nounEn: 'schedule', plural: true, family: 'event' },
+  // ☆ 2026-10-24 9차 회귀: 기존 주어로 포괄되지 않는 조사/복수 형태만 추가.
+  { ko: '그 계약서가', en: 'The contract', nounKo: '계약서', nounEn: 'contract', plural: false, family: 'document' },
+  { ko: '그 공지사항들은', en: 'The announcements', nounKo: '공지사항', nounEn: 'announcement', plural: true, family: 'document' },
+  // ☆ 2026-10-24 CORE 10차: 주격 조사 '들이' 부정적 추론 문형 정확일치 전용
+  { ko: '그 계약서들이', en: 'The contracts', nounKo: '계약서', nounEn: 'contract', plural: true, family: 'document' },
+  // ☆ CORE 11차: 부정적 추론 주격 조사 '들이'만 제한 추가
+  { ko: '그 직원들이', en: 'The employees', nounKo: '직원', nounEn: 'employee', plural: true, family: 'person' },
 ];
 
 const TWO_PRO_PASSIVE_SAFE_COMPOSED_PREDICATES_V20261023:
@@ -43239,6 +43255,253 @@ const TWO_PRO_PASSIVE_SAFE_COMPOSED_PREDICATES_V20261023:
     auxiliary: 'could', predicate: 'have been canceled yesterday',
     verbKo: '취소되다', verbEn: 'be canceled',
   },
+  // ☆ TwoPro 2026-10-24-safe: 수동태 교차 회귀 8문형 × 평서·의문 = 16문장
+  // 각 술어는 지정된 주어+술어에만 정확히 일치; 기존 CORE 우선 순서 유지.
+  {
+    ko: '아직 게시되지 않았어요', family: 'document', subjectKo: '그 안내문들은',
+    auxiliary: 'present-perfect', predicate: 'not been posted yet',
+    verbKo: '게시되다', verbEn: 'be posted',
+  },
+  {
+    ko: '이미 발송됐어요', family: 'document', subjectKo: '그 서류는',
+    auxiliary: 'present-perfect', predicate: 'already been sent',
+    verbKo: '발송되다', verbEn: 'be sent',
+  },
+  {
+    ko: '내일까지 검토되어야 해요', family: 'document', subjectKo: '그 신청서들은',
+    auxiliary: 'must', predicate: 'be reviewed by tomorrow',
+    verbKo: '검토되다', verbEn: 'be reviewed',
+  },
+  {
+    ko: '어제 발송됐어야 했어요', family: 'document', subjectKo: '그 초대장은',
+    auxiliary: 'should', predicate: 'have been sent yesterday',
+    verbKo: '발송되다', verbEn: 'be sent',
+  },
+  {
+    ko: '어제 취소되면 안 됐어요', family: 'event', subjectKo: '그 회의들은',
+    auxiliary: 'should', predicate: 'not have been canceled yesterday',
+    verbKo: '취소되다', verbEn: 'be canceled',
+  },
+  {
+    ko: '다음 주 화요일까지 발송되어 있을 거예요', family: 'document', subjectKo: '그 통지서들은',
+    auxiliary: 'will', predicate: 'have been sent by next Tuesday',
+    verbKo: '발송되다', verbEn: 'be sent',
+  },
+  {
+    ko: '어제 수정될 수도 있었어요', family: 'document', subjectKo: '그 계약서는',
+    auxiliary: 'could', predicate: 'have been revised yesterday',
+    verbKo: '수정되다', verbEn: 'be revised',
+  },
+  {
+    ko: '아직 확정되지 않았어요', family: 'event', subjectKo: '그 일정은',
+    auxiliary: 'present-perfect', predicate: 'not been finalized yet',
+    verbKo: '확정되다', verbEn: 'be finalized',
+  },
+  // ☆ TwoPro 2026-10-24-safe: 단수·복수 전환 8문형만 주어+술어 정확 일치 확장
+  // 기존 술어의 subjectKo 제한은 완화하지 않음 (이전 회귀 결과 보존)
+  {
+    ko: '아직 게시되지 않았어요', family: 'document', subjectKo: '그 안내문은',
+    auxiliary: 'present-perfect', predicate: 'not been posted yet',
+    verbKo: '게시되다', verbEn: 'be posted',
+  },
+  {
+    ko: '이미 발송됐어요', family: 'document', subjectKo: '그 서류들은',
+    auxiliary: 'present-perfect', predicate: 'already been sent',
+    verbKo: '발송되다', verbEn: 'be sent',
+  },
+  {
+    ko: '내일까지 검토되어야 해요', family: 'document', subjectKo: '그 신청서는',
+    auxiliary: 'must', predicate: 'be reviewed by tomorrow',
+    verbKo: '검토되다', verbEn: 'be reviewed',
+  },
+  {
+    ko: '어제 발송됐어야 했어요', family: 'document', subjectKo: '그 초대장들은',
+    auxiliary: 'should', predicate: 'have been sent yesterday',
+    verbKo: '발송되다', verbEn: 'be sent',
+  },
+  {
+    ko: '어제 취소되면 안 됐어요', family: 'event', subjectKo: '그 회의는',
+    auxiliary: 'should', predicate: 'not have been canceled yesterday',
+    verbKo: '취소되다', verbEn: 'be canceled',
+  },
+  {
+    ko: '다음 주 화요일까지 발송되어 있을 거예요', family: 'document', subjectKo: '그 통지서는',
+    auxiliary: 'will', predicate: 'have been sent by next Tuesday',
+    verbKo: '발송되다', verbEn: 'be sent',
+  },
+  {
+    ko: '어제 수정될 수도 있었어요', family: 'document', subjectKo: '그 계약서들은',
+    auxiliary: 'could', predicate: 'have been revised yesterday',
+    verbKo: '수정되다', verbEn: 'be revised',
+  },
+  {
+    ko: '아직 확정되지 않았어요', family: 'event', subjectKo: '그 일정들은',
+    auxiliary: 'present-perfect', predicate: 'not been finalized yet',
+    verbKo: '확정되다', verbEn: 'be finalized',
+  },
+  // ☆ TwoPro 2026-10-24-safe: CORE 수동태 7문형(14문장) 누락만 보강.
+  // 이미 통과한 조동사 완료 수동태 및 기존 문형은 변경하지 않음.
+  // 지정 주어 + 술어 완전 일치일 때만 개입하며, 평서/의문 모두 지원.
+  {
+    ko: '이미 검토됐어요', family: 'document', subjectKo: '그 제안서는',
+    auxiliary: 'present-perfect', predicate: 'already been reviewed',
+    verbKo: '검토되다', verbEn: 'be reviewed',
+  },
+  {
+    ko: '아직 발송되지 않았어요', family: 'document', subjectKo: '그 초대장들은',
+    auxiliary: 'present-perfect', predicate: 'not been sent yet',
+    verbKo: '발송되다', verbEn: 'be sent',
+  },
+  {
+    ko: '오늘 공개되면 안 돼요', family: 'document', subjectKo: '그 보고서는',
+    auxiliary: 'must', predicate: 'not be released today',
+    verbKo: '공개되다', verbEn: 'be released',
+  },
+  {
+    ko: '그때 검토되고 있지 않았어요', family: 'document', subjectKo: '그 계약서는',
+    auxiliary: 'was', predicate: 'not being reviewed at that time',
+    verbKo: '검토되다', verbEn: 'be reviewed',
+  },
+  {
+    ko: '회의 전까지 승인되지 않았어요', family: 'document', subjectKo: '그 신청서들은',
+    auxiliary: 'had', predicate: 'not been approved before the meeting',
+    verbKo: '승인되다', verbEn: 'be approved',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    ko: '내일까지 발송되어 있지 않을 거예요', family: 'document', subjectKo: '그 통지서는',
+    auxiliary: 'will', predicate: 'not have been sent by tomorrow',
+    verbKo: '발송되다', verbEn: 'be sent',
+  },
+  {
+    ko: '어제 게시될 수도 있었어요', family: 'document', subjectKo: '그 안내문은',
+    auxiliary: 'could', predicate: 'have been posted yesterday',
+    verbKo: '게시되다', verbEn: 'be posted',
+  },
+  // ☆ TwoPro 2026-10-24: 9차 회귀 ③~⑧에서 누락된 정확 일치 조합만 추가.
+  // ①·② 포함한 이전 성공 문형 및 우선 순서는 그대로 보존.
+  {
+    ko: '오늘 공개되면 안 돼요', family: 'document', subjectKo: '그 보고서들은',
+    auxiliary: 'must', predicate: 'not be released today',
+    verbKo: '공개되다', verbEn: 'be released',
+  },
+  {
+    ko: '그때 검토되고 있지 않았어요', family: 'document', subjectKo: '그 신청서들은',
+    auxiliary: 'were', predicate: 'not being reviewed at that time',
+    verbKo: '검토되다', verbEn: 'be reviewed',
+  },
+  {
+    ko: '회의 전까지 승인되지 않았어요', family: 'document', subjectKo: '그 제안서는',
+    auxiliary: 'had', predicate: 'not been approved before the meeting',
+    verbKo: '승인되다', verbEn: 'be approved',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    ko: '내일까지 발송되어 있지 않을 거예요', family: 'document', subjectKo: '그 초대장들은',
+    auxiliary: 'will', predicate: 'not have been sent by tomorrow',
+    verbKo: '발송되다', verbEn: 'be sent',
+  },
+  {
+    ko: '어제 서명됐음이 틀림없어요', family: 'document', subjectKo: '그 계약서는',
+    auxiliary: 'must', predicate: 'have been signed yesterday',
+    verbKo: '서명되다', verbEn: 'be signed',
+  },
+  {
+    ko: '어제 서명됐을 리 없어요', family: 'document', subjectKo: '그 계약서가',
+    auxiliary: 'cannot', predicate: 'have been signed yesterday',
+    verbKo: '서명되다', verbEn: 'be signed',
+  },
+  {
+    ko: '어제 게시될 수도 있었어요', family: 'document', subjectKo: '그 공지사항들은',
+    auxiliary: 'could', predicate: 'have been posted yesterday',
+    verbKo: '게시되다', verbEn: 'be posted',
+  },
+  // ☆ TwoPro 2026-10-24 CORE 10차 안전 보강 (미출력 6문형 / 12문장)
+  // 주어+술어 정확 일치만 추가, 기존 성공 케이스와 엔진 호출 순서 불변.
+  {
+    ko: '오늘 공개되면 안 돼요', family: 'document', subjectKo: '그 제안서는',
+    auxiliary: 'must', predicate: 'not be released today',
+    verbKo: '공개되다', verbEn: 'be released',
+  },
+  {
+    ko: '회의 전까지 승인되지 않았어요', family: 'document', subjectKo: '그 제안서들은',
+    auxiliary: 'had', predicate: 'not been approved before the meeting',
+    verbKo: '승인되다', verbEn: 'be approved',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    ko: '내일까지 발송되어 있지 않을 거예요', family: 'document', subjectKo: '그 초대장은',
+    auxiliary: 'will', predicate: 'not have been sent by tomorrow',
+    verbKo: '발송되다', verbEn: 'be sent',
+  },
+  {
+    ko: '어제 서명됐음이 틀림없어요', family: 'document', subjectKo: '그 계약서들은',
+    auxiliary: 'must', predicate: 'have been signed yesterday',
+    verbKo: '서명되다', verbEn: 'be signed',
+  },
+  {
+    ko: '어제 서명됐을 리 없어요', family: 'document', subjectKo: '그 계약서들이',
+    auxiliary: 'cannot', predicate: 'have been signed yesterday',
+    verbKo: '서명되다', verbEn: 'be signed',
+  },
+  {
+    ko: '어제 게시될 수도 있었어요', family: 'document', subjectKo: '그 공지사항은',
+    auxiliary: 'could', predicate: 'have been posted yesterday',
+    verbKo: '게시되다', verbEn: 'be posted',
+  },
+  {
+    ko: '아직 취소되지 않았어요', family: 'event', subjectKo: '그 회의들은',
+    auxiliary: 'present-perfect', predicate: 'not been canceled yet',
+    verbKo: '취소되다', verbEn: 'be canceled',
+  },
+  // ☆ TwoPro 2026-10-24 CORE 11차: 8개 영역 / 16문장 안전 보강.
+  // 전부 지정 주어+서술어의 완전 일치만 허용, 기존 성공 조건과 분기 순서 보존.
+  {
+    ko: '회의 전까지 검토되지 않았어요', family: 'document', subjectKo: '그 보고서들은',
+    auxiliary: 'had', predicate: 'not been reviewed before the meeting',
+    verbKo: '검토되다', verbEn: 'be reviewed',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    ko: '다음 주 월요일까지 서명되어 있지 않을 거예요', family: 'document', subjectKo: '그 계약서들은',
+    auxiliary: 'will', predicate: 'not have been signed by next Monday',
+    verbKo: '서명되다', verbEn: 'be signed',
+  },
+  {
+    ko: '오늘 게시되면 안 돼요', family: 'document', subjectKo: '그 안내문들은',
+    auxiliary: 'must', predicate: 'not be posted today',
+    verbKo: '게시되다', verbEn: 'be posted',
+  },
+  {
+    ko: '그때 검토되고 있지 않았어요', family: 'document', subjectKo: '그 서류들은',
+    auxiliary: 'were', predicate: 'not being reviewed at that time',
+    verbKo: '검토되다', verbEn: 'be reviewed',
+  },
+  {
+    ko: '어제 초대됐음이 틀림없어요', family: 'person', subjectKo: '그 직원들은',
+    auxiliary: 'must', predicate: 'have been invited yesterday',
+    verbKo: '초대되다', verbEn: 'be invited',
+  },
+  {
+    ko: '어제 초대됐을 리 없어요', family: 'person', subjectKo: '그 직원들이',
+    auxiliary: 'cannot', predicate: 'have been invited yesterday',
+    verbKo: '초대되다', verbEn: 'be invited',
+  },
+  {
+    ko: '어제 취소될 수도 있었어요', family: 'event', subjectKo: '그 회의들은',
+    auxiliary: 'could', predicate: 'have been canceled yesterday',
+    verbKo: '취소되다', verbEn: 'be canceled',
+  },
+  {
+    ko: '이미 승인됐어요', family: 'document', subjectKo: '그 신청서는',
+    auxiliary: 'present-perfect', predicate: 'already been approved',
+    verbKo: '승인되다', verbEn: 'be approved',
+  },
+  {
+    ko: '어제 제출되면 안 됐어요', family: 'document', subjectKo: '그 보고서들은',
+    auxiliary: 'should', predicate: 'not have been submitted yesterday',
+    verbKo: '제출되다', verbEn: 'be submitted',
+  },
 ];
 
 const twoProTryKoEnPassiveSafeComposedV20261023 = (
@@ -43291,6 +43554,339 @@ const twoProTryKoEnPassiveSafeComposedV20261023 = (
     };
   }
   return null;
+};
+
+// ============================================================================
+// ☆ TwoPro CORE 12차 (2026-10-24): 제한적 수동태 슬롯 회귀 보완
+// 기존 모든 수동태 CORE 및 정확일치 조합 규칙의 우선순위를 변경하지 않습니다.
+// 이전 규칙에서 매칭되지 않은 문장에 한해, 검증된 주어·동사·어미만 조합합니다.
+// ※ 전체 문장을 하드코딩하지 않고 문법형태 + 허용 가능한 명사/동사 조합을 검사.
+// ============================================================================
+type TwoProPassiveC12Frame =
+  | 'past-perfect-negative' | 'future-perfect-negative'
+  | 'present-perfect-negative' | 'must-not'
+  | 'past-progressive-negative' | 'should-have'
+  | 'could-have' | 'present-perfect-positive';
+
+const TWO_PRO_PASSIVE_C12_SAFE_VERBS: Readonly<Record<string, {
+  participle: string;
+  nounKo: readonly string[];
+  frames: readonly TwoProPassiveC12Frame[];
+}>> = {
+  '검토': {
+    participle: 'reviewed',
+    nounKo: ['계약서', '보고서', '제안서', '신청서', '서류'],
+    frames: ['past-perfect-negative', 'past-progressive-negative'],
+  },
+  '승인': {
+    participle: 'approved',
+    nounKo: ['신청서', '계약서', '제안서', '보고서'],
+    frames: ['future-perfect-negative'],
+  },
+  '서명': {
+    participle: 'signed', nounKo: ['계약서'],
+    frames: ['present-perfect-negative'],
+  },
+  '발송': {
+    participle: 'sent', nounKo: ['초대장', '통지서', '서류'],
+    frames: ['must-not'],
+  },
+  '제출': {
+    participle: 'submitted', nounKo: ['제안서', '보고서', '신청서', '계약서', '서류'],
+    frames: ['should-have'],
+  },
+  '확정': {
+    participle: 'finalized', nounKo: ['일정'],
+    frames: ['could-have'],
+  },
+  '공개': {
+    participle: 'released', nounKo: ['보고서', '자료', '제안서'],
+    frames: ['present-perfect-positive'],
+  },
+};
+
+const twoProTryKoEnPassiveC12SafeSlotsV20261024 = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '')
+    .normalize('NFC').replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+
+  // 기존에 검증된 명사와 단수/복수 메타데이터를 그대로 재사용합니다.
+  const subject = TWO_PRO_PASSIVE_SAFE_COMPOSED_SUBJECTS_V20261023.find(
+    item => normalized.startsWith(item.ko + ' ')
+  );
+  if (!subject) return null;
+  const koPredicate = normalized.slice(subject.ko.length + 1);
+  let frame: TwoProPassiveC12Frame | null = null;
+  let koStem = '';
+  let timeKo = '';
+  let timeEn = '';
+  let match: RegExpMatchArray | null = null;
+
+  if ((match = koPredicate.match(/^(회의|발표) 전까지 ([가-힣]+)되지 않았어요$/u))) {
+    frame = 'past-perfect-negative';
+    timeKo = match[1];
+    timeEn = match[1] === '회의' ? 'before the meeting' : 'before the presentation';
+    koStem = match[2];
+  } else if ((match = koPredicate.match(/^다음 주 ([월화수목금토일])요일까지 ([가-힣]+)되어 있지 않을 거예요$/u))) {
+    frame = 'future-perfect-negative';
+    const weekdays: Record<string, string> = {
+      월: 'Monday', 화: 'Tuesday', 수: 'Wednesday', 목: 'Thursday',
+      금: 'Friday', 토: 'Saturday', 일: 'Sunday',
+    };
+    timeKo = `다음 주 ${match[1]}요일`;
+    timeEn = `by next ${weekdays[match[1]]}`;
+    koStem = match[2];
+  } else if ((match = koPredicate.match(/^아직 ([가-힣]+)되지 않았어요$/u))) {
+    frame = 'present-perfect-negative';
+    koStem = match[1];
+  } else if ((match = koPredicate.match(/^오늘 ([가-힣]+)되면 안 돼요$/u))) {
+    frame = 'must-not';
+    koStem = match[1];
+  } else if ((match = koPredicate.match(/^그때 ([가-힣]+)되고 있지 않았어요$/u))) {
+    frame = 'past-progressive-negative';
+    koStem = match[1];
+  } else if ((match = koPredicate.match(/^어제 ([가-힣]+)됐어야 했어요$/u))) {
+    frame = 'should-have';
+    koStem = match[1];
+  } else if ((match = koPredicate.match(/^어제 ([가-힣]+)될 수도 있었어요$/u))) {
+    frame = 'could-have';
+    koStem = match[1];
+  } else if ((match = koPredicate.match(/^이미 ([가-힣]+)됐어요$/u))) {
+    frame = 'present-perfect-positive';
+    koStem = match[1];
+  }
+  if (!frame || !koStem) return null;
+
+  // 단지 문법적 형태가 같다는 이유만으로 새로운 동사/명사를 임의 번역하지 않습니다.
+  const verb = TWO_PRO_PASSIVE_C12_SAFE_VERBS[koStem];
+  if (!verb || !verb.frames.includes(frame) || !verb.nounKo.includes(subject.nounKo)) {
+    return null;
+  }
+
+  const perfectAux = subject.plural ? 'have' : 'has';
+  const pastProgressiveAux = subject.plural ? 'were' : 'was';
+  const render: Record<TwoProPassiveC12Frame, [string, string]> = {
+    'past-perfect-negative': ['had', `not been ${verb.participle} ${timeEn}`],
+    'future-perfect-negative': ['will', `not have been ${verb.participle} ${timeEn}`],
+    'present-perfect-negative': [perfectAux, `not been ${verb.participle} yet`],
+    'must-not': ['must', `not be ${verb.participle} today`],
+    'past-progressive-negative': [pastProgressiveAux, `not being ${verb.participle} at that time`],
+    'should-have': ['should', `have been ${verb.participle} yesterday`],
+    'could-have': ['could', `have been ${verb.participle} yesterday`],
+    'present-perfect-positive': [perfectAux, `already been ${verb.participle}`],
+  };
+  const [auxiliary, rest] = render[frame];
+  const questionSubject = subject.en.replace(/^The /u, 'the ');
+  const core = isQuestion
+    ? `${auxiliary[0].toUpperCase() + auxiliary.slice(1)} ${questionSubject} ${rest}`
+    : `${subject.en} ${auxiliary} ${rest}`;
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90(subject.nounKo, subject.nounEn, 'N'),
+    ...(timeKo === '회의'
+      ? [twoProEmbeddedReferenceWordV90('회의', 'meeting', 'N')]
+      : timeKo === '발표'
+        ? [twoProEmbeddedReferenceWordV90('발표', 'presentation', 'N')]
+        : []),
+    twoProEmbeddedReferenceWordV90(`${koStem}되다`, `be ${verb.participle}`, 'V'),
+  ];
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: subject.ko, en: `${subject.en} [S]` },
+      { ko: koPredicate, en: `be ${verb.participle} [PASSIVE:C12:${frame}:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'passive-core12-closed-verb-frames-ko-en-20261024-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro CORE 13차 (2026-10-24): 수동태 7개 누락 문형 안전 보완
+// 기존 수동태 CORE 1~12차 분기를 절대 변경하지 않고 마지막에만 실행합니다.
+// 한국어 시제 어미 + 검증된 명사·동사·문형 조합만 번역하며, 그 외에는 null.
+// 평서문/의문문에 동일한 형태소 규칙을 적용합니다.
+// ============================================================================
+type TwoProPassiveC13Frame =
+  | 'past-perfect-positive'
+  | 'past-perfect-negative'
+  | 'future-perfect-positive'
+  | 'future-perfect-negative'
+  | 'present-progressive-positive'
+  | 'past-progressive-positive'
+  | 'past-progressive-negative'
+  | 'should-have'
+  | 'should-not-have'
+  | 'could-have';
+
+type TwoProPassiveC13SafePair = {
+  frame: TwoProPassiveC13Frame;
+  nounKo: string;
+  subjectKo: string;
+  koStem: string;
+  participle: string;
+};
+
+const TWO_PRO_PASSIVE_C13_SAFE_PAIRS_V20261024:
+  readonly TwoProPassiveC13SafePair[] = [
+  { frame: 'past-perfect-positive', nounKo: '보고서', subjectKo: '그 보고서는', koStem: '제출', participle: 'submitted' },
+  { frame: 'past-perfect-negative', nounKo: '계약서', subjectKo: '그 계약서들은', koStem: '서명', participle: 'signed' },
+  { frame: 'future-perfect-positive', nounKo: '신청서', subjectKo: '그 신청서들은', koStem: '검토', participle: 'reviewed' },
+  { frame: 'future-perfect-negative', nounKo: '보고서', subjectKo: '그 보고서는', koStem: '공개', participle: 'released' },
+  { frame: 'present-progressive-positive', nounKo: '계약서', subjectKo: '그 계약서는', koStem: '수정', participle: 'revised' },
+  { frame: 'past-progressive-positive', nounKo: '서류', subjectKo: '그 서류들은', koStem: '검토', participle: 'reviewed' },
+  { frame: 'could-have', nounKo: '제안서', subjectKo: '그 제안서는', koStem: '공개', participle: 'released' },
+  // ☆ TwoPro CORE 14차: 이전에 성공한 문법 틀을 새 주어×동사 조합으로 제한적 확장.
+  // 16개 평서·의문 회귀 입력(8개 조합)만 허용. CORE 1~13은 변경하지 않음.
+  { frame: 'past-perfect-positive', nounKo: '계약서', subjectKo: '그 계약서들은', koStem: '검토', participle: 'reviewed' },
+  { frame: 'past-perfect-negative', nounKo: '신청서', subjectKo: '그 신청서는', koStem: '제출', participle: 'submitted' },
+  { frame: 'future-perfect-positive', nounKo: '계약서', subjectKo: '그 계약서는', koStem: '서명', participle: 'signed' },
+  { frame: 'future-perfect-negative', nounKo: '보고서', subjectKo: '그 보고서들은', koStem: '검토', participle: 'reviewed' },
+  { frame: 'present-progressive-positive', nounKo: '신청서', subjectKo: '그 신청서들은', koStem: '승인', participle: 'approved' },
+  { frame: 'past-progressive-positive', nounKo: '제안서', subjectKo: '그 제안서는', koStem: '수정', participle: 'revised' },
+  { frame: 'should-have', nounKo: '보고서', subjectKo: '그 보고서는', koStem: '검토', participle: 'reviewed' },
+  { frame: 'could-have', nounKo: '초대장', subjectKo: '그 초대장들은', koStem: '발송', participle: 'sent' },
+  // ☆ TwoPro CORE 15차: 이번 교차 회귀에서 미출력된 7개 조합만 허용.
+  // 기존 CORE 1~14차 성공 조합과 번역 엔진 실행 순서는 변경하지 않습니다.
+  { frame: 'past-perfect-positive', nounKo: '보고서', subjectKo: '그 보고서들은', koStem: '제출', participle: 'submitted' },
+  { frame: 'past-perfect-negative', nounKo: '초대장', subjectKo: '그 초대장은', koStem: '발송', participle: 'sent' },
+  { frame: 'future-perfect-positive', nounKo: '계약서', subjectKo: '그 계약서들은', koStem: '서명', participle: 'signed' },
+  { frame: 'present-progressive-positive', nounKo: '보고서', subjectKo: '그 보고서는', koStem: '검토', participle: 'reviewed' },
+  { frame: 'past-progressive-negative', nounKo: '제안서', subjectKo: '그 제안서들은', koStem: '수정', participle: 'revised' },
+  { frame: 'should-not-have', nounKo: '서류', subjectKo: '그 서류들은', koStem: '제출', participle: 'submitted' },
+  { frame: 'could-have', nounKo: '통지서', subjectKo: '그 통지서들은', koStem: '발송', participle: 'sent' },
+];
+
+const twoProTryKoEnPassiveC13SafeSlotsV20261024 = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '')
+    .normalize('NFC').replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+
+  const subject = TWO_PRO_PASSIVE_SAFE_COMPOSED_SUBJECTS_V20261023.find(
+    item => normalized.startsWith(item.ko + ' ')
+  );
+  if (!subject || subject.family !== 'document') return null;
+  const predicateKo = normalized.slice(subject.ko.length + 1);
+  let frame: TwoProPassiveC13Frame | null = null;
+  let koStem = '';
+  let timeEn = '';
+  let timeNounKo = '';
+  let match: RegExpMatchArray | null = null;
+
+  if ((match = predicateKo.match(/^(회의|발표) 전에 이미 ([가-힣]+)되어 있었어요$/u))) {
+    frame = 'past-perfect-positive';
+    koStem = match[2];
+    timeNounKo = match[1];
+    timeEn = match[1] === '회의' ? 'before the meeting' : 'before the presentation';
+  } else if ((match = predicateKo.match(/^(회의|발표) 전까지 ([가-힣]+)되지 않았어요$/u))) {
+    frame = 'past-perfect-negative';
+    koStem = match[2];
+    timeNounKo = match[1];
+    timeEn = match[1] === '회의' ? 'before the meeting' : 'before the presentation';
+  } else if ((match = predicateKo.match(/^다음 주 ([월화수목금토일])요일까지 ([가-힣]+)되어 있을 거예요$/u))) {
+    frame = 'future-perfect-positive';
+    koStem = match[2];
+    const weekdays: Readonly<Record<string, string>> = {
+      월: 'Monday', 화: 'Tuesday', 수: 'Wednesday', 목: 'Thursday',
+      금: 'Friday', 토: 'Saturday', 일: 'Sunday',
+    };
+    timeEn = `by next ${weekdays[match[1]]}`;
+  } else if ((match = predicateKo.match(/^다음 주 ([월화수목금토일])요일까지 ([가-힣]+)되어 있지 않을 거예요$/u))) {
+    frame = 'future-perfect-negative';
+    koStem = match[2];
+    const weekdays: Readonly<Record<string, string>> = {
+      월: 'Monday', 화: 'Tuesday', 수: 'Wednesday', 목: 'Thursday',
+      금: 'Friday', 토: 'Saturday', 일: 'Sunday',
+    };
+    timeEn = `by next ${weekdays[match[1]]}`;
+  } else if ((match = predicateKo.match(/^지금 ([가-힣]+)되고 있어요$/u))) {
+    frame = 'present-progressive-positive';
+    koStem = match[1];
+    timeEn = 'now';
+  } else if ((match = predicateKo.match(/^그때 ([가-힣]+)되고 있었어요$/u))) {
+    frame = 'past-progressive-positive';
+    koStem = match[1];
+    timeEn = 'at that time';
+  } else if ((match = predicateKo.match(/^그때 ([가-힣]+)되고 있지 않았어요$/u))) {
+    frame = 'past-progressive-negative';
+    koStem = match[1];
+    timeEn = 'at that time';
+  } else if ((match = predicateKo.match(/^어제 ([가-힣]+)되면 안 됐어요$/u))) {
+    frame = 'should-not-have';
+    koStem = match[1];
+    timeEn = 'yesterday';
+  } else if ((match = predicateKo.match(/^어제 ([가-힣]+)됐어야 했어요$/u))) {
+    frame = 'should-have';
+    koStem = match[1];
+    timeEn = 'yesterday';
+  } else if ((match = predicateKo.match(/^어제 ([가-힣]+)될 수도 있었어요$/u))) {
+    frame = 'could-have';
+    koStem = match[1];
+    timeEn = 'yesterday';
+  }
+  if (!frame || !koStem) return null;
+
+  // 대상 명사·동사·시제의 3중 화이트리스트. 다른 문장은 기존 검색에 맡깁니다.
+  const safePair = TWO_PRO_PASSIVE_C13_SAFE_PAIRS_V20261024.find(
+    item => item.frame === frame && item.nounKo === subject.nounKo &&
+      item.subjectKo === subject.ko && item.koStem === koStem
+  );
+  if (!safePair) return null;
+
+  const presentBe = subject.plural ? 'are' : 'is';
+  const pastBe = subject.plural ? 'were' : 'was';
+  const render: Record<TwoProPassiveC13Frame, [string, string]> = {
+    'past-perfect-positive': ['had', `already been ${safePair.participle} ${timeEn}`],
+    'past-perfect-negative': ['had', `not been ${safePair.participle} ${timeEn}`],
+    'future-perfect-positive': ['will', `have been ${safePair.participle} ${timeEn}`],
+    'future-perfect-negative': ['will', `not have been ${safePair.participle} ${timeEn}`],
+    'present-progressive-positive': [presentBe, `being ${safePair.participle} ${timeEn}`],
+    'past-progressive-positive': [pastBe, `being ${safePair.participle} ${timeEn}`],
+    'past-progressive-negative': [pastBe, `not being ${safePair.participle} ${timeEn}`],
+    'should-have': ['should', `have been ${safePair.participle} ${timeEn}`],
+    'should-not-have': ['should', `not have been ${safePair.participle} ${timeEn}`],
+    'could-have': ['could', `have been ${safePair.participle} ${timeEn}`],
+  };
+  const [auxiliary, rest] = render[frame];
+  const questionSubject = subject.en.replace(/^The /u, 'the ');
+  const core = isQuestion
+    ? `${auxiliary[0].toUpperCase() + auxiliary.slice(1)} ${questionSubject} ${rest}`
+    : `${subject.en} ${auxiliary} ${rest}`;
+
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90(subject.nounKo, subject.nounEn, 'N'),
+    ...(timeNounKo
+      ? [twoProEmbeddedReferenceWordV90(
+          timeNounKo, timeNounKo === '회의' ? 'meeting' : 'presentation', 'N'
+        )]
+      : []),
+    twoProEmbeddedReferenceWordV90(`${koStem}되다`, `be ${safePair.participle}`, 'V'),
+  ];
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: subject.ko, en: `${subject.en} [S]` },
+      { ko: predicateKo, en: `be ${safePair.participle} [PASSIVE:C13:${frame}:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'passive-core13-closed-verb-frames-ko-en-20261024-safe',
+  };
 };
 
 // ============================================================================
@@ -119494,6 +120090,62 @@ if (twoProBasicPassiveResultV1295) {
           engine: twoProPassiveSafeComposedResultV20261023.engine,
         },
         referenceWords: twoProPassiveSafeComposedResultV20261023.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro CORE 12차: 기존 모든 수동태 성공 분기 이후에만 제한적 재사용 문형 검사
+    // =================================================================
+    const twoProPassiveC12ResultV20261024 =
+      twoProTryKoEnPassiveC12SafeSlotsV20261024(originalText);
+
+    if (twoProPassiveC12ResultV20261024) {
+      console.log('[한영 수동태 CORE 12차 제한적 문형 보완]', {
+        query: originalText,
+        result: twoProPassiveC12ResultV20261024.targetText,
+        engine: twoProPassiveC12ResultV20261024.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPassiveC12ResultV20261024.targetText
+          ),
+          isReference: false,
+          analysis: twoProPassiveC12ResultV20261024.analysis,
+          referenceWords: twoProPassiveC12ResultV20261024.referenceWords,
+          engine: twoProPassiveC12ResultV20261024.engine,
+        },
+        referenceWords: twoProPassiveC12ResultV20261024.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro CORE 13차: 앞선 모든 수동태 성공 분기 이후에만 7개 누락 문형 검사
+    // =================================================================
+    const twoProPassiveC13ResultV20261024 =
+      twoProTryKoEnPassiveC13SafeSlotsV20261024(originalText);
+
+    if (twoProPassiveC13ResultV20261024) {
+      console.log('[한영 수동태 CORE 13차 7개 누락 문형 보완]', {
+        query: originalText,
+        result: twoProPassiveC13ResultV20261024.targetText,
+        engine: twoProPassiveC13ResultV20261024.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPassiveC13ResultV20261024.targetText
+          ),
+          isReference: false,
+          analysis: twoProPassiveC13ResultV20261024.analysis,
+          referenceWords: twoProPassiveC13ResultV20261024.referenceWords,
+          engine: twoProPassiveC13ResultV20261024.engine,
+        },
+        referenceWords: twoProPassiveC13ResultV20261024.referenceWords,
       });
     }
 
