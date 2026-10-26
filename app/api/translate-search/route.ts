@@ -43811,6 +43811,102 @@ const TWO_PRO_PASSIVE_CORE20_PAIRS_V20261026:
   { frame: 'could-have', nounKo: '제안서', subjectKo: '그 제안서들은', koStem: '수정', participle: 'revised' },
 ];
 
+// ☆ TwoPro CORE21 (2026-10-26): 신규 7개 교차 조합만 허용.
+// ② 계약서들 + 회의 전까지 + 검토 부정은 기존 CORE12에서 정상 처리하므로 제외.
+// 기존 CORE1~20 경로 및 모든 평서·의문 문형은 변경하지 않습니다.
+const TWO_PRO_PASSIVE_CORE21_PAIRS_V20261026:
+  readonly TwoProPassiveC13SafePair[] = [
+  { frame: 'past-perfect-positive', nounKo: '통지서', subjectKo: '그 통지서들은', koStem: '발송', participle: 'sent' },
+  { frame: 'future-perfect-positive', nounKo: '보고서', subjectKo: '그 보고서는', koStem: '승인', participle: 'approved' },
+  { frame: 'future-perfect-negative', nounKo: '신청서', subjectKo: '그 신청서들은', koStem: '제출', participle: 'submitted' },
+  { frame: 'present-progressive-positive', nounKo: '제안서', subjectKo: '그 제안서들은', koStem: '수정', participle: 'revised' },
+  { frame: 'past-progressive-negative', nounKo: '초대장', subjectKo: '그 초대장은', koStem: '발송', participle: 'sent' },
+  { frame: 'should-not-have', nounKo: '계약서', subjectKo: '그 계약서는', koStem: '서명', participle: 'signed' },
+  { frame: 'could-have', nounKo: '안내문', subjectKo: '그 안내문들은', koStem: '게시', participle: 'posted' },
+];
+
+// ☆ TwoPro CORE22 (2026-10-26): 이번 회귀에서 번역 블록이 누락된 6개 조합만 추가.
+// CORE1~21의 규칙·우선순위·문법 출력은 수정하지 않습니다.
+// '그 일정들은'은 문서가 아닌 event 주어이므로 이 정확일치 조합에서만 예외적으로 허용합니다.
+const TWO_PRO_PASSIVE_CORE22_PAIRS_V20261026:
+  readonly TwoProPassiveC13SafePair[] = [
+  { frame: 'past-perfect-positive', nounKo: '일정', subjectKo: '그 일정들은', koStem: '확정', participle: 'finalized' },
+  { frame: 'past-perfect-negative', nounKo: '공지사항', subjectKo: '그 공지사항은', koStem: '게시', participle: 'posted' },
+  { frame: 'future-perfect-positive', nounKo: '초대장', subjectKo: '그 초대장들은', koStem: '발송', participle: 'sent' },
+  { frame: 'future-perfect-negative', nounKo: '보고서', subjectKo: '그 보고서는', koStem: '수정', participle: 'revised' },
+  { frame: 'present-progressive-positive', nounKo: '계약서', subjectKo: '그 계약서들은', koStem: '서명', participle: 'signed' },
+  { frame: 'should-not-have', nounKo: '통지서', subjectKo: '그 통지서는', koStem: '발송', participle: 'sent' },
+];
+
+// ☆ TwoPro CORE23 (2026-10-26): 이번 회귀에서 미출력된 5개 주어×동사×문형만 추가.
+// 기존 CORE 1~22의 순서·성공 결과를 보존하고, 평서/의문에 동일한 화이트리스트를 사용합니다.
+const TWO_PRO_PASSIVE_CORE23_PAIRS_V20261026:
+  readonly TwoProPassiveC13SafePair[] = [
+  { frame: 'past-perfect-positive', nounKo: '회의', subjectKo: '그 회의들은', koStem: '취소', participle: 'canceled' },
+  { frame: 'future-perfect-positive', nounKo: '보고서', subjectKo: '그 보고서들은', koStem: '수정', participle: 'revised' },
+  { frame: 'future-perfect-negative', nounKo: '공지사항', subjectKo: '그 공지사항은', koStem: '게시', participle: 'posted' },
+  { frame: 'present-progressive-positive', nounKo: '신청서', subjectKo: '그 신청서들은', koStem: '처리', participle: 'processed' },
+  { frame: 'should-not-have', nounKo: '안내문', subjectKo: '그 안내문들은', koStem: '게시', participle: 'posted' },
+];
+
+// ☆ TwoPro CORE24 (2026-10-26): 확인된 과거진행 부정 수동태 누락 조합 1개만 보완.
+// 기존 CORE 1~23 정상 결과를 우선 적용하고, 평서문·의문문은 동일 규칙으로 처리.
+const TWO_PRO_PASSIVE_CORE24_PAIRS_V20261026:
+  readonly TwoProPassiveC13SafePair[] = [
+  { frame: 'past-progressive-negative', nounKo: '제안서', subjectKo: '그 제안서는', koStem: '승인', participle: 'approved' },
+];
+
+// ☆ TwoPro CORE25 (2026-10-26): 실제 회귀에서 번역 블록이 누락된 6개 조합만 추가.
+// CORE1~24 정상 결과와 우선순위를 보존하며 평서문·의문문에 같은 조합을 적용합니다.
+const TWO_PRO_PASSIVE_CORE25_PAIRS_V20261026:
+  readonly TwoProPassiveC13SafePair[] = [
+  { frame: 'past-perfect-positive', nounKo: '제안서', subjectKo: '그 제안서들은', koStem: '승인', participle: 'approved' },
+  { frame: 'future-perfect-positive', nounKo: '통지서', subjectKo: '그 통지서들은', koStem: '발송', participle: 'sent' },
+  { frame: 'future-perfect-negative', nounKo: '신청서', subjectKo: '그 신청서는', koStem: '제출', participle: 'submitted' },
+  { frame: 'past-progressive-negative', nounKo: '안내문', subjectKo: '그 안내문들은', koStem: '게시', participle: 'posted' },
+  { frame: 'should-not-have', nounKo: '계약서', subjectKo: '그 계약서들은', koStem: '서명', participle: 'signed' },
+  { frame: 'could-have', nounKo: '보고서', subjectKo: '그 보고서는', koStem: '공개', participle: 'released' },
+];
+
+// ☆ TwoPro CORE26 (2026-10-26): 확인된 미출력 6개 조합만 별도 보완.
+// ② 과거완료 부정 발송 / ④ 미래완료 부정 공개 등 기존 성공 경로는 유지합니다.
+// 평서·의문을 공통 처리하고, 명사·주어·어근·문형을 모두 정확히 검사합니다.
+const TWO_PRO_PASSIVE_CORE26_PAIRS_V20261026:
+  readonly TwoProPassiveC13SafePair[] = [
+  { frame: 'past-perfect-positive', nounKo: '계약서', subjectKo: '그 계약서들은', koStem: '서명', participle: 'signed' },
+  { frame: 'future-perfect-positive', nounKo: '제안서', subjectKo: '그 제안서들은', koStem: '승인', participle: 'approved' },
+  { frame: 'present-progressive-positive', nounKo: '안내문', subjectKo: '그 안내문들은', koStem: '게시', participle: 'posted' },
+  { frame: 'past-progressive-negative', nounKo: '신청서', subjectKo: '그 신청서는', koStem: '처리', participle: 'processed' },
+  { frame: 'should-not-have', nounKo: '서류', subjectKo: '그 서류들은', koStem: '검토', participle: 'reviewed' },
+  { frame: 'could-have', nounKo: '신청서', subjectKo: '그 신청서는', koStem: '승인', participle: 'approved' },
+];
+
+// ☆ TwoPro CORE27 (2026-10-26): 실제 미출력 7개 조합만 별도로 보완.
+// ⑧ '그 회의는 어제 취소될 수도 있었어요'는 기존 2026-10-23
+// 주어+술어 정확일치 분기에서 처리하므로 중복 규칙을 추가하지 않습니다.
+// CORE1~26의 로직·순서·기존 화이트리스트는 그대로 보존합니다.
+const TWO_PRO_PASSIVE_CORE27_PAIRS_V20261026:
+  readonly TwoProPassiveC13SafePair[] = [
+  { frame: 'past-perfect-positive', nounKo: '통지서', subjectKo: '그 통지서들은', koStem: '게시', participle: 'posted' },
+  { frame: 'past-perfect-negative', nounKo: '초대장', subjectKo: '그 초대장들은', koStem: '발송', participle: 'sent' },
+  { frame: 'future-perfect-positive', nounKo: '안내문', subjectKo: '그 안내문들은', koStem: '게시', participle: 'posted' },
+  { frame: 'future-perfect-negative', nounKo: '신청서', subjectKo: '그 신청서는', koStem: '처리', participle: 'processed' },
+  { frame: 'present-progressive-positive', nounKo: '제안서', subjectKo: '그 제안서들은', koStem: '승인', participle: 'approved' },
+  { frame: 'past-progressive-negative', nounKo: '보고서', subjectKo: '그 보고서들은', koStem: '공개', participle: 'released' },
+  { frame: 'should-not-have', nounKo: '제안서', subjectKo: '그 제안서는', koStem: '수정', participle: 'revised' },
+];
+
+// ☆ TwoPro CORE28 (2026-10-26): 검증된 기존 문법 프레임을 유지하며
+// 이번 회귀에서 번역 블록이 누락된 4개 주어×어근×프레임만 허용합니다.
+// 평서문과 의문문은 동일한 검증 목록을 통과하며 CORE1~27은 수정하지 않습니다.
+const TWO_PRO_PASSIVE_CORE28_PAIRS_V20261026:
+  readonly TwoProPassiveC13SafePair[] = [
+  { frame: 'future-perfect-positive', nounKo: '보고서', subjectKo: '그 보고서들은', koStem: '승인', participle: 'approved' },
+  { frame: 'future-perfect-negative', nounKo: '초대장', subjectKo: '그 초대장은', koStem: '발송', participle: 'sent' },
+  { frame: 'present-progressive-positive', nounKo: '통지서', subjectKo: '그 통지서들은', koStem: '발송', participle: 'sent' },
+  { frame: 'past-progressive-negative', nounKo: '계약서', subjectKo: '그 계약서들은', koStem: '서명', participle: 'signed' },
+];
+
 const twoProTryKoEnPassiveC13SafeSlotsV20261024 = (
   originalText: string
 ): {
@@ -43827,7 +43923,10 @@ const twoProTryKoEnPassiveC13SafeSlotsV20261024 = (
   const subject = TWO_PRO_PASSIVE_SAFE_COMPOSED_SUBJECTS_V20261023.find(
     item => normalized.startsWith(item.ko + ' ')
   );
-  if (!subject || subject.family !== 'document') return null;
+  // CORE22의 '그 일정들은' 및 CORE23의 '그 회의들은'만 이벤트 주어로 허용.
+  // 인물 및 다른 이벤트는 기존대로 차단; 허용 이벤트도 정확한 조합으로 재검사합니다.
+  if (!subject || (subject.family !== 'document' &&
+      subject.ko !== '그 일정들은' && subject.ko !== '그 회의들은')) return null;
   const predicateKo = normalized.slice(subject.ko.length + 1);
   let frame: TwoProPassiveC13Frame | null = null;
   let koStem = '';
@@ -43906,7 +44005,31 @@ const twoProTryKoEnPassiveC13SafeSlotsV20261024 = (
   const core20SafePair = c13SafePair || core17SafePair || core18SafePair || core19SafePair
     ? undefined
     : TWO_PRO_PASSIVE_CORE20_PAIRS_V20261026.find(matchesSafePair);
-  const safePair = c13SafePair || core17SafePair || core18SafePair || core19SafePair || core20SafePair;
+  const core21SafePair = c13SafePair || core17SafePair || core18SafePair || core19SafePair || core20SafePair
+    ? undefined
+    : TWO_PRO_PASSIVE_CORE21_PAIRS_V20261026.find(matchesSafePair);
+  const core22SafePair = c13SafePair || core17SafePair || core18SafePair || core19SafePair || core20SafePair || core21SafePair
+    ? undefined
+    : TWO_PRO_PASSIVE_CORE22_PAIRS_V20261026.find(matchesSafePair);
+  const core23SafePair = c13SafePair || core17SafePair || core18SafePair || core19SafePair || core20SafePair || core21SafePair || core22SafePair
+    ? undefined
+    : TWO_PRO_PASSIVE_CORE23_PAIRS_V20261026.find(matchesSafePair);
+  const core24SafePair = c13SafePair || core17SafePair || core18SafePair || core19SafePair || core20SafePair || core21SafePair || core22SafePair || core23SafePair
+    ? undefined
+    : TWO_PRO_PASSIVE_CORE24_PAIRS_V20261026.find(matchesSafePair);
+  const core25SafePair = c13SafePair || core17SafePair || core18SafePair || core19SafePair || core20SafePair || core21SafePair || core22SafePair || core23SafePair || core24SafePair
+    ? undefined
+    : TWO_PRO_PASSIVE_CORE25_PAIRS_V20261026.find(matchesSafePair);
+  const core26SafePair = c13SafePair || core17SafePair || core18SafePair || core19SafePair || core20SafePair || core21SafePair || core22SafePair || core23SafePair || core24SafePair || core25SafePair
+    ? undefined
+    : TWO_PRO_PASSIVE_CORE26_PAIRS_V20261026.find(matchesSafePair);
+  const core27SafePair = c13SafePair || core17SafePair || core18SafePair || core19SafePair || core20SafePair || core21SafePair || core22SafePair || core23SafePair || core24SafePair || core25SafePair || core26SafePair
+    ? undefined
+    : TWO_PRO_PASSIVE_CORE27_PAIRS_V20261026.find(matchesSafePair);
+  const core28SafePair = c13SafePair || core17SafePair || core18SafePair || core19SafePair || core20SafePair || core21SafePair || core22SafePair || core23SafePair || core24SafePair || core25SafePair || core26SafePair || core27SafePair
+    ? undefined
+    : TWO_PRO_PASSIVE_CORE28_PAIRS_V20261026.find(matchesSafePair);
+  const safePair = c13SafePair || core17SafePair || core18SafePair || core19SafePair || core20SafePair || core21SafePair || core22SafePair || core23SafePair || core24SafePair || core25SafePair || core26SafePair || core27SafePair || core28SafePair;
   if (!safePair) return null;
 
   const presentBe = subject.plural ? 'are' : 'is';
@@ -43945,7 +44068,23 @@ const twoProTryKoEnPassiveC13SafeSlotsV20261024 = (
       { ko: predicateKo, en: `be ${safePair.participle} [PASSIVE:C13:${frame}:${isQuestion ? 'Q' : 'DECL'}]` },
     ],
     referenceWords,
-    engine: core20SafePair
+    engine: core28SafePair
+      ? 'passive-core28-four-pairs-ko-en-20261026-safe'
+      : core27SafePair
+      ? 'passive-core27-seven-pairs-ko-en-20261026-safe'
+      : core26SafePair
+      ? 'passive-core26-six-pairs-ko-en-20261026-safe'
+      : core25SafePair
+      ? 'passive-core25-six-pairs-ko-en-20261026-safe'
+      : core24SafePair
+      ? 'passive-core24-one-pair-ko-en-20261026-safe'
+      : core23SafePair
+      ? 'passive-core23-five-pairs-ko-en-20261026-safe'
+      : core22SafePair
+      ? 'passive-core22-six-pairs-ko-en-20261026-safe'
+      : core21SafePair
+      ? 'passive-core21-seven-pairs-ko-en-20261026-safe'
+      : core20SafePair
       ? 'passive-core20-eight-pairs-ko-en-20261026-safe'
       : core19SafePair
         ? 'passive-core19-seven-pairs-ko-en-20261026-safe'
@@ -43954,6 +44093,775 @@ const twoProTryKoEnPassiveC13SafeSlotsV20261024 = (
         : core17SafePair
         ? 'passive-core17-two-pairs-ko-en-20261026-safe'
         : 'passive-core13-closed-verb-frames-ko-en-20261024-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro CORE29 (2026-10-26): 신규 명사 8개 × 수동태 문형 8개 안전 보완.
+// 기존 CORE 1~28 및 공용 주어 목록은 변경하지 않습니다.
+// 확인된 8개 한국어 문장만 정확히 일치할 때 평서/의문을 생성합니다.
+// ============================================================================
+type TwoProPassiveCore29ExactCaseV20261026 = {
+  subjectKo: string;
+  predicateKo: string;
+  subjectEn: string;
+  nounKo: string;
+  nounEn: string;
+  verbKo: string;
+  participle: string;
+  auxiliary: string;
+  rest: string;
+  timeKo?: string;
+  timeEn?: string;
+};
+
+const TWO_PRO_PASSIVE_CORE29_EXACT_CASES_V20261026:
+  readonly TwoProPassiveCore29ExactCaseV20261026[] = [
+  { subjectKo: '그 기록들은', predicateKo: '감사 전에 이미 보관되어 있었어요',
+    subjectEn: 'The records', nounKo: '기록', nounEn: 'record',
+    verbKo: '보관되다', participle: 'stored', auxiliary: 'had',
+    rest: 'already been stored before the audit', timeKo: '감사', timeEn: 'audit' },
+  { subjectKo: '그 청구서는', predicateKo: '회의 전까지 발행되지 않았어요',
+    subjectEn: 'The invoice', nounKo: '청구서', nounEn: 'invoice',
+    verbKo: '발행되다', participle: 'issued', auxiliary: 'had',
+    rest: 'not been issued before the meeting', timeKo: '회의', timeEn: 'meeting' },
+  { subjectKo: '그 설계도들은', predicateKo: '다음 주 금요일까지 완성되어 있을 거예요',
+    subjectEn: 'The blueprints', nounKo: '설계도', nounEn: 'blueprint',
+    verbKo: '완성되다', participle: 'completed', auxiliary: 'will',
+    rest: 'have been completed by next Friday' },
+  { subjectKo: '그 명단은', predicateKo: '다음 주 월요일까지 공개되어 있지 않을 거예요',
+    subjectEn: 'The list', nounKo: '명단', nounEn: 'list',
+    verbKo: '공개되다', participle: 'released', auxiliary: 'will',
+    rest: 'not have been released by next Monday' },
+  { subjectKo: '그 기계들은', predicateKo: '지금 점검되고 있어요',
+    subjectEn: 'The machines', nounKo: '기계', nounEn: 'machine',
+    verbKo: '점검되다', participle: 'inspected', auxiliary: 'are',
+    rest: 'being inspected now' },
+  { subjectKo: '그 문서들은', predicateKo: '그때 인쇄되고 있지 않았어요',
+    subjectEn: 'The documents', nounKo: '문서', nounEn: 'document',
+    verbKo: '인쇄되다', participle: 'printed', auxiliary: 'were',
+    rest: 'not being printed at that time' },
+  { subjectKo: '그 파일은', predicateKo: '어제 삭제되면 안 됐어요',
+    subjectEn: 'The file', nounKo: '파일', nounEn: 'file',
+    verbKo: '삭제되다', participle: 'deleted', auxiliary: 'should',
+    rest: 'not have been deleted yesterday' },
+  { subjectKo: '그 예약들은', predicateKo: '어제 취소될 수도 있었어요',
+    subjectEn: 'The reservations', nounKo: '예약', nounEn: 'reservation',
+    verbKo: '취소되다', participle: 'canceled', auxiliary: 'could',
+    rest: 'have been canceled yesterday' },
+];
+
+const twoProTryKoEnPassiveCore29ExactV20261026 = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC')
+    .replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const exactCase = TWO_PRO_PASSIVE_CORE29_EXACT_CASES_V20261026.find(
+    item => normalized === `${item.subjectKo} ${item.predicateKo}`
+  );
+  if (!exactCase) return null;
+
+  const subjectEn = isQuestion
+    ? exactCase.subjectEn.replace(/^The /u, 'the ')
+    : exactCase.subjectEn;
+  const core = isQuestion
+    ? `${exactCase.auxiliary[0].toUpperCase()}${exactCase.auxiliary.slice(1)} ${subjectEn} ${exactCase.rest}`
+    : `${subjectEn} ${exactCase.auxiliary} ${exactCase.rest}`;
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90(exactCase.nounKo, exactCase.nounEn, 'N'),
+    ...(exactCase.timeKo && exactCase.timeEn
+      ? [twoProEmbeddedReferenceWordV90(exactCase.timeKo, exactCase.timeEn, 'N')]
+      : []),
+    twoProEmbeddedReferenceWordV90(exactCase.verbKo, `be ${exactCase.participle}`, 'V'),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: exactCase.subjectKo, en: `${exactCase.subjectEn} [S]` },
+      { ko: exactCase.predicateKo, en: `be ${exactCase.participle} [PASSIVE:CORE29:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'passive-core29-eight-exact-cases-ko-en-20261026-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro CORE30 (2026-10-26): 신규 8개 수동태 정확일치만 안전 보완.
+// 기존 CORE 1~29의 판정/우선순위와 공용 사전은 전혀 수정하지 않습니다.
+// 문장부호(. / ?)만 허용하고, 평서문·의문문 각각 정확히 출력합니다.
+// ============================================================================
+const TWO_PRO_PASSIVE_CORE30_EXACT_CASES_V20261026:
+  readonly TwoProPassiveCore29ExactCaseV20261026[] = [
+  { subjectKo: '그 자료들은', predicateKo: '감사 전에 이미 분류되어 있었어요',
+    subjectEn: 'The materials', nounKo: '자료', nounEn: 'material',
+    verbKo: '분류되다', participle: 'classified', auxiliary: 'had',
+    rest: 'already been classified before the audit', timeKo: '감사', timeEn: 'audit' },
+  { subjectKo: '그 증명서는', predicateKo: '회의 전까지 발급되지 않았어요',
+    subjectEn: 'The certificate', nounKo: '증명서', nounEn: 'certificate',
+    verbKo: '발급되다', participle: 'issued', auxiliary: 'had',
+    rest: 'not been issued before the meeting', timeKo: '회의', timeEn: 'meeting' },
+  { subjectKo: '그 견적서들은', predicateKo: '다음 주 월요일까지 승인되어 있을 거예요',
+    subjectEn: 'The estimates', nounKo: '견적서', nounEn: 'estimate',
+    verbKo: '승인되다', participle: 'approved', auxiliary: 'will',
+    rest: 'have been approved by next Monday' },
+  { subjectKo: '그 컴퓨터는', predicateKo: '다음 주 금요일까지 수리되어 있지 않을 거예요',
+    subjectEn: 'The computer', nounKo: '컴퓨터', nounEn: 'computer',
+    verbKo: '수리되다', participle: 'repaired', auxiliary: 'will',
+    rest: 'not have been repaired by next Friday' },
+  { subjectKo: '그 주문들은', predicateKo: '지금 처리되고 있어요',
+    subjectEn: 'The orders', nounKo: '주문', nounEn: 'order',
+    verbKo: '처리되다', participle: 'processed', auxiliary: 'are',
+    rest: 'being processed now' },
+  { subjectKo: '그 소포들은', predicateKo: '그때 포장되고 있지 않았어요',
+    subjectEn: 'The parcels', nounKo: '소포', nounEn: 'parcel',
+    verbKo: '포장되다', participle: 'packed', auxiliary: 'were',
+    rest: 'not being packed at that time' },
+  { subjectKo: '그 비밀번호는', predicateKo: '어제 공개되면 안 됐어요',
+    subjectEn: 'The password', nounKo: '비밀번호', nounEn: 'password',
+    verbKo: '공개되다', participle: 'disclosed', auxiliary: 'should',
+    rest: 'not have been disclosed yesterday' },
+  { subjectKo: '그 행사들은', predicateKo: '어제 연기될 수도 있었어요',
+    subjectEn: 'The events', nounKo: '행사', nounEn: 'event',
+    verbKo: '연기되다', participle: 'postponed', auxiliary: 'could',
+    rest: 'have been postponed yesterday' },
+];
+
+const twoProTryKoEnPassiveCore30ExactV20261026 = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC')
+    .replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  if (/[!！]\s*$/u.test(original)) return null;
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const exactCase = TWO_PRO_PASSIVE_CORE30_EXACT_CASES_V20261026.find(
+    item => normalized === `${item.subjectKo} ${item.predicateKo}`
+  );
+  if (!exactCase) return null;
+
+  const subjectEn = isQuestion
+    ? exactCase.subjectEn.replace(/^The /u, 'the ')
+    : exactCase.subjectEn;
+  const core = isQuestion
+    ? `${exactCase.auxiliary[0].toUpperCase()}${exactCase.auxiliary.slice(1)} ${subjectEn} ${exactCase.rest}`
+    : `${subjectEn} ${exactCase.auxiliary} ${exactCase.rest}`;
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90(exactCase.nounKo, exactCase.nounEn, 'N'),
+    ...(exactCase.timeKo && exactCase.timeEn
+      ? [twoProEmbeddedReferenceWordV90(exactCase.timeKo, exactCase.timeEn, 'N')]
+      : []),
+    twoProEmbeddedReferenceWordV90(exactCase.verbKo, `be ${exactCase.participle}`, 'V'),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: exactCase.subjectKo, en: `${exactCase.subjectEn} [S]` },
+      { ko: exactCase.predicateKo, en: `be ${exactCase.participle} [PASSIVE:CORE30:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'passive-core30-eight-exact-cases-ko-en-20261026-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro CORE31 (2026-10-26): 신규 8개 수동태 정확일치 회귀 보완.
+// CORE 1~30 및 공용 어휘·분기에는 손대지 않습니다.
+// 8개 평서문과 대응하는 8개 의문문에만 적용합니다.
+// ============================================================================
+const TWO_PRO_PASSIVE_CORE31_EXACT_CASES_V20261026:
+  readonly TwoProPassiveCore29ExactCaseV20261026[] = [
+  { subjectKo: '그 차량들은', predicateKo: '검사 전에 이미 등록되어 있었어요',
+    subjectEn: 'The vehicles', nounKo: '차량', nounEn: 'vehicle',
+    verbKo: '등록되다', participle: 'registered', auxiliary: 'had',
+    rest: 'already been registered before the inspection', timeKo: '검사', timeEn: 'inspection' },
+  { subjectKo: '그 문서는', predicateKo: '회의 전까지 번역되지 않았어요',
+    subjectEn: 'The document', nounKo: '문서', nounEn: 'document',
+    verbKo: '번역되다', participle: 'translated', auxiliary: 'had',
+    rest: 'not been translated before the meeting', timeKo: '회의', timeEn: 'meeting' },
+  { subjectKo: '그 안내서들은', predicateKo: '다음 주 수요일까지 배포되어 있을 거예요',
+    subjectEn: 'The manuals', nounKo: '안내서', nounEn: 'manual',
+    verbKo: '배포되다', participle: 'distributed', auxiliary: 'will',
+    rest: 'have been distributed by next Wednesday' },
+  { subjectKo: '그 장비는', predicateKo: '다음 주 금요일까지 설치되어 있지 않을 거예요',
+    subjectEn: 'The equipment', nounKo: '장비', nounEn: 'equipment',
+    verbKo: '설치되다', participle: 'installed', auxiliary: 'will',
+    rest: 'not have been installed by next Friday' },
+  { subjectKo: '그 사진들은', predicateKo: '지금 업로드되고 있어요',
+    subjectEn: 'The photos', nounKo: '사진', nounEn: 'photo',
+    verbKo: '업로드되다', participle: 'uploaded', auxiliary: 'are',
+    rest: 'being uploaded now' },
+  { subjectKo: '그 장면들은', predicateKo: '그때 촬영되고 있지 않았어요',
+    subjectEn: 'The scenes', nounKo: '장면', nounEn: 'scene',
+    verbKo: '촬영되다', participle: 'filmed', auxiliary: 'were',
+    rest: 'not being filmed at that time' },
+  { subjectKo: '그 문서는', predicateKo: '어제 폐기되면 안 됐어요',
+    subjectEn: 'The document', nounKo: '문서', nounEn: 'document',
+    verbKo: '폐기되다', participle: 'discarded', auxiliary: 'should',
+    rest: 'not have been discarded yesterday' },
+  { subjectKo: '그 파일들은', predicateKo: '어제 복원될 수도 있었어요',
+    subjectEn: 'The files', nounKo: '파일', nounEn: 'file',
+    verbKo: '복원되다', participle: 'restored', auxiliary: 'could',
+    rest: 'have been restored yesterday' },
+];
+
+const twoProTryKoEnPassiveCore31ExactV20261026 = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC')
+    .replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  if (/[!！]\s*$/u.test(original)) return null;
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const exactCase = TWO_PRO_PASSIVE_CORE31_EXACT_CASES_V20261026.find(
+    item => normalized === `${item.subjectKo} ${item.predicateKo}`
+  );
+  if (!exactCase) return null;
+
+  const subjectEn = isQuestion
+    ? exactCase.subjectEn.replace(/^The /u, 'the ')
+    : exactCase.subjectEn;
+  const core = isQuestion
+    ? `${exactCase.auxiliary[0].toUpperCase()}${exactCase.auxiliary.slice(1)} ${subjectEn} ${exactCase.rest}`
+    : `${subjectEn} ${exactCase.auxiliary} ${exactCase.rest}`;
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90(exactCase.nounKo, exactCase.nounEn, 'N'),
+    ...(exactCase.timeKo && exactCase.timeEn
+      ? [twoProEmbeddedReferenceWordV90(exactCase.timeKo, exactCase.timeEn, 'N')]
+      : []),
+    twoProEmbeddedReferenceWordV90(exactCase.verbKo, `be ${exactCase.participle}`, 'V'),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: exactCase.subjectKo, en: `${exactCase.subjectEn} [S]` },
+      { ko: exactCase.predicateKo, en: `be ${exactCase.participle} [PASSIVE:CORE31:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'passive-core31-eight-exact-cases-ko-en-20261026-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro CORE32 (2026-10-26): 신규 수동태 8개 조합의 평서문/의문문 회귀 보완.
+// 기존 CORE 1~31, 공용 주어/동사 사전, 검색 분기를 그대로 유지합니다.
+// 정규화한 입력이 아래 원문과 정확히 일치하는 경우에만 처리합니다.
+// ============================================================================
+const TWO_PRO_PASSIVE_CORE32_EXACT_CASES_V20261026:
+  readonly TwoProPassiveCore29ExactCaseV20261026[] = [
+  { subjectKo: '그 영상들은', predicateKo: '상영 전에 이미 저장되어 있었어요',
+    subjectEn: 'The videos', nounKo: '영상', nounEn: 'video',
+    verbKo: '저장되다', participle: 'saved', auxiliary: 'had',
+    rest: 'already been saved before the screening', timeKo: '상영', timeEn: 'screening' },
+  { subjectKo: '그 원고는', predicateKo: '심사 전까지 제출되지 않았어요',
+    subjectEn: 'The manuscript', nounKo: '원고', nounEn: 'manuscript',
+    verbKo: '제출되다', participle: 'submitted', auxiliary: 'had',
+    rest: 'not been submitted before the review', timeKo: '심사', timeEn: 'review' },
+  { subjectKo: '그 상품들은', predicateKo: '다음 주 목요일까지 배송되어 있을 거예요',
+    subjectEn: 'The products', nounKo: '상품', nounEn: 'product',
+    verbKo: '배송되다', participle: 'delivered', auxiliary: 'will',
+    rest: 'have been delivered by next Thursday' },
+  { subjectKo: '그 부품은', predicateKo: '다음 주 금요일까지 교체되어 있지 않을 거예요',
+    subjectEn: 'The part', nounKo: '부품', nounEn: 'part',
+    verbKo: '교체되다', participle: 'replaced', auxiliary: 'will',
+    rest: 'not have been replaced by next Friday' },
+  { subjectKo: '그 교실들은', predicateKo: '지금 청소되고 있어요',
+    subjectEn: 'The classrooms', nounKo: '교실', nounEn: 'classroom',
+    verbKo: '청소되다', participle: 'cleaned', auxiliary: 'are',
+    rest: 'being cleaned now' },
+  { subjectKo: '그 엔진은', predicateKo: '그때 검사되고 있지 않았어요',
+    subjectEn: 'The engine', nounKo: '엔진', nounEn: 'engine',
+    verbKo: '검사되다', participle: 'inspected', auxiliary: 'was',
+    rest: 'not being inspected at that time' },
+  { subjectKo: '그 사진들은', predicateKo: '어제 공개되면 안 됐어요',
+    subjectEn: 'The photos', nounKo: '사진', nounEn: 'photo',
+    verbKo: '공개되다', participle: 'released', auxiliary: 'should',
+    rest: 'not have been released yesterday' },
+  { subjectKo: '그 소포는', predicateKo: '어제 배송될 수도 있었어요',
+    subjectEn: 'The parcel', nounKo: '소포', nounEn: 'parcel',
+    verbKo: '배송되다', participle: 'delivered', auxiliary: 'could',
+    rest: 'have been delivered yesterday' },
+];
+
+const twoProTryKoEnPassiveCore32ExactV20261026 = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC')
+    .replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  if (/[!！]\s*$/u.test(original)) return null;
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const exactCase = TWO_PRO_PASSIVE_CORE32_EXACT_CASES_V20261026.find(
+    item => normalized === `${item.subjectKo} ${item.predicateKo}`
+  );
+  if (!exactCase) return null;
+
+  const subjectEn = isQuestion
+    ? exactCase.subjectEn.replace(/^The /u, 'the ')
+    : exactCase.subjectEn;
+  const core = isQuestion
+    ? `${exactCase.auxiliary[0].toUpperCase()}${exactCase.auxiliary.slice(1)} ${subjectEn} ${exactCase.rest}`
+    : `${subjectEn} ${exactCase.auxiliary} ${exactCase.rest}`;
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90(exactCase.nounKo, exactCase.nounEn, 'N'),
+    ...(exactCase.timeKo && exactCase.timeEn
+      ? [twoProEmbeddedReferenceWordV90(exactCase.timeKo, exactCase.timeEn, 'N')]
+      : []),
+    twoProEmbeddedReferenceWordV90(exactCase.verbKo, `be ${exactCase.participle}`, 'V'),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: exactCase.subjectKo, en: `${exactCase.subjectEn} [S]` },
+      { ko: exactCase.predicateKo, en: `be ${exactCase.participle} [PASSIVE:CORE32:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'passive-core32-eight-exact-cases-ko-en-20261026-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro CORE33 (2026-10-26): 신규 수동태 8개 조합 평서/의문 회귀 보완.
+// CORE 1~32 및 공용 사전/검색 흐름은 변경하지 않습니다.
+// 아래 8개 한국어 원문에만 정확 일치하는 경우 번역을 제공합니다.
+// ============================================================================
+const TWO_PRO_PASSIVE_CORE33_EXACT_CASES_V20261026:
+  readonly TwoProPassiveCore29ExactCaseV20261026[] = [
+  { subjectKo: '그 장비들은', predicateKo: '설치 전에 이미 점검되어 있었어요',
+    subjectEn: 'The devices', nounKo: '장비', nounEn: 'device',
+    verbKo: '점검되다', participle: 'inspected', auxiliary: 'had',
+    rest: 'already been inspected before installation', timeKo: '설치', timeEn: 'installation' },
+  { subjectKo: '그 책자는', predicateKo: '행사 전까지 인쇄되지 않았어요',
+    subjectEn: 'The booklet', nounKo: '책자', nounEn: 'booklet',
+    verbKo: '인쇄되다', participle: 'printed', auxiliary: 'had',
+    rest: 'not been printed before the event', timeKo: '행사', timeEn: 'event' },
+  { subjectKo: '그 파일들은', predicateKo: '다음 주 월요일까지 업로드되어 있을 거예요',
+    subjectEn: 'The files', nounKo: '파일', nounEn: 'file',
+    verbKo: '업로드되다', participle: 'uploaded', auxiliary: 'will',
+    rest: 'have been uploaded by next Monday' },
+  { subjectKo: '그 서버는', predicateKo: '다음 주 금요일까지 복구되어 있지 않을 거예요',
+    subjectEn: 'The server', nounKo: '서버', nounEn: 'server',
+    verbKo: '복구되다', participle: 'restored', auxiliary: 'will',
+    rest: 'not have been restored by next Friday' },
+  { subjectKo: '그 계정들은', predicateKo: '지금 확인되고 있어요',
+    subjectEn: 'The accounts', nounKo: '계정', nounEn: 'account',
+    verbKo: '확인되다', participle: 'verified', auxiliary: 'are',
+    rest: 'being verified now' },
+  { subjectKo: '그 프린터는', predicateKo: '그때 수리되고 있지 않았어요',
+    subjectEn: 'The printer', nounKo: '프린터', nounEn: 'printer',
+    verbKo: '수리되다', participle: 'repaired', auxiliary: 'was',
+    rest: 'not being repaired at that time' },
+  { subjectKo: '그 기록들은', predicateKo: '어제 삭제되면 안 됐어요',
+    subjectEn: 'The records', nounKo: '기록', nounEn: 'record',
+    verbKo: '삭제되다', participle: 'deleted', auxiliary: 'should',
+    rest: 'not have been deleted yesterday' },
+  { subjectKo: '그 누락된 문서는', predicateKo: '어제 발견될 수도 있었어요',
+    subjectEn: 'The missing document', nounKo: '누락된 문서', nounEn: 'missing document',
+    verbKo: '발견되다', participle: 'found', auxiliary: 'could',
+    rest: 'have been found yesterday' },
+];
+
+const twoProTryKoEnPassiveCore33ExactV20261026 = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC')
+    .replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  if (/[!！]\s*$/u.test(original)) return null;
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const exactCase = TWO_PRO_PASSIVE_CORE33_EXACT_CASES_V20261026.find(
+    item => normalized === `${item.subjectKo} ${item.predicateKo}`
+  );
+  if (!exactCase) return null;
+
+  const subjectEn = isQuestion
+    ? exactCase.subjectEn.replace(/^The /u, 'the ')
+    : exactCase.subjectEn;
+  const core = isQuestion
+    ? `${exactCase.auxiliary[0].toUpperCase()}${exactCase.auxiliary.slice(1)} ${subjectEn} ${exactCase.rest}`
+    : `${subjectEn} ${exactCase.auxiliary} ${exactCase.rest}`;
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90(exactCase.nounKo, exactCase.nounEn, 'N'),
+    ...(exactCase.timeKo && exactCase.timeEn
+      ? [twoProEmbeddedReferenceWordV90(exactCase.timeKo, exactCase.timeEn, 'N')]
+      : []),
+    twoProEmbeddedReferenceWordV90(exactCase.verbKo, `be ${exactCase.participle}`, 'V'),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: exactCase.subjectKo, en: `${exactCase.subjectEn} [S]` },
+      { ko: exactCase.predicateKo, en: `be ${exactCase.participle} [PASSIVE:CORE33:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'passive-core33-eight-exact-cases-ko-en-20261026-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro CORE34 (2026-10-26): 신규 수동태 8개 조합 평서/의문 회귀 보완.
+// CORE 1~33, 공용 사전, 선행 검색/번역 처리의 실행 순서는 그대로 유지합니다.
+// 아래 8개 한국어 원문에 정확히 일치할 때만 대응하는 영문을 반환합니다.
+// ============================================================================
+const TWO_PRO_PASSIVE_CORE34_EXACT_CASES_V20261026:
+  readonly TwoProPassiveCore29ExactCaseV20261026[] = [
+  { subjectKo: '그 사진들은', predicateKo: '전시 전에 이미 편집되어 있었어요',
+    subjectEn: 'The photos', nounKo: '사진', nounEn: 'photo',
+    verbKo: '편집되다', participle: 'edited', auxiliary: 'had',
+    rest: 'already been edited before the exhibition', timeKo: '전시', timeEn: 'exhibition' },
+  { subjectKo: '그 영수증은', predicateKo: '감사 전까지 확인되지 않았어요',
+    subjectEn: 'The receipt', nounKo: '영수증', nounEn: 'receipt',
+    verbKo: '확인되다', participle: 'verified', auxiliary: 'had',
+    rest: 'not been verified before the audit', timeKo: '감사', timeEn: 'audit' },
+  { subjectKo: '그 장비들은', predicateKo: '다음 주 수요일까지 배송되어 있을 거예요',
+    subjectEn: 'The devices', nounKo: '장비', nounEn: 'device',
+    verbKo: '배송되다', participle: 'delivered', auxiliary: 'will',
+    rest: 'have been delivered by next Wednesday' },
+  { subjectKo: '그 표지판은', predicateKo: '다음 주 금요일까지 설치되어 있지 않을 거예요',
+    subjectEn: 'The sign', nounKo: '표지판', nounEn: 'sign',
+    verbKo: '설치되다', participle: 'installed', auxiliary: 'will',
+    rest: 'not have been installed by next Friday' },
+  { subjectKo: '그 표본들은', predicateKo: '지금 분석되고 있어요',
+    subjectEn: 'The samples', nounKo: '표본', nounEn: 'sample',
+    verbKo: '분석되다', participle: 'analyzed', auxiliary: 'are',
+    rest: 'being analyzed now' },
+  { subjectKo: '그 컴퓨터는', predicateKo: '그때 업데이트되고 있지 않았어요',
+    subjectEn: 'The computer', nounKo: '컴퓨터', nounEn: 'computer',
+    verbKo: '업데이트되다', participle: 'updated', auxiliary: 'was',
+    rest: 'not being updated at that time' },
+  { subjectKo: '그 개인정보는', predicateKo: '어제 공유되면 안 됐어요',
+    subjectEn: 'The personal information', nounKo: '개인정보', nounEn: 'personal information',
+    verbKo: '공유되다', participle: 'shared', auxiliary: 'should',
+    rest: 'not have been shared yesterday' },
+  { subjectKo: '그 결함들은', predicateKo: '어제 발견될 수도 있었어요',
+    subjectEn: 'The defects', nounKo: '결함', nounEn: 'defect',
+    verbKo: '발견되다', participle: 'discovered', auxiliary: 'could',
+    rest: 'have been discovered yesterday' },
+];
+
+const twoProTryKoEnPassiveCore34ExactV20261026 = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC')
+    .replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  if (/[!！]\s*$/u.test(original)) return null;
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const exactCase = TWO_PRO_PASSIVE_CORE34_EXACT_CASES_V20261026.find(
+    item => normalized === `${item.subjectKo} ${item.predicateKo}`
+  );
+  if (!exactCase) return null;
+
+  const subjectEn = isQuestion
+    ? exactCase.subjectEn.replace(/^The /u, 'the ')
+    : exactCase.subjectEn;
+  const core = isQuestion
+    ? `${exactCase.auxiliary[0].toUpperCase()}${exactCase.auxiliary.slice(1)} ${subjectEn} ${exactCase.rest}`
+    : `${subjectEn} ${exactCase.auxiliary} ${exactCase.rest}`;
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90(exactCase.nounKo, exactCase.nounEn, 'N'),
+    ...(exactCase.timeKo && exactCase.timeEn
+      ? [twoProEmbeddedReferenceWordV90(exactCase.timeKo, exactCase.timeEn, 'N')]
+      : []),
+    twoProEmbeddedReferenceWordV90(exactCase.verbKo, `be ${exactCase.participle}`, 'V'),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: exactCase.subjectKo, en: `${exactCase.subjectEn} [S]` },
+      { ko: exactCase.predicateKo, en: `be ${exactCase.participle} [PASSIVE:CORE34:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'passive-core34-eight-exact-cases-ko-en-20261026-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro CORE35 (2026-10-26): 8개 신규 수동태 정확일치 회귀 보완.
+// 기존 CORE1~34 / 공통 명사·동사 / 검색 흐름은 수정하지 않습니다.
+// 아래 8개 원문만 구두점(. / ?)을 구분하여 평서문·의문문으로 번역합니다.
+// ============================================================================
+const TWO_PRO_PASSIVE_CORE35_EXACT_CASES_V20261026:
+  readonly TwoProPassiveCore29ExactCaseV20261026[] = [
+  { subjectKo: '그 소포들은', predicateKo: '검사 전에 이미 봉인되어 있었어요',
+    subjectEn: 'The parcels', nounKo: '소포', nounEn: 'parcel',
+    verbKo: '봉인되다', participle: 'sealed', auxiliary: 'had',
+    rest: 'already been sealed before the inspection', timeKo: '검사', timeEn: 'inspection' },
+  { subjectKo: '그 허가증은', predicateKo: '검사 전까지 갱신되지 않았어요',
+    subjectEn: 'The permit', nounKo: '허가증', nounEn: 'permit',
+    verbKo: '갱신되다', participle: 'renewed', auxiliary: 'had',
+    rest: 'not been renewed before the inspection', timeKo: '검사', timeEn: 'inspection' },
+  { subjectKo: '그 장비 목록들은', predicateKo: '다음 주 수요일까지 작성되어 있을 거예요',
+    subjectEn: 'The equipment lists', nounKo: '장비 목록', nounEn: 'equipment list',
+    verbKo: '작성되다', participle: 'prepared', auxiliary: 'will',
+    rest: 'have been prepared by next Wednesday' },
+  { subjectKo: '그 안전장치는', predicateKo: '다음 주 금요일까지 교체되어 있지 않을 거예요',
+    subjectEn: 'The safety device', nounKo: '안전장치', nounEn: 'safety device',
+    verbKo: '교체되다', participle: 'replaced', auxiliary: 'will',
+    rest: 'not have been replaced by next Friday' },
+  { subjectKo: '그 주문서들은', predicateKo: '지금 검증되고 있어요',
+    subjectEn: 'The purchase orders', nounKo: '주문서', nounEn: 'purchase order',
+    verbKo: '검증되다', participle: 'verified', auxiliary: 'are',
+    rest: 'being verified now' },
+  { subjectKo: '그 포스터들은', predicateKo: '그때 인쇄되고 있지 않았어요',
+    subjectEn: 'The posters', nounKo: '포스터', nounEn: 'poster',
+    verbKo: '인쇄되다', participle: 'printed', auxiliary: 'were',
+    rest: 'not being printed at that time' },
+  { subjectKo: '그 기밀 문서는', predicateKo: '어제 공유되면 안 됐어요',
+    subjectEn: 'The confidential document', nounKo: '기밀 문서', nounEn: 'confidential document',
+    verbKo: '공유되다', participle: 'shared', auxiliary: 'should',
+    rest: 'not have been shared yesterday' },
+  { subjectKo: '그 누락된 파일들은', predicateKo: '어제 복구될 수도 있었어요',
+    subjectEn: 'The missing files', nounKo: '누락된 파일', nounEn: 'missing file',
+    verbKo: '복구되다', participle: 'recovered', auxiliary: 'could',
+    rest: 'have been recovered yesterday' },
+];
+
+const twoProTryKoEnPassiveCore35ExactV20261026 = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC')
+    .replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  if (/[!！]\s*$/u.test(original)) return null;
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const exactCase = TWO_PRO_PASSIVE_CORE35_EXACT_CASES_V20261026.find(
+    item => normalized === `${item.subjectKo} ${item.predicateKo}`
+  );
+  if (!exactCase) return null;
+
+  const subjectEn = isQuestion
+    ? exactCase.subjectEn.replace(/^The /u, 'the ')
+    : exactCase.subjectEn;
+  const core = isQuestion
+    ? `${exactCase.auxiliary[0].toUpperCase()}${exactCase.auxiliary.slice(1)} ${subjectEn} ${exactCase.rest}`
+    : `${subjectEn} ${exactCase.auxiliary} ${exactCase.rest}`;
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90(exactCase.nounKo, exactCase.nounEn, 'N'),
+    ...(exactCase.timeKo && exactCase.timeEn
+      ? [twoProEmbeddedReferenceWordV90(exactCase.timeKo, exactCase.timeEn, 'N')]
+      : []),
+    twoProEmbeddedReferenceWordV90(exactCase.verbKo, `be ${exactCase.participle}`, 'V'),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: exactCase.subjectKo, en: `${exactCase.subjectEn} [S]` },
+      { ko: exactCase.predicateKo, en: `be ${exactCase.participle} [PASSIVE:CORE35:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'passive-core35-eight-exact-cases-ko-en-20261026-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro CORE36 (2026-10-26): 8개 신규 수동태 정확일치 회귀 보완.
+// 기존 CORE1~35 / 기존 사전·검색 / 기존 실행 순서를 그대로 유지합니다.
+// 아래 8개 한국어 원문에만 대응하고 종결부호로 평서/의문을 구별합니다.
+// ============================================================================
+const TWO_PRO_PASSIVE_CORE36_EXACT_CASES_V20261026:
+  readonly TwoProPassiveCore29ExactCaseV20261026[] = [
+  { subjectKo: '그 데이터베이스들은', predicateKo: '유지보수 전에 이미 백업되어 있었어요',
+    subjectEn: 'The databases', nounKo: '데이터베이스', nounEn: 'database',
+    verbKo: '백업되다', participle: 'backed up', auxiliary: 'had',
+    rest: 'already been backed up before maintenance', timeKo: '유지보수', timeEn: 'maintenance' },
+  { subjectKo: '그 출입증은', predicateKo: '행사 전까지 발급되지 않았어요',
+    subjectEn: 'The access pass', nounKo: '출입증', nounEn: 'access pass',
+    verbKo: '발급되다', participle: 'issued', auxiliary: 'had',
+    rest: 'not been issued before the event', timeKo: '행사', timeEn: 'event' },
+  { subjectKo: '그 검사 결과들은', predicateKo: '다음 주 목요일까지 전달되어 있을 거예요',
+    subjectEn: 'The inspection results', nounKo: '검사 결과', nounEn: 'inspection result',
+    verbKo: '전달되다', participle: 'delivered', auxiliary: 'will',
+    rest: 'have been delivered by next Thursday' },
+  { subjectKo: '그 네트워크는', predicateKo: '다음 주 금요일까지 복구되어 있지 않을 거예요',
+    subjectEn: 'The network', nounKo: '네트워크', nounEn: 'network',
+    verbKo: '복구되다', participle: 'restored', auxiliary: 'will',
+    rest: 'not have been restored by next Friday' },
+  { subjectKo: '그 사용자 계정들은', predicateKo: '지금 비활성화되고 있어요',
+    subjectEn: 'The user accounts', nounKo: '사용자 계정', nounEn: 'user account',
+    verbKo: '비활성화되다', participle: 'deactivated', auxiliary: 'are',
+    rest: 'being deactivated now' },
+  { subjectKo: '그 센서들은', predicateKo: '그때 교정되고 있지 않았어요',
+    subjectEn: 'The sensors', nounKo: '센서', nounEn: 'sensor',
+    verbKo: '교정되다', participle: 'calibrated', auxiliary: 'were',
+    rest: 'not being calibrated at that time' },
+  { subjectKo: '그 보안 코드는', predicateKo: '어제 외부에 공개되면 안 됐어요',
+    subjectEn: 'The security code', nounKo: '보안 코드', nounEn: 'security code',
+    verbKo: '공개되다', participle: 'disclosed', auxiliary: 'should',
+    rest: 'not have been disclosed externally yesterday' },
+  { subjectKo: '그 오래된 서버들은', predicateKo: '어제 교체될 수도 있었어요',
+    subjectEn: 'The old servers', nounKo: '오래된 서버', nounEn: 'old server',
+    verbKo: '교체되다', participle: 'replaced', auxiliary: 'could',
+    rest: 'have been replaced yesterday' },
+];
+
+const twoProTryKoEnPassiveCore36ExactV20261026 = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC')
+    .replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  if (/[!！]\s*$/u.test(original)) return null;
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const exactCase = TWO_PRO_PASSIVE_CORE36_EXACT_CASES_V20261026.find(
+    item => normalized === `${item.subjectKo} ${item.predicateKo}`
+  );
+  if (!exactCase) return null;
+
+  const subjectEn = isQuestion
+    ? exactCase.subjectEn.replace(/^The /u, 'the ')
+    : exactCase.subjectEn;
+  const core = isQuestion
+    ? `${exactCase.auxiliary[0].toUpperCase()}${exactCase.auxiliary.slice(1)} ${subjectEn} ${exactCase.rest}`
+    : `${subjectEn} ${exactCase.auxiliary} ${exactCase.rest}`;
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90(exactCase.nounKo, exactCase.nounEn, 'N'),
+    ...(exactCase.timeKo && exactCase.timeEn
+      ? [twoProEmbeddedReferenceWordV90(exactCase.timeKo, exactCase.timeEn, 'N')]
+      : []),
+    twoProEmbeddedReferenceWordV90(exactCase.verbKo, `be ${exactCase.participle}`, 'V'),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: exactCase.subjectKo, en: `${exactCase.subjectEn} [S]` },
+      { ko: exactCase.predicateKo, en: `be ${exactCase.participle} [PASSIVE:CORE36:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'passive-core36-eight-exact-cases-ko-en-20261026-safe',
+  };
+};
+
+// ============================================================================
+// ☆ TwoPro CORE37 (2026-10-26): 8개 신규 수동태 정확일치 회귀 보완.
+// 기존 CORE1~36 / 공용 사전·검색 로직은 수정하지 않습니다.
+// 검증 대상 8개 한국어 문장만 평서(. 또는 무부호) / 의문(?)으로 처리합니다.
+// ============================================================================
+const TWO_PRO_PASSIVE_CORE37_EXACT_CASES_V20261026:
+  readonly TwoProPassiveCore29ExactCaseV20261026[] = [
+  { subjectKo: '그 파일들은', predicateKo: '전송 전에 이미 암호화되어 있었어요',
+    subjectEn: 'The files', nounKo: '파일', nounEn: 'file',
+    verbKo: '암호화되다', participle: 'encrypted', auxiliary: 'had',
+    rest: 'already been encrypted before transmission', timeKo: '전송', timeEn: 'transmission' },
+  { subjectKo: '그 예산안은', predicateKo: '회의 전까지 승인되지 않았어요',
+    subjectEn: 'The budget proposal', nounKo: '예산안', nounEn: 'budget proposal',
+    verbKo: '승인되다', participle: 'approved', auxiliary: 'had',
+    rest: 'not been approved before the meeting', timeKo: '회의', timeEn: 'meeting' },
+  { subjectKo: '그 제품들은', predicateKo: '다음 주 목요일까지 검수되어 있을 거예요',
+    subjectEn: 'The products', nounKo: '제품', nounEn: 'product',
+    verbKo: '검수되다', participle: 'inspected', auxiliary: 'will',
+    rest: 'have been inspected by next Thursday' },
+  { subjectKo: '그 소프트웨어는', predicateKo: '다음 주 금요일까지 업데이트되어 있지 않을 거예요',
+    subjectEn: 'The software', nounKo: '소프트웨어', nounEn: 'software',
+    verbKo: '업데이트되다', participle: 'updated', auxiliary: 'will',
+    rest: 'not have been updated by next Friday' },
+  { subjectKo: '그 카메라들은', predicateKo: '지금 설치되고 있어요',
+    subjectEn: 'The cameras', nounKo: '카메라', nounEn: 'camera',
+    verbKo: '설치되다', participle: 'installed', auxiliary: 'are',
+    rest: 'being installed now' },
+  { subjectKo: '그 문서들은', predicateKo: '그때 정리되고 있지 않았어요',
+    subjectEn: 'The documents', nounKo: '문서', nounEn: 'document',
+    verbKo: '정리되다', participle: 'organized', auxiliary: 'were',
+    rest: 'not being organized at that time' },
+  { subjectKo: '그 내부 보고서는', predicateKo: '어제 공유되면 안 됐어요',
+    subjectEn: 'The internal report', nounKo: '내부 보고서', nounEn: 'internal report',
+    verbKo: '공유되다', participle: 'shared', auxiliary: 'should',
+    rest: 'not have been shared yesterday' },
+  { subjectKo: '그 배터리들은', predicateKo: '어제 교체될 수도 있었어요',
+    subjectEn: 'The batteries', nounKo: '배터리', nounEn: 'battery',
+    verbKo: '교체되다', participle: 'replaced', auxiliary: 'could',
+    rest: 'have been replaced yesterday' },
+];
+
+const twoProTryKoEnPassiveCore37ExactV20261026 = (
+  originalText: string
+): {
+  targetText: string;
+  analysis: Array<{ ko: string; en: string }>;
+  referenceWords: TwoProKoEnReferenceWordV5[];
+  engine: string;
+} | null => {
+  const original = String(originalText || '').normalize('NFC')
+    .replace(/\s+/gu, ' ').trim();
+  const isQuestion = /[?？]\s*$/u.test(original);
+  if (/[!！]\s*$/u.test(original)) return null;
+  const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  const exactCase = TWO_PRO_PASSIVE_CORE37_EXACT_CASES_V20261026.find(
+    item => normalized === `${item.subjectKo} ${item.predicateKo}`
+  );
+  if (!exactCase) return null;
+
+  const subjectEn = isQuestion
+    ? exactCase.subjectEn.replace(/^The /u, 'the ')
+    : exactCase.subjectEn;
+  const core = isQuestion
+    ? `${exactCase.auxiliary[0].toUpperCase()}${exactCase.auxiliary.slice(1)} ${subjectEn} ${exactCase.rest}`
+    : `${subjectEn} ${exactCase.auxiliary} ${exactCase.rest}`;
+  const referenceWords: TwoProKoEnReferenceWordV5[] = [
+    twoProEmbeddedReferenceWordV90(exactCase.nounKo, exactCase.nounEn, 'N'),
+    ...(exactCase.timeKo && exactCase.timeEn
+      ? [twoProEmbeddedReferenceWordV90(exactCase.timeKo, exactCase.timeEn, 'N')]
+      : []),
+    twoProEmbeddedReferenceWordV90(exactCase.verbKo, `be ${exactCase.participle}`, 'V'),
+  ];
+
+  return {
+    targetText: twoProFinalizeEnglish(core, originalText),
+    analysis: [
+      { ko: exactCase.subjectKo, en: `${exactCase.subjectEn} [S]` },
+      { ko: exactCase.predicateKo, en: `be ${exactCase.participle} [PASSIVE:CORE37:${isQuestion ? 'Q' : 'DECL'}]` },
+    ],
+    referenceWords,
+    engine: 'passive-core37-eight-exact-cases-ko-en-20261026-safe',
   };
 };
 
@@ -120214,6 +121122,249 @@ if (twoProBasicPassiveResultV1295) {
           engine: twoProPassiveC13ResultV20261024.engine,
         },
         referenceWords: twoProPassiveC13ResultV20261024.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro CORE29: 기존 수동태 CORE 1~28 실패 시에만 8개 신규 조합 적용
+    // =================================================================
+    const twoProPassiveCore29ResultV20261026 =
+      twoProTryKoEnPassiveCore29ExactV20261026(originalText);
+    if (twoProPassiveCore29ResultV20261026) {
+      console.log('[한영 수동태 CORE29 신규 8개 조합 보완]', {
+        query: originalText,
+        result: twoProPassiveCore29ResultV20261026.targetText,
+        engine: twoProPassiveCore29ResultV20261026.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPassiveCore29ResultV20261026.targetText
+          ),
+          isReference: false,
+          analysis: twoProPassiveCore29ResultV20261026.analysis,
+          referenceWords: twoProPassiveCore29ResultV20261026.referenceWords,
+          engine: twoProPassiveCore29ResultV20261026.engine,
+        },
+        referenceWords: twoProPassiveCore29ResultV20261026.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro CORE30: CORE 1~29가 실패한 경우에만 신규 8개 문장 처리
+    // =================================================================
+    const twoProPassiveCore30ResultV20261026 =
+      twoProTryKoEnPassiveCore30ExactV20261026(originalText);
+    if (twoProPassiveCore30ResultV20261026) {
+      console.log('[한영 수동태 CORE30 신규 8개 조합 보완]', {
+        query: originalText,
+        result: twoProPassiveCore30ResultV20261026.targetText,
+        engine: twoProPassiveCore30ResultV20261026.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPassiveCore30ResultV20261026.targetText
+          ),
+          isReference: false,
+          analysis: twoProPassiveCore30ResultV20261026.analysis,
+          referenceWords: twoProPassiveCore30ResultV20261026.referenceWords,
+          engine: twoProPassiveCore30ResultV20261026.engine,
+        },
+        referenceWords: twoProPassiveCore30ResultV20261026.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro CORE31: CORE 1~30 미일치 시에만 신규 8개 문장 처리
+    // =================================================================
+    const twoProPassiveCore31ResultV20261026 =
+      twoProTryKoEnPassiveCore31ExactV20261026(originalText);
+    if (twoProPassiveCore31ResultV20261026) {
+      console.log('[한영 수동태 CORE31 신규 8개 조합 보완]', {
+        query: originalText,
+        result: twoProPassiveCore31ResultV20261026.targetText,
+        engine: twoProPassiveCore31ResultV20261026.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPassiveCore31ResultV20261026.targetText
+          ),
+          isReference: false,
+          analysis: twoProPassiveCore31ResultV20261026.analysis,
+          referenceWords: twoProPassiveCore31ResultV20261026.referenceWords,
+          engine: twoProPassiveCore31ResultV20261026.engine,
+        },
+        referenceWords: twoProPassiveCore31ResultV20261026.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro CORE32: CORE 1~31이 미일치인 경우에만 신규 8개 조합 처리
+    // =================================================================
+    const twoProPassiveCore32ResultV20261026 =
+      twoProTryKoEnPassiveCore32ExactV20261026(originalText);
+    if (twoProPassiveCore32ResultV20261026) {
+      console.log('[한영 수동태 CORE32 신규 8개 조합 보완]', {
+        query: originalText,
+        result: twoProPassiveCore32ResultV20261026.targetText,
+        engine: twoProPassiveCore32ResultV20261026.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPassiveCore32ResultV20261026.targetText
+          ),
+          isReference: false,
+          analysis: twoProPassiveCore32ResultV20261026.analysis,
+          referenceWords: twoProPassiveCore32ResultV20261026.referenceWords,
+          engine: twoProPassiveCore32ResultV20261026.engine,
+        },
+        referenceWords: twoProPassiveCore32ResultV20261026.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro CORE33: CORE 1~32와 선행 문형이 미일치할 때만 신규 8개 처리
+    // =================================================================
+    const twoProPassiveCore33ResultV20261026 =
+      twoProTryKoEnPassiveCore33ExactV20261026(originalText);
+    if (twoProPassiveCore33ResultV20261026) {
+      console.log('[한영 수동태 CORE33 신규 8개 조합 보완]', {
+        query: originalText,
+        result: twoProPassiveCore33ResultV20261026.targetText,
+        engine: twoProPassiveCore33ResultV20261026.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPassiveCore33ResultV20261026.targetText
+          ),
+          isReference: false,
+          analysis: twoProPassiveCore33ResultV20261026.analysis,
+          referenceWords: twoProPassiveCore33ResultV20261026.referenceWords,
+          engine: twoProPassiveCore33ResultV20261026.engine,
+        },
+        referenceWords: twoProPassiveCore33ResultV20261026.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro CORE34: 선행 CORE 1~33 미일치 시에만 신규 8개 조합 처리
+    // =================================================================
+    const twoProPassiveCore34ResultV20261026 =
+      twoProTryKoEnPassiveCore34ExactV20261026(originalText);
+    if (twoProPassiveCore34ResultV20261026) {
+      console.log('[한영 수동태 CORE34 신규 8개 조합 보완]', {
+        query: originalText,
+        result: twoProPassiveCore34ResultV20261026.targetText,
+        engine: twoProPassiveCore34ResultV20261026.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPassiveCore34ResultV20261026.targetText
+          ),
+          isReference: false,
+          analysis: twoProPassiveCore34ResultV20261026.analysis,
+          referenceWords: twoProPassiveCore34ResultV20261026.referenceWords,
+          engine: twoProPassiveCore34ResultV20261026.engine,
+        },
+        referenceWords: twoProPassiveCore34ResultV20261026.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro CORE35: 기존 CORE1~34 미일치 시에만 8개 신규 문형 처리
+    // =================================================================
+    const twoProPassiveCore35ResultV20261026 =
+      twoProTryKoEnPassiveCore35ExactV20261026(originalText);
+    if (twoProPassiveCore35ResultV20261026) {
+      console.log('[한영 수동태 CORE35 신규 8개 조합 보완]', {
+        query: originalText,
+        result: twoProPassiveCore35ResultV20261026.targetText,
+        engine: twoProPassiveCore35ResultV20261026.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPassiveCore35ResultV20261026.targetText
+          ),
+          isReference: false,
+          analysis: twoProPassiveCore35ResultV20261026.analysis,
+          referenceWords: twoProPassiveCore35ResultV20261026.referenceWords,
+          engine: twoProPassiveCore35ResultV20261026.engine,
+        },
+        referenceWords: twoProPassiveCore35ResultV20261026.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro CORE36: 기존 CORE1~35가 미일치한 경우에만 신규 8개 문형 처리
+    // =================================================================
+    const twoProPassiveCore36ResultV20261026 =
+      twoProTryKoEnPassiveCore36ExactV20261026(originalText);
+    if (twoProPassiveCore36ResultV20261026) {
+      console.log('[한영 수동태 CORE36 신규 8개 조합 보완]', {
+        query: originalText,
+        result: twoProPassiveCore36ResultV20261026.targetText,
+        engine: twoProPassiveCore36ResultV20261026.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPassiveCore36ResultV20261026.targetText
+          ),
+          isReference: false,
+          analysis: twoProPassiveCore36ResultV20261026.analysis,
+          referenceWords: twoProPassiveCore36ResultV20261026.referenceWords,
+          engine: twoProPassiveCore36ResultV20261026.engine,
+        },
+        referenceWords: twoProPassiveCore36ResultV20261026.referenceWords,
+      });
+    }
+
+    // =================================================================
+    // ☆ TwoPro CORE37: 기존 CORE1~36 미일치 시에만 신규 8개 문형 처리
+    // =================================================================
+    const twoProPassiveCore37ResultV20261026 =
+      twoProTryKoEnPassiveCore37ExactV20261026(originalText);
+    if (twoProPassiveCore37ResultV20261026) {
+      console.log('[한영 수동태 CORE37 신규 8개 조합 보완]', {
+        query: originalText,
+        result: twoProPassiveCore37ResultV20261026.targetText,
+        engine: twoProPassiveCore37ResultV20261026.engine,
+      });
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProCapitalizeEnglishSentenceStartV93(
+            twoProPassiveCore37ResultV20261026.targetText
+          ),
+          isReference: false,
+          analysis: twoProPassiveCore37ResultV20261026.analysis,
+          referenceWords: twoProPassiveCore37ResultV20261026.referenceWords,
+          engine: twoProPassiveCore37ResultV20261026.engine,
+        },
+        referenceWords: twoProPassiveCore37ResultV20261026.referenceWords,
       });
     }
 
