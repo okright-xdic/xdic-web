@@ -43783,6 +43783,34 @@ const TWO_PRO_PASSIVE_CORE18_PAIRS_V20261026:
   { frame: 'future-perfect-negative', nounKo: '계약서', subjectKo: '그 계약서는', koStem: '서명', participle: 'signed' },
 ];
 
+// ☆ TwoPro CORE19 (2026-10-26): CORE18 통과 조합은 유지하고 새 문형 7개만 추가.
+// 여덟 번째 (그 일정은 어제 확정될 수도 있었어요)는 기존 CORE12의
+// 정확한 nounKo + frame 화이트리스트에서 처리하므로 중복하지 않습니다.
+const TWO_PRO_PASSIVE_CORE19_PAIRS_V20261026:
+  readonly TwoProPassiveC13SafePair[] = [
+  { frame: 'past-perfect-positive', nounKo: '안내문', subjectKo: '그 안내문들은', koStem: '게시', participle: 'posted' },
+  { frame: 'past-perfect-negative', nounKo: '계약서', subjectKo: '그 계약서는', koStem: '서명', participle: 'signed' },
+  { frame: 'future-perfect-positive', nounKo: '제안서', subjectKo: '그 제안서는', koStem: '검토', participle: 'reviewed' },
+  { frame: 'future-perfect-negative', nounKo: '통지서', subjectKo: '그 통지서들은', koStem: '발송', participle: 'sent' },
+  { frame: 'present-progressive-positive', nounKo: '신청서', subjectKo: '그 신청서는', koStem: '검토', participle: 'reviewed' },
+  { frame: 'past-progressive-negative', nounKo: '보고서', subjectKo: '그 보고서들은', koStem: '수정', participle: 'revised' },
+  { frame: 'should-not-have', nounKo: '초대장', subjectKo: '그 초대장들은', koStem: '발송', participle: 'sent' },
+];
+
+// ☆ TwoPro CORE20 (2026-10-26): 기존 CORE17~19를 변경하지 않고 신규 8개 조합만 추가.
+// 주어·동사 어근·문법 프레임이 모두 일치해야 동작하며 평서·의문 공통 적용.
+const TWO_PRO_PASSIVE_CORE20_PAIRS_V20261026:
+  readonly TwoProPassiveC13SafePair[] = [
+  { frame: 'past-perfect-positive', nounKo: '초대장', subjectKo: '그 초대장은', koStem: '발송', participle: 'sent' },
+  { frame: 'past-perfect-negative', nounKo: '보고서', subjectKo: '그 보고서들은', koStem: '승인', participle: 'approved' },
+  { frame: 'future-perfect-positive', nounKo: '신청서', subjectKo: '그 신청서는', koStem: '제출', participle: 'submitted' },
+  { frame: 'future-perfect-negative', nounKo: '계약서', subjectKo: '그 계약서들은', koStem: '서명', participle: 'signed' },
+  { frame: 'present-progressive-positive', nounKo: '안내문', subjectKo: '그 안내문은', koStem: '게시', participle: 'posted' },
+  { frame: 'past-progressive-negative', nounKo: '통지서', subjectKo: '그 통지서들은', koStem: '발송', participle: 'sent' },
+  { frame: 'should-not-have', nounKo: '보고서', subjectKo: '그 보고서들은', koStem: '공개', participle: 'released' },
+  { frame: 'could-have', nounKo: '제안서', subjectKo: '그 제안서들은', koStem: '수정', participle: 'revised' },
+];
+
 const twoProTryKoEnPassiveC13SafeSlotsV20261024 = (
   originalText: string
 ): {
@@ -43872,7 +43900,13 @@ const twoProTryKoEnPassiveC13SafeSlotsV20261024 = (
   const core18SafePair = c13SafePair || core17SafePair
     ? undefined
     : TWO_PRO_PASSIVE_CORE18_PAIRS_V20261026.find(matchesSafePair);
-  const safePair = c13SafePair || core17SafePair || core18SafePair;
+  const core19SafePair = c13SafePair || core17SafePair || core18SafePair
+    ? undefined
+    : TWO_PRO_PASSIVE_CORE19_PAIRS_V20261026.find(matchesSafePair);
+  const core20SafePair = c13SafePair || core17SafePair || core18SafePair || core19SafePair
+    ? undefined
+    : TWO_PRO_PASSIVE_CORE20_PAIRS_V20261026.find(matchesSafePair);
+  const safePair = c13SafePair || core17SafePair || core18SafePair || core19SafePair || core20SafePair;
   if (!safePair) return null;
 
   const presentBe = subject.plural ? 'are' : 'is';
@@ -43911,9 +43945,13 @@ const twoProTryKoEnPassiveC13SafeSlotsV20261024 = (
       { ko: predicateKo, en: `be ${safePair.participle} [PASSIVE:C13:${frame}:${isQuestion ? 'Q' : 'DECL'}]` },
     ],
     referenceWords,
-    engine: core18SafePair
-      ? 'passive-core18-four-pairs-ko-en-20261026-safe'
-      : core17SafePair
+    engine: core20SafePair
+      ? 'passive-core20-eight-pairs-ko-en-20261026-safe'
+      : core19SafePair
+        ? 'passive-core19-seven-pairs-ko-en-20261026-safe'
+        : core18SafePair
+        ? 'passive-core18-four-pairs-ko-en-20261026-safe'
+        : core17SafePair
         ? 'passive-core17-two-pairs-ko-en-20261026-safe'
         : 'passive-core13-closed-verb-frames-ko-en-20261024-safe',
   };
