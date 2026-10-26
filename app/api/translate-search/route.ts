@@ -43765,6 +43765,24 @@ const TWO_PRO_PASSIVE_C13_SAFE_PAIRS_V20261024:
   { frame: 'could-have', nounKo: '통지서', subjectKo: '그 통지서들은', koStem: '발송', participle: 'sent' },
 ];
 
+// ☆ TwoPro CORE17 (2026-10-26): 원복본을 기준으로 결손된 조합만 분리.
+// 아래 2개 주어×동사×문법형만 추가하며 C13 기존 성공 규칙은 건드리지 않습니다.
+const TWO_PRO_PASSIVE_CORE17_PAIRS_V20261026:
+  readonly TwoProPassiveC13SafePair[] = [
+  { frame: 'present-progressive-positive', nounKo: '초대장', subjectKo: '그 초대장들은', koStem: '발송', participle: 'sent' },
+  { frame: 'could-have', nounKo: '보고서', subjectKo: '그 보고서는', koStem: '수정', participle: 'revised' },
+];
+
+// ☆ TwoPro CORE18 (2026-10-26): CORE17 재검증 이후 누락된 완료 수동태 4개 조합만 허용.
+// 기존 CORE 1~17 성공 경로는 변경하지 않습니다. 새 규칙은 세 항목(주어·어근·프레임)이 모두 같을 때만 일치합니다.
+const TWO_PRO_PASSIVE_CORE18_PAIRS_V20261026:
+  readonly TwoProPassiveC13SafePair[] = [
+  { frame: 'past-perfect-positive', nounKo: '신청서', subjectKo: '그 신청서들은', koStem: '승인', participle: 'approved' },
+  { frame: 'past-perfect-negative', nounKo: '제안서', subjectKo: '그 제안서는', koStem: '제출', participle: 'submitted' },
+  { frame: 'future-perfect-positive', nounKo: '계약서', subjectKo: '그 계약서들은', koStem: '검토', participle: 'reviewed' },
+  { frame: 'future-perfect-negative', nounKo: '계약서', subjectKo: '그 계약서는', koStem: '서명', participle: 'signed' },
+];
+
 const twoProTryKoEnPassiveC13SafeSlotsV20261024 = (
   originalText: string
 ): {
@@ -43843,10 +43861,18 @@ const twoProTryKoEnPassiveC13SafeSlotsV20261024 = (
   if (!frame || !koStem) return null;
 
   // 대상 명사·동사·시제의 3중 화이트리스트. 다른 문장은 기존 검색에 맡깁니다.
-  const safePair = TWO_PRO_PASSIVE_C13_SAFE_PAIRS_V20261024.find(
-    item => item.frame === frame && item.nounKo === subject.nounKo &&
-      item.subjectKo === subject.ko && item.koStem === koStem
-  );
+  // 기존 C13 목록을 먼저 조회합니다. 기존 결과가 없을 때만 CORE17을 확인합니다.
+  const matchesSafePair = (item: TwoProPassiveC13SafePair): boolean =>
+    item.frame === frame && item.nounKo === subject.nounKo &&
+    item.subjectKo === subject.ko && item.koStem === koStem;
+  const c13SafePair = TWO_PRO_PASSIVE_C13_SAFE_PAIRS_V20261024.find(matchesSafePair);
+  const core17SafePair = c13SafePair
+    ? undefined
+    : TWO_PRO_PASSIVE_CORE17_PAIRS_V20261026.find(matchesSafePair);
+  const core18SafePair = c13SafePair || core17SafePair
+    ? undefined
+    : TWO_PRO_PASSIVE_CORE18_PAIRS_V20261026.find(matchesSafePair);
+  const safePair = c13SafePair || core17SafePair || core18SafePair;
   if (!safePair) return null;
 
   const presentBe = subject.plural ? 'are' : 'is';
@@ -43885,7 +43911,11 @@ const twoProTryKoEnPassiveC13SafeSlotsV20261024 = (
       { ko: predicateKo, en: `be ${safePair.participle} [PASSIVE:C13:${frame}:${isQuestion ? 'Q' : 'DECL'}]` },
     ],
     referenceWords,
-    engine: 'passive-core13-closed-verb-frames-ko-en-20261024-safe',
+    engine: core18SafePair
+      ? 'passive-core18-four-pairs-ko-en-20261026-safe'
+      : core17SafePair
+        ? 'passive-core17-two-pairs-ko-en-20261026-safe'
+        : 'passive-core13-closed-verb-frames-ko-en-20261024-safe',
   };
 };
 
