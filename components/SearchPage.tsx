@@ -7,6 +7,7 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 import { SpeechRecognition } from '@capgo/capacitor-speech-recognition';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import SearchInput from '@/components/SearchInput';
+import { useXdicCoreExpressions, XdicCoreExpressionPanel } from '@/components/XdicCoreExpressionPanel';
 import Footer from '@/components/Footer';
 import PopularKeywords from '@/components/PopularKeywords'; 
 import RecentKeywords from '@/components/RecentKeywords'; 
@@ -1547,6 +1548,8 @@ export default function SearchPage({
 const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+  // X-DIC opt-in: separate reviewed expressions; existing results are unchanged.
+  const coreExpressionRows = useXdicCoreExpressions(query);
 
   const englishGuideTopics = [
     {
@@ -5567,7 +5570,8 @@ const hasXdicInsight =
               ) : (
                 displayResults.length > 0 ||
                 Boolean(aiTranslation) ||
-                Boolean(slotSimilarityReference)
+                Boolean(slotSimilarityReference) ||
+                coreExpressionRows.length > 0
               ) ? (
                 <div className={displayIsApp ? "space-y-4" : "space-y-6"}>
 
@@ -5839,6 +5843,9 @@ const hasXdicInsight =
                     )}
                   </div>
                 )}
+
+                  {/* X-DIC: independent reviewed expressions */}
+                  <XdicCoreExpressionPanel rows={coreExpressionRows} isApp={displayIsApp} />
 
                   {slotSimilarityReference &&
                     aiTranslationEngine !==

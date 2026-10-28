@@ -41950,16 +41950,38 @@ type TwoProGeneralPassiveAspectFormV1053GPA = {
   contextIndex: number;
   aspect: TwoProGeneralPassiveAspectV1053GPA;
   negative: boolean;
-  adverb: 'now' | 'at that time' | 'already' | 'yet';
+  adverb: '' | 'now' | 'at that time' | 'already' | 'yet';
 };
 
 const TWO_PRO_GENERAL_PASSIVE_ASPECT_FORMS_V1053GPA: readonly TwoProGeneralPassiveAspectFormV1053GPA[] = [
   { source: '그 보고서는 지금 승인되고 있어요', contextIndex: 0, aspect: 'present-progressive', negative: false, adverb: 'now' },
+  { source: '그 보고서는 지금 승인되고 있지 않아요', contextIndex: 0, aspect: 'present-progressive', negative: true, adverb: 'now' },
+  { source: '그 보고서는 승인되고 있지 않아요', contextIndex: 0, aspect: 'present-progressive', negative: true, adverb: '' },
+  { source: '그 보고서는 승인되고 있어요', contextIndex: 0, aspect: 'present-progressive', negative: false, adverb: '' },
   { source: '그녀는 지금 팀장으로 임명되고 있어요', contextIndex: 2, aspect: 'present-progressive', negative: false, adverb: 'now' },
+  { source: '그녀는 지금 팀장으로 임명되고 있지 않아요', contextIndex: 2, aspect: 'present-progressive', negative: true, adverb: 'now' },
+  { source: '그녀는 팀장으로 임명되고 있지 않아요', contextIndex: 2, aspect: 'present-progressive', negative: true, adverb: '' },
+  { source: '그녀는 그때 팀장으로 임명되고 있었어요', contextIndex: 2, aspect: 'past-progressive', negative: false, adverb: 'at that time' },
+  { source: '그녀는 팀장으로 임명되고 있었어요', contextIndex: 2, aspect: 'past-progressive', negative: false, adverb: '' },
+  { source: '그녀는 팀장으로 임명되고 있어요', contextIndex: 2, aspect: 'present-progressive', negative: false, adverb: '' },
   { source: '그 보고서는 그때 승인되고 있었어요', contextIndex: 0, aspect: 'past-progressive', negative: false, adverb: 'at that time' },
+  { source: '그 보고서는 승인되고 있었어요', contextIndex: 0, aspect: 'past-progressive', negative: false, adverb: '' },
   { source: '그 보고서는 그때 승인되고 있지 않았어요', contextIndex: 0, aspect: 'past-progressive', negative: true, adverb: 'at that time' },
+  { source: '그 보고서는 승인되고 있지 않았어요', contextIndex: 0, aspect: 'past-progressive', negative: true, adverb: '' },
   { source: '그 보고서는 이미 승인됐어요', contextIndex: 0, aspect: 'present-perfect', negative: false, adverb: 'already' },
+  { source: '그 보고서는 이미 승인되었어요', contextIndex: 0, aspect: 'present-perfect', negative: false, adverb: 'already' },
+  { source: '그 보고서는 아직 승인되지 않았어요', contextIndex: 0, aspect: 'present-perfect', negative: true, adverb: 'yet' },
   { source: '그는 아직 회의에 초대되지 않았어요', contextIndex: 1, aspect: 'present-perfect', negative: true, adverb: 'yet' },
+  { source: '그녀는 그때 팀장으로 임명되고 있지 않았어요', contextIndex: 2, aspect: 'past-progressive', negative: true, adverb: 'at that time' },
+  { source: '그녀는 팀장으로 임명되고 있지 않았어요', contextIndex: 2, aspect: 'past-progressive', negative: true, adverb: '' },
+  { source: '민수는 지금 팀장으로 임명되고 있어요', contextIndex: 3, aspect: 'present-progressive', negative: false, adverb: 'now' },
+  { source: '민수는 팀장으로 임명되고 있어요', contextIndex: 3, aspect: 'present-progressive', negative: false, adverb: '' },
+  { source: '민수는 지금 팀장으로 임명되고 있지 않아요', contextIndex: 3, aspect: 'present-progressive', negative: true, adverb: 'now' },
+  { source: '민수는 팀장으로 임명되고 있지 않아요', contextIndex: 3, aspect: 'present-progressive', negative: true, adverb: '' },
+  { source: '민수는 그때 팀장으로 임명되고 있었어요', contextIndex: 3, aspect: 'past-progressive', negative: false, adverb: 'at that time' },
+  { source: '민수는 팀장으로 임명되고 있었어요', contextIndex: 3, aspect: 'past-progressive', negative: false, adverb: '' },
+  { source: '민수는 그때 팀장으로 임명되고 있지 않았어요', contextIndex: 3, aspect: 'past-progressive', negative: true, adverb: 'at that time' },
+  { source: '민수는 팀장으로 임명되고 있지 않았어요', contextIndex: 3, aspect: 'past-progressive', negative: true, adverb: '' },
 ];
 
 const twoProTryKoEnGeneralPassiveAspectV1053GPA = (
@@ -41973,6 +41995,283 @@ const twoProTryKoEnGeneralPassiveAspectV1053GPA = (
   const original = String(originalText || '').normalize('NFC').replace(/\s+/gu, ' ').trim();
   const isQuestion = /[?？]\s*$/u.test(original);
   const normalized = original.replace(/[.?!。！？]+$/gu, '').trim();
+  // XDIC-CORE15-STUDENTS-PRESENT-PROGRESSIVE-SAFE
+  // 정확하게 확인한 복수 주어 + 초대되다 + 현재진행 수동태만 처리합니다.
+  // '지금' 생략, 부정, 물음표만 변경되는 8개 경우에 한정합니다.
+  const core15Students = /^그 학생들은 (지금 )?회의에 초대되고 (있어요|있지 않아요)$/u.exec(normalized);
+  if (core15Students) {
+    const hasNow = Boolean(core15Students[1]);
+    const negative = core15Students[2] === '있지 않아요';
+    const predicate = `${negative ? 'not ' : ''}being invited to the meeting${hasNow ? ' now' : ''}`;
+    const core = isQuestion
+      ? `Are the students ${predicate}`
+      : `The students are ${predicate}`;
+    return {
+      targetText: twoProFinalizeEnglish(core, originalText),
+      analysis: [
+        { ko: '그 학생들은', en: 'The students [S]' },
+        { ko: '회의에', en: 'to the meeting [COMP]' },
+        { ko: normalized, en: `be invited [PASSIVE:present-progressive:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('학생', 'student', 'N'),
+        twoProEmbeddedReferenceWordV90('회의', 'meeting', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core15-students-invited-present-progressive-ko-en-safe',
+    };
+  }
+  // XDIC-CORE18-STUDENTS-PRESENT-NO-MEETING-SAFE
+  // CORE15/16/17 미변경. 학생들 + 목적지 생략 + 현재진행 수동태만 추가.
+  // 지금 유무 x 긍정/부정 x 평서/의문 = 정확히 8개 조합.
+  const core18Students = /^그 학생들은 (지금 )?초대되고 (있어요|있지 않아요)$/u.exec(normalized);
+  if (core18Students) {
+    const hasNow = Boolean(core18Students[1]);
+    const negative = core18Students[2] === '있지 않아요';
+    const predicate = `${negative ? 'not ' : ''}being invited${hasNow ? ' now' : ''}`;
+    const core = isQuestion
+      ? `Are the students ${predicate}`
+      : `The students are ${predicate}`;
+    return {
+      targetText: twoProFinalizeEnglish(core, originalText),
+      analysis: [
+        { ko: '그 학생들은', en: 'The students [S]' },
+        { ko: normalized, en: `be invited [PASSIVE:present-progressive:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('학생', 'student', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core18-students-invited-present-progressive-no-meeting-ko-en-safe',
+    };
+  }
+  // XDIC-CORE17-STUDENTS-PAST-NO-MEETING-SAFE
+  // CORE16(회의에 포함) 미변경. 장소 표현을 생략한 과거진행 수동태만 추가.
+  // 그때 유무 x 긍정/부정 x 평서/의문 = 8개 조합.
+  const core17Students = /^그 학생들은 (그때 )?초대되고 (있었어요|있지 않았어요)$/u.exec(normalized);
+  if (core17Students) {
+    const atThatTime = Boolean(core17Students[1]);
+    const negative = core17Students[2] === '있지 않았어요';
+    const predicate = `${negative ? 'not ' : ''}being invited${atThatTime ? ' at that time' : ''}`;
+    const core = isQuestion
+      ? `Were the students ${predicate}`
+      : `The students were ${predicate}`;
+    return {
+      targetText: twoProFinalizeEnglish(core, originalText),
+      analysis: [
+        { ko: '그 학생들은', en: 'The students [S]' },
+        { ko: normalized, en: `be invited [PASSIVE:past-progressive:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('학생', 'student', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core17-students-invited-past-progressive-no-meeting-ko-en-safe',
+    };
+  }
+  // XDIC-CORE16-STUDENTS-PAST-PROGRESSIVE-SAFE
+  // CORE15 현재진행과 별개: 학생들 + 회의에 초대되다 + 과거진행만 처리.
+  // 그때 유무 x 긍정/부정 x 평서/의문 = 정확히 8개 조합.
+  const core16Students = /^그 학생들은 (그때 )?회의에 초대되고 (있었어요|있지 않았어요)$/u.exec(normalized);
+  if (core16Students) {
+    const atThatTime = Boolean(core16Students[1]);
+    const negative = core16Students[2] === '있지 않았어요';
+    const predicate = `${negative ? 'not ' : ''}being invited to the meeting${atThatTime ? ' at that time' : ''}`;
+    const core = isQuestion
+      ? `Were the students ${predicate}`
+      : `The students were ${predicate}`;
+    return {
+      targetText: twoProFinalizeEnglish(core, originalText),
+      analysis: [
+        { ko: '그 학생들은', en: 'The students [S]' },
+        { ko: '회의에', en: 'to the meeting [COMP]' },
+        { ko: normalized, en: `be invited [PASSIVE:past-progressive:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('학생', 'student', 'N'),
+        twoProEmbeddedReferenceWordV90('회의', 'meeting', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core16-students-invited-past-progressive-ko-en-safe',
+    };
+  }
+  // XDIC-CORE21-STUDENTS-FUTURE-PASSIVE-SAFE
+  // 복수 주어 + 회의에 초대되다 + 미래 수동태. 내일 유무, 부정, 평서/의문만 처리.
+  // 이전 CORE15~20 규칙을 수정하지 않습니다.
+  const core21Students = /^그 학생들은 (내일 )?회의에 (초대될 거예요|초대되지 않을 거예요)$/u.exec(normalized);
+  if (core21Students) {
+    const hasTomorrow = Boolean(core21Students[1]);
+    const negative = core21Students[2] === '초대되지 않을 거예요';
+    const predicate = `${negative ? 'not ' : ''}be invited to the meeting${hasTomorrow ? ' tomorrow' : ''}`;
+    const core = isQuestion
+      ? `Will the students ${predicate}`
+      : `The students will ${predicate}`;
+    return {
+      targetText: twoProFinalizeEnglish(core, originalText),
+      analysis: [
+        { ko: '그 학생들은', en: 'The students [S]' },
+        { ko: '회의에', en: 'to the meeting [COMP]' },
+        { ko: normalized, en: `be invited [PASSIVE:future:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('학생', 'student', 'N'),
+        twoProEmbeddedReferenceWordV90('회의', 'meeting', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core21-students-invited-future-ko-en-safe',
+    };
+  }
+  // XDIC-CORE22-STUDENTS-FUTURE-NO-MEETING-SAFE
+  // CORE21에서 회의에만 생략된 8문장: 내일 선택, 긍정/부정, 평서/의문.
+  // 기존 CORE15~21 문형은 수정하지 않습니다.
+  const core22Students = /^그 학생들은 (내일 )?(초대될 거예요|초대되지 않을 거예요)$/u.exec(normalized);
+  if (core22Students) {
+    const hasTomorrow = Boolean(core22Students[1]);
+    const negative = core22Students[2] === '초대되지 않을 거예요';
+    const predicate = `${negative ? 'not ' : ''}be invited${hasTomorrow ? ' tomorrow' : ''}`;
+    const core = isQuestion
+      ? `Will the students ${predicate}`
+      : `The students will ${predicate}`;
+    return {
+      targetText: twoProFinalizeEnglish(core, originalText),
+      analysis: [
+        { ko: '그 학생들은', en: 'The students [S]' },
+        { ko: normalized, en: `be invited [PASSIVE:future:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('학생', 'student', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core22-students-invited-future-no-meeting-ko-en-safe',
+    };
+  }
+  // XDIC-CORE23-EMPLOYEE-FUTURE-SUBJECT-SLOT-SAFE
+  // CORE21/22 student rules remain unchanged; this safe subject slot is employee-only.
+  // Optional tomorrow / meeting, negative / positive, declarative / question.
+  const core23FutureSubjectSlots: Readonly<Record<string, { en: string; nounKo: string; nounEn: string }>> = {
+    '그 직원들은': { en: 'The employees', nounKo: '직원', nounEn: 'employee' },
+  };
+  const core23FutureMatch = /^(그 직원들은) (내일 )?(회의에 )?(초대될 거예요|초대되지 않을 거예요)$/u.exec(normalized);
+  if (core23FutureMatch) {
+    const subjectSlot = core23FutureSubjectSlots[core23FutureMatch[1]];
+    if (subjectSlot) {
+      const hasTomorrow = Boolean(core23FutureMatch[2]);
+      const hasMeeting = Boolean(core23FutureMatch[3]);
+      const negative = core23FutureMatch[4] === '초대되지 않을 거예요';
+      const predicate = `${negative ? 'not ' : ''}be invited${hasMeeting ? ' to the meeting' : ''}${hasTomorrow ? ' tomorrow' : ''}`;
+      const questionSubject = subjectSlot.en.replace(/^The /u, 'the ');
+      const core = isQuestion
+        ? `Will ${questionSubject} ${predicate}`
+        : `${subjectSlot.en} will ${predicate}`;
+      return {
+        targetText: twoProFinalizeEnglish(core, originalText),
+        analysis: [
+          { ko: core23FutureMatch[1], en: `${subjectSlot.en} [S]` },
+          ...(hasMeeting ? [{ ko: '회의에', en: 'to the meeting [COMP]' }] : []),
+          { ko: normalized, en: `be invited [PASSIVE:future:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90(subjectSlot.nounKo, subjectSlot.nounEn, 'N'),
+          ...(hasMeeting ? [twoProEmbeddedReferenceWordV90('회의', 'meeting', 'N')] : []),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core23-employee-subject-future-passive-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE24-EMPLOYEE-PRESENT-PROGRESSIVE-SAFE
+  // Reuse the employee subject slot from CORE23. Do not alter prior student/employee cases.
+  // Optional now + to the meeting, positive/negative, statement/question (16 exact combinations).
+  const core24EmployeePresentMatch = /^그 직원들은 (지금 )?(회의에 )?초대되고 (있어요|있지 않아요)$/u.exec(normalized);
+  if (core24EmployeePresentMatch) {
+    const subjectSlot = core23FutureSubjectSlots['그 직원들은'];
+    if (subjectSlot) {
+      const hasNow = Boolean(core24EmployeePresentMatch[1]);
+      const hasMeeting = Boolean(core24EmployeePresentMatch[2]);
+      const negative = core24EmployeePresentMatch[3] === '있지 않아요';
+      const predicate = `${negative ? 'not ' : ''}being invited${hasMeeting ? ' to the meeting' : ''}${hasNow ? ' now' : ''}`;
+      const questionSubject = subjectSlot.en.replace(/^The /u, 'the ');
+      const core = isQuestion
+        ? `Are ${questionSubject} ${predicate}`
+        : `${subjectSlot.en} are ${predicate}`;
+      return {
+        targetText: twoProFinalizeEnglish(core, originalText),
+        analysis: [
+          { ko: '그 직원들은', en: `${subjectSlot.en} [S]` },
+          ...(hasMeeting ? [{ ko: '회의에', en: 'to the meeting [COMP]' }] : []),
+          { ko: normalized, en: `be invited [PASSIVE:present-progressive:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90(subjectSlot.nounKo, subjectSlot.nounEn, 'N'),
+          ...(hasMeeting ? [twoProEmbeddedReferenceWordV90('회의', 'meeting', 'N')] : []),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core24-employee-subject-present-progressive-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE25-EMPLOYEE-PAST-PROGRESSIVE-SAFE
+  // Reuse the CORE23 employee subject slot. Preserve all prior CORE15-24 rules.
+  // Optional at that time/meeting, positive/negative, statement/question: 16 exact combinations.
+  const core25EmployeePastMatch = /^그 직원들은 (그때 )?(회의에 )?초대되고 (있었어요|있지 않았어요)$/u.exec(normalized);
+  if (core25EmployeePastMatch) {
+    const subjectSlot = core23FutureSubjectSlots['그 직원들은'];
+    if (subjectSlot) {
+      const hasThen = Boolean(core25EmployeePastMatch[1]);
+      const hasMeeting = Boolean(core25EmployeePastMatch[2]);
+      const negative = core25EmployeePastMatch[3] === '있지 않았어요';
+      const predicate = `${negative ? 'not ' : ''}being invited${hasMeeting ? ' to the meeting' : ''}${hasThen ? ' at that time' : ''}`;
+      const questionSubject = subjectSlot.en.replace(/^The /u, 'the ');
+      const core = isQuestion
+        ? `Were ${questionSubject} ${predicate}`
+        : `${subjectSlot.en} were ${predicate}`;
+      return {
+        targetText: twoProFinalizeEnglish(core, originalText),
+        analysis: [
+          { ko: '그 직원들은', en: `${subjectSlot.en} [S]` },
+          ...(hasMeeting ? [{ ko: '회의에', en: 'to the meeting [COMP]' }] : []),
+          { ko: normalized, en: `be invited [PASSIVE:past-progressive:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90(subjectSlot.nounKo, subjectSlot.nounEn, 'N'),
+          ...(hasMeeting ? [twoProEmbeddedReferenceWordV90('회의', 'meeting', 'N')] : []),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core25-employee-subject-past-progressive-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE28-EMPLOYEE-FUTURE-PERFECT-SAFE
+  // Reuse CORE23 employee subject slot; add only the exact future-perfect passive pattern.
+  // Optional meeting / positive-negative / declarative-question: eight supported cases.
+  const core28EmployeeFuturePerfectMatch = /^그 직원들은 내일 오전까지 (회의에 )?초대되어 (있을 거예요|있지 않을 거예요)$/u.exec(normalized);
+  if (core28EmployeeFuturePerfectMatch) {
+    const subjectSlot = core23FutureSubjectSlots['그 직원들은'];
+    if (subjectSlot) {
+      const hasMeeting = Boolean(core28EmployeeFuturePerfectMatch[1]);
+      const negative = core28EmployeeFuturePerfectMatch[2] === '있지 않을 거예요';
+      const predicate = `${negative ? 'not ' : ''}have been invited${hasMeeting ? ' to the meeting' : ''} by tomorrow morning`;
+      const questionSubject = subjectSlot.en.replace(/^The /u, 'the ');
+      const core = isQuestion
+        ? `Will ${questionSubject} ${predicate}`
+        : `${subjectSlot.en} will ${predicate}`;
+      return {
+        targetText: twoProFinalizeEnglish(core, originalText),
+        analysis: [
+          { ko: '그 직원들은', en: `${subjectSlot.en} [S]` },
+          ...(hasMeeting ? [{ ko: '회의에', en: 'to the meeting [COMP]' }] : []),
+          { ko: normalized, en: `be invited [PASSIVE:future-perfect:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90(subjectSlot.nounKo, subjectSlot.nounEn, 'N'),
+          ...(hasMeeting ? [twoProEmbeddedReferenceWordV90('회의', 'meeting', 'N')] : []),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core28-employee-subject-future-perfect-ko-en-safe',
+      };
+    }
+  }
+
   const form = TWO_PRO_GENERAL_PASSIVE_ASPECT_FORMS_V1053GPA.find(
     (item) => item.source === normalized
   );
@@ -41996,7 +42295,7 @@ const twoProTryKoEnGeneralPassiveAspectV1053GPA = (
     ? `${form.adverb === 'already' ? 'already ' : ''}been ${context.participle}${complement}`
     : `being ${context.participle}${complement}`;
   const remainder = `${form.negative ? 'not ' : ''}${verbalPart}${
-    form.adverb === 'already' ? '' : ` ${form.adverb}`
+    form.adverb === 'already' || form.adverb === '' ? '' : ` ${form.adverb}`
   }`;
   const core = isQuestion
     ? `${auxiliary[0].toUpperCase() + auxiliary.slice(1)} ${subjectForQuestion} ${remainder}`
@@ -42050,6 +42349,133 @@ const TWO_PRO_GENERAL_PASSIVE_PLURAL_PERFECT_CASES_V1053GPPP: readonly TwoProGen
     verbKo: '승인되다', verbEn: 'be approved', participle: 'approved',
     complement: '', perfect: 'present', negative: false, already: true, timeEnd: '',
   },
+  // XDIC-CORE19-STUDENTS-PERFECT-POSITIVE-SAFE
+  // 현재완료 긍정형 두 문장만 추가. 물음표는 기존 GPPP 처리 함수를 재사용합니다.
+  // XDIC-CORE20-STUDENTS-PAST-PERFECT-SAFE
+  // 학생/초대 과거완료: 긍정 2개(이미 선택) + 부정 2개(회의/발표).
+  // 평서/의문 변환은 기존 GPPP 함수를 그대로 사용하며 기존 CASE는 수정하지 않습니다.
+  {
+    source: '그 학생들은 회의 전에 이미 초대되어 있었어요',
+    subjectKo: '그 학생들은', subjectEn: 'The students',
+    subjectNounKo: '학생', subjectNounEn: 'student',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: '', perfect: 'past', negative: false, already: true,
+    timeEnd: 'before the meeting', extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그 학생들은 회의 전에 초대되어 있었어요',
+    subjectKo: '그 학생들은', subjectEn: 'The students',
+    subjectNounKo: '학생', subjectNounEn: 'student',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: '', perfect: 'past', negative: false, already: false,
+    timeEnd: 'before the meeting', extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그 학생들은 회의 전까지 초대되지 않았어요',
+    subjectKo: '그 학생들은', subjectEn: 'The students',
+    subjectNounKo: '학생', subjectNounEn: 'student',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: '', perfect: 'past', negative: true, already: false,
+    timeEnd: 'before the meeting', extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그 학생들은 발표 전까지 초대되지 않았어요',
+    subjectKo: '그 학생들은', subjectEn: 'The students',
+    subjectNounKo: '학생', subjectNounEn: 'student',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: '', perfect: 'past', negative: true, already: false,
+    timeEnd: 'before the presentation', extraNounKo: '발표', extraNounEn: 'presentation',
+  },
+  {
+    source: '그 학생들은 이미 회의에 초대되었어요',
+    subjectKo: '그 학생들은', subjectEn: 'The students',
+    subjectNounKo: '학생', subjectNounEn: 'student',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: 'to the meeting', perfect: 'present', negative: false, already: true, timeEnd: '',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그 학생들은 이미 초대되었어요',
+    subjectKo: '그 학생들은', subjectEn: 'The students',
+    subjectNounKo: '학생', subjectNounEn: 'student',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: '', perfect: 'present', negative: false, already: true, timeEnd: '',
+  },
+  // XDIC-CORE27-EMPLOYEE-PAST-PERFECT-SAFE
+  // Reuse the v10.53 GPPP renderer. Four base entries generate eight statements/questions.
+  // Preserve CORE15-26: append data entries only; no renderer or existing case is changed.
+  {
+    source: '그 직원들은 회의 전에 이미 초대되어 있었어요',
+    subjectKo: '그 직원들은', subjectEn: 'The employees',
+    subjectNounKo: '직원', subjectNounEn: 'employee',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: '', perfect: 'past', negative: false, already: true,
+    timeEnd: 'before the meeting', extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그 직원들은 회의 전에 초대되어 있었어요',
+    subjectKo: '그 직원들은', subjectEn: 'The employees',
+    subjectNounKo: '직원', subjectNounEn: 'employee',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: '', perfect: 'past', negative: false, already: false,
+    timeEnd: 'before the meeting', extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그 직원들은 회의 전까지 초대되지 않았어요',
+    subjectKo: '그 직원들은', subjectEn: 'The employees',
+    subjectNounKo: '직원', subjectNounEn: 'employee',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: '', perfect: 'past', negative: true, already: false,
+    timeEnd: 'before the meeting', extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그 직원들은 발표 전까지 초대되지 않았어요',
+    subjectKo: '그 직원들은', subjectEn: 'The employees',
+    subjectNounKo: '직원', subjectNounEn: 'employee',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: '', perfect: 'past', negative: true, already: false,
+    timeEnd: 'before the presentation', extraNounKo: '발표', extraNounEn: 'presentation',
+  },
+  // XDIC-CORE26-EMPLOYEE-PRESENT-PERFECT-SAFE
+  // Reuse v10.53 GPPP. Four base cases generate eight statements/questions.
+  // No existing student/employee case or renderer is changed.
+  {
+    source: '그 직원들은 이미 회의에 초대되었어요',
+    subjectKo: '그 직원들은', subjectEn: 'The employees',
+    subjectNounKo: '직원', subjectNounEn: 'employee',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: 'to the meeting', perfect: 'present', negative: false, already: true, timeEnd: '',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그 직원들은 이미 초대되었어요',
+    subjectKo: '그 직원들은', subjectEn: 'The employees',
+    subjectNounKo: '직원', subjectNounEn: 'employee',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: '', perfect: 'present', negative: false, already: true, timeEnd: '',
+  },
+  {
+    source: '그 직원들은 아직 회의에 초대되지 않았어요',
+    subjectKo: '그 직원들은', subjectEn: 'The employees',
+    subjectNounKo: '직원', subjectNounEn: 'employee',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: 'to the meeting', perfect: 'present', negative: true, already: false, timeEnd: 'yet',
+    extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그 직원들은 아직 초대되지 않았어요',
+    subjectKo: '그 직원들은', subjectEn: 'The employees',
+    subjectNounKo: '직원', subjectNounEn: 'employee',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: '', perfect: 'present', negative: true, already: false, timeEnd: 'yet',
+  },
+  {
+    source: '그 학생들은 아직 초대되지 않았어요',
+    subjectKo: '그 학생들은', subjectEn: 'The students',
+    subjectNounKo: '학생', subjectNounEn: 'student',
+    verbKo: '초대되다', verbEn: 'be invited', participle: 'invited',
+    complement: '', perfect: 'present', negative: true, already: false, timeEnd: 'yet',
+  },
   {
     source: '그 학생들은 아직 회의에 초대되지 않았어요',
     subjectKo: '그 학생들은', subjectEn: 'The students',
@@ -42060,6 +42486,14 @@ const TWO_PRO_GENERAL_PASSIVE_PLURAL_PERFECT_CASES_V1053GPPP: readonly TwoProGen
   },
   {
     source: '그들은 이미 팀장으로 임명됐어요',
+    subjectKo: '그들은', subjectEn: 'They',
+    subjectNounKo: '', subjectNounEn: '',
+    verbKo: '임명되다', verbEn: 'be appointed', participle: 'appointed',
+    complement: 'team leaders', perfect: 'present', negative: false, already: true, timeEnd: '',
+    extraNounKo: '팀장', extraNounEn: 'team leader',
+  },
+  {
+    source: '그들은 이미 팀장으로 임명되었어요',
     subjectKo: '그들은', subjectEn: 'They',
     subjectNounKo: '', subjectNounEn: '',
     verbKo: '임명되다', verbEn: 'be appointed', participle: 'appointed',
@@ -42208,6 +42642,22 @@ const TWO_PRO_GENERAL_PASSIVE_FUTURE_MODAL_CASES_V1053GPFM: readonly TwoProGener
     auxiliary: 'must', futurePerfect: false, complement: '', timeEnd: 'today',
   },
   {
+    source: '그녀는 내일까지 팀장으로 임명될 거예요',
+    subjectKo: '그녀는', subjectEn: 'She',
+    nounKo: '', nounEn: '',
+    verbKo: '임명되다', verbEn: 'be appointed', participle: 'appointed',
+    auxiliary: 'will', futurePerfect: false, complement: 'team leader',
+    timeEnd: 'by tomorrow', extraNounKo: '팀장', extraNounEn: 'team leader',
+  },
+  {
+    source: '그녀는 팀장으로 임명되어야 해요',
+    subjectKo: '그녀는', subjectEn: 'She',
+    nounKo: '', nounEn: '',
+    verbKo: '임명되다', verbEn: 'be appointed', participle: 'appointed',
+    auxiliary: 'should', futurePerfect: false, complement: 'team leader',
+    timeEnd: '', extraNounKo: '팀장', extraNounEn: 'team leader',
+  },
+  {
     source: '그녀는 팀장으로 임명되는 것이 좋겠어요',
     subjectKo: '그녀는', subjectEn: 'She',
     nounKo: '', nounEn: '',
@@ -42303,6 +42753,13 @@ const TWO_PRO_GENERAL_PASSIVE_NEGATIVE_MODAL_CASES_V1053GPNM: readonly TwoProGen
     modal: 'can', participle: 'invited', complement: 'to the meeting', timeEnd: '',
     verbKo: '초대되다', verbEn: 'be invited',
     extraNounKo: '회의', extraNounEn: 'meeting',
+  },
+  {
+    source: '그 보고서는 오늘 승인되어서는 안 돼요',
+    subjectKo: '그 보고서는', subjectEn: 'The report',
+    subjectNounKo: '보고서', subjectNounEn: 'report',
+    modal: 'must', participle: 'approved', complement: '', timeEnd: 'today',
+    verbKo: '승인되다', verbEn: 'be approved',
   },
   {
     source: '그 보고서는 오늘 승인되면 안 돼요',
@@ -43932,11 +44389,13 @@ const twoProTryKoEnPassiveC13SafeSlotsV20261024 = (
   let koStem = '';
   let timeEn = '';
   let timeNounKo = '';
+  let hasAlready = false;
   let match: RegExpMatchArray | null = null;
 
-  if ((match = predicateKo.match(/^(회의|발표) 전에 이미 ([가-힣]+)되어 있었어요$/u))) {
+  if ((match = predicateKo.match(/^(회의|발표) 전에 (이미 )?([가-힣]+)되어 있었어요$/u))) {
     frame = 'past-perfect-positive';
-    koStem = match[2];
+    hasAlready = Boolean(match[2]);
+    koStem = match[3];
     timeNounKo = match[1];
     timeEn = match[1] === '회의' ? 'before the meeting' : 'before the presentation';
   } else if ((match = predicateKo.match(/^(회의|발표) 전까지 ([가-힣]+)되지 않았어요$/u))) {
@@ -44035,7 +44494,7 @@ const twoProTryKoEnPassiveC13SafeSlotsV20261024 = (
   const presentBe = subject.plural ? 'are' : 'is';
   const pastBe = subject.plural ? 'were' : 'was';
   const render: Record<TwoProPassiveC13Frame, [string, string]> = {
-    'past-perfect-positive': ['had', `already been ${safePair.participle} ${timeEn}`],
+    'past-perfect-positive': ['had', `${hasAlready ? 'already ' : ''}been ${safePair.participle} ${timeEn}`],
     'past-perfect-negative': ['had', `not been ${safePair.participle} ${timeEn}`],
     'future-perfect-positive': ['will', `have been ${safePair.participle} ${timeEn}`],
     'future-perfect-negative': ['will', `not have been ${safePair.participle} ${timeEn}`],
