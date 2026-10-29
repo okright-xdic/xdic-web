@@ -42244,13 +42244,29 @@ const twoProTryKoEnGeneralPassiveAspectV1053GPA = (
   // XDIC-CORE28-EMPLOYEE-FUTURE-PERFECT-SAFE
   // Reuse CORE23 employee subject slot; add only the exact future-perfect passive pattern.
   // Optional meeting / positive-negative / declarative-question: eight supported cases.
-  const core28EmployeeFuturePerfectMatch = /^그 직원들은 내일 오전까지 (회의에 )?초대되어 (있을 거예요|있지 않을 거예요)$/u.exec(normalized);
-  if (core28EmployeeFuturePerfectMatch) {
-    const subjectSlot = core23FutureSubjectSlots['그 직원들은'];
+  // XDIC-CORE29-STUDENTS-FUTURE-PERFECT-SUBJECT-SLOT-SAFE
+  // CORE28 employee output remains unchanged; expand only the validated subject slot.
+  const core29FuturePerfectSubjectSlots: Readonly<Record<string, { en: string; nounKo: string; nounEn: string }>> = {
+    ...core23FutureSubjectSlots,
+    '그 학생들은': { en: 'The students', nounKo: '학생', nounEn: 'student' },
+  };
+  // XDIC-CORE30-FUTURE-PERFECT-TIME-SLOT-SAFE
+  // Keep CORE28/29 morning behavior intact; also allow the verified afternoon deadline.
+  const core30FuturePerfectTimeSlots: Readonly<Record<string, string>> = {
+    '내일 오전까지': 'by tomorrow morning',
+    '내일 오후까지': 'by tomorrow afternoon',
+  };
+  // XDIC-CORE31-OPTIONAL-FUTURE-PERFECT-DEADLINE-SAFE
+  // Future-perfect passive only; allow omitted deadline without touching will be invited.
+  const core28FuturePerfectMatch = /^(그 직원들은|그 학생들은) (?:(내일 오전까지|내일 오후까지) )?(회의에 )?초대되어 (있을 거예요|있지 않을 거예요)$/u.exec(normalized);
+  if (core28FuturePerfectMatch) {
+    const subjectSlot = core29FuturePerfectSubjectSlots[core28FuturePerfectMatch[1]];
     if (subjectSlot) {
-      const hasMeeting = Boolean(core28EmployeeFuturePerfectMatch[1]);
-      const negative = core28EmployeeFuturePerfectMatch[2] === '있지 않을 거예요';
-      const predicate = `${negative ? 'not ' : ''}have been invited${hasMeeting ? ' to the meeting' : ''} by tomorrow morning`;
+      const hasMeeting = Boolean(core28FuturePerfectMatch[3]);
+      const negative = core28FuturePerfectMatch[4] === '있지 않을 거예요';
+      const timeKey = core28FuturePerfectMatch[2];
+      const timeSlot = timeKey ? core30FuturePerfectTimeSlots[timeKey] : '';
+      const predicate = `${negative ? 'not ' : ''}have been invited${hasMeeting ? ' to the meeting' : ''}${timeSlot ? ` ${timeSlot}` : ''}`;
       const questionSubject = subjectSlot.en.replace(/^The /u, 'the ');
       const core = isQuestion
         ? `Will ${questionSubject} ${predicate}`
@@ -42258,7 +42274,7 @@ const twoProTryKoEnGeneralPassiveAspectV1053GPA = (
       return {
         targetText: twoProFinalizeEnglish(core, originalText),
         analysis: [
-          { ko: '그 직원들은', en: `${subjectSlot.en} [S]` },
+          { ko: core28FuturePerfectMatch[1], en: `${subjectSlot.en} [S]` },
           ...(hasMeeting ? [{ ko: '회의에', en: 'to the meeting [COMP]' }] : []),
           { ko: normalized, en: `be invited [PASSIVE:future-perfect:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
         ],
@@ -42267,11 +42283,903 @@ const twoProTryKoEnGeneralPassiveAspectV1053GPA = (
           ...(hasMeeting ? [twoProEmbeddedReferenceWordV90('회의', 'meeting', 'N')] : []),
           twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
         ],
-        engine: 'core28-employee-subject-future-perfect-ko-en-safe',
+        engine: !core28FuturePerfectMatch[2]
+          ? 'core31-subject-future-perfect-no-time-ko-en-safe'
+          : core28FuturePerfectMatch[2] === '내일 오후까지'
+            ? 'core30-subject-future-perfect-afternoon-ko-en-safe'
+            : core28FuturePerfectMatch[1] === '그 직원들은'
+              ? 'core28-employee-subject-future-perfect-ko-en-safe'
+              : 'core29-students-subject-future-perfect-ko-en-safe',
       };
     }
   }
 
+  // XDIC-CORE33-SELECTED-PASSIVE-VERB-SLOT-SAFE
+  // Share the verified CORE29 subject and CORE30 time slots.
+  // Handle only '선발되다' in simple-future/future-perfect passive; never alter '초대되다'.
+  const core33PassiveVerbSlots: Readonly<Record<string, { participle: string; verbKo: string; verbEn: string }>> = {
+    '선발': { participle: 'selected', verbKo: '선발되다', verbEn: 'be selected' },
+  };
+  const core33SelectedMatch = /^(그 직원들은|그 학생들은) (?:(내일 오전까지|내일 오후까지) )?(선발될 거예요|선발되지 않을 거예요|선발되어 있을 거예요|선발되어 있지 않을 거예요)$/u.exec(normalized);
+  if (core33SelectedMatch) {
+    const subject = core29FuturePerfectSubjectSlots[core33SelectedMatch[1]];
+    const deadlineKo = core33SelectedMatch[2];
+    const ending = core33SelectedMatch[3];
+    const futurePerfect = ending.startsWith('선발되어 ');
+    // Simple future with a 'by tomorrow' deadline is not included in this reviewed rule.
+    if (subject && (futurePerfect || !deadlineKo)) {
+      const verbSlot = core33PassiveVerbSlots['선발'];
+      const negative = ending === '선발되지 않을 거예요' || ending === '선발되어 있지 않을 거예요';
+      const deadlineEn = deadlineKo ? core30FuturePerfectTimeSlots[deadlineKo] : '';
+      const predicate = `${negative ? 'not ' : ''}${futurePerfect ? 'have been' : 'be'} ${verbSlot.participle}${deadlineEn ? ` ${deadlineEn}` : ''}`;
+      const questionSubject = subject.en.replace(/^The /u, 'the ');
+      const core = isQuestion
+        ? `Will ${questionSubject} ${predicate}`
+        : `${subject.en} will ${predicate}`;
+      return {
+        targetText: twoProFinalizeEnglish(core, originalText),
+        analysis: [
+          { ko: core33SelectedMatch[1], en: `${subject.en} [S]` },
+          { ko: normalized, en: `${verbSlot.verbEn} [PASSIVE:${futurePerfect ? 'future-perfect' : 'future'}:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90(subject.nounKo, subject.nounEn, 'N'),
+          twoProEmbeddedReferenceWordV90(verbSlot.verbKo, verbSlot.verbEn, 'V'),
+        ],
+        engine: 'core33-selected-passive-verb-slot-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE34-SELECTED-PRESENT-PROGRESSIVE-SLOT-SAFE
+  // Reuse CORE29 subject slots and CORE33 selected-verb slot, not sentence-specific entries.
+  // Only present progressive passive '선발되고 있어요 / 선발되고 있지 않아요'.
+  const core34SelectedProgressiveMatch = /^(그 직원들은|그 학생들은) (지금 )?(선발되고 있어요|선발되고 있지 않아요)$/u.exec(normalized);
+  if (core34SelectedProgressiveMatch) {
+    const subject = core29FuturePerfectSubjectSlots[core34SelectedProgressiveMatch[1]];
+    const verbSlot = core33PassiveVerbSlots['선발'];
+    if (subject && verbSlot) {
+      const negative = core34SelectedProgressiveMatch[3] === '선발되고 있지 않아요';
+      const hasNow = Boolean(core34SelectedProgressiveMatch[2]);
+      const remainder = `${negative ? 'not ' : ''}being ${verbSlot.participle}${hasNow ? ' now' : ''}`;
+      const questionSubject = subject.en.replace(/^The /u, 'the ');
+      const core = isQuestion
+        ? `Are ${questionSubject} ${remainder}`
+        : `${subject.en} are ${remainder}`;
+      return {
+        targetText: twoProFinalizeEnglish(core, originalText),
+        analysis: [
+          { ko: core34SelectedProgressiveMatch[1], en: `${subject.en} [S]` },
+          { ko: normalized, en: `${verbSlot.verbEn} [PASSIVE:present-progressive:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90(subject.nounKo, subject.nounEn, 'N'),
+          twoProEmbeddedReferenceWordV90(verbSlot.verbKo, verbSlot.verbEn, 'V'),
+        ],
+        engine: 'core34-selected-passive-present-progressive-slot-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE35-SELECTED-PAST-PROGRESSIVE-SLOT-SAFE
+  // Reuse CORE29 subject slots and CORE33 verb slot; only add selected past-progressive passive.
+  // Optional '그때', negative and question; existing CORE15-34 unchanged.
+  const core35SelectedPastMatch = /^(그 직원들은|그 학생들은) (그때 )?(선발되고 있었어요|선발되고 있지 않았어요)$/u.exec(normalized);
+  if (core35SelectedPastMatch) {
+    const subject = core29FuturePerfectSubjectSlots[core35SelectedPastMatch[1]];
+    const verbSlot = core33PassiveVerbSlots['선발'];
+    if (subject && verbSlot) {
+      const negative = core35SelectedPastMatch[3] === '선발되고 있지 않았어요';
+      const hasThen = Boolean(core35SelectedPastMatch[2]);
+      const remainder = `${negative ? 'not ' : ''}being ${verbSlot.participle}${hasThen ? ' at that time' : ''}`;
+      const questionSubject = subject.en.replace(/^The /u, 'the ');
+      const core = isQuestion
+        ? `Were ${questionSubject} ${remainder}`
+        : `${subject.en} were ${remainder}`;
+      return {
+        targetText: twoProFinalizeEnglish(core, originalText),
+        analysis: [
+          { ko: core35SelectedPastMatch[1], en: `${subject.en} [S]` },
+          { ko: normalized, en: `${verbSlot.verbEn} [PASSIVE:past-progressive:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90(subject.nounKo, subject.nounEn, 'N'),
+          twoProEmbeddedReferenceWordV90(verbSlot.verbKo, verbSlot.verbEn, 'V'),
+        ],
+        engine: 'core35-selected-passive-past-progressive-slot-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE36-SELECTED-PRESENT-PERFECT-SLOT-SAFE
+  // Reuse validated CORE29 subjects and CORE33 selected verb; no sentence-specific table.
+  // Limit to already-positive and yet-negative present-perfect passive, declarative/question.
+  const core36SelectedPerfectMatch = /^(그 직원들은|그 학생들은) (이미 선발되었어요|아직 선발되지 않았어요)$/u.exec(normalized);
+  if (core36SelectedPerfectMatch) {
+    const subject = core29FuturePerfectSubjectSlots[core36SelectedPerfectMatch[1]];
+    const verbSlot = core33PassiveVerbSlots['선발'];
+    if (subject && verbSlot) {
+      const negative = core36SelectedPerfectMatch[2] === '아직 선발되지 않았어요';
+      const remainder = negative
+        ? `not been ${verbSlot.participle} yet`
+        : `already been ${verbSlot.participle}`;
+      const questionSubject = subject.en.replace(/^The /u, 'the ');
+      const core = isQuestion
+        ? `Have ${questionSubject} ${remainder}`
+        : `${subject.en} have ${remainder}`;
+      return {
+        targetText: twoProFinalizeEnglish(core, originalText),
+        analysis: [
+          { ko: core36SelectedPerfectMatch[1], en: `${subject.en} [S]` },
+          { ko: normalized, en: `${verbSlot.verbEn} [PASSIVE:present-perfect:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90(subject.nounKo, subject.nounEn, 'N'),
+          twoProEmbeddedReferenceWordV90(verbSlot.verbKo, verbSlot.verbEn, 'V'),
+        ],
+        engine: 'core36-selected-passive-present-perfect-slot-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE37-SELECTED-PAST-PERFECT-SLOT-SAFE
+  // XDIC-CORE38-SELECTED-PAST-PERFECT-AFTERNOON-SLOT-SAFE
+  // XDIC-CORE39-SELECTED-PAST-PERFECT-OPTIONAL-TIME-SAFE
+  // Reuse CORE29 student/employee subjects and CORE33 selected verb.
+  // Limit to '어제 오전까지' and selected past-perfect positive/negative; keep other tenses unchanged.
+  const core37SelectedPastPerfectMatch = /^(그 직원들은|그 학생들은) (?:(?:어제 (오전|오후)까지 (이미 )?(선발되어 있었어요|선발되지 않았어요))|(?:(이미 )?(선발되어 있었어요)|아직 선발되어 있지 않았어요))$/u.exec(normalized);
+  if (core37SelectedPastPerfectMatch) {
+    const subject = core29FuturePerfectSubjectSlots[core37SelectedPastPerfectMatch[1]];
+    const verbSlot = core33PassiveVerbSlots['선발'];
+    const hasDeadline = Boolean(core37SelectedPastPerfectMatch[2]);
+    const hasAlready = Boolean(core37SelectedPastPerfectMatch[3] || core37SelectedPastPerfectMatch[5]);
+    const negative = hasDeadline
+      ? core37SelectedPastPerfectMatch[4] === '선발되지 않았어요'
+      : !core37SelectedPastPerfectMatch[6];
+    // Exclude unreviewed negative with '이미'; retain exact grammar whitelist.
+    if (subject && verbSlot && !(negative && hasAlready)) {
+      const deadlineEn = hasDeadline
+        ? (core37SelectedPastPerfectMatch[2] === '오후'
+        ? ' by yesterday afternoon' : ' by yesterday morning')
+        : '';
+      const timeTail = !hasDeadline && negative ? ' yet' : '';
+      const remainder = `${negative ? 'not ' : (hasAlready ? 'already ' : '')}been ${verbSlot.participle}${deadlineEn}${timeTail}`;
+      const questionSubject = subject.en.replace(/^The /u, 'the ');
+      const core = isQuestion
+        ? `Had ${questionSubject} ${remainder}`
+        : `${subject.en} had ${remainder}`;
+      return {
+        targetText: twoProFinalizeEnglish(core, originalText),
+        analysis: [
+          { ko: core37SelectedPastPerfectMatch[1], en: `${subject.en} [S]` },
+          { ko: normalized, en: `${verbSlot.verbEn} [PASSIVE:past-perfect:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90(subject.nounKo, subject.nounEn, 'N'),
+          twoProEmbeddedReferenceWordV90(verbSlot.verbKo, verbSlot.verbEn, 'V'),
+        ],
+        engine: 'core37-selected-passive-past-perfect-slot-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE41-RECOMMENDED-PERFECT-VERB-SLOT-SAFE
+  // Extend the validated CORE33 verb slot; reuse CORE29 subjects and CORE36/39 perfect grammar.
+  // Limit this rule to '추천되다' in present-perfect and past-perfect positive/negative.
+  const core41PerfectPassiveVerbSlots: Readonly<Record<string, { participle: string; verbKo: string; verbEn: string }>> = {
+    ...core33PassiveVerbSlots,
+    '추천': { participle: 'recommended', verbKo: '추천되다', verbEn: 'be recommended' },
+  };
+  const core41RecommendedPerfectMatch = /^(그 직원들은|그 학생들은) (이미 추천되었어요|아직 추천되지 않았어요|이미 추천되어 있었어요|아직 추천되어 있지 않았어요)$/u.exec(normalized);
+  if (core41RecommendedPerfectMatch) {
+    const subject = core29FuturePerfectSubjectSlots[core41RecommendedPerfectMatch[1]];
+    const verbSlot = core41PerfectPassiveVerbSlots['추천'];
+    if (subject && verbSlot) {
+      const ending = core41RecommendedPerfectMatch[2];
+      const pastPerfect = ending.endsWith('되어 있었어요') || ending.endsWith('되어 있지 않았어요');
+      const negative = ending.startsWith('아직 ');
+      const auxiliary = pastPerfect ? 'had' : 'have';
+      const remainder = negative
+        ? `not been ${verbSlot.participle} yet`
+        : `already been ${verbSlot.participle}`;
+      const questionSubject = subject.en.replace(/^The /u, 'the ');
+      const core = isQuestion
+        ? `${auxiliary[0].toUpperCase() + auxiliary.slice(1)} ${questionSubject} ${remainder}`
+        : `${subject.en} ${auxiliary} ${remainder}`;
+      return {
+        targetText: twoProFinalizeEnglish(core, originalText),
+        analysis: [
+          { ko: core41RecommendedPerfectMatch[1], en: `${subject.en} [S]` },
+          { ko: normalized, en: `${verbSlot.verbEn} [PASSIVE:${pastPerfect ? 'past-perfect' : 'present-perfect'}:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90(subject.nounKo, subject.nounEn, 'N'),
+          twoProEmbeddedReferenceWordV90(verbSlot.verbKo, verbSlot.verbEn, 'V'),
+        ],
+        engine: 'core41-recommended-passive-perfect-verb-slot-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE42-RECOMMENDED-FUTURE-VERB-SLOT-SAFE
+  // Reuse CORE29 subject slots, CORE30 deadline slots, and CORE41 recommended participle.
+  // Keep CORE33 selected and CORE41 perfect cases unchanged.
+  const core42RecommendedFutureMatch = /^(그 직원들은|그 학생들은) (?:(내일 )?(추천될 거예요|추천되지 않을 거예요)|(?:(내일 오전까지|내일 오후까지) )?(추천되어 있을 거예요|추천되어 있지 않을 거예요))$/u.exec(normalized);
+  if (core42RecommendedFutureMatch) {
+    const subject = core29FuturePerfectSubjectSlots[core42RecommendedFutureMatch[1]];
+    const verbSlot = core41PerfectPassiveVerbSlots['추천'];
+    if (subject && verbSlot) {
+      const simpleEnding = core42RecommendedFutureMatch[3];
+      const futurePerfect = !simpleEnding;
+      const negative = simpleEnding
+        ? simpleEnding === '추천되지 않을 거예요'
+        : core42RecommendedFutureMatch[5] === '추천되어 있지 않을 거예요';
+      const timeKo = core42RecommendedFutureMatch[4];
+      const deadlineEn = timeKo ? core30FuturePerfectTimeSlots[timeKo] : '';
+      const timeTail = futurePerfect
+        ? (deadlineEn ? ` ${deadlineEn}` : '')
+        : (core42RecommendedFutureMatch[2] ? ' tomorrow' : '');
+      const predicate = `${negative ? 'not ' : ''}${futurePerfect ? 'have been' : 'be'} ${verbSlot.participle}${timeTail}`;
+      const questionSubject = subject.en.replace(/^The /u, 'the ');
+      const core = isQuestion
+        ? `Will ${questionSubject} ${predicate}`
+        : `${subject.en} will ${predicate}`;
+      return {
+        targetText: twoProFinalizeEnglish(core, originalText),
+        analysis: [
+          { ko: core42RecommendedFutureMatch[1], en: `${subject.en} [S]` },
+          { ko: normalized, en: `${verbSlot.verbEn} [PASSIVE:${futurePerfect ? 'future-perfect' : 'simple-future'}:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90(subject.nounKo, subject.nounEn, 'N'),
+          twoProEmbeddedReferenceWordV90(verbSlot.verbKo, verbSlot.verbEn, 'V'),
+        ],
+        engine: 'core42-recommended-passive-future-verb-slot-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE43-RECOMMENDED-PRESENT-PROGRESSIVE-SLOT-SAFE
+  // Reuse CORE29 subjects and CORE41 recommended-verb slot; no changes to CORE41/42.
+  // Only present-progressive passive 추천되고 있어요 / 추천되고 있지 않아요.
+  const core43RecommendedProgressiveMatch = /^(그 직원들은|그 학생들은) (지금 )?(추천되고 있어요|추천되고 있지 않아요)$/u.exec(normalized);
+  if (core43RecommendedProgressiveMatch) {
+    const subject = core29FuturePerfectSubjectSlots[core43RecommendedProgressiveMatch[1]];
+    const verbSlot = core41PerfectPassiveVerbSlots['추천'];
+    if (subject && verbSlot) {
+      const negative = core43RecommendedProgressiveMatch[3] === '추천되고 있지 않아요';
+      const timeTail = core43RecommendedProgressiveMatch[2] ? ' now' : '';
+      const predicate = `${negative ? 'not ' : ''}being ${verbSlot.participle}${timeTail}`;
+      const questionSubject = subject.en.replace(/^The /u, 'the ');
+      const core = isQuestion
+        ? `Are ${questionSubject} ${predicate}`
+        : `${subject.en} are ${predicate}`;
+      return {
+        targetText: twoProFinalizeEnglish(core, originalText),
+        analysis: [
+          { ko: core43RecommendedProgressiveMatch[1], en: `${subject.en} [S]` },
+          { ko: normalized, en: `${verbSlot.verbEn} [PASSIVE:present-progressive:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90(subject.nounKo, subject.nounEn, 'N'),
+          twoProEmbeddedReferenceWordV90(verbSlot.verbKo, verbSlot.verbEn, 'V'),
+        ],
+        engine: 'core43-recommended-present-progressive-slot-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE44-RECOMMENDED-PAST-PROGRESSIVE-SLOT-SAFE
+  // Reuse CORE29 student/employee subjects and CORE41 recommended participle.
+  // Only past-progressive passive 추천되고 있었어요 / 추천되고 있지 않았어요.
+  const core44RecommendedPastProgressiveMatch = /^(그 직원들은|그 학생들은) (그때 )?(추천되고 있었어요|추천되고 있지 않았어요)$/u.exec(normalized);
+  if (core44RecommendedPastProgressiveMatch) {
+    const subject = core29FuturePerfectSubjectSlots[core44RecommendedPastProgressiveMatch[1]];
+    const verbSlot = core41PerfectPassiveVerbSlots['추천'];
+    if (subject && verbSlot) {
+      const negative = core44RecommendedPastProgressiveMatch[3] === '추천되고 있지 않았어요';
+      const timeTail = core44RecommendedPastProgressiveMatch[2] ? ' at that time' : '';
+      const predicate = `${negative ? 'not ' : ''}being ${verbSlot.participle}${timeTail}`;
+      const questionSubject = subject.en.replace(/^The /u, 'the ');
+      const core = isQuestion
+        ? `Were ${questionSubject} ${predicate}`
+        : `${subject.en} were ${predicate}`;
+      return {
+        targetText: twoProFinalizeEnglish(core, originalText),
+        analysis: [
+          { ko: core44RecommendedPastProgressiveMatch[1], en: `${subject.en} [S]` },
+          { ko: normalized, en: `${verbSlot.verbEn} [PASSIVE:past-progressive:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90(subject.nounKo, subject.nounEn, 'N'),
+          twoProEmbeddedReferenceWordV90(verbSlot.verbKo, verbSlot.verbEn, 'V'),
+        ],
+        engine: 'core44-recommended-past-progressive-slot-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE45-RECOMMENDED-SIMPLE-PRESENT-PAST-SLOT-SAFE
+  // Reuse CORE29 subject and CORE41 recommended verb. Strictly simple present or yesterday simple past.
+  // Do not match CORE41 perfect, CORE43/44 progressive, or CORE42 future structures.
+  const core45RecommendedSimpleMatch = /^(그 직원들은|그 학생들은) (?:(추천돼요|추천되지 않아요)|어제 (추천되었어요|추천되지 않았어요))$/u.exec(normalized);
+  if (core45RecommendedSimpleMatch) {
+    const subject = core29FuturePerfectSubjectSlots[core45RecommendedSimpleMatch[1]];
+    const verbSlot = core41PerfectPassiveVerbSlots['추천'];
+    if (subject && verbSlot) {
+      const past = Boolean(core45RecommendedSimpleMatch[3]);
+      const negative = past
+        ? core45RecommendedSimpleMatch[3] === '추천되지 않았어요'
+        : core45RecommendedSimpleMatch[2] === '추천되지 않아요';
+      const aux = past ? 'were' : 'are';
+      const timeTail = past ? ' yesterday' : '';
+      const predicate = `${negative ? 'not ' : ''}${verbSlot.participle}${timeTail}`;
+      const questionSubject = subject.en.replace(/^The /u, 'the ');
+      const core = isQuestion
+        ? `${past ? 'Were' : 'Are'} ${questionSubject} ${predicate}`
+        : `${subject.en} ${aux} ${predicate}`;
+      return {
+        targetText: twoProFinalizeEnglish(core, originalText),
+        analysis: [
+          { ko: core45RecommendedSimpleMatch[1], en: `${subject.en} [S]` },
+          { ko: normalized, en: `${verbSlot.verbEn} [PASSIVE:${past ? 'simple-past' : 'simple-present'}:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90(subject.nounKo, subject.nounEn, 'N'),
+          twoProEmbeddedReferenceWordV90(verbSlot.verbKo, verbSlot.verbEn, 'V'),
+        ],
+        engine: 'core45-recommended-simple-present-past-slot-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE46-RECOMMENDED-SINGULAR-SUBJECT-AGREEMENT-SAFE
+  // Add singular subjects as a bounded number-agreement extension; keep plural CORE41-45 untouched.
+  // Reuse CORE29 noun slots and CORE41 recommended participle. Whitelist tense/time combinations.
+  const core46SingularToPluralSubjects: Readonly<Record<string, string>> = {
+    '그 학생은': '그 학생들은',
+    '그 직원은': '그 직원들은',
+    '그 지원자는': '그 지원자들은',
+  };
+  const core46RecommendedSingularForms: Readonly<Record<string, { aspect: string; aux: string; before: string; after: string; timeKo: string; optionalTime: boolean }>> = {
+    '추천돼요': { aspect: 'simple-present', aux: 'is', before: '', after: '', timeKo: '', optionalTime: false },
+    '추천되지 않아요': { aspect: 'simple-present', aux: 'is', before: 'not ', after: '', timeKo: '', optionalTime: false },
+    '추천되었어요': { aspect: 'simple-past', aux: 'was', before: '', after: '', timeKo: '어제', optionalTime: false },
+    '추천되지 않았어요': { aspect: 'simple-past', aux: 'was', before: 'not ', after: '', timeKo: '어제', optionalTime: false },
+    '선발돼요': { aspect: 'simple-present', aux: 'is', before: '', after: '', timeKo: '', optionalTime: false },
+    '선발되지 않아요': { aspect: 'simple-present', aux: 'is', before: 'not ', after: '', timeKo: '', optionalTime: false },
+    '선발되었어요': { aspect: 'simple-past', aux: 'was', before: '', after: '', timeKo: '어제', optionalTime: false },
+    '선발되지 않았어요': { aspect: 'simple-past', aux: 'was', before: 'not ', after: '', timeKo: '어제', optionalTime: false },
+    '선발되고 있어요': { aspect: 'present-progressive', aux: 'is', before: 'being ', after: '', timeKo: '지금', optionalTime: true },
+    '선발되고 있지 않아요': { aspect: 'present-progressive', aux: 'is', before: 'not being ', after: '', timeKo: '지금', optionalTime: true },
+    '선발되고 있었어요': { aspect: 'past-progressive', aux: 'was', before: 'being ', after: '', timeKo: '그때', optionalTime: true },
+    '선발되고 있지 않았어요': { aspect: 'past-progressive', aux: 'was', before: 'not being ', after: '', timeKo: '그때', optionalTime: true },
+    '추천되고 있어요': { aspect: 'present-progressive', aux: 'is', before: 'being ', after: '', timeKo: '지금', optionalTime: true },
+    '추천되고 있지 않아요': { aspect: 'present-progressive', aux: 'is', before: 'not being ', after: '', timeKo: '지금', optionalTime: true },
+    '추천되고 있었어요': { aspect: 'past-progressive', aux: 'was', before: 'being ', after: '', timeKo: '그때', optionalTime: true },
+    '추천되고 있지 않았어요': { aspect: 'past-progressive', aux: 'was', before: 'not being ', after: '', timeKo: '그때', optionalTime: true },
+    '이미 추천되었어요': { aspect: 'present-perfect', aux: 'has', before: 'already been ', after: '', timeKo: '', optionalTime: false },
+    '아직 추천되지 않았어요': { aspect: 'present-perfect', aux: 'has', before: 'not been ', after: ' yet', timeKo: '', optionalTime: false },
+    '이미 추천되어 있었어요': { aspect: 'past-perfect', aux: 'had', before: 'already been ', after: '', timeKo: '', optionalTime: false },
+    '아직 추천되어 있지 않았어요': { aspect: 'past-perfect', aux: 'had', before: 'not been ', after: ' yet', timeKo: '', optionalTime: false },
+    '이미 선발되었어요': { aspect: 'present-perfect', aux: 'has', before: 'already been ', after: '', timeKo: '', optionalTime: false },
+    '아직 선발되지 않았어요': { aspect: 'present-perfect', aux: 'has', before: 'not been ', after: ' yet', timeKo: '', optionalTime: false },
+    '이미 선발되어 있었어요': { aspect: 'past-perfect', aux: 'had', before: 'already been ', after: '', timeKo: '', optionalTime: false },
+    '아직 선발되어 있지 않았어요': { aspect: 'past-perfect', aux: 'had', before: 'not been ', after: ' yet', timeKo: '', optionalTime: false },
+    '초대돼요': { aspect: 'simple-present', aux: 'is', before: '', after: '', timeKo: '', optionalTime: false },
+    '초대되지 않아요': { aspect: 'simple-present', aux: 'is', before: 'not ', after: '', timeKo: '', optionalTime: false },
+    '초대되었어요': { aspect: 'simple-past', aux: 'was', before: '', after: '', timeKo: '어제', optionalTime: false },
+    '초대되지 않았어요': { aspect: 'simple-past', aux: 'was', before: 'not ', after: '', timeKo: '어제', optionalTime: false },
+  };
+  // XDIC-CORE49-SELECTED-SINGULAR-SIMPLE-PRESENT-PAST-SAFE
+  // XDIC-CORE50-SELECTED-SINGULAR-PROGRESSIVE-SAFE
+  // XDIC-CORE51-SELECTED-SINGULAR-PERFECT-SAFE
+  // XDIC-CORE52-APPLICANT-SINGULAR-SUBJECT-SLOT-SAFE
+  // XDIC-CORE53-APPLICANTS-PLURAL-SUBJECT-SLOT-SAFE
+  // XDIC-CORE57-APPLICANTS-INVITED-SIMPLE-PRESENT-PAST-SAFE
+  // XDIC-CORE71-APPLICANTS-INVITED-MUST-CANNOT-HAVE-BEEN-SLOT-SAFE
+  // 2 subjects x 2 times x 2 strong-deduction polarities = 8 statements.
+  // '틀림없이' -> must; '리가 전혀 없어요' -> cannot; no overlap with CORE67.
+  const core71ApplicantStrongDeductionMatch =
+    /^그 지원자(는|들은) (어제|지난주에) (틀림없이 초대되었을 거예요|초대되었을 리가 전혀 없어요)$/u.exec(normalized);
+  if (core71ApplicantStrongDeductionMatch && !isQuestion) {
+    const core71Plural = core71ApplicantStrongDeductionMatch[1] === '들은';
+    const core71TimeKo = core71ApplicantStrongDeductionMatch[2];
+    const core71TimeEn = core71TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core71Cannot = core71ApplicantStrongDeductionMatch[3] === '초대되었을 리가 전혀 없어요';
+    const core71Subject = core71Plural ? 'The applicants' : 'The applicant';
+    const core71Aux = core71Cannot ? 'cannot' : 'must';
+    const core71Core = `${core71Subject} ${core71Aux} have been invited ${core71TimeEn}`;
+    return {
+      targetText: twoProFinalizeEnglish(core71Core, originalText),
+      analysis: [
+        { ko: core71Plural ? '그 지원자들은' : '그 지원자는', en: `${core71Subject} [S]` },
+        { ko: core71TimeKo, en: `${core71TimeEn} [TIME]` },
+        { ko: normalized, en: `be invited [PASSIVE:CORE71:${core71Cannot ? 'CANNOT' : 'MUST'}-HAVE-BEEN:DECL]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core71-applicants-invited-must-cannot-have-been-ko-en-safe',
+    };
+  }
+  // XDIC-CORE70-APPLICANTS-INVITED-MAY-HAVE-BEEN-SLOT-SAFE
+  // 2 subjects x 2 times x 2 polarities = 8 affirmative/negative statements.
+  // Deliberately distinguish '가능성이 있어요' (may) from CORE68 '지도 몰라요' (might).
+  const core70ApplicantMayMatch =
+    /^그 지원자(는|들은) (어제|지난주에) (초대되었을 가능성이 있어요|초대되지 않았을 가능성이 있어요)$/u.exec(normalized);
+  if (core70ApplicantMayMatch && !isQuestion) {
+    const core70Plural = core70ApplicantMayMatch[1] === '들은';
+    const core70TimeKo = core70ApplicantMayMatch[2];
+    const core70TimeEn = core70TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core70Negative = core70ApplicantMayMatch[3] === '초대되지 않았을 가능성이 있어요';
+    const core70Subject = core70Plural ? 'The applicants' : 'The applicant';
+    const core70Core = `${core70Subject} may ${core70Negative ? 'not ' : ''}have been invited ${core70TimeEn}`;
+    return {
+      targetText: twoProFinalizeEnglish(core70Core, originalText),
+      analysis: [
+        { ko: core70Plural ? '그 지원자들은' : '그 지원자는', en: `${core70Subject} [S]` },
+        { ko: core70TimeKo, en: `${core70TimeEn} [TIME]` },
+        { ko: normalized, en: `be invited [PASSIVE:CORE70:MAY-HAVE-BEEN:${core70Negative ? 'NEG' : 'POS'}:DECL]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core70-applicants-invited-may-have-been-ko-en-safe',
+    };
+  }
+  // XDIC-CORE69-APPLICANTS-INVITED-MIGHT-HAVE-BEEN-QUESTION-SLOT-SAFE
+  // 2 subjects x 2 time expressions x 2 polarities = 8 interrogatives.
+  // CORE68 statements and CORE66/67 could-questions remain unchanged.
+  const core69ApplicantMightQuestionMatch =
+    /^그 지원자(는|들은) (어제|지난주에) (초대되었을지도 모르나요|초대되지 않았을지도 모르나요)$/u.exec(normalized);
+  if (core69ApplicantMightQuestionMatch && isQuestion) {
+    const core69Plural = core69ApplicantMightQuestionMatch[1] === '들은';
+    const core69TimeKo = core69ApplicantMightQuestionMatch[2];
+    const core69TimeEn = core69TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core69Negative = core69ApplicantMightQuestionMatch[3] === '초대되지 않았을지도 모르나요';
+    const core69Subject = core69Plural ? 'the applicants' : 'the applicant';
+    const core69Core = `Might ${core69Subject} ${core69Negative ? 'not ' : ''}have been invited ${core69TimeEn}`;
+    return {
+      targetText: twoProFinalizeEnglish(core69Core, originalText),
+      analysis: [
+        { ko: core69Plural ? '그 지원자들은' : '그 지원자는', en: `${core69Subject} [S]` },
+        { ko: core69TimeKo, en: `${core69TimeEn} [TIME]` },
+        { ko: normalized, en: `be invited [PASSIVE:CORE69:MIGHT-HAVE-BEEN:${core69Negative ? 'NEG' : 'POS'}:Q]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core69-applicants-invited-might-have-been-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE68-APPLICANTS-INVITED-MIGHT-HAVE-BEEN-SLOT-SAFE
+  // Only checked past probability: 2 subjects x 2 time expressions x 2 polarities = 8.
+  // Do not accept questions here; keep CORE66 and CORE67 untouched.
+  const core68ApplicantMightMatch =
+    /^그 지원자(는|들은) (어제|지난주에) (초대되었을지도 몰라요|초대되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core68ApplicantMightMatch && !isQuestion) {
+    const core68Plural = core68ApplicantMightMatch[1] === '들은';
+    const core68TimeKo = core68ApplicantMightMatch[2];
+    const core68TimeEn = core68TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core68Negative = core68ApplicantMightMatch[3] === '초대되지 않았을지도 몰라요';
+    const core68Subject = core68Plural ? 'The applicants' : 'The applicant';
+    const core68Core = `${core68Subject} might ${core68Negative ? 'not ' : ''}have been invited ${core68TimeEn}`;
+    return {
+      targetText: twoProFinalizeEnglish(core68Core, originalText),
+      analysis: [
+        { ko: core68Plural ? '그 지원자들은' : '그 지원자는', en: `${core68Subject} [S]` },
+        { ko: core68TimeKo, en: `${core68TimeEn} [TIME]` },
+        { ko: normalized, en: `be invited [PASSIVE:CORE68:MIGHT-HAVE-BEEN:${core68Negative ? 'NEG' : 'POS'}:DECL]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core68-applicants-invited-might-have-been-ko-en-safe',
+    };
+  }
+  // XDIC-CORE67-APPLICANTS-INVITED-COULD-NOT-HAVE-BEEN-SLOT-SAFE
+  // Two different meanings: declarative past impossibility vs negative possibility question.
+  // Only these Korean endings: '초대되었을 리가 없어요' / '초대되지 않았을 수도 있나요?'.
+  // 2 subjects x 2 times x 2 statement/question cases = exactly 8.
+  const core67ApplicantCouldNotMatch =
+    /^그 지원자(는|들은) (어제|지난주에) (초대되었을 리가 없어요|초대되지 않았을 수도 있나요)$/u.exec(normalized);
+  if (core67ApplicantCouldNotMatch) {
+    const core67IsNegativePossibilityQuestion =
+      core67ApplicantCouldNotMatch[3] === '초대되지 않았을 수도 있나요';
+    // Prevent the wrong punctuation from producing an unintended reading.
+    if (isQuestion === core67IsNegativePossibilityQuestion) {
+      const core67Plural = core67ApplicantCouldNotMatch[1] === '들은';
+      const core67TimeKo = core67ApplicantCouldNotMatch[2];
+      const core67TimeEn = core67TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core67Subject = core67Plural ? 'The applicants' : 'The applicant';
+      const core67QuestionSubject = core67Plural ? 'the applicants' : 'the applicant';
+      const core67Core = isQuestion
+        ? `Could ${core67QuestionSubject} not have been invited ${core67TimeEn}`
+        : `${core67Subject} could not have been invited ${core67TimeEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core67Core, originalText),
+        analysis: [
+          { ko: core67Plural ? '그 지원자들은' : '그 지원자는', en: `${core67Subject} [S]` },
+          { ko: core67TimeKo, en: `${core67TimeEn} [TIME]` },
+          { ko: normalized, en: `be invited [PASSIVE:CORE67:COULD-NOT-HAVE-BEEN:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core67-applicants-invited-could-not-have-been-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE66-APPLICANTS-INVITED-COULD-HAVE-BEEN-SLOT-SAFE
+  // Exact Korean: '어제' / '지난주에' + '초대될 수도 있었어요'.
+  // 2 subjects x 2 times x statement/question = exactly 8 cases.
+  // Does not intercept CORE65 should-have-been or negative could-not-have-been.
+  const core66ApplicantCouldHaveBeenMatch =
+    /^그 지원자(는|들은) (어제|지난주에) 초대될 수도 있었어요$/u.exec(normalized);
+  if (core66ApplicantCouldHaveBeenMatch) {
+    const core66Plural = core66ApplicantCouldHaveBeenMatch[1] === '들은';
+    const core66TimeKo = core66ApplicantCouldHaveBeenMatch[2];
+    const core66TimeEn = core66TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core66Subject = core66Plural ? 'The applicants' : 'The applicant';
+    const core66QuestionSubject = core66Plural ? 'the applicants' : 'the applicant';
+    const core66Core = isQuestion
+      ? `Could ${core66QuestionSubject} have been invited ${core66TimeEn}`
+      : `${core66Subject} could have been invited ${core66TimeEn}`;
+    return {
+      targetText: twoProFinalizeEnglish(core66Core, originalText),
+      analysis: [
+        { ko: core66Plural ? '그 지원자들은' : '그 지원자는', en: `${core66Subject} [S]` },
+        { ko: core66TimeKo, en: `${core66TimeEn} [TIME]` },
+        { ko: normalized, en: `be invited [PASSIVE:CORE66:COULD-HAVE-BEEN:${isQuestion ? 'Q' : 'DECL'}]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core66-applicants-invited-could-have-been-ko-en-safe',
+    };
+  }
+  // XDIC-CORE65-APPLICANTS-INVITED-SHOULD-HAVE-BEEN-SLOT-SAFE
+  // Exact Korean only: '어제 초대되었어야 해요' / '어제 초대되지 않았어야 해요'.
+  // 2 subjects x affirmative/negative x statement/question = exactly 8 cases.
+  // This is retrospective should have been (not CORE63 present-modal should be).
+  const core65ApplicantShouldHaveBeenMatch =
+    /^그 지원자(는|들은) 어제 (초대되었어야 해요|초대되지 않았어야 해요)$/u.exec(normalized);
+  if (core65ApplicantShouldHaveBeenMatch) {
+    const core65Plural = core65ApplicantShouldHaveBeenMatch[1] === '들은';
+    const core65Negative = core65ApplicantShouldHaveBeenMatch[2] === '초대되지 않았어야 해요';
+    const core65Subject = core65Plural ? 'The applicants' : 'The applicant';
+    const core65QuestionSubject = core65Plural ? 'the applicants' : 'the applicant';
+    const core65Core = isQuestion
+      ? `Should ${core65QuestionSubject} ${core65Negative ? 'not ' : ''}have been invited yesterday`
+      : `${core65Subject} should ${core65Negative ? 'not ' : ''}have been invited yesterday`;
+    return {
+      targetText: twoProFinalizeEnglish(core65Core, originalText),
+      analysis: [
+        { ko: core65Plural ? '그 지원자들은' : '그 지원자는', en: `${core65Subject} [S]` },
+        { ko: '어제', en: 'yesterday [TIME]' },
+        { ko: normalized, en: `be invited [PASSIVE:CORE65:SHOULD-HAVE-BEEN:${core65Negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core65-applicants-invited-should-have-been-ko-en-safe',
+    };
+  }
+  // XDIC-CORE64-APPLICANTS-INVITED-MUST-MUST-NOT-SLOT-SAFE
+  // Exact applicant singular/plural + '오늘 반드시' (obligation) / '오늘 절대로' (prohibition).
+  // 2 subjects x affirmative/negative x statement/question = exactly 8 cases.
+  // Negative questions: Must the applicant not be invited today?
+  const core64ApplicantMustMatch =
+    /^그 지원자(는|들은) 오늘 (반드시 초대되어야 해요|절대로 초대되면 안 돼요)$/u.exec(normalized);
+  if (core64ApplicantMustMatch) {
+    const core64Plural = core64ApplicantMustMatch[1] === '들은';
+    const core64Negative = core64ApplicantMustMatch[2] === '절대로 초대되면 안 돼요';
+    const core64Subject = core64Plural ? 'The applicants' : 'The applicant';
+    const core64QuestionSubject = core64Plural ? 'the applicants' : 'the applicant';
+    const core64Core = isQuestion
+      ? `Must ${core64QuestionSubject} ${core64Negative ? 'not ' : ''}be invited today`
+      : `${core64Subject} must ${core64Negative ? 'not ' : ''}be invited today`;
+    return {
+      targetText: twoProFinalizeEnglish(core64Core, originalText),
+      analysis: [
+        { ko: core64Plural ? '그 지원자들은' : '그 지원자는', en: `${core64Subject} [S]` },
+        { ko: '오늘', en: 'today [TIME]' },
+        { ko: normalized, en: `be invited [PASSIVE:CORE64:MODAL-MUST:${core64Negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core64-applicants-invited-must-must-not-ko-en-safe',
+    };
+  }
+  // XDIC-CORE63-APPLICANTS-INVITED-SHOULD-SHOULD-NOT-SLOT-SAFE
+  // Exact applicant singular/plural + '오늘' + should/should-not passive only.
+  // 2 subjects x affirmative/negative x statement/question = 8 cases.
+  // Negative questions keep the explicit uncontracted order: Should the ... not ...?
+  const core63ApplicantShouldMatch =
+    /^그 지원자(는|들은) 오늘 (초대되어야 해요|초대되지 않아야 해요)$/u.exec(normalized);
+  if (core63ApplicantShouldMatch) {
+    const core63Plural = core63ApplicantShouldMatch[1] === '들은';
+    const core63Negative = core63ApplicantShouldMatch[2] === '초대되지 않아야 해요';
+    const core63Subject = core63Plural ? 'The applicants' : 'The applicant';
+    const core63QuestionSubject = core63Plural ? 'the applicants' : 'the applicant';
+    const core63Core = isQuestion
+      ? `Should ${core63QuestionSubject} ${core63Negative ? 'not ' : ''}be invited today`
+      : `${core63Subject} should ${core63Negative ? 'not ' : ''}be invited today`;
+    return {
+      targetText: twoProFinalizeEnglish(core63Core, originalText),
+      analysis: [
+        { ko: core63Plural ? '그 지원자들은' : '그 지원자는', en: `${core63Subject} [S]` },
+        { ko: '오늘', en: 'today [TIME]' },
+        { ko: normalized, en: `be invited [PASSIVE:CORE63:MODAL-SHOULD:${core63Negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core63-applicants-invited-should-should-not-ko-en-safe',
+    };
+  }
+  // XDIC-CORE62-APPLICANTS-INVITED-CAN-CANNOT-SLOT-SAFE
+  // Exact applicant singular/plural + '오늘' + can/cannot passive only.
+  // 2 subjects x positive/negative x statement/question = 8 cases.
+  // Keep negative statements as 'cannot'; negative questions as "Can't".
+  const core62ApplicantModalMatch =
+    /^그 지원자(는|들은) 오늘 (초대될 수 있어요|초대될 수 없어요)$/u.exec(normalized);
+  if (core62ApplicantModalMatch) {
+    const core62Plural = core62ApplicantModalMatch[1] === '들은';
+    const core62Negative = core62ApplicantModalMatch[2] === '초대될 수 없어요';
+    const core62Subject = core62Plural ? 'The applicants' : 'The applicant';
+    const core62QuestionSubject = core62Plural ? 'the applicants' : 'the applicant';
+    const core62Core = isQuestion
+      ? `${core62Negative ? "Can't" : 'Can'} ${core62QuestionSubject} be invited today`
+      : `${core62Subject} ${core62Negative ? 'cannot' : 'can'} be invited today`;
+    return {
+      targetText: twoProFinalizeEnglish(core62Core, originalText),
+      analysis: [
+        { ko: core62Plural ? '그 지원자들은' : '그 지원자는', en: `${core62Subject} [S]` },
+        { ko: '오늘', en: 'today [TIME]' },
+        { ko: normalized, en: `be invited [PASSIVE:CORE62:MODAL-CAN:${core62Negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core62-applicants-invited-can-cannot-ko-en-safe',
+    };
+  }
+  // XDIC-CORE61-APPLICANTS-INVITED-FUTURE-PERFECT-SLOT-SAFE
+  // Exact time boundary '내일 오전까지' only, to avoid overlap with earlier CORE56.
+  // Singular/plural x affirmative/negative x statement/question = 8 cases.
+  const core61ApplicantFuturePerfectMatch =
+    /^그 지원자(는|들은) 내일 오전까지 (이미 초대되었을 거예요|초대되지 않았을 거예요)$/u.exec(normalized);
+  if (core61ApplicantFuturePerfectMatch) {
+    const core61Plural = core61ApplicantFuturePerfectMatch[1] === '들은';
+    const core61Negative = core61ApplicantFuturePerfectMatch[2] === '초대되지 않았을 거예요';
+    const core61Subject = core61Plural ? 'The applicants' : 'The applicant';
+    const core61SubjectQuestion = core61Plural ? 'the applicants' : 'the applicant';
+    const core61Predicate = core61Negative
+      ? 'not have been invited by tomorrow morning'
+      : 'have already been invited by tomorrow morning';
+    const core61Core = isQuestion
+      ? `Will ${core61SubjectQuestion} ${core61Predicate}`
+      : `${core61Subject} will ${core61Predicate}`;
+    return {
+      targetText: twoProFinalizeEnglish(core61Core, originalText),
+      analysis: [
+        { ko: core61Plural ? '그 지원자들은' : '그 지원자는', en: `${core61Subject} [S]` },
+        { ko: '내일 오전까지', en: 'by tomorrow morning [TIME]' },
+        { ko: normalized, en: `be invited [PASSIVE:CORE61:FUTURE-PERFECT:${core61Negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core61-applicants-invited-future-perfect-ko-en-safe',
+    };
+  }
+  // XDIC-CORE60-APPLICANTS-INVITED-PAST-PERFECT-SLOT-SAFE
+  // Only explicit time boundary: before the meeting started.
+  // Singular/plural x affirmative/negative x statement/question = eight cases.
+  // Keep CORE59's 'already'/'yet' present-perfect rules untouched.
+  const core60ApplicantPastPerfectMatch =
+    /^그 지원자(는|들은) 회의가 시작되기 전에 (이미 초대되었어요|초대되지 않았어요)$/u.exec(normalized);
+  if (core60ApplicantPastPerfectMatch) {
+    const core60Plural = core60ApplicantPastPerfectMatch[1] === '들은';
+    const core60Negative = core60ApplicantPastPerfectMatch[2] === '초대되지 않았어요';
+    const core60Subject = core60Plural ? 'The applicants' : 'The applicant';
+    const core60SubjectQuestion = core60Plural ? 'the applicants' : 'the applicant';
+    const core60Predicate = core60Negative
+      ? 'not been invited before the meeting started'
+      : 'already been invited before the meeting started';
+    const core60Core = isQuestion
+      ? `Had ${core60SubjectQuestion} ${core60Predicate}`
+      : `${core60Subject} had ${core60Predicate}`;
+    return {
+      targetText: twoProFinalizeEnglish(core60Core, originalText),
+      analysis: [
+        { ko: core60Plural ? '그 지원자들은' : '그 지원자는', en: `${core60Subject} [S]` },
+        { ko: '회의가 시작되기 전에', en: 'before the meeting started [TIME]' },
+        { ko: normalized, en: `be invited [PASSIVE:CORE60:PAST-PERFECT:${core60Negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('회의', 'meeting', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core60-applicants-invited-past-perfect-ko-en-safe',
+    };
+  }
+  // XDIC-CORE59-APPLICANTS-INVITED-PRESENT-PERFECT-SLOT-SAFE
+  // '이미/아직' cases only. Avoid ambiguous unmarked simple past CORE57 inputs.
+  // Subject: singular/plural x positive/negative x statement/question = 8 cases.
+  const core59ApplicantPerfectMatch =
+    /^그 지원자(는|들은) (이미 초대되었어요|아직 초대되지 않았어요)$/u.exec(normalized);
+  if (core59ApplicantPerfectMatch) {
+    const core59Plural = core59ApplicantPerfectMatch[1] === '들은';
+    const core59Negative = core59ApplicantPerfectMatch[2] === '아직 초대되지 않았어요';
+    const core59Aux = core59Plural ? 'have' : 'has';
+    const core59Subject = core59Plural ? 'The applicants' : 'The applicant';
+    const core59Predicate = core59Negative ? 'not been invited yet' : 'already been invited';
+    const core59Core = isQuestion
+      ? `${core59Aux[0].toUpperCase() + core59Aux.slice(1)} ${core59Plural ? 'the applicants' : 'the applicant'} ${core59Predicate}`
+      : `${core59Subject} ${core59Aux} ${core59Predicate}`;
+    return {
+      targetText: twoProFinalizeEnglish(core59Core, originalText),
+      analysis: [
+        { ko: core59Plural ? '그 지원자들은' : '그 지원자는', en: `${core59Subject} [S]` },
+        { ko: normalized, en: `be invited [PASSIVE:CORE59:PRESENT-PERFECT:${core59Negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+      ],
+      engine: 'core59-applicants-invited-present-perfect-ko-en-safe',
+    };
+  }
+  // XDIC-CORE58-APPLICANTS-INVITED-PROGRESSIVE-SLOT-SAFE
+  // Applicant singular/plural only: present/past progressive passive, optional now/at-that-time, +/- and question.
+  // This early return is restricted to exact Korean endings; CORE57 and earlier branches remain unchanged.
+  const core58ApplicantProgressiveMatch =
+    /^그 지원자(는|들은) (?:(지금|그때) )?초대되고 (있어요|있지 않아요|있었어요|있지 않았어요)$/u.exec(normalized);
+  if (core58ApplicantProgressiveMatch) {
+    const core58Plural = core58ApplicantProgressiveMatch[1] === '들은';
+    const core58TimeKo = core58ApplicantProgressiveMatch[2] || '';
+    const core58Ending = core58ApplicantProgressiveMatch[3];
+    const core58Past = core58Ending === '있었어요' || core58Ending === '있지 않았어요';
+    const core58Negative = core58Ending === '있지 않아요' || core58Ending === '있지 않았어요';
+    const core58TimeValid = !core58TimeKo || core58TimeKo === (core58Past ? '그때' : '지금');
+    if (core58TimeValid) {
+      const core58Be = core58Past ? (core58Plural ? 'were' : 'was') : (core58Plural ? 'are' : 'is');
+      const core58Subject = core58Plural ? 'The applicants' : 'The applicant';
+      const core58Predicate = `${core58Negative ? 'not ' : ''}being invited${core58TimeKo ? (core58Past ? ' at that time' : ' now') : ''}`;
+      const core58Core = isQuestion
+        ? `${core58Be[0].toUpperCase() + core58Be.slice(1)} ${core58Plural ? 'the applicants' : 'the applicant'} ${core58Predicate}`
+        : `${core58Subject} ${core58Be} ${core58Predicate}`;
+      return {
+        targetText: twoProFinalizeEnglish(core58Core, originalText),
+        analysis: [
+          { ko: core58Plural ? '그 지원자들은' : '그 지원자는', en: `${core58Subject} [S]` },
+          { ko: normalized, en: `be invited [PASSIVE:CORE58:${core58Past ? 'PAST-PROGRESSIVE' : 'PRESENT-PROGRESSIVE'}:${core58Negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core58-applicants-invited-progressive-ko-en-safe',
+      };
+    }
+  }
+  const core46RecommendedSingularMatch = /^(그 학생은|그 직원은|그 지원자는|그 지원자들은) (?:(어제|지금|그때) )?(추천돼요|추천되지 않아요|추천되었어요|추천되지 않았어요|추천되고 있어요|추천되고 있지 않아요|추천되고 있었어요|추천되고 있지 않았어요|이미 추천되었어요|아직 추천되지 않았어요|이미 추천되어 있었어요|아직 추천되어 있지 않았어요|선발돼요|선발되지 않아요|선발되었어요|선발되지 않았어요|선발되고 있어요|선발되고 있지 않아요|선발되고 있었어요|선발되고 있지 않았어요|이미 선발되었어요|아직 선발되지 않았어요|이미 선발되어 있었어요|아직 선발되어 있지 않았어요|초대돼요|초대되지 않아요|초대되었어요|초대되지 않았어요)$/u.exec(normalized);
+  if (core46RecommendedSingularMatch) {
+    const koSubject = core46RecommendedSingularMatch[1];
+    const timeKo = core46RecommendedSingularMatch[2] || '';
+    const koEnding = core46RecommendedSingularMatch[3];
+    const pluralSubject = koSubject === '그 지원자는' || koSubject === '그 지원자들은'
+      ? { en: 'The applicants', nounKo: '지원자', nounEn: 'applicant' }
+      : core29FuturePerfectSubjectSlots[core46SingularToPluralSubjects[koSubject]];
+    const core49VerbStem = koEnding.includes('초대') ? '초대' : koEnding.includes('선발') ? '선발' : '추천';
+    const verbSlot = core49VerbStem === '초대'
+      ? { participle: 'invited', verbEn: 'be invited', verbKo: '초대되다' }
+      : core41PerfectPassiveVerbSlots[core49VerbStem];
+    const formSlot = core46RecommendedSingularForms[koEnding];
+    const correctTime = formSlot &&
+      (timeKo === formSlot.timeKo || (formSlot.optionalTime && timeKo === ''));
+    if (pluralSubject && verbSlot && correctTime && (core49VerbStem !== '초대' || koSubject === '그 지원자는' || koSubject === '그 지원자들은')) {
+      const singularEnglishSubject = koSubject === '그 지원자들은' ? pluralSubject.en : `The ${pluralSubject.nounEn}`;
+      const englishTime = timeKo === '어제' ? ' yesterday'
+        : timeKo === '지금' ? ' now'
+        : timeKo === '그때' ? ' at that time' : '';
+      const predicate = `${formSlot.before}${verbSlot.participle}${formSlot.after}${englishTime}`;
+      const questionSubject = singularEnglishSubject.replace(/^The /u, 'the ');
+      const adjustedAux = koSubject === '그 지원자들은'
+        ? (formSlot.aux === 'is' ? 'are' : formSlot.aux === 'was' ? 'were'
+          : formSlot.aux === 'has' ? 'have' : formSlot.aux)
+        : formSlot.aux;
+      const questionAux = `${adjustedAux.charAt(0).toUpperCase()}${adjustedAux.slice(1)}`;
+      const core = isQuestion
+        ? `${questionAux} ${questionSubject} ${predicate}`
+        : `${singularEnglishSubject} ${adjustedAux} ${predicate}`;
+      return {
+        targetText: twoProFinalizeEnglish(core, originalText),
+        analysis: [
+          { ko: koSubject, en: `${singularEnglishSubject} [S]` },
+          { ko: normalized, en: `${verbSlot.verbEn} [PASSIVE:${formSlot.aspect}:${formSlot.before.startsWith('not ') ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90(pluralSubject.nounKo, pluralSubject.nounEn, 'N'),
+          twoProEmbeddedReferenceWordV90(verbSlot.verbKo, verbSlot.verbEn, 'V'),
+        ],
+        engine: core49VerbStem === '초대' ? 'core57-applicants-invited-simple-present-past-ko-en-safe' : koSubject === '그 지원자들은'
+          ? 'core53-applicants-plural-subject-slot-ko-en-safe'
+          : koSubject === '그 지원자는'
+          ? 'core52-applicant-singular-subject-slot-ko-en-safe'
+          : (core49VerbStem === '선발'
+          ? ((formSlot.aspect === 'present-perfect' || formSlot.aspect === 'past-perfect')
+            ? 'core51-selected-singular-perfect-ko-en-safe'
+            : (formSlot.aspect === 'present-progressive' || formSlot.aspect === 'past-progressive'
+              ? 'core50-selected-singular-progressive-ko-en-safe'
+              : 'core49-selected-singular-simple-present-past-ko-en-safe'))
+          : 'core46-recommended-singular-subject-agreement-ko-en-safe'),
+      };
+    }
+  }
+  // XDIC-CORE47-RECOMMENDED-SINGULAR-FUTURE-PERFECT-SAFE
+  // Reuse the CORE46 singular subject mapping, CORE29 subject nouns,
+  // CORE41 participle, and CORE30 deadline translations.
+  // Strictly future and future-perfect forms: avoid CORE41-46 tense collisions.
+  // XDIC-CORE48-SELECTED-SINGULAR-FUTURE-VERB-EXTENSION-SAFE
+  // XDIC-CORE54-APPLICANTS-PLURAL-FUTURE-SLOT-SAFE
+  // XDIC-CORE55-APPLICANT-SINGULAR-FUTURE-SLOT-SAFE
+  // XDIC-CORE56-APPLICANTS-INVITED-FUTURE-VERB-SLOT-SAFE
+  const core47RecommendedSingularFutureMatch = /^(그 학생은|그 직원은|그 지원자들은|그 지원자는) (?:(내일 )?((?:추천|선발|초대)될 거예요|(?:추천|선발|초대)되지 않을 거예요)|(?:(내일 오전까지|내일 오후까지) )?((?:추천|선발|초대)되어 있을 거예요|(?:추천|선발|초대)되어 있지 않을 거예요))$/u.exec(normalized);
+  if (core47RecommendedSingularFutureMatch) {
+    const subjectKo = core47RecommendedSingularFutureMatch[1];
+    const pluralKo = (subjectKo === '그 지원자들은' || subjectKo === '그 지원자는')
+      ? subjectKo
+      : core46SingularToPluralSubjects[subjectKo];
+    const pluralSubject = subjectKo === '그 지원자들은' || subjectKo === '그 지원자는'
+      ? { en: subjectKo === '그 지원자들은' ? 'The applicants' : 'The applicant', nounKo: '지원자', nounEn: 'applicant' }
+      : core29FuturePerfectSubjectSlots[pluralKo];
+    const core48VerbStem = (core47RecommendedSingularFutureMatch[3] || core47RecommendedSingularFutureMatch[5]).slice(0, 2);
+    const verbSlot = core48VerbStem === '초대'
+      ? { participle: 'invited', verbEn: 'be invited', verbKo: '초대되다' }
+      : core41PerfectPassiveVerbSlots[core48VerbStem];
+    if (pluralSubject && verbSlot && (core48VerbStem !== '초대' || subjectKo === '그 지원자는' || subjectKo === '그 지원자들은')) {
+      const simpleEnding = core47RecommendedSingularFutureMatch[3];
+      const futurePerfect = !simpleEnding;
+      const negative = simpleEnding
+        ? simpleEnding === `${core48VerbStem}되지 않을 거예요`
+        : core47RecommendedSingularFutureMatch[5] === `${core48VerbStem}되어 있지 않을 거예요`;
+      const deadlineKo = core47RecommendedSingularFutureMatch[4] || '';
+      const deadlineEn = deadlineKo ? core30FuturePerfectTimeSlots[deadlineKo] : '';
+      // Fail closed rather than emit an incorrect future-perfect deadline.
+      if (!deadlineKo || deadlineEn) {
+        const timeTail = futurePerfect
+          ? (deadlineEn ? ` ${deadlineEn}` : '')
+          : (core47RecommendedSingularFutureMatch[2] ? ' tomorrow' : '');
+        const englishSubject = (subjectKo === '그 지원자들은' || subjectKo === '그 지원자는') ? pluralSubject.en : `The ${pluralSubject.nounEn}`;
+        const predicate = `${negative ? 'not ' : ''}${futurePerfect ? 'have been' : 'be'} ${verbSlot.participle}${timeTail}`;
+        const questionSubject = englishSubject.replace(/^The /u, 'the ');
+        const core = isQuestion
+          ? `Will ${questionSubject} ${predicate}`
+          : `${englishSubject} will ${predicate}`;
+        return {
+          targetText: twoProFinalizeEnglish(core, originalText),
+          analysis: [
+            { ko: subjectKo, en: `${englishSubject} [S]` },
+            { ko: normalized, en: `${verbSlot.verbEn} [PASSIVE:${futurePerfect ? 'future-perfect' : 'simple-future'}:${negative ? 'NEG' : 'POS'}:${isQuestion ? 'Q' : 'DECL'}]` },
+          ],
+          referenceWords: [
+            twoProEmbeddedReferenceWordV90(pluralSubject.nounKo, pluralSubject.nounEn, 'N'),
+            twoProEmbeddedReferenceWordV90(verbSlot.verbKo, verbSlot.verbEn, 'V'),
+          ],
+          engine: core48VerbStem === '초대' ? 'core56-applicants-invited-future-future-perfect-ko-en-safe' : subjectKo === '그 지원자는' ? 'core55-applicant-singular-future-future-perfect-ko-en-safe' : subjectKo === '그 지원자들은' ? 'core54-applicants-plural-future-future-perfect-ko-en-safe' : core48VerbStem === '선발'
+            ? 'core48-selected-singular-future-future-perfect-ko-en-safe'
+            : 'core47-recommended-singular-future-future-perfect-ko-en-safe',
+        };
+      }
+    }
+  }
   const form = TWO_PRO_GENERAL_PASSIVE_ASPECT_FORMS_V1053GPA.find(
     (item) => item.source === normalized
   );
