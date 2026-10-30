@@ -42667,6 +42667,2192 @@ const twoProTryKoEnGeneralPassiveAspectV1053GPA = (
   // XDIC-CORE52-APPLICANT-SINGULAR-SUBJECT-SLOT-SAFE
   // XDIC-CORE53-APPLICANTS-PLURAL-SUBJECT-SLOT-SAFE
   // XDIC-CORE57-APPLICANTS-INVITED-SIMPLE-PRESENT-PAST-SAFE
+  // XDIC-CORE134-APPLICANTS-INTERVIEWED-CONDITIONAL-MAY-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // '면접을 받았을 수도 있어요' -> 'may have been interviewed ...' (statements only).
+  // Two subjects x two times x two aligned polarities. All previous slots remain unchanged.
+  const core134ApplicantInterviewedConditionalMayMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (면접을 받았을 수도 있어요|면접을 받지 않았을 수도 있어요)$/u.exec(normalized);
+  if (core134ApplicantInterviewedConditionalMayMatch && !isQuestion) {
+    const core134NegativeCondition = core134ApplicantInterviewedConditionalMayMatch[2] === '조건이 충족되지 않았다면';
+    const core134NegativeResult = core134ApplicantInterviewedConditionalMayMatch[4] === '면접을 받지 않았을 수도 있어요';
+    if (core134NegativeCondition === core134NegativeResult) {
+      const core134Plural = core134ApplicantInterviewedConditionalMayMatch[1] === '들은';
+      const core134Subject = core134Plural ? 'the applicants' : 'the applicant';
+      const core134TimeKo = core134ApplicantInterviewedConditionalMayMatch[3];
+      const core134TimeEn = core134TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core134ConditionEn = core134NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core134Predicate = `may ${core134NegativeResult ? 'not ' : ''}have been interviewed`;
+      const core134Core = `${core134Plural ? 'The applicants' : 'The applicant'} ${core134Predicate} ${core134TimeEn} ${core134ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core134Core, originalText),
+        analysis: [
+          { ko: core134Plural ? '그 지원자들은' : '그 지원자는', en: `${core134Subject} [S]` },
+          { ko: core134ApplicantInterviewedConditionalMayMatch[2], en: `${core134ConditionEn} [CONDITION]` },
+          { ko: core134TimeKo, en: `${core134TimeEn} [TIME]` },
+          { ko: core134ApplicantInterviewedConditionalMayMatch[4], en: `${core134Predicate} [PASSIVE:CORE134]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('면접을 받다', 'be interviewed', 'V'),
+        ],
+        engine: 'core134-applicants-interviewed-conditional-may-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE133-APPLICANTS-INTERVIEWED-CONDITIONAL-MIGHT-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // '면접을 받았을지도 몰라요?' -> 'Might ... have been interviewed ...?' (questions only).
+  // Two subjects x two times x two aligned polarities. All previous slots remain unchanged.
+  const core133ApplicantInterviewedConditionalMightQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (면접을 받았을지도 몰라요|면접을 받지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core133ApplicantInterviewedConditionalMightQuestionMatch && isQuestion) {
+    const core133NegativeCondition = core133ApplicantInterviewedConditionalMightQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core133NegativeResult = core133ApplicantInterviewedConditionalMightQuestionMatch[4] === '면접을 받지 않았을지도 몰라요';
+    if (core133NegativeCondition === core133NegativeResult) {
+      const core133Plural = core133ApplicantInterviewedConditionalMightQuestionMatch[1] === '들은';
+      const core133Subject = core133Plural ? 'the applicants' : 'the applicant';
+      const core133TimeKo = core133ApplicantInterviewedConditionalMightQuestionMatch[3];
+      const core133TimeEn = core133TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core133ConditionEn = core133NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core133Predicate = `might ${core133NegativeResult ? 'not ' : ''}have been interviewed`;
+      const core133Core = `Might ${core133Subject}${core133NegativeResult ? ' not' : ''} have been interviewed ${core133TimeEn} ${core133ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core133Core, originalText),
+        analysis: [
+          { ko: core133Plural ? '그 지원자들은' : '그 지원자는', en: `${core133Subject} [S]` },
+          { ko: core133ApplicantInterviewedConditionalMightQuestionMatch[2], en: `${core133ConditionEn} [CONDITION]` },
+          { ko: core133TimeKo, en: `${core133TimeEn} [TIME]` },
+          { ko: core133ApplicantInterviewedConditionalMightQuestionMatch[4], en: `${core133Predicate} [PASSIVE-QUESTION:CORE133]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('면접을 받다', 'be interviewed', 'V'),
+        ],
+        engine: 'core133-applicants-interviewed-conditional-might-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE132-APPLICANTS-INTERVIEWED-CONDITIONAL-MIGHT-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // '면접을 받았을지도 몰라요' -> 'might have been interviewed ...' (statements only).
+  // Two subjects x two times x two aligned polarities. All previous slots remain unchanged.
+  const core132ApplicantInterviewedConditionalMightMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (면접을 받았을지도 몰라요|면접을 받지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core132ApplicantInterviewedConditionalMightMatch && !isQuestion) {
+    const core132NegativeCondition = core132ApplicantInterviewedConditionalMightMatch[2] === '조건이 충족되지 않았다면';
+    const core132NegativeResult = core132ApplicantInterviewedConditionalMightMatch[4] === '면접을 받지 않았을지도 몰라요';
+    if (core132NegativeCondition === core132NegativeResult) {
+      const core132Plural = core132ApplicantInterviewedConditionalMightMatch[1] === '들은';
+      const core132Subject = core132Plural ? 'the applicants' : 'the applicant';
+      const core132TimeKo = core132ApplicantInterviewedConditionalMightMatch[3];
+      const core132TimeEn = core132TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core132ConditionEn = core132NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core132Predicate = `might ${core132NegativeResult ? 'not ' : ''}have been interviewed`;
+      const core132Core = `${core132Plural ? 'The applicants' : 'The applicant'} ${core132Predicate} ${core132TimeEn} ${core132ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core132Core, originalText),
+        analysis: [
+          { ko: core132Plural ? '그 지원자들은' : '그 지원자는', en: `${core132Subject} [S]` },
+          { ko: core132ApplicantInterviewedConditionalMightMatch[2], en: `${core132ConditionEn} [CONDITION]` },
+          { ko: core132TimeKo, en: `${core132TimeEn} [TIME]` },
+          { ko: core132ApplicantInterviewedConditionalMightMatch[4], en: `${core132Predicate} [PASSIVE:CORE132]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('면접을 받다', 'be interviewed', 'V'),
+        ],
+        engine: 'core132-applicants-interviewed-conditional-might-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE131-APPLICANTS-INTERVIEWED-CONDITIONAL-COULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // '면접을 받을 수도 있었을 거예요?' -> 'Could ... have been interviewed ...?' (questions only).
+  // Two subjects x two times x two aligned polarities. All previous slots remain unchanged.
+  const core131ApplicantInterviewedConditionalCouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (면접을 받을 수도 있었을 거예요|면접을 받을 수 없었을 거예요)$/u.exec(normalized);
+  if (core131ApplicantInterviewedConditionalCouldQuestionMatch && isQuestion) {
+    const core131NegativeCondition = core131ApplicantInterviewedConditionalCouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core131NegativeResult = core131ApplicantInterviewedConditionalCouldQuestionMatch[4] === '면접을 받을 수 없었을 거예요';
+    if (core131NegativeCondition === core131NegativeResult) {
+      const core131Plural = core131ApplicantInterviewedConditionalCouldQuestionMatch[1] === '들은';
+      const core131Subject = core131Plural ? 'the applicants' : 'the applicant';
+      const core131TimeKo = core131ApplicantInterviewedConditionalCouldQuestionMatch[3];
+      const core131TimeEn = core131TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core131ConditionEn = core131NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core131Predicate = `could ${core131NegativeResult ? 'not ' : ''}have been interviewed`;
+      const core131Core = `Could ${core131Subject}${core131NegativeResult ? ' not' : ''} have been interviewed ${core131TimeEn} ${core131ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core131Core, originalText),
+        analysis: [
+          { ko: core131Plural ? '그 지원자들은' : '그 지원자는', en: `${core131Subject} [S]` },
+          { ko: core131ApplicantInterviewedConditionalCouldQuestionMatch[2], en: `${core131ConditionEn} [CONDITION]` },
+          { ko: core131TimeKo, en: `${core131TimeEn} [TIME]` },
+          { ko: core131ApplicantInterviewedConditionalCouldQuestionMatch[4], en: `${core131Predicate} [PASSIVE-QUESTION:CORE131]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('면접을 받다', 'be interviewed', 'V'),
+        ],
+        engine: 'core131-applicants-interviewed-conditional-could-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE130-APPLICANTS-INTERVIEWED-CONDITIONAL-COULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // '면접을 받을 수도 있었을 거예요' -> 'could have been interviewed ...' (statements only).
+  // Two subjects x two times x two aligned polarities. All previous slots remain unchanged.
+  const core130ApplicantInterviewedConditionalCouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (면접을 받을 수도 있었을 거예요|면접을 받을 수 없었을 거예요)$/u.exec(normalized);
+  if (core130ApplicantInterviewedConditionalCouldMatch && !isQuestion) {
+    const core130NegativeCondition = core130ApplicantInterviewedConditionalCouldMatch[2] === '조건이 충족되지 않았다면';
+    const core130NegativeResult = core130ApplicantInterviewedConditionalCouldMatch[4] === '면접을 받을 수 없었을 거예요';
+    if (core130NegativeCondition === core130NegativeResult) {
+      const core130Plural = core130ApplicantInterviewedConditionalCouldMatch[1] === '들은';
+      const core130Subject = core130Plural ? 'the applicants' : 'the applicant';
+      const core130TimeKo = core130ApplicantInterviewedConditionalCouldMatch[3];
+      const core130TimeEn = core130TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core130ConditionEn = core130NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core130Predicate = `could ${core130NegativeResult ? 'not ' : ''}have been interviewed`;
+      const core130Core = `${core130Plural ? 'The applicants' : 'The applicant'} ${core130Predicate} ${core130TimeEn} ${core130ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core130Core, originalText),
+        analysis: [
+          { ko: core130Plural ? '그 지원자들은' : '그 지원자는', en: `${core130Subject} [S]` },
+          { ko: core130ApplicantInterviewedConditionalCouldMatch[2], en: `${core130ConditionEn} [CONDITION]` },
+          { ko: core130TimeKo, en: `${core130TimeEn} [TIME]` },
+          { ko: core130ApplicantInterviewedConditionalCouldMatch[4], en: `${core130Predicate} [PASSIVE:CORE130]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('면접을 받다', 'be interviewed', 'V'),
+        ],
+        engine: 'core130-applicants-interviewed-conditional-could-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE129-APPLICANTS-INTERVIEWED-CONDITIONAL-WOULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // '면접을 받았을 거예요?' -> 'Would the applicant have been interviewed ...?' (question only).
+  // Two subjects x two times x two aligned polarities; existing statements unaffected.
+  const core129ApplicantInterviewedConditionalWouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (면접을 받았을 거예요|면접을 받지 않았을 거예요)$/u.exec(normalized);
+  if (core129ApplicantInterviewedConditionalWouldQuestionMatch && isQuestion) {
+    const core129NegativeCondition = core129ApplicantInterviewedConditionalWouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core129NegativeResult = core129ApplicantInterviewedConditionalWouldQuestionMatch[4] === '면접을 받지 않았을 거예요';
+    if (core129NegativeCondition === core129NegativeResult) {
+      const core129Plural = core129ApplicantInterviewedConditionalWouldQuestionMatch[1] === '들은';
+      const core129Subject = core129Plural ? 'the applicants' : 'the applicant';
+      const core129TimeKo = core129ApplicantInterviewedConditionalWouldQuestionMatch[3];
+      const core129TimeEn = core129TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core129ConditionEn = core129NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core129Predicate = `would ${core129NegativeResult ? 'not ' : ''}have been interviewed`;
+      const core129Core = `Would ${core129Subject}${core129NegativeResult ? ' not' : ''} have been interviewed ${core129TimeEn} ${core129ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core129Core, originalText),
+        analysis: [
+          { ko: core129Plural ? '그 지원자들은' : '그 지원자는', en: `${core129Subject} [S]` },
+          { ko: core129ApplicantInterviewedConditionalWouldQuestionMatch[2], en: `${core129ConditionEn} [CONDITION]` },
+          { ko: core129TimeKo, en: `${core129TimeEn} [TIME]` },
+          { ko: core129ApplicantInterviewedConditionalWouldQuestionMatch[4], en: `${core129Predicate} [PASSIVE:CORE129:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('면접을 받다', 'be interviewed', 'V'),
+        ],
+        engine: 'core129-applicants-interviewed-conditional-would-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE128-APPLICANTS-INTERVIEWED-CONDITIONAL-WOULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // '면접을 받았을 거예요' -> 'would have been interviewed' (statement only).
+  // Two subjects x two times x two aligned polarities; other patterns untouched.
+  const core128ApplicantInterviewedConditionalWouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (면접을 받았을 거예요|면접을 받지 않았을 거예요)$/u.exec(normalized);
+  if (core128ApplicantInterviewedConditionalWouldMatch && !isQuestion) {
+    const core128NegativeCondition = core128ApplicantInterviewedConditionalWouldMatch[2] === '조건이 충족되지 않았다면';
+    const core128NegativeResult = core128ApplicantInterviewedConditionalWouldMatch[4] === '면접을 받지 않았을 거예요';
+    if (core128NegativeCondition === core128NegativeResult) {
+      const core128Plural = core128ApplicantInterviewedConditionalWouldMatch[1] === '들은';
+      const core128Subject = core128Plural ? 'the applicants' : 'the applicant';
+      const core128TimeKo = core128ApplicantInterviewedConditionalWouldMatch[3];
+      const core128TimeEn = core128TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core128ConditionEn = core128NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core128Predicate = `would ${core128NegativeResult ? 'not ' : ''}have been interviewed`;
+      const core128Core = `${core128Plural ? 'The applicants' : 'The applicant'} ${core128Predicate} ${core128TimeEn} ${core128ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core128Core, originalText),
+        analysis: [
+          { ko: core128Plural ? '그 지원자들은' : '그 지원자는', en: `${core128Subject} [S]` },
+          { ko: core128ApplicantInterviewedConditionalWouldMatch[2], en: `${core128ConditionEn} [CONDITION]` },
+          { ko: core128TimeKo, en: `${core128TimeEn} [TIME]` },
+          { ko: core128ApplicantInterviewedConditionalWouldMatch[4], en: `${core128Predicate} [PASSIVE:CORE128]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('면접을 받다', 'be interviewed', 'V'),
+        ],
+        engine: 'core128-applicants-interviewed-conditional-would-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE127-APPLICANTS-INTERVIEWED-CONDITIONAL-SHOULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Korean '면접을 받다?' -> passive question 'Should ... have been interviewed?'
+  // Questions only: two subjects x two times x aligned positive/negative conditions.
+  const core127ApplicantInterviewedConditionalShouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (면접을 받았어야 했을 거예요|면접을 받지 않았어야 했을 거예요)$/u.exec(normalized);
+  if (core127ApplicantInterviewedConditionalShouldQuestionMatch && isQuestion) {
+    const core127NegativeCondition = core127ApplicantInterviewedConditionalShouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core127NegativeResult = core127ApplicantInterviewedConditionalShouldQuestionMatch[4] === '면접을 받지 않았어야 했을 거예요';
+    if (core127NegativeCondition === core127NegativeResult) {
+      const core127Plural = core127ApplicantInterviewedConditionalShouldQuestionMatch[1] === '들은';
+      const core127Subject = core127Plural ? 'the applicants' : 'the applicant';
+      const core127TimeKo = core127ApplicantInterviewedConditionalShouldQuestionMatch[3];
+      const core127TimeEn = core127TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core127ConditionEn = core127NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core127Predicate = `should ${core127NegativeResult ? 'not ' : ''}have been interviewed`;
+      const core127Core = `Should ${core127Subject} ${core127NegativeResult ? 'not ' : ''}have been interviewed ${core127TimeEn} ${core127ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core127Core, originalText),
+        analysis: [
+          { ko: core127Plural ? '그 지원자들은' : '그 지원자는', en: `${core127Subject} [S]` },
+          { ko: core127ApplicantInterviewedConditionalShouldQuestionMatch[2], en: `${core127ConditionEn} [CONDITION]` },
+          { ko: core127TimeKo, en: `${core127TimeEn} [TIME]` },
+          { ko: core127ApplicantInterviewedConditionalShouldQuestionMatch[4], en: `${core127Predicate} [PASSIVE:CORE127:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('면접을 받다', 'be interviewed', 'V'),
+        ],
+        engine: 'core127-applicants-interviewed-conditional-should-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE126-APPLICANTS-INTERVIEWED-CONDITIONAL-SHOULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Korean '면접을 받다' is passive 'be interviewed', not 'receive an interview'.
+  // Strictly statement-only; aligned past unreal conditions, singular/plural and yesterday/last week.
+  const core126ApplicantInterviewedConditionalShouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (면접을 받았어야 했을 거예요|면접을 받지 않았어야 했을 거예요)$/u.exec(normalized);
+  if (core126ApplicantInterviewedConditionalShouldMatch && !isQuestion) {
+    const core126NegativeCondition = core126ApplicantInterviewedConditionalShouldMatch[2] === '조건이 충족되지 않았다면';
+    const core126NegativeResult = core126ApplicantInterviewedConditionalShouldMatch[4] === '면접을 받지 않았어야 했을 거예요';
+    if (core126NegativeCondition === core126NegativeResult) {
+      const core126Plural = core126ApplicantInterviewedConditionalShouldMatch[1] === '들은';
+      const core126Subject = core126Plural ? 'the applicants' : 'the applicant';
+      const core126TimeKo = core126ApplicantInterviewedConditionalShouldMatch[3];
+      const core126TimeEn = core126TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core126ConditionEn = core126NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core126Predicate = `should ${core126NegativeResult ? 'not ' : ''}have been interviewed`;
+      const core126Core = `${core126Plural ? 'The applicants' : 'The applicant'} ${core126Predicate} ${core126TimeEn} ${core126ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core126Core, originalText),
+        analysis: [
+          { ko: core126Plural ? '그 지원자들은' : '그 지원자는', en: `${core126Subject} [S]` },
+          { ko: core126ApplicantInterviewedConditionalShouldMatch[2], en: `${core126ConditionEn} [CONDITION]` },
+          { ko: core126TimeKo, en: `${core126TimeEn} [TIME]` },
+          { ko: core126ApplicantInterviewedConditionalShouldMatch[4], en: `${core126Predicate} [PASSIVE:CORE126]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('면접을 받다', 'be interviewed', 'V'),
+        ],
+        engine: 'core126-applicants-interviewed-conditional-should-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE125-APPLICANTS-RECOMMENDED-CONDITIONAL-MAY-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Conditional recommendation may-have-been statements; singular/plural, yesterday/last week, aligned polarities.
+  // Statement-only guard protects CORE124 might questions, CORE123 might statements and all earlier rules.
+  const core125ApplicantRecommendedConditionalMayMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (추천되었을 수도 있어요|추천되지 않았을 수도 있어요)$/u.exec(normalized);
+  if (core125ApplicantRecommendedConditionalMayMatch && !isQuestion) {
+    const core125NegativeCondition = core125ApplicantRecommendedConditionalMayMatch[2] === '조건이 충족되지 않았다면';
+    const core125NegativeResult = core125ApplicantRecommendedConditionalMayMatch[4] === '추천되지 않았을 수도 있어요';
+    if (core125NegativeCondition === core125NegativeResult) {
+      const core125Plural = core125ApplicantRecommendedConditionalMayMatch[1] === '들은';
+      const core125Subject = core125Plural ? 'the applicants' : 'the applicant';
+      const core125TimeKo = core125ApplicantRecommendedConditionalMayMatch[3];
+      const core125TimeEn = core125TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core125ConditionEn = core125NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core125Predicate = `may ${core125NegativeResult ? 'not ' : ''}have been recommended`;
+      const core125Core = `${core125Plural ? 'The applicants' : 'The applicant'} ${core125Predicate} ${core125TimeEn} ${core125ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core125Core, originalText),
+        analysis: [
+          { ko: core125Plural ? '그 지원자들은' : '그 지원자는', en: `${core125Subject} [S]` },
+          { ko: core125ApplicantRecommendedConditionalMayMatch[2], en: `${core125ConditionEn} [CONDITION]` },
+          { ko: core125TimeKo, en: `${core125TimeEn} [TIME]` },
+          { ko: core125ApplicantRecommendedConditionalMayMatch[4], en: `${core125Predicate} [PASSIVE:CORE125]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추천되다', 'be recommended', 'V'),
+        ],
+        engine: 'core125-applicants-recommended-conditional-may-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE124-APPLICANTS-RECOMMENDED-CONDITIONAL-MIGHT-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Conditional recommendation might questions; singular/plural, yesterday/last week, aligned polarities.
+  // Question-only guard protects CORE123 statements, CORE122 could questions, and earlier slots.
+  const core124ApplicantRecommendedConditionalMightQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (추천되었을지도 몰라요|추천되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core124ApplicantRecommendedConditionalMightQuestionMatch && isQuestion) {
+    const core124NegativeCondition = core124ApplicantRecommendedConditionalMightQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core124NegativeResult = core124ApplicantRecommendedConditionalMightQuestionMatch[4] === '추천되지 않았을지도 몰라요';
+    if (core124NegativeCondition === core124NegativeResult) {
+      const core124Plural = core124ApplicantRecommendedConditionalMightQuestionMatch[1] === '들은';
+      const core124Subject = core124Plural ? 'the applicants' : 'the applicant';
+      const core124TimeKo = core124ApplicantRecommendedConditionalMightQuestionMatch[3];
+      const core124TimeEn = core124TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core124ConditionEn = core124NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core124Predicate = `might ${core124NegativeResult ? 'not ' : ''}have been recommended`;
+      const core124Core = `Might ${core124Subject} ${core124NegativeResult ? 'not ' : ''}have been recommended ${core124TimeEn} ${core124ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core124Core, originalText),
+        analysis: [
+          { ko: core124Plural ? '그 지원자들은' : '그 지원자는', en: `${core124Subject} [S]` },
+          { ko: core124ApplicantRecommendedConditionalMightQuestionMatch[2], en: `${core124ConditionEn} [CONDITION]` },
+          { ko: core124TimeKo, en: `${core124TimeEn} [TIME]` },
+          { ko: core124ApplicantRecommendedConditionalMightQuestionMatch[4], en: `${core124Predicate} [PASSIVE:CORE124]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추천되다', 'be recommended', 'V'),
+        ],
+        engine: 'core124-applicants-recommended-conditional-might-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE123-APPLICANTS-RECOMMENDED-CONDITIONAL-MIGHT-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Conditional recommendation speculation statements: two subjects, two times, aligned polarities.
+  // CORE123 only; does not intercept CORE122 could questions or CORE121 could statements.
+  const core123ApplicantRecommendedConditionalMightMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (추천되었을지도 몰라요|추천되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core123ApplicantRecommendedConditionalMightMatch && !isQuestion) {
+    const core123NegativeCondition = core123ApplicantRecommendedConditionalMightMatch[2] === '조건이 충족되지 않았다면';
+    const core123NegativeResult = core123ApplicantRecommendedConditionalMightMatch[4] === '추천되지 않았을지도 몰라요';
+    if (core123NegativeCondition === core123NegativeResult) {
+      const core123Plural = core123ApplicantRecommendedConditionalMightMatch[1] === '들은';
+      const core123Subject = core123Plural ? 'the applicants' : 'the applicant';
+      const core123TimeKo = core123ApplicantRecommendedConditionalMightMatch[3];
+      const core123TimeEn = core123TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core123ConditionEn = core123NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core123Predicate = `might ${core123NegativeResult ? 'not ' : ''}have been recommended`;
+      const core123Core = `${core123Plural ? 'The applicants' : 'The applicant'} ${core123Predicate} ${core123TimeEn} ${core123ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core123Core, originalText),
+        analysis: [
+          { ko: core123Plural ? '그 지원자들은' : '그 지원자는', en: `${core123Subject} [S]` },
+          { ko: core123ApplicantRecommendedConditionalMightMatch[2], en: `${core123ConditionEn} [CONDITION]` },
+          { ko: core123TimeKo, en: `${core123TimeEn} [TIME]` },
+          { ko: core123ApplicantRecommendedConditionalMightMatch[4], en: `${core123Predicate} [PASSIVE:CORE123]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추천되다', 'be recommended', 'V'),
+        ],
+        engine: 'core123-applicants-recommended-conditional-might-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE122-APPLICANTS-RECOMMENDED-CONDITIONAL-COULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Conditional recommendation possibility questions: 2 subjects x 2 time slots x aligned polarities.
+  // Distinct from CORE121 could statements and CORE120 would / CORE118 should questions.
+  const core122ApplicantRecommendedConditionalCouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (추천될 수도 있었을 거예요|추천될 수 없었을 거예요)$/u.exec(normalized);
+  if (core122ApplicantRecommendedConditionalCouldQuestionMatch && isQuestion) {
+    const core122NegativeCondition = core122ApplicantRecommendedConditionalCouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core122NegativeResult = core122ApplicantRecommendedConditionalCouldQuestionMatch[4] === '추천될 수 없었을 거예요';
+    if (core122NegativeCondition === core122NegativeResult) {
+      const core122Plural = core122ApplicantRecommendedConditionalCouldQuestionMatch[1] === '들은';
+      const core122Subject = core122Plural ? 'the applicants' : 'the applicant';
+      const core122TimeKo = core122ApplicantRecommendedConditionalCouldQuestionMatch[3];
+      const core122TimeEn = core122TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core122ConditionEn = core122NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core122Predicate = `could ${core122NegativeResult ? 'not ' : ''}have been recommended`;
+      const core122Core = `Could ${core122Subject} ${core122NegativeResult ? 'not ' : ''}have been recommended ${core122TimeEn} ${core122ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core122Core, originalText),
+        analysis: [
+          { ko: core122Plural ? '그 지원자들은' : '그 지원자는', en: `${core122Subject} [S]` },
+          { ko: core122ApplicantRecommendedConditionalCouldQuestionMatch[2], en: `${core122ConditionEn} [CONDITION]` },
+          { ko: core122TimeKo, en: `${core122TimeEn} [TIME]` },
+          { ko: core122ApplicantRecommendedConditionalCouldQuestionMatch[4], en: `${core122Predicate} [PASSIVE:CORE122]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추천되다', 'be recommended', 'V'),
+        ],
+        engine: 'core122-applicants-recommended-conditional-could-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE121-APPLICANTS-RECOMMENDED-CONDITIONAL-COULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Conditional recommendation possibility statements: 2 subjects x 2 time slots x aligned polarities.
+  // Distinct from CORE120 would questions, CORE119 would statements, CORE117 should statements.
+  const core121ApplicantRecommendedConditionalCouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (추천될 수도 있었을 거예요|추천될 수 없었을 거예요)$/u.exec(normalized);
+  if (core121ApplicantRecommendedConditionalCouldMatch && !isQuestion) {
+    const core121NegativeCondition = core121ApplicantRecommendedConditionalCouldMatch[2] === '조건이 충족되지 않았다면';
+    const core121NegativeResult = core121ApplicantRecommendedConditionalCouldMatch[4] === '추천될 수 없었을 거예요';
+    if (core121NegativeCondition === core121NegativeResult) {
+      const core121Plural = core121ApplicantRecommendedConditionalCouldMatch[1] === '들은';
+      const core121Subject = core121Plural ? 'the applicants' : 'the applicant';
+      const core121TimeKo = core121ApplicantRecommendedConditionalCouldMatch[3];
+      const core121TimeEn = core121TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core121ConditionEn = core121NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core121Predicate = `could ${core121NegativeResult ? 'not ' : ''}have been recommended`;
+      const core121Core = `${core121Plural ? 'The applicants' : 'The applicant'} ${core121Predicate} ${core121TimeEn} ${core121ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core121Core, originalText),
+        analysis: [
+          { ko: core121Plural ? '그 지원자들은' : '그 지원자는', en: `${core121Subject} [S]` },
+          { ko: core121ApplicantRecommendedConditionalCouldMatch[2], en: `${core121ConditionEn} [CONDITION]` },
+          { ko: core121TimeKo, en: `${core121TimeEn} [TIME]` },
+          { ko: core121ApplicantRecommendedConditionalCouldMatch[4], en: `${core121Predicate} [PASSIVE:CORE121]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추천되다', 'be recommended', 'V'),
+        ],
+        engine: 'core121-applicants-recommended-conditional-could-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE120-APPLICANTS-RECOMMENDED-CONDITIONAL-WOULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Conditional recommended questions only: 2 subjects x 2 time slots x aligned polarities.
+  // Distinct from CORE119 would statements and CORE118 should questions; previous slots untouched.
+  const core120ApplicantRecommendedConditionalWouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (추천되었을 거예요|추천되지 않았을 거예요)$/u.exec(normalized);
+  if (core120ApplicantRecommendedConditionalWouldQuestionMatch && isQuestion) {
+    const core120NegativeCondition = core120ApplicantRecommendedConditionalWouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core120NegativeResult = core120ApplicantRecommendedConditionalWouldQuestionMatch[4] === '추천되지 않았을 거예요';
+    if (core120NegativeCondition === core120NegativeResult) {
+      const core120Plural = core120ApplicantRecommendedConditionalWouldQuestionMatch[1] === '들은';
+      const core120Subject = core120Plural ? 'the applicants' : 'the applicant';
+      const core120TimeKo = core120ApplicantRecommendedConditionalWouldQuestionMatch[3];
+      const core120TimeEn = core120TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core120ConditionEn = core120NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core120Predicate = `would ${core120NegativeResult ? 'not ' : ''}have been recommended`;
+      const core120Core = `Would ${core120Subject} ${core120NegativeResult ? 'not ' : ''}have been recommended ${core120TimeEn} ${core120ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core120Core, originalText),
+        analysis: [
+          { ko: core120Plural ? '그 지원자들은' : '그 지원자는', en: `${core120Subject} [S]` },
+          { ko: core120ApplicantRecommendedConditionalWouldQuestionMatch[2], en: `${core120ConditionEn} [CONDITION]` },
+          { ko: core120TimeKo, en: `${core120TimeEn} [TIME]` },
+          { ko: core120ApplicantRecommendedConditionalWouldQuestionMatch[4], en: `${core120Predicate} [PASSIVE:CORE120:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추천되다', 'be recommended', 'V'),
+        ],
+        engine: 'core120-applicants-recommended-conditional-would-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE119-APPLICANTS-RECOMMENDED-CONDITIONAL-WOULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Recommended counterfactual-result statements only: 2 subjects x 2 time slots x aligned polarities.
+  // Distinct from CORE117 should statements and CORE118 should questions; previous slots untouched.
+  const core119ApplicantRecommendedConditionalWouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (추천되었을 거예요|추천되지 않았을 거예요)$/u.exec(normalized);
+  if (core119ApplicantRecommendedConditionalWouldMatch && !isQuestion) {
+    const core119NegativeCondition = core119ApplicantRecommendedConditionalWouldMatch[2] === '조건이 충족되지 않았다면';
+    const core119NegativeResult = core119ApplicantRecommendedConditionalWouldMatch[4] === '추천되지 않았을 거예요';
+    if (core119NegativeCondition === core119NegativeResult) {
+      const core119Plural = core119ApplicantRecommendedConditionalWouldMatch[1] === '들은';
+      const core119Subject = core119Plural ? 'the applicants' : 'the applicant';
+      const core119TimeKo = core119ApplicantRecommendedConditionalWouldMatch[3];
+      const core119TimeEn = core119TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core119ConditionEn = core119NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core119Predicate = `would ${core119NegativeResult ? 'not ' : ''}have been recommended`;
+      const core119Core = `The ${core119Plural ? 'applicants' : 'applicant'} ${core119Predicate} ${core119TimeEn} ${core119ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core119Core, originalText),
+        analysis: [
+          { ko: core119Plural ? '그 지원자들은' : '그 지원자는', en: `${core119Subject} [S]` },
+          { ko: core119ApplicantRecommendedConditionalWouldMatch[2], en: `${core119ConditionEn} [CONDITION]` },
+          { ko: core119TimeKo, en: `${core119TimeEn} [TIME]` },
+          { ko: core119ApplicantRecommendedConditionalWouldMatch[4], en: `${core119Predicate} [PASSIVE:CORE119]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추천되다', 'be recommended', 'V'),
+        ],
+        engine: 'core119-applicants-recommended-conditional-would-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE118-APPLICANTS-RECOMMENDED-CONDITIONAL-SHOULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Recommended conditional obligation questions only: 2 subjects x 2 time slots x aligned polarities.
+  // Distinct from CORE117 statements; existing invited, approved, selected, and hired rules untouched.
+  const core118ApplicantRecommendedConditionalShouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (추천되었어야 했을 거예요|추천되지 않았어야 했을 거예요)$/u.exec(normalized);
+  if (core118ApplicantRecommendedConditionalShouldQuestionMatch && isQuestion) {
+    const core118NegativeCondition = core118ApplicantRecommendedConditionalShouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core118NegativeResult = core118ApplicantRecommendedConditionalShouldQuestionMatch[4] === '추천되지 않았어야 했을 거예요';
+    if (core118NegativeCondition === core118NegativeResult) {
+      const core118Plural = core118ApplicantRecommendedConditionalShouldQuestionMatch[1] === '들은';
+      const core118Subject = core118Plural ? 'the applicants' : 'the applicant';
+      const core118TimeKo = core118ApplicantRecommendedConditionalShouldQuestionMatch[3];
+      const core118TimeEn = core118TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core118ConditionEn = core118NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core118Predicate = `should ${core118NegativeResult ? 'not ' : ''}have been recommended`;
+      const core118Core = `Should ${core118Subject} ${core118NegativeResult ? 'not ' : ''}have been recommended ${core118TimeEn} ${core118ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core118Core, originalText),
+        analysis: [
+          { ko: core118Plural ? '그 지원자들은' : '그 지원자는', en: `${core118Subject} [S]` },
+          { ko: core118ApplicantRecommendedConditionalShouldQuestionMatch[2], en: `${core118ConditionEn} [CONDITION]` },
+          { ko: core118TimeKo, en: `${core118TimeEn} [TIME]` },
+          { ko: core118ApplicantRecommendedConditionalShouldQuestionMatch[4], en: `${core118Predicate} [PASSIVE:CORE118:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추천되다', 'be recommended', 'V'),
+        ],
+        engine: 'core118-applicants-recommended-conditional-should-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE117-APPLICANTS-RECOMMENDED-CONDITIONAL-SHOULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Recommended conditional obligation statements: singular/plural x yesterday/last week x aligned positive/negative.
+  // Exact-match rule for recommended statements only; all earlier invited/approved/selected/hired routes remain untouched.
+  const core117ApplicantRecommendedConditionalShouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (추천되었어야 했을 거예요|추천되지 않았어야 했을 거예요)$/u.exec(normalized);
+  if (core117ApplicantRecommendedConditionalShouldMatch && !isQuestion) {
+    const core117NegativeCondition = core117ApplicantRecommendedConditionalShouldMatch[2] === '조건이 충족되지 않았다면';
+    const core117NegativeResult = core117ApplicantRecommendedConditionalShouldMatch[4] === '추천되지 않았어야 했을 거예요';
+    if (core117NegativeCondition === core117NegativeResult) {
+      const core117Plural = core117ApplicantRecommendedConditionalShouldMatch[1] === '들은';
+      const core117Subject = core117Plural ? 'The applicants' : 'The applicant';
+      const core117TimeKo = core117ApplicantRecommendedConditionalShouldMatch[3];
+      const core117TimeEn = core117TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core117ConditionEn = core117NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core117Predicate = `should ${core117NegativeResult ? 'not ' : ''}have been recommended`;
+      const core117Core = `${core117Subject} ${core117Predicate} ${core117TimeEn} ${core117ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core117Core, originalText),
+        analysis: [
+          { ko: core117Plural ? '그 지원자들은' : '그 지원자는', en: `${core117Subject.toLowerCase()} [S]` },
+          { ko: core117ApplicantRecommendedConditionalShouldMatch[2], en: `${core117ConditionEn} [CONDITION]` },
+          { ko: core117TimeKo, en: `${core117TimeEn} [TIME]` },
+          { ko: core117ApplicantRecommendedConditionalShouldMatch[4], en: `${core117Predicate} [PASSIVE:CORE117]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추천되다', 'be recommended', 'V'),
+        ],
+        engine: 'core117-applicants-recommended-conditional-should-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE116-APPLICANTS-HIRED-CONDITIONAL-MAY-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Conditional may-have-been-hired statements only, aligned positive/negative condition and result.
+  // Keeps CORE115 might questions, CORE114 might statements, and all previous slots unchanged.
+  const core116ApplicantHiredConditionalMayMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (채용되었을 수도 있어요|채용되지 않았을 수도 있어요)$/u.exec(normalized);
+  if (core116ApplicantHiredConditionalMayMatch && !isQuestion) {
+    const core116NegativeCondition = core116ApplicantHiredConditionalMayMatch[2] === '조건이 충족되지 않았다면';
+    const core116NegativeResult = core116ApplicantHiredConditionalMayMatch[4] === '채용되지 않았을 수도 있어요';
+    if (core116NegativeCondition === core116NegativeResult) {
+      const core116Plural = core116ApplicantHiredConditionalMayMatch[1] === '들은';
+      const core116Subject = core116Plural ? 'The applicants' : 'The applicant';
+      const core116TimeKo = core116ApplicantHiredConditionalMayMatch[3];
+      const core116TimeEn = core116TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core116ConditionEn = core116NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core116Predicate = `may ${core116NegativeResult ? 'not ' : ''}have been hired`;
+      const core116Core = `${core116Subject} ${core116Predicate} ${core116TimeEn} ${core116ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core116Core, originalText),
+        analysis: [
+          { ko: core116Plural ? '그 지원자들은' : '그 지원자는', en: `${core116Subject.toLowerCase()} [S]` },
+          { ko: core116ApplicantHiredConditionalMayMatch[2], en: `${core116ConditionEn} [CONDITION]` },
+          { ko: core116TimeKo, en: `${core116TimeEn} [TIME]` },
+          { ko: core116ApplicantHiredConditionalMayMatch[4], en: `${core116Predicate} [PASSIVE:CORE116]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('채용되다', 'be hired', 'V'),
+        ],
+        engine: 'core116-applicants-hired-conditional-may-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE115-APPLICANTS-HIRED-CONDITIONAL-MIGHT-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Conditional might-have-been-hired QUESTIONS only, aligned positive/negative condition and result.
+  // Keeps CORE114 might statements, CORE113 could questions and all previous slots untouched.
+  const core115ApplicantHiredConditionalMightQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (채용되었을지도 몰라요|채용되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core115ApplicantHiredConditionalMightQuestionMatch && isQuestion) {
+    const core115NegativeCondition = core115ApplicantHiredConditionalMightQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core115NegativeResult = core115ApplicantHiredConditionalMightQuestionMatch[4] === '채용되지 않았을지도 몰라요';
+    if (core115NegativeCondition === core115NegativeResult) {
+      const core115Plural = core115ApplicantHiredConditionalMightQuestionMatch[1] === '들은';
+      const core115Subject = core115Plural ? 'the applicants' : 'the applicant';
+      const core115TimeKo = core115ApplicantHiredConditionalMightQuestionMatch[3];
+      const core115TimeEn = core115TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core115ConditionEn = core115NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core115Predicate = `might ${core115NegativeResult ? 'not ' : ''}have been hired`;
+      const core115Core = `Might ${core115Subject} ${core115NegativeResult ? 'not ' : ''}have been hired ${core115TimeEn} ${core115ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core115Core, originalText),
+        analysis: [
+          { ko: core115Plural ? '그 지원자들은' : '그 지원자는', en: `${core115Subject} [S]` },
+          { ko: core115ApplicantHiredConditionalMightQuestionMatch[2], en: `${core115ConditionEn} [CONDITION]` },
+          { ko: core115TimeKo, en: `${core115TimeEn} [TIME]` },
+          { ko: core115ApplicantHiredConditionalMightQuestionMatch[4], en: `${core115Predicate} [PASSIVE:CORE115]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('채용되다', 'be hired', 'V'),
+        ],
+        engine: 'core115-applicants-hired-conditional-might-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE114-APPLICANTS-HIRED-CONDITIONAL-MIGHT-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Conditional might-have-been-hired statements only, aligned positive/negative condition and result.
+  // Does not alter CORE113 could questions or CORE112 could statements.
+  const core114ApplicantHiredConditionalMightMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (채용되었을지도 몰라요|채용되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core114ApplicantHiredConditionalMightMatch && !isQuestion) {
+    const core114NegativeCondition = core114ApplicantHiredConditionalMightMatch[2] === '조건이 충족되지 않았다면';
+    const core114NegativeResult = core114ApplicantHiredConditionalMightMatch[4] === '채용되지 않았을지도 몰라요';
+    if (core114NegativeCondition === core114NegativeResult) {
+      const core114Plural = core114ApplicantHiredConditionalMightMatch[1] === '들은';
+      const core114Subject = core114Plural ? 'The applicants' : 'The applicant';
+      const core114TimeKo = core114ApplicantHiredConditionalMightMatch[3];
+      const core114TimeEn = core114TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core114ConditionEn = core114NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core114Predicate = `might ${core114NegativeResult ? 'not ' : ''}have been hired`;
+      const core114Core = `${core114Subject} ${core114Predicate} ${core114TimeEn} ${core114ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core114Core, originalText),
+        analysis: [
+          { ko: core114Plural ? '그 지원자들은' : '그 지원자는', en: `${core114Subject.toLowerCase()} [S]` },
+          { ko: core114ApplicantHiredConditionalMightMatch[2], en: `${core114ConditionEn} [CONDITION]` },
+          { ko: core114TimeKo, en: `${core114TimeEn} [TIME]` },
+          { ko: core114ApplicantHiredConditionalMightMatch[4], en: `${core114Predicate} [PASSIVE:CORE114]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('채용되다', 'be hired', 'V'),
+        ],
+        engine: 'core114-applicants-hired-conditional-might-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE113-APPLICANTS-HIRED-CONDITIONAL-COULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Conditional hiring possibility questions: 2 subjects x 2 time slots x aligned polarities.
+  // Distinct from CORE112 could statements and CORE111 would / CORE109 should questions.
+  const core113ApplicantHiredConditionalCouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (채용될 수도 있었을 거예요|채용될 수 없었을 거예요)$/u.exec(normalized);
+  if (core113ApplicantHiredConditionalCouldQuestionMatch && isQuestion) {
+    const core113NegativeCondition = core113ApplicantHiredConditionalCouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core113NegativeResult = core113ApplicantHiredConditionalCouldQuestionMatch[4] === '채용될 수 없었을 거예요';
+    if (core113NegativeCondition === core113NegativeResult) {
+      const core113Plural = core113ApplicantHiredConditionalCouldQuestionMatch[1] === '들은';
+      const core113Subject = core113Plural ? 'the applicants' : 'the applicant';
+      const core113TimeKo = core113ApplicantHiredConditionalCouldQuestionMatch[3];
+      const core113TimeEn = core113TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core113ConditionEn = core113NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core113Predicate = `could ${core113NegativeResult ? 'not ' : ''}have been hired`;
+      const core113Core = `Could ${core113Subject} ${core113NegativeResult ? 'not ' : ''}have been hired ${core113TimeEn} ${core113ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core113Core, originalText),
+        analysis: [
+          { ko: core113Plural ? '그 지원자들은' : '그 지원자는', en: `${core113Subject} [S]` },
+          { ko: core113ApplicantHiredConditionalCouldQuestionMatch[2], en: `${core113ConditionEn} [CONDITION]` },
+          { ko: core113TimeKo, en: `${core113TimeEn} [TIME]` },
+          { ko: core113ApplicantHiredConditionalCouldQuestionMatch[4], en: `${core113Predicate} [PASSIVE:CORE113]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('채용되다', 'be hired', 'V'),
+        ],
+        engine: 'core113-applicants-hired-conditional-could-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE112-APPLICANTS-HIRED-CONDITIONAL-COULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Conditional hiring possibility statements: 2 subjects x 2 time slots x aligned polarities.
+  // Distinct from CORE111 would questions, CORE110 would statements, CORE108 should statements.
+  const core112ApplicantHiredConditionalCouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (채용될 수도 있었을 거예요|채용될 수 없었을 거예요)$/u.exec(normalized);
+  if (core112ApplicantHiredConditionalCouldMatch && !isQuestion) {
+    const core112NegativeCondition = core112ApplicantHiredConditionalCouldMatch[2] === '조건이 충족되지 않았다면';
+    const core112NegativeResult = core112ApplicantHiredConditionalCouldMatch[4] === '채용될 수 없었을 거예요';
+    if (core112NegativeCondition === core112NegativeResult) {
+      const core112Plural = core112ApplicantHiredConditionalCouldMatch[1] === '들은';
+      const core112Subject = core112Plural ? 'the applicants' : 'the applicant';
+      const core112TimeKo = core112ApplicantHiredConditionalCouldMatch[3];
+      const core112TimeEn = core112TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core112ConditionEn = core112NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core112Predicate = `could ${core112NegativeResult ? 'not ' : ''}have been hired`;
+      const core112Core = `${core112Plural ? 'The applicants' : 'The applicant'} ${core112Predicate} ${core112TimeEn} ${core112ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core112Core, originalText),
+        analysis: [
+          { ko: core112Plural ? '그 지원자들은' : '그 지원자는', en: `${core112Subject} [S]` },
+          { ko: core112ApplicantHiredConditionalCouldMatch[2], en: `${core112ConditionEn} [CONDITION]` },
+          { ko: core112TimeKo, en: `${core112TimeEn} [TIME]` },
+          { ko: core112ApplicantHiredConditionalCouldMatch[4], en: `${core112Predicate} [PASSIVE:CORE112]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('채용되다', 'be hired', 'V'),
+        ],
+        engine: 'core112-applicants-hired-conditional-could-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE111-APPLICANTS-HIRED-CONDITIONAL-WOULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Conditional hired questions only: 2 subjects x 2 time slots x aligned polarities.
+  // Distinct from CORE110 would statements, CORE109 should questions; previous slots untouched.
+  const core111ApplicantHiredConditionalWouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (채용되었을 거예요|채용되지 않았을 거예요)$/u.exec(normalized);
+  if (core111ApplicantHiredConditionalWouldQuestionMatch && isQuestion) {
+    const core111NegativeCondition = core111ApplicantHiredConditionalWouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core111NegativeResult = core111ApplicantHiredConditionalWouldQuestionMatch[4] === '채용되지 않았을 거예요';
+    if (core111NegativeCondition === core111NegativeResult) {
+      const core111Plural = core111ApplicantHiredConditionalWouldQuestionMatch[1] === '들은';
+      const core111Subject = core111Plural ? 'the applicants' : 'the applicant';
+      const core111TimeKo = core111ApplicantHiredConditionalWouldQuestionMatch[3];
+      const core111TimeEn = core111TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core111ConditionEn = core111NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core111Predicate = `would ${core111NegativeResult ? 'not ' : ''}have been hired`;
+      const core111Core = `Would ${core111Subject} ${core111NegativeResult ? 'not ' : ''}have been hired ${core111TimeEn} ${core111ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core111Core, originalText),
+        analysis: [
+          { ko: core111Plural ? '그 지원자들은' : '그 지원자는', en: `${core111Subject} [S]` },
+          { ko: core111ApplicantHiredConditionalWouldQuestionMatch[2], en: `${core111ConditionEn} [CONDITION]` },
+          { ko: core111TimeKo, en: `${core111TimeEn} [TIME]` },
+          { ko: core111ApplicantHiredConditionalWouldQuestionMatch[4], en: `${core111Predicate} [PASSIVE:CORE111:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('채용되다', 'be hired', 'V'),
+        ],
+        engine: 'core111-applicants-hired-conditional-would-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE110-APPLICANTS-HIRED-CONDITIONAL-WOULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Hired counterfactual-result statements only: 2 subjects x 2 time slots x aligned polarities.
+  // Distinct from CORE108 should statements and CORE109 should questions; previous slots untouched.
+  const core110ApplicantHiredConditionalWouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (채용되었을 거예요|채용되지 않았을 거예요)$/u.exec(normalized);
+  if (core110ApplicantHiredConditionalWouldMatch && !isQuestion) {
+    const core110NegativeCondition = core110ApplicantHiredConditionalWouldMatch[2] === '조건이 충족되지 않았다면';
+    const core110NegativeResult = core110ApplicantHiredConditionalWouldMatch[4] === '채용되지 않았을 거예요';
+    if (core110NegativeCondition === core110NegativeResult) {
+      const core110Plural = core110ApplicantHiredConditionalWouldMatch[1] === '들은';
+      const core110Subject = core110Plural ? 'the applicants' : 'the applicant';
+      const core110TimeKo = core110ApplicantHiredConditionalWouldMatch[3];
+      const core110TimeEn = core110TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core110ConditionEn = core110NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core110Predicate = `would ${core110NegativeResult ? 'not ' : ''}have been hired`;
+      const core110Core = `The ${core110Plural ? 'applicants' : 'applicant'} ${core110Predicate} ${core110TimeEn} ${core110ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core110Core, originalText),
+        analysis: [
+          { ko: core110Plural ? '그 지원자들은' : '그 지원자는', en: `${core110Subject} [S]` },
+          { ko: core110ApplicantHiredConditionalWouldMatch[2], en: `${core110ConditionEn} [CONDITION]` },
+          { ko: core110TimeKo, en: `${core110TimeEn} [TIME]` },
+          { ko: core110ApplicantHiredConditionalWouldMatch[4], en: `${core110Predicate} [PASSIVE:CORE110]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('채용되다', 'be hired', 'V'),
+        ],
+        engine: 'core110-applicants-hired-conditional-would-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE109-APPLICANTS-HIRED-CONDITIONAL-SHOULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Hired conditional obligation questions only: 2 subjects x 2 time slots x aligned polarities.
+  // Distinct from CORE108 statements; existing invited, approved, and selected rules untouched.
+  const core109ApplicantHiredConditionalShouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (채용되었어야 했을 거예요|채용되지 않았어야 했을 거예요)$/u.exec(normalized);
+  if (core109ApplicantHiredConditionalShouldQuestionMatch && isQuestion) {
+    const core109NegativeCondition = core109ApplicantHiredConditionalShouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core109NegativeResult = core109ApplicantHiredConditionalShouldQuestionMatch[4] === '채용되지 않았어야 했을 거예요';
+    if (core109NegativeCondition === core109NegativeResult) {
+      const core109Plural = core109ApplicantHiredConditionalShouldQuestionMatch[1] === '들은';
+      const core109Subject = core109Plural ? 'the applicants' : 'the applicant';
+      const core109TimeKo = core109ApplicantHiredConditionalShouldQuestionMatch[3];
+      const core109TimeEn = core109TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core109ConditionEn = core109NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core109Predicate = `should ${core109NegativeResult ? 'not ' : ''}have been hired`;
+      const core109Core = `Should ${core109Subject} ${core109NegativeResult ? 'not ' : ''}have been hired ${core109TimeEn} ${core109ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core109Core, originalText),
+        analysis: [
+          { ko: core109Plural ? '그 지원자들은' : '그 지원자는', en: `${core109Subject} [S]` },
+          { ko: core109ApplicantHiredConditionalShouldQuestionMatch[2], en: `${core109ConditionEn} [CONDITION]` },
+          { ko: core109TimeKo, en: `${core109TimeEn} [TIME]` },
+          { ko: core109ApplicantHiredConditionalShouldQuestionMatch[4], en: `${core109Predicate} [PASSIVE:CORE109:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('채용되다', 'be hired', 'V'),
+        ],
+        engine: 'core109-applicants-hired-conditional-should-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE108-APPLICANTS-HIRED-CONDITIONAL-SHOULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Hired conditional obligation statements: singular/plural x yesterday/last week x aligned positive/negative.
+  // Narrow exact-match rule; all preceding invited/approved/selected routes remain untouched.
+  const core108ApplicantHiredConditionalShouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (채용되었어야 했을 거예요|채용되지 않았어야 했을 거예요)$/u.exec(normalized);
+  if (core108ApplicantHiredConditionalShouldMatch && !isQuestion) {
+    const core108NegativeCondition = core108ApplicantHiredConditionalShouldMatch[2] === '조건이 충족되지 않았다면';
+    const core108NegativeResult = core108ApplicantHiredConditionalShouldMatch[4] === '채용되지 않았어야 했을 거예요';
+    if (core108NegativeCondition === core108NegativeResult) {
+      const core108Plural = core108ApplicantHiredConditionalShouldMatch[1] === '들은';
+      const core108Subject = core108Plural ? 'The applicants' : 'The applicant';
+      const core108TimeKo = core108ApplicantHiredConditionalShouldMatch[3];
+      const core108TimeEn = core108TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core108ConditionEn = core108NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core108Predicate = `should ${core108NegativeResult ? 'not ' : ''}have been hired`;
+      const core108Core = `${core108Subject} ${core108Predicate} ${core108TimeEn} ${core108ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core108Core, originalText),
+        analysis: [
+          { ko: core108Plural ? '그 지원자들은' : '그 지원자는', en: `${core108Subject.toLowerCase()} [S]` },
+          { ko: core108ApplicantHiredConditionalShouldMatch[2], en: `${core108ConditionEn} [CONDITION]` },
+          { ko: core108TimeKo, en: `${core108TimeEn} [TIME]` },
+          { ko: core108ApplicantHiredConditionalShouldMatch[4], en: `${core108Predicate} [PASSIVE:CORE108]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('채용되다', 'be hired', 'V'),
+        ],
+        engine: 'core108-applicants-hired-conditional-should-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE107-APPLICANTS-SELECTED-CONDITIONAL-MAY-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Selected conditional possibility statements: singular/plural x yesterday/last week x paired positive/negative.
+  // A narrow, separate exact-match statement rule; preserves CORE106 might questions and all earlier rules.
+  const core107ApplicantSelectedConditionalMayMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (선발되었을 수도 있어요|선발되지 않았을 수도 있어요)$/u.exec(normalized);
+  if (core107ApplicantSelectedConditionalMayMatch && !isQuestion) {
+    const core107NegativeCondition = core107ApplicantSelectedConditionalMayMatch[2] === '조건이 충족되지 않았다면';
+    const core107NegativeResult = core107ApplicantSelectedConditionalMayMatch[4] === '선발되지 않았을 수도 있어요';
+    if (core107NegativeCondition === core107NegativeResult) {
+      const core107Plural = core107ApplicantSelectedConditionalMayMatch[1] === '들은';
+      const core107Subject = core107Plural ? 'The applicants' : 'The applicant';
+      const core107TimeKo = core107ApplicantSelectedConditionalMayMatch[3];
+      const core107TimeEn = core107TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core107ConditionEn = core107NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core107Predicate = `may ${core107NegativeResult ? 'not ' : ''}have been selected`;
+      const core107Core = `${core107Subject} ${core107Predicate} ${core107TimeEn} ${core107ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core107Core, originalText),
+        analysis: [
+          { ko: core107Plural ? '그 지원자들은' : '그 지원자는', en: `${core107Subject.toLowerCase()} [S]` },
+          { ko: core107ApplicantSelectedConditionalMayMatch[2], en: `${core107ConditionEn} [CONDITION]` },
+          { ko: core107TimeKo, en: `${core107TimeEn} [TIME]` },
+          { ko: core107ApplicantSelectedConditionalMayMatch[4], en: `${core107Predicate} [PASSIVE:CORE107]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('선발되다', 'be selected', 'V'),
+        ],
+        engine: 'core107-applicants-selected-conditional-may-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE106-APPLICANTS-SELECTED-CONDITIONAL-MIGHT-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Passive selected conditional conjecture questions: singular/plural x yesterday/last week x paired positive/negative.
+  // Standalone exact-match interrogative rule; preserves CORE105 might statements, CORE104 could questions, and earlier rules.
+  const core106ApplicantSelectedConditionalMightQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (선발되었을지도 몰라요|선발되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core106ApplicantSelectedConditionalMightQuestionMatch && isQuestion) {
+    const core106NegativeCondition = core106ApplicantSelectedConditionalMightQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core106NegativeResult = core106ApplicantSelectedConditionalMightQuestionMatch[4] === '선발되지 않았을지도 몰라요';
+    if (core106NegativeCondition === core106NegativeResult) {
+      const core106Plural = core106ApplicantSelectedConditionalMightQuestionMatch[1] === '들은';
+      const core106Subject = core106Plural ? 'the applicants' : 'the applicant';
+      const core106TimeKo = core106ApplicantSelectedConditionalMightQuestionMatch[3];
+      const core106TimeEn = core106TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core106ConditionEn = core106NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core106Predicate = `might ${core106NegativeResult ? 'not ' : ''}have been selected`;
+      const core106Core = `Might ${core106Subject} ${core106NegativeResult ? 'not ' : ''}have been selected ${core106TimeEn} ${core106ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core106Core, originalText),
+        analysis: [
+          { ko: core106Plural ? '그 지원자들은' : '그 지원자는', en: `${core106Subject} [S]` },
+          { ko: core106ApplicantSelectedConditionalMightQuestionMatch[2], en: `${core106ConditionEn} [CONDITION]` },
+          { ko: core106TimeKo, en: `${core106TimeEn} [TIME]` },
+          { ko: core106ApplicantSelectedConditionalMightQuestionMatch[4], en: `${core106Predicate} [PASSIVE:CORE106][QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('선발되다', 'be selected', 'V'),
+        ],
+        engine: 'core106-applicants-selected-conditional-might-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE105-APPLICANTS-SELECTED-CONDITIONAL-MIGHT-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Conditional past conjecture, passive selected statements: 2 subjects x 2 times x 2 matched polarities.
+  // CORE104 could questions, CORE103 could statements, and preceding CORE rules remain untouched.
+  const core105ApplicantSelectedConditionalMightMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (선발되었을지도 몰라요|선발되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core105ApplicantSelectedConditionalMightMatch && !isQuestion) {
+    const core105NegativeCondition = core105ApplicantSelectedConditionalMightMatch[2] === '조건이 충족되지 않았다면';
+    const core105NegativeResult = core105ApplicantSelectedConditionalMightMatch[4] === '선발되지 않았을지도 몰라요';
+    if (core105NegativeCondition === core105NegativeResult) {
+      const core105Plural = core105ApplicantSelectedConditionalMightMatch[1] === '들은';
+      const core105Subject = core105Plural ? 'The applicants' : 'The applicant';
+      const core105TimeKo = core105ApplicantSelectedConditionalMightMatch[3];
+      const core105TimeEn = core105TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core105ConditionEn = core105NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core105Predicate = `might ${core105NegativeResult ? 'not ' : ''}have been selected`;
+      const core105Core = `${core105Subject} ${core105Predicate} ${core105TimeEn} ${core105ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core105Core, originalText),
+        analysis: [
+          { ko: core105Plural ? '그 지원자들은' : '그 지원자는', en: `${core105Subject.toLowerCase()} [S]` },
+          { ko: core105ApplicantSelectedConditionalMightMatch[2], en: `${core105ConditionEn} [CONDITION]` },
+          { ko: core105TimeKo, en: `${core105TimeEn} [TIME]` },
+          { ko: core105ApplicantSelectedConditionalMightMatch[4], en: `${core105Predicate} [PASSIVE:CORE105]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('선발되다', 'be selected', 'V'),
+        ],
+        engine: 'core105-applicants-selected-conditional-might-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE104-APPLICANTS-SELECTED-CONDITIONAL-COULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Conditional past possibility, passive selected questions: singular/plural, yesterday/last week, aligned polarities.
+  // CORE103 could statements, CORE102 would questions, and earlier rules remain unchanged.
+  const core104ApplicantSelectedConditionalCouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (선발될 수도 있었을 거예요|선발될 수 없었을 거예요)$/u.exec(normalized);
+  if (core104ApplicantSelectedConditionalCouldQuestionMatch && isQuestion) {
+    const core104NegativeCondition = core104ApplicantSelectedConditionalCouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core104NegativeResult = core104ApplicantSelectedConditionalCouldQuestionMatch[4] === '선발될 수 없었을 거예요';
+    if (core104NegativeCondition === core104NegativeResult) {
+      const core104Plural = core104ApplicantSelectedConditionalCouldQuestionMatch[1] === '들은';
+      const core104Subject = core104Plural ? 'the applicants' : 'the applicant';
+      const core104TimeKo = core104ApplicantSelectedConditionalCouldQuestionMatch[3];
+      const core104TimeEn = core104TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core104ConditionEn = core104NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core104Predicate = `could ${core104NegativeResult ? 'not ' : ''}have been selected`;
+      const core104Core = `Could ${core104Subject} ${core104NegativeResult ? 'not ' : ''}have been selected ${core104TimeEn} ${core104ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core104Core, originalText),
+        analysis: [
+          { ko: core104Plural ? '그 지원자들은' : '그 지원자는', en: `${core104Subject} [S]` },
+          { ko: core104ApplicantSelectedConditionalCouldQuestionMatch[2], en: `${core104ConditionEn} [CONDITION]` },
+          { ko: core104TimeKo, en: `${core104TimeEn} [TIME]` },
+          { ko: core104ApplicantSelectedConditionalCouldQuestionMatch[4], en: `${core104Predicate} [PASSIVE:CORE104][QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('선발되다', 'be selected', 'V'),
+        ],
+        engine: 'core104-applicants-selected-conditional-could-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE103-APPLICANTS-SELECTED-CONDITIONAL-COULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Conditional past possibility, passive selected statements: 2 subjects x 2 times x aligned polarities.
+  // Preserve CORE102 would questions, CORE101 would statements and all earlier CORE1-100 logic.
+  const core103ApplicantSelectedConditionalCouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (선발될 수도 있었을 거예요|선발될 수 없었을 거예요)$/u.exec(normalized);
+  if (core103ApplicantSelectedConditionalCouldMatch && !isQuestion) {
+    const core103NegativeCondition = core103ApplicantSelectedConditionalCouldMatch[2] === '조건이 충족되지 않았다면';
+    const core103NegativeResult = core103ApplicantSelectedConditionalCouldMatch[4] === '선발될 수 없었을 거예요';
+    if (core103NegativeCondition === core103NegativeResult) {
+      const core103Plural = core103ApplicantSelectedConditionalCouldMatch[1] === '들은';
+      const core103Subject = core103Plural ? 'The applicants' : 'The applicant';
+      const core103TimeKo = core103ApplicantSelectedConditionalCouldMatch[3];
+      const core103TimeEn = core103TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core103ConditionEn = core103NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core103Predicate = `could ${core103NegativeResult ? 'not ' : ''}have been selected`;
+      const core103Core = `${core103Subject} ${core103Predicate} ${core103TimeEn} ${core103ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core103Core, originalText),
+        analysis: [
+          { ko: core103Plural ? '그 지원자들은' : '그 지원자는', en: `${core103Subject} [S]` },
+          { ko: core103ApplicantSelectedConditionalCouldMatch[2], en: `${core103ConditionEn} [CONDITION]` },
+          { ko: core103TimeKo, en: `${core103TimeEn} [TIME]` },
+          { ko: core103ApplicantSelectedConditionalCouldMatch[4], en: `${core103Predicate} [PASSIVE:CORE103]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('선발되다', 'be selected', 'V'),
+        ],
+        engine: 'core103-applicants-selected-conditional-could-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE102-APPLICANTS-SELECTED-CONDITIONAL-WOULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Selected counterfactual passive questions: subjects x times x matching positive/negative clauses.
+  // Preserve CORE101 would statements, CORE100 should questions and all earlier selected/approved/invited rules.
+  const core102ApplicantSelectedConditionalWouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (선발되었을 거예요|선발되지 않았을 거예요)$/u.exec(normalized);
+  if (core102ApplicantSelectedConditionalWouldQuestionMatch && isQuestion) {
+    const core102NegativeCondition = core102ApplicantSelectedConditionalWouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core102NegativeResult = core102ApplicantSelectedConditionalWouldQuestionMatch[4] === '선발되지 않았을 거예요';
+    if (core102NegativeCondition === core102NegativeResult) {
+      const core102Plural = core102ApplicantSelectedConditionalWouldQuestionMatch[1] === '들은';
+      const core102Subject = core102Plural ? 'the applicants' : 'the applicant';
+      const core102TimeKo = core102ApplicantSelectedConditionalWouldQuestionMatch[3];
+      const core102TimeEn = core102TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core102ConditionEn = core102NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core102Predicate = `would ${core102NegativeResult ? 'not ' : ''}have been selected`;
+      const core102Core = `Would ${core102Subject} ${core102NegativeResult ? 'not ' : ''}have been selected ${core102TimeEn} ${core102ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core102Core, originalText),
+        analysis: [
+          { ko: core102Plural ? '그 지원자들은' : '그 지원자는', en: `${core102Subject} [S]` },
+          { ko: core102ApplicantSelectedConditionalWouldQuestionMatch[2], en: `${core102ConditionEn} [CONDITION]` },
+          { ko: core102TimeKo, en: `${core102TimeEn} [TIME]` },
+          { ko: core102ApplicantSelectedConditionalWouldQuestionMatch[4], en: `${core102Predicate} [PASSIVE:CORE102:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('선발되다', 'be selected', 'V'),
+        ],
+        engine: 'core102-applicants-selected-conditional-would-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE101-APPLICANTS-SELECTED-CONDITIONAL-WOULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Selected counterfactual passive statements: two subjects x two times x aligned polarities.
+  // Preserve CORE100 should questions, CORE99 should statements, and earlier approved/invited rules.
+  const core101ApplicantSelectedConditionalWouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (선발되었을 거예요|선발되지 않았을 거예요)$/u.exec(normalized);
+  if (core101ApplicantSelectedConditionalWouldMatch && !isQuestion) {
+    const core101NegativeCondition = core101ApplicantSelectedConditionalWouldMatch[2] === '조건이 충족되지 않았다면';
+    const core101NegativeResult = core101ApplicantSelectedConditionalWouldMatch[4] === '선발되지 않았을 거예요';
+    if (core101NegativeCondition === core101NegativeResult) {
+      const core101Plural = core101ApplicantSelectedConditionalWouldMatch[1] === '들은';
+      const core101Subject = core101Plural ? 'The applicants' : 'The applicant';
+      const core101TimeKo = core101ApplicantSelectedConditionalWouldMatch[3];
+      const core101TimeEn = core101TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core101ConditionEn = core101NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core101Predicate = `would ${core101NegativeResult ? 'not ' : ''}have been selected`;
+      const core101Core = `${core101Subject} ${core101Predicate} ${core101TimeEn} ${core101ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core101Core, originalText),
+        analysis: [
+          { ko: core101Plural ? '그 지원자들은' : '그 지원자는', en: `${core101Subject} [S]` },
+          { ko: core101ApplicantSelectedConditionalWouldMatch[2], en: `${core101ConditionEn} [CONDITION]` },
+          { ko: core101TimeKo, en: `${core101TimeEn} [TIME]` },
+          { ko: core101ApplicantSelectedConditionalWouldMatch[4], en: `${core101Predicate} [PASSIVE:CORE101]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('선발되다', 'be selected', 'V'),
+        ],
+        engine: 'core101-applicants-selected-conditional-would-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE100-APPLICANTS-SELECTED-CONDITIONAL-SHOULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Selected passive should questions only; 2 subjects x 2 time slots x 2 aligned polarities.
+  // Previous CORE99 statements and all invited/approved conditions remain unchanged.
+  const core100ApplicantSelectedConditionalShouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (선발되었어야 했을 거예요|선발되지 않았어야 했을 거예요)$/u.exec(normalized);
+  if (core100ApplicantSelectedConditionalShouldQuestionMatch && isQuestion) {
+    const core100NegativeCondition = core100ApplicantSelectedConditionalShouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core100NegativeResult = core100ApplicantSelectedConditionalShouldQuestionMatch[4] === '선발되지 않았어야 했을 거예요';
+    if (core100NegativeCondition === core100NegativeResult) {
+      const core100Plural = core100ApplicantSelectedConditionalShouldQuestionMatch[1] === '들은';
+      const core100Subject = core100Plural ? 'the applicants' : 'the applicant';
+      const core100TimeKo = core100ApplicantSelectedConditionalShouldQuestionMatch[3];
+      const core100TimeEn = core100TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core100ConditionEn = core100NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core100Predicate = `should ${core100NegativeResult ? 'not ' : ''}have been selected`;
+      const core100Core = `Should ${core100Subject} ${core100NegativeResult ? 'not ' : ''}have been selected ${core100TimeEn} ${core100ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core100Core, originalText),
+        analysis: [
+          { ko: core100Plural ? '그 지원자들은' : '그 지원자는', en: `${core100Subject} [S]` },
+          { ko: core100ApplicantSelectedConditionalShouldQuestionMatch[2], en: `${core100ConditionEn} [CONDITION]` },
+          { ko: core100TimeKo, en: `${core100TimeEn} [TIME]` },
+          { ko: core100ApplicantSelectedConditionalShouldQuestionMatch[4], en: `${core100Predicate} [PASSIVE:CORE100:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('선발되다', 'be selected', 'V'),
+        ],
+        engine: 'core100-applicants-selected-conditional-should-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE99-APPLICANTS-SELECTED-CONDITIONAL-SHOULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Selected passive should statements only. Preserve all prior invited/approved and selected slots.
+  const core99ApplicantSelectedConditionalShouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (선발되었어야 했을 거예요|선발되지 않았어야 했을 거예요)$/u.exec(normalized);
+  if (core99ApplicantSelectedConditionalShouldMatch && !isQuestion) {
+    const core99NegativeCondition = core99ApplicantSelectedConditionalShouldMatch[2] === '조건이 충족되지 않았다면';
+    const core99NegativeResult = core99ApplicantSelectedConditionalShouldMatch[4] === '선발되지 않았어야 했을 거예요';
+    if (core99NegativeCondition === core99NegativeResult) {
+      const core99Plural = core99ApplicantSelectedConditionalShouldMatch[1] === '들은';
+      const core99Subject = core99Plural ? 'the applicants' : 'the applicant';
+      const core99TimeKo = core99ApplicantSelectedConditionalShouldMatch[3];
+      const core99TimeEn = core99TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core99ConditionEn = core99NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core99Predicate = `should ${core99NegativeResult ? 'not ' : ''}have been selected`;
+      const core99Core = `The ${core99Plural ? 'applicants' : 'applicant'} ${core99Predicate} ${core99TimeEn} ${core99ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core99Core, originalText),
+        analysis: [
+          { ko: core99Plural ? '그 지원자들은' : '그 지원자는', en: `${core99Subject} [S]` },
+          { ko: core99ApplicantSelectedConditionalShouldMatch[2], en: `${core99ConditionEn} [CONDITION]` },
+          { ko: core99TimeKo, en: `${core99TimeEn} [TIME]` },
+          { ko: core99ApplicantSelectedConditionalShouldMatch[4], en: `${core99Predicate} [PASSIVE:CORE99]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('선발되다', 'be selected', 'V'),
+        ],
+        engine: 'core99-applicants-selected-conditional-should-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE98-APPLICANTS-APPROVED-CONDITIONAL-MAY-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Approval passive epistemic may statements only. Preserve CORE87 and CORE90-97.
+  const core98ApplicantApprovedConditionalMayMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (승인되었을 수도 있어요|승인되지 않았을 수도 있어요)$/u.exec(normalized);
+  if (core98ApplicantApprovedConditionalMayMatch && !isQuestion) {
+    const core98NegativeCondition = core98ApplicantApprovedConditionalMayMatch[2] === '조건이 충족되지 않았다면';
+    const core98NegativeResult = core98ApplicantApprovedConditionalMayMatch[4] === '승인되지 않았을 수도 있어요';
+    if (core98NegativeCondition === core98NegativeResult) {
+      const core98Plural = core98ApplicantApprovedConditionalMayMatch[1] === '들은';
+      const core98Subject = core98Plural ? 'the applicants' : 'the applicant';
+      const core98TimeKo = core98ApplicantApprovedConditionalMayMatch[3];
+      const core98TimeEn = core98TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core98ConditionEn = core98NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core98Predicate = `may ${core98NegativeResult ? 'not ' : ''}have been approved`;
+      const core98Core = `The ${core98Plural ? 'applicants' : 'applicant'} ${core98Predicate} ${core98TimeEn} ${core98ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core98Core, originalText),
+        analysis: [
+          { ko: core98Plural ? '그 지원자들은' : '그 지원자는', en: `${core98Subject} [S]` },
+          { ko: core98ApplicantApprovedConditionalMayMatch[2], en: `${core98ConditionEn} [CONDITION]` },
+          { ko: core98TimeKo, en: `${core98TimeEn} [TIME]` },
+          { ko: core98ApplicantApprovedConditionalMayMatch[4], en: `${core98Predicate} [PASSIVE:CORE98]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('승인되다', 'be approved', 'V'),
+        ],
+        engine: 'core98-applicants-approved-conditional-may-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE97-APPLICANTS-APPROVED-CONDITIONAL-MIGHT-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Approval passive epistemic might questions only. Preserve CORE86 and CORE90-96.
+  const core97ApplicantApprovedConditionalMightQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (승인되었을지도 몰라요|승인되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core97ApplicantApprovedConditionalMightQuestionMatch && isQuestion) {
+    const core97NegativeCondition = core97ApplicantApprovedConditionalMightQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core97NegativeResult = core97ApplicantApprovedConditionalMightQuestionMatch[4] === '승인되지 않았을지도 몰라요';
+    if (core97NegativeCondition === core97NegativeResult) {
+      const core97Plural = core97ApplicantApprovedConditionalMightQuestionMatch[1] === '들은';
+      const core97Subject = core97Plural ? 'the applicants' : 'the applicant';
+      const core97TimeKo = core97ApplicantApprovedConditionalMightQuestionMatch[3];
+      const core97TimeEn = core97TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core97ConditionEn = core97NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core97Predicate = `might ${core97NegativeResult ? 'not ' : ''}have been approved`;
+      const core97Core = `Might ${core97Subject} ${core97NegativeResult ? 'not ' : ''}have been approved ${core97TimeEn} ${core97ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core97Core, originalText),
+        analysis: [
+          { ko: core97Plural ? '그 지원자들은' : '그 지원자는', en: `${core97Subject} [S]` },
+          { ko: core97ApplicantApprovedConditionalMightQuestionMatch[2], en: `${core97ConditionEn} [CONDITION]` },
+          { ko: core97TimeKo, en: `${core97TimeEn} [TIME]` },
+          { ko: core97ApplicantApprovedConditionalMightQuestionMatch[4], en: `${core97Predicate} [PASSIVE:CORE97:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('승인되다', 'be approved', 'V'),
+        ],
+        engine: 'core97-applicants-approved-conditional-might-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE96-APPLICANTS-APPROVED-CONDITIONAL-MIGHT-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Approval passive epistemic might statement: limited to eight aligned source patterns.
+  // Keep CORE85 invited, CORE90-95 approved and all interrogative branches untouched.
+  const core96ApplicantApprovedConditionalMightMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (승인되었을지도 몰라요|승인되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core96ApplicantApprovedConditionalMightMatch && !isQuestion) {
+    const core96NegativeCondition = core96ApplicantApprovedConditionalMightMatch[2] === '조건이 충족되지 않았다면';
+    const core96NegativeResult = core96ApplicantApprovedConditionalMightMatch[4] === '승인되지 않았을지도 몰라요';
+    if (core96NegativeCondition === core96NegativeResult) {
+      const core96Plural = core96ApplicantApprovedConditionalMightMatch[1] === '들은';
+      const core96Subject = core96Plural ? 'the applicants' : 'the applicant';
+      const core96TimeKo = core96ApplicantApprovedConditionalMightMatch[3];
+      const core96TimeEn = core96TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core96ConditionEn = core96NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core96Predicate = `might ${core96NegativeResult ? 'not ' : ''}have been approved`;
+      const core96Core = `The ${core96Plural ? 'applicants' : 'applicant'} ${core96Predicate} ${core96TimeEn} ${core96ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core96Core, originalText),
+        analysis: [
+          { ko: core96Plural ? '그 지원자들은' : '그 지원자는', en: `${core96Subject} [S]` },
+          { ko: core96ApplicantApprovedConditionalMightMatch[2], en: `${core96ConditionEn} [CONDITION]` },
+          { ko: core96TimeKo, en: `${core96TimeEn} [TIME]` },
+          { ko: core96ApplicantApprovedConditionalMightMatch[4], en: `${core96Predicate} [PASSIVE:CORE96]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('승인되다', 'be approved', 'V'),
+        ],
+        engine: 'core96-applicants-approved-conditional-might-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE95-APPLICANTS-APPROVED-CONDITIONAL-COULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Conditional approval could-have-been questions only; preserves CORE84 invited and CORE90-94 approved.
+  const core95ApplicantApprovedConditionalCouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (승인될 수도 있었을 거예요|승인될 수 없었을 거예요)$/u.exec(normalized);
+  if (core95ApplicantApprovedConditionalCouldQuestionMatch && isQuestion) {
+    const core95NegativeCondition = core95ApplicantApprovedConditionalCouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core95NegativeResult = core95ApplicantApprovedConditionalCouldQuestionMatch[4] === '승인될 수 없었을 거예요';
+    if (core95NegativeCondition === core95NegativeResult) {
+      const core95Plural = core95ApplicantApprovedConditionalCouldQuestionMatch[1] === '들은';
+      const core95Subject = core95Plural ? 'the applicants' : 'the applicant';
+      const core95TimeKo = core95ApplicantApprovedConditionalCouldQuestionMatch[3];
+      const core95TimeEn = core95TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core95ConditionEn = core95NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core95Predicate = `could ${core95NegativeResult ? 'not ' : ''}have been approved`;
+      const core95Core = `Could ${core95Subject} ${core95NegativeResult ? 'not ' : ''}have been approved ${core95TimeEn} ${core95ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core95Core, originalText),
+        analysis: [
+          { ko: core95Plural ? '그 지원자들은' : '그 지원자는', en: `${core95Subject} [S]` },
+          { ko: core95ApplicantApprovedConditionalCouldQuestionMatch[2], en: `${core95ConditionEn} [CONDITION]` },
+          { ko: core95TimeKo, en: `${core95TimeEn} [TIME]` },
+          { ko: core95ApplicantApprovedConditionalCouldQuestionMatch[4], en: `${core95Predicate} [PASSIVE:CORE95:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('승인되다', 'be approved', 'V'),
+        ],
+        engine: 'core95-applicants-approved-conditional-could-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE94-APPLICANTS-APPROVED-CONDITIONAL-COULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Independent conditional could-have-been approval statements only; protects CORE83/84 invited and CORE90-93 approved.
+  const core94ApplicantApprovedConditionalCouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (승인될 수도 있었을 거예요|승인될 수 없었을 거예요)$/u.exec(normalized);
+  if (core94ApplicantApprovedConditionalCouldMatch && !isQuestion) {
+    const core94NegativeCondition = core94ApplicantApprovedConditionalCouldMatch[2] === '조건이 충족되지 않았다면';
+    const core94NegativeResult = core94ApplicantApprovedConditionalCouldMatch[4] === '승인될 수 없었을 거예요';
+    if (core94NegativeCondition === core94NegativeResult) {
+      const core94Plural = core94ApplicantApprovedConditionalCouldMatch[1] === '들은';
+      const core94Subject = core94Plural ? 'The applicants' : 'The applicant';
+      const core94TimeKo = core94ApplicantApprovedConditionalCouldMatch[3];
+      const core94TimeEn = core94TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core94ConditionEn = core94NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core94Predicate = `could ${core94NegativeResult ? 'not ' : ''}have been approved`;
+      const core94Core = `${core94Subject} ${core94Predicate} ${core94TimeEn} ${core94ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core94Core, originalText),
+        analysis: [
+          { ko: core94Plural ? '그 지원자들은' : '그 지원자는', en: `${core94Subject.toLowerCase()} [S]` },
+          { ko: core94ApplicantApprovedConditionalCouldMatch[2], en: `${core94ConditionEn} [CONDITION]` },
+          { ko: core94TimeKo, en: `${core94TimeEn} [TIME]` },
+          { ko: core94ApplicantApprovedConditionalCouldMatch[4], en: `${core94Predicate} [PASSIVE:CORE94]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('승인되다', 'be approved', 'V'),
+        ],
+        engine: 'core94-applicants-approved-conditional-could-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE93-APPLICANTS-APPROVED-CONDITIONAL-WOULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Independent approval counterfactual question: 2 subjects x 2 times x 2 aligned polarities.
+  // Interrogative only. Protect CORE92 would statements, CORE90/91 should, and all invited rules.
+  const core93ApplicantApprovedConditionalWouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (승인되었을 거예요|승인되지 않았을 거예요)$/u.exec(normalized);
+  if (core93ApplicantApprovedConditionalWouldQuestionMatch && isQuestion) {
+    const core93NegativeCondition = core93ApplicantApprovedConditionalWouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core93NegativeResult = core93ApplicantApprovedConditionalWouldQuestionMatch[4] === '승인되지 않았을 거예요';
+    if (core93NegativeCondition === core93NegativeResult) {
+      const core93Plural = core93ApplicantApprovedConditionalWouldQuestionMatch[1] === '들은';
+      const core93Subject = core93Plural ? 'the applicants' : 'the applicant';
+      const core93TimeKo = core93ApplicantApprovedConditionalWouldQuestionMatch[3];
+      const core93TimeEn = core93TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core93ConditionEn = core93NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core93Predicate = `would ${core93NegativeResult ? 'not ' : ''}have been approved`;
+      const core93Core = `Would ${core93Subject} ${core93NegativeResult ? 'not ' : ''}have been approved ${core93TimeEn} ${core93ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core93Core, originalText),
+        analysis: [
+          { ko: core93Plural ? '그 지원자들은' : '그 지원자는', en: `${core93Subject} [S]` },
+          { ko: core93ApplicantApprovedConditionalWouldQuestionMatch[2], en: `${core93ConditionEn} [CONDITION]` },
+          { ko: core93TimeKo, en: `${core93TimeEn} [TIME]` },
+          { ko: core93ApplicantApprovedConditionalWouldQuestionMatch[4], en: `${core93Predicate} [PASSIVE:CORE93:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('승인되다', 'be approved', 'V'),
+        ],
+        engine: 'core93-applicants-approved-conditional-would-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE92-APPLICANTS-APPROVED-CONDITIONAL-WOULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Independent approval counterfactual: 2 subjects x 2 times x 2 aligned polarities.
+  // Statement only. Protect CORE90/91 should, CORE81/82 invited would, and all existing rules.
+  const core92ApplicantApprovedConditionalWouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (승인되었을 거예요|승인되지 않았을 거예요)$/u.exec(normalized);
+  if (core92ApplicantApprovedConditionalWouldMatch && !isQuestion) {
+    const core92NegativeCondition = core92ApplicantApprovedConditionalWouldMatch[2] === '조건이 충족되지 않았다면';
+    const core92NegativeResult = core92ApplicantApprovedConditionalWouldMatch[4] === '승인되지 않았을 거예요';
+    if (core92NegativeCondition === core92NegativeResult) {
+      const core92Plural = core92ApplicantApprovedConditionalWouldMatch[1] === '들은';
+      const core92Subject = core92Plural ? 'The applicants' : 'The applicant';
+      const core92TimeKo = core92ApplicantApprovedConditionalWouldMatch[3];
+      const core92TimeEn = core92TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core92ConditionEn = core92NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core92Predicate = `would ${core92NegativeResult ? 'not ' : ''}have been approved`;
+      const core92Core = `${core92Subject} ${core92Predicate} ${core92TimeEn} ${core92ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core92Core, originalText),
+        analysis: [
+          { ko: core92Plural ? '그 지원자들은' : '그 지원자는', en: `${core92Subject} [S]` },
+          { ko: core92ApplicantApprovedConditionalWouldMatch[2], en: `${core92ConditionEn} [CONDITION]` },
+          { ko: core92TimeKo, en: `${core92TimeEn} [TIME]` },
+          { ko: core92ApplicantApprovedConditionalWouldMatch[4], en: `${core92Predicate} [PASSIVE:CORE92]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('승인되다', 'be approved', 'V'),
+        ],
+        engine: 'core92-applicants-approved-conditional-would-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE91-APPLICANTS-APPROVED-CONDITIONAL-SHOULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Separate approval question slot: 2 subjects x 2 times x 2 aligned polarities.
+  // Keep CORE90 approval statements and CORE89 invitation questions unchanged.
+  const core91ApplicantApprovedConditionalShouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (승인되었어야 했을 거예요|승인되지 않았어야 했을 거예요)$/u.exec(normalized);
+  if (core91ApplicantApprovedConditionalShouldQuestionMatch && isQuestion) {
+    const core91NegativeCondition = core91ApplicantApprovedConditionalShouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core91NegativeResult = core91ApplicantApprovedConditionalShouldQuestionMatch[4] === '승인되지 않았어야 했을 거예요';
+    if (core91NegativeCondition === core91NegativeResult) {
+      const core91Plural = core91ApplicantApprovedConditionalShouldQuestionMatch[1] === '들은';
+      const core91Subject = core91Plural ? 'the applicants' : 'the applicant';
+      const core91TimeKo = core91ApplicantApprovedConditionalShouldQuestionMatch[3];
+      const core91TimeEn = core91TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core91ConditionEn = core91NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core91Predicate = `should ${core91NegativeResult ? 'not ' : ''}have been approved`;
+      const core91Core = `Should ${core91Subject} ${core91NegativeResult ? 'not ' : ''}have been approved ${core91TimeEn} ${core91ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core91Core, originalText),
+        analysis: [
+          { ko: core91Plural ? '그 지원자들은' : '그 지원자는', en: `${core91Subject} [S]` },
+          { ko: core91ApplicantApprovedConditionalShouldQuestionMatch[2], en: `${core91ConditionEn} [CONDITION]` },
+          { ko: core91TimeKo, en: `${core91TimeEn} [TIME]` },
+          { ko: core91ApplicantApprovedConditionalShouldQuestionMatch[4], en: `${core91Predicate} [PASSIVE:CORE91:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('승인되다', 'be approved', 'V'),
+        ],
+        engine: 'core91-applicants-approved-conditional-should-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE90-APPLICANTS-APPROVED-CONDITIONAL-SHOULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Separate approval verb slot: 2 subjects x 2 times x 2 matched polarities, statements only.
+  // Do not touch the older invitation passive rules or their engine identifiers.
+  const core90ApplicantApprovedConditionalShouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (승인되었어야 했을 거예요|승인되지 않았어야 했을 거예요)$/u.exec(normalized);
+  if (core90ApplicantApprovedConditionalShouldMatch && !isQuestion) {
+    const core90NegativeCondition = core90ApplicantApprovedConditionalShouldMatch[2] === '조건이 충족되지 않았다면';
+    const core90NegativeResult = core90ApplicantApprovedConditionalShouldMatch[4] === '승인되지 않았어야 했을 거예요';
+    if (core90NegativeCondition === core90NegativeResult) {
+      const core90Plural = core90ApplicantApprovedConditionalShouldMatch[1] === '들은';
+      const core90Subject = core90Plural ? 'the applicants' : 'the applicant';
+      const core90TimeKo = core90ApplicantApprovedConditionalShouldMatch[3];
+      const core90TimeEn = core90TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core90ConditionEn = core90NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core90Predicate = `should ${core90NegativeResult ? 'not ' : ''}have been approved`;
+      const core90Core = `${core90Subject} ${core90Predicate} ${core90TimeEn} ${core90ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core90Core, originalText),
+        analysis: [
+          { ko: core90Plural ? '그 지원자들은' : '그 지원자는', en: `${core90Subject} [S]` },
+          { ko: core90ApplicantApprovedConditionalShouldMatch[2], en: `${core90ConditionEn} [CONDITION]` },
+          { ko: core90TimeKo, en: `${core90TimeEn} [TIME]` },
+          { ko: core90ApplicantApprovedConditionalShouldMatch[4], en: `${core90Predicate} [PASSIVE:CORE90]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('승인되다', 'be approved', 'V'),
+        ],
+        engine: 'core90-applicants-approved-conditional-should-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE89-APPLICANTS-INVITED-CONDITIONAL-SHOULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Reordered Korean middle condition: 2 subjects x 2 times x 2 aligned polarities, questions only.
+  // CORE80 condition-first questions and CORE88 middle-order statements remain untouched.
+  const core89ApplicantMiddleConditionalShouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (초대되었어야 했을 거예요|초대되지 않았어야 했을 거예요)$/u.exec(normalized);
+  if (core89ApplicantMiddleConditionalShouldQuestionMatch && isQuestion) {
+    const core89NegativeCondition = core89ApplicantMiddleConditionalShouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core89NegativeResult = core89ApplicantMiddleConditionalShouldQuestionMatch[4] === '초대되지 않았어야 했을 거예요';
+    if (core89NegativeCondition === core89NegativeResult) {
+      const core89Plural = core89ApplicantMiddleConditionalShouldQuestionMatch[1] === '들은';
+      const core89Subject = core89Plural ? 'the applicants' : 'the applicant';
+      const core89TimeKo = core89ApplicantMiddleConditionalShouldQuestionMatch[3];
+      const core89TimeEn = core89TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core89ConditionEn = core89NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core89Predicate = `Should ${core89Subject} ${core89NegativeResult ? 'not ' : ''}have been invited`;
+      const core89Core = `${core89Predicate} ${core89TimeEn} ${core89ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core89Core, originalText),
+        analysis: [
+          { ko: core89Plural ? '그 지원자들은' : '그 지원자는', en: `${core89Subject} [S]` },
+          { ko: core89ApplicantMiddleConditionalShouldQuestionMatch[2], en: `${core89ConditionEn} [CONDITION]` },
+          { ko: core89TimeKo, en: `${core89TimeEn} [TIME]` },
+          { ko: core89ApplicantMiddleConditionalShouldQuestionMatch[4], en: `${core89Predicate} [PASSIVE:CORE89:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core89-applicants-invited-conditional-should-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE88-APPLICANTS-INVITED-CONDITIONAL-SHOULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Reordered condition inside statement: 2 subjects x 2 times x 2 matching polarities.
+  // CORE79 condition-first statements and CORE87 conditional may-forms remain untouched.
+  const core88ApplicantMiddleConditionalShouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (초대되었어야 했을 거예요|초대되지 않았어야 했을 거예요)$/u.exec(normalized);
+  if (core88ApplicantMiddleConditionalShouldMatch && !isQuestion) {
+    const core88NegativeCondition = core88ApplicantMiddleConditionalShouldMatch[2] === '조건이 충족되지 않았다면';
+    const core88NegativeResult = core88ApplicantMiddleConditionalShouldMatch[4] === '초대되지 않았어야 했을 거예요';
+    if (core88NegativeCondition === core88NegativeResult) {
+      const core88Plural = core88ApplicantMiddleConditionalShouldMatch[1] === '들은';
+      const core88Subject = core88Plural ? 'The applicants' : 'The applicant';
+      const core88TimeKo = core88ApplicantMiddleConditionalShouldMatch[3];
+      const core88TimeEn = core88TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core88ConditionEn = core88NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core88Predicate = `should ${core88NegativeResult ? 'not ' : ''}have been invited`;
+      const core88Core = `${core88Subject} ${core88Predicate} ${core88TimeEn} ${core88ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core88Core, originalText),
+        analysis: [
+          { ko: core88Plural ? '그 지원자들은' : '그 지원자는', en: `${core88Subject} [S]` },
+          { ko: core88ApplicantMiddleConditionalShouldMatch[2], en: `${core88ConditionEn} [CONDITION]` },
+          { ko: core88TimeKo, en: `${core88TimeEn} [TIME]` },
+          { ko: core88ApplicantMiddleConditionalShouldMatch[4], en: `${core88Predicate} [PASSIVE:CORE88:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core88-applicants-invited-conditional-should-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE87-APPLICANTS-INVITED-CONDITIONAL-MAY-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Statement only: applicant + embedded past condition + time + may/may-not passive.
+  // CORE78 condition-first statements and CORE86 middle-order questions are unchanged.
+  const core87ApplicantMiddleConditionalMayMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (초대되었을 가능성이 있어요|초대되지 않았을 가능성이 있어요)$/u.exec(normalized);
+  if (core87ApplicantMiddleConditionalMayMatch && !isQuestion) {
+    const core87NegativeCondition = core87ApplicantMiddleConditionalMayMatch[2] === '조건이 충족되지 않았다면';
+    const core87NegativeResult = core87ApplicantMiddleConditionalMayMatch[4] === '초대되지 않았을 가능성이 있어요';
+    if (core87NegativeCondition === core87NegativeResult) {
+      const core87Plural = core87ApplicantMiddleConditionalMayMatch[1] === '들은';
+      const core87Subject = core87Plural ? 'The applicants' : 'The applicant';
+      const core87TimeKo = core87ApplicantMiddleConditionalMayMatch[3];
+      const core87TimeEn = core87TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core87ConditionEn = core87NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core87Predicate = `may ${core87NegativeResult ? 'not ' : ''}have been invited`;
+      const core87Core = `${core87Subject} ${core87Predicate} ${core87TimeEn} ${core87ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core87Core, originalText),
+        analysis: [
+          { ko: core87Plural ? '그 지원자들은' : '그 지원자는', en: `${core87Subject} [S]` },
+          { ko: core87ApplicantMiddleConditionalMayMatch[2], en: `${core87ConditionEn} [CONDITION]` },
+          { ko: core87TimeKo, en: `${core87TimeEn} [TIME]` },
+          { ko: core87ApplicantMiddleConditionalMayMatch[4], en: `${core87Predicate} [PASSIVE:CORE87:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core87-applicants-invited-conditional-may-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE86-APPLICANTS-INVITED-CONDITIONAL-MIGHT-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Question only: applicant + embedded past condition + time + might/might-not passive.
+  // CORE77 condition-first questions and CORE85 middle-order statements are unchanged.
+  const core86ApplicantMiddleConditionalMightQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (초대되었을지도 모르나요|초대되지 않았을지도 모르나요)$/u.exec(normalized);
+  if (core86ApplicantMiddleConditionalMightQuestionMatch && isQuestion) {
+    const core86NegativeCondition = core86ApplicantMiddleConditionalMightQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core86NegativeResult = core86ApplicantMiddleConditionalMightQuestionMatch[4] === '초대되지 않았을지도 모르나요';
+    if (core86NegativeCondition === core86NegativeResult) {
+      const core86Plural = core86ApplicantMiddleConditionalMightQuestionMatch[1] === '들은';
+      const core86Subject = core86Plural ? 'the applicants' : 'the applicant';
+      const core86TimeKo = core86ApplicantMiddleConditionalMightQuestionMatch[3];
+      const core86TimeEn = core86TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core86ConditionEn = core86NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core86Predicate = `Might ${core86Subject} ${core86NegativeResult ? 'not ' : ''}have been invited`;
+      const core86Core = `${core86Predicate} ${core86TimeEn} ${core86ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core86Core, originalText),
+        analysis: [
+          { ko: core86Plural ? '그 지원자들은' : '그 지원자는', en: `${core86Subject} [S]` },
+          { ko: core86ApplicantMiddleConditionalMightQuestionMatch[2], en: `${core86ConditionEn} [CONDITION]` },
+          { ko: core86TimeKo, en: `${core86TimeEn} [TIME]` },
+          { ko: core86ApplicantMiddleConditionalMightQuestionMatch[4], en: `Might ${core86NegativeResult ? 'not ' : ''}have been invited [PASSIVE:CORE86:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core86-applicants-invited-conditional-might-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE85-APPLICANTS-INVITED-CONDITIONAL-MIGHT-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Statement only: applicant + embedded past condition + time + might/might-not passive.
+  // CORE76 condition-first wording and CORE84 middle-order questions are left untouched.
+  const core85ApplicantMiddleConditionalMightMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (초대되었을지도 몰라요|초대되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core85ApplicantMiddleConditionalMightMatch && !isQuestion) {
+    const core85NegativeCondition = core85ApplicantMiddleConditionalMightMatch[2] === '조건이 충족되지 않았다면';
+    const core85NegativeResult = core85ApplicantMiddleConditionalMightMatch[4] === '초대되지 않았을지도 몰라요';
+    if (core85NegativeCondition === core85NegativeResult) {
+      const core85Plural = core85ApplicantMiddleConditionalMightMatch[1] === '들은';
+      const core85Subject = core85Plural ? 'The applicants' : 'The applicant';
+      const core85TimeKo = core85ApplicantMiddleConditionalMightMatch[3];
+      const core85TimeEn = core85TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core85ConditionEn = core85NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core85Predicate = `${core85Subject} might ${core85NegativeResult ? 'not ' : ''}have been invited`;
+      const core85Core = `${core85Predicate} ${core85TimeEn} ${core85ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core85Core, originalText),
+        analysis: [
+          { ko: core85Plural ? '그 지원자들은' : '그 지원자는', en: `${core85Subject} [S]` },
+          { ko: core85ApplicantMiddleConditionalMightMatch[2], en: `${core85ConditionEn} [CONDITION]` },
+          { ko: core85TimeKo, en: `${core85TimeEn} [TIME]` },
+          { ko: core85ApplicantMiddleConditionalMightMatch[4], en: `might ${core85NegativeResult ? 'not ' : ''}have been invited [PASSIVE:CORE85:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core85-applicants-invited-conditional-might-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE84-APPLICANTS-INVITED-CONDITIONAL-COULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Questions only: subject + embedded condition + time + conditional could-have-been result.
+  // The matching CORE83 statement and CORE75 condition-first question are left untouched.
+  const core84ApplicantMiddleConditionalCouldQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (초대될 수도 있었을 거예요|초대될 수 없었을 거예요)$/u.exec(normalized);
+  if (core84ApplicantMiddleConditionalCouldQuestionMatch && isQuestion) {
+    const core84NegativeCondition = core84ApplicantMiddleConditionalCouldQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core84NegativeResult = core84ApplicantMiddleConditionalCouldQuestionMatch[4] === '초대될 수 없었을 거예요';
+    if (core84NegativeCondition === core84NegativeResult) {
+      const core84Plural = core84ApplicantMiddleConditionalCouldQuestionMatch[1] === '들은';
+      const core84Subject = core84Plural ? 'the applicants' : 'the applicant';
+      const core84TimeKo = core84ApplicantMiddleConditionalCouldQuestionMatch[3];
+      const core84TimeEn = core84TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core84ConditionEn = core84NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core84Predicate = `Could ${core84Subject} ${core84NegativeResult ? 'not ' : ''}have been invited`;
+      const core84Core = `${core84Predicate} ${core84TimeEn} ${core84ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core84Core, originalText),
+        analysis: [
+          { ko: core84Plural ? '그 지원자들은' : '그 지원자는', en: `${core84Subject} [S]` },
+          { ko: core84ApplicantMiddleConditionalCouldQuestionMatch[2], en: `${core84ConditionEn} [CONDITION]` },
+          { ko: core84TimeKo, en: `${core84TimeEn} [TIME]` },
+          { ko: core84ApplicantMiddleConditionalCouldQuestionMatch[4], en: `could ${core84NegativeResult ? 'not ' : ''}have been invited [PASSIVE:CORE84:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core84-applicants-invited-conditional-could-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE83-APPLICANTS-INVITED-CONDITIONAL-COULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // Declarative only: subject + conditional + time + could-have-been result.
+  // Do not override CORE74 (condition first) or CORE75 questions.
+  const core83ApplicantMiddleConditionalCouldMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (초대될 수도 있었을 거예요|초대될 수 없었을 거예요)$/u.exec(normalized);
+  if (core83ApplicantMiddleConditionalCouldMatch && !isQuestion) {
+    const core83NegativeCondition = core83ApplicantMiddleConditionalCouldMatch[2] === '조건이 충족되지 않았다면';
+    const core83NegativeResult = core83ApplicantMiddleConditionalCouldMatch[4] === '초대될 수 없었을 거예요';
+    if (core83NegativeCondition === core83NegativeResult) {
+      const core83Plural = core83ApplicantMiddleConditionalCouldMatch[1] === '들은';
+      const core83Subject = core83Plural ? 'The applicants' : 'The applicant';
+      const core83TimeKo = core83ApplicantMiddleConditionalCouldMatch[3];
+      const core83TimeEn = core83TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core83ConditionEn = core83NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core83Predicate = `could ${core83NegativeResult ? 'not ' : ''}have been invited`;
+      const core83Core = `${core83Subject} ${core83Predicate} ${core83TimeEn} ${core83ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core83Core, originalText),
+        analysis: [
+          { ko: core83Plural ? '그 지원자들은' : '그 지원자는', en: `${core83Subject.toLowerCase()} [S]` },
+          { ko: core83ApplicantMiddleConditionalCouldMatch[2], en: `${core83ConditionEn} [CONDITION]` },
+          { ko: core83TimeKo, en: `${core83TimeEn} [TIME]` },
+          { ko: core83ApplicantMiddleConditionalCouldMatch[4], en: `${core83Predicate} [PASSIVE:CORE83:CONDITIONAL]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core83-applicants-invited-conditional-could-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE82-APPLICANTS-INVITED-CONDITIONAL-WOULD-HAVE-BEEN-MIDDLE-ORDER-QUESTION-SLOT-SAFE
+  // Questions for subject + conditional clause + time + result.
+  // Matches only questions with consistent positive/negative condition and result.
+  const core82ApplicantMiddleConditionQuestionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (초대되었을 거예요|초대되지 않았을 거예요)$/u.exec(normalized);
+  if (core82ApplicantMiddleConditionQuestionMatch && isQuestion) {
+    const core82NegativeCondition = core82ApplicantMiddleConditionQuestionMatch[2] === '조건이 충족되지 않았다면';
+    const core82NegativeResult = core82ApplicantMiddleConditionQuestionMatch[4] === '초대되지 않았을 거예요';
+    if (core82NegativeCondition === core82NegativeResult) {
+      const core82Plural = core82ApplicantMiddleConditionQuestionMatch[1] === '들은';
+      const core82Subject = core82Plural ? 'the applicants' : 'the applicant';
+      const core82TimeKo = core82ApplicantMiddleConditionQuestionMatch[3];
+      const core82TimeEn = core82TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core82ConditionEn = core82NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core82Predicate = `Would ${core82Subject} ${core82NegativeResult ? 'not ' : ''}have been invited`;
+      const core82Core = `${core82Predicate} ${core82TimeEn} ${core82ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core82Core, originalText),
+        analysis: [
+          { ko: core82Plural ? '그 지원자들은' : '그 지원자는', en: `${core82Subject} [S]` },
+          { ko: core82ApplicantMiddleConditionQuestionMatch[2], en: `${core82ConditionEn} [CONDITION]` },
+          { ko: core82TimeKo, en: `${core82TimeEn} [TIME]` },
+          { ko: core82ApplicantMiddleConditionQuestionMatch[4], en: `would ${core82NegativeResult ? 'not ' : ''}have been invited [PASSIVE:CORE82:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core82-applicants-invited-conditional-would-have-been-middle-order-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE81-APPLICANTS-INVITED-CONDITIONAL-WOULD-HAVE-BEEN-MIDDLE-ORDER-SLOT-SAFE
+  // CORE72 alternation: subject + conditional clause + time + result (statement only).
+  // Deliberately excludes initial-condition order, questions and mixed polarities.
+  const core81ApplicantMiddleConditionMatch =
+    /^그 지원자(는|들은) (조건이 충족되었다면|조건이 충족되지 않았다면) (어제|지난주에) (초대되었을 거예요|초대되지 않았을 거예요)$/u.exec(normalized);
+  if (core81ApplicantMiddleConditionMatch && !isQuestion) {
+    const core81NegativeCondition = core81ApplicantMiddleConditionMatch[2] === '조건이 충족되지 않았다면';
+    const core81NegativeResult = core81ApplicantMiddleConditionMatch[4] === '초대되지 않았을 거예요';
+    if (core81NegativeCondition === core81NegativeResult) {
+      const core81Plural = core81ApplicantMiddleConditionMatch[1] === '들은';
+      const core81Subject = core81Plural ? 'The applicants' : 'The applicant';
+      const core81TimeKo = core81ApplicantMiddleConditionMatch[3];
+      const core81TimeEn = core81TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core81ConditionEn = core81NegativeCondition
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core81Predicate = `would ${core81NegativeResult ? 'not ' : ''}have been invited`;
+      const core81Core = `${core81Subject} ${core81Predicate} ${core81TimeEn} ${core81ConditionEn}`;
+      return {
+        targetText: twoProFinalizeEnglish(core81Core, originalText),
+        analysis: [
+          { ko: core81Plural ? '그 지원자들은' : '그 지원자는', en: `${core81Subject} [S]` },
+          { ko: core81ApplicantMiddleConditionMatch[2], en: `${core81ConditionEn} [CONDITION]` },
+          { ko: core81TimeKo, en: `${core81TimeEn} [TIME]` },
+          { ko: core81ApplicantMiddleConditionMatch[4], en: `${core81Predicate} [PASSIVE:CORE81:CONDITIONAL]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core81-applicants-invited-conditional-would-have-been-middle-order-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE80-APPLICANTS-INVITED-SHOULD-HAVE-BEEN-QUESTION-CONDITIONAL-SLOT-SAFE
+  // Question-only conditional should-have-been; statement CORE79 remains untouched.
+  const core80ApplicantConditionalShouldQuestionMatch =
+    /^(조건이 충족되었다면|조건이 충족되지 않았다면) 그 지원자(는|들은) (어제|지난주에) (초대되었어야 했을 거예요|초대되지 않았어야 했을 거예요)$/u.exec(normalized);
+  if (core80ApplicantConditionalShouldQuestionMatch && isQuestion) {
+    const core80ConditionNegative = core80ApplicantConditionalShouldQuestionMatch[1] === '조건이 충족되지 않았다면';
+    const core80ResultNegative = core80ApplicantConditionalShouldQuestionMatch[4] === '초대되지 않았어야 했을 거예요';
+    if (core80ConditionNegative === core80ResultNegative) {
+      const core80Plural = core80ApplicantConditionalShouldQuestionMatch[2] === '들은';
+      const core80TimeKo = core80ApplicantConditionalShouldQuestionMatch[3];
+      const core80TimeEn = core80TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core80Subject = core80Plural ? 'the applicants' : 'the applicant';
+      const core80IfClause = core80ConditionNegative
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core80Core = `Should ${core80Subject} ${core80ResultNegative ? 'not ' : ''}have been invited ${core80TimeEn} ${core80IfClause}`;
+      return {
+        targetText: twoProFinalizeEnglish(core80Core, originalText),
+        analysis: [
+          { ko: core80ApplicantConditionalShouldQuestionMatch[1], en: `${core80IfClause} [CONDITION]` },
+          { ko: core80Plural ? '그 지원자들은' : '그 지원자는', en: `${core80Subject} [S]` },
+          { ko: core80TimeKo, en: `${core80TimeEn} [TIME]` },
+          { ko: core80ApplicantConditionalShouldQuestionMatch[4], en: `Should ${core80Subject} ${core80ResultNegative ? 'not ' : ''}have been invited [PASSIVE:CORE80:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core80-applicants-invited-conditional-should-have-been-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE79-APPLICANTS-INVITED-SHOULD-HAVE-BEEN-CONDITIONAL-SLOT-SAFE
+  // Eight exact conditional should-have-been statements. CORE65 and CORE72..78 unchanged.
+  const core79ApplicantConditionalShouldMatch =
+    /^(조건이 충족되었다면|조건이 충족되지 않았다면) 그 지원자(는|들은) (어제|지난주에) (초대되었어야 했을 거예요|초대되지 않았어야 했을 거예요)$/u.exec(normalized);
+  if (core79ApplicantConditionalShouldMatch && !isQuestion) {
+    const core79ConditionNegative = core79ApplicantConditionalShouldMatch[1] === '조건이 충족되지 않았다면';
+    const core79ResultNegative = core79ApplicantConditionalShouldMatch[4] === '초대되지 않았어야 했을 거예요';
+    if (core79ConditionNegative === core79ResultNegative) {
+      const core79Plural = core79ApplicantConditionalShouldMatch[2] === '들은';
+      const core79TimeKo = core79ApplicantConditionalShouldMatch[3];
+      const core79TimeEn = core79TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core79Subject = core79Plural ? 'The applicants' : 'The applicant';
+      const core79IfClause = core79ConditionNegative
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core79Core = `${core79Subject} should ${core79ResultNegative ? 'not ' : ''}have been invited ${core79TimeEn} ${core79IfClause}`;
+      return {
+        targetText: twoProFinalizeEnglish(core79Core, originalText),
+        analysis: [
+          { ko: core79ApplicantConditionalShouldMatch[1], en: `${core79IfClause} [CONDITION]` },
+          { ko: core79Plural ? '그 지원자들은' : '그 지원자는', en: `${core79Subject} [S]` },
+          { ko: core79TimeKo, en: `${core79TimeEn} [TIME]` },
+          { ko: core79ApplicantConditionalShouldMatch[4], en: `should ${core79ResultNegative ? 'not ' : ''}have been invited [PASSIVE:CORE79]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core79-applicants-invited-conditional-should-have-been-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE78-APPLICANTS-INVITED-MAY-HAVE-BEEN-CONDITIONAL-SLOT-SAFE
+  // Eight exact conditional statements; preserve CORE70 independent may and CORE76 conditional might.
+  const core78ApplicantConditionalMayMatch =
+    /^(조건이 충족되었다면|조건이 충족되지 않았다면) 그 지원자(는|들은) (어제|지난주에) (초대되었을 가능성이 있어요|초대되지 않았을 가능성이 있어요)$/u.exec(normalized);
+  if (core78ApplicantConditionalMayMatch && !isQuestion) {
+    const core78ConditionNegative = core78ApplicantConditionalMayMatch[1] === '조건이 충족되지 않았다면';
+    const core78ResultNegative = core78ApplicantConditionalMayMatch[4] === '초대되지 않았을 가능성이 있어요';
+    if (core78ConditionNegative === core78ResultNegative) {
+      const core78Plural = core78ApplicantConditionalMayMatch[2] === '들은';
+      const core78TimeKo = core78ApplicantConditionalMayMatch[3];
+      const core78TimeEn = core78TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core78Subject = core78Plural ? 'The applicants' : 'The applicant';
+      const core78IfClause = core78ConditionNegative
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core78Core = `${core78Subject} may ${core78ResultNegative ? 'not ' : ''}have been invited ${core78TimeEn} ${core78IfClause}`;
+      return {
+        targetText: twoProFinalizeEnglish(core78Core, originalText),
+        analysis: [
+          { ko: core78ApplicantConditionalMayMatch[1], en: `${core78IfClause} [CONDITION]` },
+          { ko: core78Plural ? '그 지원자들은' : '그 지원자는', en: `${core78Subject} [S]` },
+          { ko: core78TimeKo, en: `${core78TimeEn} [TIME]` },
+          { ko: core78ApplicantConditionalMayMatch[4], en: `may ${core78ResultNegative ? 'not ' : ''}have been invited [PASSIVE:CORE78]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core78-applicants-invited-conditional-may-have-been-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE77-APPLICANTS-INVITED-MIGHT-HAVE-BEEN-QUESTION-CONDITIONAL-SLOT-SAFE
+  // Eight exact conditional questions; CORE76 statements and CORE69 standalone questions remain unchanged.
+  const core77ApplicantConditionalMightQuestionMatch =
+    /^(조건이 충족되었다면|조건이 충족되지 않았다면) 그 지원자(는|들은) (어제|지난주에) (초대되었을지도 모르나요|초대되지 않았을지도 모르나요)$/u.exec(normalized);
+  if (core77ApplicantConditionalMightQuestionMatch && isQuestion) {
+    const core77ConditionNegative = core77ApplicantConditionalMightQuestionMatch[1] === '조건이 충족되지 않았다면';
+    const core77ResultNegative = core77ApplicantConditionalMightQuestionMatch[4] === '초대되지 않았을지도 모르나요';
+    if (core77ConditionNegative === core77ResultNegative) {
+      const core77Plural = core77ApplicantConditionalMightQuestionMatch[2] === '들은';
+      const core77TimeKo = core77ApplicantConditionalMightQuestionMatch[3];
+      const core77TimeEn = core77TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core77Subject = core77Plural ? 'the applicants' : 'the applicant';
+      const core77IfClause = core77ConditionNegative
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core77Core = `Might ${core77Subject} ${core77ResultNegative ? 'not ' : ''}have been invited ${core77TimeEn} ${core77IfClause}`;
+      return {
+        targetText: twoProFinalizeEnglish(core77Core, originalText),
+        analysis: [
+          { ko: core77ApplicantConditionalMightQuestionMatch[1], en: `${core77IfClause} [CONDITION]` },
+          { ko: core77Plural ? '그 지원자들은' : '그 지원자는', en: `${core77Subject} [S]` },
+          { ko: core77TimeKo, en: `${core77TimeEn} [TIME]` },
+          { ko: core77ApplicantConditionalMightQuestionMatch[4], en: `might ${core77ResultNegative ? 'not ' : ''}have been invited [PASSIVE:CORE77:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core77-applicants-invited-conditional-might-have-been-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE76-APPLICANTS-INVITED-MIGHT-HAVE-BEEN-CONDITIONAL-SLOT-SAFE
+  // Only eight declarative conditional might-have-been variants; no changes to CORE68 or CORE72-75.
+  const core76ApplicantConditionalMightMatch =
+    /^(조건이 충족되었다면|조건이 충족되지 않았다면) 그 지원자(는|들은) (어제|지난주에) (초대되었을지도 몰라요|초대되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core76ApplicantConditionalMightMatch && !isQuestion) {
+    const core76ConditionNegative = core76ApplicantConditionalMightMatch[1] === '조건이 충족되지 않았다면';
+    const core76ResultNegative = core76ApplicantConditionalMightMatch[4] === '초대되지 않았을지도 몰라요';
+    if (core76ConditionNegative === core76ResultNegative) {
+      const core76Plural = core76ApplicantConditionalMightMatch[2] === '들은';
+      const core76TimeKo = core76ApplicantConditionalMightMatch[3];
+      const core76TimeEn = core76TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core76Subject = core76Plural ? 'The applicants' : 'The applicant';
+      const core76IfClause = core76ConditionNegative
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core76Core = `${core76Subject} might ${core76ResultNegative ? 'not ' : ''}have been invited ${core76TimeEn} ${core76IfClause}`;
+      return {
+        targetText: twoProFinalizeEnglish(core76Core, originalText),
+        analysis: [
+          { ko: core76ApplicantConditionalMightMatch[1], en: `${core76IfClause} [CONDITION]` },
+          { ko: core76Plural ? '그 지원자들은' : '그 지원자는', en: `${core76Subject} [S]` },
+          { ko: core76TimeKo, en: `${core76TimeEn} [TIME]` },
+          { ko: core76ApplicantConditionalMightMatch[4], en: `might ${core76ResultNegative ? 'not ' : ''}have been invited [PASSIVE:CORE76]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core76-applicants-invited-conditional-might-have-been-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE75-APPLICANTS-INVITED-COULD-HAVE-BEEN-QUESTION-SLOT-SAFE
+  // Exact 8 conditional questions; keep the CORE74 statement and earlier slots unchanged.
+  const core75ApplicantConditionalCouldQuestionMatch =
+    /^(조건이 충족되었다면|조건이 충족되지 않았다면) 그 지원자(는|들은) (어제|지난주에) (초대될 수도 있었을 거예요|초대될 수 없었을 거예요)$/u.exec(normalized);
+  if (core75ApplicantConditionalCouldQuestionMatch && isQuestion) {
+    const core75ConditionNegative = core75ApplicantConditionalCouldQuestionMatch[1] === '조건이 충족되지 않았다면';
+    const core75ResultNegative = core75ApplicantConditionalCouldQuestionMatch[4] === '초대될 수 없었을 거예요';
+    if (core75ConditionNegative === core75ResultNegative) {
+      const core75Plural = core75ApplicantConditionalCouldQuestionMatch[2] === '들은';
+      const core75TimeKo = core75ApplicantConditionalCouldQuestionMatch[3];
+      const core75TimeEn = core75TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core75Subject = core75Plural ? 'the applicants' : 'the applicant';
+      const core75IfClause = core75ConditionNegative
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core75Core = `Could ${core75Subject} ${core75ResultNegative ? 'not ' : ''}have been invited ${core75TimeEn} ${core75IfClause}`;
+      return {
+        targetText: twoProFinalizeEnglish(core75Core, originalText),
+        analysis: [
+          { ko: core75ApplicantConditionalCouldQuestionMatch[1], en: `${core75IfClause} [CONDITION]` },
+          { ko: core75Plural ? '그 지원자들은' : '그 지원자는', en: `${core75Subject} [S]` },
+          { ko: core75TimeKo, en: `${core75TimeEn} [TIME]` },
+          { ko: core75ApplicantConditionalCouldQuestionMatch[4], en: `could ${core75ResultNegative ? 'not ' : ''}have been invited [PASSIVE:CORE75:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core75-applicants-invited-conditional-could-have-been-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE74-APPLICANTS-INVITED-COULD-HAVE-BEEN-CONDITIONAL-SLOT-SAFE
+  // Only conditional could-have-been statements with matching condition/result polarity.
+  // Deliberately separate from CORE66/67 nonconditional could, and CORE72/73 would.
+  const core74ApplicantConditionalCouldMatch =
+    /^(조건이 충족되었다면|조건이 충족되지 않았다면) 그 지원자(는|들은) (어제|지난주에) (초대될 수도 있었을 거예요|초대될 수 없었을 거예요)$/u.exec(normalized);
+  if (core74ApplicantConditionalCouldMatch && !isQuestion) {
+    const core74ConditionNegative = core74ApplicantConditionalCouldMatch[1] === '조건이 충족되지 않았다면';
+    const core74ResultNegative = core74ApplicantConditionalCouldMatch[4] === '초대될 수 없었을 거예요';
+    if (core74ConditionNegative === core74ResultNegative) {
+      const core74Plural = core74ApplicantConditionalCouldMatch[2] === '들은';
+      const core74TimeKo = core74ApplicantConditionalCouldMatch[3];
+      const core74TimeEn = core74TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core74Subject = core74Plural ? 'The applicants' : 'The applicant';
+      const core74IfClause = core74ConditionNegative
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core74Core = `${core74Subject} could ${core74ResultNegative ? 'not ' : ''}have been invited ${core74TimeEn} ${core74IfClause}`;
+      return {
+        targetText: twoProFinalizeEnglish(core74Core, originalText),
+        analysis: [
+          { ko: core74ApplicantConditionalCouldMatch[1], en: `${core74IfClause} [CONDITION]` },
+          { ko: core74Plural ? '그 지원자들은' : '그 지원자는', en: `${core74Subject} [S]` },
+          { ko: core74TimeKo, en: `${core74TimeEn} [TIME]` },
+          { ko: core74ApplicantConditionalCouldMatch[4], en: `could ${core74ResultNegative ? 'not ' : ''}have been invited [PASSIVE:CORE74:CONDITIONAL]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core74-applicants-invited-conditional-could-have-been-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE73-APPLICANTS-INVITED-WOULD-HAVE-BEEN-QUESTION-SLOT-SAFE
+  // Eight questions only: subject x time x matching polarity of condition/result.
+  // Precedes CORE72 statements, retains CORE72 and all older slots unchanged.
+  const core73ApplicantConditionalQuestionMatch =
+    /^(조건이 충족되었다면|조건이 충족되지 않았다면) 그 지원자(는|들은) (어제|지난주에) (초대되었을 거예요|초대되지 않았을 거예요)$/u.exec(normalized);
+  if (core73ApplicantConditionalQuestionMatch && isQuestion) {
+    const core73ConditionNegative = core73ApplicantConditionalQuestionMatch[1] === '조건이 충족되지 않았다면';
+    const core73ResultNegative = core73ApplicantConditionalQuestionMatch[4] === '초대되지 않았을 거예요';
+    if (core73ConditionNegative === core73ResultNegative) {
+      const core73Plural = core73ApplicantConditionalQuestionMatch[2] === '들은';
+      const core73TimeKo = core73ApplicantConditionalQuestionMatch[3];
+      const core73TimeEn = core73TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core73Subject = core73Plural ? 'the applicants' : 'the applicant';
+      const core73IfClause = core73ConditionNegative
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core73Core = `Would ${core73Subject} ${core73ResultNegative ? 'not ' : ''}have been invited ${core73TimeEn} ${core73IfClause}`;
+      return {
+        targetText: twoProFinalizeEnglish(core73Core, originalText),
+        analysis: [
+          { ko: core73ApplicantConditionalQuestionMatch[1], en: `${core73IfClause} [CONDITION]` },
+          { ko: core73Plural ? '그 지원자들은' : '그 지원자는', en: `${core73Subject} [S]` },
+          { ko: core73TimeKo, en: `${core73TimeEn} [TIME]` },
+          { ko: core73ApplicantConditionalQuestionMatch[4], en: `would ${core73ResultNegative ? 'not ' : ''}have been invited [PASSIVE:CORE73:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core73-applicants-invited-conditional-would-have-been-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE72-APPLICANTS-INVITED-WOULD-HAVE-BEEN-CONDITIONAL-SLOT-SAFE
+  // Only 8 exact statements: 2 subjects x 2 times x 2 consistent condition/result polarities.
+  // Place the English if-clause after the result. Do not affect CORE71 or earlier slots.
+  const core72ApplicantConditionalMatch =
+    /^(조건이 충족되었다면|조건이 충족되지 않았다면) 그 지원자(는|들은) (어제|지난주에) (초대되었을 거예요|초대되지 않았을 거예요)$/u.exec(normalized);
+  if (core72ApplicantConditionalMatch && !isQuestion) {
+    const core72ConditionNegative = core72ApplicantConditionalMatch[1] === '조건이 충족되지 않았다면';
+    const core72ResultNegative = core72ApplicantConditionalMatch[4] === '초대되지 않았을 거예요';
+    // A positive condition with negative result (or vice versa) is outside this safe slot.
+    if (core72ConditionNegative === core72ResultNegative) {
+      const core72Plural = core72ApplicantConditionalMatch[2] === '들은';
+      const core72TimeKo = core72ApplicantConditionalMatch[3];
+      const core72TimeEn = core72TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core72Subject = core72Plural ? 'The applicants' : 'The applicant';
+      const core72IfClause = core72ConditionNegative
+        ? 'if the conditions had not been met'
+        : 'if the conditions had been met';
+      const core72Core = `${core72Subject} would ${core72ResultNegative ? 'not ' : ''}have been invited ${core72TimeEn} ${core72IfClause}`;
+      return {
+        targetText: twoProFinalizeEnglish(core72Core, originalText),
+        analysis: [
+          { ko: core72ApplicantConditionalMatch[1], en: `${core72IfClause} [CONDITION]` },
+          { ko: core72Plural ? '그 지원자들은' : '그 지원자는', en: `${core72Subject} [S]` },
+          { ko: core72TimeKo, en: `${core72TimeEn} [TIME]` },
+          { ko: core72ApplicantConditionalMatch[4], en: `be invited [PASSIVE:CORE72:WOULD-HAVE-BEEN:${core72ResultNegative ? 'NEG' : 'POS'}:DECL]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('초대되다', 'be invited', 'V'),
+        ],
+        engine: 'core72-applicants-invited-conditional-would-have-been-ko-en-safe',
+      };
+    }
+  }
   // XDIC-CORE71-APPLICANTS-INVITED-MUST-CANNOT-HAVE-BEEN-SLOT-SAFE
   // 2 subjects x 2 times x 2 strong-deduction polarities = 8 statements.
   // '틀림없이' -> must; '리가 전혀 없어요' -> cannot; no overlap with CORE67.
