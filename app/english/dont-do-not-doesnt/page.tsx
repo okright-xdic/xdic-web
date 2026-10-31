@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
+import AdSensePlaceholder from '@/components/ads/AdSensePlaceholder';
 
 export const metadata: Metadata = {
   title:
@@ -811,6 +812,15 @@ export default function DontDoNotDoesntPage() {
             </Link>
           </div>
         </section>
+        {/* X-DIC AdSense: 영어 번역가 해설 하단 */}
+        <div className="w-full flex justify-center mt-10 mb-10">
+          <AdSensePlaceholder
+            adSlot="6914196933"
+            debugLabel="PC_영어해설_하단"
+            minHeight={250}
+          />
+        </div>
+
         <div className="mt-10 flex flex-wrap gap-3">
           <Link
             href="/"
