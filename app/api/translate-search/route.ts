@@ -42667,6 +42667,2445 @@ const twoProTryKoEnGeneralPassiveAspectV1053GPA = (
   // XDIC-CORE52-APPLICANT-SINGULAR-SUBJECT-SLOT-SAFE
   // XDIC-CORE53-APPLICANTS-PLURAL-SUBJECT-SLOT-SAFE
   // XDIC-CORE57-APPLICANTS-INVITED-SIMPLE-PRESENT-PAST-SAFE
+  // XDIC-CORE242-APPLICANTS-SCREENED-WAS-WERE-REQUIRED-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE242: past passive obligation interrogatives, 8 exact cases; prior CORE1..241 preserved.
+  const core242ApplicantScreenedPastRequiredQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) (심사를 받아야 했어요|심사를 받을 필요가 없었어요)$/u.exec(normalized);
+  if (core242ApplicantScreenedPastRequiredQuestionMatch && isQuestion) {
+    const core242Plural = core242ApplicantScreenedPastRequiredQuestionMatch[1] === '들은';
+    const core242ReasonKo = core242ApplicantScreenedPastRequiredQuestionMatch[2];
+    const core242TimeKo = core242ApplicantScreenedPastRequiredQuestionMatch[3];
+    const core242PredicateKo = core242ApplicantScreenedPastRequiredQuestionMatch[4];
+    const core242PositiveReason = core242ReasonKo === '충족되었으므로';
+    const core242PositivePredicate = core242PredicateKo === '심사를 받아야 했어요';
+    if (core242PositiveReason === core242PositivePredicate) {
+      const core242SubjectEn = core242Plural ? 'the applicants' : 'the applicant';
+      const core242BeEn = core242Plural ? 'Were' : 'Was';
+      const core242TimeEn = core242TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core242PredicateEn = core242PositivePredicate
+        ? 'required to be screened'
+        : 'not required to be screened';
+      const core242ReasonEn = core242PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core242Core = `${core242BeEn} ${core242SubjectEn} ${core242PredicateEn} ${core242TimeEn} ${core242ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core242Core, originalText),
+        analysis: [
+          { ko: core242Plural ? '그 지원자들은' : '그 지원자는', en: `${core242SubjectEn} [S]` },
+          { ko: `조건이 ${core242ReasonKo}`, en: `${core242ReasonEn} [REASON]` },
+          { ko: core242TimeKo, en: `${core242TimeEn} [TIME]` },
+          { ko: core242PredicateKo, en: `${core242BeEn} ${core242PredicateEn} [PASSIVE:CORE242:REQUIRED:PAST:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+          twoProEmbeddedReferenceWordV90('요구되다', 'be required', 'V'),
+        ],
+        engine: 'core242-applicants-screened-was-were-required-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE241-APPLICANTS-SCREENED-WAS-WERE-REQUIRED-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE241: exact past passive-obligation declaratives (8). Prior CORE1..240 unchanged.
+  const core241ApplicantScreenedPastRequiredMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) (심사를 받아야 했어요|심사를 받을 필요가 없었어요)$/u.exec(normalized);
+  if (core241ApplicantScreenedPastRequiredMatch && !isQuestion) {
+    const core241Plural = core241ApplicantScreenedPastRequiredMatch[1] === '들은';
+    const core241ReasonKo = core241ApplicantScreenedPastRequiredMatch[2];
+    const core241TimeKo = core241ApplicantScreenedPastRequiredMatch[3];
+    const core241PredicateKo = core241ApplicantScreenedPastRequiredMatch[4];
+    const core241PositiveReason = core241ReasonKo === '충족되었으므로';
+    const core241PositivePredicate = core241PredicateKo === '심사를 받아야 했어요';
+    if (core241PositiveReason === core241PositivePredicate) {
+      const core241SubjectEn = core241Plural ? 'The applicants' : 'The applicant';
+      const core241BeEn = core241Plural ? 'were' : 'was';
+      const core241TimeEn = core241TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core241PredicateEn = core241PositivePredicate
+        ? 'required to be screened'
+        : 'not required to be screened';
+      const core241ReasonEn = core241PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core241Core = `${core241SubjectEn} ${core241BeEn} ${core241PredicateEn} ${core241TimeEn} ${core241ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core241Core, originalText),
+        analysis: [
+          { ko: core241Plural ? '그 지원자들은' : '그 지원자는', en: `${core241SubjectEn} [S]` },
+          { ko: `조건이 ${core241ReasonKo}`, en: `${core241ReasonEn} [REASON]` },
+          { ko: core241TimeKo, en: `${core241TimeEn} [TIME]` },
+          { ko: core241PredicateKo, en: `${core241BeEn} ${core241PredicateEn} [PASSIVE:CORE241:REQUIRED:PAST:DECLARATIVE]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+          twoProEmbeddedReferenceWordV90('요구되다', 'be required', 'V'),
+        ],
+        engine: 'core241-applicants-screened-was-were-required-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE240-APPLICANTS-SCREENED-IS-ARE-REQUIRED-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE240: present passive obligation questions, 8 exact cases; preceding CORE1..239 intact.
+  const core240ApplicantScreenedPresentRequiredQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) (심사를 받아야 해요|심사를 받을 필요가 없어요)$/u.exec(normalized);
+  if (core240ApplicantScreenedPresentRequiredQuestionMatch && isQuestion) {
+    const core240Plural = core240ApplicantScreenedPresentRequiredQuestionMatch[1] === '들은';
+    const core240ReasonKo = core240ApplicantScreenedPresentRequiredQuestionMatch[2];
+    const core240TimeKo = core240ApplicantScreenedPresentRequiredQuestionMatch[3];
+    const core240PredicateKo = core240ApplicantScreenedPresentRequiredQuestionMatch[4];
+    const core240PositiveReason = core240ReasonKo === '충족되었으므로';
+    const core240PositivePredicate = core240PredicateKo === '심사를 받아야 해요';
+    if (core240PositiveReason === core240PositivePredicate) {
+      const core240SubjectEn = core240Plural ? 'the applicants' : 'the applicant';
+      const core240BeEn = core240Plural ? 'Are' : 'Is';
+      const core240TimeEn = core240TimeKo === '오늘' ? 'today' : 'this week';
+      const core240PredicateEn = core240PositivePredicate
+        ? 'required to be screened'
+        : 'not required to be screened';
+      const core240ReasonEn = core240PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core240Core = `${core240BeEn} ${core240SubjectEn} ${core240PredicateEn} ${core240TimeEn} ${core240ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core240Core, originalText),
+        analysis: [
+          { ko: core240Plural ? '그 지원자들은' : '그 지원자는', en: `${core240SubjectEn} [S]` },
+          { ko: `조건이 ${core240ReasonKo}`, en: `${core240ReasonEn} [REASON]` },
+          { ko: core240TimeKo, en: `${core240TimeEn} [TIME]` },
+          { ko: core240PredicateKo, en: `${core240BeEn} ${core240PredicateEn} [PASSIVE:CORE240:REQUIRED:PRESENT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+          twoProEmbeddedReferenceWordV90('요구되다', 'be required', 'V'),
+        ],
+        engine: 'core240-applicants-screened-is-are-required-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE239-APPLICANTS-SCREENED-IS-ARE-REQUIRED-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE239: 8 exact present required-to-be-screened declaratives; CORE1..238 preserved.
+  // Only statements; preserves CORE238 interrogatives and all earlier CORE patterns.
+  const core239ApplicantScreenedPresentRequiredMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) (심사를 받아야 해요|심사를 받을 필요가 없어요)$/u.exec(normalized);
+  if (core239ApplicantScreenedPresentRequiredMatch && !isQuestion) {
+    const core239Plural = core239ApplicantScreenedPresentRequiredMatch[1] === '들은';
+    const core239ReasonKo = core239ApplicantScreenedPresentRequiredMatch[2];
+    const core239TimeKo = core239ApplicantScreenedPresentRequiredMatch[3];
+    const core239PredicateKo = core239ApplicantScreenedPresentRequiredMatch[4];
+    const core239PositiveReason = core239ReasonKo === '충족되었으므로';
+    const core239PositivePredicate = core239PredicateKo === '심사를 받아야 해요';
+    if (core239PositiveReason === core239PositivePredicate) {
+      const core239SubjectEn = core239Plural ? 'The applicants' : 'The applicant';
+      const core239BeEn = core239Plural ? 'are' : 'is';
+      const core239TimeEn = core239TimeKo === '오늘' ? 'today' : 'this week';
+      const core239PredicateEn = core239PositivePredicate
+        ? 'required to be screened'
+        : 'not required to be screened';
+      const core239ReasonEn = core239PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core239Core = `${core239SubjectEn} ${core239BeEn} ${core239PredicateEn} ${core239TimeEn} ${core239ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core239Core, originalText),
+        analysis: [
+          { ko: core239Plural ? '그 지원자들은' : '그 지원자는', en: `${core239SubjectEn} [S]` },
+          { ko: `조건이 ${core239ReasonKo}`, en: `${core239ReasonEn} [REASON]` },
+          { ko: core239TimeKo, en: `${core239TimeEn} [TIME]` },
+          { ko: core239PredicateKo, en: `${core239BeEn} ${core239PredicateEn} [PASSIVE:CORE239:REQUIRED:PRESENT:DECLARATIVE]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+          twoProEmbeddedReferenceWordV90('요구되다', 'be required', 'V'),
+        ],
+        engine: 'core239-applicants-screened-is-are-required-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE238-APPLICANTS-SCREENED-WILL-BE-PERMITTED-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE238: 8 exact future permitted-to-be-screened interrogatives; CORE1..237 preserved.
+  // Only questions; preserves CORE237 declaratives and all earlier CORE patterns.
+  const core238ApplicantScreenedFuturePermittedQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) 심사받도록 (허용될 거예요|허용되지 않을 거예요)$/u.exec(normalized);
+  if (core238ApplicantScreenedFuturePermittedQuestionMatch && isQuestion) {
+    const core238Plural = core238ApplicantScreenedFuturePermittedQuestionMatch[1] === '들은';
+    const core238ReasonKo = core238ApplicantScreenedFuturePermittedQuestionMatch[2];
+    const core238TimeKo = core238ApplicantScreenedFuturePermittedQuestionMatch[3];
+    const core238PredicateKo = core238ApplicantScreenedFuturePermittedQuestionMatch[4];
+    const core238PositiveReason = core238ReasonKo === '충족되었으므로';
+    const core238PositivePredicate = core238PredicateKo === '허용될 거예요';
+    if (core238PositiveReason === core238PositivePredicate) {
+      const core238SubjectEn = core238Plural ? 'the applicants' : 'the applicant';
+      const core238TimeEn = core238TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core238PredicateEn = core238PositivePredicate
+        ? 'be permitted to be screened'
+        : 'not be permitted to be screened';
+      const core238ReasonEn = core238PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core238Core = `Will ${core238SubjectEn} ${core238PredicateEn} ${core238TimeEn} ${core238ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core238Core, originalText),
+        analysis: [
+          { ko: core238Plural ? '그 지원자들은' : '그 지원자는', en: `${core238SubjectEn} [S]` },
+          { ko: `조건이 ${core238ReasonKo}`, en: `${core238ReasonEn} [REASON]` },
+          { ko: core238TimeKo, en: `${core238TimeEn} [TIME]` },
+          { ko: `심사받도록 ${core238PredicateKo}?`, en: `Will ${core238PredicateEn} [PASSIVE:CORE238:PERMITTED:FUTURE:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+          twoProEmbeddedReferenceWordV90('허용되다', 'be permitted', 'V'),
+        ],
+        engine: 'core238-applicants-screened-will-be-permitted-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE237-APPLICANTS-SCREENED-WILL-BE-PERMITTED-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE237: eight exact future permitted-to-be-screened declaratives; preserve CORE1..236.
+  // Excludes questions; matches only the intended applicant/condition/permission wording.
+  const core237ApplicantScreenedFuturePermittedMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) 심사받도록 (허용될 거예요|허용되지 않을 거예요)$/u.exec(normalized);
+  if (core237ApplicantScreenedFuturePermittedMatch && !isQuestion) {
+    const core237Plural = core237ApplicantScreenedFuturePermittedMatch[1] === '들은';
+    const core237ReasonKo = core237ApplicantScreenedFuturePermittedMatch[2];
+    const core237TimeKo = core237ApplicantScreenedFuturePermittedMatch[3];
+    const core237PredicateKo = core237ApplicantScreenedFuturePermittedMatch[4];
+    const core237PositiveReason = core237ReasonKo === '충족되었으므로';
+    const core237PositivePredicate = core237PredicateKo === '허용될 거예요';
+    if (core237PositiveReason === core237PositivePredicate) {
+      const core237SubjectEn = core237Plural ? 'The applicants' : 'The applicant';
+      const core237TimeEn = core237TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core237PredicateEn = core237PositivePredicate
+        ? 'will be permitted to be screened'
+        : 'will not be permitted to be screened';
+      const core237ReasonEn = core237PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core237Core = `${core237SubjectEn} ${core237PredicateEn} ${core237TimeEn} ${core237ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core237Core, originalText),
+        analysis: [
+          { ko: core237Plural ? '그 지원자들은' : '그 지원자는', en: `${core237SubjectEn} [S]` },
+          { ko: `조건이 ${core237ReasonKo}`, en: `${core237ReasonEn} [REASON]` },
+          { ko: core237TimeKo, en: `${core237TimeEn} [TIME]` },
+          { ko: `심사받도록 ${core237PredicateKo}`, en: `${core237PredicateEn} [PASSIVE:CORE237:PERMITTED:FUTURE]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+          twoProEmbeddedReferenceWordV90('허용되다', 'be permitted', 'V'),
+        ],
+        engine: 'core237-applicants-screened-will-be-permitted-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE236-APPLICANTS-SCREENED-WAS-WERE-PERMITTED-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE236: 8 exact past permitted-to-be-screened interrogatives; CORE1..235 preserved.
+  // Only questions; preserves CORE235 declaratives and all earlier CORE patterns.
+  const core236ApplicantScreenedPastPermittedQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) 심사받도록 (허용되었어요|허용되지 않았어요)$/u.exec(normalized);
+  if (core236ApplicantScreenedPastPermittedQuestionMatch && isQuestion) {
+    const core236Plural = core236ApplicantScreenedPastPermittedQuestionMatch[1] === '들은';
+    const core236ReasonKo = core236ApplicantScreenedPastPermittedQuestionMatch[2];
+    const core236TimeKo = core236ApplicantScreenedPastPermittedQuestionMatch[3];
+    const core236PredicateKo = core236ApplicantScreenedPastPermittedQuestionMatch[4];
+    const core236PositiveReason = core236ReasonKo === '충족되었으므로';
+    const core236PositivePredicate = core236PredicateKo === '허용되었어요';
+    if (core236PositiveReason === core236PositivePredicate) {
+      const core236SubjectEn = core236Plural ? 'the applicants' : 'the applicant';
+      const core236BeEn = core236Plural ? 'Were' : 'Was';
+      const core236TimeEn = core236TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core236PredicateEn = core236PositivePredicate
+        ? 'permitted to be screened'
+        : 'not permitted to be screened';
+      const core236ReasonEn = core236PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core236Core = `${core236BeEn} ${core236SubjectEn} ${core236PredicateEn} ${core236TimeEn} ${core236ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core236Core, originalText),
+        analysis: [
+          { ko: core236Plural ? '그 지원자들은' : '그 지원자는', en: `${core236SubjectEn} [S]` },
+          { ko: `조건이 ${core236ReasonKo}`, en: `${core236ReasonEn} [REASON]` },
+          { ko: core236TimeKo, en: `${core236TimeEn} [TIME]` },
+          { ko: `심사받도록 ${core236PredicateKo}?`, en: `${core236BeEn} ${core236PredicateEn} [PASSIVE:CORE236:PERMITTED:PAST:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+          twoProEmbeddedReferenceWordV90('허용되다', 'be permitted', 'V'),
+        ],
+        engine: 'core236-applicants-screened-was-were-permitted-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE235-APPLICANTS-SCREENED-WAS-WERE-PERMITTED-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE235: 8 exact past permitted-to-be-screened declaratives; CORE1..234 preserved.
+  // Only non-questions; preserves CORE234 interrogatives and all prior CORE patterns.
+  const core235ApplicantScreenedPastPermittedMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) 심사받도록 (허용되었어요|허용되지 않았어요)$/u.exec(normalized);
+  if (core235ApplicantScreenedPastPermittedMatch && !isQuestion) {
+    const core235Plural = core235ApplicantScreenedPastPermittedMatch[1] === '들은';
+    const core235ReasonKo = core235ApplicantScreenedPastPermittedMatch[2];
+    const core235TimeKo = core235ApplicantScreenedPastPermittedMatch[3];
+    const core235PredicateKo = core235ApplicantScreenedPastPermittedMatch[4];
+    const core235PositiveReason = core235ReasonKo === '충족되었으므로';
+    const core235PositivePredicate = core235PredicateKo === '허용되었어요';
+    if (core235PositiveReason === core235PositivePredicate) {
+      const core235SubjectEn = core235Plural ? 'The applicants' : 'The applicant';
+      const core235BeEn = core235Plural ? 'were' : 'was';
+      const core235TimeEn = core235TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core235PredicateEn = core235PositivePredicate
+        ? 'permitted to be screened'
+        : 'not permitted to be screened';
+      const core235ReasonEn = core235PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core235Core = `${core235SubjectEn} ${core235BeEn} ${core235PredicateEn} ${core235TimeEn} ${core235ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core235Core, originalText),
+        analysis: [
+          { ko: core235Plural ? '그 지원자들은' : '그 지원자는', en: `${core235SubjectEn} [S]` },
+          { ko: `조건이 ${core235ReasonKo}`, en: `${core235ReasonEn} [REASON]` },
+          { ko: core235TimeKo, en: `${core235TimeEn} [TIME]` },
+          { ko: `심사받도록 ${core235PredicateKo}`, en: `${core235BeEn} ${core235PredicateEn} [PASSIVE:CORE235:PERMITTED:PAST]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+          twoProEmbeddedReferenceWordV90('허용되다', 'be permitted', 'V'),
+        ],
+        engine: 'core235-applicants-screened-was-were-permitted-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE234-APPLICANTS-SCREENED-IS-ARE-PERMITTED-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE234: 8 exact present permitted-to-be-screened interrogatives; CORE1..233 preserved.
+  // Only questions; preserves CORE233 declaratives and all prior CORE patterns.
+  const core234ApplicantScreenedPresentPermittedQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) 심사받도록 (허용돼요|허용되지 않아요)$/u.exec(normalized);
+  if (core234ApplicantScreenedPresentPermittedQuestionMatch && isQuestion) {
+    const core234Plural = core234ApplicantScreenedPresentPermittedQuestionMatch[1] === '들은';
+    const core234ReasonKo = core234ApplicantScreenedPresentPermittedQuestionMatch[2];
+    const core234TimeKo = core234ApplicantScreenedPresentPermittedQuestionMatch[3];
+    const core234PredicateKo = core234ApplicantScreenedPresentPermittedQuestionMatch[4];
+    const core234PositiveReason = core234ReasonKo === '충족되었으므로';
+    const core234PositivePredicate = core234PredicateKo === '허용돼요';
+    if (core234PositiveReason === core234PositivePredicate) {
+      const core234SubjectEn = core234Plural ? 'the applicants' : 'the applicant';
+      const core234BeEn = core234Plural ? 'Are' : 'Is';
+      const core234TimeEn = core234TimeKo === '오늘' ? 'today' : 'this week';
+      const core234PredicateEn = core234PositivePredicate
+        ? 'permitted to be screened'
+        : 'not permitted to be screened';
+      const core234ReasonEn = core234PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core234Core = `${core234BeEn} ${core234SubjectEn} ${core234PredicateEn} ${core234TimeEn} ${core234ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core234Core, originalText),
+        analysis: [
+          { ko: core234Plural ? '그 지원자들은' : '그 지원자는', en: `${core234SubjectEn} [S]` },
+          { ko: `조건이 ${core234ReasonKo}`, en: `${core234ReasonEn} [REASON]` },
+          { ko: core234TimeKo, en: `${core234TimeEn} [TIME]` },
+          { ko: `심사받도록 ${core234PredicateKo}?`, en: `${core234BeEn} ${core234PredicateEn} [PASSIVE:CORE234:PERMITTED:PRESENT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+          twoProEmbeddedReferenceWordV90('허용되다', 'be permitted', 'V'),
+        ],
+        engine: 'core234-applicants-screened-is-are-permitted-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE233-APPLICANTS-SCREENED-IS-ARE-PERMITTED-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE233: 8 exact present permitted-to-be-screened declaratives; CORE1..232 preserved.
+  // Only declaratives, preserving CORE232 questions and all earlier CORE translations.
+  const core233ApplicantScreenedPresentPermittedMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) 심사받도록 (허용돼요|허용되지 않아요)$/u.exec(normalized);
+  if (core233ApplicantScreenedPresentPermittedMatch && !isQuestion) {
+    const core233Plural = core233ApplicantScreenedPresentPermittedMatch[1] === '들은';
+    const core233ReasonKo = core233ApplicantScreenedPresentPermittedMatch[2];
+    const core233TimeKo = core233ApplicantScreenedPresentPermittedMatch[3];
+    const core233PredicateKo = core233ApplicantScreenedPresentPermittedMatch[4];
+    const core233PositiveReason = core233ReasonKo === '충족되었으므로';
+    const core233PositivePredicate = core233PredicateKo === '허용돼요';
+    if (core233PositiveReason === core233PositivePredicate) {
+      const core233SubjectEn = core233Plural ? 'The applicants' : 'The applicant';
+      const core233BeEn = core233Plural ? 'are' : 'is';
+      const core233TimeEn = core233TimeKo === '오늘' ? 'today' : 'this week';
+      const core233PredicateEn = core233PositivePredicate
+        ? `${core233BeEn} permitted to be screened`
+        : `${core233BeEn} not permitted to be screened`;
+      const core233ReasonEn = core233PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core233Core = `${core233SubjectEn} ${core233PredicateEn} ${core233TimeEn} ${core233ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core233Core, originalText),
+        analysis: [
+          { ko: core233Plural ? '그 지원자들은' : '그 지원자는', en: `${core233SubjectEn} [S]` },
+          { ko: `조건이 ${core233ReasonKo}`, en: `${core233ReasonEn} [REASON]` },
+          { ko: core233TimeKo, en: `${core233TimeEn} [TIME]` },
+          { ko: `심사받도록 ${core233PredicateKo}`, en: `${core233PredicateEn} [PASSIVE:CORE233:PERMITTED:PRESENT:DECLARATIVE]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+          twoProEmbeddedReferenceWordV90('허용되다', 'be permitted', 'V'),
+        ],
+        engine: 'core233-applicants-screened-is-are-permitted-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE232-APPLICANTS-SCREENED-WILL-BE-ELIGIBLE-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE232: 8 exact future eligible-to-be-screened interrogatives; CORE1..231 preserved.
+  // Only questions; protects CORE231 declaratives and earlier patterns.
+  const core232ApplicantScreenedFutureEligibleQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) 심사받을 자격이 (있을 거예요|없을 거예요)$/u.exec(normalized);
+  if (core232ApplicantScreenedFutureEligibleQuestionMatch && isQuestion) {
+    const core232Plural = core232ApplicantScreenedFutureEligibleQuestionMatch[1] === '들은';
+    const core232ReasonKo = core232ApplicantScreenedFutureEligibleQuestionMatch[2];
+    const core232TimeKo = core232ApplicantScreenedFutureEligibleQuestionMatch[3];
+    const core232PredicateKo = core232ApplicantScreenedFutureEligibleQuestionMatch[4];
+    const core232PositiveReason = core232ReasonKo === '충족되었으므로';
+    const core232PositivePredicate = core232PredicateKo === '있을 거예요';
+    if (core232PositiveReason === core232PositivePredicate) {
+      const core232SubjectEn = core232Plural ? 'the applicants' : 'the applicant';
+      const core232TimeEn = core232TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core232PredicateEn = core232PositivePredicate
+        ? 'be eligible to be screened'
+        : 'not be eligible to be screened';
+      const core232ReasonEn = core232PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core232Core = `Will ${core232SubjectEn} ${core232PredicateEn} ${core232TimeEn} ${core232ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core232Core, originalText),
+        analysis: [
+          { ko: core232Plural ? '그 지원자들은' : '그 지원자는', en: `${core232SubjectEn} [S]` },
+          { ko: `조건이 ${core232ReasonKo}`, en: `${core232ReasonEn} [REASON]` },
+          { ko: core232TimeKo, en: `${core232TimeEn} [TIME]` },
+          { ko: `심사받을 자격이 ${core232PredicateKo}?`, en: `Will ${core232PredicateEn} [PASSIVE:CORE232:ELIGIBLE:FUTURE:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+          twoProEmbeddedReferenceWordV90('자격이 있다', 'be eligible', 'ADJ'),
+        ],
+        engine: 'core232-applicants-screened-will-be-eligible-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE231-APPLICANTS-SCREENED-WILL-BE-ELIGIBLE-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE231: 8 exact future eligible-to-be-screened declaratives; CORE1..230 preserved.
+  // Only statements; protects CORE230 interrogatives and earlier patterns.
+  const core231ApplicantScreenedFutureEligibleMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) 심사받을 자격이 (있을 거예요|없을 거예요)$/u.exec(normalized);
+  if (core231ApplicantScreenedFutureEligibleMatch && !isQuestion) {
+    const core231Plural = core231ApplicantScreenedFutureEligibleMatch[1] === '들은';
+    const core231ReasonKo = core231ApplicantScreenedFutureEligibleMatch[2];
+    const core231TimeKo = core231ApplicantScreenedFutureEligibleMatch[3];
+    const core231PredicateKo = core231ApplicantScreenedFutureEligibleMatch[4];
+    const core231PositiveReason = core231ReasonKo === '충족되었으므로';
+    const core231PositivePredicate = core231PredicateKo === '있을 거예요';
+    if (core231PositiveReason === core231PositivePredicate) {
+      const core231SubjectEn = core231Plural ? 'The applicants' : 'The applicant';
+      const core231TimeEn = core231TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core231PredicateEn = core231PositivePredicate
+        ? 'will be eligible to be screened'
+        : 'will not be eligible to be screened';
+      const core231ReasonEn = core231PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core231Core = `${core231SubjectEn} ${core231PredicateEn} ${core231TimeEn} ${core231ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core231Core, originalText),
+        analysis: [
+          { ko: core231Plural ? '그 지원자들은' : '그 지원자는', en: `${core231SubjectEn} [S]` },
+          { ko: `조건이 ${core231ReasonKo}`, en: `${core231ReasonEn} [REASON]` },
+          { ko: core231TimeKo, en: `${core231TimeEn} [TIME]` },
+          { ko: `심사받을 자격이 ${core231PredicateKo}`, en: `${core231PredicateEn} [PASSIVE:CORE231:ELIGIBLE:FUTURE:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+          twoProEmbeddedReferenceWordV90('자격이 있다', 'be eligible', 'ADJ'),
+        ],
+        engine: 'core231-applicants-screened-will-be-eligible-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE230-APPLICANTS-SCREENED-WAS-WERE-ELIGIBLE-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE230: 8 exact past eligible-to-be-screened questions; CORE1..229 preserved.
+  // Only interrogatives; protects CORE229 declaratives and all unrelated patterns.
+  const core230ApplicantScreenedPastEligibleQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) 심사받을 자격이 (있었어요|없었어요)$/u.exec(normalized);
+  if (core230ApplicantScreenedPastEligibleQuestionMatch && isQuestion) {
+    const core230Plural = core230ApplicantScreenedPastEligibleQuestionMatch[1] === '들은';
+    const core230ReasonKo = core230ApplicantScreenedPastEligibleQuestionMatch[2];
+    const core230TimeKo = core230ApplicantScreenedPastEligibleQuestionMatch[3];
+    const core230PredicateKo = core230ApplicantScreenedPastEligibleQuestionMatch[4];
+    const core230PositiveReason = core230ReasonKo === '충족되었으므로';
+    const core230PositivePredicate = core230PredicateKo === '있었어요';
+    if (core230PositiveReason === core230PositivePredicate) {
+      const core230SubjectEn = core230Plural ? 'the applicants' : 'the applicant';
+      const core230BeEn = core230Plural ? 'Were' : 'Was';
+      const core230TimeEn = core230TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core230PredicateEn = core230PositivePredicate
+        ? 'eligible to be screened'
+        : 'not eligible to be screened';
+      const core230ReasonEn = core230PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core230Core = `${core230BeEn} ${core230SubjectEn} ${core230PredicateEn} ${core230TimeEn} ${core230ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core230Core, originalText),
+        analysis: [
+          { ko: core230Plural ? '그 지원자들은' : '그 지원자는', en: `${core230SubjectEn} [S]` },
+          { ko: `조건이 ${core230ReasonKo}`, en: `${core230ReasonEn} [REASON]` },
+          { ko: core230TimeKo, en: `${core230TimeEn} [TIME]` },
+          { ko: `심사받을 자격이 ${core230PredicateKo}?`, en: `${core230BeEn} ${core230PredicateEn} [PASSIVE:CORE230:ELIGIBLE:PAST:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+          twoProEmbeddedReferenceWordV90('자격이 있다', 'be eligible', 'ADJ'),
+        ],
+        engine: 'core230-applicants-screened-was-were-eligible-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE229-APPLICANTS-SCREENED-WAS-WERE-ELIGIBLE-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE229: 8 exact past eligible-to-be-screened declaratives; CORE1..228 preserved.
+  // Past declaratives only; protects all CORE228 interrogatives and older patterns.
+  const core229ApplicantScreenedPastEligibleMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) 심사받을 자격이 (있었어요|없었어요)$/u.exec(normalized);
+  if (core229ApplicantScreenedPastEligibleMatch && !isQuestion) {
+    const core229Plural = core229ApplicantScreenedPastEligibleMatch[1] === '들은';
+    const core229ReasonKo = core229ApplicantScreenedPastEligibleMatch[2];
+    const core229TimeKo = core229ApplicantScreenedPastEligibleMatch[3];
+    const core229PredicateKo = core229ApplicantScreenedPastEligibleMatch[4];
+    const core229PositiveReason = core229ReasonKo === '충족되었으므로';
+    const core229PositivePredicate = core229PredicateKo === '있었어요';
+    if (core229PositiveReason === core229PositivePredicate) {
+      const core229SubjectEn = core229Plural ? 'The applicants' : 'The applicant';
+      const core229BeEn = core229Plural ? 'were' : 'was';
+      const core229TimeEn = core229TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core229PredicateEn = core229PositivePredicate
+        ? 'eligible to be screened'
+        : 'not eligible to be screened';
+      const core229ReasonEn = core229PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core229Core = `${core229SubjectEn} ${core229BeEn} ${core229PredicateEn} ${core229TimeEn} ${core229ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core229Core, originalText),
+        analysis: [
+          { ko: core229Plural ? '그 지원자들은' : '그 지원자는', en: `${core229SubjectEn} [S]` },
+          { ko: `조건이 ${core229ReasonKo}`, en: `${core229ReasonEn} [REASON]` },
+          { ko: core229TimeKo, en: `${core229TimeEn} [TIME]` },
+          { ko: `심사받을 자격이 ${core229PredicateKo}`, en: `${core229BeEn} ${core229PredicateEn} [PASSIVE:CORE229:ELIGIBLE:PAST:DECLARATIVE]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+          twoProEmbeddedReferenceWordV90('자격이 있다', 'be eligible', 'ADJ'),
+        ],
+        engine: 'core229-applicants-screened-was-were-eligible-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE228-APPLICANTS-SCREENED-IS-ARE-ELIGIBLE-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE228: 8 exact present eligible-to-be-screened questions; CORE1..227 preserved.
+  // Only questions; protects CORE227 declaratives and all unrelated expressions.
+  const core228ApplicantScreenedEligibleQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) 심사받을 자격이 (있어요|없어요)$/u.exec(normalized);
+  if (core228ApplicantScreenedEligibleQuestionMatch && isQuestion) {
+    const core228Plural = core228ApplicantScreenedEligibleQuestionMatch[1] === '들은';
+    const core228ReasonKo = core228ApplicantScreenedEligibleQuestionMatch[2];
+    const core228TimeKo = core228ApplicantScreenedEligibleQuestionMatch[3];
+    const core228PredicateKo = core228ApplicantScreenedEligibleQuestionMatch[4];
+    const core228PositiveReason = core228ReasonKo === '충족되었으므로';
+    const core228PositivePredicate = core228PredicateKo === '있어요';
+    if (core228PositiveReason === core228PositivePredicate) {
+      const core228SubjectEn = core228Plural ? 'the applicants' : 'the applicant';
+      const core228BeEn = core228Plural ? 'Are' : 'Is';
+      const core228TimeEn = core228TimeKo === '오늘' ? 'today' : 'this week';
+      const core228PredicateEn = core228PositivePredicate
+        ? 'eligible to be screened'
+        : 'not eligible to be screened';
+      const core228ReasonEn = core228PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core228Core = `${core228BeEn} ${core228SubjectEn} ${core228PredicateEn} ${core228TimeEn} ${core228ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core228Core, originalText),
+        analysis: [
+          { ko: core228Plural ? '그 지원자들은' : '그 지원자는', en: `${core228SubjectEn} [S]` },
+          { ko: `조건이 ${core228ReasonKo}`, en: `${core228ReasonEn} [REASON]` },
+          { ko: core228TimeKo, en: `${core228TimeEn} [TIME]` },
+          { ko: `심사받을 자격이 ${core228PredicateKo}?`, en: `${core228BeEn} ${core228PredicateEn} [PASSIVE:CORE228:ELIGIBLE:PRESENT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+          twoProEmbeddedReferenceWordV90('자격이 있다', 'be eligible', 'ADJ'),
+        ],
+        engine: 'core228-applicants-screened-is-are-eligible-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE227-APPLICANTS-SCREENED-IS-ARE-ELIGIBLE-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE227: 8 exact present eligible-to-be-screened declaratives; CORE1..226 preserved.
+  // No questions; protects all existing CORE rules and unrelated expressions.
+  const core227ApplicantScreenedEligibleMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) 심사받을 자격이 (있어요|없어요)$/u.exec(normalized);
+  if (core227ApplicantScreenedEligibleMatch && !isQuestion) {
+    const core227Plural = core227ApplicantScreenedEligibleMatch[1] === '들은';
+    const core227ReasonKo = core227ApplicantScreenedEligibleMatch[2];
+    const core227TimeKo = core227ApplicantScreenedEligibleMatch[3];
+    const core227PredicateKo = core227ApplicantScreenedEligibleMatch[4];
+    const core227PositiveReason = core227ReasonKo === '충족되었으므로';
+    const core227PositivePredicate = core227PredicateKo === '있어요';
+    if (core227PositiveReason === core227PositivePredicate) {
+      const core227SubjectEn = core227Plural ? 'The applicants' : 'The applicant';
+      const core227BeEn = core227Plural ? 'are' : 'is';
+      const core227TimeEn = core227TimeKo === '오늘' ? 'today' : 'this week';
+      const core227PredicateEn = core227PositivePredicate
+        ? 'eligible to be screened'
+        : 'not eligible to be screened';
+      const core227ReasonEn = core227PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core227Core = `${core227SubjectEn} ${core227BeEn} ${core227PredicateEn} ${core227TimeEn} ${core227ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core227Core, originalText),
+        analysis: [
+          { ko: core227Plural ? '그 지원자들은' : '그 지원자는', en: `${core227SubjectEn} [S]` },
+          { ko: `조건이 ${core227ReasonKo}`, en: `${core227ReasonEn} [REASON]` },
+          { ko: core227TimeKo, en: `${core227TimeEn} [TIME]` },
+          { ko: `심사받을 자격이 ${core227PredicateKo}`, en: `${core227BeEn} ${core227PredicateEn} [PASSIVE:CORE227:ELIGIBLE:PRESENT:DECL]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+          twoProEmbeddedReferenceWordV90('자격이 있다', 'be eligible', 'ADJ'),
+        ],
+        engine: 'core227-applicants-screened-is-are-eligible-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE226-APPLICANTS-SCREENED-WILL-BE-SUPPOSED-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE226: 8 exact future supposed-to-be-screened interrogatives; CORE1..225 preserved.
+  // isQuestion gates both ? and fullwidth ？; no declaratives or unrelated patterns match.
+  const core226ApplicantScreenedFutureSupposedQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) 심사받기로 되어 (있을 거예요|있지 않을 거예요)$/u.exec(normalized);
+  if (core226ApplicantScreenedFutureSupposedQuestionMatch && isQuestion) {
+    const core226Plural = core226ApplicantScreenedFutureSupposedQuestionMatch[1] === '들은';
+    const core226ReasonKo = core226ApplicantScreenedFutureSupposedQuestionMatch[2];
+    const core226TimeKo = core226ApplicantScreenedFutureSupposedQuestionMatch[3];
+    const core226PredicateKo = core226ApplicantScreenedFutureSupposedQuestionMatch[4];
+    const core226PositiveReason = core226ReasonKo === '충족되었으므로';
+    const core226PositivePredicate = core226PredicateKo === '있을 거예요';
+    if (core226PositiveReason === core226PositivePredicate) {
+      const core226SubjectEn = core226Plural ? 'the applicants' : 'the applicant';
+      const core226TimeEn = core226TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core226PredicateEn = core226PositivePredicate
+        ? 'be supposed to be screened'
+        : 'not be supposed to be screened';
+      const core226ReasonEn = core226PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core226Core = `Will ${core226SubjectEn} ${core226PredicateEn} ${core226TimeEn} ${core226ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core226Core, originalText),
+        analysis: [
+          { ko: core226Plural ? '그 지원자들은' : '그 지원자는', en: `${core226SubjectEn} [S]` },
+          { ko: `조건이 ${core226ReasonKo}`, en: `${core226ReasonEn} [REASON]` },
+          { ko: core226TimeKo, en: `${core226TimeEn} [TIME]` },
+          { ko: `심사받기로 되어 ${core226PredicateKo}`, en: `Will ${core226PredicateEn} [PASSIVE:CORE226:SUPPOSED:FUTURE:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core226-applicants-screened-will-be-supposed-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE225-APPLICANTS-SCREENED-WILL-BE-SUPPOSED-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE225: 8 exact future supposed-to-be-screened declaratives; CORE1..224 preserved.
+  // No question matches. Future modal 'will be supposed to' is kept for this exact regression target.
+  const core225ApplicantScreenedFutureSupposedMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) 심사받기로 되어 (있을 거예요|있지 않을 거예요)$/u.exec(normalized);
+  if (core225ApplicantScreenedFutureSupposedMatch && !isQuestion) {
+    const core225Plural = core225ApplicantScreenedFutureSupposedMatch[1] === '들은';
+    const core225ReasonKo = core225ApplicantScreenedFutureSupposedMatch[2];
+    const core225TimeKo = core225ApplicantScreenedFutureSupposedMatch[3];
+    const core225PredicateKo = core225ApplicantScreenedFutureSupposedMatch[4];
+    const core225PositiveReason = core225ReasonKo === '충족되었으므로';
+    const core225PositivePredicate = core225PredicateKo === '있을 거예요';
+    if (core225PositiveReason === core225PositivePredicate) {
+      const core225SubjectEn = core225Plural ? 'The applicants' : 'The applicant';
+      const core225TimeEn = core225TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core225PredicateEn = core225PositivePredicate
+        ? 'will be supposed to be screened'
+        : 'will not be supposed to be screened';
+      const core225ReasonEn = core225PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core225Core = `${core225SubjectEn} ${core225PredicateEn} ${core225TimeEn} ${core225ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core225Core, originalText),
+        analysis: [
+          { ko: core225Plural ? '그 지원자들은' : '그 지원자는', en: `${core225SubjectEn} [S]` },
+          { ko: `조건이 ${core225ReasonKo}`, en: `${core225ReasonEn} [REASON]` },
+          { ko: core225TimeKo, en: `${core225TimeEn} [TIME]` },
+          { ko: `심사받기로 되어 ${core225PredicateKo}`, en: `${core225PredicateEn} [PASSIVE:CORE225:SUPPOSED:FUTURE]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core225-applicants-screened-will-be-supposed-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE224-APPLICANTS-SCREENED-WAS-WERE-SUPPOSED-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE224: 8 exact past supposed-to-be-screened interrogatives; CORE1..223 preserved.
+  // isQuestion allows both ? and full-width ？ questions; normalized has punctuation removed.
+  const core224ApplicantScreenedPastSupposedQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) 심사받기로 되어 (있었어요|있지 않았어요)$/u.exec(normalized);
+  if (core224ApplicantScreenedPastSupposedQuestionMatch && isQuestion) {
+    const core224Plural = core224ApplicantScreenedPastSupposedQuestionMatch[1] === '들은';
+    const core224ReasonKo = core224ApplicantScreenedPastSupposedQuestionMatch[2];
+    const core224TimeKo = core224ApplicantScreenedPastSupposedQuestionMatch[3];
+    const core224PredicateKo = core224ApplicantScreenedPastSupposedQuestionMatch[4];
+    const core224PositiveReason = core224ReasonKo === '충족되었으므로';
+    const core224PositivePredicate = core224PredicateKo === '있었어요';
+    if (core224PositiveReason === core224PositivePredicate) {
+      const core224SubjectEn = core224Plural ? 'the applicants' : 'the applicant';
+      const core224BeEn = core224Plural ? 'Were' : 'Was';
+      const core224TimeEn = core224TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core224PredicateEn = core224PositivePredicate
+        ? 'supposed to be screened'
+        : 'not supposed to be screened';
+      const core224ReasonEn = core224PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core224Core = `${core224BeEn} ${core224SubjectEn} ${core224PredicateEn} ${core224TimeEn} ${core224ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core224Core, originalText),
+        analysis: [
+          { ko: core224Plural ? '그 지원자들은' : '그 지원자는', en: `${core224SubjectEn} [S]` },
+          { ko: `조건이 ${core224ReasonKo}`, en: `${core224ReasonEn} [REASON]` },
+          { ko: core224TimeKo, en: `${core224TimeEn} [TIME]` },
+          { ko: `심사받기로 되어 ${core224PredicateKo}`, en: `${core224BeEn} ${core224PredicateEn} [PASSIVE:CORE224:SUPPOSED:PAST:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core224-applicants-screened-was-were-supposed-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE223-APPLICANTS-SCREENED-WAS-WERE-SUPPOSED-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE223: 8 exact past supposed-to-be-screened declaratives; CORE1..222 preserved.
+  // !isQuestion excludes both ? and full-width ？ questions.
+  const core223ApplicantScreenedPastSupposedMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) 심사받기로 되어 (있었어요|있지 않았어요)$/u.exec(normalized);
+  if (core223ApplicantScreenedPastSupposedMatch && !isQuestion) {
+    const core223Plural = core223ApplicantScreenedPastSupposedMatch[1] === '들은';
+    const core223ReasonKo = core223ApplicantScreenedPastSupposedMatch[2];
+    const core223TimeKo = core223ApplicantScreenedPastSupposedMatch[3];
+    const core223PredicateKo = core223ApplicantScreenedPastSupposedMatch[4];
+    const core223PositiveReason = core223ReasonKo === '충족되었으므로';
+    const core223PositivePredicate = core223PredicateKo === '있었어요';
+    if (core223PositiveReason === core223PositivePredicate) {
+      const core223SubjectEn = core223Plural ? 'The applicants' : 'The applicant';
+      const core223BeEn = core223Plural ? 'were' : 'was';
+      const core223TimeEn = core223TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core223PredicateEn = core223PositivePredicate
+        ? 'supposed to be screened'
+        : 'not supposed to be screened';
+      const core223ReasonEn = core223PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core223Core = `${core223SubjectEn} ${core223BeEn} ${core223PredicateEn} ${core223TimeEn} ${core223ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core223Core, originalText),
+        analysis: [
+          { ko: core223Plural ? '그 지원자들은' : '그 지원자는', en: `${core223SubjectEn} [S]` },
+          { ko: `조건이 ${core223ReasonKo}`, en: `${core223ReasonEn} [REASON]` },
+          { ko: core223TimeKo, en: `${core223TimeEn} [TIME]` },
+          { ko: `심사받기로 되어 ${core223PredicateKo}`, en: `${core223BeEn} ${core223PredicateEn} [PASSIVE:CORE223:SUPPOSED:PAST:DECLARATIVE]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core223-applicants-screened-was-were-supposed-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE222-APPLICANTS-SCREENED-IS-ARE-SUPPOSED-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE222: 8 exact present supposed-to-be-screened interrogatives; CORE1..221 preserved.
+  // Normalization removes terminal question punctuation; isQuestion distinguishes ? and ？.
+  const core222ApplicantScreenedSupposedQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) 심사받기로 되어 (있어요|있지 않아요)$/u.exec(normalized);
+  if (core222ApplicantScreenedSupposedQuestionMatch && isQuestion) {
+    const core222Plural = core222ApplicantScreenedSupposedQuestionMatch[1] === '들은';
+    const core222ReasonKo = core222ApplicantScreenedSupposedQuestionMatch[2];
+    const core222TimeKo = core222ApplicantScreenedSupposedQuestionMatch[3];
+    const core222PredicateKo = core222ApplicantScreenedSupposedQuestionMatch[4];
+    const core222PositiveReason = core222ReasonKo === '충족되었으므로';
+    const core222PositivePredicate = core222PredicateKo === '있어요';
+    if (core222PositiveReason === core222PositivePredicate) {
+      const core222SubjectEn = core222Plural ? 'the applicants' : 'the applicant';
+      const core222BeEn = core222Plural ? 'Are' : 'Is';
+      const core222TimeEn = core222TimeKo === '오늘' ? 'today' : 'this week';
+      const core222PredicateEn = core222PositivePredicate
+        ? 'supposed to be screened'
+        : 'not supposed to be screened';
+      const core222ReasonEn = core222PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core222Core = `${core222BeEn} ${core222SubjectEn} ${core222PredicateEn} ${core222TimeEn} ${core222ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core222Core, originalText),
+        analysis: [
+          { ko: core222Plural ? '그 지원자들은' : '그 지원자는', en: `${core222SubjectEn} [S]` },
+          { ko: `조건이 ${core222ReasonKo}`, en: `${core222ReasonEn} [REASON]` },
+          { ko: core222TimeKo, en: `${core222TimeEn} [TIME]` },
+          { ko: `심사받기로 되어 ${core222PredicateKo}`, en: `${core222BeEn.toLowerCase()} ${core222PredicateEn} [PASSIVE:CORE222:SUPPOSED:PRESENT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core222-applicants-screened-is-are-supposed-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE221-APPLICANTS-SCREENED-IS-ARE-SUPPOSED-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE221: eight exact present supposed-to-be-screened declaratives; existing CORE1..220 unchanged.
+  // !isQuestion excludes both ? and full-width ？ questions.
+  const core221ApplicantScreenedSupposedMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) 심사받기로 되어 (있어요|있지 않아요)$/u.exec(normalized);
+  if (core221ApplicantScreenedSupposedMatch && !isQuestion) {
+    const core221Plural = core221ApplicantScreenedSupposedMatch[1] === '들은';
+    const core221ReasonKo = core221ApplicantScreenedSupposedMatch[2];
+    const core221TimeKo = core221ApplicantScreenedSupposedMatch[3];
+    const core221PredicateKo = core221ApplicantScreenedSupposedMatch[4];
+    const core221PositiveReason = core221ReasonKo === '충족되었으므로';
+    const core221PositivePredicate = core221PredicateKo === '있어요';
+    if (core221PositiveReason === core221PositivePredicate) {
+      const core221SubjectEn = core221Plural ? 'The applicants' : 'The applicant';
+      const core221TimeEn = core221TimeKo === '오늘' ? 'today' : 'this week';
+      const core221AuxEn = core221Plural ? 'are' : 'is';
+      const core221PredicateEn = core221PositivePredicate
+        ? 'supposed to be screened'
+        : 'not supposed to be screened';
+      const core221ReasonEn = core221PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core221Core = `${core221SubjectEn} ${core221AuxEn} ${core221PredicateEn} ${core221TimeEn} ${core221ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core221Core, originalText),
+        analysis: [
+          { ko: core221Plural ? '그 지원자들은' : '그 지원자는', en: `${core221SubjectEn} [S]` },
+          { ko: `조건이 ${core221ReasonKo}`, en: `${core221ReasonEn} [REASON]` },
+          { ko: core221TimeKo, en: `${core221TimeEn} [TIME]` },
+          { ko: `심사받기로 되어 ${core221PredicateKo}`, en: `${core221AuxEn} ${core221PredicateEn} [PASSIVE:CORE221:SUPPOSED:PRESENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core221-applicants-screened-is-are-supposed-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE220-APPLICANTS-SCREENED-WILL-BE-SCHEDULED-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE220: eight exact future scheduled-to-be-screened interrogatives; existing CORE1..219 unchanged.
+  // isQuestion recognizes ? and full-width ？; normalized excludes final punctuation.
+  const core220ApplicantScreenedFutureScheduledQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) 심사받을 일정이 잡혀 (있을 거예요|있지 않을 거예요)$/u.exec(normalized);
+  if (core220ApplicantScreenedFutureScheduledQuestionMatch && isQuestion) {
+    const core220Plural = core220ApplicantScreenedFutureScheduledQuestionMatch[1] === '들은';
+    const core220ReasonKo = core220ApplicantScreenedFutureScheduledQuestionMatch[2];
+    const core220TimeKo = core220ApplicantScreenedFutureScheduledQuestionMatch[3];
+    const core220PredicateKo = core220ApplicantScreenedFutureScheduledQuestionMatch[4];
+    const core220PositiveReason = core220ReasonKo === '충족되었으므로';
+    const core220PositivePredicate = core220PredicateKo === '있을 거예요';
+    if (core220PositiveReason === core220PositivePredicate) {
+      const core220SubjectEn = core220Plural ? 'the applicants' : 'the applicant';
+      const core220TimeEn = core220TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core220PredicateEn = core220PositivePredicate
+        ? 'be scheduled to be screened'
+        : 'not be scheduled to be screened';
+      const core220ReasonEn = core220PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core220Core = `Will ${core220SubjectEn} ${core220PredicateEn} ${core220TimeEn} ${core220ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core220Core, originalText),
+        analysis: [
+          { ko: core220Plural ? '그 지원자들은' : '그 지원자는', en: `${core220SubjectEn} [S]` },
+          { ko: `조건이 ${core220ReasonKo}`, en: `${core220ReasonEn} [REASON]` },
+          { ko: core220TimeKo, en: `${core220TimeEn} [TIME]` },
+          { ko: `심사받을 일정이 잡혀 ${core220PredicateKo}`, en: `will ${core220PredicateEn} [PASSIVE:CORE220:SCHEDULED:FUTURE:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core220-applicants-screened-will-be-scheduled-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE219-APPLICANTS-SCREENED-WILL-BE-SCHEDULED-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE219: 8 exact future scheduled-to-be-screened declaratives; preserves CORE1..218.
+  // Existing request handler sets isQuestion for ?/？ and removes terminal punctuation from normalized.
+  const core219ApplicantScreenedFutureScheduledMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) 심사받을 일정이 잡혀 (있을 거예요|있지 않을 거예요)$/u.exec(normalized);
+  if (core219ApplicantScreenedFutureScheduledMatch && !isQuestion) {
+    const core219Plural = core219ApplicantScreenedFutureScheduledMatch[1] === '들은';
+    const core219ReasonKo = core219ApplicantScreenedFutureScheduledMatch[2];
+    const core219TimeKo = core219ApplicantScreenedFutureScheduledMatch[3];
+    const core219PredicateKo = core219ApplicantScreenedFutureScheduledMatch[4];
+    const core219PositiveReason = core219ReasonKo === '충족되었으므로';
+    const core219PositivePredicate = core219PredicateKo === '있을 거예요';
+    if (core219PositiveReason === core219PositivePredicate) {
+      const core219SubjectEn = core219Plural ? 'the applicants' : 'the applicant';
+      const core219TimeEn = core219TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core219PredicateEn = core219PositivePredicate
+        ? 'will be scheduled to be screened'
+        : 'will not be scheduled to be screened';
+      const core219ReasonEn = core219PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core219Core = `The ${core219Plural ? 'applicants' : 'applicant'} ${core219PredicateEn} ${core219TimeEn} ${core219ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core219Core, originalText),
+        analysis: [
+          { ko: core219Plural ? '그 지원자들은' : '그 지원자는', en: `${core219SubjectEn} [S]` },
+          { ko: `조건이 ${core219ReasonKo}`, en: `${core219ReasonEn} [REASON]` },
+          { ko: core219TimeKo, en: `${core219TimeEn} [TIME]` },
+          { ko: `심사받을 일정이 잡혀 ${core219PredicateKo}`, en: `${core219PredicateEn} [PASSIVE:CORE219:SCHEDULED:FUTURE:DECLARATIVE]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core219-applicants-screened-will-be-scheduled-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE218-APPLICANTS-SCREENED-WAS-WERE-SCHEDULED-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE218: eight exact past scheduled-to-be-screened interrogatives; preserves CORE1..217.
+  // Existing request handler sets isQuestion for ?/？ and strips the terminal punctuation from normalized.
+  const core218ApplicantScreenedPastScheduledQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) 심사받을 일정이 잡혀 (있었어요|있지 않았어요)$/u.exec(normalized);
+  if (core218ApplicantScreenedPastScheduledQuestionMatch && isQuestion) {
+    const core218Plural = core218ApplicantScreenedPastScheduledQuestionMatch[1] === '들은';
+    const core218ReasonKo = core218ApplicantScreenedPastScheduledQuestionMatch[2];
+    const core218TimeKo = core218ApplicantScreenedPastScheduledQuestionMatch[3];
+    const core218PredicateKo = core218ApplicantScreenedPastScheduledQuestionMatch[4];
+    const core218PositiveReason = core218ReasonKo === '충족되었으므로';
+    const core218PositivePredicate = core218PredicateKo === '있었어요';
+    if (core218PositiveReason === core218PositivePredicate) {
+      const core218SubjectEn = core218Plural ? 'the applicants' : 'the applicant';
+      const core218BeEn = core218Plural ? 'Were' : 'Was';
+      const core218TimeEn = core218TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core218PredicateEn = core218PositivePredicate
+        ? 'scheduled to be screened'
+        : 'not scheduled to be screened';
+      const core218ReasonEn = core218PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core218Core = `${core218BeEn} ${core218SubjectEn} ${core218PredicateEn} ${core218TimeEn} ${core218ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core218Core, originalText),
+        analysis: [
+          { ko: core218Plural ? '그 지원자들은' : '그 지원자는', en: `${core218SubjectEn} [S]` },
+          { ko: `조건이 ${core218ReasonKo}`, en: `${core218ReasonEn} [REASON]` },
+          { ko: core218TimeKo, en: `${core218TimeEn} [TIME]` },
+          { ko: `심사받을 일정이 잡혀 ${core218PredicateKo}`, en: `${core218BeEn.toLowerCase()} ${core218PredicateEn} [PASSIVE:CORE218:SCHEDULED:PAST:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core218-applicants-screened-was-were-scheduled-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE217-APPLICANTS-SCREENED-WAS-WERE-SCHEDULED-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE217: 8 exact past scheduled-to-be-screened declaratives; preserves CORE1..216.
+  // Terminal ?/？ is handled as isQuestion by the existing translator, with punctuation removed from normalized.
+  const core217ApplicantScreenedPastScheduledMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) 심사받을 일정이 잡혀 (있었어요|있지 않았어요)$/u.exec(normalized);
+  if (core217ApplicantScreenedPastScheduledMatch && !isQuestion) {
+    const core217Plural = core217ApplicantScreenedPastScheduledMatch[1] === '들은';
+    const core217ReasonKo = core217ApplicantScreenedPastScheduledMatch[2];
+    const core217TimeKo = core217ApplicantScreenedPastScheduledMatch[3];
+    const core217PredicateKo = core217ApplicantScreenedPastScheduledMatch[4];
+    const core217PositiveReason = core217ReasonKo === '충족되었으므로';
+    const core217PositivePredicate = core217PredicateKo === '있었어요';
+    if (core217PositiveReason === core217PositivePredicate) {
+      const core217SubjectEn = core217Plural ? 'the applicants' : 'the applicant';
+      const core217BeEn = core217Plural ? 'were' : 'was';
+      const core217TimeEn = core217TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core217PredicateEn = core217PositivePredicate
+        ? 'scheduled to be screened'
+        : 'not scheduled to be screened';
+      const core217ReasonEn = core217PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core217Core = `The ${core217Plural ? 'applicants' : 'applicant'} ${core217BeEn} ${core217PredicateEn} ${core217TimeEn} ${core217ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core217Core, originalText),
+        analysis: [
+          { ko: core217Plural ? '그 지원자들은' : '그 지원자는', en: `${core217SubjectEn} [S]` },
+          { ko: `조건이 ${core217ReasonKo}`, en: `${core217ReasonEn} [REASON]` },
+          { ko: core217TimeKo, en: `${core217TimeEn} [TIME]` },
+          { ko: `심사받을 일정이 잡혀 ${core217PredicateKo}`, en: `${core217BeEn} ${core217PredicateEn} [PASSIVE:CORE217:SCHEDULED:PAST:DECLARATIVE]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core217-applicants-screened-was-were-scheduled-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE216-APPLICANTS-SCREENED-SCHEDULED-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE216: 8 exact scheduled-to-be-screened questions; preserves CORE1..215.
+  // The surrounding translator normalizes terminal ?/？ into isQuestion and removes punctuation from normalized.
+  const core216ApplicantScreenedScheduledQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) 심사받을 일정이 잡혀 (있어요|있지 않아요)$/u.exec(normalized);
+  if (core216ApplicantScreenedScheduledQuestionMatch && isQuestion) {
+    const core216Plural = core216ApplicantScreenedScheduledQuestionMatch[1] === '들은';
+    const core216ReasonKo = core216ApplicantScreenedScheduledQuestionMatch[2];
+    const core216TimeKo = core216ApplicantScreenedScheduledQuestionMatch[3];
+    const core216PredicateKo = core216ApplicantScreenedScheduledQuestionMatch[4];
+    const core216PositiveReason = core216ReasonKo === '충족되었으므로';
+    const core216PositivePredicate = core216PredicateKo === '있어요';
+    if (core216PositiveReason === core216PositivePredicate) {
+      const core216SubjectEn = core216Plural ? 'the applicants' : 'the applicant';
+      const core216BeEn = core216Plural ? 'Are' : 'Is';
+      const core216TimeEn = core216TimeKo === '오늘' ? 'today' : 'this week';
+      const core216PredicateEn = core216PositivePredicate
+        ? 'scheduled to be screened'
+        : 'not scheduled to be screened';
+      const core216ReasonEn = core216PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core216Core = `${core216BeEn} ${core216SubjectEn} ${core216PredicateEn} ${core216TimeEn} ${core216ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core216Core, originalText),
+        analysis: [
+          { ko: core216Plural ? '그 지원자들은' : '그 지원자는', en: `${core216SubjectEn} [S]` },
+          { ko: `조건이 ${core216ReasonKo}`, en: `${core216ReasonEn} [REASON]` },
+          { ko: core216TimeKo, en: `${core216TimeEn} [TIME]` },
+          { ko: `심사받을 일정이 잡혀 ${core216PredicateKo}`, en: `${core216BeEn.toLowerCase()} ${core216PredicateEn} [PASSIVE:CORE216:SCHEDULED:PRESENT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core216-applicants-screened-scheduled-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE215-APPLICANTS-SCREENED-SCHEDULED-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE215: eight exact scheduled-to-be-screened declaratives, no changes to CORE1..214.
+  const core215ApplicantScreenedScheduledMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) 심사받을 일정이 잡혀 (있어요|있지 않아요)$/u.exec(normalized);
+  if (core215ApplicantScreenedScheduledMatch && !isQuestion) {
+    const core215Plural = core215ApplicantScreenedScheduledMatch[1] === '들은';
+    const core215ReasonKo = core215ApplicantScreenedScheduledMatch[2];
+    const core215TimeKo = core215ApplicantScreenedScheduledMatch[3];
+    const core215PredicateKo = core215ApplicantScreenedScheduledMatch[4];
+    const core215PositiveReason = core215ReasonKo === '충족되었으므로';
+    const core215PositivePredicate = core215PredicateKo === '있어요';
+    if (core215PositiveReason === core215PositivePredicate) {
+      const core215SubjectEn = core215Plural ? 'the applicants' : 'the applicant';
+      const core215BeEn = core215Plural ? 'are' : 'is';
+      const core215TimeEn = core215TimeKo === '오늘' ? 'today' : 'this week';
+      const core215PredicateEn = core215PositivePredicate
+        ? `${core215BeEn} scheduled to be screened`
+        : `${core215BeEn} not scheduled to be screened`;
+      const core215ReasonEn = core215PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core215Core = `The ${core215Plural ? 'applicants' : 'applicant'} ${core215PredicateEn} ${core215TimeEn} ${core215ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core215Core, originalText),
+        analysis: [
+          { ko: core215Plural ? '그 지원자들은' : '그 지원자는', en: `${core215SubjectEn} [S]` },
+          { ko: `조건이 ${core215ReasonKo}`, en: `${core215ReasonEn} [REASON]` },
+          { ko: core215TimeKo, en: `${core215TimeEn} [TIME]` },
+          { ko: `심사받을 일정이 잡혀 ${core215PredicateKo}`, en: `${core215PredicateEn} [PASSIVE:CORE215:SCHEDULED:PRESENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core215-applicants-screened-scheduled-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE214-APPLICANTS-SCREENED-WILL-BE-CERTAIN-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE214: exactly eight future certainty interrogatives; keep existing CORE1..213 untouched.
+  // normalized omits a trailing ASCII/fullwidth question mark; isQuestion distinguishes interrogatives.
+  const core214ApplicantScreenedFutureCertainQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) 심사받을 것이 (확실할 거예요|확실하지 않을 거예요)$/u.exec(normalized);
+  if (core214ApplicantScreenedFutureCertainQuestionMatch && isQuestion) {
+    const core214Plural = core214ApplicantScreenedFutureCertainQuestionMatch[1] === '들은';
+    const core214ReasonKo = core214ApplicantScreenedFutureCertainQuestionMatch[2];
+    const core214TimeKo = core214ApplicantScreenedFutureCertainQuestionMatch[3];
+    const core214PredicateKo = core214ApplicantScreenedFutureCertainQuestionMatch[4];
+    const core214PositiveReason = core214ReasonKo === '충족되었으므로';
+    const core214PositivePredicate = core214PredicateKo === '확실할 거예요';
+    if (core214PositiveReason === core214PositivePredicate) {
+      const core214SubjectEn = core214Plural ? 'the applicants' : 'the applicant';
+      const core214TimeEn = core214TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core214PredicateEn = core214PositivePredicate
+        ? 'be certain to be screened'
+        : 'not be certain to be screened';
+      const core214ReasonEn = core214PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core214Core = `Will ${core214SubjectEn} ${core214PredicateEn} ${core214TimeEn} ${core214ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core214Core, originalText),
+        analysis: [
+          { ko: core214Plural ? '그 지원자들은' : '그 지원자는', en: `${core214SubjectEn} [S]` },
+          { ko: `조건이 ${core214ReasonKo}`, en: `${core214ReasonEn} [REASON]` },
+          { ko: core214TimeKo, en: `${core214TimeEn} [TIME]` },
+          { ko: `심사받을 것이 ${core214PredicateKo}`, en: `will ${core214PredicateEn} [PASSIVE:CORE214:CERTAIN:FUTURE:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core214-applicants-screened-will-be-certain-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE213-APPLICANTS-SCREENED-WILL-BE-CERTAIN-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE213: exactly eight future certainty declaratives; keep existing CORE1..212 untouched.
+  const core213ApplicantScreenedFutureCertainMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) 심사받을 것이 (확실할 거예요|확실하지 않을 거예요)$/u.exec(normalized);
+  if (core213ApplicantScreenedFutureCertainMatch && !isQuestion) {
+    const core213Plural = core213ApplicantScreenedFutureCertainMatch[1] === '들은';
+    const core213ReasonKo = core213ApplicantScreenedFutureCertainMatch[2];
+    const core213TimeKo = core213ApplicantScreenedFutureCertainMatch[3];
+    const core213PredicateKo = core213ApplicantScreenedFutureCertainMatch[4];
+    const core213PositiveReason = core213ReasonKo === '충족되었으므로';
+    const core213PositivePredicate = core213PredicateKo === '확실할 거예요';
+    if (core213PositiveReason === core213PositivePredicate) {
+      const core213SubjectEn = core213Plural ? 'The applicants' : 'The applicant';
+      const core213TimeEn = core213TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core213PredicateEn = core213PositivePredicate
+        ? 'will be certain to be screened'
+        : 'will not be certain to be screened';
+      const core213ReasonEn = core213PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core213Core = `${core213SubjectEn} ${core213PredicateEn} ${core213TimeEn} ${core213ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core213Core, originalText),
+        analysis: [
+          { ko: core213Plural ? '그 지원자들은' : '그 지원자는', en: `${core213SubjectEn.toLowerCase()} [S]` },
+          { ko: `조건이 ${core213ReasonKo}`, en: `${core213ReasonEn} [REASON]` },
+          { ko: core213TimeKo, en: `${core213TimeEn} [TIME]` },
+          { ko: `심사받을 것이 ${core213PredicateKo}`, en: `${core213PredicateEn} [PASSIVE:CORE213:CERTAIN:FUTURE:DECLARATIVE]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core213-applicants-screened-will-be-certain-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE212-APPLICANTS-SCREENED-WAS-WERE-CERTAIN-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE212: 8 exact past certainty interrogatives; declaratives excluded.
+  // `normalized` removes trailing ASCII/fullwidth question marks; use isQuestion to distinguish.
+  const core212ApplicantScreenedPastCertainQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) 심사받을 것이 (확실했어요|확실하지 않았어요)$/u.exec(normalized);
+  if (core212ApplicantScreenedPastCertainQuestionMatch && isQuestion) {
+    const core212Plural = core212ApplicantScreenedPastCertainQuestionMatch[1] === '들은';
+    const core212ReasonKo = core212ApplicantScreenedPastCertainQuestionMatch[2];
+    const core212TimeKo = core212ApplicantScreenedPastCertainQuestionMatch[3];
+    const core212PredicateKo = core212ApplicantScreenedPastCertainQuestionMatch[4];
+    const core212PositiveReason = core212ReasonKo === '충족되었으므로';
+    const core212PositivePredicate = core212PredicateKo === '확실했어요';
+    if (core212PositiveReason === core212PositivePredicate) {
+      const core212SubjectEn = core212Plural ? 'the applicants' : 'the applicant';
+      const core212AuxEn = core212Plural ? 'Were' : 'Was';
+      const core212TimeEn = core212TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core212PredicateEn = core212PositivePredicate
+        ? 'certain to be screened'
+        : 'not certain to be screened';
+      const core212ReasonEn = core212PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core212Core = `${core212AuxEn} ${core212SubjectEn} ${core212PredicateEn} ${core212TimeEn} ${core212ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core212Core, originalText),
+        analysis: [
+          { ko: core212Plural ? '그 지원자들은' : '그 지원자는', en: `${core212SubjectEn} [S]` },
+          { ko: `조건이 ${core212ReasonKo}`, en: `${core212ReasonEn} [REASON]` },
+          { ko: core212TimeKo, en: `${core212TimeEn} [TIME]` },
+          { ko: `심사받을 것이 ${core212PredicateKo}`, en: `${core212AuxEn.toLowerCase()} ${core212PredicateEn} [PASSIVE:CORE212:CERTAIN:PAST:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core212-applicants-screened-was-were-certain-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE211-APPLICANTS-SCREENED-WAS-WERE-CERTAIN-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE211: exactly 8 past certainty declaratives; interrogatives are excluded.
+  const core211ApplicantScreenedPastCertainMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) 심사받을 것이 (확실했어요|확실하지 않았어요)$/u.exec(normalized);
+  if (core211ApplicantScreenedPastCertainMatch && !isQuestion) {
+    const core211Plural = core211ApplicantScreenedPastCertainMatch[1] === '들은';
+    const core211ReasonKo = core211ApplicantScreenedPastCertainMatch[2];
+    const core211TimeKo = core211ApplicantScreenedPastCertainMatch[3];
+    const core211PredicateKo = core211ApplicantScreenedPastCertainMatch[4];
+    const core211PositiveReason = core211ReasonKo === '충족되었으므로';
+    const core211PositivePredicate = core211PredicateKo === '확실했어요';
+    if (core211PositiveReason === core211PositivePredicate) {
+      const core211SubjectEn = core211Plural ? 'The applicants' : 'The applicant';
+      const core211AuxEn = core211Plural ? 'were' : 'was';
+      const core211TimeEn = core211TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core211PredicateEn = core211PositivePredicate
+        ? 'certain to be screened'
+        : 'not certain to be screened';
+      const core211ReasonEn = core211PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core211Core = `${core211SubjectEn} ${core211AuxEn} ${core211PredicateEn} ${core211TimeEn} ${core211ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core211Core, originalText),
+        analysis: [
+          { ko: core211Plural ? '그 지원자들은' : '그 지원자는', en: `${core211SubjectEn.toLowerCase()} [S]` },
+          { ko: `조건이 ${core211ReasonKo}`, en: `${core211ReasonEn} [REASON]` },
+          { ko: core211TimeKo, en: `${core211TimeEn} [TIME]` },
+          { ko: `심사받을 것이 ${core211PredicateKo}`, en: `${core211AuxEn} ${core211PredicateEn} [PASSIVE:CORE211:CERTAIN:PAST:DECLARATIVE]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core211-applicants-screened-was-were-certain-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE210-APPLICANTS-SCREENED-CERTAIN-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE210: exactly 8 present certainty interrogatives; declaratives are excluded.
+  const core210ApplicantScreenedCertainQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) 심사받을 것이 (확실해요|확실하지 않아요)$/u.exec(normalized);
+  if (core210ApplicantScreenedCertainQuestionMatch && isQuestion) {
+    const core210Plural = core210ApplicantScreenedCertainQuestionMatch[1] === '들은';
+    const core210ReasonKo = core210ApplicantScreenedCertainQuestionMatch[2];
+    const core210TimeKo = core210ApplicantScreenedCertainQuestionMatch[3];
+    const core210PredicateKo = core210ApplicantScreenedCertainQuestionMatch[4];
+    const core210PositiveReason = core210ReasonKo === '충족되었으므로';
+    const core210PositivePredicate = core210PredicateKo === '확실해요';
+    if (core210PositiveReason === core210PositivePredicate) {
+      const core210SubjectEn = core210Plural ? 'the applicants' : 'the applicant';
+      const core210AuxEn = core210Plural ? 'Are' : 'Is';
+      const core210TimeEn = core210TimeKo === '오늘' ? 'today' : 'this week';
+      const core210PredicateEn = core210PositivePredicate
+        ? 'certain to be screened'
+        : 'not certain to be screened';
+      const core210ReasonEn = core210PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core210Core = `${core210AuxEn} ${core210SubjectEn} ${core210PredicateEn} ${core210TimeEn} ${core210ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core210Core, originalText),
+        analysis: [
+          { ko: core210Plural ? '그 지원자들은' : '그 지원자는', en: `${core210SubjectEn} [S]` },
+          { ko: `조건이 ${core210ReasonKo}`, en: `${core210ReasonEn} [REASON]` },
+          { ko: core210TimeKo, en: `${core210TimeEn} [TIME]` },
+          { ko: `심사받을 것이 ${core210PredicateKo}`, en: `${core210AuxEn.toLowerCase()} ${core210PredicateEn} [PASSIVE:CORE210:CERTAIN:PRESENT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core210-applicants-screened-certain-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE209-APPLICANTS-SCREENED-CERTAIN-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE209: exactly 8 present certainty declaratives; questions are excluded.
+  const core209ApplicantScreenedCertainMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) 심사받을 것이 (확실해요|확실하지 않아요)$/u.exec(normalized);
+  if (core209ApplicantScreenedCertainMatch && !isQuestion) {
+    const core209Plural = core209ApplicantScreenedCertainMatch[1] === '들은';
+    const core209ReasonKo = core209ApplicantScreenedCertainMatch[2];
+    const core209TimeKo = core209ApplicantScreenedCertainMatch[3];
+    const core209PredicateKo = core209ApplicantScreenedCertainMatch[4];
+    const core209PositiveReason = core209ReasonKo === '충족되었으므로';
+    const core209PositivePredicate = core209PredicateKo === '확실해요';
+    if (core209PositiveReason === core209PositivePredicate) {
+      const core209SubjectEn = core209Plural ? 'The applicants' : 'The applicant';
+      const core209AuxEn = core209Plural ? 'are' : 'is';
+      const core209TimeEn = core209TimeKo === '오늘' ? 'today' : 'this week';
+      const core209PredicateEn = core209PositivePredicate
+        ? 'certain to be screened'
+        : 'not certain to be screened';
+      const core209ReasonEn = core209PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core209Core = `${core209SubjectEn} ${core209AuxEn} ${core209PredicateEn} ${core209TimeEn} ${core209ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core209Core, originalText),
+        analysis: [
+          { ko: core209Plural ? '그 지원자들은' : '그 지원자는', en: `${core209SubjectEn.toLowerCase()} [S]` },
+          { ko: `조건이 ${core209ReasonKo}`, en: `${core209ReasonEn} [REASON]` },
+          { ko: core209TimeKo, en: `${core209TimeEn} [TIME]` },
+          { ko: `심사받을 것이 ${core209PredicateKo}`, en: `${core209AuxEn} ${core209PredicateEn} [PASSIVE:CORE209:CERTAIN:PRESENT:DECLARATIVE]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core209-applicants-screened-certain-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE208-APPLICANTS-SCREENED-WILL-BE-LIKELY-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE208: exactly 8 future likelihood interrogatives; declaratives are excluded.
+  const core208ApplicantScreenedFutureLikelyQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) 심사받을 가능성이 (높을 거예요|높지 않을 거예요)$/u.exec(normalized);
+  if (core208ApplicantScreenedFutureLikelyQuestionMatch && isQuestion) {
+    const core208Plural = core208ApplicantScreenedFutureLikelyQuestionMatch[1] === '들은';
+    const core208ReasonKo = core208ApplicantScreenedFutureLikelyQuestionMatch[2];
+    const core208TimeKo = core208ApplicantScreenedFutureLikelyQuestionMatch[3];
+    const core208PredicateKo = core208ApplicantScreenedFutureLikelyQuestionMatch[4];
+    const core208PositiveReason = core208ReasonKo === '충족되었으므로';
+    const core208PositivePredicate = core208PredicateKo === '높을 거예요';
+    if (core208PositiveReason === core208PositivePredicate) {
+      const core208SubjectEn = core208Plural ? 'the applicants' : 'the applicant';
+      const core208TimeEn = core208TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core208PredicateEn = core208PositivePredicate
+        ? 'be likely to be screened'
+        : 'not be likely to be screened';
+      const core208ReasonEn = core208PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core208Core = `Will ${core208SubjectEn} ${core208PredicateEn} ${core208TimeEn} ${core208ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core208Core, originalText),
+        analysis: [
+          { ko: core208Plural ? '그 지원자들은' : '그 지원자는', en: `${core208SubjectEn} [S]` },
+          { ko: `조건이 ${core208ReasonKo}`, en: `${core208ReasonEn} [REASON]` },
+          { ko: core208TimeKo, en: `${core208TimeEn} [TIME]` },
+          { ko: `심사받을 가능성이 ${core208PredicateKo}?`, en: `Will ... ${core208PredicateEn}? [PASSIVE:CORE208:LIKELY:FUTURE:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core208-applicants-screened-will-be-likely-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE207-APPLICANTS-SCREENED-WILL-BE-LIKELY-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE207: exactly 8 future likelihood declaratives; do not catch questions.
+  const core207ApplicantScreenedFutureLikelyMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) 심사받을 가능성이 (높을 거예요|높지 않을 거예요)$/u.exec(normalized);
+  if (core207ApplicantScreenedFutureLikelyMatch && !isQuestion) {
+    const core207Plural = core207ApplicantScreenedFutureLikelyMatch[1] === '들은';
+    const core207ReasonKo = core207ApplicantScreenedFutureLikelyMatch[2];
+    const core207TimeKo = core207ApplicantScreenedFutureLikelyMatch[3];
+    const core207PredicateKo = core207ApplicantScreenedFutureLikelyMatch[4];
+    const core207PositiveReason = core207ReasonKo === '충족되었으므로';
+    const core207PositivePredicate = core207PredicateKo === '높을 거예요';
+    if (core207PositiveReason === core207PositivePredicate) {
+      const core207SubjectEn = core207Plural ? 'The applicants' : 'The applicant';
+      const core207TimeEn = core207TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core207PredicateEn = core207PositivePredicate
+        ? 'will be likely to be screened'
+        : 'will not be likely to be screened';
+      const core207ReasonEn = core207PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core207Core = `${core207SubjectEn} ${core207PredicateEn} ${core207TimeEn} ${core207ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core207Core, originalText),
+        analysis: [
+          { ko: core207Plural ? '그 지원자들은' : '그 지원자는', en: `${core207SubjectEn} [S]` },
+          { ko: `조건이 ${core207ReasonKo}`, en: `${core207ReasonEn} [REASON]` },
+          { ko: core207TimeKo, en: `${core207TimeEn} [TIME]` },
+          { ko: `심사받을 가능성이 ${core207PredicateKo}`, en: `${core207PredicateEn} [PASSIVE:CORE207:LIKELY:FUTURE:DECLARATIVE]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core207-applicants-screened-will-be-likely-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE206-APPLICANTS-SCREENED-WAS-WERE-LIKELY-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE206: eight past-tense likelihood interrogatives; declaratives remain excluded.
+  const core206ApplicantScreenedPastLikelyQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) 심사받을 가능성이 (높았어요|높지 않았어요)$/u.exec(normalized);
+  if (core206ApplicantScreenedPastLikelyQuestionMatch && isQuestion) {
+    const core206Plural = core206ApplicantScreenedPastLikelyQuestionMatch[1] === '들은';
+    const core206ReasonKo = core206ApplicantScreenedPastLikelyQuestionMatch[2];
+    const core206TimeKo = core206ApplicantScreenedPastLikelyQuestionMatch[3];
+    const core206VerbKo = core206ApplicantScreenedPastLikelyQuestionMatch[4];
+    const core206PositiveReason = core206ReasonKo === '충족되었으므로';
+    const core206PositiveVerb = core206VerbKo === '높았어요';
+    if (core206PositiveReason === core206PositiveVerb) {
+      const core206SubjectEn = core206Plural ? 'the applicants' : 'the applicant';
+      const core206AuxEn = core206Plural ? 'Were' : 'Was';
+      const core206TimeEn = core206TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core206PredicateEn = core206PositiveVerb
+        ? 'likely to be screened'
+        : 'not likely to be screened';
+      const core206ReasonEn = core206PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core206Core = `${core206AuxEn} ${core206SubjectEn} ${core206PredicateEn} ${core206TimeEn} ${core206ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core206Core, originalText),
+        analysis: [
+          { ko: core206Plural ? '그 지원자들은' : '그 지원자는', en: `${core206SubjectEn} [S]` },
+          { ko: `조건이 ${core206ReasonKo}`, en: `${core206ReasonEn} [REASON]` },
+          { ko: core206TimeKo, en: `${core206TimeEn} [TIME]` },
+          { ko: `심사받을 가능성이 ${core206VerbKo}?`, en: `${core206AuxEn} ... ${core206PredicateEn}? [PASSIVE:CORE206:LIKELY:PAST:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core206-applicants-screened-was-were-likely-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE205-APPLICANTS-SCREENED-WAS-WERE-LIKELY-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE205: eight past-tense likelihood declaratives; questions remain excluded.
+  const core205ApplicantScreenedPastLikelyMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) 심사받을 가능성이 (높았어요|높지 않았어요)$/u.exec(normalized);
+  if (core205ApplicantScreenedPastLikelyMatch && !isQuestion) {
+    const core205Plural = core205ApplicantScreenedPastLikelyMatch[1] === '들은';
+    const core205ReasonKo = core205ApplicantScreenedPastLikelyMatch[2];
+    const core205TimeKo = core205ApplicantScreenedPastLikelyMatch[3];
+    const core205VerbKo = core205ApplicantScreenedPastLikelyMatch[4];
+    const core205PositiveReason = core205ReasonKo === '충족되었으므로';
+    const core205PositiveVerb = core205VerbKo === '높았어요';
+    if (core205PositiveReason === core205PositiveVerb) {
+      const core205SubjectEn = core205Plural ? 'The applicants' : 'The applicant';
+      const core205AuxEn = core205Plural ? 'were' : 'was';
+      const core205TimeEn = core205TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core205PredicateEn = core205PositiveVerb
+        ? 'likely to be screened'
+        : 'not likely to be screened';
+      const core205ReasonEn = core205PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core205Core = `${core205SubjectEn} ${core205AuxEn} ${core205PredicateEn} ${core205TimeEn} ${core205ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core205Core, originalText),
+        analysis: [
+          { ko: core205Plural ? '그 지원자들은' : '그 지원자는', en: `${core205SubjectEn} [S]` },
+          { ko: `조건이 ${core205ReasonKo}`, en: `${core205ReasonEn} [REASON]` },
+          { ko: core205TimeKo, en: `${core205TimeEn} [TIME]` },
+          { ko: `심사받을 가능성이 ${core205VerbKo}`, en: `${core205AuxEn} ${core205PredicateEn} [PASSIVE:CORE205:LIKELY:PAST:DECLARATIVE]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core205-applicants-screened-was-were-likely-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE204-APPLICANTS-SCREENED-LIKELY-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE204: eight affirmative/negative likelihood questions, after Korean question-mark normalization.
+  const core204ApplicantScreenedLikelyQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) 심사받을 가능성이 (높아요|높지 않아요)$/u.exec(normalized);
+  if (core204ApplicantScreenedLikelyQuestionMatch && isQuestion) {
+    const core204Plural = core204ApplicantScreenedLikelyQuestionMatch[1] === '들은';
+    const core204ReasonKo = core204ApplicantScreenedLikelyQuestionMatch[2];
+    const core204TimeKo = core204ApplicantScreenedLikelyQuestionMatch[3];
+    const core204VerbKo = core204ApplicantScreenedLikelyQuestionMatch[4];
+    const core204PositiveReason = core204ReasonKo === '충족되었으므로';
+    const core204PositiveVerb = core204VerbKo === '높아요';
+    if (core204PositiveReason === core204PositiveVerb) {
+      const core204SubjectEn = core204Plural ? 'the applicants' : 'the applicant';
+      const core204AuxEn = core204Plural ? 'Are' : 'Is';
+      const core204TimeEn = core204TimeKo === '오늘' ? 'today' : 'this week';
+      const core204Predicate = core204PositiveVerb
+        ? 'likely to be screened'
+        : 'not likely to be screened';
+      const core204ReasonEn = core204PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core204Core = `${core204AuxEn} ${core204SubjectEn} ${core204Predicate} ${core204TimeEn} ${core204ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core204Core, originalText),
+        analysis: [
+          { ko: core204Plural ? '그 지원자들은' : '그 지원자는', en: `${core204SubjectEn} [S]` },
+          { ko: `조건이 ${core204ReasonKo}`, en: `${core204ReasonEn} [REASON]` },
+          { ko: core204TimeKo, en: `${core204TimeEn} [TIME]` },
+          { ko: `심사받을 가능성이 ${core204VerbKo}`, en: `${core204AuxEn} ${core204Predicate} [PASSIVE:CORE204:LIKELY:PRESENT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core204-applicants-screened-likely-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE203-APPLICANTS-SCREENED-LIKELY-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE203: eight affirmative/negative likelihood statements, no questions.
+  const core203ApplicantScreenedLikelyMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) 심사받을 가능성이 (높아요|높지 않아요)$/u.exec(normalized);
+  if (core203ApplicantScreenedLikelyMatch && !isQuestion) {
+    const core203Plural = core203ApplicantScreenedLikelyMatch[1] === '들은';
+    const core203ReasonKo = core203ApplicantScreenedLikelyMatch[2];
+    const core203TimeKo = core203ApplicantScreenedLikelyMatch[3];
+    const core203VerbKo = core203ApplicantScreenedLikelyMatch[4];
+    const core203PositiveReason = core203ReasonKo === '충족되었으므로';
+    const core203PositiveVerb = core203VerbKo === '높아요';
+    if (core203PositiveReason === core203PositiveVerb) {
+      const core203SubjectEn = core203Plural ? 'The applicants' : 'The applicant';
+      const core203AuxEn = core203Plural ? 'are' : 'is';
+      const core203TimeEn = core203TimeKo === '오늘' ? 'today' : 'this week';
+      const core203Predicate = core203PositiveVerb
+        ? 'likely to be screened'
+        : 'not likely to be screened';
+      const core203ReasonEn = core203PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core203Core = `${core203SubjectEn} ${core203AuxEn} ${core203Predicate} ${core203TimeEn} ${core203ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core203Core, originalText),
+        analysis: [
+          { ko: core203Plural ? '그 지원자들은' : '그 지원자는', en: `${core203SubjectEn.toLowerCase()} [S]` },
+          { ko: `조건이 ${core203ReasonKo}`, en: `${core203ReasonEn} [REASON]` },
+          { ko: core203TimeKo, en: `${core203TimeEn} [TIME]` },
+          { ko: `심사받을 가능성이 ${core203VerbKo}`, en: `${core203AuxEn} ${core203Predicate} [PASSIVE:CORE203:LIKELY:PRESENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core203-applicants-screened-likely-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE202-APPLICANTS-SCREENED-WILL-BE-EXPECTED-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE202: eight future expected-to-be-screened passive interrogatives only.
+  // Question mark is removed from normalized; isQuestion is checked separately.
+  const core202ApplicantScreenedExpectedFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) 심사받을 것으로 (예상될 거예요|예상되지 않을 거예요)$/u.exec(normalized);
+  if (core202ApplicantScreenedExpectedFutureQuestionMatch && isQuestion) {
+    const core202Plural = core202ApplicantScreenedExpectedFutureQuestionMatch[1] === '들은';
+    const core202ReasonKo = core202ApplicantScreenedExpectedFutureQuestionMatch[2];
+    const core202TimeKo = core202ApplicantScreenedExpectedFutureQuestionMatch[3];
+    const core202VerbKo = core202ApplicantScreenedExpectedFutureQuestionMatch[4];
+    const core202PositiveReason = core202ReasonKo === '충족되었으므로';
+    const core202PositiveVerb = core202VerbKo === '예상될 거예요';
+    if (core202PositiveReason === core202PositiveVerb) {
+      const core202SubjectEn = core202Plural ? 'the applicants' : 'the applicant';
+      const core202TimeEn = core202TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core202VerbEn = core202PositiveVerb
+        ? 'be expected to be screened'
+        : 'not be expected to be screened';
+      const core202ReasonEn = core202PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core202Core = `Will ${core202SubjectEn} ${core202VerbEn} ${core202TimeEn} ${core202ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core202Core, originalText),
+        analysis: [
+          { ko: core202Plural ? '그 지원자들은' : '그 지원자는', en: `${core202SubjectEn} [S]` },
+          { ko: `조건이 ${core202ReasonKo}`, en: `${core202ReasonEn} [REASON]` },
+          { ko: core202TimeKo, en: `${core202TimeEn} [TIME]` },
+          { ko: `심사받을 것으로 ${core202VerbKo}`, en: `will ${core202VerbEn} [PASSIVE:CORE202:EXPECTED:FUTURE:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core202-applicants-screened-will-be-expected-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE201-APPLICANTS-SCREENED-WILL-BE-EXPECTED-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE201: eight future expected-to-be-screened passive declarations only.
+  const core201ApplicantScreenedExpectedFutureMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) 심사받을 것으로 (예상될 거예요|예상되지 않을 거예요)$/u.exec(normalized);
+  if (core201ApplicantScreenedExpectedFutureMatch && !isQuestion) {
+    const core201Plural = core201ApplicantScreenedExpectedFutureMatch[1] === '들은';
+    const core201ReasonKo = core201ApplicantScreenedExpectedFutureMatch[2];
+    const core201TimeKo = core201ApplicantScreenedExpectedFutureMatch[3];
+    const core201VerbKo = core201ApplicantScreenedExpectedFutureMatch[4];
+    const core201PositiveReason = core201ReasonKo === '충족되었으므로';
+    const core201PositiveVerb = core201VerbKo === '예상될 거예요';
+    if (core201PositiveReason === core201PositiveVerb) {
+      const core201SubjectEn = core201Plural ? 'the applicants' : 'the applicant';
+      const core201TimeEn = core201TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core201VerbEn = core201PositiveVerb
+        ? 'will be expected to be screened'
+        : 'will not be expected to be screened';
+      const core201ReasonEn = core201PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core201Core = `The ${core201Plural ? 'applicants' : 'applicant'} ${core201VerbEn} ${core201TimeEn} ${core201ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core201Core, originalText),
+        analysis: [
+          { ko: core201Plural ? '그 지원자들은' : '그 지원자는', en: `${core201SubjectEn} [S]` },
+          { ko: `조건이 ${core201ReasonKo}`, en: `${core201ReasonEn} [REASON]` },
+          { ko: core201TimeKo, en: `${core201TimeEn} [TIME]` },
+          { ko: `심사받을 것으로 ${core201VerbKo}`, en: `${core201VerbEn} [PASSIVE:CORE201:EXPECTED:FUTURE]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core201-applicants-screened-will-be-expected-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE200-APPLICANTS-SCREENED-WAS-WERE-EXPECTED-TO-BE-QUESTIONS-SLOT-SAFE
+  // CORE200: eight past-tense expected-to-be-screened passive interrogatives only.
+  // The final Korean question mark is removed from normalized; isQuestion is the separate guard.
+  const core200ApplicantScreenedExpectedPastQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) 심사받을 것으로 (예상되었나요|예상되지 않았나요)$/u.exec(normalized);
+  if (core200ApplicantScreenedExpectedPastQuestionMatch && isQuestion) {
+    const core200Plural = core200ApplicantScreenedExpectedPastQuestionMatch[1] === '들은';
+    const core200ReasonKo = core200ApplicantScreenedExpectedPastQuestionMatch[2];
+    const core200TimeKo = core200ApplicantScreenedExpectedPastQuestionMatch[3];
+    const core200VerbKo = core200ApplicantScreenedExpectedPastQuestionMatch[4];
+    const core200PositiveReason = core200ReasonKo === '충족되었으므로';
+    const core200PositiveVerb = core200VerbKo === '예상되었나요';
+    if (core200PositiveReason === core200PositiveVerb) {
+      const core200SubjectEn = core200Plural ? 'the applicants' : 'the applicant';
+      const core200BeEn = core200Plural ? 'Were' : 'Was';
+      const core200TimeEn = core200TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core200VerbEn = core200PositiveVerb ? 'expected to be screened' : 'not expected to be screened';
+      const core200ReasonEn = core200PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core200Core = `${core200BeEn} ${core200SubjectEn} ${core200VerbEn} ${core200TimeEn} ${core200ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core200Core, originalText),
+        analysis: [
+          { ko: core200Plural ? '그 지원자들은' : '그 지원자는', en: `${core200SubjectEn} [S]` },
+          { ko: `조건이 ${core200ReasonKo}`, en: `${core200ReasonEn} [REASON]` },
+          { ko: core200TimeKo, en: `${core200TimeEn} [TIME]` },
+          { ko: `심사받을 것으로 ${core200VerbKo}`, en: `${core200BeEn} ${core200VerbEn} [PASSIVE:CORE200:EXPECTED:PAST:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core200-applicants-screened-was-were-expected-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE199-APPLICANTS-SCREENED-WAS-WERE-EXPECTED-TO-BE-BECAUSE-SLOT-SAFE
+  // CORE199: eight past-tense expected-to-be-screened passive declaratives only.
+  const core199ApplicantScreenedExpectedPastMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) 심사받을 것으로 (예상되었어요|예상되지 않았어요)$/u.exec(normalized);
+  if (core199ApplicantScreenedExpectedPastMatch && !isQuestion) {
+    const core199Plural = core199ApplicantScreenedExpectedPastMatch[1] === '들은';
+    const core199ReasonKo = core199ApplicantScreenedExpectedPastMatch[2];
+    const core199TimeKo = core199ApplicantScreenedExpectedPastMatch[3];
+    const core199VerbKo = core199ApplicantScreenedExpectedPastMatch[4];
+    const core199PositiveReason = core199ReasonKo === '충족되었으므로';
+    const core199PositiveVerb = core199VerbKo === '예상되었어요';
+    if (core199PositiveReason === core199PositiveVerb) {
+      const core199SubjectEn = core199Plural ? 'The applicants' : 'The applicant';
+      const core199BeEn = core199Plural ? 'were' : 'was';
+      const core199TimeEn = core199TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core199VerbEn = core199PositiveVerb ? 'expected to be screened' : 'not expected to be screened';
+      const core199ReasonEn = core199PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core199Core = `${core199SubjectEn} ${core199BeEn} ${core199VerbEn} ${core199TimeEn} ${core199ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core199Core, originalText),
+        analysis: [
+          { ko: core199Plural ? '그 지원자들은' : '그 지원자는', en: `${core199SubjectEn} [S]` },
+          { ko: `조건이 ${core199ReasonKo}`, en: `${core199ReasonEn} [REASON]` },
+          { ko: core199TimeKo, en: `${core199TimeEn} [TIME]` },
+          { ko: `심사받을 것으로 ${core199VerbKo}`, en: `${core199BeEn} ${core199VerbEn} [PASSIVE:CORE199:EXPECTED:PAST]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core199-applicants-screened-was-were-expected-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE198-APPLICANTS-SCREENED-EXPECTED-TO-BE-QUESTIONS-SLOT-SAFE
+  // Eight expected-to-be-screened passive QUESTIONS only; CORE1..197 branches unchanged.
+  const core198ApplicantScreenedExpectedQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) 심사받을 것으로 (예상되나요|예상되지 않나요)$/u.exec(normalized);
+  if (core198ApplicantScreenedExpectedQuestionMatch && isQuestion) {
+    const core198Plural = core198ApplicantScreenedExpectedQuestionMatch[1] === '들은';
+    const core198ReasonKo = core198ApplicantScreenedExpectedQuestionMatch[2];
+    const core198TimeKo = core198ApplicantScreenedExpectedQuestionMatch[3];
+    const core198VerbKo = core198ApplicantScreenedExpectedQuestionMatch[4];
+    const core198PositiveReason = core198ReasonKo === '충족되었으므로';
+    const core198PositiveVerb = core198VerbKo === '예상되나요';
+    if (core198PositiveReason === core198PositiveVerb) {
+      const core198SubjectEn = core198Plural ? 'the applicants' : 'the applicant';
+      const core198BeEn = core198Plural ? 'Are' : 'Is';
+      const core198TimeEn = core198TimeKo === '오늘' ? 'today' : 'this week';
+      const core198VerbEn = core198PositiveVerb ? 'expected to be screened' : 'not expected to be screened';
+      const core198ReasonEn = core198PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core198Core = `${core198BeEn} ${core198SubjectEn} ${core198VerbEn} ${core198TimeEn} ${core198ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core198Core, originalText),
+        analysis: [
+          { ko: core198Plural ? '그 지원자들은' : '그 지원자는', en: `${core198SubjectEn} [S]` },
+          { ko: `조건이 ${core198ReasonKo}`, en: `${core198ReasonEn} [REASON]` },
+          { ko: core198TimeKo, en: `${core198TimeEn} [TIME]` },
+          { ko: `심사받을 것으로 ${core198VerbKo}`, en: `${core198BeEn} ${core198VerbEn} [PASSIVE:CORE198:EXPECTED:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core198-applicants-screened-expected-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE197-APPLICANTS-SCREENED-EXPECTED-TO-BE-BECAUSE-SLOT-SAFE
+  // Eight present expected-to-be-screened passive DECLARATIVES only. Previous CORE branches unchanged.
+  const core197ApplicantScreenedExpectedMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) 심사받을 것으로 (예상돼요|예상되지 않아요)$/u.exec(normalized);
+  if (core197ApplicantScreenedExpectedMatch && !isQuestion) {
+    const core197Plural = core197ApplicantScreenedExpectedMatch[1] === '들은';
+    const core197ReasonKo = core197ApplicantScreenedExpectedMatch[2];
+    const core197TimeKo = core197ApplicantScreenedExpectedMatch[3];
+    const core197VerbKo = core197ApplicantScreenedExpectedMatch[4];
+    const core197PositiveReason = core197ReasonKo === '충족되었으므로';
+    const core197PositiveVerb = core197VerbKo === '예상돼요';
+    if (core197PositiveReason === core197PositiveVerb) {
+      const core197SubjectEn = core197Plural ? 'The applicants' : 'The applicant';
+      const core197BeEn = core197Plural ? 'are' : 'is';
+      const core197TimeEn = core197TimeKo === '오늘' ? 'today' : 'this week';
+      const core197VerbEn = core197PositiveVerb ? 'expected to be screened' : 'not expected to be screened';
+      const core197ReasonEn = core197PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core197Core = `${core197SubjectEn} ${core197BeEn} ${core197VerbEn} ${core197TimeEn} ${core197ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core197Core, originalText),
+        analysis: [
+          { ko: core197Plural ? '그 지원자들은' : '그 지원자는', en: `${core197SubjectEn} [S]` },
+          { ko: `조건이 ${core197ReasonKo}`, en: `${core197ReasonEn} [REASON]` },
+          { ko: core197TimeKo, en: `${core197TimeEn} [TIME]` },
+          { ko: `심사받을 것으로 ${core197VerbKo}`, en: `${core197BeEn} ${core197VerbEn} [PASSIVE:CORE197:EXPECTED:PRESENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core197-applicants-screened-expected-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE196-APPLICANTS-SCREENED-WILL-BE-REQUIRED-TO-BE-QUESTION-SLOT-SAFE
+  // Eight future required-to-be-screened passive QUESTIONS. Existing CORE branches remain unchanged.
+  const core196ApplicantScreenedRequiredFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) 심사를 받도록 (요구받을 거예요|요구받지 않을 거예요)$/u.exec(normalized);
+  if (core196ApplicantScreenedRequiredFutureQuestionMatch && isQuestion) {
+    const core196Plural = core196ApplicantScreenedRequiredFutureQuestionMatch[1] === '들은';
+    const core196ReasonKo = core196ApplicantScreenedRequiredFutureQuestionMatch[2];
+    const core196TimeKo = core196ApplicantScreenedRequiredFutureQuestionMatch[3];
+    const core196VerbKo = core196ApplicantScreenedRequiredFutureQuestionMatch[4];
+    const core196PositiveReason = core196ReasonKo === '충족되었으므로';
+    const core196PositiveVerb = core196VerbKo === '요구받을 거예요';
+    if (core196PositiveReason === core196PositiveVerb) {
+      const core196SubjectEn = core196Plural ? 'the applicants' : 'the applicant';
+      const core196TimeEn = core196TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core196VerbEn = core196PositiveVerb ? 'be required to be screened' : 'not be required to be screened';
+      const core196ReasonEn = core196PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core196Core = `Will ${core196SubjectEn} ${core196VerbEn} ${core196TimeEn} ${core196ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core196Core, originalText),
+        analysis: [
+          { ko: core196Plural ? '그 지원자들은' : '그 지원자는', en: `${core196SubjectEn} [S]` },
+          { ko: `조건이 ${core196ReasonKo}`, en: `${core196ReasonEn} [REASON]` },
+          { ko: core196TimeKo, en: `${core196TimeEn} [TIME]` },
+          { ko: `심사를 받도록 ${core196VerbKo}`, en: `will ${core196VerbEn} [PASSIVE:CORE196:REQUIRED:FUTURE:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core196-applicants-screened-will-be-required-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE195-APPLICANTS-SCREENED-WILL-BE-REQUIRED-TO-BE-BECAUSE-SLOT-SAFE
+  // Eight exact future-tense passive obligation / no-obligation DECLARATIVES; earlier CORE remains unchanged.
+  const core195ApplicantScreenedRequiredFutureMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) 심사를 받도록 (요구받을 거예요|요구받지 않을 거예요)$/u.exec(normalized);
+  if (core195ApplicantScreenedRequiredFutureMatch && !isQuestion) {
+    const core195Plural = core195ApplicantScreenedRequiredFutureMatch[1] === '들은';
+    const core195ReasonKo = core195ApplicantScreenedRequiredFutureMatch[2];
+    const core195TimeKo = core195ApplicantScreenedRequiredFutureMatch[3];
+    const core195VerbKo = core195ApplicantScreenedRequiredFutureMatch[4];
+    const core195PositiveReason = core195ReasonKo === '충족되었으므로';
+    const core195PositiveVerb = core195VerbKo === '요구받을 거예요';
+    if (core195PositiveReason === core195PositiveVerb) {
+      const core195SubjectEn = core195Plural ? 'the applicants' : 'the applicant';
+      const core195TimeEn = core195TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core195VerbEn = core195PositiveVerb ? 'will be required to be screened' : 'will not be required to be screened';
+      const core195ReasonEn = core195PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core195Core = `The ${core195Plural ? 'applicants' : 'applicant'} ${core195VerbEn} ${core195TimeEn} ${core195ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core195Core, originalText),
+        analysis: [
+          { ko: core195Plural ? '그 지원자들은' : '그 지원자는', en: `${core195SubjectEn} [S]` },
+          { ko: `조건이 ${core195ReasonKo}`, en: `${core195ReasonEn} [REASON]` },
+          { ko: core195TimeKo, en: `${core195TimeEn} [TIME]` },
+          { ko: `심사를 받도록 ${core195VerbKo}`, en: `${core195VerbEn} [PASSIVE:CORE195:REQUIRED:FUTURE]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core195-applicants-screened-will-will-not-be-required-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE194-APPLICANTS-SCREENED-WAS-WERE-REQUIRED-TO-BE-QUESTION-SLOT-SAFE
+  // Eight exact past-tense passive obligation / no-obligation QUESTIONS; CORE193 declaratives remain unchanged.
+  const core194ApplicantScreenedRequiredPastQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) 심사를 받도록 (요구받았나요|요구받지 않았나요)$/u.exec(normalized);
+  if (core194ApplicantScreenedRequiredPastQuestionMatch && isQuestion) {
+    const core194Plural = core194ApplicantScreenedRequiredPastQuestionMatch[1] === '들은';
+    const core194ReasonKo = core194ApplicantScreenedRequiredPastQuestionMatch[2];
+    const core194TimeKo = core194ApplicantScreenedRequiredPastQuestionMatch[3];
+    const core194VerbKo = core194ApplicantScreenedRequiredPastQuestionMatch[4];
+    const core194PositiveReason = core194ReasonKo === '충족되었으므로';
+    const core194PositiveVerb = core194VerbKo === '요구받았나요';
+    if (core194PositiveReason === core194PositiveVerb) {
+      const core194SubjectEn = core194Plural ? 'the applicants' : 'the applicant';
+      const core194AuxEn = core194Plural ? 'Were' : 'Was';
+      const core194TimeEn = core194TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core194VerbEn = core194PositiveVerb ? 'required to be screened' : 'not required to be screened';
+      const core194ReasonEn = core194PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core194Core = `${core194AuxEn} ${core194SubjectEn} ${core194VerbEn} ${core194TimeEn} ${core194ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core194Core, originalText),
+        analysis: [
+          { ko: core194Plural ? '그 지원자들은' : '그 지원자는', en: `${core194SubjectEn} [S]` },
+          { ko: `조건이 ${core194ReasonKo}`, en: `${core194ReasonEn} [REASON]` },
+          { ko: core194TimeKo, en: `${core194TimeEn} [TIME]` },
+          { ko: `심사를 받도록 ${core194VerbKo}`, en: `${core194AuxEn} ${core194VerbEn} [PASSIVE:CORE194:REQUIRED:PAST:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core194-applicants-screened-was-were-required-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE193-APPLICANTS-SCREENED-WAS-WERE-REQUIRED-TO-BE-BECAUSE-SLOT-SAFE
+  // Eight exact past-tense passive obligation / no-obligation statements; questions stay with CORE192.
+  const core193ApplicantScreenedRequiredPastMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) 심사를 받도록 (요구받았어요|요구받지 않았어요)$/u.exec(normalized);
+  if (core193ApplicantScreenedRequiredPastMatch && !isQuestion) {
+    const core193Plural = core193ApplicantScreenedRequiredPastMatch[1] === '들은';
+    const core193ReasonKo = core193ApplicantScreenedRequiredPastMatch[2];
+    const core193TimeKo = core193ApplicantScreenedRequiredPastMatch[3];
+    const core193VerbKo = core193ApplicantScreenedRequiredPastMatch[4];
+    const core193PositiveReason = core193ReasonKo === '충족되었으므로';
+    const core193PositiveVerb = core193VerbKo === '요구받았어요';
+    if (core193PositiveReason === core193PositiveVerb) {
+      const core193SubjectEn = core193Plural ? 'The applicants' : 'The applicant';
+      const core193BeEn = core193Plural ? 'were' : 'was';
+      const core193TimeEn = core193TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core193VerbEn = core193PositiveVerb ? 'required to be screened' : 'not required to be screened';
+      const core193ReasonEn = core193PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core193Core = `${core193SubjectEn} ${core193BeEn} ${core193VerbEn} ${core193TimeEn} ${core193ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core193Core, originalText),
+        analysis: [
+          { ko: core193Plural ? '그 지원자들은' : '그 지원자는', en: `${core193SubjectEn} [S]` },
+          { ko: `조건이 ${core193ReasonKo}`, en: `${core193ReasonEn} [REASON]` },
+          { ko: core193TimeKo, en: `${core193TimeEn} [TIME]` },
+          { ko: `심사를 받도록 ${core193VerbKo}`, en: `${core193BeEn} ${core193VerbEn} [PASSIVE:CORE193:REQUIRED:PAST]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core193-applicants-screened-was-were-required-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE192-APPLICANTS-SCREENED-REQUIRED-TO-BE-BECAUSE-QUESTION-SLOT-SAFE
+  // Eight exact present passive obligation / no-obligation questions. normalized has no trailing question mark.
+  const core192ApplicantScreenedRequiredQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) 심사를 받도록 (요구받나요|요구받지 않나요)$/u.exec(normalized);
+  if (core192ApplicantScreenedRequiredQuestionMatch && isQuestion) {
+    const core192Plural = core192ApplicantScreenedRequiredQuestionMatch[1] === '들은';
+    const core192ReasonKo = core192ApplicantScreenedRequiredQuestionMatch[2];
+    const core192TimeKo = core192ApplicantScreenedRequiredQuestionMatch[3];
+    const core192VerbKo = core192ApplicantScreenedRequiredQuestionMatch[4];
+    const core192PositiveReason = core192ReasonKo === '충족되었으므로';
+    const core192PositiveVerb = core192VerbKo === '요구받나요';
+    if (core192PositiveReason === core192PositiveVerb) {
+      const core192SubjectEn = core192Plural ? 'the applicants' : 'the applicant';
+      const core192BeEn = core192Plural ? 'Are' : 'Is';
+      const core192TimeEn = core192TimeKo === '오늘' ? 'today' : 'this week';
+      const core192VerbEn = core192PositiveVerb ? 'required to be screened' : 'not required to be screened';
+      const core192ReasonEn = core192PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core192Core = `${core192BeEn} ${core192SubjectEn} ${core192VerbEn} ${core192TimeEn} ${core192ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core192Core, originalText),
+        analysis: [
+          { ko: core192Plural ? '그 지원자들은' : '그 지원자는', en: `${core192SubjectEn} [S]` },
+          { ko: `조건이 ${core192ReasonKo}`, en: `${core192ReasonEn} [REASON]` },
+          { ko: core192TimeKo, en: `${core192TimeEn} [TIME]` },
+          { ko: `심사를 받도록 ${core192VerbKo}`, en: `${core192BeEn} ${core192VerbEn} [PASSIVE:CORE192:REQUIRED:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core192-applicants-screened-required-to-be-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE191-APPLICANTS-SCREENED-REQUIRED-TO-BE-BECAUSE-SLOT-SAFE
+  // Eight exact present passive obligation / no-obligation statements.
+  const core191ApplicantScreenedRequiredMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) 심사를 받도록 (요구받아요|요구받지 않아요)$/u.exec(normalized);
+  if (core191ApplicantScreenedRequiredMatch && !isQuestion) {
+    const core191Plural = core191ApplicantScreenedRequiredMatch[1] === '들은';
+    const core191ReasonKo = core191ApplicantScreenedRequiredMatch[2];
+    const core191TimeKo = core191ApplicantScreenedRequiredMatch[3];
+    const core191VerbKo = core191ApplicantScreenedRequiredMatch[4];
+    const core191PositiveReason = core191ReasonKo === '충족되었으므로';
+    const core191PositiveVerb = core191VerbKo === '요구받아요';
+    if (core191PositiveReason === core191PositiveVerb) {
+      const core191SubjectEn = core191Plural ? 'The applicants' : 'The applicant';
+      const core191BeEn = core191Plural ? 'are' : 'is';
+      const core191TimeEn = core191TimeKo === '오늘' ? 'today' : 'this week';
+      const core191VerbEn = core191PositiveVerb ? 'required to be screened' : 'not required to be screened';
+      const core191ReasonEn = core191PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core191Core = `${core191SubjectEn} ${core191BeEn} ${core191VerbEn} ${core191TimeEn} ${core191ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core191Core, originalText),
+        analysis: [
+          { ko: core191Plural ? '그 지원자들은' : '그 지원자는', en: `${core191SubjectEn.toLowerCase()} [S]` },
+          { ko: `조건이 ${core191ReasonKo}`, en: `${core191ReasonEn} [REASON]` },
+          { ko: core191TimeKo, en: `${core191TimeEn} [TIME]` },
+          { ko: `심사를 받도록 ${core191VerbKo}`, en: `${core191BeEn} ${core191VerbEn} [PASSIVE:CORE191:REQUIRED]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core191-applicants-screened-required-to-be-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE190-APPLICANTS-SCREENED-WILL-HAVE-TO-NO-NEED-BE-BECAUSE-QUESTION-SLOT-SAFE
+  // Eight exact future obligation / no-obligation questions. Normalized input excludes '?'.
+  const core190ApplicantScreenedWillHaveToQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) (심사받아야만 할 거예요|심사받을 필요가 없을 거예요)$/u.exec(normalized);
+  if (core190ApplicantScreenedWillHaveToQuestionMatch && isQuestion) {
+    const core190Plural = core190ApplicantScreenedWillHaveToQuestionMatch[1] === '들은';
+    const core190ReasonKo = core190ApplicantScreenedWillHaveToQuestionMatch[2];
+    const core190TimeKo = core190ApplicantScreenedWillHaveToQuestionMatch[3];
+    const core190VerbKo = core190ApplicantScreenedWillHaveToQuestionMatch[4];
+    const core190PositiveReason = core190ReasonKo === '충족되었으므로';
+    const core190PositiveVerb = core190VerbKo === '심사받아야만 할 거예요';
+    if (core190PositiveReason === core190PositiveVerb) {
+      const core190SubjectEn = core190Plural ? 'the applicants' : 'the applicant';
+      const core190TimeEn = core190TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core190VerbEn = core190PositiveVerb ? 'have to be screened' : 'not have to be screened';
+      const core190ReasonEn = core190PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core190Core = `Will ${core190SubjectEn} ${core190VerbEn} ${core190TimeEn} ${core190ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core190Core, originalText),
+        analysis: [
+          { ko: core190Plural ? '그 지원자들은' : '그 지원자는', en: `${core190SubjectEn} [S]` },
+          { ko: `조건이 ${core190ReasonKo}`, en: `${core190ReasonEn} [REASON]` },
+          { ko: core190TimeKo, en: `${core190TimeEn} [TIME]` },
+          { ko: core190VerbKo, en: `Will ... ${core190VerbEn} [PASSIVE:CORE190:WILL-HAVE-TO-QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core190-applicants-screened-will-have-to-will-not-have-to-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE189-APPLICANTS-SCREENED-WILL-HAVE-TO-NO-NEED-BE-BECAUSE-SLOT-SAFE
+  // Eight exact future obligation / no-obligation statements; questions must not match.
+  const core189ApplicantScreenedWillHaveToMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (내일|다음 주에) (심사받아야만 할 거예요|심사받을 필요가 없을 거예요)$/u.exec(normalized);
+  if (core189ApplicantScreenedWillHaveToMatch && !isQuestion) {
+    const core189Plural = core189ApplicantScreenedWillHaveToMatch[1] === '들은';
+    const core189ReasonKo = core189ApplicantScreenedWillHaveToMatch[2];
+    const core189TimeKo = core189ApplicantScreenedWillHaveToMatch[3];
+    const core189VerbKo = core189ApplicantScreenedWillHaveToMatch[4];
+    const core189PositiveReason = core189ReasonKo === '충족되었으므로';
+    const core189PositiveVerb = core189VerbKo === '심사받아야만 할 거예요';
+    if (core189PositiveReason === core189PositiveVerb) {
+      const core189SubjectEn = core189Plural ? 'The applicants' : 'The applicant';
+      const core189TimeEn = core189TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core189VerbEn = core189PositiveVerb ? 'will have to be screened' : 'will not have to be screened';
+      const core189ReasonEn = core189PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core189Core = `${core189SubjectEn} ${core189VerbEn} ${core189TimeEn} ${core189ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core189Core, originalText),
+        analysis: [
+          { ko: core189Plural ? '그 지원자들은' : '그 지원자는', en: `${core189SubjectEn} [S]` },
+          { ko: `조건이 ${core189ReasonKo}`, en: `${core189ReasonEn} [REASON]` },
+          { ko: core189TimeKo, en: `${core189TimeEn} [TIME]` },
+          { ko: core189VerbKo, en: `${core189VerbEn} [PASSIVE:CORE189:WILL-HAVE-TO]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core189-applicants-screened-will-have-to-will-not-have-to-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE188-APPLICANTS-SCREENED-HAD-TO-NO-NEED-BE-BECAUSE-QUESTION-SLOT-SAFE
+  // Eight exact past-tense interrogatives; use isQuestion because normalized has no trailing question mark.
+  const core188ApplicantScreenedHadToQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) (심사받아야만 했나요|심사받을 필요가 없었나요)$/u.exec(normalized);
+  if (core188ApplicantScreenedHadToQuestionMatch && isQuestion) {
+    const core188Plural = core188ApplicantScreenedHadToQuestionMatch[1] === '들은';
+    const core188ReasonKo = core188ApplicantScreenedHadToQuestionMatch[2];
+    const core188TimeKo = core188ApplicantScreenedHadToQuestionMatch[3];
+    const core188VerbKo = core188ApplicantScreenedHadToQuestionMatch[4];
+    const core188PositiveReason = core188ReasonKo === '충족되었으므로';
+    const core188PositiveVerb = core188VerbKo === '심사받아야만 했나요';
+    if (core188PositiveReason === core188PositiveVerb) {
+      const core188SubjectEn = core188Plural ? 'the applicants' : 'the applicant';
+      const core188TimeEn = core188TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core188VerbEn = core188PositiveVerb ? 'have to be screened' : 'not have to be screened';
+      const core188ReasonEn = core188PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core188Core = `Did ${core188SubjectEn} ${core188VerbEn} ${core188TimeEn} ${core188ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core188Core, originalText),
+        analysis: [
+          { ko: core188Plural ? '그 지원자들은' : '그 지원자는', en: `${core188SubjectEn} [S]` },
+          { ko: `조건이 ${core188ReasonKo}`, en: `${core188ReasonEn} [REASON]` },
+          { ko: core188TimeKo, en: `${core188TimeEn} [TIME]` },
+          { ko: core188VerbKo, en: `${core188VerbEn} [PASSIVE:CORE188:DID-HAVE-TO-QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core188-applicants-screened-had-to-did-not-have-to-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE187-APPLICANTS-SCREENED-HAD-TO-NO-NEED-BE-BECAUSE-SLOT-SAFE
+  // Eight exact past-tense declaratives; both positive and negative express obligation, not prohibition.
+  const core187ApplicantScreenedHadToMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (어제|지난주에) (심사받아야만 했어요|심사받을 필요가 없었어요)$/u.exec(normalized);
+  if (core187ApplicantScreenedHadToMatch && !isQuestion) {
+    const core187Plural = core187ApplicantScreenedHadToMatch[1] === '들은';
+    const core187ReasonKo = core187ApplicantScreenedHadToMatch[2];
+    const core187TimeKo = core187ApplicantScreenedHadToMatch[3];
+    const core187VerbKo = core187ApplicantScreenedHadToMatch[4];
+    const core187PositiveReason = core187ReasonKo === '충족되었으므로';
+    const core187PositiveVerb = core187VerbKo === '심사받아야만 했어요';
+    if (core187PositiveReason === core187PositiveVerb) {
+      const core187SubjectEn = core187Plural ? 'The applicants' : 'The applicant';
+      const core187TimeEn = core187TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core187VerbEn = core187PositiveVerb ? 'had to be screened' : 'did not have to be screened';
+      const core187ReasonEn = core187PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core187Core = `${core187SubjectEn} ${core187VerbEn} ${core187TimeEn} ${core187ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core187Core, originalText),
+        analysis: [
+          { ko: core187Plural ? '그 지원자들은' : '그 지원자는', en: `${core187SubjectEn.toLowerCase()} [S]` },
+          { ko: `조건이 ${core187ReasonKo}`, en: `${core187ReasonEn} [REASON]` },
+          { ko: core187TimeKo, en: `${core187TimeEn} [TIME]` },
+          { ko: core187VerbKo, en: `${core187VerbEn} [PASSIVE:CORE187:HAD-TO]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core187-applicants-screened-had-to-did-not-have-to-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE186-APPLICANTS-SCREENED-HAVE-TO-NO-NEED-BE-BECAUSE-QUESTION-SLOT-SAFE
+  // Eight exact interrogatives; normalized text has NO trailing question mark; check isQuestion separately.
+  const core186ApplicantScreenedHaveToQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) (심사받아야만 하나요|심사받을 필요가 없나요)$/u.exec(normalized);
+  if (core186ApplicantScreenedHaveToQuestionMatch && isQuestion) {
+    const core186Plural = core186ApplicantScreenedHaveToQuestionMatch[1] === '들은';
+    const core186ReasonKo = core186ApplicantScreenedHaveToQuestionMatch[2];
+    const core186TimeKo = core186ApplicantScreenedHaveToQuestionMatch[3];
+    const core186VerbKo = core186ApplicantScreenedHaveToQuestionMatch[4];
+    const core186PositiveReason = core186ReasonKo === '충족되었으므로';
+    const core186PositiveVerb = core186VerbKo === '심사받아야만 하나요';
+    if (core186PositiveReason === core186PositiveVerb) {
+      const core186SubjectEn = core186Plural ? 'the applicants' : 'the applicant';
+      const core186TimeEn = core186TimeKo === '오늘' ? 'today' : 'this week';
+      const core186AuxEn = core186Plural ? 'Do' : 'Does';
+      const core186NotEn = core186PositiveVerb ? '' : ' not';
+      const core186ReasonEn = core186PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core186Core = `${core186AuxEn} ${core186SubjectEn}${core186NotEn} have to be screened ${core186TimeEn} ${core186ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core186Core, originalText),
+        analysis: [
+          { ko: core186Plural ? '그 지원자들은' : '그 지원자는', en: `${core186SubjectEn} [S]` },
+          { ko: `조건이 ${core186ReasonKo}`, en: `${core186ReasonEn} [REASON]` },
+          { ko: core186TimeKo, en: `${core186TimeEn} [TIME]` },
+          { ko: core186VerbKo, en: `${core186AuxEn} ${core186SubjectEn}${core186NotEn} have to be screened [PASSIVE:CORE186:HAVE-TO-QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core186-applicants-screened-have-to-do-not-have-to-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE185-APPLICANTS-SCREENED-HAVE-TO-NO-NEED-BE-BECAUSE-SLOT-SAFE
+  // Exactly eight declaratives: has/have to (obligation) vs does/do not have to (no obligation).
+  const core185ApplicantScreenedHaveToMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) (심사받아야만 해요|심사받을 필요가 없어요)$/u.exec(normalized);
+  if (core185ApplicantScreenedHaveToMatch && !isQuestion) {
+    const core185Plural = core185ApplicantScreenedHaveToMatch[1] === '들은';
+    const core185ReasonKo = core185ApplicantScreenedHaveToMatch[2];
+    const core185TimeKo = core185ApplicantScreenedHaveToMatch[3];
+    const core185VerbKo = core185ApplicantScreenedHaveToMatch[4];
+    const core185PositiveReason = core185ReasonKo === '충족되었으므로';
+    const core185PositiveVerb = core185VerbKo === '심사받아야만 해요';
+    if (core185PositiveReason === core185PositiveVerb) {
+      const core185SubjectEn = core185Plural ? 'the applicants' : 'the applicant';
+      const core185TimeEn = core185TimeKo === '오늘' ? 'today' : 'this week';
+      const core185ModalEn = core185PositiveVerb
+        ? (core185Plural ? 'have to' : 'has to')
+        : (core185Plural ? 'do not have to' : 'does not have to');
+      const core185ReasonEn = core185PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core185Core = `The ${core185Plural ? 'applicants' : 'applicant'} ${core185ModalEn} be screened ${core185TimeEn} ${core185ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core185Core, originalText),
+        analysis: [
+          { ko: core185Plural ? '그 지원자들은' : '그 지원자는', en: `${core185SubjectEn} [S]` },
+          { ko: `조건이 ${core185ReasonKo}`, en: `${core185ReasonEn} [REASON]` },
+          { ko: core185TimeKo, en: `${core185TimeEn} [TIME]` },
+          { ko: core185VerbKo, en: `${core185ModalEn} be screened [PASSIVE:CORE185:HAVE-TO]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core185-applicants-screened-have-to-do-not-have-to-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE184-APPLICANTS-SCREENED-MIGHT-MIGHT-NOT-BE-BECAUSE-QUESTION-SLOT-SAFE
+  // Exactly eight questions; punctuation already stripped from normalized; use isQuestion.
+  const core184ApplicantScreenedMightQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) (심사받을지도 몰라요|심사받지 않을지도 몰라요)$/u.exec(normalized);
+  if (core184ApplicantScreenedMightQuestionMatch && isQuestion) {
+    const core184Plural = core184ApplicantScreenedMightQuestionMatch[1] === '들은';
+    const core184ReasonKo = core184ApplicantScreenedMightQuestionMatch[2];
+    const core184TimeKo = core184ApplicantScreenedMightQuestionMatch[3];
+    const core184VerbKo = core184ApplicantScreenedMightQuestionMatch[4];
+    const core184PositiveReason = core184ReasonKo === '충족되었으므로';
+    const core184PositiveVerb = core184VerbKo === '심사받을지도 몰라요';
+    if (core184PositiveReason === core184PositiveVerb) {
+      const core184SubjectEn = core184Plural ? 'the applicants' : 'the applicant';
+      const core184TimeEn = core184TimeKo === '오늘' ? 'today' : 'this week';
+      const core184ModalEn = core184PositiveVerb ? 'be screened' : 'not be screened';
+      const core184ReasonEn = core184PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core184Core = `Might ${core184SubjectEn} ${core184ModalEn} ${core184TimeEn} ${core184ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core184Core, originalText),
+        analysis: [
+          { ko: core184Plural ? '그 지원자들은' : '그 지원자는', en: `${core184SubjectEn} [S]` },
+          { ko: `조건이 ${core184ReasonKo}`, en: `${core184ReasonEn} [REASON]` },
+          { ko: core184TimeKo, en: `${core184TimeEn} [TIME]` },
+          { ko: core184VerbKo, en: `${core184PositiveVerb ? 'might be screened' : 'might not be screened'} [PASSIVE:CORE184:MIGHT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core184-applicants-screened-might-might-not-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE183-APPLICANTS-SCREENED-MIGHT-MIGHT-NOT-BE-BECAUSE-SLOT-SAFE
+  // Exactly eight non-questions. Keep all older CORE branches unchanged.
+  const core183ApplicantScreenedMightMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) (심사받을지도 몰라요|심사받지 않을지도 몰라요)$/u.exec(normalized);
+  if (core183ApplicantScreenedMightMatch && !isQuestion) {
+    const core183Plural = core183ApplicantScreenedMightMatch[1] === '들은';
+    const core183ReasonKo = core183ApplicantScreenedMightMatch[2];
+    const core183TimeKo = core183ApplicantScreenedMightMatch[3];
+    const core183VerbKo = core183ApplicantScreenedMightMatch[4];
+    const core183PositiveReason = core183ReasonKo === '충족되었으므로';
+    const core183PositiveVerb = core183VerbKo === '심사받을지도 몰라요';
+    if (core183PositiveReason === core183PositiveVerb) {
+      const core183SubjectEn = core183Plural ? 'the applicants' : 'the applicant';
+      const core183TimeEn = core183TimeKo === '오늘' ? 'today' : 'this week';
+      const core183ModalEn = core183PositiveVerb ? 'might be screened' : 'might not be screened';
+      const core183ReasonEn = core183PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core183Core = `The ${core183Plural ? 'applicants' : 'applicant'} ${core183ModalEn} ${core183TimeEn} ${core183ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core183Core, originalText),
+        analysis: [
+          { ko: core183Plural ? '그 지원자들은' : '그 지원자는', en: `${core183SubjectEn} [S]` },
+          { ko: `조건이 ${core183ReasonKo}`, en: `${core183ReasonEn} [REASON]` },
+          { ko: core183TimeKo, en: `${core183TimeEn} [TIME]` },
+          { ko: core183VerbKo, en: `${core183ModalEn} [PASSIVE:CORE183:MIGHT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core183-applicants-screened-might-might-not-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE182-APPLICANTS-SCREENED-MAY-MAY-NOT-BE-BECAUSE-QUESTION-SLOT-SAFE
+  // Exactly eight questions; normalized excludes terminal punctuation and isQuestion guards modality.
+  // Preserves CORE1..181, including CORE181 declarative may/may-not.
+  const core182ApplicantScreenedMayQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) (심사받을 수도 있나요|심사받지 않을 수도 있나요)$/u.exec(normalized);
+  if (core182ApplicantScreenedMayQuestionMatch && isQuestion) {
+    const core182Plural = core182ApplicantScreenedMayQuestionMatch[1] === '들은';
+    const core182ReasonKo = core182ApplicantScreenedMayQuestionMatch[2];
+    const core182TimeKo = core182ApplicantScreenedMayQuestionMatch[3];
+    const core182VerbKo = core182ApplicantScreenedMayQuestionMatch[4];
+    const core182PositiveReason = core182ReasonKo === '충족되었으므로';
+    const core182PositiveVerb = core182VerbKo === '심사받을 수도 있나요';
+    if (core182PositiveReason === core182PositiveVerb) {
+      const core182SubjectEn = core182Plural ? 'the applicants' : 'the applicant';
+      const core182TimeEn = core182TimeKo === '오늘' ? 'today' : 'this week';
+      const core182PassiveEn = core182PositiveVerb ? 'be screened' : 'not be screened';
+      const core182ReasonEn = core182PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core182Core = `May ${core182SubjectEn} ${core182PassiveEn} ${core182TimeEn} ${core182ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core182Core, originalText),
+        analysis: [
+          { ko: core182Plural ? '그 지원자들은' : '그 지원자는', en: `${core182SubjectEn} [S]` },
+          { ko: `조건이 ${core182ReasonKo}`, en: `${core182ReasonEn} [REASON]` },
+          { ko: core182TimeKo, en: `${core182TimeEn} [TIME]` },
+          { ko: core182VerbKo, en: `May ${core182PassiveEn} [PASSIVE:CORE182:MAY:Q]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core182-applicants-screened-may-may-not-because-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE181-APPLICANTS-SCREENED-MAY-MAY-NOT-BE-BECAUSE-SLOT-SAFE
+  // Exactly eight declaratives, positive/negative may be screened; CORE1..180 untouched.
+  // normalized excludes terminal punctuation; !isQuestion restricts to statements.
+  const core181ApplicantScreenedMayMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) (심사받을 수도 있어요|심사받지 않을 수도 있어요)$/u.exec(normalized);
+  if (core181ApplicantScreenedMayMatch && !isQuestion) {
+    const core181Plural = core181ApplicantScreenedMayMatch[1] === '들은';
+    const core181ReasonKo = core181ApplicantScreenedMayMatch[2];
+    const core181TimeKo = core181ApplicantScreenedMayMatch[3];
+    const core181VerbKo = core181ApplicantScreenedMayMatch[4];
+    const core181PositiveReason = core181ReasonKo === '충족되었으므로';
+    const core181PositiveVerb = core181VerbKo === '심사받을 수도 있어요';
+    if (core181PositiveReason === core181PositiveVerb) {
+      const core181SubjectEn = core181Plural ? 'The applicants' : 'The applicant';
+      const core181TimeEn = core181TimeKo === '오늘' ? 'today' : 'this week';
+      const core181AuxEn = core181PositiveVerb ? 'may be screened' : 'may not be screened';
+      const core181ReasonEn = core181PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core181Core = `${core181SubjectEn} ${core181AuxEn} ${core181TimeEn} ${core181ReasonEn}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core181Core, originalText),
+        analysis: [
+          { ko: core181Plural ? '그 지원자들은' : '그 지원자는', en: `${core181SubjectEn} [S]` },
+          { ko: `조건이 ${core181ReasonKo}`, en: `${core181ReasonEn} [REASON]` },
+          { ko: core181TimeKo, en: `${core181TimeEn} [TIME]` },
+          { ko: core181VerbKo, en: `${core181AuxEn} [PASSIVE:CORE181:MAY]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core181-applicants-screened-may-may-not-because-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE180-APPLICANTS-SCREENED-MUST-MUST-NOT-BE-BECAUSE-QUESTION-SLOT-SAFE
+  // Eight exact must/must-not passive modal questions; CORE1..179 untouched.
+  // normalized excludes terminal question punctuation; isQuestion checks interrogative form.
+  const core180ApplicantScreenedMustQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었으므로|충족되지 않았으므로) (오늘|이번 주에) (반드시 심사받아야 하나요|절대로 심사받아서는 안 되나요)$/u.exec(normalized);
+  if (core180ApplicantScreenedMustQuestionMatch && isQuestion) {
+    const core180Plural = core180ApplicantScreenedMustQuestionMatch[1] === '들은';
+    const core180ReasonKo = core180ApplicantScreenedMustQuestionMatch[2];
+    const core180TimeKo = core180ApplicantScreenedMustQuestionMatch[3];
+    const core180VerbKo = core180ApplicantScreenedMustQuestionMatch[4];
+    const core180PositiveReason = core180ReasonKo === '충족되었으므로';
+    const core180PositiveVerb = core180VerbKo === '반드시 심사받아야 하나요';
+    if (core180PositiveReason === core180PositiveVerb) {
+      const core180SubjectEn = core180Plural ? 'the applicants' : 'the applicant';
+      const core180TimeEn = core180TimeKo === '오늘' ? 'today' : 'this week';
+      const core180VerbEn = 'Must';
+      const core180AuxEn = core180PositiveVerb ? 'be screened' : 'not be screened';
+      const core180ReasonEn = core180PositiveReason
+        ? 'because the conditions were met'
+        : 'because the conditions were not met';
+      const core180Core = `${core180VerbEn} ${core180SubjectEn} ${core180AuxEn} ${core180TimeEn} ${core180ReasonEn}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core180Core, originalText),
+        analysis: [
+          { ko: core180Plural ? '그 지원자들은' : '그 지원자는', en: `${core180SubjectEn} [S]` },
+          { ko: `조건이 ${core180ReasonKo}`, en: `${core180ReasonEn} [REASON]` },
+          { ko: core180TimeKo, en: `${core180TimeEn} [TIME]` },
+          { ko: core180VerbKo, en: `${core180VerbEn} ${core180AuxEn} [PASSIVE:CORE180:MUST-QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('심사받다', 'be screened', 'V'),
+        ],
+        engine: 'core180-applicants-screened-must-must-not-because-question-ko-en-safe',
+      };
+    }
+  }
   // XDIC-CORE179-APPLICANTS-SCREENED-MUST-MUST-NOT-BE-BECAUSE-SLOT-SAFE
   // Eight exact passive modal declaratives; CORE1..178 untouched.
   // normalized has no trailing punctuation; avoid question matches via !isQuestion.
