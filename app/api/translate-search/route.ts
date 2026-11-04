@@ -42667,6 +42667,2225 @@ const twoProTryKoEnGeneralPassiveAspectV1053GPA = (
   // XDIC-CORE52-APPLICANT-SINGULAR-SUBJECT-SLOT-SAFE
   // XDIC-CORE53-APPLICANTS-PLURAL-SUBJECT-SLOT-SAFE
   // XDIC-CORE57-APPLICANTS-INVITED-SIMPLE-PRESENT-PAST-SAFE
+  // XDIC-CORE417-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-SUPPOSED-NOT-SUPPOSED-PRESENT-STATEMENTS-SLOT-SAFE
+  // CORE417: eight SUPPOSED / NOT SUPPOSED present passive statements; preceding CORE handlers preserved.
+  const core417ApplicantReferredAdditionalScreeningSupposedPresentStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 (회부되도록 되어 있어요|회부되도록 되어 있지 않아요)$/u.exec(normalized);
+  if (core417ApplicantReferredAdditionalScreeningSupposedPresentStatementMatch && !isQuestion) {
+    const core417Plural = core417ApplicantReferredAdditionalScreeningSupposedPresentStatementMatch[1] === '들은';
+    const core417ReasonKo = core417ApplicantReferredAdditionalScreeningSupposedPresentStatementMatch[2];
+    const core417TimeKo = core417ApplicantReferredAdditionalScreeningSupposedPresentStatementMatch[3];
+    const core417SupposedKo = core417ApplicantReferredAdditionalScreeningSupposedPresentStatementMatch[4];
+    const core417Supposed = core417SupposedKo === '회부되도록 되어 있어요';
+    if ((core417ReasonKo === '충족되지 않았으므로') === core417Supposed) {
+      const core417Subject = core417Plural ? 'The applicants' : 'The applicant';
+      const core417Be = core417Plural ? 'are' : 'is';
+      const core417Not = core417Supposed ? '' : ' not';
+      const core417Time = core417TimeKo === '오늘' ? 'today' : 'this week';
+      const core417Reason = core417Supposed ? 'because the conditions were not met' : 'because the conditions were met';
+      const core417English = `${core417Subject} ${core417Be}${core417Not} supposed to be referred for additional screening ${core417Time} ${core417Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core417English, originalText),
+        analysis: [
+          { ko: core417Plural ? '그 지원자들은' : '그 지원자는', en: `${core417Subject.toLowerCase()} [S]` },
+          { ko: `조건이 ${core417ReasonKo}`, en: `${core417Reason} [REASON]` },
+          { ko: core417TimeKo, en: `${core417Time} [TIME]` },
+          { ko: `추가 심사에 ${core417SupposedKo}`, en: `${core417Be}${core417Not} supposed to be referred for additional screening [CORE417:SUPPOSED:PRESENT:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core417-applicants-referred-additional-screening-supposed-not-supposed-present-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE416-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-EXPECTED-NOT-EXPECTED-FUTURE-QUESTIONS-SLOT-SAFE
+  // CORE416: eight EXPECTED / NOT EXPECTED future passive questions; all preceding CORE handlers preserved.
+  const core416ApplicantReferredAdditionalScreeningExpectedFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (내일|다음 주에) 추가 심사에 회부될 것으로 (예상될 거예요|예상되지 않을 거예요)$/u.exec(normalized);
+  if (core416ApplicantReferredAdditionalScreeningExpectedFutureQuestionMatch && isQuestion) {
+    const core416Plural = core416ApplicantReferredAdditionalScreeningExpectedFutureQuestionMatch[1] === '들은';
+    const core416ReasonKo = core416ApplicantReferredAdditionalScreeningExpectedFutureQuestionMatch[2];
+    const core416TimeKo = core416ApplicantReferredAdditionalScreeningExpectedFutureQuestionMatch[3];
+    const core416PredictionKo = core416ApplicantReferredAdditionalScreeningExpectedFutureQuestionMatch[4];
+    const core416Expected = core416PredictionKo === '예상될 거예요';
+    if ((core416ReasonKo === '충족되지 않았으므로') === core416Expected) {
+      const core416Subject = core416Plural ? 'the applicants' : 'the applicant';
+      const core416Negation = core416Expected ? '' : ' not';
+      const core416Time = core416TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core416Reason = core416Expected ? 'because the conditions were not met' : 'because the conditions were met';
+      const core416English = `Will ${core416Subject}${core416Negation} be expected to be referred for additional screening ${core416Time} ${core416Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core416English, originalText),
+        analysis: [
+          { ko: core416Plural ? '그 지원자들은' : '그 지원자는', en: `${core416Subject} [S]` },
+          { ko: `조건이 ${core416ReasonKo}`, en: `${core416Reason} [REASON]` },
+          { ko: core416TimeKo, en: `${core416Time} [TIME]` },
+          { ko: `추가 심사에 회부될 것으로 ${core416PredictionKo}`, en: `will${core416Negation} be expected to be referred for additional screening [CORE416:EXPECTED:FUTURE:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core416-applicants-referred-additional-screening-expected-not-expected-future-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE415-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-EXPECTED-NOT-EXPECTED-FUTURE-STATEMENTS-SLOT-SAFE
+  // CORE415: eight EXPECTED / NOT EXPECTED future passive statements; all preceding CORE handlers preserved.
+  const core415ApplicantReferredAdditionalScreeningExpectedFutureStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (내일|다음 주에) 추가 심사에 회부될 것으로 (예상될 거예요|예상되지 않을 거예요)$/u.exec(normalized);
+  if (core415ApplicantReferredAdditionalScreeningExpectedFutureStatementMatch && !isQuestion) {
+    const core415Plural = core415ApplicantReferredAdditionalScreeningExpectedFutureStatementMatch[1] === '들은';
+    const core415ReasonKo = core415ApplicantReferredAdditionalScreeningExpectedFutureStatementMatch[2];
+    const core415TimeKo = core415ApplicantReferredAdditionalScreeningExpectedFutureStatementMatch[3];
+    const core415PredictionKo = core415ApplicantReferredAdditionalScreeningExpectedFutureStatementMatch[4];
+    const core415Expected = core415PredictionKo === '예상될 거예요';
+    if ((core415ReasonKo === '충족되지 않았으므로') === core415Expected) {
+      const core415Subject = core415Plural ? 'The applicants' : 'The applicant';
+      const core415Negation = core415Expected ? '' : ' not';
+      const core415Time = core415TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core415Reason = core415Expected ? 'because the conditions were not met' : 'because the conditions were met';
+      const core415English = `${core415Subject} will${core415Negation} be expected to be referred for additional screening ${core415Time} ${core415Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core415English, originalText),
+        analysis: [
+          { ko: core415Plural ? '그 지원자들은' : '그 지원자는', en: `${core415Subject} [S]` },
+          { ko: `조건이 ${core415ReasonKo}`, en: `${core415Reason} [REASON]` },
+          { ko: core415TimeKo, en: `${core415Time} [TIME]` },
+          { ko: `추가 심사에 회부될 것으로 ${core415PredictionKo}`, en: `will${core415Negation} be expected to be referred for additional screening [CORE415:EXPECTED:FUTURE:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core415-applicants-referred-additional-screening-expected-not-expected-future-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE414-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-EXPECTED-NOT-EXPECTED-PAST-QUESTIONS-SLOT-SAFE
+  // CORE414: eight EXPECTED / NOT EXPECTED past passive questions; all preceding CORE handlers preserved.
+  const core414ApplicantReferredAdditionalScreeningExpectedPastQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주에) 추가 심사에 회부될 것으로 (예상되었어요|예상되지 않았어요)$/u.exec(normalized);
+  if (core414ApplicantReferredAdditionalScreeningExpectedPastQuestionMatch && isQuestion) {
+    const core414Plural = core414ApplicantReferredAdditionalScreeningExpectedPastQuestionMatch[1] === '들은';
+    const core414ReasonKo = core414ApplicantReferredAdditionalScreeningExpectedPastQuestionMatch[2];
+    const core414TimeKo = core414ApplicantReferredAdditionalScreeningExpectedPastQuestionMatch[3];
+    const core414PredictionKo = core414ApplicantReferredAdditionalScreeningExpectedPastQuestionMatch[4];
+    const core414Expected = core414PredictionKo === '예상되었어요';
+    if ((core414ReasonKo === '충족되지 않았으므로') === core414Expected) {
+      const core414Subject = core414Plural ? 'the applicants' : 'the applicant';
+      const core414Aux = core414Plural ? 'Were' : 'Was';
+      const core414Negation = core414Expected ? '' : ' not';
+      const core414Time = core414TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core414Reason = core414Expected ? 'because the conditions were not met' : 'because the conditions were met';
+      const core414English = `${core414Aux} ${core414Subject}${core414Negation} expected to be referred for additional screening ${core414Time} ${core414Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core414English, originalText),
+        analysis: [
+          { ko: core414Plural ? '그 지원자들은' : '그 지원자는', en: `${core414Subject} [S]` },
+          { ko: `조건이 ${core414ReasonKo}`, en: `${core414Reason} [REASON]` },
+          { ko: core414TimeKo, en: `${core414Time} [TIME]` },
+          { ko: `추가 심사에 회부될 것으로 ${core414PredictionKo}`, en: `${core414Aux.toLowerCase()}${core414Negation} expected to be referred for additional screening [CORE414:EXPECTED:PAST:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core414-applicants-referred-additional-screening-expected-not-expected-past-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE413-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-EXPECTED-NOT-EXPECTED-PAST-STATEMENTS-SLOT-SAFE
+  // CORE413: eight EXPECTED / NOT EXPECTED past passive statements; all preceding CORE handlers preserved.
+  const core413ApplicantReferredAdditionalScreeningExpectedPastStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주에) 추가 심사에 회부될 것으로 (예상되었어요|예상되지 않았어요)$/u.exec(normalized);
+  if (core413ApplicantReferredAdditionalScreeningExpectedPastStatementMatch && !isQuestion) {
+    const core413Plural = core413ApplicantReferredAdditionalScreeningExpectedPastStatementMatch[1] === '들은';
+    const core413ReasonKo = core413ApplicantReferredAdditionalScreeningExpectedPastStatementMatch[2];
+    const core413TimeKo = core413ApplicantReferredAdditionalScreeningExpectedPastStatementMatch[3];
+    const core413PredictionKo = core413ApplicantReferredAdditionalScreeningExpectedPastStatementMatch[4];
+    const core413Expected = core413PredictionKo === '예상되었어요';
+    if ((core413ReasonKo === '충족되지 않았으므로') === core413Expected) {
+      const core413Subject = core413Plural ? 'The applicants' : 'The applicant';
+      const core413Aux = core413Plural ? 'were' : 'was';
+      const core413Negation = core413Expected ? '' : ' not';
+      const core413Time = core413TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core413Reason = core413Expected ? 'because the conditions were not met' : 'because the conditions were met';
+      const core413English = `${core413Subject} ${core413Aux}${core413Negation} expected to be referred for additional screening ${core413Time} ${core413Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core413English, originalText),
+        analysis: [
+          { ko: core413Plural ? '그 지원자들은' : '그 지원자는', en: `${core413Subject.toLowerCase()} [S]` },
+          { ko: `조건이 ${core413ReasonKo}`, en: `${core413Reason} [REASON]` },
+          { ko: core413TimeKo, en: `${core413Time} [TIME]` },
+          { ko: `추가 심사에 회부될 것으로 ${core413PredictionKo}`, en: `${core413Aux}${core413Negation} expected to be referred for additional screening [CORE413:EXPECTED:PAST:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core413-applicants-referred-additional-screening-expected-not-expected-past-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE412-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-EXPECTED-NOT-EXPECTED-QUESTIONS-SLOT-SAFE
+  // CORE412: eight EXPECTED / NOT EXPECTED present passive questions; all preceding CORE handlers preserved.
+  const core412ApplicantReferredAdditionalScreeningExpectedQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 회부될 것으로 (예상돼요|예상되지 않아요)$/u.exec(normalized);
+  if (core412ApplicantReferredAdditionalScreeningExpectedQuestionMatch && isQuestion) {
+    const core412Plural = core412ApplicantReferredAdditionalScreeningExpectedQuestionMatch[1] === '들은';
+    const core412ReasonKo = core412ApplicantReferredAdditionalScreeningExpectedQuestionMatch[2];
+    const core412TimeKo = core412ApplicantReferredAdditionalScreeningExpectedQuestionMatch[3];
+    const core412PredictionKo = core412ApplicantReferredAdditionalScreeningExpectedQuestionMatch[4];
+    const core412Expected = core412PredictionKo === '예상돼요';
+    if ((core412ReasonKo === '충족되지 않았으므로') === core412Expected) {
+      const core412Subject = core412Plural ? 'the applicants' : 'the applicant';
+      const core412Aux = core412Plural ? 'Are' : 'Is';
+      const core412Negation = core412Expected ? '' : ' not';
+      const core412Time = core412TimeKo === '오늘' ? 'today' : 'this week';
+      const core412Reason = core412Expected ? 'because the conditions were not met' : 'because the conditions were met';
+      const core412English = `${core412Aux} ${core412Subject}${core412Negation} expected to be referred for additional screening ${core412Time} ${core412Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core412English, originalText),
+        analysis: [
+          { ko: core412Plural ? '그 지원자들은' : '그 지원자는', en: `${core412Subject} [S]` },
+          { ko: `조건이 ${core412ReasonKo}`, en: `${core412Reason} [REASON]` },
+          { ko: core412TimeKo, en: `${core412Time} [TIME]` },
+          { ko: `추가 심사에 회부될 것으로 ${core412PredictionKo}`, en: `${core412Aux} ${core412Subject}${core412Negation} expected to be referred for additional screening [CORE412:EXPECTED:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core412-applicants-referred-additional-screening-expected-not-expected-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE411-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-EXPECTED-NOT-EXPECTED-STATEMENTS-SLOT-SAFE
+  // CORE411: eight EXPECTED / NOT EXPECTED present passive statements; all preceding CORE handlers preserved.
+  const core411ApplicantReferredAdditionalScreeningExpectedMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 회부될 것으로 (예상돼요|예상되지 않아요)$/u.exec(normalized);
+  if (core411ApplicantReferredAdditionalScreeningExpectedMatch && !isQuestion) {
+    const core411Plural = core411ApplicantReferredAdditionalScreeningExpectedMatch[1] === '들은';
+    const core411ReasonKo = core411ApplicantReferredAdditionalScreeningExpectedMatch[2];
+    const core411TimeKo = core411ApplicantReferredAdditionalScreeningExpectedMatch[3];
+    const core411PredictionKo = core411ApplicantReferredAdditionalScreeningExpectedMatch[4];
+    const core411Expected = core411PredictionKo === '예상돼요';
+    if ((core411ReasonKo === '충족되지 않았으므로') === core411Expected) {
+      const core411Subject = core411Plural ? 'The applicants' : 'The applicant';
+      const core411Aux = core411Plural ? 'are' : 'is';
+      const core411Negation = core411Expected ? '' : ' not';
+      const core411Time = core411TimeKo === '오늘' ? 'today' : 'this week';
+      const core411Reason = core411Expected ? 'because the conditions were not met' : 'because the conditions were met';
+      const core411English = `${core411Subject} ${core411Aux}${core411Negation} expected to be referred for additional screening ${core411Time} ${core411Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core411English, originalText),
+        analysis: [
+          { ko: core411Plural ? '그 지원자들은' : '그 지원자는', en: `${core411Subject} [S]` },
+          { ko: `조건이 ${core411ReasonKo}`, en: `${core411Reason} [REASON]` },
+          { ko: core411TimeKo, en: `${core411Time} [TIME]` },
+          { ko: `추가 심사에 회부될 것으로 ${core411PredictionKo}`, en: `${core411Aux}${core411Negation} expected to be referred for additional screening [CORE411:EXPECTED:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core411-applicants-referred-additional-screening-expected-not-expected-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE410-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-LIKELY-UNLIKELY-FUTURE-QUESTIONS-SLOT-SAFE
+  // CORE410: eight LIKELY / UNLIKELY future passive questions; preserve all previous CORE handlers.
+  const core410ApplicantReferredAdditionalScreeningFutureLikelyQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (내일|다음 주에) 추가 심사에 회부될 가능성이 (높을 거예요|낮을 거예요)$/u.exec(normalized);
+  if (core410ApplicantReferredAdditionalScreeningFutureLikelyQuestionMatch && isQuestion) {
+    const core410Plural = core410ApplicantReferredAdditionalScreeningFutureLikelyQuestionMatch[1] === '들은';
+    const core410ReasonKo = core410ApplicantReferredAdditionalScreeningFutureLikelyQuestionMatch[2];
+    const core410TimeKo = core410ApplicantReferredAdditionalScreeningFutureLikelyQuestionMatch[3];
+    const core410LikelihoodKo = core410ApplicantReferredAdditionalScreeningFutureLikelyQuestionMatch[4];
+    const core410Likely = core410LikelihoodKo === '높을 거예요';
+    if ((core410ReasonKo === '충족되지 않았으므로') === core410Likely) {
+      const core410Subject = core410Plural ? 'the applicants' : 'the applicant';
+      const core410Adjective = core410Likely ? 'likely' : 'unlikely';
+      const core410Time = core410TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core410Reason = core410Likely ? 'because the conditions were not met' : 'because the conditions were met';
+      const core410English = `Will ${core410Subject} be ${core410Adjective} to be referred for additional screening ${core410Time} ${core410Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core410English, originalText),
+        analysis: [
+          { ko: core410Plural ? '그 지원자들은' : '그 지원자는', en: `${core410Subject} [S]` },
+          { ko: `조건이 ${core410ReasonKo}`, en: `${core410Reason} [REASON]` },
+          { ko: core410TimeKo, en: `${core410Time} [TIME]` },
+          { ko: `추가 심사에 회부될 가능성이 ${core410LikelihoodKo}`, en: `will be ${core410Adjective} to be referred for additional screening [CORE410:LIKELY:FUTURE:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core410-applicants-referred-additional-screening-likely-unlikely-future-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE409-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-LIKELY-UNLIKELY-FUTURE-STATEMENTS-SLOT-SAFE
+  // CORE409: eight LIKELY / UNLIKELY future passive statements; preserve all previous CORE handlers.
+  const core409ApplicantReferredAdditionalScreeningFutureLikelyMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (내일|다음 주에) 추가 심사에 회부될 가능성이 (높을 거예요|낮을 거예요)$/u.exec(normalized);
+  if (core409ApplicantReferredAdditionalScreeningFutureLikelyMatch && !isQuestion) {
+    const core409Plural = core409ApplicantReferredAdditionalScreeningFutureLikelyMatch[1] === '들은';
+    const core409ReasonKo = core409ApplicantReferredAdditionalScreeningFutureLikelyMatch[2];
+    const core409TimeKo = core409ApplicantReferredAdditionalScreeningFutureLikelyMatch[3];
+    const core409LikelihoodKo = core409ApplicantReferredAdditionalScreeningFutureLikelyMatch[4];
+    const core409Likely = core409LikelihoodKo === '높을 거예요';
+    if ((core409ReasonKo === '충족되지 않았으므로') === core409Likely) {
+      const core409Subject = core409Plural ? 'The applicants' : 'The applicant';
+      const core409Adjective = core409Likely ? 'likely' : 'unlikely';
+      const core409Time = core409TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core409Reason = core409Likely ? 'because the conditions were not met' : 'because the conditions were met';
+      const core409English = `${core409Subject} will be ${core409Adjective} to be referred for additional screening ${core409Time} ${core409Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core409English, originalText),
+        analysis: [
+          { ko: core409Plural ? '그 지원자들은' : '그 지원자는', en: `${core409Subject.toLowerCase()} [S]` },
+          { ko: `조건이 ${core409ReasonKo}`, en: `${core409Reason} [REASON]` },
+          { ko: core409TimeKo, en: `${core409Time} [TIME]` },
+          { ko: `추가 심사에 회부될 가능성이 ${core409LikelihoodKo}`, en: `will be ${core409Adjective} to be referred for additional screening [CORE409:LIKELY:FUTURE:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core409-applicants-referred-additional-screening-likely-unlikely-future-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE408-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-LIKELY-UNLIKELY-PAST-QUESTIONS-SLOT-SAFE
+  // CORE408: eight LIKELY / UNLIKELY past passive questions; preserve all previous CORE handlers.
+  const core408ApplicantReferredAdditionalScreeningPastLikelyQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주에) 추가 심사에 회부될 가능성이 (높았어요|낮았어요)$/u.exec(normalized);
+  if (core408ApplicantReferredAdditionalScreeningPastLikelyQuestionMatch && isQuestion) {
+    const core408Plural = core408ApplicantReferredAdditionalScreeningPastLikelyQuestionMatch[1] === '들은';
+    const core408ReasonKo = core408ApplicantReferredAdditionalScreeningPastLikelyQuestionMatch[2];
+    const core408TimeKo = core408ApplicantReferredAdditionalScreeningPastLikelyQuestionMatch[3];
+    const core408LikelihoodKo = core408ApplicantReferredAdditionalScreeningPastLikelyQuestionMatch[4];
+    const core408Likely = core408LikelihoodKo === '높았어요';
+    if ((core408ReasonKo === '충족되지 않았으므로') === core408Likely) {
+      const core408Subject = core408Plural ? 'the applicants' : 'the applicant';
+      const core408Be = core408Plural ? 'Were' : 'Was';
+      const core408Adjective = core408Likely ? 'likely' : 'unlikely';
+      const core408Time = core408TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core408Reason = core408Likely ? 'because the conditions were not met' : 'because the conditions were met';
+      const core408English = `${core408Be} ${core408Subject} ${core408Adjective} to be referred for additional screening ${core408Time} ${core408Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core408English, originalText),
+        analysis: [
+          { ko: core408Plural ? '그 지원자들은' : '그 지원자는', en: `${core408Subject} [S]` },
+          { ko: `조건이 ${core408ReasonKo}`, en: `${core408Reason} [REASON]` },
+          { ko: core408TimeKo, en: `${core408Time} [TIME]` },
+          { ko: `추가 심사에 회부될 가능성이 ${core408LikelihoodKo}`, en: `${core408Be} ${core408Subject} ${core408Adjective} to be referred for additional screening [CORE408:LIKELY:PAST:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core408-applicants-referred-additional-screening-likely-unlikely-past-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE407-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-LIKELY-UNLIKELY-PAST-STATEMENTS-SLOT-SAFE
+  // CORE407: eight LIKELY / UNLIKELY past passive statements; preserve all previous CORE handlers.
+  const core407ApplicantReferredAdditionalScreeningPastLikelyMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주에) 추가 심사에 회부될 가능성이 (높았어요|낮았어요)$/u.exec(normalized);
+  if (core407ApplicantReferredAdditionalScreeningPastLikelyMatch && !isQuestion) {
+    const core407Plural = core407ApplicantReferredAdditionalScreeningPastLikelyMatch[1] === '들은';
+    const core407ReasonKo = core407ApplicantReferredAdditionalScreeningPastLikelyMatch[2];
+    const core407TimeKo = core407ApplicantReferredAdditionalScreeningPastLikelyMatch[3];
+    const core407LikelihoodKo = core407ApplicantReferredAdditionalScreeningPastLikelyMatch[4];
+    const core407Likely = core407LikelihoodKo === '높았어요';
+    if ((core407ReasonKo === '충족되지 않았으므로') === core407Likely) {
+      const core407Subject = core407Plural ? 'The applicants' : 'The applicant';
+      const core407Be = core407Plural ? 'were' : 'was';
+      const core407Adjective = core407Likely ? 'likely' : 'unlikely';
+      const core407Time = core407TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core407Reason = core407Likely ? 'because the conditions were not met' : 'because the conditions were met';
+      const core407English = `${core407Subject} ${core407Be} ${core407Adjective} to be referred for additional screening ${core407Time} ${core407Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core407English, originalText),
+        analysis: [
+          { ko: core407Plural ? '그 지원자들은' : '그 지원자는', en: `${core407Subject} [S]` },
+          { ko: `조건이 ${core407ReasonKo}`, en: `${core407Reason} [REASON]` },
+          { ko: core407TimeKo, en: `${core407Time} [TIME]` },
+          { ko: `추가 심사에 회부될 가능성이 ${core407LikelihoodKo}`, en: `${core407Be} ${core407Adjective} to be referred for additional screening [CORE407:LIKELY:PAST:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core407-applicants-referred-additional-screening-likely-unlikely-past-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE406-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-LIKELY-UNLIKELY-QUESTIONS-SLOT-SAFE
+  // CORE406: eight LIKELY / UNLIKELY passive questions; preserve all previous CORE handlers.
+  const core406ApplicantReferredAdditionalScreeningLikelyQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 회부될 가능성이 (높아요|낮아요)$/u.exec(normalized);
+  if (core406ApplicantReferredAdditionalScreeningLikelyQuestionMatch && isQuestion) {
+    const core406Plural = core406ApplicantReferredAdditionalScreeningLikelyQuestionMatch[1] === '들은';
+    const core406ReasonKo = core406ApplicantReferredAdditionalScreeningLikelyQuestionMatch[2];
+    const core406TimeKo = core406ApplicantReferredAdditionalScreeningLikelyQuestionMatch[3];
+    const core406LikelihoodKo = core406ApplicantReferredAdditionalScreeningLikelyQuestionMatch[4];
+    const core406Likely = core406LikelihoodKo === '높아요';
+    if ((core406ReasonKo === '충족되지 않았으므로') === core406Likely) {
+      const core406Subject = core406Plural ? 'the applicants' : 'the applicant';
+      const core406Be = core406Plural ? 'Are' : 'Is';
+      const core406Adjective = core406Likely ? 'likely' : 'unlikely';
+      const core406Time = core406TimeKo === '오늘' ? 'today' : 'this week';
+      const core406Reason = core406Likely ? 'because the conditions were not met' : 'because the conditions were met';
+      const core406English = `${core406Be} ${core406Subject} ${core406Adjective} to be referred for additional screening ${core406Time} ${core406Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core406English, originalText),
+        analysis: [
+          { ko: core406Plural ? '그 지원자들은' : '그 지원자는', en: `${core406Subject} [S]` },
+          { ko: `조건이 ${core406ReasonKo}`, en: `${core406Reason} [REASON]` },
+          { ko: core406TimeKo, en: `${core406Time} [TIME]` },
+          { ko: `추가 심사에 회부될 가능성이 ${core406LikelihoodKo}`, en: `${core406Be} ${core406Subject} ${core406Adjective} to be referred for additional screening [CORE406:LIKELY:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core406-applicants-referred-additional-screening-likely-unlikely-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE405-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-LIKELY-UNLIKELY-STATEMENTS-SLOT-SAFE
+  // CORE405: eight LIKELY / UNLIKELY passive statements; do not change preceding CORE rules.
+  const core405ApplicantReferredAdditionalScreeningLikelyMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 회부될 가능성이 (높아요|낮아요)$/u.exec(normalized);
+  if (core405ApplicantReferredAdditionalScreeningLikelyMatch && !isQuestion) {
+    const core405Plural = core405ApplicantReferredAdditionalScreeningLikelyMatch[1] === '들은';
+    const core405ReasonKo = core405ApplicantReferredAdditionalScreeningLikelyMatch[2];
+    const core405TimeKo = core405ApplicantReferredAdditionalScreeningLikelyMatch[3];
+    const core405LikelihoodKo = core405ApplicantReferredAdditionalScreeningLikelyMatch[4];
+    const core405Likely = core405LikelihoodKo === '높아요';
+    if ((core405ReasonKo === '충족되지 않았으므로') === core405Likely) {
+      const core405Subject = core405Plural ? 'The applicants' : 'The applicant';
+      const core405Be = core405Plural ? 'are' : 'is';
+      const core405Adjective = core405Likely ? 'likely' : 'unlikely';
+      const core405Time = core405TimeKo === '오늘' ? 'today' : 'this week';
+      const core405Reason = core405Likely ? 'because the conditions were not met' : 'because the conditions were met';
+      const core405English = `${core405Subject} ${core405Be} ${core405Adjective} to be referred for additional screening ${core405Time} ${core405Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core405English, originalText),
+        analysis: [
+          { ko: core405Plural ? '그 지원자들은' : '그 지원자는', en: `${core405Subject} [S]` },
+          { ko: `조건이 ${core405ReasonKo}`, en: `${core405Reason} [REASON]` },
+          { ko: core405TimeKo, en: `${core405Time} [TIME]` },
+          { ko: `추가 심사에 회부될 가능성이 ${core405LikelihoodKo}`, en: `${core405Be} ${core405Adjective} to be referred for additional screening [CORE405:LIKELY:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core405-applicants-referred-additional-screening-likely-unlikely-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE404-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MAY-HAVE-MAY-NOT-HAVE-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE404: eight past conditional MAY HAVE / MAY NOT HAVE passive questions; all preceding CORE handlers stay unchanged.
+  const core404ApplicantReferredAdditionalScreeningMayHaveConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주에) 추가 심사에 (회부되었을 수도 있어요|회부되지 않았을 수도 있어요)$/u.exec(normalized);
+  if (core404ApplicantReferredAdditionalScreeningMayHaveConditionalQuestionMatch && isQuestion) {
+    const core404Plural = core404ApplicantReferredAdditionalScreeningMayHaveConditionalQuestionMatch[1] === '들은';
+    const core404ReasonKo = core404ApplicantReferredAdditionalScreeningMayHaveConditionalQuestionMatch[2];
+    const core404TimeKo = core404ApplicantReferredAdditionalScreeningMayHaveConditionalQuestionMatch[3];
+    const core404PredicateKo = core404ApplicantReferredAdditionalScreeningMayHaveConditionalQuestionMatch[4];
+    const core404Positive = core404PredicateKo === '회부되었을 수도 있어요';
+    if ((core404ReasonKo === '충족되지 않았더라면') === core404Positive) {
+      const core404Subject = core404Plural ? 'the applicants' : 'the applicant';
+      const core404Negation = core404Positive ? '' : ' not';
+      const core404Time = core404TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core404Condition = core404Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+      const core404English = `May ${core404Subject}${core404Negation} have been referred for additional screening ${core404Time} ${core404Condition}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core404English, originalText),
+        analysis: [
+          { ko: core404Plural ? '그 지원자들은' : '그 지원자는', en: `${core404Subject} [S]` },
+          { ko: `조건이 ${core404ReasonKo}`, en: `${core404Condition} [CONDITION]` },
+          { ko: core404TimeKo, en: `${core404Time} [TIME]` },
+          { ko: core404PredicateKo, en: `may${core404Negation} have been referred for additional screening [CORE404:MAY-HAVE:CONDITIONAL-QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core404-applicants-referred-additional-screening-may-have-may-not-have-conditional-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE403-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MAY-HAVE-MAY-NOT-HAVE-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE403: eight past conditional MAY HAVE / MAY NOT HAVE passive statements; all preceding CORE handlers stay unchanged.
+  const core403ApplicantReferredAdditionalScreeningMayHaveConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주에) 추가 심사에 (회부되었을 수도 있어요|회부되지 않았을 수도 있어요)$/u.exec(normalized);
+  if (core403ApplicantReferredAdditionalScreeningMayHaveConditionalStatementMatch && !isQuestion) {
+    const core403Plural = core403ApplicantReferredAdditionalScreeningMayHaveConditionalStatementMatch[1] === '들은';
+    const core403ReasonKo = core403ApplicantReferredAdditionalScreeningMayHaveConditionalStatementMatch[2];
+    const core403TimeKo = core403ApplicantReferredAdditionalScreeningMayHaveConditionalStatementMatch[3];
+    const core403PredicateKo = core403ApplicantReferredAdditionalScreeningMayHaveConditionalStatementMatch[4];
+    const core403Positive = core403PredicateKo === '회부되었을 수도 있어요';
+    if ((core403ReasonKo === '충족되지 않았더라면') === core403Positive) {
+      const core403Subject = core403Plural ? 'The applicants' : 'The applicant';
+      const core403Negation = core403Positive ? '' : ' not';
+      const core403Time = core403TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core403Condition = core403Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+      const core403English = `${core403Subject} may${core403Negation} have been referred for additional screening ${core403Time} ${core403Condition}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core403English, originalText),
+        analysis: [
+          { ko: core403Plural ? '그 지원자들은' : '그 지원자는', en: `${core403Subject} [S]` },
+          { ko: `조건이 ${core403ReasonKo}`, en: `${core403Condition} [CONDITION]` },
+          { ko: core403TimeKo, en: `${core403Time} [TIME]` },
+          { ko: core403PredicateKo, en: `may${core403Negation} have been referred for additional screening [CORE403:MAY-HAVE:CONDITIONAL-STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core403-applicants-referred-additional-screening-may-have-may-not-have-conditional-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE402-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MIGHT-HAVE-MIGHT-NOT-HAVE-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE402: eight past counterfactual MIGHT HAVE / MIGHT NOT HAVE passive questions; preceding CORE handlers remain unchanged.
+  const core402ApplicantReferredAdditionalScreeningMightHaveConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주에) 추가 심사에 (회부되었을지도 몰라요|회부되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core402ApplicantReferredAdditionalScreeningMightHaveConditionalQuestionMatch && isQuestion) {
+    const core402Plural = core402ApplicantReferredAdditionalScreeningMightHaveConditionalQuestionMatch[1] === '들은';
+    const core402ReasonKo = core402ApplicantReferredAdditionalScreeningMightHaveConditionalQuestionMatch[2];
+    const core402TimeKo = core402ApplicantReferredAdditionalScreeningMightHaveConditionalQuestionMatch[3];
+    const core402PredicateKo = core402ApplicantReferredAdditionalScreeningMightHaveConditionalQuestionMatch[4];
+    const core402Positive = core402PredicateKo === '회부되었을지도 몰라요';
+    if ((core402ReasonKo === '충족되지 않았더라면') === core402Positive) {
+      const core402Subject = core402Plural ? 'the applicants' : 'the applicant';
+      const core402Negation = core402Positive ? '' : ' not';
+      const core402Time = core402TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core402Condition = core402Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+      const core402English = `Might ${core402Subject}${core402Negation} have been referred for additional screening ${core402Time} ${core402Condition}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core402English, originalText),
+        analysis: [
+          { ko: core402Plural ? '그 지원자들은' : '그 지원자는', en: `${core402Subject} [S]` },
+          { ko: `조건이 ${core402ReasonKo}`, en: `${core402Condition} [CONDITION]` },
+          { ko: core402TimeKo, en: `${core402Time} [TIME]` },
+          { ko: core402PredicateKo, en: `might${core402Negation} have been referred for additional screening [CORE402:MIGHT-HAVE:CONDITIONAL-QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core402-applicants-referred-additional-screening-might-have-might-not-have-conditional-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE401-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MIGHT-HAVE-MIGHT-NOT-HAVE-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE401: eight past counterfactual MIGHT HAVE / MIGHT NOT HAVE passive statements; preceding CORE handlers remain unchanged.
+  const core401ApplicantReferredAdditionalScreeningMightHaveConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주에) 추가 심사에 (회부되었을지도 몰라요|회부되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core401ApplicantReferredAdditionalScreeningMightHaveConditionalStatementMatch && !isQuestion) {
+    const core401Plural = core401ApplicantReferredAdditionalScreeningMightHaveConditionalStatementMatch[1] === '들은';
+    const core401ReasonKo = core401ApplicantReferredAdditionalScreeningMightHaveConditionalStatementMatch[2];
+    const core401TimeKo = core401ApplicantReferredAdditionalScreeningMightHaveConditionalStatementMatch[3];
+    const core401PredicateKo = core401ApplicantReferredAdditionalScreeningMightHaveConditionalStatementMatch[4];
+    const core401Positive = core401PredicateKo === '회부되었을지도 몰라요';
+    if ((core401ReasonKo === '충족되지 않았더라면') === core401Positive) {
+      const core401Subject = core401Plural ? 'The applicants' : 'The applicant';
+      const core401Negation = core401Positive ? '' : ' not';
+      const core401Time = core401TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core401Condition = core401Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+      const core401English = `${core401Subject} might${core401Negation} have been referred for additional screening ${core401Time} ${core401Condition}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core401English, originalText),
+        analysis: [
+          { ko: core401Plural ? '그 지원자들은' : '그 지원자는', en: `${core401Subject} [S]` },
+          { ko: `조건이 ${core401ReasonKo}`, en: `${core401Condition} [CONDITION]` },
+          { ko: core401TimeKo, en: `${core401Time} [TIME]` },
+          { ko: core401PredicateKo, en: `might${core401Negation} have been referred for additional screening [CORE401:MIGHT-HAVE:CONDITIONAL-STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core401-applicants-referred-additional-screening-might-have-might-not-have-conditional-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE400-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-SHOULD-HAVE-SHOULD-NOT-HAVE-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE400: eight counterfactual past SHOULD HAVE / SHOULD NOT HAVE passive questions; preserve existing handlers.
+  const core400ApplicantReferredAdditionalScreeningShouldHaveConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주에) 추가 심사에 (회부되었어야 했을 텐데요|회부되지 않았어야 했을 텐데요)$/u.exec(normalized);
+  if (core400ApplicantReferredAdditionalScreeningShouldHaveConditionalQuestionMatch && isQuestion) {
+    const core400Plural = core400ApplicantReferredAdditionalScreeningShouldHaveConditionalQuestionMatch[1] === '들은';
+    const core400ReasonKo = core400ApplicantReferredAdditionalScreeningShouldHaveConditionalQuestionMatch[2];
+    const core400TimeKo = core400ApplicantReferredAdditionalScreeningShouldHaveConditionalQuestionMatch[3];
+    const core400PredicateKo = core400ApplicantReferredAdditionalScreeningShouldHaveConditionalQuestionMatch[4];
+    const core400Positive = core400PredicateKo === '회부되었어야 했을 텐데요';
+    if ((core400ReasonKo === '충족되지 않았더라면') === core400Positive) {
+      const core400Subject = core400Plural ? 'the applicants' : 'the applicant';
+      const core400Negation = core400Positive ? '' : ' not';
+      const core400Time = core400TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core400Condition = core400Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+      const core400English = `Should ${core400Subject}${core400Negation} have been referred for additional screening ${core400Time} ${core400Condition}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core400English, originalText),
+        analysis: [
+          { ko: core400Plural ? '그 지원자들은' : '그 지원자는', en: `${core400Subject} [S]` },
+          { ko: `조건이 ${core400ReasonKo}`, en: `${core400Condition} [CONDITION]` },
+          { ko: core400TimeKo, en: `${core400Time} [TIME]` },
+          { ko: core400PredicateKo, en: `Should ${core400Subject}${core400Negation} have been referred for additional screening [CORE400:SHOULD-HAVE:CONDITIONAL-QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core400-applicants-referred-additional-screening-should-have-should-not-have-conditional-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE399-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-SHOULD-HAVE-SHOULD-NOT-HAVE-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE399: eight past counterfactual SHOULD HAVE / SHOULD NOT HAVE passive statements; preserve preceding handlers.
+  const core399ApplicantReferredAdditionalScreeningShouldHaveConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주에) 추가 심사에 (회부되었어야 했을 텐데요|회부되지 않았어야 했을 텐데요)$/u.exec(normalized);
+  if (core399ApplicantReferredAdditionalScreeningShouldHaveConditionalStatementMatch && !isQuestion) {
+    const core399Plural = core399ApplicantReferredAdditionalScreeningShouldHaveConditionalStatementMatch[1] === '들은';
+    const core399ReasonKo = core399ApplicantReferredAdditionalScreeningShouldHaveConditionalStatementMatch[2];
+    const core399TimeKo = core399ApplicantReferredAdditionalScreeningShouldHaveConditionalStatementMatch[3];
+    const core399PredicateKo = core399ApplicantReferredAdditionalScreeningShouldHaveConditionalStatementMatch[4];
+    const core399Positive = core399PredicateKo === '회부되었어야 했을 텐데요';
+    if ((core399ReasonKo === '충족되지 않았더라면') === core399Positive) {
+      const core399Subject = core399Plural ? 'The applicants' : 'The applicant';
+      const core399Negation = core399Positive ? '' : ' not';
+      const core399Time = core399TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core399Condition = core399Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+      const core399English = `${core399Subject} should${core399Negation} have been referred for additional screening ${core399Time} ${core399Condition}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core399English, originalText),
+        analysis: [
+          { ko: core399Plural ? '그 지원자들은' : '그 지원자는', en: `${core399Subject} [S]` },
+          { ko: `조건이 ${core399ReasonKo}`, en: `${core399Condition} [CONDITION]` },
+          { ko: core399TimeKo, en: `${core399Time} [TIME]` },
+          { ko: core399PredicateKo, en: `should${core399Negation} have been referred for additional screening [CORE399:SHOULD-HAVE:CONDITIONAL-STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core399-applicants-referred-additional-screening-should-have-should-not-have-conditional-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE398-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-COULD-HAVE-COULD-NOT-HAVE-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE398: eight counterfactual past COULD HAVE / COULD NOT HAVE passive questions; preserve all preceding handlers.
+  const core398ApplicantReferredAdditionalScreeningCouldHaveConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주에) 추가 심사에 (회부될 수도 있었을 텐데요|회부될 수 없었을 텐데요)$/u.exec(normalized);
+  if (core398ApplicantReferredAdditionalScreeningCouldHaveConditionalQuestionMatch && isQuestion) {
+    const core398Plural = core398ApplicantReferredAdditionalScreeningCouldHaveConditionalQuestionMatch[1] === '들은';
+    const core398ReasonKo = core398ApplicantReferredAdditionalScreeningCouldHaveConditionalQuestionMatch[2];
+    const core398TimeKo = core398ApplicantReferredAdditionalScreeningCouldHaveConditionalQuestionMatch[3];
+    const core398PredicateKo = core398ApplicantReferredAdditionalScreeningCouldHaveConditionalQuestionMatch[4];
+    const core398Positive = core398PredicateKo === '회부될 수도 있었을 텐데요';
+    if ((core398ReasonKo === '충족되지 않았더라면') === core398Positive) {
+      const core398Subject = core398Plural ? 'the applicants' : 'the applicant';
+      const core398Negation = core398Positive ? '' : ' not';
+      const core398Time = core398TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core398Condition = core398Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+      const core398English = `Could ${core398Subject}${core398Negation} have been referred for additional screening ${core398Time} ${core398Condition}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core398English, originalText),
+        analysis: [
+          { ko: core398Plural ? '그 지원자들은' : '그 지원자는', en: `${core398Subject} [S]` },
+          { ko: `조건이 ${core398ReasonKo}`, en: `${core398Condition} [CONDITION]` },
+          { ko: core398TimeKo, en: `${core398Time} [TIME]` },
+          { ko: core398PredicateKo, en: `Could ${core398Subject}${core398Negation} have been referred for additional screening [CORE398:COULD-HAVE:CONDITIONAL-QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core398-applicants-referred-additional-screening-could-have-could-not-have-conditional-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE397-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-COULD-HAVE-COULD-NOT-HAVE-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE397: eight counterfactual past COULD HAVE / COULD NOT HAVE passive statements; preserve previous handlers.
+  const core397ApplicantReferredAdditionalScreeningCouldHaveConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주에) 추가 심사에 (회부될 수도 있었을 텐데요|회부될 수 없었을 텐데요)$/u.exec(normalized);
+  if (core397ApplicantReferredAdditionalScreeningCouldHaveConditionalStatementMatch && !isQuestion) {
+    const core397Plural = core397ApplicantReferredAdditionalScreeningCouldHaveConditionalStatementMatch[1] === '들은';
+    const core397ReasonKo = core397ApplicantReferredAdditionalScreeningCouldHaveConditionalStatementMatch[2];
+    const core397TimeKo = core397ApplicantReferredAdditionalScreeningCouldHaveConditionalStatementMatch[3];
+    const core397PredicateKo = core397ApplicantReferredAdditionalScreeningCouldHaveConditionalStatementMatch[4];
+    const core397Positive = core397PredicateKo === '회부될 수도 있었을 텐데요';
+    if ((core397ReasonKo === '충족되지 않았더라면') === core397Positive) {
+      const core397Subject = core397Plural ? 'The applicants' : 'The applicant';
+      const core397Negation = core397Positive ? '' : ' not';
+      const core397Time = core397TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core397Condition = core397Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+      const core397English = `${core397Subject} could${core397Negation} have been referred for additional screening ${core397Time} ${core397Condition}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core397English, originalText),
+        analysis: [
+          { ko: core397Plural ? '그 지원자들은' : '그 지원자는', en: `${core397Subject} [S]` },
+          { ko: `조건이 ${core397ReasonKo}`, en: `${core397Condition} [CONDITION]` },
+          { ko: core397TimeKo, en: `${core397Time} [TIME]` },
+          { ko: core397PredicateKo, en: `could${core397Negation} have been referred for additional screening [CORE397:COULD-HAVE:CONDITIONAL-STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core397-applicants-referred-additional-screening-could-have-could-not-have-conditional-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE396-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-WOULD-NOT-HAVE-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE396: eight counterfactual past WOULD HAVE / WOULD NOT HAVE passive questions; preserve prior CORE handlers.
+  const core396ApplicantReferredAdditionalScreeningWouldHaveConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주에) 추가 심사에 (회부되었을 텐데요|회부되지 않았을 텐데요)$/u.exec(normalized);
+  if (core396ApplicantReferredAdditionalScreeningWouldHaveConditionalQuestionMatch && isQuestion) {
+    const core396Plural = core396ApplicantReferredAdditionalScreeningWouldHaveConditionalQuestionMatch[1] === '들은';
+    const core396ReasonKo = core396ApplicantReferredAdditionalScreeningWouldHaveConditionalQuestionMatch[2];
+    const core396TimeKo = core396ApplicantReferredAdditionalScreeningWouldHaveConditionalQuestionMatch[3];
+    const core396PredicateKo = core396ApplicantReferredAdditionalScreeningWouldHaveConditionalQuestionMatch[4];
+    const core396Positive = core396PredicateKo === '회부되었을 텐데요';
+    if ((core396ReasonKo === '충족되지 않았더라면') === core396Positive) {
+      const core396Subject = core396Plural ? 'the applicants' : 'the applicant';
+      const core396Negation = core396Positive ? '' : ' not';
+      const core396Time = core396TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core396Condition = core396Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+      const core396English = `Would ${core396Subject}${core396Negation} have been referred for additional screening ${core396Time} ${core396Condition}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core396English, originalText),
+        analysis: [
+          { ko: core396Plural ? '그 지원자들은' : '그 지원자는', en: `${core396Subject} [S]` },
+          { ko: `조건이 ${core396ReasonKo}`, en: `${core396Condition} [CONDITION]` },
+          { ko: core396TimeKo, en: `${core396Time} [TIME]` },
+          { ko: core396PredicateKo, en: `would${core396Negation} have been referred for additional screening [CORE396:WOULD-HAVE:CONDITIONAL-QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core396-applicants-referred-additional-screening-would-have-would-not-have-conditional-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE395-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-WOULD-NOT-HAVE-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE395: exact eight counterfactual past WOULD HAVE / WOULD NOT HAVE passive statements; prior handlers unchanged.
+  const core395ApplicantReferredAdditionalScreeningWouldHaveConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주에) 추가 심사에 (회부되었을 텐데요|회부되지 않았을 텐데요)$/u.exec(normalized);
+  if (core395ApplicantReferredAdditionalScreeningWouldHaveConditionalStatementMatch && !isQuestion) {
+    const core395Plural = core395ApplicantReferredAdditionalScreeningWouldHaveConditionalStatementMatch[1] === '들은';
+    const core395ReasonKo = core395ApplicantReferredAdditionalScreeningWouldHaveConditionalStatementMatch[2];
+    const core395TimeKo = core395ApplicantReferredAdditionalScreeningWouldHaveConditionalStatementMatch[3];
+    const core395PredicateKo = core395ApplicantReferredAdditionalScreeningWouldHaveConditionalStatementMatch[4];
+    const core395Positive = core395PredicateKo === '회부되었을 텐데요';
+    if ((core395ReasonKo === '충족되지 않았더라면') === core395Positive) {
+      const core395Subject = core395Plural ? 'The applicants' : 'The applicant';
+      const core395Negation = core395Positive ? '' : ' not';
+      const core395Time = core395TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core395Condition = core395Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+      const core395English = `${core395Subject} would${core395Negation} have been referred for additional screening ${core395Time} ${core395Condition}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core395English, originalText),
+        analysis: [
+          { ko: core395Plural ? '그 지원자들은' : '그 지원자는', en: `${core395Subject} [S]` },
+          { ko: `조건이 ${core395ReasonKo}`, en: `${core395Condition} [CONDITION]` },
+          { ko: core395TimeKo, en: `${core395Time} [TIME]` },
+          { ko: core395PredicateKo, en: `would${core395Negation} have been referred for additional screening [CORE395:WOULD-HAVE:CONDITIONAL-STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core395-applicants-referred-additional-screening-would-have-would-not-have-conditional-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE394-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-WOULD-NOT-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE394: exact eight WOULD / WOULD NOT passive conditional questions; preceding handlers unchanged.
+  const core394ApplicantReferredAdditionalScreeningWouldWouldNotConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않는다면|충족된다면) (오늘|이번 주에) 추가 심사에 (회부될 텐데요|회부되지 않을 텐데요)$/u.exec(normalized);
+  if (core394ApplicantReferredAdditionalScreeningWouldWouldNotConditionalQuestionMatch && isQuestion) {
+    const core394Plural = core394ApplicantReferredAdditionalScreeningWouldWouldNotConditionalQuestionMatch[1] === '들은';
+    const core394ReasonKo = core394ApplicantReferredAdditionalScreeningWouldWouldNotConditionalQuestionMatch[2];
+    const core394TimeKo = core394ApplicantReferredAdditionalScreeningWouldWouldNotConditionalQuestionMatch[3];
+    const core394PredicateKo = core394ApplicantReferredAdditionalScreeningWouldWouldNotConditionalQuestionMatch[4];
+    const core394Positive = core394PredicateKo === '회부될 텐데요';
+    if ((core394ReasonKo === '충족되지 않는다면') === core394Positive) {
+      const core394Subject = core394Plural ? 'the applicants' : 'the applicant';
+      const core394Negation = core394Positive ? '' : ' not';
+      const core394Time = core394TimeKo === '오늘' ? 'today' : 'this week';
+      const core394Condition = core394Positive ? 'if the conditions were not met' : 'if the conditions were met';
+      const core394English = `Would ${core394Subject}${core394Negation} be referred for additional screening ${core394Time} ${core394Condition}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core394English, originalText),
+        analysis: [
+          { ko: core394Plural ? '그 지원자들은' : '그 지원자는', en: `${core394Subject} [S]` },
+          { ko: `조건이 ${core394ReasonKo}`, en: `${core394Condition} [CONDITION]` },
+          { ko: core394TimeKo, en: `${core394Time} [TIME]` },
+          { ko: core394PredicateKo, en: `would${core394Negation} be referred for additional screening [CORE394:WOULD-WOULD-NOT:CONDITIONAL-QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core394-applicants-referred-additional-screening-would-would-not-conditional-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE393-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-WOULD-NOT-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE393: exact eight counterfactual WOULD / WOULD NOT passive conditional statements; preceding handlers unchanged.
+  const core393ApplicantReferredAdditionalScreeningWouldWouldNotConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않는다면|충족된다면) (오늘|이번 주에) 추가 심사에 (회부될 텐데요|회부되지 않을 텐데요)$/u.exec(normalized);
+  if (core393ApplicantReferredAdditionalScreeningWouldWouldNotConditionalStatementMatch && !isQuestion) {
+    const core393Plural = core393ApplicantReferredAdditionalScreeningWouldWouldNotConditionalStatementMatch[1] === '들은';
+    const core393ReasonKo = core393ApplicantReferredAdditionalScreeningWouldWouldNotConditionalStatementMatch[2];
+    const core393TimeKo = core393ApplicantReferredAdditionalScreeningWouldWouldNotConditionalStatementMatch[3];
+    const core393PredicateKo = core393ApplicantReferredAdditionalScreeningWouldWouldNotConditionalStatementMatch[4];
+    const core393Positive = core393PredicateKo === '회부될 텐데요';
+    if ((core393ReasonKo === '충족되지 않는다면') === core393Positive) {
+      const core393Subject = core393Plural ? 'The applicants' : 'The applicant';
+      const core393Negation = core393Positive ? '' : ' not';
+      const core393Time = core393TimeKo === '오늘' ? 'today' : 'this week';
+      const core393Condition = core393Positive ? 'if the conditions were not met' : 'if the conditions were met';
+      const core393English = `${core393Subject} would${core393Negation} be referred for additional screening ${core393Time} ${core393Condition}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core393English, originalText),
+        analysis: [
+          { ko: core393Plural ? '그 지원자들은' : '그 지원자는', en: `${core393Subject.toLowerCase()} [S]` },
+          { ko: `조건이 ${core393ReasonKo}`, en: `${core393Condition} [CONDITION]` },
+          { ko: core393TimeKo, en: `${core393Time} [TIME]` },
+          { ko: core393PredicateKo, en: `would${core393Negation} be referred for additional screening [CORE393:WOULD-WOULD-NOT:CONDITIONAL-STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core393-applicants-referred-additional-screening-would-would-not-conditional-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE392-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MIGHT-MIGHT-NOT-QUESTIONS-SLOT-SAFE
+  // CORE392: exact eight MIGHT / MIGHT NOT passive possibility questions; preceding handlers unchanged.
+  const core392ApplicantReferredAdditionalScreeningMightMightNotQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 (회부될지도 몰라요|회부되지 않을지도 몰라요)$/u.exec(normalized);
+  if (core392ApplicantReferredAdditionalScreeningMightMightNotQuestionMatch && isQuestion) {
+    const core392Plural = core392ApplicantReferredAdditionalScreeningMightMightNotQuestionMatch[1] === '들은';
+    const core392ReasonKo = core392ApplicantReferredAdditionalScreeningMightMightNotQuestionMatch[2];
+    const core392TimeKo = core392ApplicantReferredAdditionalScreeningMightMightNotQuestionMatch[3];
+    const core392PredicateKo = core392ApplicantReferredAdditionalScreeningMightMightNotQuestionMatch[4];
+    const core392Positive = core392PredicateKo === '회부될지도 몰라요';
+    if ((core392ReasonKo === '충족되지 않았으므로') === core392Positive) {
+      const core392Subject = core392Plural ? 'the applicants' : 'the applicant';
+      const core392Negation = core392Positive ? '' : ' not';
+      const core392Time = core392TimeKo === '오늘' ? 'today' : 'this week';
+      const core392Reason = core392Positive ? 'because the conditions were not met' : 'because the conditions were met';
+      const core392English = `Might ${core392Subject}${core392Negation} be referred for additional screening ${core392Time} ${core392Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core392English, originalText),
+        analysis: [
+          { ko: core392Plural ? '그 지원자들은' : '그 지원자는', en: `${core392Subject} [S]` },
+          { ko: `조건이 ${core392ReasonKo}`, en: `${core392Reason} [REASON]` },
+          { ko: core392TimeKo, en: `${core392Time} [TIME]` },
+          { ko: core392PredicateKo, en: `Might ${core392Subject}${core392Negation} be referred for additional screening [CORE392:MIGHT-MIGHT-NOT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core392-applicants-referred-additional-screening-might-might-not-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE391-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MIGHT-MIGHT-NOT-STATEMENTS-SLOT-SAFE
+  // CORE391: exact eight MIGHT / MIGHT NOT passive possibility statements; preceding handlers unchanged.
+  const core391ApplicantReferredAdditionalScreeningMightMightNotStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 (회부될지도 몰라요|회부되지 않을지도 몰라요)$/u.exec(normalized);
+  if (core391ApplicantReferredAdditionalScreeningMightMightNotStatementMatch && !isQuestion) {
+    const core391Plural = core391ApplicantReferredAdditionalScreeningMightMightNotStatementMatch[1] === '들은';
+    const core391ReasonKo = core391ApplicantReferredAdditionalScreeningMightMightNotStatementMatch[2];
+    const core391TimeKo = core391ApplicantReferredAdditionalScreeningMightMightNotStatementMatch[3];
+    const core391PredicateKo = core391ApplicantReferredAdditionalScreeningMightMightNotStatementMatch[4];
+    const core391Positive = core391PredicateKo === '회부될지도 몰라요';
+    if ((core391ReasonKo === '충족되지 않았으므로') === core391Positive) {
+      const core391Subject = core391Plural ? 'The applicants' : 'The applicant';
+      const core391Negation = core391Positive ? '' : ' not';
+      const core391Time = core391TimeKo === '오늘' ? 'today' : 'this week';
+      const core391Reason = core391Positive ? 'because the conditions were not met' : 'because the conditions were met';
+      const core391English = `${core391Subject} might${core391Negation} be referred for additional screening ${core391Time} ${core391Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core391English, originalText),
+        analysis: [
+          { ko: core391Plural ? '그 지원자들은' : '그 지원자는', en: `${core391Subject.toLowerCase()} [S]` },
+          { ko: `조건이 ${core391ReasonKo}`, en: `${core391Reason} [REASON]` },
+          { ko: core391TimeKo, en: `${core391Time} [TIME]` },
+          { ko: core391PredicateKo, en: `might${core391Negation} be referred for additional screening [CORE391:MIGHT-MIGHT-NOT:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core391-applicants-referred-additional-screening-might-might-not-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE390-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MAY-MAY-NOT-QUESTIONS-SLOT-SAFE
+  // CORE390: exact eight MAY / MAY NOT passive possibility questions; all earlier rules unchanged.
+  const core390ApplicantReferredAdditionalScreeningMayMayNotQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 (회부될 수도 있어요|회부되지 않을 수도 있어요)$/u.exec(normalized);
+  if (core390ApplicantReferredAdditionalScreeningMayMayNotQuestionMatch && isQuestion) {
+    const core390Plural = core390ApplicantReferredAdditionalScreeningMayMayNotQuestionMatch[1] === '들은';
+    const core390ReasonKo = core390ApplicantReferredAdditionalScreeningMayMayNotQuestionMatch[2];
+    const core390TimeKo = core390ApplicantReferredAdditionalScreeningMayMayNotQuestionMatch[3];
+    const core390PredicateKo = core390ApplicantReferredAdditionalScreeningMayMayNotQuestionMatch[4];
+    const core390Positive = core390PredicateKo === '회부될 수도 있어요';
+    if ((core390ReasonKo === '충족되지 않았으므로') === core390Positive) {
+      const core390Subject = core390Plural ? 'the applicants' : 'the applicant';
+      const core390Negation = core390Positive ? '' : ' not';
+      const core390Time = core390TimeKo === '오늘' ? 'today' : 'this week';
+      const core390Reason = core390Positive ? 'because the conditions were not met' : 'because the conditions were met';
+      const core390English = `May ${core390Subject}${core390Negation} be referred for additional screening ${core390Time} ${core390Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core390English, originalText),
+        analysis: [
+          { ko: core390Plural ? '그 지원자들은' : '그 지원자는', en: `${core390Subject} [S]` },
+          { ko: `조건이 ${core390ReasonKo}`, en: `${core390Reason} [REASON]` },
+          { ko: core390TimeKo, en: `${core390Time} [TIME]` },
+          { ko: core390PredicateKo, en: `May ${core390Subject}${core390Negation} be referred for additional screening [CORE390:MAY-MAY-NOT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core390-applicants-referred-additional-screening-may-may-not-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE389-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MAY-MAY-NOT-STATEMENTS-SLOT-SAFE
+  // CORE389: eight MAY / MAY NOT present-future possibility passive statements; all existing handlers unchanged.
+  const core389ApplicantReferredAdditionalScreeningMayMayNotStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 (회부될 수도 있어요|회부되지 않을 수도 있어요)$/u.exec(normalized);
+  if (core389ApplicantReferredAdditionalScreeningMayMayNotStatementMatch && !isQuestion) {
+    const core389Plural = core389ApplicantReferredAdditionalScreeningMayMayNotStatementMatch[1] === '들은';
+    const core389ReasonKo = core389ApplicantReferredAdditionalScreeningMayMayNotStatementMatch[2];
+    const core389TimeKo = core389ApplicantReferredAdditionalScreeningMayMayNotStatementMatch[3];
+    const core389PredicateKo = core389ApplicantReferredAdditionalScreeningMayMayNotStatementMatch[4];
+    const core389Positive = core389PredicateKo === '회부될 수도 있어요';
+    if ((core389ReasonKo === '충족되지 않았으므로') === core389Positive) {
+      const core389Subject = core389Plural ? 'The applicants' : 'The applicant';
+      const core389Modal = core389Positive ? 'may' : 'may not';
+      const core389Time = core389TimeKo === '오늘' ? 'today' : 'this week';
+      const core389Reason = core389Positive ? 'because the conditions were not met' : 'because the conditions were met';
+      const core389English = `${core389Subject} ${core389Modal} be referred for additional screening ${core389Time} ${core389Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core389English, originalText),
+        analysis: [
+          { ko: core389Plural ? '그 지원자들은' : '그 지원자는', en: `${core389Subject} [S]` },
+          { ko: `조건이 ${core389ReasonKo}`, en: `${core389Reason} [REASON]` },
+          { ko: core389TimeKo, en: `${core389Time} [TIME]` },
+          { ko: core389PredicateKo, en: `${core389Modal} be referred for additional screening [CORE389:MAY-MAY-NOT:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core389-applicants-referred-additional-screening-may-may-not-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE388-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MUST-NOT-HAVE-COULD-NOT-HAVE-QUESTIONS-SLOT-SAFE
+  // CORE388: eight confirmation questions about negative epistemic modal-perfect passives. All previous handlers preserved.
+  const core388ApplicantReferredAdditionalScreeningMustNotCouldNotHaveQuestionMatch =
+    /^그 지원자(는|들은) 조건이 충족되었으므로 (어제|지난주에) 추가 심사에 (회부되지 않았음이 틀림없죠|회부되었을 가능성이 전혀 없죠)$/u.exec(normalized);
+  if (core388ApplicantReferredAdditionalScreeningMustNotCouldNotHaveQuestionMatch && isQuestion) {
+    const core388Plural = core388ApplicantReferredAdditionalScreeningMustNotCouldNotHaveQuestionMatch[1] === '들은';
+    const core388TimeKo = core388ApplicantReferredAdditionalScreeningMustNotCouldNotHaveQuestionMatch[2];
+    const core388PredicateKo = core388ApplicantReferredAdditionalScreeningMustNotCouldNotHaveQuestionMatch[3];
+    const core388MustNotHave = core388PredicateKo === '회부되지 않았음이 틀림없죠';
+    const core388Subject = core388Plural ? 'The applicants' : 'The applicant';
+    const core388Modal = core388MustNotHave ? 'must not have' : 'could not have';
+    const core388Time = core388TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core388Reason = 'because the conditions were met';
+    const core388English = `${core388Subject} ${core388Modal} been referred for additional screening ${core388Time} ${core388Reason}, right?`;
+    return {
+      targetText: twoProFinalizeEnglish(core388English, originalText),
+      analysis: [
+        { ko: core388Plural ? '그 지원자들은' : '그 지원자는', en: `${core388Subject} [S]` },
+        { ko: '조건이 충족되었으므로', en: `${core388Reason} [REASON]` },
+        { ko: core388TimeKo, en: `${core388Time} [TIME]` },
+        { ko: core388PredicateKo, en: `${core388Modal} been referred for additional screening [CORE388:MUST-NOT-COULD-NOT-HAVE:CONFIRM-QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core388-applicants-referred-additional-screening-must-not-have-could-not-have-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE387-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MUST-NOT-HAVE-COULD-NOT-HAVE-STATEMENTS-SLOT-SAFE
+  // CORE387: eight exact negative epistemic passive statements, all preceding CORE handlers left unchanged.
+  const core387ApplicantReferredAdditionalScreeningMustNotCouldNotHaveStatementMatch =
+    /^그 지원자(는|들은) 조건이 충족되었으므로 (어제|지난주에) 추가 심사에 (회부되지 않았음이 틀림없어요|회부되었을 가능성이 전혀 없어요)$/u.exec(normalized);
+  if (core387ApplicantReferredAdditionalScreeningMustNotCouldNotHaveStatementMatch && !isQuestion) {
+    const core387Plural = core387ApplicantReferredAdditionalScreeningMustNotCouldNotHaveStatementMatch[1] === '들은';
+    const core387TimeKo = core387ApplicantReferredAdditionalScreeningMustNotCouldNotHaveStatementMatch[2];
+    const core387PredicateKo = core387ApplicantReferredAdditionalScreeningMustNotCouldNotHaveStatementMatch[3];
+    const core387MustNotHave = core387PredicateKo === '회부되지 않았음이 틀림없어요';
+    const core387Subject = core387Plural ? 'The applicants' : 'The applicant';
+    const core387Modal = core387MustNotHave ? 'must not have' : 'could not have';
+    const core387Time = core387TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core387Reason = 'because the conditions were met';
+    const core387English = `${core387Subject} ${core387Modal} been referred for additional screening ${core387Time} ${core387Reason}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core387English, originalText),
+      analysis: [
+        { ko: core387Plural ? '그 지원자들은' : '그 지원자는', en: `${core387Subject} [S]` },
+        { ko: '조건이 충족되었으므로', en: `${core387Reason} [REASON]` },
+        { ko: core387TimeKo, en: `${core387Time} [TIME]` },
+        { ko: core387PredicateKo, en: `${core387Modal} been referred for additional screening [CORE387:MUST-NOT-COULD-NOT-HAVE:STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core387-applicants-referred-additional-screening-must-not-have-could-not-have-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE386-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MUST-HAVE-CANNOT-HAVE-QUESTIONS-SLOT-SAFE
+  // CORE386: eight exact modal-perfect epistemic confirmation questions; all preceding handlers unchanged.
+  const core386ApplicantReferredAdditionalScreeningMustCannotHaveQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주에) 추가 심사에 (회부되었음이 틀림없죠|회부되었을 리가 없죠)$/u.exec(normalized);
+  if (core386ApplicantReferredAdditionalScreeningMustCannotHaveQuestionMatch && isQuestion) {
+    const core386Plural = core386ApplicantReferredAdditionalScreeningMustCannotHaveQuestionMatch[1] === '들은';
+    const core386ReasonKo = core386ApplicantReferredAdditionalScreeningMustCannotHaveQuestionMatch[2];
+    const core386TimeKo = core386ApplicantReferredAdditionalScreeningMustCannotHaveQuestionMatch[3];
+    const core386PredicateKo = core386ApplicantReferredAdditionalScreeningMustCannotHaveQuestionMatch[4];
+    const core386NotMet = core386ReasonKo === '충족되지 않았으므로';
+    const core386MustHave = core386PredicateKo === '회부되었음이 틀림없죠';
+    if (core386NotMet === core386MustHave) {
+      const core386Subject = core386Plural ? 'The applicants' : 'The applicant';
+      const core386Modal = core386MustHave ? 'must have' : 'cannot have';
+      const core386Time = core386TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core386Reason = core386NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core386English = `${core386Subject} ${core386Modal} been referred for additional screening ${core386Time} ${core386Reason}, right?`;
+      return {
+        targetText: twoProFinalizeEnglish(core386English, originalText),
+        analysis: [
+          { ko: core386Plural ? '그 지원자들은' : '그 지원자는', en: `${core386Subject} [S]` },
+          { ko: `조건이 ${core386ReasonKo}`, en: `${core386Reason} [REASON]` },
+          { ko: core386TimeKo, en: `${core386Time} [TIME]` },
+          { ko: core386PredicateKo, en: `${core386Modal} been referred for additional screening, right? [CORE386:MUST-HAVE-CANNOT-HAVE:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core386-applicants-referred-additional-screening-must-have-cannot-have-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE385-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MUST-HAVE-CANNOT-HAVE-STATEMENTS-SLOT-SAFE
+  // CORE385: eight exact modal-perfect inference statements; preceding handlers unchanged.
+  const core385ApplicantReferredAdditionalScreeningMustCannotHaveStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주에) 추가 심사에 (회부되었음이 틀림없어요|회부되었을 리가 없어요)$/u.exec(normalized);
+  if (core385ApplicantReferredAdditionalScreeningMustCannotHaveStatementMatch && !isQuestion) {
+    const core385Plural = core385ApplicantReferredAdditionalScreeningMustCannotHaveStatementMatch[1] === '들은';
+    const core385ReasonKo = core385ApplicantReferredAdditionalScreeningMustCannotHaveStatementMatch[2];
+    const core385TimeKo = core385ApplicantReferredAdditionalScreeningMustCannotHaveStatementMatch[3];
+    const core385PredicateKo = core385ApplicantReferredAdditionalScreeningMustCannotHaveStatementMatch[4];
+    const core385NotMet = core385ReasonKo === '충족되지 않았으므로';
+    const core385MustHave = core385PredicateKo === '회부되었음이 틀림없어요';
+    if (core385NotMet === core385MustHave) {
+      const core385Subject = core385Plural ? 'The applicants' : 'The applicant';
+      const core385Modal = core385MustHave ? 'must have' : 'cannot have';
+      const core385Time = core385TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core385Reason = core385NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core385English = `${core385Subject} ${core385Modal} been referred for additional screening ${core385Time} ${core385Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core385English, originalText),
+        analysis: [
+          { ko: core385Plural ? '그 지원자들은' : '그 지원자는', en: `${core385Subject} [S]` },
+          { ko: `조건이 ${core385ReasonKo}`, en: `${core385Reason} [REASON]` },
+          { ko: core385TimeKo, en: `${core385Time} [TIME]` },
+          { ko: core385PredicateKo, en: `${core385Modal} been referred for additional screening [CORE385:MUST-HAVE-CANNOT-HAVE:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core385-applicants-referred-additional-screening-must-have-cannot-have-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE384-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MIGHT-HAVE-MIGHT-NOT-HAVE-QUESTIONS-SLOT-SAFE
+  // CORE384: eight exact MIGHT HAVE / MIGHT NOT HAVE passive referral questions; preceding handlers unchanged.
+  const core384ApplicantReferredAdditionalScreeningMightHaveQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주에) 추가 심사에 (회부되었을지도 몰라요|회부되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core384ApplicantReferredAdditionalScreeningMightHaveQuestionMatch && isQuestion) {
+    const core384Plural = core384ApplicantReferredAdditionalScreeningMightHaveQuestionMatch[1] === '들은';
+    const core384ReasonKo = core384ApplicantReferredAdditionalScreeningMightHaveQuestionMatch[2];
+    const core384TimeKo = core384ApplicantReferredAdditionalScreeningMightHaveQuestionMatch[3];
+    const core384PredicateKo = core384ApplicantReferredAdditionalScreeningMightHaveQuestionMatch[4];
+    const core384NotMet = core384ReasonKo === '충족되지 않았으므로';
+    const core384MightHave = core384PredicateKo === '회부되었을지도 몰라요';
+    if (core384NotMet === core384MightHave) {
+      const core384Subject = core384Plural ? 'the applicants' : 'the applicant';
+      const core384Negative = core384MightHave ? '' : ' not';
+      const core384Time = core384TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core384Reason = core384NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core384English = `Might ${core384Subject}${core384Negative} have been referred for additional screening ${core384Time} ${core384Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core384English, originalText),
+        analysis: [
+          { ko: core384Plural ? '그 지원자들은' : '그 지원자는', en: `${core384Subject} [S]` },
+          { ko: `조건이 ${core384ReasonKo}`, en: `${core384Reason} [REASON]` },
+          { ko: core384TimeKo, en: `${core384Time} [TIME]` },
+          { ko: core384PredicateKo, en: `might${core384Negative} have been referred for additional screening [CORE384:MIGHT-HAVE:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core384-applicants-referred-additional-screening-might-have-might-not-have-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE383-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MIGHT-HAVE-MIGHT-NOT-HAVE-STATEMENTS-SLOT-SAFE
+  // CORE383: eight exact MIGHT HAVE / MIGHT NOT HAVE passive referral statements; preceding handlers unchanged.
+  const core383ApplicantReferredAdditionalScreeningMightHaveStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주에) 추가 심사에 (회부되었을지도 몰라요|회부되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core383ApplicantReferredAdditionalScreeningMightHaveStatementMatch && !isQuestion) {
+    const core383Plural = core383ApplicantReferredAdditionalScreeningMightHaveStatementMatch[1] === '들은';
+    const core383ReasonKo = core383ApplicantReferredAdditionalScreeningMightHaveStatementMatch[2];
+    const core383TimeKo = core383ApplicantReferredAdditionalScreeningMightHaveStatementMatch[3];
+    const core383PredicateKo = core383ApplicantReferredAdditionalScreeningMightHaveStatementMatch[4];
+    const core383NotMet = core383ReasonKo === '충족되지 않았으므로';
+    const core383MightHave = core383PredicateKo === '회부되었을지도 몰라요';
+    if (core383NotMet === core383MightHave) {
+      const core383Subject = core383Plural ? 'The applicants' : 'The applicant';
+      const core383Negative = core383MightHave ? '' : ' not';
+      const core383Time = core383TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core383Reason = core383NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core383English = `${core383Subject} might${core383Negative} have been referred for additional screening ${core383Time} ${core383Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core383English, originalText),
+        analysis: [
+          { ko: core383Plural ? '그 지원자들은' : '그 지원자는', en: `${core383Subject} [S]` },
+          { ko: `조건이 ${core383ReasonKo}`, en: `${core383Reason} [REASON]` },
+          { ko: core383TimeKo, en: `${core383Time} [TIME]` },
+          { ko: core383PredicateKo, en: `might${core383Negative} have been referred for additional screening [CORE383:MIGHT-HAVE:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core383-applicants-referred-additional-screening-might-have-might-not-have-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE382-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MAY-HAVE-MAY-NOT-HAVE-QUESTIONS-SLOT-SAFE
+  // CORE382: eight exact MAY HAVE / MAY NOT HAVE passive referral questions; all preceding handlers unchanged.
+  const core382ApplicantReferredAdditionalScreeningMayHaveQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주에) 추가 심사에 (회부되었을 수도 있어요|회부되지 않았을 수도 있어요)$/u.exec(normalized);
+  if (core382ApplicantReferredAdditionalScreeningMayHaveQuestionMatch && isQuestion) {
+    const core382Plural = core382ApplicantReferredAdditionalScreeningMayHaveQuestionMatch[1] === '들은';
+    const core382ReasonKo = core382ApplicantReferredAdditionalScreeningMayHaveQuestionMatch[2];
+    const core382TimeKo = core382ApplicantReferredAdditionalScreeningMayHaveQuestionMatch[3];
+    const core382PredicateKo = core382ApplicantReferredAdditionalScreeningMayHaveQuestionMatch[4];
+    const core382NotMet = core382ReasonKo === '충족되지 않았으므로';
+    const core382MayHave = core382PredicateKo === '회부되었을 수도 있어요';
+    if (core382NotMet === core382MayHave) {
+      const core382Subject = core382Plural ? 'the applicants' : 'the applicant';
+      const core382Negative = core382MayHave ? '' : ' not';
+      const core382Time = core382TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core382Reason = core382NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core382English = `May ${core382Subject}${core382Negative} have been referred for additional screening ${core382Time} ${core382Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core382English, originalText),
+        analysis: [
+          { ko: core382Plural ? '그 지원자들은' : '그 지원자는', en: `${core382Subject} [S]` },
+          { ko: `조건이 ${core382ReasonKo}`, en: `${core382Reason} [REASON]` },
+          { ko: core382TimeKo, en: `${core382Time} [TIME]` },
+          { ko: core382PredicateKo, en: `May ${core382Subject}${core382Negative} have been referred for additional screening [CORE382:MAY-HAVE:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core382-applicants-referred-additional-screening-may-have-may-not-have-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE381-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MAY-HAVE-MAY-NOT-HAVE-STATEMENTS-SLOT-SAFE
+  // CORE381: eight exact MAY HAVE / MAY NOT HAVE passive referral statements; prior handlers unchanged.
+  const core381ApplicantReferredAdditionalScreeningMayHaveStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주에) 추가 심사에 (회부되었을 수도 있어요|회부되지 않았을 수도 있어요)$/u.exec(normalized);
+  if (core381ApplicantReferredAdditionalScreeningMayHaveStatementMatch && !isQuestion) {
+    const core381Plural = core381ApplicantReferredAdditionalScreeningMayHaveStatementMatch[1] === '들은';
+    const core381ReasonKo = core381ApplicantReferredAdditionalScreeningMayHaveStatementMatch[2];
+    const core381TimeKo = core381ApplicantReferredAdditionalScreeningMayHaveStatementMatch[3];
+    const core381PredicateKo = core381ApplicantReferredAdditionalScreeningMayHaveStatementMatch[4];
+    const core381NotMet = core381ReasonKo === '충족되지 않았으므로';
+    const core381MayHave = core381PredicateKo === '회부되었을 수도 있어요';
+    if (core381NotMet === core381MayHave) {
+      const core381Subject = core381Plural ? 'The applicants' : 'The applicant';
+      const core381Negative = core381MayHave ? '' : ' not';
+      const core381Time = core381TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core381Reason = core381NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core381English = `${core381Subject} may${core381Negative} have been referred for additional screening ${core381Time} ${core381Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core381English, originalText),
+        analysis: [
+          { ko: core381Plural ? '그 지원자들은' : '그 지원자는', en: `${core381Subject} [S]` },
+          { ko: `조건이 ${core381ReasonKo}`, en: `${core381Reason} [REASON]` },
+          { ko: core381TimeKo, en: `${core381Time} [TIME]` },
+          { ko: core381PredicateKo, en: `may${core381Negative} have been referred for additional screening [CORE381:MAY-HAVE:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core381-applicants-referred-additional-screening-may-have-may-not-have-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE380-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-COULD-HAVE-COULD-NOT-HAVE-QUESTIONS-SLOT-SAFE
+  // CORE380: eight exact COULD HAVE / COULD NOT HAVE passive referral questions; prior handlers unchanged.
+  const core380ApplicantReferredAdditionalScreeningCouldHaveQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주에) 추가 심사에 (회부될 수도 있었어요|회부될 수 없었어요)$/u.exec(normalized);
+  if (core380ApplicantReferredAdditionalScreeningCouldHaveQuestionMatch && isQuestion) {
+    const core380Plural = core380ApplicantReferredAdditionalScreeningCouldHaveQuestionMatch[1] === '들은';
+    const core380ReasonKo = core380ApplicantReferredAdditionalScreeningCouldHaveQuestionMatch[2];
+    const core380TimeKo = core380ApplicantReferredAdditionalScreeningCouldHaveQuestionMatch[3];
+    const core380PredicateKo = core380ApplicantReferredAdditionalScreeningCouldHaveQuestionMatch[4];
+    const core380NotMet = core380ReasonKo === '충족되지 않았으므로';
+    const core380CouldHave = core380PredicateKo === '회부될 수도 있었어요';
+    if (core380NotMet === core380CouldHave) {
+      const core380Subject = core380Plural ? 'the applicants' : 'the applicant';
+      const core380Negative = core380CouldHave ? '' : ' not';
+      const core380Time = core380TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core380Reason = core380NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core380English = `Could ${core380Subject}${core380Negative} have been referred for additional screening ${core380Time} ${core380Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core380English, originalText),
+        analysis: [
+          { ko: core380Plural ? '그 지원자들은' : '그 지원자는', en: `${core380Subject} [S]` },
+          { ko: `조건이 ${core380ReasonKo}`, en: `${core380Reason} [REASON]` },
+          { ko: core380TimeKo, en: `${core380Time} [TIME]` },
+          { ko: core380PredicateKo, en: `Could ${core380Subject}${core380Negative} have been referred for additional screening [CORE380:COULD-HAVE:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core380-applicants-referred-additional-screening-could-have-could-not-have-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE379-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-COULD-HAVE-COULD-NOT-HAVE-STATEMENTS-SLOT-SAFE
+  // CORE379: eight exact COULD HAVE / COULD NOT HAVE passive referral statements; prior handlers unchanged.
+  const core379ApplicantReferredAdditionalScreeningCouldHaveStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주에) 추가 심사에 (회부될 수도 있었어요|회부될 수 없었어요)$/u.exec(normalized);
+  if (core379ApplicantReferredAdditionalScreeningCouldHaveStatementMatch && !isQuestion) {
+    const core379Plural = core379ApplicantReferredAdditionalScreeningCouldHaveStatementMatch[1] === '들은';
+    const core379ReasonKo = core379ApplicantReferredAdditionalScreeningCouldHaveStatementMatch[2];
+    const core379TimeKo = core379ApplicantReferredAdditionalScreeningCouldHaveStatementMatch[3];
+    const core379PredicateKo = core379ApplicantReferredAdditionalScreeningCouldHaveStatementMatch[4];
+    const core379NotMet = core379ReasonKo === '충족되지 않았으므로';
+    const core379CouldHave = core379PredicateKo === '회부될 수도 있었어요';
+    if (core379NotMet === core379CouldHave) {
+      const core379Subject = core379Plural ? 'The applicants' : 'The applicant';
+      const core379Aux = core379CouldHave ? 'could' : 'could not';
+      const core379Time = core379TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core379Reason = core379NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core379English = `${core379Subject} ${core379Aux} have been referred for additional screening ${core379Time} ${core379Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core379English, originalText),
+        analysis: [
+          { ko: core379Plural ? '그 지원자들은' : '그 지원자는', en: `${core379Subject} [S]` },
+          { ko: `조건이 ${core379ReasonKo}`, en: `${core379Reason} [REASON]` },
+          { ko: core379TimeKo, en: `${core379Time} [TIME]` },
+          { ko: core379PredicateKo, en: `${core379Aux} have been referred for additional screening [CORE379:COULD-HAVE:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core379-applicants-referred-additional-screening-could-have-could-not-have-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE378-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-SHOULD-HAVE-SHOULD-NOT-HAVE-QUESTIONS-SLOT-SAFE
+  // CORE378: eight exact SHOULD / SHOULD NOT HAVE passive referral questions; all prior handlers remain unchanged.
+  const core378ApplicantReferredAdditionalScreeningShouldHaveQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주에) 추가 심사에 (회부되었어야 해요|회부되지 않았어야 해요)$/u.exec(normalized);
+  if (core378ApplicantReferredAdditionalScreeningShouldHaveQuestionMatch && isQuestion) {
+    const core378Plural = core378ApplicantReferredAdditionalScreeningShouldHaveQuestionMatch[1] === '들은';
+    const core378ReasonKo = core378ApplicantReferredAdditionalScreeningShouldHaveQuestionMatch[2];
+    const core378TimeKo = core378ApplicantReferredAdditionalScreeningShouldHaveQuestionMatch[3];
+    const core378PredicateKo = core378ApplicantReferredAdditionalScreeningShouldHaveQuestionMatch[4];
+    const core378NotMet = core378ReasonKo === '충족되지 않았으므로';
+    const core378ShouldHave = core378PredicateKo === '회부되었어야 해요';
+    if (core378NotMet === core378ShouldHave) {
+      const core378Subject = core378Plural ? 'the applicants' : 'the applicant';
+      const core378Negation = core378ShouldHave ? '' : ' not';
+      const core378Time = core378TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core378Reason = core378NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core378English = `Should ${core378Subject}${core378Negation} have been referred for additional screening ${core378Time} ${core378Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core378English, originalText),
+        analysis: [
+          { ko: core378Plural ? '그 지원자들은' : '그 지원자는', en: `${core378Subject} [S]` },
+          { ko: `조건이 ${core378ReasonKo}`, en: `${core378Reason} [REASON]` },
+          { ko: core378TimeKo, en: `${core378Time} [TIME]` },
+          { ko: core378PredicateKo, en: `should ${core378Subject}${core378Negation} have been referred for additional screening [CORE378:SHOULD-HAVE:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core378-applicants-referred-additional-screening-should-have-should-not-have-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE377-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-SHOULD-HAVE-SHOULD-NOT-HAVE-STATEMENTS-SLOT-SAFE
+  // CORE377: eight exact should have / should not have been referred passive statements.
+  const core377ApplicantReferredAdditionalScreeningShouldHaveStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주에) 추가 심사에 (회부되었어야 해요|회부되지 않았어야 해요)$/u.exec(normalized);
+  if (core377ApplicantReferredAdditionalScreeningShouldHaveStatementMatch && !isQuestion) {
+    const core377Plural = core377ApplicantReferredAdditionalScreeningShouldHaveStatementMatch[1] === '들은';
+    const core377ReasonKo = core377ApplicantReferredAdditionalScreeningShouldHaveStatementMatch[2];
+    const core377TimeKo = core377ApplicantReferredAdditionalScreeningShouldHaveStatementMatch[3];
+    const core377PredicateKo = core377ApplicantReferredAdditionalScreeningShouldHaveStatementMatch[4];
+    const core377NotMet = core377ReasonKo === '충족되지 않았으므로';
+    const core377ShouldHave = core377PredicateKo === '회부되었어야 해요';
+    if (core377NotMet === core377ShouldHave) {
+      const core377Subject = core377Plural ? 'The applicants' : 'The applicant';
+      const core377Negation = core377ShouldHave ? '' : ' not';
+      const core377Time = core377TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core377Reason = core377NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core377English = `${core377Subject} should${core377Negation} have been referred for additional screening ${core377Time} ${core377Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core377English, originalText),
+        analysis: [
+          { ko: core377Plural ? '그 지원자들은' : '그 지원자는', en: `${core377Subject.toLowerCase()} [S]` },
+          { ko: `조건이 ${core377ReasonKo}`, en: `${core377Reason} [REASON]` },
+          { ko: core377TimeKo, en: `${core377Time} [TIME]` },
+          { ko: core377PredicateKo, en: `should${core377Negation} have been referred for additional screening [CORE377:SHOULD-HAVE:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core377-applicants-referred-additional-screening-should-have-should-not-have-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE376-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MUST-MUST-NOT-QUESTIONS-SLOT-SAFE
+  // CORE376: exact MUST / MUST NOT passive questions, including formal negative questions.
+  const core376ApplicantReferredAdditionalScreeningMustMustNotQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) (반드시 추가 심사에 회부되어야 해요|추가 심사에 회부되어서는 안 돼요)$/u.exec(normalized);
+  if (core376ApplicantReferredAdditionalScreeningMustMustNotQuestionMatch && isQuestion) {
+    const core376Plural = core376ApplicantReferredAdditionalScreeningMustMustNotQuestionMatch[1] === '들은';
+    const core376ReasonKo = core376ApplicantReferredAdditionalScreeningMustMustNotQuestionMatch[2];
+    const core376TimeKo = core376ApplicantReferredAdditionalScreeningMustMustNotQuestionMatch[3];
+    const core376PredicateKo = core376ApplicantReferredAdditionalScreeningMustMustNotQuestionMatch[4];
+    const core376NotMet = core376ReasonKo === '충족되지 않았으므로';
+    const core376Must = core376PredicateKo === '반드시 추가 심사에 회부되어야 해요';
+    if (core376NotMet === core376Must) {
+      const core376Subject = core376Plural ? 'the applicants' : 'the applicant';
+      const core376Negation = core376Must ? '' : ' not';
+      const core376Time = core376TimeKo === '오늘' ? 'today' : 'this week';
+      const core376Reason = core376NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core376English = `Must ${core376Subject}${core376Negation} be referred for additional screening ${core376Time} ${core376Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core376English, originalText),
+        analysis: [
+          { ko: core376Plural ? '그 지원자들은' : '그 지원자는', en: `${core376Subject} [S]` },
+          { ko: `조건이 ${core376ReasonKo}`, en: `${core376Reason} [REASON]` },
+          { ko: core376TimeKo, en: `${core376Time} [TIME]` },
+          { ko: core376PredicateKo, en: `must ${core376Subject}${core376Negation} be referred for additional screening [CORE376:MUST-MUST-NOT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core376-applicants-referred-additional-screening-must-must-not-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE375-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MUST-MUST-NOT-STATEMENTS-SLOT-SAFE
+  // CORE375: eight exact MUST/MUST NOT passive statements; distinct Korean predicates avoid overlap with SHOULD.
+  const core375ApplicantReferredAdditionalScreeningMustMustNotStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) (반드시 추가 심사에 회부되어야 해요|추가 심사에 회부되어서는 안 돼요)$/u.exec(normalized);
+  if (core375ApplicantReferredAdditionalScreeningMustMustNotStatementMatch && !isQuestion) {
+    const core375Plural = core375ApplicantReferredAdditionalScreeningMustMustNotStatementMatch[1] === '들은';
+    const core375ReasonKo = core375ApplicantReferredAdditionalScreeningMustMustNotStatementMatch[2];
+    const core375TimeKo = core375ApplicantReferredAdditionalScreeningMustMustNotStatementMatch[3];
+    const core375PredicateKo = core375ApplicantReferredAdditionalScreeningMustMustNotStatementMatch[4];
+    const core375NotMet = core375ReasonKo === '충족되지 않았으므로';
+    const core375Must = core375PredicateKo === '반드시 추가 심사에 회부되어야 해요';
+    if (core375NotMet === core375Must) {
+      const core375Subject = core375Plural ? 'The applicants' : 'The applicant';
+      const core375Negation = core375Must ? '' : ' not';
+      const core375Time = core375TimeKo === '오늘' ? 'today' : 'this week';
+      const core375Reason = core375NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core375English = `${core375Subject} must${core375Negation} be referred for additional screening ${core375Time} ${core375Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core375English, originalText),
+        analysis: [
+          { ko: core375Plural ? '그 지원자들은' : '그 지원자는', en: `${core375Subject.toLowerCase()} [S]` },
+          { ko: `조건이 ${core375ReasonKo}`, en: `${core375Reason} [REASON]` },
+          { ko: core375TimeKo, en: `${core375Time} [TIME]` },
+          { ko: core375PredicateKo, en: `must${core375Negation} be referred for additional screening [CORE375:MUST-MUST-NOT:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core375-applicants-referred-additional-screening-must-must-not-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE374-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-SHOULD-SHOULD-NOT-QUESTIONS-SLOT-SAFE
+  // CORE374: eight exact SHOULD/SHOULD NOT passive questions; CORE1..373 remain unchanged.
+  const core374ApplicantReferredAdditionalScreeningShouldShouldNotQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 (회부되어야 해요|회부되지 않아야 해요)$/u.exec(normalized);
+  if (core374ApplicantReferredAdditionalScreeningShouldShouldNotQuestionMatch && isQuestion) {
+    const core374Plural = core374ApplicantReferredAdditionalScreeningShouldShouldNotQuestionMatch[1] === '들은';
+    const core374ReasonKo = core374ApplicantReferredAdditionalScreeningShouldShouldNotQuestionMatch[2];
+    const core374TimeKo = core374ApplicantReferredAdditionalScreeningShouldShouldNotQuestionMatch[3];
+    const core374PredicateKo = core374ApplicantReferredAdditionalScreeningShouldShouldNotQuestionMatch[4];
+    const core374NotMet = core374ReasonKo === '충족되지 않았으므로';
+    const core374Should = core374PredicateKo === '회부되어야 해요';
+    if (core374NotMet === core374Should) {
+      const core374Subject = core374Plural ? 'the applicants' : 'the applicant';
+      const core374Negation = core374Should ? '' : ' not';
+      const core374Time = core374TimeKo === '오늘' ? 'today' : 'this week';
+      const core374Reason = core374NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core374English = `Should ${core374Subject}${core374Negation} be referred for additional screening ${core374Time} ${core374Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core374English, originalText),
+        analysis: [
+          { ko: core374Plural ? '그 지원자들은' : '그 지원자는', en: `${core374Subject} [S]` },
+          { ko: `조건이 ${core374ReasonKo}`, en: `${core374Reason} [REASON]` },
+          { ko: core374TimeKo, en: `${core374Time} [TIME]` },
+          { ko: `추가 심사에 ${core374PredicateKo}`, en: `should${core374Negation} be referred for additional screening [CORE374:SHOULD-SHOULD-NOT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core374-applicants-referred-additional-screening-should-should-not-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE373-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-SHOULD-SHOULD-NOT-STATEMENTS-SLOT-SAFE
+  // CORE373: eight exact SHOULD/SHOULD NOT passive statements; CORE1..372 remain unchanged.
+  const core373ApplicantReferredAdditionalScreeningShouldShouldNotStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 (회부되어야 해요|회부되지 않아야 해요)$/u.exec(normalized);
+  if (core373ApplicantReferredAdditionalScreeningShouldShouldNotStatementMatch && !isQuestion) {
+    const core373Plural = core373ApplicantReferredAdditionalScreeningShouldShouldNotStatementMatch[1] === '들은';
+    const core373ReasonKo = core373ApplicantReferredAdditionalScreeningShouldShouldNotStatementMatch[2];
+    const core373TimeKo = core373ApplicantReferredAdditionalScreeningShouldShouldNotStatementMatch[3];
+    const core373PredicateKo = core373ApplicantReferredAdditionalScreeningShouldShouldNotStatementMatch[4];
+    const core373NotMet = core373ReasonKo === '충족되지 않았으므로';
+    const core373Should = core373PredicateKo === '회부되어야 해요';
+    if (core373NotMet === core373Should) {
+      const core373Subject = core373Plural ? 'The applicants' : 'The applicant';
+      const core373Modal = core373Should ? 'should' : 'should not';
+      const core373Time = core373TimeKo === '오늘' ? 'today' : 'this week';
+      const core373Reason = core373NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core373English = `${core373Subject} ${core373Modal} be referred for additional screening ${core373Time} ${core373Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core373English, originalText),
+        analysis: [
+          { ko: core373Plural ? '그 지원자들은' : '그 지원자는', en: `${core373Subject.toLowerCase()} [S]` },
+          { ko: `조건이 ${core373ReasonKo}`, en: `${core373Reason} [REASON]` },
+          { ko: core373TimeKo, en: `${core373Time} [TIME]` },
+          { ko: `추가 심사에 ${core373PredicateKo}`, en: `${core373Modal} be referred for additional screening [CORE373:SHOULD-SHOULD-NOT:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core373-applicants-referred-additional-screening-should-should-not-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE372-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-CAN-CANNOT-QUESTIONS-SLOT-SAFE
+  // CORE372: eight exact CAN/CANNOT passive questions; CORE1..371 remain untouched.
+  const core372ApplicantReferredAdditionalScreeningCanCannotQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 (회부될 수 있어요|회부될 수 없어요)$/u.exec(normalized);
+  if (core372ApplicantReferredAdditionalScreeningCanCannotQuestionMatch && isQuestion) {
+    const core372Plural = core372ApplicantReferredAdditionalScreeningCanCannotQuestionMatch[1] === '들은';
+    const core372ReasonKo = core372ApplicantReferredAdditionalScreeningCanCannotQuestionMatch[2];
+    const core372TimeKo = core372ApplicantReferredAdditionalScreeningCanCannotQuestionMatch[3];
+    const core372PredicateKo = core372ApplicantReferredAdditionalScreeningCanCannotQuestionMatch[4];
+    const core372NotMet = core372ReasonKo === '충족되지 않았으므로';
+    const core372Can = core372PredicateKo === '회부될 수 있어요';
+    if (core372NotMet === core372Can) {
+      const core372Subject = core372Plural ? 'the applicants' : 'the applicant';
+      const core372Negation = core372Can ? '' : ' not';
+      const core372Time = core372TimeKo === '오늘' ? 'today' : 'this week';
+      const core372Reason = core372NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core372English = `Can ${core372Subject}${core372Negation} be referred for additional screening ${core372Time} ${core372Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core372English, originalText),
+        analysis: [
+          { ko: core372Plural ? '그 지원자들은' : '그 지원자는', en: `${core372Subject} [S]` },
+          { ko: `조건이 ${core372ReasonKo}`, en: `${core372Reason} [REASON]` },
+          { ko: core372TimeKo, en: `${core372Time} [TIME]` },
+          { ko: `추가 심사에 ${core372PredicateKo}`, en: `Can ${core372Subject}${core372Negation} be referred for additional screening [CORE372:CAN-CANNOT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core372-applicants-referred-additional-screening-can-cannot-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE371-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-CAN-CANNOT-STATEMENTS-SLOT-SAFE
+  // CORE371: eight exact CAN/CANNOT passive statements, strictly additive to CORE1..370.
+  const core371ApplicantReferredAdditionalScreeningCanCannotStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 (회부될 수 있어요|회부될 수 없어요)$/u.exec(normalized);
+  if (core371ApplicantReferredAdditionalScreeningCanCannotStatementMatch && !isQuestion) {
+    const core371Plural = core371ApplicantReferredAdditionalScreeningCanCannotStatementMatch[1] === '들은';
+    const core371ReasonKo = core371ApplicantReferredAdditionalScreeningCanCannotStatementMatch[2];
+    const core371TimeKo = core371ApplicantReferredAdditionalScreeningCanCannotStatementMatch[3];
+    const core371PredicateKo = core371ApplicantReferredAdditionalScreeningCanCannotStatementMatch[4];
+    const core371NotMet = core371ReasonKo === '충족되지 않았으므로';
+    const core371Can = core371PredicateKo === '회부될 수 있어요';
+    if (core371NotMet === core371Can) {
+      const core371Subject = core371Plural ? 'The applicants' : 'The applicant';
+      const core371Modal = core371Can ? 'can' : 'cannot';
+      const core371Time = core371TimeKo === '오늘' ? 'today' : 'this week';
+      const core371Reason = core371NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core371English = `${core371Subject} ${core371Modal} be referred for additional screening ${core371Time} ${core371Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core371English, originalText),
+        analysis: [
+          { ko: core371Plural ? '그 지원자들은' : '그 지원자는', en: `${core371Subject.toLowerCase()} [S]` },
+          { ko: `조건이 ${core371ReasonKo}`, en: `${core371Reason} [REASON]` },
+          { ko: core371TimeKo, en: `${core371Time} [TIME]` },
+          { ko: `추가 심사에 ${core371PredicateKo}`, en: `${core371Modal} be referred for additional screening [CORE371:CAN-CANNOT:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core371-applicants-referred-additional-screening-can-cannot-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE370-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-FUTURE-PERFECT-QUESTIONS-SLOT-SAFE
+  // CORE370: eight exact future-perfect passive QUESTIONS, strictly additive to CORE1..369.
+  const core370ApplicantReferredAdditionalScreeningFuturePerfectQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (내일까지|다음 주까지) 추가 심사에 (회부되어 있을 거예요|회부되지 않은 상태일 거예요)$/u.exec(normalized);
+  if (core370ApplicantReferredAdditionalScreeningFuturePerfectQuestionMatch && isQuestion) {
+    const core370Plural = core370ApplicantReferredAdditionalScreeningFuturePerfectQuestionMatch[1] === '들은';
+    const core370ReasonKo = core370ApplicantReferredAdditionalScreeningFuturePerfectQuestionMatch[2];
+    const core370TimeKo = core370ApplicantReferredAdditionalScreeningFuturePerfectQuestionMatch[3];
+    const core370PredicateKo = core370ApplicantReferredAdditionalScreeningFuturePerfectQuestionMatch[4];
+    const core370NotMet = core370ReasonKo === '충족되지 않았으므로';
+    const core370Referred = core370PredicateKo === '회부되어 있을 거예요';
+    if (core370NotMet === core370Referred) {
+      const core370Subject = core370Plural ? 'the applicants' : 'the applicant';
+      const core370Negation = core370Referred ? '' : ' not';
+      const core370Time = core370TimeKo === '내일까지' ? 'by tomorrow' : 'by next week';
+      const core370Reason = core370NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core370English = `Will ${core370Subject}${core370Negation} have been referred for additional screening ${core370Time} ${core370Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core370English, originalText),
+        analysis: [
+          { ko: core370Plural ? '그 지원자들은' : '그 지원자는', en: `${core370Subject} [S]` },
+          { ko: `조건이 ${core370ReasonKo}`, en: `${core370Reason} [REASON]` },
+          { ko: core370TimeKo, en: `${core370Time} [TIME]` },
+          { ko: `추가 심사에 ${core370PredicateKo}`, en: `Will ${core370Subject}${core370Negation} have been referred for additional screening [CORE370:FUTURE-PERFECT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core370-applicants-referred-additional-screening-future-perfect-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE369-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-FUTURE-PERFECT-STATEMENTS-SLOT-SAFE
+  // CORE369: eight exact future-perfect passive STATEMENTS, strictly additive to CORE1..368.
+  const core369ApplicantReferredAdditionalScreeningFuturePerfectMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (내일까지|다음 주까지) 추가 심사에 (회부되어 있을 거예요|회부되지 않은 상태일 거예요)$/u.exec(normalized);
+  if (core369ApplicantReferredAdditionalScreeningFuturePerfectMatch && !isQuestion) {
+    const core369Plural = core369ApplicantReferredAdditionalScreeningFuturePerfectMatch[1] === '들은';
+    const core369ReasonKo = core369ApplicantReferredAdditionalScreeningFuturePerfectMatch[2];
+    const core369TimeKo = core369ApplicantReferredAdditionalScreeningFuturePerfectMatch[3];
+    const core369PredicateKo = core369ApplicantReferredAdditionalScreeningFuturePerfectMatch[4];
+    const core369NotMet = core369ReasonKo === '충족되지 않았으므로';
+    const core369Referred = core369PredicateKo === '회부되어 있을 거예요';
+    if (core369NotMet === core369Referred) {
+      const core369Subject = core369Plural ? 'The applicants' : 'The applicant';
+      const core369Negation = core369Referred ? '' : ' not';
+      const core369Time = core369TimeKo === '내일까지' ? 'by tomorrow' : 'by next week';
+      const core369Reason = core369NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core369English = `${core369Subject} will${core369Negation} have been referred for additional screening ${core369Time} ${core369Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core369English, originalText),
+        analysis: [
+          { ko: core369Plural ? '그 지원자들은' : '그 지원자는', en: `${core369Subject} [S]` },
+          { ko: `조건이 ${core369ReasonKo}`, en: `${core369Reason} [REASON]` },
+          { ko: core369TimeKo, en: `${core369Time} [TIME]` },
+          { ko: `추가 심사에 ${core369PredicateKo}`, en: `will${core369Negation} have been referred for additional screening [CORE369:FUTURE-PERFECT:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core369-applicants-referred-additional-screening-future-perfect-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE368-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-PAST-PERFECT-QUESTIONS-SLOT-SAFE
+  // CORE368: exact eight past-perfect passive QUESTIONS; strictly additive to CORE1..367.
+  const core368ApplicantReferredAdditionalScreeningPastPerfectQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주) 회의가 시작되기 전에 추가 심사에 (회부되어 있었어요|회부되어 있지 않았어요)$/u.exec(normalized);
+  if (core368ApplicantReferredAdditionalScreeningPastPerfectQuestionMatch && isQuestion) {
+    const core368Plural = core368ApplicantReferredAdditionalScreeningPastPerfectQuestionMatch[1] === '들은';
+    const core368ReasonKo = core368ApplicantReferredAdditionalScreeningPastPerfectQuestionMatch[2];
+    const core368TimeKo = core368ApplicantReferredAdditionalScreeningPastPerfectQuestionMatch[3];
+    const core368PredicateKo = core368ApplicantReferredAdditionalScreeningPastPerfectQuestionMatch[4];
+    const core368NotMet = core368ReasonKo === '충족되지 않았으므로';
+    const core368Referred = core368PredicateKo === '회부되어 있었어요';
+    if (core368NotMet === core368Referred) {
+      const core368Subject = core368Plural ? 'the applicants' : 'the applicant';
+      const core368Verb = core368Referred ? 'been referred' : 'not been referred';
+      const core368Time = core368TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core368Reason = core368NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core368English = `Had ${core368Subject} ${core368Verb} for additional screening before the meeting started ${core368Time} ${core368Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core368English, originalText),
+        analysis: [
+          { ko: core368Plural ? '그 지원자들은' : '그 지원자는', en: `${core368Subject} [S]` },
+          { ko: `조건이 ${core368ReasonKo}`, en: `${core368Reason} [REASON]` },
+          { ko: `${core368TimeKo} 회의가 시작되기 전에`, en: `before the meeting started ${core368Time} [TIME]` },
+          { ko: `추가 심사에 ${core368PredicateKo}`, en: `Had ${core368Subject} ${core368Verb} for additional screening [CORE368:PAST-PERFECT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core368-applicants-referred-additional-screening-past-perfect-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE367-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-PAST-PERFECT-STATEMENTS-SLOT-SAFE
+  // CORE367: eight exact past-perfect referral STATEMENTS, meeting-start time anchor; preserve CORE1..366.
+  const core367ApplicantReferredAdditionalScreeningPastPerfectMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주) 회의가 시작되기 전에 추가 심사에 (회부되어 있었어요|회부되어 있지 않았어요)$/u.exec(normalized);
+  if (core367ApplicantReferredAdditionalScreeningPastPerfectMatch && !isQuestion) {
+    const core367Plural = core367ApplicantReferredAdditionalScreeningPastPerfectMatch[1] === '들은';
+    const core367ReasonKo = core367ApplicantReferredAdditionalScreeningPastPerfectMatch[2];
+    const core367TimeKo = core367ApplicantReferredAdditionalScreeningPastPerfectMatch[3];
+    const core367PredicateKo = core367ApplicantReferredAdditionalScreeningPastPerfectMatch[4];
+    const core367NotMet = core367ReasonKo === '충족되지 않았으므로';
+    const core367Referred = core367PredicateKo === '회부되어 있었어요';
+    if (core367NotMet === core367Referred) {
+      const core367Subject = core367Plural ? 'The applicants' : 'The applicant';
+      const core367Verb = core367Referred ? 'had been referred' : 'had not been referred';
+      const core367Time = core367TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core367Reason = core367NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core367English = `${core367Subject} ${core367Verb} for additional screening before the meeting started ${core367Time} ${core367Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core367English, originalText),
+        analysis: [
+          { ko: core367Plural ? '그 지원자들은' : '그 지원자는', en: `${core367Subject} [S]` },
+          { ko: `조건이 ${core367ReasonKo}`, en: `${core367Reason} [REASON]` },
+          { ko: `${core367TimeKo} 회의가 시작되기 전에`, en: `before the meeting started ${core367Time} [TIME]` },
+          { ko: `추가 심사에 ${core367PredicateKo}`, en: `${core367Verb} for additional screening [CORE367:PAST-PERFECT:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core367-applicants-referred-additional-screening-past-perfect-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE366-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-PRESENT-PERFECT-QUESTIONS-SLOT-SAFE
+  // CORE366: eight exact present-perfect referral QUESTIONS; preserve existing CORE1..365.
+  const core366ApplicantReferredAdditionalScreeningPresentPerfectQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 (회부되었어요|회부되지 않았어요)$/u.exec(normalized);
+  if (core366ApplicantReferredAdditionalScreeningPresentPerfectQuestionMatch && isQuestion) {
+    const core366Plural = core366ApplicantReferredAdditionalScreeningPresentPerfectQuestionMatch[1] === '들은';
+    const core366ReasonKo = core366ApplicantReferredAdditionalScreeningPresentPerfectQuestionMatch[2];
+    const core366TimeKo = core366ApplicantReferredAdditionalScreeningPresentPerfectQuestionMatch[3];
+    const core366PredicateKo = core366ApplicantReferredAdditionalScreeningPresentPerfectQuestionMatch[4];
+    const core366NotMet = core366ReasonKo === '충족되지 않았으므로';
+    const core366Referred = core366PredicateKo === '회부되었어요';
+    if (core366NotMet === core366Referred) {
+      const core366Subject = core366Plural ? 'the applicants' : 'the applicant';
+      const core366Aux = core366Plural ? 'Have' : 'Has';
+      const core366Verb = core366Referred ? 'been referred' : 'not been referred';
+      const core366Time = core366TimeKo === '오늘' ? 'today' : 'this week';
+      const core366Reason = core366NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core366English = `${core366Aux} ${core366Subject} ${core366Verb} for additional screening ${core366Time} ${core366Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core366English, originalText),
+        analysis: [
+          { ko: core366Plural ? '그 지원자들은' : '그 지원자는', en: `${core366Subject} [S]` },
+          { ko: `조건이 ${core366ReasonKo}`, en: `${core366Reason} [REASON]` },
+          { ko: core366TimeKo, en: `${core366Time} [TIME]` },
+          { ko: `추가 심사에 ${core366PredicateKo}`, en: `${core366Aux} ${core366Subject} ${core366Verb} for additional screening [CORE366:PRESENT-PERFECT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core366-applicants-referred-additional-screening-present-perfect-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE365-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-PRESENT-PERFECT-SLOT-SAFE
+  // CORE365: exact present-perfect referral STATEMENTS, singular/plural, positive/negative. Preserve CORE1..364.
+  const core365ApplicantReferredAdditionalScreeningPresentPerfectMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 (회부되었어요|회부되지 않았어요)$/u.exec(normalized);
+  if (core365ApplicantReferredAdditionalScreeningPresentPerfectMatch && !isQuestion) {
+    const core365Plural = core365ApplicantReferredAdditionalScreeningPresentPerfectMatch[1] === '들은';
+    const core365ReasonKo = core365ApplicantReferredAdditionalScreeningPresentPerfectMatch[2];
+    const core365TimeKo = core365ApplicantReferredAdditionalScreeningPresentPerfectMatch[3];
+    const core365PredicateKo = core365ApplicantReferredAdditionalScreeningPresentPerfectMatch[4];
+    const core365NotMet = core365ReasonKo === '충족되지 않았으므로';
+    const core365Referred = core365PredicateKo === '회부되었어요';
+    if (core365NotMet === core365Referred) {
+      const core365Subject = core365Plural ? 'The applicants' : 'The applicant';
+      const core365Aux = core365Plural ? 'have' : 'has';
+      const core365Verb = core365Referred ? 'been referred' : 'not been referred';
+      const core365Time = core365TimeKo === '오늘' ? 'today' : 'this week';
+      const core365Reason = core365NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core365English = `${core365Subject} ${core365Aux} ${core365Verb} for additional screening ${core365Time} ${core365Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core365English, originalText),
+        analysis: [
+          { ko: core365Plural ? '그 지원자들은' : '그 지원자는', en: `${core365Subject} [S]` },
+          { ko: `조건이 ${core365ReasonKo}`, en: `${core365Reason} [REASON]` },
+          { ko: core365TimeKo, en: `${core365Time} [TIME]` },
+          { ko: `추가 심사에 ${core365PredicateKo}`, en: `${core365Aux} ${core365Verb} for additional screening [CORE365:PRESENT-PERFECT:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core365-applicants-referred-additional-screening-present-perfect-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE364-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-FUTURE-QUESTIONS-SLOT-SAFE
+  // CORE364: exact future-tense referral QUESTIONS, singular/plural, positive/negative. Preserve CORE1..363.
+  const core364ApplicantReferredAdditionalScreeningFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (내일|다음 주에) 추가 심사에 (회부될 거예요|회부되지 않을 거예요)$/u.exec(normalized);
+  if (core364ApplicantReferredAdditionalScreeningFutureQuestionMatch && isQuestion) {
+    const core364Plural = core364ApplicantReferredAdditionalScreeningFutureQuestionMatch[1] === '들은';
+    const core364ReasonKo = core364ApplicantReferredAdditionalScreeningFutureQuestionMatch[2];
+    const core364TimeKo = core364ApplicantReferredAdditionalScreeningFutureQuestionMatch[3];
+    const core364PredicateKo = core364ApplicantReferredAdditionalScreeningFutureQuestionMatch[4];
+    const core364NotMet = core364ReasonKo === '충족되지 않았으므로';
+    const core364Referred = core364PredicateKo === '회부될 거예요';
+    if (core364NotMet === core364Referred) {
+      const core364Subject = core364Plural ? 'the applicants' : 'the applicant';
+      const core364Verb = core364Referred ? 'be referred' : 'not be referred';
+      const core364Time = core364TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core364Reason = core364NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core364English = `Will ${core364Subject} ${core364Verb} for additional screening ${core364Time} ${core364Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core364English, originalText),
+        analysis: [
+          { ko: core364Plural ? '그 지원자들은' : '그 지원자는', en: `${core364Subject} [S]` },
+          { ko: `조건이 ${core364ReasonKo}`, en: `${core364Reason} [REASON]` },
+          { ko: core364TimeKo, en: `${core364Time} [TIME]` },
+          { ko: `추가 심사에 ${core364PredicateKo}?`, en: `Will ${core364Subject} ${core364Verb} for additional screening [CORE364:FUTURE:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core364-applicants-referred-additional-screening-future-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE363-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-FUTURE-SLOT-SAFE
+  // CORE363: exact future-tense referral STATEMENTS, singular/plural, positive/negative. Preserve CORE1..362.
+  const core363ApplicantReferredAdditionalScreeningFutureMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (내일|다음 주에) 추가 심사에 (회부될 거예요|회부되지 않을 거예요)$/u.exec(normalized);
+  if (core363ApplicantReferredAdditionalScreeningFutureMatch && !isQuestion) {
+    const core363Plural = core363ApplicantReferredAdditionalScreeningFutureMatch[1] === '들은';
+    const core363ReasonKo = core363ApplicantReferredAdditionalScreeningFutureMatch[2];
+    const core363TimeKo = core363ApplicantReferredAdditionalScreeningFutureMatch[3];
+    const core363PredicateKo = core363ApplicantReferredAdditionalScreeningFutureMatch[4];
+    const core363NotMet = core363ReasonKo === '충족되지 않았으므로';
+    const core363Referred = core363PredicateKo === '회부될 거예요';
+    if (core363NotMet === core363Referred) {
+      const core363Subject = core363Plural ? 'The applicants' : 'The applicant';
+      const core363Verb = core363Referred ? 'will be referred' : 'will not be referred';
+      const core363Time = core363TimeKo === '내일' ? 'tomorrow' : 'next week';
+      const core363Reason = core363NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core363English = `${core363Subject} ${core363Verb} for additional screening ${core363Time} ${core363Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core363English, originalText),
+        analysis: [
+          { ko: core363Plural ? '그 지원자들은' : '그 지원자는', en: `${core363Subject} [S]` },
+          { ko: `조건이 ${core363ReasonKo}`, en: `${core363Reason} [REASON]` },
+          { ko: core363TimeKo, en: `${core363Time} [TIME]` },
+          { ko: `추가 심사에 ${core363PredicateKo}`, en: `${core363Verb} for additional screening [CORE363:FUTURE:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core363-applicants-referred-additional-screening-future-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE362-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-PAST-QUESTIONS-SLOT-SAFE
+  // CORE362: exact past-tense referral QUESTIONS, singular/plural, positive/negative. Preserve CORE1..361.
+  const core362ApplicantReferredAdditionalScreeningPastQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주에) 추가 심사에 (회부됐어요|회부되지 않았어요)$/u.exec(normalized);
+  if (core362ApplicantReferredAdditionalScreeningPastQuestionMatch && isQuestion) {
+    const core362Plural = core362ApplicantReferredAdditionalScreeningPastQuestionMatch[1] === '들은';
+    const core362ReasonKo = core362ApplicantReferredAdditionalScreeningPastQuestionMatch[2];
+    const core362TimeKo = core362ApplicantReferredAdditionalScreeningPastQuestionMatch[3];
+    const core362PredicateKo = core362ApplicantReferredAdditionalScreeningPastQuestionMatch[4];
+    const core362NotMet = core362ReasonKo === '충족되지 않았으므로';
+    const core362Referred = core362PredicateKo === '회부됐어요';
+    if (core362NotMet === core362Referred) {
+      const core362Subject = core362Plural ? 'the applicants' : 'the applicant';
+      const core362Aux = core362Plural ? 'Were' : 'Was';
+      const core362Verb = core362Referred ? 'referred' : 'not referred';
+      const core362Time = core362TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core362Reason = core362NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core362English = `${core362Aux} ${core362Subject} ${core362Verb} for additional screening ${core362Time} ${core362Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core362English, originalText),
+        analysis: [
+          { ko: core362Plural ? '그 지원자들은' : '그 지원자는', en: `${core362Subject} [S]` },
+          { ko: `조건이 ${core362ReasonKo}`, en: `${core362Reason} [REASON]` },
+          { ko: core362TimeKo, en: `${core362Time} [TIME]` },
+          { ko: `추가 심사에 ${core362PredicateKo}?`, en: `${core362Aux} ${core362Verb} for additional screening [CORE362:PAST:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core362-applicants-referred-additional-screening-past-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE361-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-PAST-SLOT-SAFE
+  // CORE361: exact past-tense referral STATEMENTS, singular/plural, positive/negative. Preserve CORE1..360.
+  const core361ApplicantReferredAdditionalScreeningPastMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제|지난주에) 추가 심사에 (회부됐어요|회부되지 않았어요)$/u.exec(normalized);
+  if (core361ApplicantReferredAdditionalScreeningPastMatch && !isQuestion) {
+    const core361Plural = core361ApplicantReferredAdditionalScreeningPastMatch[1] === '들은';
+    const core361ReasonKo = core361ApplicantReferredAdditionalScreeningPastMatch[2];
+    const core361TimeKo = core361ApplicantReferredAdditionalScreeningPastMatch[3];
+    const core361PredicateKo = core361ApplicantReferredAdditionalScreeningPastMatch[4];
+    const core361NotMet = core361ReasonKo === '충족되지 않았으므로';
+    const core361Referred = core361PredicateKo === '회부됐어요';
+    if (core361NotMet === core361Referred) {
+      const core361Subject = core361Plural ? 'The applicants' : 'The applicant';
+      const core361Aux = core361Plural ? 'were' : 'was';
+      const core361Verb = core361Referred ? 'referred' : 'not referred';
+      const core361Time = core361TimeKo === '어제' ? 'yesterday' : 'last week';
+      const core361Reason = core361NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core361English = `${core361Subject} ${core361Aux} ${core361Verb} for additional screening ${core361Time} ${core361Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core361English, originalText),
+        analysis: [
+          { ko: core361Plural ? '그 지원자들은' : '그 지원자는', en: `${core361Subject} [S]` },
+          { ko: `조건이 ${core361ReasonKo}`, en: `${core361Reason} [REASON]` },
+          { ko: core361TimeKo, en: `${core361Time} [TIME]` },
+          { ko: `추가 심사에 ${core361PredicateKo}`, en: `${core361Aux} ${core361Verb} for additional screening [CORE361:PAST:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core361-applicants-referred-additional-screening-past-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE360-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-PRESENT-QUESTIONS-SLOT-SAFE
+  // CORE360: exact present-tense referral QUESTIONS, singular/plural, positive/negative. Preserve CORE1..359.
+  const core360ApplicantReferredAdditionalScreeningPresentQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 (회부돼요|회부되지 않아요)$/u.exec(normalized);
+  if (core360ApplicantReferredAdditionalScreeningPresentQuestionMatch && isQuestion) {
+    const core360Plural = core360ApplicantReferredAdditionalScreeningPresentQuestionMatch[1] === '들은';
+    const core360ReasonKo = core360ApplicantReferredAdditionalScreeningPresentQuestionMatch[2];
+    const core360TimeKo = core360ApplicantReferredAdditionalScreeningPresentQuestionMatch[3];
+    const core360PredicateKo = core360ApplicantReferredAdditionalScreeningPresentQuestionMatch[4];
+    const core360NotMet = core360ReasonKo === '충족되지 않았으므로';
+    const core360Referred = core360PredicateKo === '회부돼요';
+    if (core360NotMet === core360Referred) {
+      const core360Subject = core360Plural ? 'the applicants' : 'the applicant';
+      const core360Aux = core360Plural ? 'Are' : 'Is';
+      const core360Verb = core360Referred ? 'referred' : 'not referred';
+      const core360Time = core360TimeKo === '오늘' ? 'today' : 'this week';
+      const core360Reason = core360NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core360English = `${core360Aux} ${core360Subject} ${core360Verb} for additional screening ${core360Time} ${core360Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core360English, originalText),
+        analysis: [
+          { ko: core360Plural ? '그 지원자들은' : '그 지원자는', en: `${core360Subject} [S]` },
+          { ko: `조건이 ${core360ReasonKo}`, en: `${core360Reason} [REASON]` },
+          { ko: core360TimeKo, en: `${core360Time} [TIME]` },
+          { ko: `추가 심사에 ${core360PredicateKo}?`, en: `${core360Aux} ${core360Subject} ${core360Verb} for additional screening [CORE360:PRESENT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core360-applicants-referred-additional-screening-present-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE359-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-PRESENT-SLOT-SAFE
+  // CORE359: exact present-tense referral statements, singular/plural, positive/negative. Preserve CORE1..358.
+  const core359ApplicantReferredAdditionalScreeningPresentMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사에 (회부돼요|회부되지 않아요)$/u.exec(normalized);
+  if (core359ApplicantReferredAdditionalScreeningPresentMatch && !isQuestion) {
+    const core359Plural = core359ApplicantReferredAdditionalScreeningPresentMatch[1] === '들은';
+    const core359ReasonKo = core359ApplicantReferredAdditionalScreeningPresentMatch[2];
+    const core359TimeKo = core359ApplicantReferredAdditionalScreeningPresentMatch[3];
+    const core359PredicateKo = core359ApplicantReferredAdditionalScreeningPresentMatch[4];
+    const core359NotMet = core359ReasonKo === '충족되지 않았으므로';
+    const core359Referred = core359PredicateKo === '회부돼요';
+    if (core359NotMet === core359Referred) {
+      const core359Subject = core359Plural ? 'The applicants' : 'The applicant';
+      const core359Verb = core359Referred ? (core359Plural ? 'are referred' : 'is referred') : (core359Plural ? 'are not referred' : 'is not referred');
+      const core359Time = core359TimeKo === '오늘' ? 'today' : 'this week';
+      const core359Reason = core359NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core359English = `${core359Subject} ${core359Verb} for additional screening ${core359Time} ${core359Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core359English, originalText),
+        analysis: [
+          { ko: core359Plural ? '그 지원자들은' : '그 지원자는', en: `${core359Subject} [S]` },
+          { ko: `조건이 ${core359ReasonKo}`, en: `${core359Reason} [REASON]` },
+          { ko: core359TimeKo, en: `${core359Time} [TIME]` },
+          { ko: `추가 심사에 ${core359PredicateKo}`, en: `${core359Verb} for additional screening [CORE359:PRESENT:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+        ],
+        engine: 'core359-applicants-referred-additional-screening-present-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE358-APPLICANTS-CLASSIFIED-AS-REQUIRING-ADDITIONAL-SCREENING-FUTURE-PERFECT-QUESTIONS-SLOT-SAFE
+  // CORE358: exact future-perfect classification questions, singular/plural and positive/negative. Preserve CORE1..357.
+  const core358ApplicantClassifiedAdditionalScreeningFuturePerfectQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (내일 아침까지|다음 주까지) 추가 심사가 필요한 대상으로 (분류되어 있을 거예요|분류되어 있지 않을 거예요)$/u.exec(normalized);
+  if (core358ApplicantClassifiedAdditionalScreeningFuturePerfectQuestionMatch && isQuestion) {
+    const core358Plural = core358ApplicantClassifiedAdditionalScreeningFuturePerfectQuestionMatch[1] === '들은';
+    const core358ReasonKo = core358ApplicantClassifiedAdditionalScreeningFuturePerfectQuestionMatch[2];
+    const core358TimeKo = core358ApplicantClassifiedAdditionalScreeningFuturePerfectQuestionMatch[3];
+    const core358PredicateKo = core358ApplicantClassifiedAdditionalScreeningFuturePerfectQuestionMatch[4];
+    const core358NotMet = core358ReasonKo === '충족되지 않았으므로';
+    const core358Classified = core358PredicateKo === '분류되어 있을 거예요';
+    if (core358NotMet === core358Classified) {
+      const core358Subject = core358Plural ? 'the applicants' : 'the applicant';
+      const core358Verb = core358Classified ? 'have been classified' : 'not have been classified';
+      const core358Time = core358TimeKo === '내일 아침까지' ? 'by tomorrow morning' : 'by next week';
+      const core358Reason = core358NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core358English = `Will ${core358Subject} ${core358Verb} as requiring additional screening ${core358Time} ${core358Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core358English, originalText),
+        analysis: [
+          { ko: core358Plural ? '그 지원자들은' : '그 지원자는', en: `${core358Subject} [S]` },
+          { ko: `조건이 ${core358ReasonKo}`, en: `${core358Reason} [REASON]` },
+          { ko: core358TimeKo, en: `${core358Time} [TIME]` },
+          { ko: `추가 심사가 필요한 대상으로 ${core358PredicateKo}`, en: `Will ${core358Subject} ${core358Verb} as requiring additional screening [CORE358:FUTURE-PERFECT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('분류되다', 'be classified', 'V'),
+        ],
+        engine: 'core358-applicants-classified-additional-screening-future-perfect-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE357-APPLICANTS-CLASSIFIED-AS-REQUIRING-ADDITIONAL-SCREENING-FUTURE-PERFECT-SLOT-SAFE
+  // CORE357: exact future-perfect classification statements, singular/plural and positive/negative. Preserve CORE1..356.
+  const core357ApplicantClassifiedAdditionalScreeningFuturePerfectMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (내일 아침까지|다음 주까지) 추가 심사가 필요한 대상으로 (분류되어 있을 거예요|분류되어 있지 않을 거예요)$/u.exec(normalized);
+  if (core357ApplicantClassifiedAdditionalScreeningFuturePerfectMatch && !isQuestion) {
+    const core357Plural = core357ApplicantClassifiedAdditionalScreeningFuturePerfectMatch[1] === '들은';
+    const core357ReasonKo = core357ApplicantClassifiedAdditionalScreeningFuturePerfectMatch[2];
+    const core357TimeKo = core357ApplicantClassifiedAdditionalScreeningFuturePerfectMatch[3];
+    const core357PredicateKo = core357ApplicantClassifiedAdditionalScreeningFuturePerfectMatch[4];
+    const core357NotMet = core357ReasonKo === '충족되지 않았으므로';
+    const core357Classified = core357PredicateKo === '분류되어 있을 거예요';
+    if (core357NotMet === core357Classified) {
+      const core357Subject = core357Plural ? 'The applicants' : 'The applicant';
+      const core357Verb = core357Classified ? 'will have been classified' : 'will not have been classified';
+      const core357Time = core357TimeKo === '내일 아침까지' ? 'by tomorrow morning' : 'by next week';
+      const core357Reason = core357NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core357English = `${core357Subject} ${core357Verb} as requiring additional screening ${core357Time} ${core357Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core357English, originalText),
+        analysis: [
+          { ko: core357Plural ? '그 지원자들은' : '그 지원자는', en: `${core357Subject} [S]` },
+          { ko: `조건이 ${core357ReasonKo}`, en: `${core357Reason} [REASON]` },
+          { ko: core357TimeKo, en: `${core357Time} [TIME]` },
+          { ko: `추가 심사가 필요한 대상으로 ${core357PredicateKo}`, en: `${core357Verb} as requiring additional screening [CORE357:FUTURE-PERFECT:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('분류되다', 'be classified', 'V'),
+        ],
+        engine: 'core357-applicants-classified-additional-screening-future-perfect-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE356-APPLICANTS-CLASSIFIED-AS-REQUIRING-ADDITIONAL-SCREENING-PAST-PERFECT-QUESTIONS-SLOT-SAFE
+  // CORE356: exact past-perfect questions only; singular/plural, affirmative/negative; preserve CORE1..355.
+  const core356ApplicantClassifiedAdditionalScreeningPastPerfectQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제 회의가 시작되기 전에|지난주 회의가 시작되기 전에) 추가 심사가 필요한 대상으로 (분류되어 있었어요|분류되어 있지 않았어요)$/u.exec(normalized);
+  if (core356ApplicantClassifiedAdditionalScreeningPastPerfectQuestionMatch && isQuestion) {
+    const core356Plural = core356ApplicantClassifiedAdditionalScreeningPastPerfectQuestionMatch[1] === '들은';
+    const core356ReasonKo = core356ApplicantClassifiedAdditionalScreeningPastPerfectQuestionMatch[2];
+    const core356TimeKo = core356ApplicantClassifiedAdditionalScreeningPastPerfectQuestionMatch[3];
+    const core356PredicateKo = core356ApplicantClassifiedAdditionalScreeningPastPerfectQuestionMatch[4];
+    const core356NotMet = core356ReasonKo === '충족되지 않았으므로';
+    const core356Classified = core356PredicateKo === '분류되어 있었어요';
+    if (core356NotMet === core356Classified) {
+      const core356Subject = core356Plural ? 'the applicants' : 'the applicant';
+      const core356Verb = 'Had';
+      const core356Not = core356Classified ? '' : ' not';
+      const core356Time = core356TimeKo === '어제 회의가 시작되기 전에' ? 'before the meeting started yesterday' : 'before the meeting started last week';
+      const core356Reason = core356NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core356English = `${core356Verb} ${core356Subject}${core356Not} been classified as requiring additional screening ${core356Time} ${core356Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core356English, originalText),
+        analysis: [
+          { ko: core356Plural ? '그 지원자들은' : '그 지원자는', en: `${core356Subject} [S]` },
+          { ko: `조건이 ${core356ReasonKo}`, en: `${core356Reason} [REASON]` },
+          { ko: core356TimeKo, en: `${core356Time} [TIME]` },
+          { ko: `추가 심사가 필요한 대상으로 ${core356PredicateKo}?`, en: `${core356Classified ? 'had been classified' : 'had not been classified'} as requiring additional screening [CORE356:PAST-PERFECT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('분류되다', 'be classified', 'V'),
+        ],
+        engine: 'core356-applicants-classified-additional-screening-past-perfect-question-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE355-APPLICANTS-CLASSIFIED-AS-REQUIRING-ADDITIONAL-SCREENING-PAST-PERFECT-SLOT-SAFE
+  // CORE355: exact past-perfect statements, singular/plural, affirmative/negative; preserve CORE1..354.
+  const core355ApplicantClassifiedAdditionalScreeningPastPerfectMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (어제 회의가 시작되기 전에|지난주 회의가 시작되기 전에) 추가 심사가 필요한 대상으로 (분류되어 있었어요|분류되어 있지 않았어요)$/u.exec(normalized);
+  if (core355ApplicantClassifiedAdditionalScreeningPastPerfectMatch && !isQuestion) {
+    const core355Plural = core355ApplicantClassifiedAdditionalScreeningPastPerfectMatch[1] === '들은';
+    const core355ReasonKo = core355ApplicantClassifiedAdditionalScreeningPastPerfectMatch[2];
+    const core355TimeKo = core355ApplicantClassifiedAdditionalScreeningPastPerfectMatch[3];
+    const core355PredicateKo = core355ApplicantClassifiedAdditionalScreeningPastPerfectMatch[4];
+    const core355NotMet = core355ReasonKo === '충족되지 않았으므로';
+    const core355Classified = core355PredicateKo === '분류되어 있었어요';
+    if (core355NotMet === core355Classified) {
+      const core355Subject = core355Plural ? 'The applicants' : 'The applicant';
+      const core355Verb = core355Classified ? 'had been classified' : 'had not been classified';
+      const core355Time = core355TimeKo === '어제 회의가 시작되기 전에' ? 'before the meeting started yesterday' : 'before the meeting started last week';
+      const core355Reason = core355NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core355English = `${core355Subject} ${core355Verb} as requiring additional screening ${core355Time} ${core355Reason}.`;
+      return {
+        targetText: twoProFinalizeEnglish(core355English, originalText),
+        analysis: [
+          { ko: core355Plural ? '그 지원자들은' : '그 지원자는', en: `${core355Subject.toLowerCase()} [S]` },
+          { ko: `조건이 ${core355ReasonKo}`, en: `${core355Reason} [REASON]` },
+          { ko: core355TimeKo, en: `${core355Time} [TIME]` },
+          { ko: `추가 심사가 필요한 대상으로 ${core355PredicateKo}`, en: `${core355Verb} as requiring additional screening [CORE355:PAST-PERFECT:STATEMENT]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('분류되다', 'be classified', 'V'),
+        ],
+        engine: 'core355-applicants-classified-additional-screening-past-perfect-statement-ko-en-safe',
+      };
+    }
+  }
+  // XDIC-CORE354-APPLICANTS-CLASSIFIED-AS-REQUIRING-ADDITIONAL-SCREENING-PRESENT-PERFECT-QUESTIONS-SLOT-SAFE
+  // CORE354: exact present-perfect questions; singular/plural, positive/negative; preserve CORE1..353.
+  const core354ApplicantClassifiedAdditionalScreeningPresentPerfectQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (오늘|이번 주에) 추가 심사가 필요한 대상으로 (분류되어 왔어요|분류되지 않아 왔어요)$/u.exec(normalized);
+  if (core354ApplicantClassifiedAdditionalScreeningPresentPerfectQuestionMatch && isQuestion) {
+    const core354Plural = core354ApplicantClassifiedAdditionalScreeningPresentPerfectQuestionMatch[1] === '들은';
+    const core354ReasonKo = core354ApplicantClassifiedAdditionalScreeningPresentPerfectQuestionMatch[2];
+    const core354TimeKo = core354ApplicantClassifiedAdditionalScreeningPresentPerfectQuestionMatch[3];
+    const core354PredicateKo = core354ApplicantClassifiedAdditionalScreeningPresentPerfectQuestionMatch[4];
+    const core354NotMet = core354ReasonKo === '충족되지 않았으므로';
+    const core354Classified = core354PredicateKo === '분류되어 왔어요';
+    if (core354NotMet === core354Classified) {
+      const core354Subject = core354Plural ? 'the applicants' : 'the applicant';
+      const core354Aux = core354Plural ? 'Have' : 'Has';
+      const core354Verb = core354Classified ? 'been classified' : 'not been classified';
+      const core354Time = core354TimeKo === '오늘' ? 'today' : 'this week';
+      const core354Reason = core354NotMet ? 'because the conditions were not met' : 'because the conditions were met';
+      const core354English = `${core354Aux} ${core354Subject} ${core354Verb} as requiring additional screening ${core354Time} ${core354Reason}?`;
+      return {
+        targetText: twoProFinalizeEnglish(core354English, originalText),
+        analysis: [
+          { ko: core354Plural ? '그 지원자들은' : '그 지원자는', en: `${core354Subject} [S]` },
+          { ko: `조건이 ${core354ReasonKo}`, en: `${core354Reason} [REASON]` },
+          { ko: core354TimeKo, en: `${core354Time} [TIME]` },
+          { ko: `추가 심사가 필요한 대상으로 ${core354PredicateKo}`, en: `${core354Aux} ${core354Verb} as requiring additional screening [CORE354:PRESENT-PERFECT:QUESTION]` },
+        ],
+        referenceWords: [
+          twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+          twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+          twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+          twoProEmbeddedReferenceWordV90('분류되다', 'be classified', 'V'),
+        ],
+        engine: 'core354-applicants-classified-additional-screening-present-perfect-question-ko-en-safe',
+      };
+    }
+  }
   // XDIC-CORE353-APPLICANTS-CLASSIFIED-AS-REQUIRING-ADDITIONAL-SCREENING-PRESENT-PERFECT-SLOT-SAFE
   // CORE353: exact present-perfect statements, affirmative/negative, singular/plural; prior CORE1..352 preserved.
   const core353ApplicantClassifiedAdditionalScreeningPresentPerfectMatch =
