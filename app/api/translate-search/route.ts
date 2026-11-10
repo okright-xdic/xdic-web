@@ -42667,6 +42667,2154 @@ const twoProTryKoEnGeneralPassiveAspectV1053GPA = (
   // XDIC-CORE52-APPLICANT-SINGULAR-SUBJECT-SLOT-SAFE
   // XDIC-CORE53-APPLICANTS-PLURAL-SUBJECT-SLOT-SAFE
   // XDIC-CORE57-APPLICANTS-INVITED-SIMPLE-PRESENT-PAST-SAFE
+  // XDIC-CORE613-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-CANNOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-IMPOSSIBILITY-STATEMENTS-SLOT-SAFE
+  // CORE613: past counterfactual impossibility statements only, cannot have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-612; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core613ApplicantReferredAdditionalScreeningCannotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높았을 수는 없어요|잡혔을 가능성이 낮았을 수는 없어요)$/u.exec(normalized);
+  if (core613ApplicantReferredAdditionalScreeningCannotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityStatementMatch && !isQuestion && (
+    (core613ApplicantReferredAdditionalScreeningCannotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityStatementMatch[2] === '충족되었더라면' && core613ApplicantReferredAdditionalScreeningCannotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityStatementMatch[4] === '잡혔을 가능성이 높았을 수는 없어요') ||
+    (core613ApplicantReferredAdditionalScreeningCannotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityStatementMatch[2] === '충족되지 않았더라면' && core613ApplicantReferredAdditionalScreeningCannotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityStatementMatch[4] === '잡혔을 가능성이 낮았을 수는 없어요')
+  )) {
+    const core613Plural = core613ApplicantReferredAdditionalScreeningCannotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityStatementMatch[1] === '들은';
+    const core613ConditionKo = core613ApplicantReferredAdditionalScreeningCannotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityStatementMatch[2];
+    const core613TimeKo = core613ApplicantReferredAdditionalScreeningCannotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityStatementMatch[3];
+    const core613PredicateKo = core613ApplicantReferredAdditionalScreeningCannotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityStatementMatch[4];
+    const core613Likely = core613PredicateKo === '잡혔을 가능성이 높았을 수는 없어요';
+    const core613Subject = core613Plural ? 'applicants' : 'applicant';
+    const core613Time = core613TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core613Condition = core613Likely ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core613Predicate = core613Likely ? 'likely' : 'unlikely';
+    const core613English = `The ${core613Subject} cannot have been ${core613Predicate} to be scheduled to be referred for additional screening ${core613Time} ${core613Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core613English, originalText),
+      analysis: [
+        { ko: core613Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core613Subject} [S]` },
+        { ko: `조건이 ${core613ConditionKo}`, en: `${core613Condition} [CONDITION]` },
+        { ko: core613TimeKo, en: `${core613Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core613PredicateKo}`, en: `cannot have been ${core613Predicate} to be scheduled to be referred for additional screening [CORE613:SCHEDULED:CANNOT_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_IMPOSSIBILITY_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core613-applicants-referred-additional-screening-cannot-have-been-likely-unlikely-to-be-scheduled-past-conditional-impossibility-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE612-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MUST-NOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-NEGATIVE-QUESTIONS-SLOT-SAFE
+  // CORE612: past counterfactual negative questions only, must not have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-611; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core612ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높지 않았을 게 틀림없어요|잡혔을 가능성이 낮지 않았을 게 틀림없어요)$/u.exec(normalized);
+  if (core612ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch && isQuestion && (
+    (core612ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2] === '충족되었더라면' && core612ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4] === '잡혔을 가능성이 높지 않았을 게 틀림없어요') ||
+    (core612ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2] === '충족되지 않았더라면' && core612ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4] === '잡혔을 가능성이 낮지 않았을 게 틀림없어요')
+  )) {
+    const core612Plural = core612ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[1] === '들은';
+    const core612ConditionKo = core612ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2];
+    const core612TimeKo = core612ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[3];
+    const core612PredicateKo = core612ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4];
+    const core612Likely = core612PredicateKo === '잡혔을 가능성이 높지 않았을 게 틀림없어요';
+    const core612Subject = core612Plural ? 'applicants' : 'applicant';
+    const core612Time = core612TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core612Condition = core612Likely ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core612Predicate = core612Likely ? 'likely' : 'unlikely';
+    const core612English = `Must the ${core612Subject} not have been ${core612Predicate} to be scheduled to be referred for additional screening ${core612Time} ${core612Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core612English, originalText),
+      analysis: [
+        { ko: core612Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core612Subject} [S]` },
+        { ko: `조건이 ${core612ConditionKo}`, en: `${core612Condition} [CONDITION]` },
+        { ko: core612TimeKo, en: `${core612Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core612PredicateKo}`, en: `must ... not have been ${core612Predicate} to be scheduled to be referred for additional screening [CORE612:SCHEDULED:MUST_NOT_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_NEGATIVE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core612-applicants-referred-additional-screening-must-not-have-been-likely-unlikely-to-be-scheduled-past-conditional-negative-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE611-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MUST-NOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-NEGATIVE-STATEMENTS-SLOT-SAFE
+  // CORE611: past counterfactual negative statements only, must not have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-610; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core611ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높지 않았을 게 틀림없어요|잡혔을 가능성이 낮지 않았을 게 틀림없어요)$/u.exec(normalized);
+  if (core611ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch && !isQuestion && (
+    (core611ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2] === '충족되었더라면' && core611ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4] === '잡혔을 가능성이 높지 않았을 게 틀림없어요') ||
+    (core611ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2] === '충족되지 않았더라면' && core611ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4] === '잡혔을 가능성이 낮지 않았을 게 틀림없어요')
+  )) {
+    const core611Plural = core611ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[1] === '들은';
+    const core611ConditionKo = core611ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2];
+    const core611TimeKo = core611ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[3];
+    const core611PredicateKo = core611ApplicantReferredAdditionalScreeningMustNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4];
+    const core611Likely = core611PredicateKo === '잡혔을 가능성이 높지 않았을 게 틀림없어요';
+    const core611Subject = core611Plural ? 'applicants' : 'applicant';
+    const core611Time = core611TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core611Condition = core611Likely ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core611Predicate = core611Likely ? 'likely' : 'unlikely';
+    const core611English = `The ${core611Subject} must not have been ${core611Predicate} to be scheduled to be referred for additional screening ${core611Time} ${core611Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core611English, originalText),
+      analysis: [
+        { ko: core611Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core611Subject} [S]` },
+        { ko: `조건이 ${core611ConditionKo}`, en: `${core611Condition} [CONDITION]` },
+        { ko: core611TimeKo, en: `${core611Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core611PredicateKo}`, en: `must not have been ${core611Predicate} to be scheduled to be referred for additional screening [CORE611:SCHEDULED:MUST_NOT_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_NEGATIVE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core611-applicants-referred-additional-screening-must-not-have-been-likely-unlikely-to-be-scheduled-past-conditional-negative-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE610-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MUST-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE610: past counterfactual affirmative questions only, must have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-609; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core610ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높았을 게 틀림없어요|잡혔을 가능성이 낮았을 게 틀림없어요)$/u.exec(normalized);
+  if (core610ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch && isQuestion && (
+    (core610ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core610ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[4] === '잡혔을 가능성이 높았을 게 틀림없어요') ||
+    (core610ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[2] === '충족되었더라면' && core610ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[4] === '잡혔을 가능성이 낮았을 게 틀림없어요')
+  )) {
+    const core610Plural = core610ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[1] === '들은';
+    const core610ConditionKo = core610ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[2];
+    const core610TimeKo = core610ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[3];
+    const core610PredicateKo = core610ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[4];
+    const core610Likely = core610PredicateKo === '잡혔을 가능성이 높았을 게 틀림없어요';
+    const core610Subject = core610Plural ? 'applicants' : 'applicant';
+    const core610Time = core610TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core610Condition = core610Likely ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core610Predicate = core610Likely ? 'likely' : 'unlikely';
+    const core610English = `Must the ${core610Subject} have been ${core610Predicate} to be scheduled to be referred for additional screening ${core610Time} ${core610Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core610English, originalText),
+      analysis: [
+        { ko: core610Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core610Subject} [S]` },
+        { ko: `조건이 ${core610ConditionKo}`, en: `${core610Condition} [CONDITION]` },
+        { ko: core610TimeKo, en: `${core610Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core610PredicateKo}`, en: `must ... have been ${core610Predicate} to be scheduled to be referred for additional screening [CORE610:SCHEDULED:MUST_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core610-applicants-referred-additional-screening-must-have-been-likely-unlikely-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE609-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MUST-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE609: past counterfactual affirmative statements only, must have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-608; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core609ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높았을 게 틀림없어요|잡혔을 가능성이 낮았을 게 틀림없어요)$/u.exec(normalized);
+  if (core609ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch && !isQuestion && (
+    (core609ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core609ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[4] === '잡혔을 가능성이 높았을 게 틀림없어요') ||
+    (core609ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[2] === '충족되었더라면' && core609ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[4] === '잡혔을 가능성이 낮았을 게 틀림없어요')
+  )) {
+    const core609Plural = core609ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[1] === '들은';
+    const core609ConditionKo = core609ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[2];
+    const core609TimeKo = core609ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[3];
+    const core609PredicateKo = core609ApplicantReferredAdditionalScreeningMustHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[4];
+    const core609Likely = core609PredicateKo === '잡혔을 가능성이 높았을 게 틀림없어요';
+    const core609Subject = core609Plural ? 'applicants' : 'applicant';
+    const core609Time = core609TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core609Condition = core609Likely ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core609Predicate = core609Likely ? 'likely' : 'unlikely';
+    const core609English = `The ${core609Subject} must have been ${core609Predicate} to be scheduled to be referred for additional screening ${core609Time} ${core609Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core609English, originalText),
+      analysis: [
+        { ko: core609Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core609Subject} [S]` },
+        { ko: `조건이 ${core609ConditionKo}`, en: `${core609Condition} [CONDITION]` },
+        { ko: core609TimeKo, en: `${core609Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core609PredicateKo}`, en: `must have been ${core609Predicate} to be scheduled to be referred for additional screening [CORE609:SCHEDULED:MUST_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core609-applicants-referred-additional-screening-must-have-been-likely-unlikely-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE608-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-SHOULD-NOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-NEGATIVE-QUESTIONS-SLOT-SAFE
+  // CORE608: past counterfactual negative questions only, should not have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-607; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core608ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높지 않았어야 했어요|잡혔을 가능성이 낮지 않았어야 했어요)$/u.exec(normalized);
+  if (core608ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch && isQuestion && (
+    (core608ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2] === '충족되었더라면' && core608ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4] === '잡혔을 가능성이 높지 않았어야 했어요') ||
+    (core608ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2] === '충족되지 않았더라면' && core608ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4] === '잡혔을 가능성이 낮지 않았어야 했어요')
+  )) {
+    const core608Plural = core608ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[1] === '들은';
+    const core608ConditionKo = core608ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2];
+    const core608TimeKo = core608ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[3];
+    const core608PredicateKo = core608ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4];
+    const core608Likely = core608PredicateKo === '잡혔을 가능성이 높지 않았어야 했어요';
+    const core608Subject = core608Plural ? 'applicants' : 'applicant';
+    const core608Time = core608TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core608Condition = core608Likely ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core608Predicate = core608Likely ? 'likely' : 'unlikely';
+    const core608English = `Should the ${core608Subject} not have been ${core608Predicate} to be scheduled to be referred for additional screening ${core608Time} ${core608Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core608English, originalText),
+      analysis: [
+        { ko: core608Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core608Subject} [S]` },
+        { ko: `조건이 ${core608ConditionKo}`, en: `${core608Condition} [CONDITION]` },
+        { ko: core608TimeKo, en: `${core608Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core608PredicateKo}`, en: `should ... not have been ${core608Predicate} to be scheduled to be referred for additional screening [CORE608:SCHEDULED:SHOULD_NOT_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_NEGATIVE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core608-applicants-referred-additional-screening-should-not-have-been-likely-unlikely-to-be-scheduled-past-conditional-negative-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE607-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-SHOULD-NOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-NEGATIVE-STATEMENTS-SLOT-SAFE
+  // CORE607: past counterfactual negative statements only, should not have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-606; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core607ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높지 않았어야 했어요|잡혔을 가능성이 낮지 않았어야 했어요)$/u.exec(normalized);
+  if (core607ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch && !isQuestion && (
+    (core607ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2] === '충족되었더라면' && core607ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4] === '잡혔을 가능성이 높지 않았어야 했어요') ||
+    (core607ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2] === '충족되지 않았더라면' && core607ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4] === '잡혔을 가능성이 낮지 않았어야 했어요')
+  )) {
+    const core607Plural = core607ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[1] === '들은';
+    const core607ConditionKo = core607ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2];
+    const core607TimeKo = core607ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[3];
+    const core607PredicateKo = core607ApplicantReferredAdditionalScreeningShouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4];
+    const core607Likely = core607PredicateKo === '잡혔을 가능성이 높지 않았어야 했어요';
+    const core607Subject = core607Plural ? 'applicants' : 'applicant';
+    const core607Time = core607TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core607Condition = core607Likely ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core607Predicate = core607Likely ? 'likely' : 'unlikely';
+    const core607English = `The ${core607Subject} should not have been ${core607Predicate} to be scheduled to be referred for additional screening ${core607Time} ${core607Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core607English, originalText),
+      analysis: [
+        { ko: core607Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core607Subject} [S]` },
+        { ko: `조건이 ${core607ConditionKo}`, en: `${core607Condition} [CONDITION]` },
+        { ko: core607TimeKo, en: `${core607Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core607PredicateKo}`, en: `should not have been ${core607Predicate} to be scheduled to be referred for additional screening [CORE607:SCHEDULED:SHOULD_NOT_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_NEGATIVE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core607-applicants-referred-additional-screening-should-not-have-been-likely-unlikely-to-be-scheduled-past-conditional-negative-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE606-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-SHOULD-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE606: past counterfactual affirmative questions only, should have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-605; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core606ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높았어야 했어요|잡혔을 가능성이 낮았어야 했어요)$/u.exec(normalized);
+  if (core606ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch && isQuestion && (
+    (core606ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core606ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[4] === '잡혔을 가능성이 높았어야 했어요') ||
+    (core606ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[2] === '충족되었더라면' && core606ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[4] === '잡혔을 가능성이 낮았어야 했어요')
+  )) {
+    const core606Plural = core606ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[1] === '들은';
+    const core606ConditionKo = core606ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[2];
+    const core606TimeKo = core606ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[3];
+    const core606PredicateKo = core606ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[4];
+    const core606Likely = core606PredicateKo === '잡혔을 가능성이 높았어야 했어요';
+    const core606Subject = core606Plural ? 'applicants' : 'applicant';
+    const core606Time = core606TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core606Condition = core606Likely ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core606Predicate = core606Likely ? 'likely' : 'unlikely';
+    const core606English = `Should the ${core606Subject} have been ${core606Predicate} to be scheduled to be referred for additional screening ${core606Time} ${core606Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core606English, originalText),
+      analysis: [
+        { ko: core606Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core606Subject} [S]` },
+        { ko: `조건이 ${core606ConditionKo}`, en: `${core606Condition} [CONDITION]` },
+        { ko: core606TimeKo, en: `${core606Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core606PredicateKo}`, en: `should ... have been ${core606Predicate} to be scheduled to be referred for additional screening [CORE606:SCHEDULED:SHOULD_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core606-applicants-referred-additional-screening-should-have-been-likely-unlikely-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE605-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-SHOULD-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE605: past counterfactual affirmative statements only, should have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-604; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core605ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높았어야 했어요|잡혔을 가능성이 낮았어야 했어요)$/u.exec(normalized);
+  if (core605ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch && !isQuestion && (
+    (core605ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core605ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[4] === '잡혔을 가능성이 높았어야 했어요') ||
+    (core605ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[2] === '충족되었더라면' && core605ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[4] === '잡혔을 가능성이 낮았어야 했어요')
+  )) {
+    const core605Plural = core605ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[1] === '들은';
+    const core605ConditionKo = core605ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[2];
+    const core605TimeKo = core605ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[3];
+    const core605PredicateKo = core605ApplicantReferredAdditionalScreeningShouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[4];
+    const core605Likely = core605PredicateKo === '잡혔을 가능성이 높았어야 했어요';
+    const core605Subject = core605Plural ? 'applicants' : 'applicant';
+    const core605Time = core605TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core605Condition = core605Likely ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core605Predicate = core605Likely ? 'likely' : 'unlikely';
+    const core605English = `The ${core605Subject} should have been ${core605Predicate} to be scheduled to be referred for additional screening ${core605Time} ${core605Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core605English, originalText),
+      analysis: [
+        { ko: core605Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core605Subject} [S]` },
+        { ko: `조건이 ${core605ConditionKo}`, en: `${core605Condition} [CONDITION]` },
+        { ko: core605TimeKo, en: `${core605Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core605PredicateKo}`, en: `should have been ${core605Predicate} to be scheduled to be referred for additional screening [CORE605:SCHEDULED:SHOULD_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core605-applicants-referred-additional-screening-may-have-been-likely-unlikely-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE604-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MAY-NOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-NEGATIVE-QUESTIONS-SLOT-SAFE
+  // CORE604: past counterfactual negative questions only, may not have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-603; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core604ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높지 않았을 수도 있겠어요|잡혔을 가능성이 낮지 않았을 수도 있겠어요)$/u.exec(normalized);
+  if (core604ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch && isQuestion && (
+    (core604ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2] === '충족되었더라면' && core604ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4] === '잡혔을 가능성이 높지 않았을 수도 있겠어요') ||
+    (core604ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2] === '충족되지 않았더라면' && core604ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4] === '잡혔을 가능성이 낮지 않았을 수도 있겠어요')
+  )) {
+    const core604Plural = core604ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[1] === '들은';
+    const core604ConditionKo = core604ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2];
+    const core604TimeKo = core604ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[3];
+    const core604PredicateKo = core604ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4];
+    const core604Likely = core604PredicateKo === '잡혔을 가능성이 높지 않았을 수도 있겠어요';
+    const core604Subject = core604Plural ? 'applicants' : 'applicant';
+    const core604Time = core604TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core604Condition = core604Likely ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core604Predicate = core604Likely ? 'likely' : 'unlikely';
+    const core604English = `May the ${core604Subject} not have been ${core604Predicate} to be scheduled to be referred for additional screening ${core604Time} ${core604Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core604English, originalText),
+      analysis: [
+        { ko: core604Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core604Subject} [S]` },
+        { ko: `조건이 ${core604ConditionKo}`, en: `${core604Condition} [CONDITION]` },
+        { ko: core604TimeKo, en: `${core604Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core604PredicateKo}`, en: `may ... not have been ${core604Predicate} to be scheduled to be referred for additional screening [CORE604:SCHEDULED:MAY_NOT_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_NEGATIVE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core604-applicants-referred-additional-screening-may-not-have-been-likely-unlikely-to-be-scheduled-past-conditional-negative-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE603-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MAY-NOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-NEGATIVE-STATEMENTS-SLOT-SAFE
+  // CORE603: past counterfactual negative statements only, may not have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-602; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core603ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높지 않았을 수도 있겠어요|잡혔을 가능성이 낮지 않았을 수도 있겠어요)$/u.exec(normalized);
+  if (core603ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch && !isQuestion && (
+    (core603ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2] === '충족되었더라면' && core603ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4] === '잡혔을 가능성이 높지 않았을 수도 있겠어요') ||
+    (core603ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2] === '충족되지 않았더라면' && core603ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4] === '잡혔을 가능성이 낮지 않았을 수도 있겠어요')
+  )) {
+    const core603Plural = core603ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[1] === '들은';
+    const core603ConditionKo = core603ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2];
+    const core603TimeKo = core603ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[3];
+    const core603PredicateKo = core603ApplicantReferredAdditionalScreeningMayNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4];
+    const core603Likely = core603PredicateKo === '잡혔을 가능성이 높지 않았을 수도 있겠어요';
+    const core603Subject = core603Plural ? 'applicants' : 'applicant';
+    const core603Time = core603TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core603Condition = core603Likely ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core603Predicate = core603Likely ? 'likely' : 'unlikely';
+    const core603English = `The ${core603Subject} may not have been ${core603Predicate} to be scheduled to be referred for additional screening ${core603Time} ${core603Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core603English, originalText),
+      analysis: [
+        { ko: core603Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core603Subject} [S]` },
+        { ko: `조건이 ${core603ConditionKo}`, en: `${core603Condition} [CONDITION]` },
+        { ko: core603TimeKo, en: `${core603Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core603PredicateKo}`, en: `may not have been ${core603Predicate} to be scheduled to be referred for additional screening [CORE603:SCHEDULED:MAY_NOT_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_NEGATIVE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core603-applicants-referred-additional-screening-may-not-have-been-likely-unlikely-to-be-scheduled-past-conditional-negative-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE602-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MAY-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE602: past counterfactual affirmative questions only, may have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-601; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core602ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높았을 수도 있겠어요|잡혔을 가능성이 낮았을 수도 있겠어요)$/u.exec(normalized);
+  if (core602ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch && isQuestion && (
+    (core602ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core602ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[4] === '잡혔을 가능성이 높았을 수도 있겠어요') ||
+    (core602ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[2] === '충족되었더라면' && core602ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[4] === '잡혔을 가능성이 낮았을 수도 있겠어요')
+  )) {
+    const core602Plural = core602ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[1] === '들은';
+    const core602ConditionKo = core602ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[2];
+    const core602TimeKo = core602ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[3];
+    const core602PredicateKo = core602ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[4];
+    const core602Likely = core602PredicateKo === '잡혔을 가능성이 높았을 수도 있겠어요';
+    const core602Subject = core602Plural ? 'applicants' : 'applicant';
+    const core602Time = core602TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core602Condition = core602Likely ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core602Predicate = core602Likely ? 'likely' : 'unlikely';
+    const core602English = `May the ${core602Subject} have been ${core602Predicate} to be scheduled to be referred for additional screening ${core602Time} ${core602Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core602English, originalText),
+      analysis: [
+        { ko: core602Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core602Subject} [S]` },
+        { ko: `조건이 ${core602ConditionKo}`, en: `${core602Condition} [CONDITION]` },
+        { ko: core602TimeKo, en: `${core602Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core602PredicateKo}`, en: `may ... have been ${core602Predicate} to be scheduled to be referred for additional screening [CORE602:SCHEDULED:MAY_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core602-applicants-referred-additional-screening-may-have-been-likely-unlikely-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE601-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MAY-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE601: past counterfactual affirmative statements only, may have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-600; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core601ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높았을 수도 있겠어요|잡혔을 가능성이 낮았을 수도 있겠어요)$/u.exec(normalized);
+  if (core601ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch && !isQuestion && (
+    (core601ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core601ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[4] === '잡혔을 가능성이 높았을 수도 있겠어요') ||
+    (core601ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[2] === '충족되었더라면' && core601ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[4] === '잡혔을 가능성이 낮았을 수도 있겠어요')
+  )) {
+    const core601Plural = core601ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[1] === '들은';
+    const core601ConditionKo = core601ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[2];
+    const core601TimeKo = core601ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[3];
+    const core601PredicateKo = core601ApplicantReferredAdditionalScreeningMayHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[4];
+    const core601Likely = core601PredicateKo === '잡혔을 가능성이 높았을 수도 있겠어요';
+    const core601Subject = core601Plural ? 'applicants' : 'applicant';
+    const core601Time = core601TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core601Condition = core601Likely ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core601Predicate = core601Likely ? 'likely' : 'unlikely';
+    const core601English = `The ${core601Subject} may have been ${core601Predicate} to be scheduled to be referred for additional screening ${core601Time} ${core601Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core601English, originalText),
+      analysis: [
+        { ko: core601Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core601Subject} [S]` },
+        { ko: `조건이 ${core601ConditionKo}`, en: `${core601Condition} [CONDITION]` },
+        { ko: core601TimeKo, en: `${core601Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core601PredicateKo}`, en: `may have been ${core601Predicate} to be scheduled to be referred for additional screening [CORE601:SCHEDULED:MAY_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core601-applicants-referred-additional-screening-may-have-been-likely-unlikely-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE600-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MIGHT-NOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-NEGATIVE-QUESTIONS-SLOT-SAFE
+  // CORE600: past counterfactual negative questions only, might not have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-599; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core600ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높지 않았을지도 몰라요|잡혔을 가능성이 낮지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core600ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch && isQuestion && (
+    (core600ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2] === '충족되었더라면' && core600ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4] === '잡혔을 가능성이 높지 않았을지도 몰라요') ||
+    (core600ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2] === '충족되지 않았더라면' && core600ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4] === '잡혔을 가능성이 낮지 않았을지도 몰라요')
+  )) {
+    const core600Plural = core600ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[1] === '들은';
+    const core600ConditionKo = core600ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2];
+    const core600TimeKo = core600ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[3];
+    const core600PredicateKo = core600ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4];
+    const core600Likely = core600PredicateKo === '잡혔을 가능성이 높지 않았을지도 몰라요';
+    const core600Subject = core600Plural ? 'applicants' : 'applicant';
+    const core600Time = core600TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core600Condition = core600Likely ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core600Predicate = core600Likely ? 'likely' : 'unlikely';
+    const core600English = `Might the ${core600Subject} not have been ${core600Predicate} to be scheduled to be referred for additional screening ${core600Time} ${core600Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core600English, originalText),
+      analysis: [
+        { ko: core600Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core600Subject} [S]` },
+        { ko: `조건이 ${core600ConditionKo}`, en: `${core600Condition} [CONDITION]` },
+        { ko: core600TimeKo, en: `${core600Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core600PredicateKo}`, en: `might not have been ${core600Predicate} to be scheduled to be referred for additional screening [CORE600:SCHEDULED:MIGHT_NOT_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_NEGATIVE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core600-applicants-referred-additional-screening-might-not-have-been-likely-unlikely-to-be-scheduled-past-conditional-negative-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE599-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MIGHT-NOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-NEGATIVE-STATEMENTS-SLOT-SAFE
+  // CORE599: past counterfactual negative statements only, might not have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-598; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core599ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높지 않았을지도 몰라요|잡혔을 가능성이 낮지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core599ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch && !isQuestion && (
+    (core599ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2] === '충족되었더라면' && core599ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4] === '잡혔을 가능성이 높지 않았을지도 몰라요') ||
+    (core599ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2] === '충족되지 않았더라면' && core599ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4] === '잡혔을 가능성이 낮지 않았을지도 몰라요')
+  )) {
+    const core599Plural = core599ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[1] === '들은';
+    const core599ConditionKo = core599ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2];
+    const core599TimeKo = core599ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[3];
+    const core599PredicateKo = core599ApplicantReferredAdditionalScreeningMightNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4];
+    const core599Likely = core599PredicateKo === '잡혔을 가능성이 높지 않았을지도 몰라요';
+    const core599Subject = core599Plural ? 'applicants' : 'applicant';
+    const core599Time = core599TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core599Condition = core599Likely ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core599Predicate = core599Likely ? 'likely' : 'unlikely';
+    const core599English = `The ${core599Subject} might not have been ${core599Predicate} to be scheduled to be referred for additional screening ${core599Time} ${core599Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core599English, originalText),
+      analysis: [
+        { ko: core599Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core599Subject} [S]` },
+        { ko: `조건이 ${core599ConditionKo}`, en: `${core599Condition} [CONDITION]` },
+        { ko: core599TimeKo, en: `${core599Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core599PredicateKo}`, en: `might not have been ${core599Predicate} to be scheduled to be referred for additional screening [CORE599:SCHEDULED:MIGHT_NOT_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_NEGATIVE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core599-applicants-referred-additional-screening-might-not-have-been-likely-unlikely-to-be-scheduled-past-conditional-negative-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE598-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MIGHT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-POSSIBILITY-QUESTIONS-SLOT-SAFE
+  // CORE598: past counterfactual questions only, might have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-597; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core598ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높았을지도 몰라요|잡혔을 가능성이 낮았을지도 몰라요)$/u.exec(normalized);
+  if (core598ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch && isQuestion && (
+    (core598ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch[2] === '충족되지 않았더라면' && core598ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch[4] === '잡혔을 가능성이 높았을지도 몰라요') ||
+    (core598ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch[2] === '충족되었더라면' && core598ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch[4] === '잡혔을 가능성이 낮았을지도 몰라요')
+  )) {
+    const core598Plural = core598ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch[1] === '들은';
+    const core598ConditionKo = core598ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch[2];
+    const core598TimeKo = core598ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch[3];
+    const core598PredicateKo = core598ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch[4];
+    const core598Likely = core598PredicateKo === '잡혔을 가능성이 높았을지도 몰라요';
+    const core598Subject = core598Plural ? 'applicants' : 'applicant';
+    const core598Time = core598TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core598Condition = core598Likely ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core598Predicate = core598Likely ? 'likely' : 'unlikely';
+    const core598English = `Might the ${core598Subject} have been ${core598Predicate} to be scheduled to be referred for additional screening ${core598Time} ${core598Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core598English, originalText),
+      analysis: [
+        { ko: core598Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core598Subject} [S]` },
+        { ko: `조건이 ${core598ConditionKo}`, en: `${core598Condition} [CONDITION]` },
+        { ko: core598TimeKo, en: `${core598Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core598PredicateKo}`, en: `might have been ${core598Predicate} to be scheduled to be referred for additional screening [CORE598:SCHEDULED:MIGHT_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_POSSIBILITY_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core598-applicants-referred-additional-screening-might-have-been-likely-unlikely-to-be-scheduled-past-conditional-possibility-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE597-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MIGHT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-POSSIBILITY-STATEMENTS-SLOT-SAFE
+  // CORE597: past counterfactual statements only, might have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-596; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core597ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높았을지도 몰라요|잡혔을 가능성이 낮았을지도 몰라요)$/u.exec(normalized);
+  if (core597ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch && !isQuestion && (
+    (core597ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch[2] === '충족되지 않았더라면' && core597ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch[4] === '잡혔을 가능성이 높았을지도 몰라요') ||
+    (core597ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch[2] === '충족되었더라면' && core597ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch[4] === '잡혔을 가능성이 낮았을지도 몰라요')
+  )) {
+    const core597Plural = core597ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch[1] === '들은';
+    const core597ConditionKo = core597ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch[2];
+    const core597TimeKo = core597ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch[3];
+    const core597PredicateKo = core597ApplicantReferredAdditionalScreeningMightHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch[4];
+    const core597Likely = core597PredicateKo === '잡혔을 가능성이 높았을지도 몰라요';
+    const core597Subject = core597Plural ? 'applicants' : 'applicant';
+    const core597Time = core597TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core597Condition = core597Likely ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core597Predicate = core597Likely ? 'likely' : 'unlikely';
+    const core597English = `The ${core597Subject} might have been ${core597Predicate} to be scheduled to be referred for additional screening ${core597Time} ${core597Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core597English, originalText),
+      analysis: [
+        { ko: core597Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core597Subject} [S]` },
+        { ko: `조건이 ${core597ConditionKo}`, en: `${core597Condition} [CONDITION]` },
+        { ko: core597TimeKo, en: `${core597Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core597PredicateKo}`, en: `might have been ${core597Predicate} to be scheduled to be referred for additional screening [CORE597:SCHEDULED:MIGHT_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_POSSIBILITY_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core597-applicants-referred-additional-screening-might-have-been-likely-unlikely-to-be-scheduled-past-conditional-possibility-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE596-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-COULD-NOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-NEGATIVE-QUESTIONS-SLOT-SAFE
+  // CORE596: past counterfactual negative questions only, could not have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-595; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core596ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높았을 리가 없어요|잡혔을 가능성이 낮았을 리가 없어요)$/u.exec(normalized);
+  if (core596ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch && isQuestion && (
+    (core596ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2] === '충족되었더라면' && core596ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4] === '잡혔을 가능성이 높았을 리가 없어요') ||
+    (core596ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2] === '충족되지 않았더라면' && core596ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4] === '잡혔을 가능성이 낮았을 리가 없어요')
+  )) {
+    const core596Plural = core596ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[1] === '들은';
+    const core596ConditionKo = core596ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2];
+    const core596TimeKo = core596ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[3];
+    const core596PredicateKo = core596ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4];
+    const core596Likely = core596PredicateKo === '잡혔을 가능성이 높았을 리가 없어요';
+    const core596Subject = core596Plural ? 'applicants' : 'applicant';
+    const core596Time = core596TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core596Condition = core596Likely ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core596Predicate = core596Likely ? 'likely' : 'unlikely';
+    const core596English = `Could the ${core596Subject} not have been ${core596Predicate} to be scheduled to be referred for additional screening ${core596Time} ${core596Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core596English, originalText),
+      analysis: [
+        { ko: core596Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core596Subject} [S]` },
+        { ko: `조건이 ${core596ConditionKo}`, en: `${core596Condition} [CONDITION]` },
+        { ko: core596TimeKo, en: `${core596Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core596PredicateKo}`, en: `could not have been ${core596Predicate} to be scheduled to be referred for additional screening [CORE596:SCHEDULED:COULD_NOT_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_NEGATIVE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core596-applicants-referred-additional-screening-could-not-have-been-likely-unlikely-to-be-scheduled-past-conditional-negative-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE595-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-COULD-NOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-NEGATIVE-STATEMENTS-SLOT-SAFE
+  // CORE595: past counterfactual negative statements only, could not have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-594; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core595ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높았을 리가 없어요|잡혔을 가능성이 낮았을 리가 없어요)$/u.exec(normalized);
+  if (core595ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch && !isQuestion && (
+    (core595ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2] === '충족되었더라면' && core595ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4] === '잡혔을 가능성이 높았을 리가 없어요') ||
+    (core595ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2] === '충족되지 않았더라면' && core595ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4] === '잡혔을 가능성이 낮았을 리가 없어요')
+  )) {
+    const core595Plural = core595ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[1] === '들은';
+    const core595ConditionKo = core595ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2];
+    const core595TimeKo = core595ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[3];
+    const core595PredicateKo = core595ApplicantReferredAdditionalScreeningCouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4];
+    const core595Likely = core595PredicateKo === '잡혔을 가능성이 높았을 리가 없어요';
+    const core595Subject = core595Plural ? 'applicants' : 'applicant';
+    const core595Time = core595TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core595Condition = core595Likely ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core595Predicate = core595Likely ? 'likely' : 'unlikely';
+    const core595English = `The ${core595Subject} could not have been ${core595Predicate} to be scheduled to be referred for additional screening ${core595Time} ${core595Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core595English, originalText),
+      analysis: [
+        { ko: core595Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core595Subject} [S]` },
+        { ko: `조건이 ${core595ConditionKo}`, en: `${core595Condition} [CONDITION]` },
+        { ko: core595TimeKo, en: `${core595Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core595PredicateKo}`, en: `could not have been ${core595Predicate} to be scheduled to be referred for additional screening [CORE595:SCHEDULED:COULD_NOT_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_NEGATIVE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core595-applicants-referred-additional-screening-could-not-have-been-likely-unlikely-to-be-scheduled-past-conditional-negative-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE594-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-COULD-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-POSSIBILITY-QUESTIONS-SLOT-SAFE
+  // CORE594: past counterfactual questions only, could have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-593; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core594ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높았을 수도 있어요|잡혔을 가능성이 낮았을 수도 있어요)$/u.exec(normalized);
+  if (core594ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch && isQuestion && (
+    (core594ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch[2] === '충족되지 않았더라면' && core594ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch[4] === '잡혔을 가능성이 높았을 수도 있어요') ||
+    (core594ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch[2] === '충족되었더라면' && core594ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch[4] === '잡혔을 가능성이 낮았을 수도 있어요')
+  )) {
+    const core594Plural = core594ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch[1] === '들은';
+    const core594ConditionKo = core594ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch[2];
+    const core594TimeKo = core594ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch[3];
+    const core594PredicateKo = core594ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityQuestionMatch[4];
+    const core594Likely = core594PredicateKo === '잡혔을 가능성이 높았을 수도 있어요';
+    const core594Subject = core594Plural ? 'applicants' : 'applicant';
+    const core594Time = core594TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core594Condition = core594Likely ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core594Predicate = core594Likely ? 'likely' : 'unlikely';
+    const core594English = `Could the ${core594Subject} have been ${core594Predicate} to be scheduled to be referred for additional screening ${core594Time} ${core594Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core594English, originalText),
+      analysis: [
+        { ko: core594Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core594Subject} [S]` },
+        { ko: `조건이 ${core594ConditionKo}`, en: `${core594Condition} [CONDITION]` },
+        { ko: core594TimeKo, en: `${core594Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core594PredicateKo}`, en: `could have been ${core594Predicate} to be scheduled to be referred for additional screening [CORE594:SCHEDULED:COULD_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_POSSIBILITY_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core594-applicants-referred-additional-screening-could-have-been-likely-unlikely-to-be-scheduled-past-conditional-possibility-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE593-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-COULD-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-POSSIBILITY-STATEMENTS-SLOT-SAFE
+  // CORE593: past counterfactual statements only, could have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-592; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core593ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높았을 수도 있어요|잡혔을 가능성이 낮았을 수도 있어요)$/u.exec(normalized);
+  if (core593ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch && !isQuestion && (
+    (core593ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch[2] === '충족되지 않았더라면' && core593ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch[4] === '잡혔을 가능성이 높았을 수도 있어요') ||
+    (core593ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch[2] === '충족되었더라면' && core593ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch[4] === '잡혔을 가능성이 낮았을 수도 있어요')
+  )) {
+    const core593Plural = core593ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch[1] === '들은';
+    const core593ConditionKo = core593ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch[2];
+    const core593TimeKo = core593ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch[3];
+    const core593PredicateKo = core593ApplicantReferredAdditionalScreeningCouldHaveBeenLikelyUnlikelyScheduledPastConditionalPossibilityStatementMatch[4];
+    const core593Likely = core593PredicateKo === '잡혔을 가능성이 높았을 수도 있어요';
+    const core593Subject = core593Plural ? 'applicants' : 'applicant';
+    const core593Time = core593TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core593Condition = core593Likely ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core593Predicate = core593Likely ? 'likely' : 'unlikely';
+    const core593English = `The ${core593Subject} could have been ${core593Predicate} to be scheduled to be referred for additional screening ${core593Time} ${core593Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core593English, originalText),
+      analysis: [
+        { ko: core593Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core593Subject} [S]` },
+        { ko: `조건이 ${core593ConditionKo}`, en: `${core593Condition} [CONDITION]` },
+        { ko: core593TimeKo, en: `${core593Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core593PredicateKo}`, en: `could have been ${core593Predicate} to be scheduled to be referred for additional screening [CORE593:SCHEDULED:COULD_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_POSSIBILITY_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core593-applicants-referred-additional-screening-could-have-been-likely-unlikely-to-be-scheduled-past-conditional-possibility-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE592-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-NOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-NEGATIVE-QUESTIONS-SLOT-SAFE
+  // CORE592: past counterfactual negative questions only, would not have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-591; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core592ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높지 않았을 거예요|잡혔을 가능성이 낮지 않았을 거예요)$/u.exec(normalized);
+  if (core592ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch && isQuestion && (
+    (core592ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2] === '충족되었더라면' && core592ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4] === '잡혔을 가능성이 높지 않았을 거예요') ||
+    (core592ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2] === '충족되지 않았더라면' && core592ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4] === '잡혔을 가능성이 낮지 않았을 거예요')
+  )) {
+    const core592Plural = core592ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[1] === '들은';
+    const core592ConditionKo = core592ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[2];
+    const core592TimeKo = core592ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[3];
+    const core592PredicateKo = core592ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeQuestionMatch[4];
+    const core592Likely = core592PredicateKo === '잡혔을 가능성이 높지 않았을 거예요';
+    const core592Subject = core592Plural ? 'applicants' : 'applicant';
+    const core592Time = core592TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core592Condition = core592Likely ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core592Predicate = core592Likely ? 'likely' : 'unlikely';
+    const core592English = `Would the ${core592Subject} not have been ${core592Predicate} to be scheduled to be referred for additional screening ${core592Time} ${core592Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core592English, originalText),
+      analysis: [
+        { ko: core592Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core592Subject} [S]` },
+        { ko: `조건이 ${core592ConditionKo}`, en: `${core592Condition} [CONDITION]` },
+        { ko: core592TimeKo, en: `${core592Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core592PredicateKo}`, en: `would not have been ${core592Predicate} to be scheduled to be referred for additional screening [CORE592:SCHEDULED:WOULD_NOT_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_NEGATIVE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core592-applicants-referred-additional-screening-would-not-have-been-likely-unlikely-to-be-scheduled-past-conditional-negative-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE591-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-NOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-NEGATIVE-STATEMENTS-SLOT-SAFE
+  // CORE591: past counterfactual negative statements only, would not have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-590; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core591ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높지 않았을 거예요|잡혔을 가능성이 낮지 않았을 거예요)$/u.exec(normalized);
+  if (core591ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch && !isQuestion && (
+    (core591ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2] === '충족되었더라면' && core591ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4] === '잡혔을 가능성이 높지 않았을 거예요') ||
+    (core591ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2] === '충족되지 않았더라면' && core591ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4] === '잡혔을 가능성이 낮지 않았을 거예요')
+  )) {
+    const core591Plural = core591ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[1] === '들은';
+    const core591ConditionKo = core591ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[2];
+    const core591TimeKo = core591ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[3];
+    const core591PredicateKo = core591ApplicantReferredAdditionalScreeningWouldNotHaveBeenLikelyUnlikelyScheduledPastConditionalNegativeStatementMatch[4];
+    const core591Likely = core591PredicateKo === '잡혔을 가능성이 높지 않았을 거예요';
+    const core591Subject = core591Plural ? 'applicants' : 'applicant';
+    const core591Time = core591TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core591Condition = core591Likely ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core591Predicate = core591Likely ? 'likely' : 'unlikely';
+    const core591English = `The ${core591Subject} would not have been ${core591Predicate} to be scheduled to be referred for additional screening ${core591Time} ${core591Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core591English, originalText),
+      analysis: [
+        { ko: core591Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core591Subject} [S]` },
+        { ko: `조건이 ${core591ConditionKo}`, en: `${core591Condition} [CONDITION]` },
+        { ko: core591TimeKo, en: `${core591Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core591PredicateKo}`, en: `would not have been ${core591Predicate} to be scheduled to be referred for additional screening [CORE591:SCHEDULED:WOULD_NOT_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_NEGATIVE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core591-applicants-referred-additional-screening-would-not-have-been-likely-unlikely-to-be-scheduled-past-conditional-negative-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE590-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE590: past counterfactual questions only, would have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-589; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core590ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높았을 거예요|잡혔을 가능성이 낮았을 거예요)$/u.exec(normalized);
+  if (core590ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch && isQuestion && (
+    (core590ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core590ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[4] === '잡혔을 가능성이 높았을 거예요') ||
+    (core590ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[2] === '충족되었더라면' && core590ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[4] === '잡혔을 가능성이 낮았을 거예요')
+  )) {
+    const core590Plural = core590ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[1] === '들은';
+    const core590ConditionKo = core590ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[2];
+    const core590TimeKo = core590ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[3];
+    const core590PredicateKo = core590ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalQuestionMatch[4];
+    const core590Likely = core590PredicateKo === '잡혔을 가능성이 높았을 거예요';
+    const core590Subject = core590Plural ? 'applicants' : 'applicant';
+    const core590Time = core590TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core590Condition = core590Likely ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core590Predicate = core590Likely ? 'likely' : 'unlikely';
+    const core590English = `Would the ${core590Subject} have been ${core590Predicate} to be scheduled to be referred for additional screening ${core590Time} ${core590Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core590English, originalText),
+      analysis: [
+        { ko: core590Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core590Subject} [S]` },
+        { ko: `조건이 ${core590ConditionKo}`, en: `${core590Condition} [CONDITION]` },
+        { ko: core590TimeKo, en: `${core590Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core590PredicateKo}`, en: `would have been ${core590Predicate} to be scheduled to be referred for additional screening [CORE590:SCHEDULED:WOULD_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core590-applicants-referred-additional-screening-would-be-likely-unlikely-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE589-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE589: past counterfactual statements only, would have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-588; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core589ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높았을 거예요|잡혔을 가능성이 낮았을 거예요)$/u.exec(normalized);
+  if (core589ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch && !isQuestion && (
+    (core589ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core589ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[4] === '잡혔을 가능성이 높았을 거예요') ||
+    (core589ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[2] === '충족되었더라면' && core589ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[4] === '잡혔을 가능성이 낮았을 거예요')
+  )) {
+    const core589Plural = core589ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[1] === '들은';
+    const core589ConditionKo = core589ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[2];
+    const core589TimeKo = core589ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[3];
+    const core589PredicateKo = core589ApplicantReferredAdditionalScreeningWouldHaveBeenLikelyUnlikelyScheduledPastConditionalStatementMatch[4];
+    const core589Likely = core589PredicateKo === '잡혔을 가능성이 높았을 거예요';
+    const core589Subject = core589Plural ? 'applicants' : 'applicant';
+    const core589Time = core589TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core589Condition = core589Likely ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core589Predicate = core589Likely ? 'likely' : 'unlikely';
+    const core589English = `The ${core589Subject} would have been ${core589Predicate} to be scheduled to be referred for additional screening ${core589Time} ${core589Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core589English, originalText),
+      analysis: [
+        { ko: core589Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core589Subject} [S]` },
+        { ko: `조건이 ${core589ConditionKo}`, en: `${core589Condition} [CONDITION]` },
+        { ko: core589TimeKo, en: `${core589Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core589PredicateKo}`, en: `would have been ${core589Predicate} to be scheduled to be referred for additional screening [CORE589:SCHEDULED:WOULD_BE:LIKELY_UNLIKELY:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core589-applicants-referred-additional-screening-would-be-likely-unlikely-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE588-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-NOT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-CONDITIONAL-NEGATIVE-QUESTIONS-SLOT-SAFE
+  // CORE588: future conditional negative questions only, would not be likely / unlikely, next month / next quarter.
+  // Preserves CORE1-587; distinguishes hypothetical IF clauses from earlier factual BECAUSE clauses.
+  const core588ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않는다면|충족된다면) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높지 않을 거예요|잡힐 가능성이 낮지 않을 거예요)$/u.exec(normalized);
+  if (core588ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeQuestionMatch && isQuestion && (
+    (core588ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeQuestionMatch[2] === '충족된다면' && core588ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeQuestionMatch[4] === '잡힐 가능성이 높지 않을 거예요') ||
+    (core588ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeQuestionMatch[2] === '충족되지 않는다면' && core588ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeQuestionMatch[4] === '잡힐 가능성이 낮지 않을 거예요')
+  )) {
+    const core588Plural = core588ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeQuestionMatch[1] === '들은';
+    const core588ConditionKo = core588ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeQuestionMatch[2];
+    const core588TimeKo = core588ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeQuestionMatch[3];
+    const core588PredicateKo = core588ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeQuestionMatch[4];
+    const core588Likely = core588PredicateKo === '잡힐 가능성이 높지 않을 거예요';
+    const core588Subject = core588Plural ? 'applicants' : 'applicant';
+    const core588Time = core588TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core588Condition = core588Likely ? 'if the conditions were met' : 'if the conditions were not met';
+    const core588Predicate = core588Likely ? 'likely' : 'unlikely';
+    const core588English = `Would the ${core588Subject} not be ${core588Predicate} to be scheduled to be referred for additional screening ${core588Time} ${core588Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core588English, originalText),
+      analysis: [
+        { ko: core588Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core588Subject} [S]` },
+        { ko: `조건이 ${core588ConditionKo}`, en: `${core588Condition} [CONDITION]` },
+        { ko: core588TimeKo, en: `${core588Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core588PredicateKo}`, en: `would not be ${core588Predicate} to be scheduled to be referred for additional screening [CORE588:SCHEDULED:WOULD_NOT_BE:LIKELY_UNLIKELY:FUTURE_CONDITIONAL_NEGATIVE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core588-applicants-referred-additional-screening-would-not-be-likely-unlikely-to-be-scheduled-future-conditional-negative-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE587-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-NOT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-CONDITIONAL-NEGATIVE-STATEMENTS-SLOT-SAFE
+  // CORE587: future conditional negative statements only, would not be likely / unlikely, next month / next quarter.
+  // Preserves CORE1-586; distinguishes hypothetical IF clauses from earlier factual BECAUSE clauses.
+  const core587ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않는다면|충족된다면) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높지 않을 거예요|잡힐 가능성이 낮지 않을 거예요)$/u.exec(normalized);
+  if (core587ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeStatementMatch && !isQuestion && (
+    (core587ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeStatementMatch[2] === '충족된다면' && core587ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeStatementMatch[4] === '잡힐 가능성이 높지 않을 거예요') ||
+    (core587ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeStatementMatch[2] === '충족되지 않는다면' && core587ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeStatementMatch[4] === '잡힐 가능성이 낮지 않을 거예요')
+  )) {
+    const core587Plural = core587ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeStatementMatch[1] === '들은';
+    const core587ConditionKo = core587ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeStatementMatch[2];
+    const core587TimeKo = core587ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeStatementMatch[3];
+    const core587PredicateKo = core587ApplicantReferredAdditionalScreeningWouldNotBeLikelyUnlikelyScheduledFutureConditionalNegativeStatementMatch[4];
+    const core587Likely = core587PredicateKo === '잡힐 가능성이 높지 않을 거예요';
+    const core587Subject = core587Plural ? 'applicants' : 'applicant';
+    const core587Time = core587TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core587Condition = core587Likely ? 'if the conditions were met' : 'if the conditions were not met';
+    const core587Predicate = core587Likely ? 'likely' : 'unlikely';
+    const core587English = `The ${core587Subject} would not be ${core587Predicate} to be scheduled to be referred for additional screening ${core587Time} ${core587Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core587English, originalText),
+      analysis: [
+        { ko: core587Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core587Subject} [S]` },
+        { ko: `조건이 ${core587ConditionKo}`, en: `${core587Condition} [CONDITION]` },
+        { ko: core587TimeKo, en: `${core587Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core587PredicateKo}`, en: `would not be ${core587Predicate} to be scheduled to be referred for additional screening [CORE587:SCHEDULED:WOULD_NOT_BE:LIKELY_UNLIKELY:FUTURE_CONDITIONAL_NEGATIVE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core587-applicants-referred-additional-screening-would-not-be-likely-unlikely-to-be-scheduled-future-conditional-negative-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE586-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE586: future conditional questions only, would be likely / unlikely, next month / next quarter.
+  // Preserves CORE1-585; distinguishes hypothetical IF clauses from earlier factual BECAUSE clauses.
+  const core586ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않는다면|충족된다면) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높을 거예요|잡힐 가능성이 낮을 거예요)$/u.exec(normalized);
+  if (core586ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalQuestionMatch && isQuestion && (
+    (core586ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalQuestionMatch[2] === '충족되지 않는다면' && core586ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalQuestionMatch[4] === '잡힐 가능성이 높을 거예요') ||
+    (core586ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalQuestionMatch[2] === '충족된다면' && core586ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalQuestionMatch[4] === '잡힐 가능성이 낮을 거예요')
+  )) {
+    const core586Plural = core586ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalQuestionMatch[1] === '들은';
+    const core586ConditionKo = core586ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalQuestionMatch[2];
+    const core586TimeKo = core586ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalQuestionMatch[3];
+    const core586PredicateKo = core586ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalQuestionMatch[4];
+    const core586Likely = core586PredicateKo === '잡힐 가능성이 높을 거예요';
+    const core586Subject = core586Plural ? 'applicants' : 'applicant';
+    const core586Time = core586TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core586Condition = core586Likely ? 'if the conditions were not met' : 'if the conditions were met';
+    const core586Predicate = core586Likely ? 'likely' : 'unlikely';
+    const core586English = `Would the ${core586Subject} be ${core586Predicate} to be scheduled to be referred for additional screening ${core586Time} ${core586Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core586English, originalText),
+      analysis: [
+        { ko: core586Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core586Subject} [S]` },
+        { ko: `조건이 ${core586ConditionKo}`, en: `${core586Condition} [CONDITION]` },
+        { ko: core586TimeKo, en: `${core586Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core586PredicateKo}`, en: `would be ${core586Predicate} to be scheduled to be referred for additional screening [CORE586:SCHEDULED:WOULD_BE:LIKELY_UNLIKELY:FUTURE_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core586-applicants-referred-additional-screening-would-be-likely-unlikely-to-be-scheduled-future-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE585-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE585: future conditional statements only, would be likely / unlikely, next month / next quarter.
+  // Preserves CORE1-584; distinguishes hypothetical IF clauses from earlier factual BECAUSE clauses.
+  const core585ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않는다면|충족된다면) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높을 거예요|잡힐 가능성이 낮을 거예요)$/u.exec(normalized);
+  if (core585ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalStatementMatch && !isQuestion && (
+    (core585ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalStatementMatch[2] === '충족되지 않는다면' && core585ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalStatementMatch[4] === '잡힐 가능성이 높을 거예요') ||
+    (core585ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalStatementMatch[2] === '충족된다면' && core585ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalStatementMatch[4] === '잡힐 가능성이 낮을 거예요')
+  )) {
+    const core585Plural = core585ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalStatementMatch[1] === '들은';
+    const core585ConditionKo = core585ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalStatementMatch[2];
+    const core585TimeKo = core585ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalStatementMatch[3];
+    const core585PredicateKo = core585ApplicantReferredAdditionalScreeningWouldBeLikelyUnlikelyScheduledFutureConditionalStatementMatch[4];
+    const core585Likely = core585PredicateKo === '잡힐 가능성이 높을 거예요';
+    const core585Subject = core585Plural ? 'applicants' : 'applicant';
+    const core585Time = core585TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core585Condition = core585Likely ? 'if the conditions were not met' : 'if the conditions were met';
+    const core585Predicate = core585Likely ? 'likely' : 'unlikely';
+    const core585English = `The ${core585Subject} would be ${core585Predicate} to be scheduled to be referred for additional screening ${core585Time} ${core585Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core585English, originalText),
+      analysis: [
+        { ko: core585Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core585Subject} [S]` },
+        { ko: `조건이 ${core585ConditionKo}`, en: `${core585Condition} [CONDITION]` },
+        { ko: core585TimeKo, en: `${core585Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core585PredicateKo}`, en: `would be ${core585Predicate} to be scheduled to be referred for additional screening [CORE585:SCHEDULED:WOULD_BE:LIKELY_UNLIKELY:FUTURE_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core585-applicants-referred-additional-screening-would-be-likely-unlikely-to-be-scheduled-future-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE584-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-CANNOT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-QUESTIONS-SLOT-SAFE
+  // CORE584: strictly questions, cannot be likely / unlikely, next month / next quarter.
+  // Extends the modal possibility slots to next month / next quarter without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-583 and all preceding source bytes.
+  const core584ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높을 리가 없어요|잡힐 가능성이 낮을 리가 없어요)$/u.exec(normalized);
+  if (core584ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureQuestionMatch && isQuestion && (
+    (core584ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되었으므로' && core584ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 높을 리가 없어요') ||
+    (core584ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되지 않았으므로' && core584ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 낮을 리가 없어요')
+  )) {
+    const core584Plural = core584ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureQuestionMatch[1] === '들은';
+    const core584ReasonKo = core584ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureQuestionMatch[2];
+    const core584TimeKo = core584ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureQuestionMatch[3];
+    const core584PredicateKo = core584ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureQuestionMatch[4];
+    const core584Likely = core584PredicateKo === '잡힐 가능성이 높을 리가 없어요';
+    const core584Subject = core584Plural ? 'applicants' : 'applicant';
+    const core584Time = core584TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core584Reason = core584Likely ? 'because the conditions were met' : 'because the conditions were not met';
+    const core584Predicate = core584Likely ? 'be likely' : 'be unlikely';
+    const core584English = `Cannot the ${core584Subject} ${core584Predicate} to be scheduled to be referred for additional screening ${core584Time} ${core584Reason}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core584English, originalText),
+      analysis: [
+        { ko: core584Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core584Subject} [S]` },
+        { ko: `조건이 ${core584ReasonKo}`, en: `${core584Reason} [REASON]` },
+        { ko: core584TimeKo, en: `${core584Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core584PredicateKo}`, en: `${core584Predicate} to be scheduled to be referred for additional screening [CORE584:SCHEDULED:CANNOT_BE:LIKELY_UNLIKELY:FUTURE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core584-applicants-referred-additional-screening-cannot-be-likely-unlikely-to-be-scheduled-future-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE583-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-CANNOT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-STATEMENTS-SLOT-SAFE
+  // CORE583: strictly statements, cannot be likely / unlikely, next month / next quarter.
+  // Extends the modal possibility slots to next month / next quarter without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-582 and all preceding source bytes.
+  const core583ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높을 리가 없어요|잡힐 가능성이 낮을 리가 없어요)$/u.exec(normalized);
+  if (core583ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureStatementMatch && !isQuestion && (
+    (core583ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되었으므로' && core583ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 높을 리가 없어요') ||
+    (core583ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되지 않았으므로' && core583ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 낮을 리가 없어요')
+  )) {
+    const core583Plural = core583ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureStatementMatch[1] === '들은';
+    const core583ReasonKo = core583ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureStatementMatch[2];
+    const core583TimeKo = core583ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureStatementMatch[3];
+    const core583PredicateKo = core583ApplicantReferredAdditionalScreeningCannotBeLikelyUnlikelyScheduledFutureStatementMatch[4];
+    const core583Likely = core583PredicateKo === '잡힐 가능성이 높을 리가 없어요';
+    const core583Subject = core583Plural ? 'applicants' : 'applicant';
+    const core583Time = core583TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core583Reason = core583Likely ? 'because the conditions were met' : 'because the conditions were not met';
+    const core583Predicate = core583Likely ? 'be likely' : 'be unlikely';
+    const core583English = `The ${core583Subject} cannot ${core583Predicate} to be scheduled to be referred for additional screening ${core583Time} ${core583Reason}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core583English, originalText),
+      analysis: [
+        { ko: core583Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core583Subject} [S]` },
+        { ko: `조건이 ${core583ReasonKo}`, en: `${core583Reason} [REASON]` },
+        { ko: core583TimeKo, en: `${core583Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core583PredicateKo}`, en: `${core583Predicate} to be scheduled to be referred for additional screening [CORE583:SCHEDULED:CANNOT_BE:LIKELY_UNLIKELY:FUTURE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core583-applicants-referred-additional-screening-cannot-be-likely-unlikely-to-be-scheduled-future-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE582-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-CAN-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-QUESTIONS-SLOT-SAFE
+  // CORE582: strictly questions, can be likely / unlikely, next month / next quarter.
+  // Extends the modal possibility slots to next month / next quarter without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-581 and all preceding source bytes.
+  const core582ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높을 수 있어요|잡힐 가능성이 낮을 수 있어요)$/u.exec(normalized);
+  if (core582ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureQuestionMatch && isQuestion && (
+    (core582ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되지 않았으므로' && core582ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 높을 수 있어요') ||
+    (core582ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되었으므로' && core582ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 낮을 수 있어요')
+  )) {
+    const core582Plural = core582ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureQuestionMatch[1] === '들은';
+    const core582ReasonKo = core582ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureQuestionMatch[2];
+    const core582TimeKo = core582ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureQuestionMatch[3];
+    const core582PredicateKo = core582ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureQuestionMatch[4];
+    const core582Likely = core582PredicateKo === '잡힐 가능성이 높을 수 있어요';
+    const core582Subject = core582Plural ? 'applicants' : 'applicant';
+    const core582Time = core582TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core582Reason = core582Likely ? 'because the conditions were not met' : 'because the conditions were met';
+    const core582Predicate = core582Likely ? 'be likely' : 'be unlikely';
+    const core582English = `Can the ${core582Subject} ${core582Predicate} to be scheduled to be referred for additional screening ${core582Time} ${core582Reason}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core582English, originalText),
+      analysis: [
+        { ko: core582Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core582Subject} [S]` },
+        { ko: `조건이 ${core582ReasonKo}`, en: `${core582Reason} [REASON]` },
+        { ko: core582TimeKo, en: `${core582Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core582PredicateKo}`, en: `${core582Predicate} to be scheduled to be referred for additional screening [CORE582:SCHEDULED:CAN_BE:LIKELY_UNLIKELY:FUTURE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core582-applicants-referred-additional-screening-can-be-likely-unlikely-to-be-scheduled-future-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE581-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-CAN-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-STATEMENTS-SLOT-SAFE
+  // CORE581: strictly statements, can be likely / unlikely, next month / next quarter.
+  // Extends the modal possibility slots to next month / next quarter without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-580 and all preceding source bytes.
+  const core581ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높을 수 있어요|잡힐 가능성이 낮을 수 있어요)$/u.exec(normalized);
+  if (core581ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureStatementMatch && !isQuestion && (
+    (core581ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되지 않았으므로' && core581ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 높을 수 있어요') ||
+    (core581ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되었으므로' && core581ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 낮을 수 있어요')
+  )) {
+    const core581Plural = core581ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureStatementMatch[1] === '들은';
+    const core581ReasonKo = core581ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureStatementMatch[2];
+    const core581TimeKo = core581ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureStatementMatch[3];
+    const core581PredicateKo = core581ApplicantReferredAdditionalScreeningCanBeLikelyUnlikelyScheduledFutureStatementMatch[4];
+    const core581Likely = core581PredicateKo === '잡힐 가능성이 높을 수 있어요';
+    const core581Subject = core581Plural ? 'applicants' : 'applicant';
+    const core581Time = core581TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core581Reason = core581Likely ? 'because the conditions were not met' : 'because the conditions were met';
+    const core581Predicate = core581Likely ? 'be likely' : 'be unlikely';
+    const core581English = `The ${core581Subject} can ${core581Predicate} to be scheduled to be referred for additional screening ${core581Time} ${core581Reason}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core581English, originalText),
+      analysis: [
+        { ko: core581Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core581Subject} [S]` },
+        { ko: `조건이 ${core581ReasonKo}`, en: `${core581Reason} [REASON]` },
+        { ko: core581TimeKo, en: `${core581Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core581PredicateKo}`, en: `${core581Predicate} to be scheduled to be referred for additional screening [CORE581:SCHEDULED:CAN_BE:LIKELY_UNLIKELY:FUTURE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core581-applicants-referred-additional-screening-can-be-likely-unlikely-to-be-scheduled-future-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE580-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MUST-NOT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-QUESTIONS-SLOT-SAFE
+  // CORE580: strictly questions, must not be likely / unlikely, next month / next quarter.
+  // Extends CORE552 to next month / next quarter without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-579 and all preceding source bytes.
+  const core580ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높아서는 안 돼요|잡힐 가능성이 낮아서는 안 돼요)$/u.exec(normalized);
+  if (core580ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureQuestionMatch && isQuestion && (
+    (core580ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되었으므로' && core580ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 높아서는 안 돼요') ||
+    (core580ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되지 않았으므로' && core580ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 낮아서는 안 돼요')
+  )) {
+    const core580Plural = core580ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureQuestionMatch[1] === '들은';
+    const core580ReasonKo = core580ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2];
+    const core580TimeKo = core580ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureQuestionMatch[3];
+    const core580PredicateKo = core580ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4];
+    const core580Likely = core580PredicateKo === '잡힐 가능성이 높아서는 안 돼요';
+    const core580Subject = core580Plural ? 'applicants' : 'applicant';
+    const core580Time = core580TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core580Reason = core580Likely ? 'because the conditions were met' : 'because the conditions were not met';
+    const core580Predicate = core580Likely ? 'not be likely' : 'not be unlikely';
+    const core580English = `Must the ${core580Subject} ${core580Predicate} to be scheduled to be referred for additional screening ${core580Time} ${core580Reason}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core580English, originalText),
+      analysis: [
+        { ko: core580Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core580Subject} [S]` },
+        { ko: `조건이 ${core580ReasonKo}`, en: `${core580Reason} [REASON]` },
+        { ko: core580TimeKo, en: `${core580Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core580PredicateKo}`, en: `${core580Predicate} to be scheduled to be referred for additional screening [CORE580:SCHEDULED:MUST_NOT_BE:LIKELY_UNLIKELY:FUTURE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core580-applicants-referred-additional-screening-must-not-be-likely-unlikely-to-be-scheduled-future-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE579-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MUST-NOT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-STATEMENTS-SLOT-SAFE
+  // CORE579: strictly statements, must not be likely / unlikely, next month / next quarter.
+  // Extends CORE551 to next month / next quarter without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-578 and all preceding source bytes.
+  const core579ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높아서는 안 돼요|잡힐 가능성이 낮아서는 안 돼요)$/u.exec(normalized);
+  if (core579ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureStatementMatch && !isQuestion && (
+    (core579ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되었으므로' && core579ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 높아서는 안 돼요') ||
+    (core579ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되지 않았으므로' && core579ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 낮아서는 안 돼요')
+  )) {
+    const core579Plural = core579ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureStatementMatch[1] === '들은';
+    const core579ReasonKo = core579ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureStatementMatch[2];
+    const core579TimeKo = core579ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureStatementMatch[3];
+    const core579PredicateKo = core579ApplicantReferredAdditionalScreeningMustNotBeLikelyUnlikelyScheduledFutureStatementMatch[4];
+    const core579Likely = core579PredicateKo === '잡힐 가능성이 높아서는 안 돼요';
+    const core579Subject = core579Plural ? 'applicants' : 'applicant';
+    const core579Time = core579TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core579Reason = core579Likely ? 'because the conditions were met' : 'because the conditions were not met';
+    const core579Predicate = core579Likely ? 'not be likely' : 'not be unlikely';
+    const core579English = `The ${core579Subject} must ${core579Predicate} to be scheduled to be referred for additional screening ${core579Time} ${core579Reason}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core579English, originalText),
+      analysis: [
+        { ko: core579Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core579Subject} [S]` },
+        { ko: `조건이 ${core579ReasonKo}`, en: `${core579Reason} [REASON]` },
+        { ko: core579TimeKo, en: `${core579Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core579PredicateKo}`, en: `${core579Predicate} to be scheduled to be referred for additional screening [CORE579:SCHEDULED:MUST_NOT_BE:LIKELY_UNLIKELY:FUTURE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core579-applicants-referred-additional-screening-must-not-be-likely-unlikely-to-be-scheduled-future-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE578-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MUST-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-QUESTIONS-SLOT-SAFE
+  // CORE578: strictly questions, must be likely / unlikely, next month / next quarter.
+  // Extends CORE540 to next month / next quarter without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-577 and all preceding source bytes.
+  const core578ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높은 게 틀림없어요|잡힐 가능성이 낮은 게 틀림없어요)$/u.exec(normalized);
+  if (core578ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureQuestionMatch && isQuestion && (
+    (core578ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되지 않았으므로' && core578ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 높은 게 틀림없어요') ||
+    (core578ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되었으므로' && core578ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 낮은 게 틀림없어요')
+  )) {
+    const core578Plural = core578ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureQuestionMatch[1] === '들은';
+    const core578ReasonKo = core578ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureQuestionMatch[2];
+    const core578TimeKo = core578ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureQuestionMatch[3];
+    const core578PredicateKo = core578ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureQuestionMatch[4];
+    const core578Likely = core578PredicateKo === '잡힐 가능성이 높은 게 틀림없어요';
+    const core578Subject = core578Plural ? 'applicants' : 'applicant';
+    const core578Time = core578TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core578Reason = core578Likely ? 'because the conditions were not met' : 'because the conditions were met';
+    const core578Predicate = core578Likely ? 'be likely' : 'be unlikely';
+    const core578English = `Must the ${core578Subject} ${core578Predicate} to be scheduled to be referred for additional screening ${core578Time} ${core578Reason}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core578English, originalText),
+      analysis: [
+        { ko: core578Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core578Subject} [S]` },
+        { ko: `조건이 ${core578ReasonKo}`, en: `${core578Reason} [REASON]` },
+        { ko: core578TimeKo, en: `${core578Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core578PredicateKo}`, en: `${core578Predicate} to be scheduled to be referred for additional screening [CORE578:SCHEDULED:MUST_BE:LIKELY_UNLIKELY:FUTURE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core578-applicants-referred-additional-screening-must-be-likely-unlikely-to-be-scheduled-future-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE577-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MUST-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-STATEMENTS-SLOT-SAFE
+  // CORE577: strictly statements, must be likely / unlikely, next month / next quarter.
+  // Extends CORE539 to next month / next quarter without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-576 and all preceding source bytes.
+  const core577ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높은 게 틀림없어요|잡힐 가능성이 낮은 게 틀림없어요)$/u.exec(normalized);
+  if (core577ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureStatementMatch && !isQuestion && (
+    (core577ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되지 않았으므로' && core577ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 높은 게 틀림없어요') ||
+    (core577ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되었으므로' && core577ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 낮은 게 틀림없어요')
+  )) {
+    const core577Plural = core577ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureStatementMatch[1] === '들은';
+    const core577ReasonKo = core577ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureStatementMatch[2];
+    const core577TimeKo = core577ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureStatementMatch[3];
+    const core577PredicateKo = core577ApplicantReferredAdditionalScreeningMustBeLikelyUnlikelyScheduledFutureStatementMatch[4];
+    const core577Likely = core577PredicateKo === '잡힐 가능성이 높은 게 틀림없어요';
+    const core577Subject = core577Plural ? 'applicants' : 'applicant';
+    const core577Time = core577TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core577Reason = core577Likely ? 'because the conditions were not met' : 'because the conditions were met';
+    const core577Predicate = core577Likely ? 'be likely' : 'be unlikely';
+    const core577English = `The ${core577Subject} must ${core577Predicate} to be scheduled to be referred for additional screening ${core577Time} ${core577Reason}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core577English, originalText),
+      analysis: [
+        { ko: core577Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core577Subject} [S]` },
+        { ko: `조건이 ${core577ReasonKo}`, en: `${core577Reason} [REASON]` },
+        { ko: core577TimeKo, en: `${core577Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core577PredicateKo}`, en: `${core577Predicate} to be scheduled to be referred for additional screening [CORE577:SCHEDULED:MUST_BE:LIKELY_UNLIKELY:FUTURE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core577-applicants-referred-additional-screening-must-be-likely-unlikely-to-be-scheduled-future-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE576-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-SHOULD-NOT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-QUESTIONS-SLOT-SAFE
+  // CORE576: strictly questions, should not be likely / unlikely, next month / next quarter.
+  // Extends CORE550 to next month / next quarter without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-575 and all preceding source bytes.
+  const core576ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높지 않을 것으로 예상돼요|잡힐 가능성이 낮지 않을 것으로 예상돼요)$/u.exec(normalized);
+  if (core576ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch && isQuestion && (
+    (core576ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되었으므로' && core576ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 높지 않을 것으로 예상돼요') ||
+    (core576ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되지 않았으므로' && core576ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 낮지 않을 것으로 예상돼요')
+  )) {
+    const core576Plural = core576ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch[1] === '들은';
+    const core576ReasonKo = core576ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2];
+    const core576TimeKo = core576ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch[3];
+    const core576PredicateKo = core576ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4];
+    const core576Likely = core576PredicateKo === '잡힐 가능성이 높지 않을 것으로 예상돼요';
+    const core576Subject = core576Plural ? 'applicants' : 'applicant';
+    const core576Time = core576TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core576Reason = core576Likely ? 'because the conditions were met' : 'because the conditions were not met';
+    const core576Predicate = core576Likely ? 'not be likely' : 'not be unlikely';
+    const core576English = `Should the ${core576Subject} ${core576Predicate} to be scheduled to be referred for additional screening ${core576Time} ${core576Reason}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core576English, originalText),
+      analysis: [
+        { ko: core576Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core576Subject} [S]` },
+        { ko: `조건이 ${core576ReasonKo}`, en: `${core576Reason} [REASON]` },
+        { ko: core576TimeKo, en: `${core576Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core576PredicateKo}`, en: `${core576Predicate} to be scheduled to be referred for additional screening [CORE576:SCHEDULED:SHOULD_NOT_BE:LIKELY_UNLIKELY:FUTURE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core576-applicants-referred-additional-screening-should-not-be-likely-unlikely-to-be-scheduled-future-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE575-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-SHOULD-NOT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-STATEMENTS-SLOT-SAFE
+  // CORE575: strictly statements, should not be likely / unlikely, next month / next quarter.
+  // Extends CORE549 to next month / next quarter without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-574 and all preceding source bytes.
+  const core575ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높지 않을 것으로 예상돼요|잡힐 가능성이 낮지 않을 것으로 예상돼요)$/u.exec(normalized);
+  if (core575ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureStatementMatch && !isQuestion && (
+    (core575ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되었으므로' && core575ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 높지 않을 것으로 예상돼요') ||
+    (core575ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되지 않았으므로' && core575ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 낮지 않을 것으로 예상돼요')
+  )) {
+    const core575Plural = core575ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureStatementMatch[1] === '들은';
+    const core575ReasonKo = core575ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureStatementMatch[2];
+    const core575TimeKo = core575ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureStatementMatch[3];
+    const core575PredicateKo = core575ApplicantReferredAdditionalScreeningShouldNotBeLikelyUnlikelyScheduledFutureStatementMatch[4];
+    const core575Likely = core575PredicateKo === '잡힐 가능성이 높지 않을 것으로 예상돼요';
+    const core575Subject = core575Plural ? 'applicants' : 'applicant';
+    const core575Time = core575TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core575Reason = core575Likely ? 'because the conditions were met' : 'because the conditions were not met';
+    const core575Predicate = core575Likely ? 'not be likely' : 'not be unlikely';
+    const core575English = `The ${core575Subject} should ${core575Predicate} to be scheduled to be referred for additional screening ${core575Time} ${core575Reason}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core575English, originalText),
+      analysis: [
+        { ko: core575Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core575Subject} [S]` },
+        { ko: `조건이 ${core575ReasonKo}`, en: `${core575Reason} [REASON]` },
+        { ko: core575TimeKo, en: `${core575Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core575PredicateKo}`, en: `${core575Predicate} to be scheduled to be referred for additional screening [CORE575:SCHEDULED:SHOULD_NOT_BE:LIKELY_UNLIKELY:FUTURE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core575-applicants-referred-additional-screening-should-be-likely-unlikely-to-be-scheduled-future-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE574-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-SHOULD-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-QUESTIONS-SLOT-SAFE
+  // CORE574: strictly questions, should be likely / unlikely, next month / next quarter.
+  // Extends CORE538 to new future periods without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-573 and all preceding source bytes.
+  const core574ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높을 것으로 예상돼요|잡힐 가능성이 낮을 것으로 예상돼요)$/u.exec(normalized);
+  if (core574ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureQuestionMatch && isQuestion && (
+    (core574ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되지 않았으므로' && core574ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 높을 것으로 예상돼요') ||
+    (core574ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되었으므로' && core574ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 낮을 것으로 예상돼요')
+  )) {
+    const core574Plural = core574ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureQuestionMatch[1] === '들은';
+    const core574ReasonKo = core574ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureQuestionMatch[2];
+    const core574TimeKo = core574ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureQuestionMatch[3];
+    const core574PredicateKo = core574ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureQuestionMatch[4];
+    const core574Likely = core574PredicateKo === '잡힐 가능성이 높을 것으로 예상돼요';
+    const core574Subject = core574Plural ? 'applicants' : 'applicant';
+    const core574Time = core574TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core574Reason = core574Likely ? 'because the conditions were not met' : 'because the conditions were met';
+    const core574Predicate = core574Likely ? 'be likely' : 'be unlikely';
+    const core574English = `Should the ${core574Subject} ${core574Predicate} to be scheduled to be referred for additional screening ${core574Time} ${core574Reason}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core574English, originalText),
+      analysis: [
+        { ko: core574Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core574Subject} [S]` },
+        { ko: `조건이 ${core574ReasonKo}`, en: `${core574Reason} [REASON]` },
+        { ko: core574TimeKo, en: `${core574Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core574PredicateKo}`, en: `${core574Predicate} to be scheduled to be referred for additional screening [CORE574:SCHEDULED:SHOULD_BE:LIKELY_UNLIKELY:FUTURE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core574-applicants-referred-additional-screening-should-be-likely-unlikely-to-be-scheduled-future-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE573-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-SHOULD-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-STATEMENTS-SLOT-SAFE
+  // CORE573: strictly statements, should be likely / unlikely, next month / next quarter.
+  // Extends CORE537 to new future periods without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-572 and all preceding source bytes.
+  const core573ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높을 것으로 예상돼요|잡힐 가능성이 낮을 것으로 예상돼요)$/u.exec(normalized);
+  if (core573ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureStatementMatch && !isQuestion && (
+    (core573ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되지 않았으므로' && core573ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 높을 것으로 예상돼요') ||
+    (core573ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되었으므로' && core573ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 낮을 것으로 예상돼요')
+  )) {
+    const core573Plural = core573ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureStatementMatch[1] === '들은';
+    const core573ReasonKo = core573ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureStatementMatch[2];
+    const core573TimeKo = core573ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureStatementMatch[3];
+    const core573PredicateKo = core573ApplicantReferredAdditionalScreeningShouldBeLikelyUnlikelyScheduledFutureStatementMatch[4];
+    const core573Likely = core573PredicateKo === '잡힐 가능성이 높을 것으로 예상돼요';
+    const core573Subject = core573Plural ? 'applicants' : 'applicant';
+    const core573Time = core573TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core573Reason = core573Likely ? 'because the conditions were not met' : 'because the conditions were met';
+    const core573Predicate = core573Likely ? 'should be likely' : 'should be unlikely';
+    const core573English = `The ${core573Subject} ${core573Predicate} to be scheduled to be referred for additional screening ${core573Time} ${core573Reason}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core573English, originalText),
+      analysis: [
+        { ko: core573Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core573Subject} [S]` },
+        { ko: `조건이 ${core573ReasonKo}`, en: `${core573Reason} [REASON]` },
+        { ko: core573TimeKo, en: `${core573Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core573PredicateKo}`, en: `${core573Predicate} to be scheduled to be referred for additional screening [CORE573:SCHEDULED:SHOULD_BE:LIKELY_UNLIKELY:FUTURE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core573-applicants-referred-additional-screening-should-be-likely-unlikely-to-be-scheduled-future-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE572-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MIGHT-NOT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-QUESTIONS-SLOT-SAFE
+  // CORE572: strictly questions, might not be likely / unlikely, next month / next quarter.
+  // Extends CORE546 to new future periods without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-571 and all preceding source bytes.
+  const core572ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높지 않을지도 몰라요|잡힐 가능성이 낮지 않을지도 몰라요)$/u.exec(normalized);
+  if (core572ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureQuestionMatch && isQuestion && (
+    (core572ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되었으므로' && core572ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 높지 않을지도 몰라요') ||
+    (core572ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되지 않았으므로' && core572ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 낮지 않을지도 몰라요')
+  )) {
+    const core572Plural = core572ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureQuestionMatch[1] === '들은';
+    const core572ReasonKo = core572ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2];
+    const core572TimeKo = core572ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureQuestionMatch[3];
+    const core572PredicateKo = core572ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4];
+    const core572Likely = core572PredicateKo === '잡힐 가능성이 높지 않을지도 몰라요';
+    const core572Subject = core572Plural ? 'applicants' : 'applicant';
+    const core572Time = core572TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core572Reason = core572Likely ? 'because the conditions were met' : 'because the conditions were not met';
+    const core572Predicate = core572Likely ? 'not be likely' : 'not be unlikely';
+    const core572English = `Might the ${core572Subject} ${core572Predicate} to be scheduled to be referred for additional screening ${core572Time} ${core572Reason}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core572English, originalText),
+      analysis: [
+        { ko: core572Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core572Subject} [S]` },
+        { ko: `조건이 ${core572ReasonKo}`, en: `${core572Reason} [REASON]` },
+        { ko: core572TimeKo, en: `${core572Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core572PredicateKo}`, en: `${core572Predicate} to be scheduled to be referred for additional screening [CORE572:SCHEDULED:MIGHT_NOT_BE:LIKELY_UNLIKELY:FUTURE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core572-applicants-referred-additional-screening-might-not-be-likely-unlikely-to-be-scheduled-future-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE571-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MIGHT-NOT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-STATEMENTS-SLOT-SAFE
+  // CORE571: strictly statements, might not be likely / unlikely, next month / next quarter.
+  // Extends CORE545 to new future periods without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-570 and all preceding source bytes.
+  const core571ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높지 않을지도 몰라요|잡힐 가능성이 낮지 않을지도 몰라요)$/u.exec(normalized);
+  if (core571ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureStatementMatch && !isQuestion && (
+    (core571ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되었으므로' && core571ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 높지 않을지도 몰라요') ||
+    (core571ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되지 않았으므로' && core571ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 낮지 않을지도 몰라요')
+  )) {
+    const core571Plural = core571ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureStatementMatch[1] === '들은';
+    const core571ReasonKo = core571ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureStatementMatch[2];
+    const core571TimeKo = core571ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureStatementMatch[3];
+    const core571PredicateKo = core571ApplicantReferredAdditionalScreeningMightNotBeLikelyUnlikelyScheduledFutureStatementMatch[4];
+    const core571Likely = core571PredicateKo === '잡힐 가능성이 높지 않을지도 몰라요';
+    const core571Subject = core571Plural ? 'applicants' : 'applicant';
+    const core571Time = core571TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core571Reason = core571Likely ? 'because the conditions were met' : 'because the conditions were not met';
+    const core571Predicate = core571Likely ? 'not be likely' : 'not be unlikely';
+    const core571English = `The ${core571Subject} might ${core571Predicate} to be scheduled to be referred for additional screening ${core571Time} ${core571Reason}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core571English, originalText),
+      analysis: [
+        { ko: core571Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core571Subject} [S]` },
+        { ko: `조건이 ${core571ReasonKo}`, en: `${core571Reason} [REASON]` },
+        { ko: core571TimeKo, en: `${core571Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core571PredicateKo}`, en: `${core571Predicate} to be scheduled to be referred for additional screening [CORE571:SCHEDULED:MIGHT_NOT_BE:LIKELY_UNLIKELY:FUTURE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core571-applicants-referred-additional-screening-might-not-be-likely-unlikely-to-be-scheduled-future-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE570-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MIGHT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-QUESTIONS-SLOT-SAFE
+  // CORE570: strictly questions, might be likely / unlikely, next month / next quarter.
+  // Extends CORE534 to new future periods without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-569 and all preceding source bytes.
+  const core570ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높을지도 몰라요|잡힐 가능성이 낮을지도 몰라요)$/u.exec(normalized);
+  if (core570ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureQuestionMatch && isQuestion && (
+    (core570ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되지 않았으므로' && core570ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 높을지도 몰라요') ||
+    (core570ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되었으므로' && core570ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 낮을지도 몰라요')
+  )) {
+    const core570Plural = core570ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureQuestionMatch[1] === '들은';
+    const core570ReasonKo = core570ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureQuestionMatch[2];
+    const core570TimeKo = core570ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureQuestionMatch[3];
+    const core570PredicateKo = core570ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureQuestionMatch[4];
+    const core570Likely = core570PredicateKo === '잡힐 가능성이 높을지도 몰라요';
+    const core570Subject = core570Plural ? 'applicants' : 'applicant';
+    const core570Time = core570TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core570Reason = core570Likely ? 'because the conditions were not met' : 'because the conditions were met';
+    const core570Predicate = core570Likely ? 'be likely' : 'be unlikely';
+    const core570English = `Might the ${core570Subject} ${core570Predicate} to be scheduled to be referred for additional screening ${core570Time} ${core570Reason}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core570English, originalText),
+      analysis: [
+        { ko: core570Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core570Subject} [S]` },
+        { ko: `조건이 ${core570ReasonKo}`, en: `${core570Reason} [REASON]` },
+        { ko: core570TimeKo, en: `${core570Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core570PredicateKo}`, en: `${core570Predicate} to be scheduled to be referred for additional screening [CORE570:SCHEDULED:MIGHT_BE:LIKELY_UNLIKELY:FUTURE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core570-applicants-referred-additional-screening-might-be-likely-unlikely-to-be-scheduled-future-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE569-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MIGHT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-STATEMENTS-SLOT-SAFE
+  // CORE569: strictly statements, might be likely / unlikely, next month / next quarter.
+  // Extends CORE533 to new future periods without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-568 and all preceding source bytes.
+  const core569ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높을지도 몰라요|잡힐 가능성이 낮을지도 몰라요)$/u.exec(normalized);
+  if (core569ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureStatementMatch && !isQuestion && (
+    (core569ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되지 않았으므로' && core569ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 높을지도 몰라요') ||
+    (core569ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되었으므로' && core569ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 낮을지도 몰라요')
+  )) {
+    const core569Plural = core569ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureStatementMatch[1] === '들은';
+    const core569ReasonKo = core569ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureStatementMatch[2];
+    const core569TimeKo = core569ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureStatementMatch[3];
+    const core569PredicateKo = core569ApplicantReferredAdditionalScreeningMightBeLikelyUnlikelyScheduledFutureStatementMatch[4];
+    const core569Likely = core569PredicateKo === '잡힐 가능성이 높을지도 몰라요';
+    const core569Subject = core569Plural ? 'applicants' : 'applicant';
+    const core569Time = core569TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core569Reason = core569Likely ? 'because the conditions were not met' : 'because the conditions were met';
+    const core569Predicate = core569Likely ? 'might be likely' : 'might be unlikely';
+    const core569English = `The ${core569Subject} ${core569Predicate} to be scheduled to be referred for additional screening ${core569Time} ${core569Reason}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core569English, originalText),
+      analysis: [
+        { ko: core569Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core569Subject} [S]` },
+        { ko: `조건이 ${core569ReasonKo}`, en: `${core569Reason} [REASON]` },
+        { ko: core569TimeKo, en: `${core569Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core569PredicateKo}`, en: `${core569Predicate} to be scheduled to be referred for additional screening [CORE569:SCHEDULED:MIGHT_BE:LIKELY_UNLIKELY:FUTURE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core569-applicants-referred-additional-screening-might-be-likely-unlikely-to-be-scheduled-future-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE568-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MAY-NOT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-QUESTIONS-SLOT-SAFE
+  // CORE568: strictly questions, may not be likely / unlikely, next month / next quarter.
+  // Extends CORE544 to new future periods without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-567 and all preceding source bytes.
+  const core568ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높지 않을 수도 있어요|잡힐 가능성이 낮지 않을 수도 있어요)$/u.exec(normalized);
+  if (core568ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureQuestionMatch && isQuestion && (
+    (core568ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되었으므로' && core568ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 높지 않을 수도 있어요') ||
+    (core568ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되지 않았으므로' && core568ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 낮지 않을 수도 있어요')
+  )) {
+    const core568Plural = core568ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureQuestionMatch[1] === '들은';
+    const core568ReasonKo = core568ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2];
+    const core568TimeKo = core568ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureQuestionMatch[3];
+    const core568PredicateKo = core568ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4];
+    const core568Likely = core568PredicateKo === '잡힐 가능성이 높지 않을 수도 있어요';
+    const core568Subject = core568Plural ? 'applicants' : 'applicant';
+    const core568Time = core568TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core568Reason = core568Likely ? 'because the conditions were met' : 'because the conditions were not met';
+    const core568Predicate = core568Likely ? 'not be likely' : 'not be unlikely';
+    const core568English = `May the ${core568Subject} ${core568Predicate} to be scheduled to be referred for additional screening ${core568Time} ${core568Reason}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core568English, originalText),
+      analysis: [
+        { ko: core568Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core568Subject} [S]` },
+        { ko: `조건이 ${core568ReasonKo}`, en: `${core568Reason} [REASON]` },
+        { ko: core568TimeKo, en: `${core568Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core568PredicateKo}`, en: `${core568Predicate} to be scheduled to be referred for additional screening [CORE568:SCHEDULED:MAY_NOT_BE:LIKELY_UNLIKELY:FUTURE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core568-applicants-referred-additional-screening-may-not-be-likely-unlikely-to-be-scheduled-future-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE567-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MAY-NOT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-STATEMENTS-SLOT-SAFE
+  // CORE567: strictly statements, may not be likely / unlikely, next month / next quarter.
+  // Extends CORE543 to new future periods without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-566 and all preceding source bytes.
+  const core567ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높지 않을 수도 있어요|잡힐 가능성이 낮지 않을 수도 있어요)$/u.exec(normalized);
+  if (core567ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureStatementMatch && !isQuestion && (
+    (core567ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되었으므로' && core567ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 높지 않을 수도 있어요') ||
+    (core567ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되지 않았으므로' && core567ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 낮지 않을 수도 있어요')
+  )) {
+    const core567Plural = core567ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureStatementMatch[1] === '들은';
+    const core567ReasonKo = core567ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureStatementMatch[2];
+    const core567TimeKo = core567ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureStatementMatch[3];
+    const core567PredicateKo = core567ApplicantReferredAdditionalScreeningMayNotBeLikelyUnlikelyScheduledFutureStatementMatch[4];
+    const core567Likely = core567PredicateKo === '잡힐 가능성이 높지 않을 수도 있어요';
+    const core567Subject = core567Plural ? 'applicants' : 'applicant';
+    const core567Time = core567TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core567Reason = core567Likely ? 'because the conditions were met' : 'because the conditions were not met';
+    const core567Predicate = core567Likely ? 'not be likely' : 'not be unlikely';
+    const core567English = `The ${core567Subject} may ${core567Predicate} to be scheduled to be referred for additional screening ${core567Time} ${core567Reason}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core567English, originalText),
+      analysis: [
+        { ko: core567Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core567Subject} [S]` },
+        { ko: `조건이 ${core567ReasonKo}`, en: `${core567Reason} [REASON]` },
+        { ko: core567TimeKo, en: `${core567Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core567PredicateKo}`, en: `${core567Predicate} to be scheduled to be referred for additional screening [CORE567:SCHEDULED:MAY_NOT_BE:LIKELY_UNLIKELY:FUTURE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core567-applicants-referred-additional-screening-may-not-be-likely-unlikely-to-be-scheduled-future-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE566-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MAY-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-QUESTIONS-SLOT-SAFE
+  // CORE566: strictly questions, may be likely / unlikely, next month / next quarter.
+  // Extends CORE532 to new future periods without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-565 and all preceding source bytes.
+  const core566ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높을 수도 있어요|잡힐 가능성이 낮을 수도 있어요)$/u.exec(normalized);
+  if (core566ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureQuestionMatch && isQuestion && (
+    (core566ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되지 않았으므로' && core566ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 높을 수도 있어요') ||
+    (core566ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되었으므로' && core566ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 낮을 수도 있어요')
+  )) {
+    const core566Plural = core566ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureQuestionMatch[1] === '들은';
+    const core566ReasonKo = core566ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureQuestionMatch[2];
+    const core566TimeKo = core566ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureQuestionMatch[3];
+    const core566PredicateKo = core566ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureQuestionMatch[4];
+    const core566Likely = core566PredicateKo === '잡힐 가능성이 높을 수도 있어요';
+    const core566Subject = core566Plural ? 'applicants' : 'applicant';
+    const core566Time = core566TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core566Reason = core566Likely ? 'because the conditions were not met' : 'because the conditions were met';
+    const core566Predicate = core566Likely ? 'be likely' : 'be unlikely';
+    const core566English = `May the ${core566Subject} ${core566Predicate} to be scheduled to be referred for additional screening ${core566Time} ${core566Reason}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core566English, originalText),
+      analysis: [
+        { ko: core566Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core566Subject} [S]` },
+        { ko: `조건이 ${core566ReasonKo}`, en: `${core566Reason} [REASON]` },
+        { ko: core566TimeKo, en: `${core566Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core566PredicateKo}`, en: `${core566Predicate} to be scheduled to be referred for additional screening [CORE566:SCHEDULED:MAY_BE:LIKELY_UNLIKELY:FUTURE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core566-applicants-referred-additional-screening-may-be-likely-unlikely-to-be-scheduled-future-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE565-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-MAY-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-STATEMENTS-SLOT-SAFE
+  // CORE565: strictly statements, may be likely / unlikely, next month / next quarter.
+  // Extends CORE531 to new future periods without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-564 and all preceding source bytes.
+  const core565ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높을 수도 있어요|잡힐 가능성이 낮을 수도 있어요)$/u.exec(normalized);
+  if (core565ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureStatementMatch && !isQuestion && (
+    (core565ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되지 않았으므로' && core565ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 높을 수도 있어요') ||
+    (core565ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되었으므로' && core565ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 낮을 수도 있어요')
+  )) {
+    const core565Plural = core565ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureStatementMatch[1] === '들은';
+    const core565ReasonKo = core565ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureStatementMatch[2];
+    const core565TimeKo = core565ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureStatementMatch[3];
+    const core565PredicateKo = core565ApplicantReferredAdditionalScreeningMayBeLikelyUnlikelyScheduledFutureStatementMatch[4];
+    const core565Likely = core565PredicateKo === '잡힐 가능성이 높을 수도 있어요';
+    const core565Subject = core565Plural ? 'applicants' : 'applicant';
+    const core565Time = core565TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core565Reason = core565Likely ? 'because the conditions were not met' : 'because the conditions were met';
+    const core565Predicate = core565Likely ? 'may be likely' : 'may be unlikely';
+    const core565English = `The ${core565Subject} ${core565Predicate} to be scheduled to be referred for additional screening ${core565Time} ${core565Reason}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core565English, originalText),
+      analysis: [
+        { ko: core565Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core565Subject} [S]` },
+        { ko: `조건이 ${core565ReasonKo}`, en: `${core565Reason} [REASON]` },
+        { ko: core565TimeKo, en: `${core565Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core565PredicateKo}`, en: `${core565Predicate} to be scheduled to be referred for additional screening [CORE565:SCHEDULED:MAY_BE:LIKELY_UNLIKELY:FUTURE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core565-applicants-referred-additional-screening-may-be-likely-unlikely-to-be-scheduled-future-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE564-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-COULD-NOT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-QUESTIONS-SLOT-SAFE
+  // CORE564: strictly questions, could not be likely / unlikely, next month / next quarter.
+  // Extends CORE547 to new future periods without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-563 and all preceding source bytes.
+  const core564ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높을 수는 없겠어요|잡힐 가능성이 낮을 수는 없겠어요)$/u.exec(normalized);
+  if (core564ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch && isQuestion && (
+    (core564ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되었으므로' && core564ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 높을 수는 없겠어요') ||
+    (core564ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되지 않았으므로' && core564ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 낮을 수는 없겠어요')
+  )) {
+    const core564Plural = core564ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch[1] === '들은';
+    const core564ReasonKo = core564ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2];
+    const core564TimeKo = core564ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch[3];
+    const core564PredicateKo = core564ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4];
+    const core564Likely = core564PredicateKo === '잡힐 가능성이 높을 수는 없겠어요';
+    const core564Subject = core564Plural ? 'applicants' : 'applicant';
+    const core564Time = core564TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core564Reason = core564Likely ? 'because the conditions were met' : 'because the conditions were not met';
+    const core564Predicate = core564Likely ? 'not be likely' : 'not be unlikely';
+    const core564English = `Could the ${core564Subject} ${core564Predicate} to be scheduled to be referred for additional screening ${core564Time} ${core564Reason}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core564English, originalText),
+      analysis: [
+        { ko: core564Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core564Subject} [S]` },
+        { ko: `조건이 ${core564ReasonKo}`, en: `${core564Reason} [REASON]` },
+        { ko: core564TimeKo, en: `${core564Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core564PredicateKo}`, en: `${core564Predicate} to be scheduled to be referred for additional screening [CORE564:SCHEDULED:COULD_NOT_BE:LIKELY_UNLIKELY:FUTURE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core564-applicants-referred-additional-screening-could-not-be-likely-unlikely-to-be-scheduled-future-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE563-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-COULD-NOT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-STATEMENTS-SLOT-SAFE
+  // CORE563: strictly statements, could not be likely / unlikely, next month / next quarter.
+  // Extends CORE547 to new future periods without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-562 and all preceding source bytes.
+  const core563ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높을 수는 없겠어요|잡힐 가능성이 낮을 수는 없겠어요)$/u.exec(normalized);
+  if (core563ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureStatementMatch && !isQuestion && (
+    (core563ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되었으므로' && core563ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 높을 수는 없겠어요') ||
+    (core563ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되지 않았으므로' && core563ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 낮을 수는 없겠어요')
+  )) {
+    const core563Plural = core563ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureStatementMatch[1] === '들은';
+    const core563ReasonKo = core563ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureStatementMatch[2];
+    const core563TimeKo = core563ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureStatementMatch[3];
+    const core563PredicateKo = core563ApplicantReferredAdditionalScreeningCouldNotBeLikelyUnlikelyScheduledFutureStatementMatch[4];
+    const core563Likely = core563PredicateKo === '잡힐 가능성이 높을 수는 없겠어요';
+    const core563Subject = core563Plural ? 'applicants' : 'applicant';
+    const core563Time = core563TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core563Reason = core563Likely ? 'because the conditions were met' : 'because the conditions were not met';
+    const core563Predicate = core563Likely ? 'could not be likely' : 'could not be unlikely';
+    const core563English = `The ${core563Subject} ${core563Predicate} to be scheduled to be referred for additional screening ${core563Time} ${core563Reason}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core563English, originalText),
+      analysis: [
+        { ko: core563Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core563Subject} [S]` },
+        { ko: `조건이 ${core563ReasonKo}`, en: `${core563Reason} [REASON]` },
+        { ko: core563TimeKo, en: `${core563Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core563PredicateKo}`, en: `${core563Predicate} to be scheduled to be referred for additional screening [CORE563:SCHEDULED:COULD_NOT_BE:LIKELY_UNLIKELY:FUTURE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core563-applicants-referred-additional-screening-could-not-be-likely-unlikely-to-be-scheduled-future-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE562-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-COULD-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-QUESTIONS-SLOT-SAFE
+  // CORE562: strictly questions, could be likely / unlikely, next month / next quarter.
+  // Extends CORE536 to new future periods without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-561 and all preceding source bytes.
+  const core562ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높을 수도 있겠어요|잡힐 가능성이 낮을 수도 있겠어요)$/u.exec(normalized);
+  if (core562ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureQuestionMatch && isQuestion && (
+    (core562ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되지 않았으므로' && core562ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 높을 수도 있겠어요') ||
+    (core562ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되었으므로' && core562ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '잡힐 가능성이 낮을 수도 있겠어요')
+  )) {
+    const core562Plural = core562ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureQuestionMatch[1] === '들은';
+    const core562ReasonKo = core562ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureQuestionMatch[2];
+    const core562TimeKo = core562ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureQuestionMatch[3];
+    const core562PredicateKo = core562ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureQuestionMatch[4];
+    const core562Likely = core562PredicateKo === '잡힐 가능성이 높을 수도 있겠어요';
+    const core562Subject = core562Plural ? 'applicants' : 'applicant';
+    const core562Time = core562TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core562Reason = core562Likely ? 'because the conditions were not met' : 'because the conditions were met';
+    const core562Predicate = core562Likely ? 'be likely' : 'be unlikely';
+    const core562English = `Could the ${core562Subject} ${core562Predicate} to be scheduled to be referred for additional screening ${core562Time} ${core562Reason}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core562English, originalText),
+      analysis: [
+        { ko: core562Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core562Subject} [S]` },
+        { ko: `조건이 ${core562ReasonKo}`, en: `${core562Reason} [REASON]` },
+        { ko: core562TimeKo, en: `${core562Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core562PredicateKo}`, en: `${core562Predicate} to be scheduled to be referred for additional screening [CORE562:SCHEDULED:COULD_BE:LIKELY_UNLIKELY:FUTURE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core562-applicants-referred-additional-screening-could-be-likely-unlikely-to-be-scheduled-future-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE561-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-COULD-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-STATEMENTS-SLOT-SAFE
+  // CORE561: strictly statements, could be likely / unlikely, next month / next quarter.
+  // Extends CORE535 to new future periods without changing earlier modal or future-perfect slots.
+  // Preserve CORE1-560 and all preceding source bytes.
+  const core561ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 (잡힐 가능성이 높을 수도 있겠어요|잡힐 가능성이 낮을 수도 있겠어요)$/u.exec(normalized);
+  if (core561ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureStatementMatch && !isQuestion && (
+    (core561ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되지 않았으므로' && core561ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 높을 수도 있겠어요') ||
+    (core561ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되었으므로' && core561ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '잡힐 가능성이 낮을 수도 있겠어요')
+  )) {
+    const core561Plural = core561ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureStatementMatch[1] === '들은';
+    const core561ReasonKo = core561ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureStatementMatch[2];
+    const core561TimeKo = core561ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureStatementMatch[3];
+    const core561PredicateKo = core561ApplicantReferredAdditionalScreeningCouldBeLikelyUnlikelyScheduledFutureStatementMatch[4];
+    const core561Likely = core561PredicateKo === '잡힐 가능성이 높을 수도 있겠어요';
+    const core561Subject = core561Plural ? 'applicants' : 'applicant';
+    const core561Time = core561TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core561Reason = core561Likely ? 'because the conditions were not met' : 'because the conditions were met';
+    const core561Predicate = core561Likely ? 'could be likely' : 'could be unlikely';
+    const core561English = `The ${core561Subject} ${core561Predicate} to be scheduled to be referred for additional screening ${core561Time} ${core561Reason}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core561English, originalText),
+      analysis: [
+        { ko: core561Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core561Subject} [S]` },
+        { ko: `조건이 ${core561ReasonKo}`, en: `${core561Reason} [REASON]` },
+        { ko: core561TimeKo, en: `${core561Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core561PredicateKo}`, en: `${core561Predicate} to be scheduled to be referred for additional screening [CORE561:SCHEDULED:COULD_BE:LIKELY_UNLIKELY:FUTURE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core561-applicants-referred-additional-screening-could-be-likely-unlikely-to-be-scheduled-future-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE560-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WILL-NOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-PERFECT-QUESTIONS-SLOT-SAFE
+  // CORE560: strictly questions, will not have been likely / unlikely, by next month or next quarter.
+  // Preserve CORE1-559, including CORE557-559 future-perfect statements/questions.
+  const core560ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달까지|다음 분기까지) 추가 심사에 회부될 일정이 잡힐 가능성이 (계속 높지 않았을 거예요|계속 낮지 않았을 거예요)$/u.exec(normalized);
+  if (core560ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch && isQuestion && (
+    (core560ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch[2] === '충족되었으므로' && core560ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch[4] === '계속 높지 않았을 거예요') ||
+    (core560ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch[2] === '충족되지 않았으므로' && core560ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch[4] === '계속 낮지 않았을 거예요')
+  )) {
+    const core560Plural = core560ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch[1] === '들은';
+    const core560ReasonKo = core560ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch[2];
+    const core560TimeKo = core560ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch[3];
+    const core560PredicateKo = core560ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch[4];
+    const core560Likely = core560PredicateKo === '계속 높지 않았을 거예요';
+    const core560Subject = core560Plural ? 'applicants' : 'applicant';
+    const core560Time = core560TimeKo === '다음 달까지' ? 'by next month' : 'by next quarter';
+    const core560Reason = core560Likely ? 'because the conditions were met' : 'because the conditions were not met';
+    const core560Predicate = core560Likely ? 'likely' : 'unlikely';
+    const core560English = `Will the ${core560Subject} not have been ${core560Predicate} to be scheduled to be referred for additional screening ${core560Time} ${core560Reason}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core560English, originalText),
+      analysis: [
+        { ko: core560Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core560Subject} [S]` },
+        { ko: `조건이 ${core560ReasonKo}`, en: `${core560Reason} [REASON]` },
+        { ko: core560TimeKo, en: `${core560Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 잡힐 가능성이 ${core560PredicateKo}`, en: `not have been ${core560Predicate} to be scheduled to be referred for additional screening [CORE560:SCHEDULED:WILL_NOT_HAVE_BEEN:LIKELY_UNLIKELY:FUTURE_PERFECT_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core560-applicants-referred-additional-screening-will-not-have-been-likely-unlikely-to-be-scheduled-future-perfect-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE559-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WILL-NOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-PERFECT-STATEMENTS-SLOT-SAFE
+  // CORE559: strictly statements, will not have been likely / unlikely, by next month or next quarter.
+  // Preserve CORE1-558, including CORE557/558 future-perfect positive statements/questions.
+  const core559ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달까지|다음 분기까지) 추가 심사에 회부될 일정이 잡힐 가능성이 (계속 높지 않았을 거예요|계속 낮지 않았을 거예요)$/u.exec(normalized);
+  if (core559ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch && !isQuestion && (
+    (core559ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch[2] === '충족되었으므로' && core559ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch[4] === '계속 높지 않았을 거예요') ||
+    (core559ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch[2] === '충족되지 않았으므로' && core559ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch[4] === '계속 낮지 않았을 거예요')
+  )) {
+    const core559Plural = core559ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch[1] === '들은';
+    const core559ReasonKo = core559ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch[2];
+    const core559TimeKo = core559ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch[3];
+    const core559PredicateKo = core559ApplicantReferredAdditionalScreeningWillNotHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch[4];
+    const core559Likely = core559PredicateKo === '계속 높지 않았을 거예요';
+    const core559Subject = core559Plural ? 'applicants' : 'applicant';
+    const core559Time = core559TimeKo === '다음 달까지' ? 'by next month' : 'by next quarter';
+    const core559Reason = core559Likely ? 'because the conditions were met' : 'because the conditions were not met';
+    const core559Predicate = core559Likely ? 'likely' : 'unlikely';
+    const core559English = `The ${core559Subject} will not have been ${core559Predicate} to be scheduled to be referred for additional screening ${core559Time} ${core559Reason}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core559English, originalText),
+      analysis: [
+        { ko: core559Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core559Subject} [S]` },
+        { ko: `조건이 ${core559ReasonKo}`, en: `${core559Reason} [REASON]` },
+        { ko: core559TimeKo, en: `${core559Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 잡힐 가능성이 ${core559PredicateKo}`, en: `will not have been ${core559Predicate} to be scheduled to be referred for additional screening [CORE559:SCHEDULED:WILL_NOT_HAVE_BEEN:LIKELY_UNLIKELY:FUTURE_PERFECT_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core559-applicants-referred-additional-screening-will-not-have-been-likely-unlikely-to-be-scheduled-future-perfect-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE558-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WILL-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-PERFECT-QUESTIONS-SLOT-SAFE
+  // CORE558: strictly questions (not statements), will ... have been likely / unlikely by next month or next quarter.
+  // Preserve CORE1-557, including CORE557 future-perfect statements.
+  const core558ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달까지|다음 분기까지) 추가 심사에 회부될 일정이 잡힐 가능성이 (계속 높았을 거예요|계속 낮았을 거예요)$/u.exec(normalized);
+  if (core558ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch && isQuestion && (
+    (core558ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch[2] === '충족되지 않았으므로' && core558ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch[4] === '계속 높았을 거예요') ||
+    (core558ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch[2] === '충족되었으므로' && core558ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch[4] === '계속 낮았을 거예요')
+  )) {
+    const core558Plural = core558ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch[1] === '들은';
+    const core558ReasonKo = core558ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch[2];
+    const core558TimeKo = core558ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch[3];
+    const core558PredicateKo = core558ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectQuestionMatch[4];
+    const core558Likely = core558PredicateKo === '계속 높았을 거예요';
+    const core558Subject = core558Plural ? 'applicants' : 'applicant';
+    const core558Time = core558TimeKo === '다음 달까지' ? 'by next month' : 'by next quarter';
+    const core558Reason = core558Likely ? 'because the conditions were not met' : 'because the conditions were met';
+    const core558Predicate = core558Likely ? 'likely' : 'unlikely';
+    const core558English = `Will the ${core558Subject} have been ${core558Predicate} to be scheduled to be referred for additional screening ${core558Time} ${core558Reason}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core558English, originalText),
+      analysis: [
+        { ko: core558Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core558Subject} [S]` },
+        { ko: `조건이 ${core558ReasonKo}`, en: `${core558Reason} [REASON]` },
+        { ko: core558TimeKo, en: `${core558Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 잡힐 가능성이 ${core558PredicateKo}`, en: `will have been ${core558Predicate} to be scheduled to be referred for additional screening [CORE558:SCHEDULED:WILL_HAVE_BEEN:LIKELY_UNLIKELY:FUTURE_PERFECT_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core558-applicants-referred-additional-screening-will-have-been-likely-unlikely-to-be-scheduled-future-perfect-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE557-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WILL-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-PERFECT-STATEMENTS-SLOT-SAFE
+  // CORE557: strictly statements (not questions), will have been likely / unlikely by next month or by next quarter.
+  // Preserve CORE1-556, including CORE553-556 future positive/negative statements and questions.
+  const core557ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달까지|다음 분기까지) 추가 심사에 회부될 일정이 잡힐 가능성이 (계속 높았을 거예요|계속 낮았을 거예요)$/u.exec(normalized);
+  if (core557ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch && !isQuestion && (
+    (core557ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch[2] === '충족되지 않았으므로' && core557ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch[4] === '계속 높았을 거예요') ||
+    (core557ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch[2] === '충족되었으므로' && core557ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch[4] === '계속 낮았을 거예요')
+  )) {
+    const core557Plural = core557ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch[1] === '들은';
+    const core557ReasonKo = core557ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch[2];
+    const core557TimeKo = core557ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch[3];
+    const core557PredicateKo = core557ApplicantReferredAdditionalScreeningWillHaveBeenLikelyUnlikelyScheduledFuturePerfectStatementMatch[4];
+    const core557Likely = core557PredicateKo === '계속 높았을 거예요';
+    const core557Subject = core557Plural ? 'applicants' : 'applicant';
+    const core557Time = core557TimeKo === '다음 달까지' ? 'by next month' : 'by next quarter';
+    const core557Reason = core557Likely ? 'because the conditions were not met' : 'because the conditions were met';
+    const core557Predicate = core557Likely ? 'likely' : 'unlikely';
+    const core557English = `The ${core557Subject} will have been ${core557Predicate} to be scheduled to be referred for additional screening ${core557Time} ${core557Reason}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core557English, originalText),
+      analysis: [
+        { ko: core557Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core557Subject} [S]` },
+        { ko: `조건이 ${core557ReasonKo}`, en: `${core557Reason} [REASON]` },
+        { ko: core557TimeKo, en: `${core557Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 잡힐 가능성이 ${core557PredicateKo}`, en: `will have been ${core557Predicate} to be scheduled to be referred for additional screening [CORE557:SCHEDULED:WILL_HAVE_BEEN:LIKELY_UNLIKELY:FUTURE_PERFECT_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core557-applicants-referred-additional-screening-will-have-been-likely-unlikely-to-be-scheduled-future-perfect-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE556-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WILL-NOT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-QUESTIONS-SLOT-SAFE
+  // CORE556: strict question-only WILL ... NOT BE LIKELY / UNLIKELY future slot (next month / next quarter).
+  // Preserve CORE1-555 and do not change the preceding CORE555 statement behavior.
+  const core556ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 잡힐 가능성이 (높지 않을 거예요|낮지 않을 거예요)$/u.exec(normalized);
+  if (core556ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureQuestionMatch && isQuestion && (
+    (core556ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되었으므로' && core556ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '높지 않을 거예요') ||
+    (core556ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2] === '충족되지 않았으므로' && core556ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4] === '낮지 않을 거예요')
+  )) {
+    const core556Plural = core556ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureQuestionMatch[1] === '들은';
+    const core556ReasonKo = core556ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureQuestionMatch[2];
+    const core556TimeKo = core556ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureQuestionMatch[3];
+    const core556PredicateKo = core556ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureQuestionMatch[4];
+    const core556Likely = core556PredicateKo === '높지 않을 거예요';
+    const core556Subject = core556Plural ? 'applicants' : 'applicant';
+    const core556Time = core556TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core556Reason = core556Likely ? 'because the conditions were met' : 'because the conditions were not met';
+    const core556Predicate = core556Likely ? 'not be likely to be scheduled' : 'not be unlikely to be scheduled';
+    const core556English = `Will the ${core556Subject} ${core556Predicate} to be referred for additional screening ${core556Time} ${core556Reason}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core556English, originalText),
+      analysis: [
+        { ko: core556Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core556Subject} [S]` },
+        { ko: `조건이 ${core556ReasonKo}`, en: `${core556Reason} [REASON]` },
+        { ko: core556TimeKo, en: `${core556Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 잡힐 가능성이 ${core556PredicateKo}`, en: `${core556Predicate} to be referred for additional screening [CORE556:SCHEDULED:WILL_NOT_BE:LIKELY_UNLIKELY:FUTURE_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core556-applicants-referred-additional-screening-will-not-be-likely-unlikely-to-be-scheduled-future-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE555-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WILL-NOT-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-STATEMENTS-SLOT-SAFE
+  // CORE555: eight WILL NOT BE LIKELY / WILL NOT BE UNLIKELY future statements (next month / next quarter).
+  // Strict statement-only slot; preserve CORE1-554, especially CORE553/554 future positives.
+  const core555ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (다음 달에|다음 분기에) 추가 심사에 회부될 일정이 잡힐 가능성이 (높지 않을 거예요|낮지 않을 거예요)$/u.exec(normalized);
+  if (core555ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureStatementMatch && !isQuestion && (
+    (core555ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되었으므로' && core555ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '높지 않을 거예요') ||
+    (core555ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureStatementMatch[2] === '충족되지 않았으므로' && core555ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureStatementMatch[4] === '낮지 않을 거예요')
+  )) {
+    const core555Plural = core555ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureStatementMatch[1] === '들은';
+    const core555ReasonKo = core555ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureStatementMatch[2];
+    const core555TimeKo = core555ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureStatementMatch[3];
+    const core555PredicateKo = core555ApplicantReferredAdditionalScreeningWillNotBeLikelyUnlikelyScheduledFutureStatementMatch[4];
+    const core555Likely = core555PredicateKo === '높지 않을 거예요';
+    const core555Subject = core555Plural ? 'applicants' : 'applicant';
+    const core555Time = core555TimeKo === '다음 달에' ? 'next month' : 'next quarter';
+    const core555Reason = core555Likely ? 'because the conditions were met' : 'because the conditions were not met';
+    const core555Predicate = core555Likely ? 'will not be likely to be scheduled' : 'will not be unlikely to be scheduled';
+    const core555English = `The ${core555Subject} ${core555Predicate} to be referred for additional screening ${core555Time} ${core555Reason}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core555English, originalText),
+      analysis: [
+        { ko: core555Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core555Subject} [S]` },
+        { ko: `조건이 ${core555ReasonKo}`, en: `${core555Reason} [REASON]` },
+        { ko: core555TimeKo, en: `${core555Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 잡힐 가능성이 ${core555PredicateKo}`, en: `${core555Predicate} to be referred for additional screening [CORE555:SCHEDULED:WILL_NOT_BE:LIKELY_UNLIKELY:FUTURE_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core555-applicants-referred-additional-screening-will-not-be-likely-unlikely-to-be-scheduled-future-statement-ko-en-safe',
+    };
+  }
   // XDIC-CORE554-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WILL-BE-LIKELY-UNLIKELY-TO-BE-SCHEDULED-FUTURE-QUESTIONS-SLOT-SAFE
   // CORE554: eight WILL BE LIKELY / WILL BE UNLIKELY future questions (next month / next quarter).
   // Strict question-only slot; preserve CORE1-553, including CORE553 statements.
