@@ -42667,6 +42667,1298 @@ const twoProTryKoEnGeneralPassiveAspectV1053GPA = (
   // XDIC-CORE52-APPLICANT-SINGULAR-SUBJECT-SLOT-SAFE
   // XDIC-CORE53-APPLICANTS-PLURAL-SUBJECT-SLOT-SAFE
   // XDIC-CORE57-APPLICANTS-INVITED-SIMPLE-PRESENT-PAST-SAFE
+  // XDIC-CORE649-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-EXPECTED-TO-BE-SHORTLISTED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE649: eight exact conditional expectation statements; no pre-existing CORE code changed.
+  const core649ApplicantWouldHaveBeenExpectedToBeShortlistedPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정될 것으로 예상되었을 거예요|잡히도록 예비 후보로 선정될 것으로 예상되지 않았을 거예요)$/u.exec(normalized);
+  if (core649ApplicantWouldHaveBeenExpectedToBeShortlistedPastConditionalStatementMatch && !isQuestion && (
+    (core649ApplicantWouldHaveBeenExpectedToBeShortlistedPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core649ApplicantWouldHaveBeenExpectedToBeShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정될 것으로 예상되었을 거예요') ||
+    (core649ApplicantWouldHaveBeenExpectedToBeShortlistedPastConditionalStatementMatch[2] === '충족되었더라면' && core649ApplicantWouldHaveBeenExpectedToBeShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정될 것으로 예상되지 않았을 거예요')
+  )) {
+    const core649Plural = core649ApplicantWouldHaveBeenExpectedToBeShortlistedPastConditionalStatementMatch[1] === '들은';
+    const core649ConditionKo = core649ApplicantWouldHaveBeenExpectedToBeShortlistedPastConditionalStatementMatch[2];
+    const core649TimeKo = core649ApplicantWouldHaveBeenExpectedToBeShortlistedPastConditionalStatementMatch[3];
+    const core649PredicateKo = core649ApplicantWouldHaveBeenExpectedToBeShortlistedPastConditionalStatementMatch[4];
+    const core649Negative = core649PredicateKo === '잡히도록 예비 후보로 선정될 것으로 예상되지 않았을 거예요';
+    const core649Subject = core649Plural ? 'applicants' : 'applicant';
+    const core649Time = core649TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core649Condition = core649Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core649Verb = core649Negative ? 'would not have been expected to be shortlisted' : 'would have been expected to be shortlisted';
+    const core649English = `The ${core649Subject} ${core649Verb} to be scheduled to be referred for additional screening ${core649Time} ${core649Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core649English, originalText),
+      analysis: [
+        { ko: core649Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core649Subject} [S]` },
+        { ko: `조건이 ${core649ConditionKo}`, en: `${core649Condition} [CONDITION]` },
+        { ko: core649TimeKo, en: `${core649Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core649PredicateKo}`, en: `${core649Verb} to be scheduled to be referred for additional screening [CORE649:SCHEDULED:WOULD_HAVE_BEEN_EXPECTED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core649-applicants-referred-additional-screening-would-have-been-expected-to-be-shortlisted-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE648-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-REQUIRED-TO-BE-SHORTLISTED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE648: eight exact conditional requirement interrogatives; no pre-existing CORE code changed.
+  const core648ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정되어야 했을 거예요|잡히도록 예비 후보로 선정되지 않아도 되었을 거예요)$/u.exec(normalized);
+  if (core648ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalQuestionMatch && isQuestion && (
+    (core648ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core648ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정되어야 했을 거예요') ||
+    (core648ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalQuestionMatch[2] === '충족되었더라면' && core648ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정되지 않아도 되었을 거예요')
+  )) {
+    const core648Plural = core648ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalQuestionMatch[1] === '들은';
+    const core648ConditionKo = core648ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalQuestionMatch[2];
+    const core648TimeKo = core648ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalQuestionMatch[3];
+    const core648PredicateKo = core648ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalQuestionMatch[4];
+    const core648Negative = core648PredicateKo === '잡히도록 예비 후보로 선정되지 않아도 되었을 거예요';
+    const core648Subject = core648Plural ? 'applicants' : 'applicant';
+    const core648Time = core648TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core648Condition = core648Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core648Verb = core648Negative ? 'not have been required to be shortlisted' : 'have been required to be shortlisted';
+    const core648English = `Would the ${core648Subject} ${core648Verb} to be scheduled to be referred for additional screening ${core648Time} ${core648Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core648English, originalText),
+      analysis: [
+        { ko: core648Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core648Subject} [S]` },
+        { ko: `조건이 ${core648ConditionKo}`, en: `${core648Condition} [CONDITION]` },
+        { ko: core648TimeKo, en: `${core648Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core648PredicateKo}`, en: `would ${core648Verb} to be scheduled to be referred for additional screening [CORE648:SCHEDULED:WOULD_HAVE_BEEN_REQUIRED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core648-applicants-referred-additional-screening-would-have-been-required-to-be-shortlisted-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE647-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-REQUIRED-TO-BE-SHORTLISTED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE647: 8 exact conditional requirement statements; 2 subjects x 2 times x 2 paired polarities.
+  const core647ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정되어야 했을 거예요|잡히도록 예비 후보로 선정되지 않아도 되었을 거예요)$/u.exec(normalized);
+  if (core647ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalStatementMatch && !isQuestion && (
+    (core647ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core647ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정되어야 했을 거예요') ||
+    (core647ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalStatementMatch[2] === '충족되었더라면' && core647ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정되지 않아도 되었을 거예요')
+  )) {
+    const core647Plural = core647ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalStatementMatch[1] === '들은';
+    const core647ConditionKo = core647ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalStatementMatch[2];
+    const core647TimeKo = core647ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalStatementMatch[3];
+    const core647PredicateKo = core647ApplicantWouldHaveBeenRequiredToBeShortlistedPastConditionalStatementMatch[4];
+    const core647Negative = core647PredicateKo === '잡히도록 예비 후보로 선정되지 않아도 되었을 거예요';
+    const core647Subject = core647Plural ? 'applicants' : 'applicant';
+    const core647Time = core647TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core647Condition = core647Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core647Verb = core647Negative ? 'would not have been required to be shortlisted' : 'would have been required to be shortlisted';
+    const core647English = `The ${core647Subject} ${core647Verb} to be scheduled to be referred for additional screening ${core647Time} ${core647Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core647English, originalText),
+      analysis: [
+        { ko: core647Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core647Subject} [S]` },
+        { ko: `조건이 ${core647ConditionKo}`, en: `${core647Condition} [CONDITION]` },
+        { ko: core647TimeKo, en: `${core647Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core647PredicateKo}`, en: `${core647Verb} to be scheduled to be referred for additional screening [CORE647:SCHEDULED:WOULD_HAVE_BEEN_REQUIRED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core647-applicants-referred-additional-screening-would-have-been-required-to-be-shortlisted-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE646-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-NEEDED-TO-BE-SHORTLISTED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE646: exactly eight past conditional necessity interrogatives; no alteration to existing slots.
+  const core646ApplicantWouldHaveNeededToBeShortlistedPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정될 필요가 있었을 거예요|잡히도록 예비 후보로 선정될 필요가 없었을 거예요)$/u.exec(normalized);
+  if (core646ApplicantWouldHaveNeededToBeShortlistedPastConditionalQuestionMatch && isQuestion && (
+    (core646ApplicantWouldHaveNeededToBeShortlistedPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core646ApplicantWouldHaveNeededToBeShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정될 필요가 있었을 거예요') ||
+    (core646ApplicantWouldHaveNeededToBeShortlistedPastConditionalQuestionMatch[2] === '충족되었더라면' && core646ApplicantWouldHaveNeededToBeShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정될 필요가 없었을 거예요')
+  )) {
+    const core646Plural = core646ApplicantWouldHaveNeededToBeShortlistedPastConditionalQuestionMatch[1] === '들은';
+    const core646ConditionKo = core646ApplicantWouldHaveNeededToBeShortlistedPastConditionalQuestionMatch[2];
+    const core646TimeKo = core646ApplicantWouldHaveNeededToBeShortlistedPastConditionalQuestionMatch[3];
+    const core646PredicateKo = core646ApplicantWouldHaveNeededToBeShortlistedPastConditionalQuestionMatch[4];
+    const core646Negative = core646PredicateKo === '잡히도록 예비 후보로 선정될 필요가 없었을 거예요';
+    const core646Subject = core646Plural ? 'applicants' : 'applicant';
+    const core646Time = core646TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core646Condition = core646Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core646Verb = core646Negative ? 'not have needed to be shortlisted' : 'have needed to be shortlisted';
+    const core646English = `Would the ${core646Subject} ${core646Verb} to be scheduled to be referred for additional screening ${core646Time} ${core646Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core646English, originalText),
+      analysis: [
+        { ko: core646Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core646Subject} [S]` },
+        { ko: `조건이 ${core646ConditionKo}`, en: `${core646Condition} [CONDITION]` },
+        { ko: core646TimeKo, en: `${core646Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core646PredicateKo}`, en: `would ${core646Verb} to be scheduled to be referred for additional screening [CORE646:SCHEDULED:WOULD_HAVE_NEEDED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core646-applicants-referred-additional-screening-would-have-needed-to-be-shortlisted-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE645-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-NEEDED-TO-BE-SHORTLISTED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE645: eight restricted conditional statement counterparts for necessity, preserving earlier slots.
+  const core645ApplicantWouldHaveNeededToBeShortlistedPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정될 필요가 있었을 거예요|잡히도록 예비 후보로 선정될 필요가 없었을 거예요)$/u.exec(normalized);
+  if (core645ApplicantWouldHaveNeededToBeShortlistedPastConditionalStatementMatch && !isQuestion && (
+    (core645ApplicantWouldHaveNeededToBeShortlistedPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core645ApplicantWouldHaveNeededToBeShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정될 필요가 있었을 거예요') ||
+    (core645ApplicantWouldHaveNeededToBeShortlistedPastConditionalStatementMatch[2] === '충족되었더라면' && core645ApplicantWouldHaveNeededToBeShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정될 필요가 없었을 거예요')
+  )) {
+    const core645Plural = core645ApplicantWouldHaveNeededToBeShortlistedPastConditionalStatementMatch[1] === '들은';
+    const core645ConditionKo = core645ApplicantWouldHaveNeededToBeShortlistedPastConditionalStatementMatch[2];
+    const core645TimeKo = core645ApplicantWouldHaveNeededToBeShortlistedPastConditionalStatementMatch[3];
+    const core645PredicateKo = core645ApplicantWouldHaveNeededToBeShortlistedPastConditionalStatementMatch[4];
+    const core645Negative = core645PredicateKo === '잡히도록 예비 후보로 선정될 필요가 없었을 거예요';
+    const core645Subject = core645Plural ? 'applicants' : 'applicant';
+    const core645Time = core645TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core645Condition = core645Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core645Verb = core645Negative ? 'would not have needed to be shortlisted' : 'would have needed to be shortlisted';
+    const core645English = `The ${core645Subject} ${core645Verb} to be scheduled to be referred for additional screening ${core645Time} ${core645Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core645English, originalText),
+      analysis: [
+        { ko: core645Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core645Subject} [S]` },
+        { ko: `조건이 ${core645ConditionKo}`, en: `${core645Condition} [CONDITION]` },
+        { ko: core645TimeKo, en: `${core645Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core645PredicateKo}`, en: `${core645Verb} to be scheduled to be referred for additional screening [CORE645:SCHEDULED:WOULD_HAVE_NEEDED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core645-applicants-referred-additional-screening-would-have-needed-to-be-shortlisted-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE644-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-COULDNT-HAVE-BEEN-SHORTLISTED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE644: the eight exact question counterparts of CORE643; no changes to older slots.
+  // Eight exact interrogatives: singular/plural x yesterday/last week x two matched conditions.
+  const core644ApplicantCouldntHaveBeenShortlistedPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었더라면|충족되지 않았더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정될 수는 없었을 거예요|잡히도록 예비 후보로 선정되지 않을 수는 없었을 거예요)$/u.exec(normalized);
+  if (core644ApplicantCouldntHaveBeenShortlistedPastConditionalQuestionMatch && isQuestion && (
+    (core644ApplicantCouldntHaveBeenShortlistedPastConditionalQuestionMatch[2] === '충족되었더라면' && core644ApplicantCouldntHaveBeenShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정될 수는 없었을 거예요') ||
+    (core644ApplicantCouldntHaveBeenShortlistedPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core644ApplicantCouldntHaveBeenShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정되지 않을 수는 없었을 거예요')
+  )) {
+    const core644Plural = core644ApplicantCouldntHaveBeenShortlistedPastConditionalQuestionMatch[1] === '들은';
+    const core644ConditionKo = core644ApplicantCouldntHaveBeenShortlistedPastConditionalQuestionMatch[2];
+    const core644TimeKo = core644ApplicantCouldntHaveBeenShortlistedPastConditionalQuestionMatch[3];
+    const core644PredicateKo = core644ApplicantCouldntHaveBeenShortlistedPastConditionalQuestionMatch[4];
+    const core644NotFailed = core644PredicateKo === '잡히도록 예비 후보로 선정되지 않을 수는 없었을 거예요';
+    const core644Subject = core644Plural ? 'applicants' : 'applicant';
+    const core644Time = core644TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core644Condition = core644NotFailed ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core644Verb = core644NotFailed ? 'have failed to be shortlisted' : 'have been shortlisted';
+    const core644English = `Couldn't the ${core644Subject} ${core644Verb} to be scheduled to be referred for additional screening ${core644Time} ${core644Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core644English, originalText),
+      analysis: [
+        { ko: core644Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core644Subject} [S]` },
+        { ko: `조건이 ${core644ConditionKo}`, en: `${core644Condition} [CONDITION]` },
+        { ko: core644TimeKo, en: `${core644Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core644PredicateKo}`, en: `couldn't ${core644Verb} to be scheduled to be referred for additional screening [CORE644:SCHEDULED:COULDNT_HAVE:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core644-applicants-referred-additional-screening-couldnt-have-been-shortlisted-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE643-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-COULDNT-HAVE-BEEN-SHORTLISTED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE643: specific couldn't have ... (contraction) conditional statements; does not alter CORE631 or CORE641.
+  // Eight exact combinations: singular/plural x yesterday/last week x two matched conditions.
+  const core643ApplicantCouldntHaveBeenShortlistedPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었더라면|충족되지 않았더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정될 수는 없었을 거예요|잡히도록 예비 후보로 선정되지 않을 수는 없었을 거예요)$/u.exec(normalized);
+  if (core643ApplicantCouldntHaveBeenShortlistedPastConditionalStatementMatch && !isQuestion && (
+    (core643ApplicantCouldntHaveBeenShortlistedPastConditionalStatementMatch[2] === '충족되었더라면' && core643ApplicantCouldntHaveBeenShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정될 수는 없었을 거예요') ||
+    (core643ApplicantCouldntHaveBeenShortlistedPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core643ApplicantCouldntHaveBeenShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정되지 않을 수는 없었을 거예요')
+  )) {
+    const core643Plural = core643ApplicantCouldntHaveBeenShortlistedPastConditionalStatementMatch[1] === '들은';
+    const core643ConditionKo = core643ApplicantCouldntHaveBeenShortlistedPastConditionalStatementMatch[2];
+    const core643TimeKo = core643ApplicantCouldntHaveBeenShortlistedPastConditionalStatementMatch[3];
+    const core643PredicateKo = core643ApplicantCouldntHaveBeenShortlistedPastConditionalStatementMatch[4];
+    const core643NotFailed = core643PredicateKo === '잡히도록 예비 후보로 선정되지 않을 수는 없었을 거예요';
+    const core643Subject = core643Plural ? 'applicants' : 'applicant';
+    const core643Time = core643TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core643Condition = core643NotFailed ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core643Verb = core643NotFailed ? 'have failed to be shortlisted' : 'have been shortlisted';
+    const core643English = `The ${core643Subject} couldn't ${core643Verb} to be scheduled to be referred for additional screening ${core643Time} ${core643Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core643English, originalText),
+      analysis: [
+        { ko: core643Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core643Subject} [S]` },
+        { ko: `조건이 ${core643ConditionKo}`, en: `${core643Condition} [CONDITION]` },
+        { ko: core643TimeKo, en: `${core643Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core643PredicateKo}`, en: `couldn't ${core643Verb} to be scheduled to be referred for additional screening [CORE643:SCHEDULED:COULDNT_HAVE:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core643-applicants-referred-additional-screening-couldnt-have-been-shortlisted-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE642-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-CANNOT-HAVE-BEEN-SHORTLISTED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE642: narrow negative-interrogative counterparts of the CORE641 retrospective-impossibility statements.
+  // Exact matched pairs only: 2 subjects x 2 times x 2 condition/polarity pairs = 8 questions.
+  // The question form of cannot is Can't ...?; avoid unnatural 'Cannot the applicant ...?'.
+  const core642ApplicantCannotHaveBeenShortlistedPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었더라면|충족되지 않았더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정되었을 리가 없어요|잡히도록 예비 후보로 선정되지 않았을 리가 없어요)$/u.exec(normalized);
+  if (core642ApplicantCannotHaveBeenShortlistedPastConditionalQuestionMatch && isQuestion && (
+    (core642ApplicantCannotHaveBeenShortlistedPastConditionalQuestionMatch[2] === '충족되었더라면' && core642ApplicantCannotHaveBeenShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정되었을 리가 없어요') ||
+    (core642ApplicantCannotHaveBeenShortlistedPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core642ApplicantCannotHaveBeenShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정되지 않았을 리가 없어요')
+  )) {
+    const core642Plural = core642ApplicantCannotHaveBeenShortlistedPastConditionalQuestionMatch[1] === '들은';
+    const core642ConditionKo = core642ApplicantCannotHaveBeenShortlistedPastConditionalQuestionMatch[2];
+    const core642TimeKo = core642ApplicantCannotHaveBeenShortlistedPastConditionalQuestionMatch[3];
+    const core642PredicateKo = core642ApplicantCannotHaveBeenShortlistedPastConditionalQuestionMatch[4];
+    const core642NotShortlisted = core642PredicateKo === '잡히도록 예비 후보로 선정되지 않았을 리가 없어요';
+    const core642Subject = core642Plural ? 'applicants' : 'applicant';
+    const core642Time = core642TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core642Condition = core642NotShortlisted ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core642Verb = core642NotShortlisted ? 'have failed to be shortlisted' : 'have been shortlisted';
+    const core642English = `Can't the ${core642Subject} ${core642Verb} to be scheduled to be referred for additional screening ${core642Time} ${core642Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core642English, originalText),
+      analysis: [
+        { ko: core642Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core642Subject} [S]` },
+        { ko: `조건이 ${core642ConditionKo}`, en: `${core642Condition} [CONDITION]` },
+        { ko: core642TimeKo, en: `${core642Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core642PredicateKo}`, en: `can't ${core642Verb} to be scheduled to be referred for additional screening [CORE642:SCHEDULED:CANNOT_HAVE:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core642-applicants-referred-additional-screening-cannot-have-been-shortlisted-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE641-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-CANNOT-HAVE-BEEN-SHORTLISTED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE641: retrospective impossibility in the hypothetical condition; statements only. Preserve CORE1-640 unchanged.
+  // Exact matched pairs only: 2 subjects x 2 times x 2 condition/polarity pairs = 8 sentences.
+  // For negative polarity avoid the unnatural double negation "cannot have not been shortlisted".
+  const core641ApplicantCannotHaveBeenShortlistedPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되었더라면|충족되지 않았더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정되었을 리가 없어요|잡히도록 예비 후보로 선정되지 않았을 리가 없어요)$/u.exec(normalized);
+  if (core641ApplicantCannotHaveBeenShortlistedPastConditionalStatementMatch && !isQuestion && (
+    (core641ApplicantCannotHaveBeenShortlistedPastConditionalStatementMatch[2] === '충족되었더라면' && core641ApplicantCannotHaveBeenShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정되었을 리가 없어요') ||
+    (core641ApplicantCannotHaveBeenShortlistedPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core641ApplicantCannotHaveBeenShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정되지 않았을 리가 없어요')
+  )) {
+    const core641Plural = core641ApplicantCannotHaveBeenShortlistedPastConditionalStatementMatch[1] === '들은';
+    const core641ConditionKo = core641ApplicantCannotHaveBeenShortlistedPastConditionalStatementMatch[2];
+    const core641TimeKo = core641ApplicantCannotHaveBeenShortlistedPastConditionalStatementMatch[3];
+    const core641PredicateKo = core641ApplicantCannotHaveBeenShortlistedPastConditionalStatementMatch[4];
+    const core641NotShortlisted = core641PredicateKo === '잡히도록 예비 후보로 선정되지 않았을 리가 없어요';
+    const core641Subject = core641Plural ? 'applicants' : 'applicant';
+    const core641Time = core641TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core641Condition = core641NotShortlisted ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core641Verb = core641NotShortlisted ? 'cannot have failed to be shortlisted' : 'cannot have been shortlisted';
+    const core641English = `The ${core641Subject} ${core641Verb} to be scheduled to be referred for additional screening ${core641Time} ${core641Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core641English, originalText),
+      analysis: [
+        { ko: core641Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core641Subject} [S]` },
+        { ko: `조건이 ${core641ConditionKo}`, en: `${core641Condition} [CONDITION]` },
+        { ko: core641TimeKo, en: `${core641Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core641PredicateKo}`, en: `${core641Verb} to be scheduled to be referred for additional screening [CORE641:SCHEDULED:CANNOT_HAVE:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core641-applicants-referred-additional-screening-cannot-have-been-shortlisted-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE640-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-MUST-HAVE-BEEN-SHORTLISTED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE640: past counterfactual strong inference, questions only. Preserve CORE1-639 unchanged.
+  // Narrow match: 2 subjects x 2 times x 2 validated condition/polarity pairs = 8 sentences.
+  const core640ApplicantMustHaveBeenShortlistedPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정되었을 게 틀림없어요|잡히도록 예비 후보로 선정되지 않았을 게 틀림없어요)$/u.exec(normalized);
+  if (core640ApplicantMustHaveBeenShortlistedPastConditionalQuestionMatch && isQuestion && (
+    (core640ApplicantMustHaveBeenShortlistedPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core640ApplicantMustHaveBeenShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정되었을 게 틀림없어요') ||
+    (core640ApplicantMustHaveBeenShortlistedPastConditionalQuestionMatch[2] === '충족되었더라면' && core640ApplicantMustHaveBeenShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정되지 않았을 게 틀림없어요')
+  )) {
+    const core640Plural = core640ApplicantMustHaveBeenShortlistedPastConditionalQuestionMatch[1] === '들은';
+    const core640ConditionKo = core640ApplicantMustHaveBeenShortlistedPastConditionalQuestionMatch[2];
+    const core640TimeKo = core640ApplicantMustHaveBeenShortlistedPastConditionalQuestionMatch[3];
+    const core640PredicateKo = core640ApplicantMustHaveBeenShortlistedPastConditionalQuestionMatch[4];
+    const core640Positive = core640PredicateKo === '잡히도록 예비 후보로 선정되었을 게 틀림없어요';
+    const core640Subject = core640Plural ? 'applicants' : 'applicant';
+    const core640Time = core640TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core640Condition = core640Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core640Verb = core640Positive ? 'have been shortlisted' : 'not have been shortlisted';
+    const core640English = `Must the ${core640Subject} ${core640Verb} to be scheduled to be referred for additional screening ${core640Time} ${core640Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core640English, originalText),
+      analysis: [
+        { ko: core640Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core640Subject} [S]` },
+        { ko: `조건이 ${core640ConditionKo}`, en: `${core640Condition} [CONDITION]` },
+        { ko: core640TimeKo, en: `${core640Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core640PredicateKo}`, en: `${core640Verb} to be scheduled to be referred for additional screening [CORE640:SCHEDULED:MUST_HAVE_BEEN_SHORTLISTED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core640-applicants-referred-additional-screening-must-have-been-shortlisted-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE639-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-MUST-HAVE-BEEN-SHORTLISTED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE639: past counterfactual strong inference, statements only. Preserve CORE1-638 unchanged.
+  // Narrow match: 2 subjects x 2 times x 2 validated condition/polarity pairs = 8 sentences.
+  const core639ApplicantMustHaveBeenShortlistedPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정되었을 게 틀림없어요|잡히도록 예비 후보로 선정되지 않았을 게 틀림없어요)$/u.exec(normalized);
+  if (core639ApplicantMustHaveBeenShortlistedPastConditionalStatementMatch && !isQuestion && (
+    (core639ApplicantMustHaveBeenShortlistedPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core639ApplicantMustHaveBeenShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정되었을 게 틀림없어요') ||
+    (core639ApplicantMustHaveBeenShortlistedPastConditionalStatementMatch[2] === '충족되었더라면' && core639ApplicantMustHaveBeenShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정되지 않았을 게 틀림없어요')
+  )) {
+    const core639Plural = core639ApplicantMustHaveBeenShortlistedPastConditionalStatementMatch[1] === '들은';
+    const core639ConditionKo = core639ApplicantMustHaveBeenShortlistedPastConditionalStatementMatch[2];
+    const core639TimeKo = core639ApplicantMustHaveBeenShortlistedPastConditionalStatementMatch[3];
+    const core639PredicateKo = core639ApplicantMustHaveBeenShortlistedPastConditionalStatementMatch[4];
+    const core639Positive = core639PredicateKo === '잡히도록 예비 후보로 선정되었을 게 틀림없어요';
+    const core639Subject = core639Plural ? 'applicants' : 'applicant';
+    const core639Time = core639TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core639Condition = core639Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core639Verb = core639Positive ? 'have been shortlisted' : 'not have been shortlisted';
+    const core639English = `The ${core639Subject} must ${core639Verb} to be scheduled to be referred for additional screening ${core639Time} ${core639Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core639English, originalText),
+      analysis: [
+        { ko: core639Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core639Subject} [S]` },
+        { ko: `조건이 ${core639ConditionKo}`, en: `${core639Condition} [CONDITION]` },
+        { ko: core639TimeKo, en: `${core639Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core639PredicateKo}`, en: `${core639Verb} to be scheduled to be referred for additional screening [CORE639:SCHEDULED:MUST_HAVE_BEEN_SHORTLISTED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core639-applicants-referred-additional-screening-must-have-been-shortlisted-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE638-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-SHOULD-HAVE-BEEN-SHORTLISTED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE638: past counterfactual obligation, questions only. Preserve CORE1-637 unchanged.
+  // Narrow match: 2 subjects x 2 times x 2 validated condition/polarity pairs = 8 sentences.
+  const core638ApplicantShouldHaveBeenShortlistedPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정되었어야 했을 거예요|잡히도록 예비 후보로 선정되지 않았어야 했을 거예요)$/u.exec(normalized);
+  if (core638ApplicantShouldHaveBeenShortlistedPastConditionalQuestionMatch && isQuestion && (
+    (core638ApplicantShouldHaveBeenShortlistedPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core638ApplicantShouldHaveBeenShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정되었어야 했을 거예요') ||
+    (core638ApplicantShouldHaveBeenShortlistedPastConditionalQuestionMatch[2] === '충족되었더라면' && core638ApplicantShouldHaveBeenShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정되지 않았어야 했을 거예요')
+  )) {
+    const core638Plural = core638ApplicantShouldHaveBeenShortlistedPastConditionalQuestionMatch[1] === '들은';
+    const core638ConditionKo = core638ApplicantShouldHaveBeenShortlistedPastConditionalQuestionMatch[2];
+    const core638TimeKo = core638ApplicantShouldHaveBeenShortlistedPastConditionalQuestionMatch[3];
+    const core638PredicateKo = core638ApplicantShouldHaveBeenShortlistedPastConditionalQuestionMatch[4];
+    const core638Positive = core638PredicateKo === '잡히도록 예비 후보로 선정되었어야 했을 거예요';
+    const core638Subject = core638Plural ? 'applicants' : 'applicant';
+    const core638Time = core638TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core638Condition = core638Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core638Verb = core638Positive ? 'have been shortlisted' : 'not have been shortlisted';
+    const core638English = `Should the ${core638Subject} ${core638Verb} to be scheduled to be referred for additional screening ${core638Time} ${core638Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core638English, originalText),
+      analysis: [
+        { ko: core638Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core638Subject} [S]` },
+        { ko: `조건이 ${core638ConditionKo}`, en: `${core638Condition} [CONDITION]` },
+        { ko: core638TimeKo, en: `${core638Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core638PredicateKo}`, en: `${core638Verb} to be scheduled to be referred for additional screening [CORE638:SCHEDULED:SHOULD_HAVE_BEEN_SHORTLISTED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core638-applicants-referred-additional-screening-should-have-been-shortlisted-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE637-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-SHOULD-HAVE-BEEN-SHORTLISTED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE637: past counterfactual obligation, statements only. Preserve CORE1-636 unchanged.
+  // Narrow match: 2 subjects x 2 times x 2 validated condition/polarity pairs = 8 sentences.
+  const core637ApplicantShouldHaveBeenShortlistedPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정되었어야 했을 거예요|잡히도록 예비 후보로 선정되지 않았어야 했을 거예요)$/u.exec(normalized);
+  if (core637ApplicantShouldHaveBeenShortlistedPastConditionalStatementMatch && !isQuestion && (
+    (core637ApplicantShouldHaveBeenShortlistedPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core637ApplicantShouldHaveBeenShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정되었어야 했을 거예요') ||
+    (core637ApplicantShouldHaveBeenShortlistedPastConditionalStatementMatch[2] === '충족되었더라면' && core637ApplicantShouldHaveBeenShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정되지 않았어야 했을 거예요')
+  )) {
+    const core637Plural = core637ApplicantShouldHaveBeenShortlistedPastConditionalStatementMatch[1] === '들은';
+    const core637ConditionKo = core637ApplicantShouldHaveBeenShortlistedPastConditionalStatementMatch[2];
+    const core637TimeKo = core637ApplicantShouldHaveBeenShortlistedPastConditionalStatementMatch[3];
+    const core637PredicateKo = core637ApplicantShouldHaveBeenShortlistedPastConditionalStatementMatch[4];
+    const core637Positive = core637PredicateKo === '잡히도록 예비 후보로 선정되었어야 했을 거예요';
+    const core637Subject = core637Plural ? 'applicants' : 'applicant';
+    const core637Time = core637TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core637Condition = core637Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core637Verb = core637Positive ? 'have been shortlisted' : 'not have been shortlisted';
+    const core637English = `The ${core637Subject} should ${core637Verb} to be scheduled to be referred for additional screening ${core637Time} ${core637Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core637English, originalText),
+      analysis: [
+        { ko: core637Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core637Subject} [S]` },
+        { ko: `조건이 ${core637ConditionKo}`, en: `${core637Condition} [CONDITION]` },
+        { ko: core637TimeKo, en: `${core637Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core637PredicateKo}`, en: `${core637Verb} to be scheduled to be referred for additional screening [CORE637:SCHEDULED:SHOULD_HAVE_BEEN_SHORTLISTED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core637-applicants-referred-additional-screening-should-have-been-shortlisted-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE636-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-MAY-HAVE-BEEN-SHORTLISTED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE636: past counterfactual possibility, questions only. Preserve CORE1-635 unchanged.
+  // Narrow match: 2 subjects x 2 times x 2 validated condition/polarity pairs = 8 sentences.
+  const core636ApplicantMayHaveBeenShortlistedPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정되었을 수도 있어요|잡히도록 예비 후보로 선정되지 않았을 수도 있어요)$/u.exec(normalized);
+  if (core636ApplicantMayHaveBeenShortlistedPastConditionalQuestionMatch && isQuestion && (
+    (core636ApplicantMayHaveBeenShortlistedPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core636ApplicantMayHaveBeenShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정되었을 수도 있어요') ||
+    (core636ApplicantMayHaveBeenShortlistedPastConditionalQuestionMatch[2] === '충족되었더라면' && core636ApplicantMayHaveBeenShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정되지 않았을 수도 있어요')
+  )) {
+    const core636Plural = core636ApplicantMayHaveBeenShortlistedPastConditionalQuestionMatch[1] === '들은';
+    const core636ConditionKo = core636ApplicantMayHaveBeenShortlistedPastConditionalQuestionMatch[2];
+    const core636TimeKo = core636ApplicantMayHaveBeenShortlistedPastConditionalQuestionMatch[3];
+    const core636PredicateKo = core636ApplicantMayHaveBeenShortlistedPastConditionalQuestionMatch[4];
+    const core636Positive = core636PredicateKo === '잡히도록 예비 후보로 선정되었을 수도 있어요';
+    const core636Subject = core636Plural ? 'applicants' : 'applicant';
+    const core636Time = core636TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core636Condition = core636Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core636Verb = core636Positive ? 'have been shortlisted' : 'not have been shortlisted';
+    const core636English = `May the ${core636Subject} ${core636Verb} to be scheduled to be referred for additional screening ${core636Time} ${core636Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core636English, originalText),
+      analysis: [
+        { ko: core636Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core636Subject} [S]` },
+        { ko: `조건이 ${core636ConditionKo}`, en: `${core636Condition} [CONDITION]` },
+        { ko: core636TimeKo, en: `${core636Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core636PredicateKo}`, en: `${core636Verb} to be scheduled to be referred for additional screening [CORE636:SCHEDULED:MAY_HAVE_BEEN_SHORTLISTED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core636-applicants-referred-additional-screening-may-have-been-shortlisted-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE635-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-MAY-HAVE-BEEN-SHORTLISTED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE635: past counterfactual possibility, statements only. Preserve CORE1-634 unchanged.
+  // Narrow match: 2 subjects x 2 times x 2 validated condition/polarity pairs = 8 sentences.
+  const core635ApplicantMayHaveBeenShortlistedPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정되었을 수도 있어요|잡히도록 예비 후보로 선정되지 않았을 수도 있어요)$/u.exec(normalized);
+  if (core635ApplicantMayHaveBeenShortlistedPastConditionalStatementMatch && !isQuestion && (
+    (core635ApplicantMayHaveBeenShortlistedPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core635ApplicantMayHaveBeenShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정되었을 수도 있어요') ||
+    (core635ApplicantMayHaveBeenShortlistedPastConditionalStatementMatch[2] === '충족되었더라면' && core635ApplicantMayHaveBeenShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정되지 않았을 수도 있어요')
+  )) {
+    const core635Plural = core635ApplicantMayHaveBeenShortlistedPastConditionalStatementMatch[1] === '들은';
+    const core635ConditionKo = core635ApplicantMayHaveBeenShortlistedPastConditionalStatementMatch[2];
+    const core635TimeKo = core635ApplicantMayHaveBeenShortlistedPastConditionalStatementMatch[3];
+    const core635PredicateKo = core635ApplicantMayHaveBeenShortlistedPastConditionalStatementMatch[4];
+    const core635Positive = core635PredicateKo === '잡히도록 예비 후보로 선정되었을 수도 있어요';
+    const core635Subject = core635Plural ? 'applicants' : 'applicant';
+    const core635Time = core635TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core635Condition = core635Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core635Verb = core635Positive ? 'may have been shortlisted' : 'may not have been shortlisted';
+    const core635English = `The ${core635Subject} ${core635Verb} to be scheduled to be referred for additional screening ${core635Time} ${core635Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core635English, originalText),
+      analysis: [
+        { ko: core635Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core635Subject} [S]` },
+        { ko: `조건이 ${core635ConditionKo}`, en: `${core635Condition} [CONDITION]` },
+        { ko: core635TimeKo, en: `${core635Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core635PredicateKo}`, en: `${core635Verb} to be scheduled to be referred for additional screening [CORE635:SCHEDULED:MAY_HAVE_BEEN_SHORTLISTED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core635-applicants-referred-additional-screening-may-have-been-shortlisted-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE634-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-MIGHT-HAVE-BEEN-SHORTLISTED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE634: past counterfactual possibility, questions only. Preserve CORE1-633 unchanged.
+  // Narrow match: 2 subjects x 2 times x 2 validated condition/polarity pairs = 8 sentences.
+  const core634ApplicantMightHaveBeenShortlistedPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정되었을지도 몰라요|잡히도록 예비 후보로 선정되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core634ApplicantMightHaveBeenShortlistedPastConditionalQuestionMatch && isQuestion && (
+    (core634ApplicantMightHaveBeenShortlistedPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core634ApplicantMightHaveBeenShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정되었을지도 몰라요') ||
+    (core634ApplicantMightHaveBeenShortlistedPastConditionalQuestionMatch[2] === '충족되었더라면' && core634ApplicantMightHaveBeenShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정되지 않았을지도 몰라요')
+  )) {
+    const core634Plural = core634ApplicantMightHaveBeenShortlistedPastConditionalQuestionMatch[1] === '들은';
+    const core634ConditionKo = core634ApplicantMightHaveBeenShortlistedPastConditionalQuestionMatch[2];
+    const core634TimeKo = core634ApplicantMightHaveBeenShortlistedPastConditionalQuestionMatch[3];
+    const core634PredicateKo = core634ApplicantMightHaveBeenShortlistedPastConditionalQuestionMatch[4];
+    const core634Positive = core634PredicateKo === '잡히도록 예비 후보로 선정되었을지도 몰라요';
+    const core634Subject = core634Plural ? 'applicants' : 'applicant';
+    const core634Time = core634TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core634Condition = core634Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core634Verb = core634Positive ? 'have been shortlisted' : 'not have been shortlisted';
+    const core634English = `Might the ${core634Subject} ${core634Verb} to be scheduled to be referred for additional screening ${core634Time} ${core634Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core634English, originalText),
+      analysis: [
+        { ko: core634Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core634Subject} [S]` },
+        { ko: `조건이 ${core634ConditionKo}`, en: `${core634Condition} [CONDITION]` },
+        { ko: core634TimeKo, en: `${core634Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core634PredicateKo}`, en: `${core634Verb} to be scheduled to be referred for additional screening [CORE634:SCHEDULED:MIGHT_HAVE_BEEN_SHORTLISTED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core634-applicants-referred-additional-screening-might-have-been-shortlisted-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE633-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-MIGHT-HAVE-BEEN-SHORTLISTED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE633: past counterfactual possibility, statements only. Preserve CORE1-632 unchanged.
+  // Narrow match: 2 subjects x 2 times x 2 condition/polarity pairs = 8 sentences.
+  const core633ApplicantMightHaveBeenShortlistedPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정되었을지도 몰라요|잡히도록 예비 후보로 선정되지 않았을지도 몰라요)$/u.exec(normalized);
+  if (core633ApplicantMightHaveBeenShortlistedPastConditionalStatementMatch && !isQuestion && (
+    (core633ApplicantMightHaveBeenShortlistedPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core633ApplicantMightHaveBeenShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정되었을지도 몰라요') ||
+    (core633ApplicantMightHaveBeenShortlistedPastConditionalStatementMatch[2] === '충족되었더라면' && core633ApplicantMightHaveBeenShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정되지 않았을지도 몰라요')
+  )) {
+    const core633Plural = core633ApplicantMightHaveBeenShortlistedPastConditionalStatementMatch[1] === '들은';
+    const core633ConditionKo = core633ApplicantMightHaveBeenShortlistedPastConditionalStatementMatch[2];
+    const core633TimeKo = core633ApplicantMightHaveBeenShortlistedPastConditionalStatementMatch[3];
+    const core633Positive = core633ApplicantMightHaveBeenShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정되었을지도 몰라요';
+    const core633Subject = core633Plural ? 'applicants' : 'applicant';
+    const core633Time = core633TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core633Condition = core633Positive ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core633Modal = core633Positive ? 'might have been shortlisted' : 'might not have been shortlisted';
+    const core633English = `The ${core633Subject} ${core633Modal} to be scheduled to be referred for additional screening ${core633Time} ${core633Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core633English, originalText),
+      analysis: [
+        { ko: core633Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core633Subject} [S]` },
+        { ko: `조건이 ${core633ConditionKo}`, en: `${core633Condition} [CONDITION]` },
+        { ko: core633TimeKo, en: `${core633Time} [TIME]` },
+        { ko: '추가 심사에 회부될 일정이 잡히도록 예비 후보로', en: `${core633Modal} to be scheduled to be referred for additional screening [CORE633:SCHEDULED:MIGHT_HAVE_BEEN_SHORTLISTED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core633-applicants-referred-additional-screening-might-have-been-shortlisted-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE632-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-COULD-HAVE-BEEN-SHORTLISTED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE632: past counterfactual possibility, questions only. Preserve CORE1-631 unchanged.
+  // Narrow match: 2 subjects x 2 times x 2 validated condition/polarity pairs = 8 sentences.
+  const core632ApplicantCouldHaveBeenShortlistedPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정될 수 있었을 거예요|잡히도록 예비 후보로 선정될 수 없었을 거예요)$/u.exec(normalized);
+  if (core632ApplicantCouldHaveBeenShortlistedPastConditionalQuestionMatch && isQuestion && (
+    (core632ApplicantCouldHaveBeenShortlistedPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core632ApplicantCouldHaveBeenShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정될 수 있었을 거예요') ||
+    (core632ApplicantCouldHaveBeenShortlistedPastConditionalQuestionMatch[2] === '충족되었더라면' && core632ApplicantCouldHaveBeenShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정될 수 없었을 거예요')
+  )) {
+    const core632Plural = core632ApplicantCouldHaveBeenShortlistedPastConditionalQuestionMatch[1] === '들은';
+    const core632ConditionKo = core632ApplicantCouldHaveBeenShortlistedPastConditionalQuestionMatch[2];
+    const core632TimeKo = core632ApplicantCouldHaveBeenShortlistedPastConditionalQuestionMatch[3];
+    const core632PredicateKo = core632ApplicantCouldHaveBeenShortlistedPastConditionalQuestionMatch[4];
+    const core632Could = core632PredicateKo === '잡히도록 예비 후보로 선정될 수 있었을 거예요';
+    const core632Subject = core632Plural ? 'applicants' : 'applicant';
+    const core632Time = core632TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core632Condition = core632Could ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core632Verb = core632Could ? 'have been shortlisted' : 'not have been shortlisted';
+    const core632English = `Could the ${core632Subject} ${core632Verb} to be scheduled to be referred for additional screening ${core632Time} ${core632Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core632English, originalText),
+      analysis: [
+        { ko: core632Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core632Subject} [S]` },
+        { ko: `조건이 ${core632ConditionKo}`, en: `${core632Condition} [CONDITION]` },
+        { ko: core632TimeKo, en: `${core632Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core632PredicateKo}`, en: `${core632Verb} to be scheduled to be referred for additional screening [CORE632:SCHEDULED:COULD_HAVE_BEEN_SHORTLISTED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core632-applicants-referred-additional-screening-could-have-been-shortlisted-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE631-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-COULD-HAVE-BEEN-SHORTLISTED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE631: past counterfactual possibility, statements only. Preserve CORE1-630 unchanged.
+  // Narrow match: 2 subjects x 2 times x 2 validated condition/polarity pairs = 8 sentences.
+  const core631ApplicantCouldHaveBeenShortlistedPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정될 수 있었을 거예요|잡히도록 예비 후보로 선정될 수 없었을 거예요)$/u.exec(normalized);
+  if (core631ApplicantCouldHaveBeenShortlistedPastConditionalStatementMatch && !isQuestion && (
+    (core631ApplicantCouldHaveBeenShortlistedPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core631ApplicantCouldHaveBeenShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정될 수 있었을 거예요') ||
+    (core631ApplicantCouldHaveBeenShortlistedPastConditionalStatementMatch[2] === '충족되었더라면' && core631ApplicantCouldHaveBeenShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정될 수 없었을 거예요')
+  )) {
+    const core631Plural = core631ApplicantCouldHaveBeenShortlistedPastConditionalStatementMatch[1] === '들은';
+    const core631ConditionKo = core631ApplicantCouldHaveBeenShortlistedPastConditionalStatementMatch[2];
+    const core631TimeKo = core631ApplicantCouldHaveBeenShortlistedPastConditionalStatementMatch[3];
+    const core631PredicateKo = core631ApplicantCouldHaveBeenShortlistedPastConditionalStatementMatch[4];
+    const core631Can = core631PredicateKo === '잡히도록 예비 후보로 선정될 수 있었을 거예요';
+    const core631Subject = core631Plural ? 'applicants' : 'applicant';
+    const core631Time = core631TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core631Condition = core631Can ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core631Modal = core631Can ? 'could have been shortlisted' : 'could not have been shortlisted';
+    const core631English = `The ${core631Subject} ${core631Modal} to be scheduled to be referred for additional screening ${core631Time} ${core631Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core631English, originalText),
+      analysis: [
+        { ko: core631Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core631Subject} [S]` },
+        { ko: `조건이 ${core631ConditionKo}`, en: `${core631Condition} [CONDITION]` },
+        { ko: core631TimeKo, en: `${core631Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core631PredicateKo}`, en: `${core631Modal} to be scheduled to be referred for additional screening [CORE631:SCHEDULED:COULD_HAVE_BEEN_SHORTLISTED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core631-applicants-referred-additional-screening-could-have-been-shortlisted-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE630-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-SHORTLISTED-NOT-SHORTLISTED-TO-BE-SCHEDULED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE630: conditional shortlisting for scheduling; interrogative only.
+  // Preserve CORE1-629 exactly; validate condition/polarity pairing.
+  const core630ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정되었을 거예요|잡히도록 예비 후보로 선정되지 않았을 거예요)$/u.exec(normalized);
+  if (core630ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalQuestionMatch && isQuestion && (
+    (core630ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core630ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정되었을 거예요') ||
+    (core630ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalQuestionMatch[2] === '충족되었더라면' && core630ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정되지 않았을 거예요')
+  )) {
+    const core630Plural = core630ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalQuestionMatch[1] === '들은';
+    const core630ConditionKo = core630ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalQuestionMatch[2];
+    const core630TimeKo = core630ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalQuestionMatch[3];
+    const core630PredicateKo = core630ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalQuestionMatch[4];
+    const core630Shortlisted = core630PredicateKo === '잡히도록 예비 후보로 선정되었을 거예요';
+    const core630Subject = core630Plural ? 'applicants' : 'applicant';
+    const core630Time = core630TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core630Condition = core630Shortlisted ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core630Modal = core630Shortlisted ? 'have been shortlisted' : 'not have been shortlisted';
+    const core630English = `Would the ${core630Subject} ${core630Modal} to be scheduled to be referred for additional screening ${core630Time} ${core630Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core630English, originalText),
+      analysis: [
+        { ko: core630Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core630Subject} [S]` },
+        { ko: `조건이 ${core630ConditionKo}`, en: `${core630Condition} [CONDITION]` },
+        { ko: core630TimeKo, en: `${core630Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core630PredicateKo}`, en: `${core630Modal} to be scheduled to be referred for additional screening [CORE630:SCHEDULED:WOULD_HAVE_BEEN_SHORTLISTED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core630-applicants-referred-additional-screening-would-have-been-shortlisted-not-shortlisted-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE629-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-SHORTLISTED-NOT-SHORTLISTED-TO-BE-SCHEDULED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE629: conditional shortlisting for scheduling; declarative only.
+  // Preserve CORE1-628 exactly; validate condition/polarity pairing.
+  const core629ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정되었을 거예요|잡히도록 예비 후보로 선정되지 않았을 거예요)$/u.exec(normalized);
+  if (core629ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalStatementMatch && !isQuestion && (
+    (core629ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core629ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정되었을 거예요') ||
+    (core629ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalStatementMatch[2] === '충족되었더라면' && core629ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정되지 않았을 거예요')
+  )) {
+    const core629Plural = core629ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalStatementMatch[1] === '들은';
+    const core629ConditionKo = core629ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalStatementMatch[2];
+    const core629TimeKo = core629ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalStatementMatch[3];
+    const core629PredicateKo = core629ApplicantReferredAdditionalScreeningWouldHaveBeenShortlistedNotShortlistedScheduledPastConditionalStatementMatch[4];
+    const core629Shortlisted = core629PredicateKo === '잡히도록 예비 후보로 선정되었을 거예요';
+    const core629Subject = core629Plural ? 'applicants' : 'applicant';
+    const core629Time = core629TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core629Condition = core629Shortlisted ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core629Modal = core629Shortlisted ? 'would have been shortlisted' : 'would not have been shortlisted';
+    const core629English = `The ${core629Subject} ${core629Modal} to be scheduled to be referred for additional screening ${core629Time} ${core629Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core629English, originalText),
+      analysis: [
+        { ko: core629Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core629Subject} [S]` },
+        { ko: `조건이 ${core629ConditionKo}`, en: `${core629Condition} [CONDITION]` },
+        { ko: core629TimeKo, en: `${core629Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core629PredicateKo}`, en: `${core629Modal} to be scheduled to be referred for additional screening [CORE629:SCHEDULED:WOULD_HAVE_BEEN_SHORTLISTED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core629-applicants-referred-additional-screening-would-have-been-shortlisted-not-shortlisted-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE628-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-PRIORITIZED-NOT-PRIORITIZED-TO-BE-SCHEDULED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE628: conditional prioritization for scheduling; interrogative only.
+  // Preserve CORE1-627 exactly; validate condition/polarity pairing.
+  const core628ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 우선 배정되었을 거예요|잡히도록 우선 배정되지 않았을 거예요)$/u.exec(normalized);
+  if (core628ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalQuestionMatch && isQuestion && (
+    (core628ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core628ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalQuestionMatch[4] === '잡히도록 우선 배정되었을 거예요') ||
+    (core628ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalQuestionMatch[2] === '충족되었더라면' && core628ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalQuestionMatch[4] === '잡히도록 우선 배정되지 않았을 거예요')
+  )) {
+    const core628Plural = core628ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalQuestionMatch[1] === '들은';
+    const core628ConditionKo = core628ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalQuestionMatch[2];
+    const core628TimeKo = core628ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalQuestionMatch[3];
+    const core628PredicateKo = core628ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalQuestionMatch[4];
+    const core628Prioritized = core628PredicateKo === '잡히도록 우선 배정되었을 거예요';
+    const core628Subject = core628Plural ? 'applicants' : 'applicant';
+    const core628Time = core628TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core628Condition = core628Prioritized ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core628Modal = core628Prioritized ? 'have been prioritized' : 'not have been prioritized';
+    const core628English = `Would the ${core628Subject} ${core628Modal} to be scheduled to be referred for additional screening ${core628Time} ${core628Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core628English, originalText),
+      analysis: [
+        { ko: core628Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core628Subject} [S]` },
+        { ko: `조건이 ${core628ConditionKo}`, en: `${core628Condition} [CONDITION]` },
+        { ko: core628TimeKo, en: `${core628Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core628PredicateKo}`, en: `${core628Modal} to be scheduled to be referred for additional screening [CORE628:SCHEDULED:WOULD_HAVE_BEEN_PRIORITIZED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core628-applicants-referred-additional-screening-would-have-been-prioritized-not-prioritized-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE627-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-PRIORITIZED-NOT-PRIORITIZED-TO-BE-SCHEDULED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE627: conditional prioritization for scheduling; declarative only.
+  // Preserve CORE1-626 exactly; validate condition/polarity pairing.
+  const core627ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 우선 배정되었을 거예요|잡히도록 우선 배정되지 않았을 거예요)$/u.exec(normalized);
+  if (core627ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalStatementMatch && !isQuestion && (
+    (core627ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core627ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalStatementMatch[4] === '잡히도록 우선 배정되었을 거예요') ||
+    (core627ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalStatementMatch[2] === '충족되었더라면' && core627ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalStatementMatch[4] === '잡히도록 우선 배정되지 않았을 거예요')
+  )) {
+    const core627Plural = core627ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalStatementMatch[1] === '들은';
+    const core627ConditionKo = core627ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalStatementMatch[2];
+    const core627TimeKo = core627ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalStatementMatch[3];
+    const core627PredicateKo = core627ApplicantReferredAdditionalScreeningWouldHaveBeenPrioritizedNotPrioritizedScheduledPastConditionalStatementMatch[4];
+    const core627Prioritized = core627PredicateKo === '잡히도록 우선 배정되었을 거예요';
+    const core627Subject = core627Plural ? 'applicants' : 'applicant';
+    const core627Time = core627TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core627Condition = core627Prioritized ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core627Modal = core627Prioritized ? 'would have been prioritized' : 'would not have been prioritized';
+    const core627English = `The ${core627Subject} ${core627Modal} to be scheduled to be referred for additional screening ${core627Time} ${core627Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core627English, originalText),
+      analysis: [
+        { ko: core627Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core627Subject} [S]` },
+        { ko: `조건이 ${core627ConditionKo}`, en: `${core627Condition} [CONDITION]` },
+        { ko: core627TimeKo, en: `${core627Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core627PredicateKo}`, en: `${core627Modal} to be scheduled to be referred for additional screening [CORE627:SCHEDULED:WOULD_HAVE_BEEN_PRIORITIZED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core627-applicants-referred-additional-screening-would-have-been-prioritized-not-prioritized-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE626-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-RECOMMENDED-NOT-RECOMMENDED-TO-BE-SCHEDULED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE626: conditional recommendation for scheduling; interrogative only.
+  // Preserve CORE1-625 exactly; validate condition/polarity pairing.
+  const core626ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 추천되었을 거예요|잡히도록 추천되지 않았을 거예요)$/u.exec(normalized);
+  if (core626ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalQuestionMatch && isQuestion && (
+    (core626ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core626ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalQuestionMatch[4] === '잡히도록 추천되었을 거예요') ||
+    (core626ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalQuestionMatch[2] === '충족되었더라면' && core626ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalQuestionMatch[4] === '잡히도록 추천되지 않았을 거예요')
+  )) {
+    const core626Plural = core626ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalQuestionMatch[1] === '들은';
+    const core626ConditionKo = core626ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalQuestionMatch[2];
+    const core626TimeKo = core626ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalQuestionMatch[3];
+    const core626PredicateKo = core626ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalQuestionMatch[4];
+    const core626Recommended = core626PredicateKo === '잡히도록 추천되었을 거예요';
+    const core626Subject = core626Plural ? 'applicants' : 'applicant';
+    const core626Time = core626TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core626Condition = core626Recommended ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core626Modal = core626Recommended ? 'have been recommended' : 'not have been recommended';
+    const core626English = `Would the ${core626Subject} ${core626Modal} to be scheduled to be referred for additional screening ${core626Time} ${core626Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core626English, originalText),
+      analysis: [
+        { ko: core626Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core626Subject} [S]` },
+        { ko: `조건이 ${core626ConditionKo}`, en: `${core626Condition} [CONDITION]` },
+        { ko: core626TimeKo, en: `${core626Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core626PredicateKo}`, en: `${core626Modal} to be scheduled to be referred for additional screening [CORE626:SCHEDULED:WOULD_HAVE_BEEN_RECOMMENDED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core626-applicants-referred-additional-screening-would-have-been-recommended-not-recommended-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE625-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-RECOMMENDED-NOT-RECOMMENDED-TO-BE-SCHEDULED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE625: conditional recommendation for scheduling; declarative only.
+  // Preserve CORE1-624 exactly; validate condition/polarity pairing.
+  const core625ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 추천되었을 거예요|잡히도록 추천되지 않았을 거예요)$/u.exec(normalized);
+  if (core625ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalStatementMatch && !isQuestion && (
+    (core625ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core625ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalStatementMatch[4] === '잡히도록 추천되었을 거예요') ||
+    (core625ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalStatementMatch[2] === '충족되었더라면' && core625ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalStatementMatch[4] === '잡히도록 추천되지 않았을 거예요')
+  )) {
+    const core625Plural = core625ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalStatementMatch[1] === '들은';
+    const core625ConditionKo = core625ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalStatementMatch[2];
+    const core625TimeKo = core625ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalStatementMatch[3];
+    const core625PredicateKo = core625ApplicantReferredAdditionalScreeningWouldHaveBeenRecommendedNotRecommendedScheduledPastConditionalStatementMatch[4];
+    const core625Recommended = core625PredicateKo === '잡히도록 추천되었을 거예요';
+    const core625Subject = core625Plural ? 'applicants' : 'applicant';
+    const core625Time = core625TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core625Condition = core625Recommended ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core625Modal = core625Recommended ? 'would have been recommended' : 'would not have been recommended';
+    const core625English = `The ${core625Subject} ${core625Modal} to be scheduled to be referred for additional screening ${core625Time} ${core625Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core625English, originalText),
+      analysis: [
+        { ko: core625Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core625Subject} [S]` },
+        { ko: `조건이 ${core625ConditionKo}`, en: `${core625Condition} [CONDITION]` },
+        { ko: core625TimeKo, en: `${core625Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core625PredicateKo}`, en: `${core625Modal} to be scheduled to be referred for additional screening [CORE625:SCHEDULED:WOULD_HAVE_BEEN_RECOMMENDED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core625-applicants-referred-additional-screening-would-have-been-recommended-not-recommended-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE624-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-SELECTED-NOT-SELECTED-TO-BE-SCHEDULED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE624: conditional selection to be scheduled; interrogative only.
+  // Preserve CORE1-623 exactly; validate condition/polarity pairing.
+  const core624ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 선정되었을 거예요|잡히도록 선정되지 않았을 거예요)$/u.exec(normalized);
+  if (core624ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalQuestionMatch && isQuestion && (
+    (core624ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core624ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalQuestionMatch[4] === '잡히도록 선정되었을 거예요') ||
+    (core624ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalQuestionMatch[2] === '충족되었더라면' && core624ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalQuestionMatch[4] === '잡히도록 선정되지 않았을 거예요')
+  )) {
+    const core624Plural = core624ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalQuestionMatch[1] === '들은';
+    const core624ConditionKo = core624ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalQuestionMatch[2];
+    const core624TimeKo = core624ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalQuestionMatch[3];
+    const core624PredicateKo = core624ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalQuestionMatch[4];
+    const core624Selected = core624PredicateKo === '잡히도록 선정되었을 거예요';
+    const core624Subject = core624Plural ? 'applicants' : 'applicant';
+    const core624Time = core624TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core624Condition = core624Selected ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core624Modal = core624Selected ? 'have been selected' : 'not have been selected';
+    const core624English = `Would the ${core624Subject} ${core624Modal} to be scheduled to be referred for additional screening ${core624Time} ${core624Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core624English, originalText),
+      analysis: [
+        { ko: core624Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core624Subject} [S]` },
+        { ko: `조건이 ${core624ConditionKo}`, en: `${core624Condition} [CONDITION]` },
+        { ko: core624TimeKo, en: `${core624Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core624PredicateKo}`, en: `${core624Modal} to be scheduled to be referred for additional screening [CORE624:SCHEDULED:WOULD_HAVE_BEEN_SELECTED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core624-applicants-referred-additional-screening-would-have-been-selected-not-selected-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE623-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-SELECTED-NOT-SELECTED-TO-BE-SCHEDULED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE623: conditional selection for scheduling; declarative only.
+  // Preserve CORE1-622 exactly; validate condition/polarity pairing.
+  const core623ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 선정되었을 거예요|잡히도록 선정되지 않았을 거예요)$/u.exec(normalized);
+  if (core623ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalStatementMatch && !isQuestion && (
+    (core623ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core623ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalStatementMatch[4] === '잡히도록 선정되었을 거예요') ||
+    (core623ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalStatementMatch[2] === '충족되었더라면' && core623ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalStatementMatch[4] === '잡히도록 선정되지 않았을 거예요')
+  )) {
+    const core623Plural = core623ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalStatementMatch[1] === '들은';
+    const core623ConditionKo = core623ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalStatementMatch[2];
+    const core623TimeKo = core623ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalStatementMatch[3];
+    const core623PredicateKo = core623ApplicantReferredAdditionalScreeningWouldHaveBeenSelectedNotSelectedScheduledPastConditionalStatementMatch[4];
+    const core623Selected = core623PredicateKo === '잡히도록 선정되었을 거예요';
+    const core623Subject = core623Plural ? 'applicants' : 'applicant';
+    const core623Time = core623TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core623Condition = core623Selected ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core623Modal = core623Selected ? 'would have been selected' : 'would not have been selected';
+    const core623English = `The ${core623Subject} ${core623Modal} to be scheduled to be referred for additional screening ${core623Time} ${core623Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core623English, originalText),
+      analysis: [
+        { ko: core623Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core623Subject} [S]` },
+        { ko: `조건이 ${core623ConditionKo}`, en: `${core623Condition} [CONDITION]` },
+        { ko: core623TimeKo, en: `${core623Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core623PredicateKo}`, en: `${core623Modal} to be scheduled to be referred for additional screening [CORE623:SCHEDULED:WOULD_HAVE_BEEN_SELECTED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core623-applicants-referred-additional-screening-would-have-been-selected-not-selected-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE622-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-AUTHORIZED-NOT-AUTHORIZED-TO-BE-SCHEDULED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE622: conditional authorization to be scheduled; interrogative only.
+  // Preserve CORE1-621 exactly; validate condition/polarity pairing.
+  const core622ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 승인을 받았을 거예요|잡히도록 승인을 받지 못했을 거예요)$/u.exec(normalized);
+  if (core622ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalQuestionMatch && isQuestion && (
+    (core622ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core622ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalQuestionMatch[4] === '잡히도록 승인을 받았을 거예요') ||
+    (core622ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalQuestionMatch[2] === '충족되었더라면' && core622ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalQuestionMatch[4] === '잡히도록 승인을 받지 못했을 거예요')
+  )) {
+    const core622Plural = core622ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalQuestionMatch[1] === '들은';
+    const core622ConditionKo = core622ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalQuestionMatch[2];
+    const core622TimeKo = core622ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalQuestionMatch[3];
+    const core622PredicateKo = core622ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalQuestionMatch[4];
+    const core622Authorized = core622PredicateKo === '잡히도록 승인을 받았을 거예요';
+    const core622Subject = core622Plural ? 'applicants' : 'applicant';
+    const core622Time = core622TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core622Condition = core622Authorized ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core622Modal = core622Authorized ? 'have been authorized' : 'not have been authorized';
+    const core622English = `Would the ${core622Subject} ${core622Modal} to be scheduled to be referred for additional screening ${core622Time} ${core622Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core622English, originalText),
+      analysis: [
+        { ko: core622Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core622Subject} [S]` },
+        { ko: `조건이 ${core622ConditionKo}`, en: `${core622Condition} [CONDITION]` },
+        { ko: core622TimeKo, en: `${core622Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core622PredicateKo}`, en: `${core622Modal} to be scheduled to be referred for additional screening [CORE622:SCHEDULED:WOULD_HAVE_BEEN_AUTHORIZED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core622-applicants-referred-additional-screening-would-have-been-authorized-not-authorized-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE621-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-AUTHORIZED-NOT-AUTHORIZED-TO-BE-SCHEDULED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE621: conditional authorization to be scheduled; declarative only.
+  // Preserve CORE1-620 exactly; validate condition/polarity pairing.
+  const core621ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 승인을 받았을 거예요|잡히도록 승인을 받지 못했을 거예요)$/u.exec(normalized);
+  if (core621ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalStatementMatch && !isQuestion && (
+    (core621ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core621ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalStatementMatch[4] === '잡히도록 승인을 받았을 거예요') ||
+    (core621ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalStatementMatch[2] === '충족되었더라면' && core621ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalStatementMatch[4] === '잡히도록 승인을 받지 못했을 거예요')
+  )) {
+    const core621Plural = core621ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalStatementMatch[1] === '들은';
+    const core621ConditionKo = core621ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalStatementMatch[2];
+    const core621TimeKo = core621ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalStatementMatch[3];
+    const core621PredicateKo = core621ApplicantReferredAdditionalScreeningWouldHaveBeenAuthorizedNotAuthorizedScheduledPastConditionalStatementMatch[4];
+    const core621Authorized = core621PredicateKo === '잡히도록 승인을 받았을 거예요';
+    const core621Subject = core621Plural ? 'applicants' : 'applicant';
+    const core621Time = core621TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core621Condition = core621Authorized ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core621Modal = core621Authorized ? 'would have been authorized' : 'would not have been authorized';
+    const core621English = `The ${core621Subject} ${core621Modal} to be scheduled to be referred for additional screening ${core621Time} ${core621Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core621English, originalText),
+      analysis: [
+        { ko: core621Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core621Subject} [S]` },
+        { ko: `조건이 ${core621ConditionKo}`, en: `${core621Condition} [CONDITION]` },
+        { ko: core621TimeKo, en: `${core621Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core621PredicateKo}`, en: `${core621Modal} to be scheduled to be referred for additional screening [CORE621:SCHEDULED:WOULD_HAVE_BEEN_AUTHORIZED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core621-applicants-referred-additional-screening-would-have-been-authorized-not-authorized-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE620-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-ELIGIBLE-NOT-ELIGIBLE-TO-BE-SCHEDULED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE620: conditional eligibility to be scheduled; interrogative only.
+  // Preserve CORE1-619 exactly; validate condition/polarity pairing.
+  const core620ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡힐 자격이 있었을 거예요|잡힐 자격이 없었을 거예요)$/u.exec(normalized);
+  if (core620ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalQuestionMatch && isQuestion && (
+    (core620ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core620ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalQuestionMatch[4] === '잡힐 자격이 있었을 거예요') ||
+    (core620ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalQuestionMatch[2] === '충족되었더라면' && core620ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalQuestionMatch[4] === '잡힐 자격이 없었을 거예요')
+  )) {
+    const core620Plural = core620ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalQuestionMatch[1] === '들은';
+    const core620ConditionKo = core620ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalQuestionMatch[2];
+    const core620TimeKo = core620ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalQuestionMatch[3];
+    const core620PredicateKo = core620ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalQuestionMatch[4];
+    const core620Eligible = core620PredicateKo === '잡힐 자격이 있었을 거예요';
+    const core620Subject = core620Plural ? 'applicants' : 'applicant';
+    const core620Time = core620TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core620Condition = core620Eligible ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core620Modal = core620Eligible ? 'have been eligible' : 'not have been eligible';
+    const core620English = `Would the ${core620Subject} ${core620Modal} to be scheduled to be referred for additional screening ${core620Time} ${core620Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core620English, originalText),
+      analysis: [
+        { ko: core620Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core620Subject} [S]` },
+        { ko: `조건이 ${core620ConditionKo}`, en: `${core620Condition} [CONDITION]` },
+        { ko: core620TimeKo, en: `${core620Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core620PredicateKo}`, en: `${core620Modal} to be scheduled to be referred for additional screening [CORE620:SCHEDULED:WOULD_HAVE_BEEN_ELIGIBLE:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core620-applicants-referred-additional-screening-would-have-been-eligible-not-eligible-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE619-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-ELIGIBLE-NOT-ELIGIBLE-TO-BE-SCHEDULED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE619: conditional eligibility to be scheduled; declarative only.
+  // Preserve CORE1-618 exactly; validate condition/polarity pairing.
+  const core619ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡힐 자격이 있었을 거예요|잡힐 자격이 없었을 거예요)$/u.exec(normalized);
+  if (core619ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalStatementMatch && !isQuestion && (
+    (core619ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core619ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalStatementMatch[4] === '잡힐 자격이 있었을 거예요') ||
+    (core619ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalStatementMatch[2] === '충족되었더라면' && core619ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalStatementMatch[4] === '잡힐 자격이 없었을 거예요')
+  )) {
+    const core619Plural = core619ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalStatementMatch[1] === '들은';
+    const core619ConditionKo = core619ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalStatementMatch[2];
+    const core619TimeKo = core619ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalStatementMatch[3];
+    const core619PredicateKo = core619ApplicantReferredAdditionalScreeningWouldHaveBeenEligibleNotEligibleScheduledPastConditionalStatementMatch[4];
+    const core619Eligible = core619PredicateKo === '잡힐 자격이 있었을 거예요';
+    const core619Subject = core619Plural ? 'applicants' : 'applicant';
+    const core619Time = core619TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core619Condition = core619Eligible ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core619Modal = core619Eligible ? 'would have been eligible' : 'would not have been eligible';
+    const core619English = `The ${core619Subject} ${core619Modal} to be scheduled to be referred for additional screening ${core619Time} ${core619Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core619English, originalText),
+      analysis: [
+        { ko: core619Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core619Subject} [S]` },
+        { ko: `조건이 ${core619ConditionKo}`, en: `${core619Condition} [CONDITION]` },
+        { ko: core619TimeKo, en: `${core619Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core619PredicateKo}`, en: `${core619Modal} to be scheduled to be referred for additional screening [CORE619:SCHEDULED:WOULD_HAVE_BEEN_ELIGIBLE:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core619-applicants-referred-additional-screening-would-have-been-eligible-not-eligible-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE618-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-REQUIRED-NOT-REQUIRED-TO-BE-SCHEDULED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE618: required/not-required scheduling under past counterfactuals; interrogative only.
+  // Preserve CORE1-617 exactly; validate condition/polarity pairing.
+  const core618ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혀야 했을 거예요|잡힐 필요가 없었을 거예요)$/u.exec(normalized);
+  if (core618ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalQuestionMatch && isQuestion && (
+    (core618ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core618ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalQuestionMatch[4] === '잡혀야 했을 거예요') ||
+    (core618ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalQuestionMatch[2] === '충족되었더라면' && core618ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalQuestionMatch[4] === '잡힐 필요가 없었을 거예요')
+  )) {
+    const core618Plural = core618ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalQuestionMatch[1] === '들은';
+    const core618ConditionKo = core618ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalQuestionMatch[2];
+    const core618TimeKo = core618ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalQuestionMatch[3];
+    const core618PredicateKo = core618ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalQuestionMatch[4];
+    const core618Required = core618PredicateKo === '잡혀야 했을 거예요';
+    const core618Subject = core618Plural ? 'applicants' : 'applicant';
+    const core618Time = core618TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core618Condition = core618Required ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core618Modal = core618Required ? 'have been required' : 'not have been required';
+    const core618English = `Would the ${core618Subject} ${core618Modal} to be scheduled to be referred for additional screening ${core618Time} ${core618Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core618English, originalText),
+      analysis: [
+        { ko: core618Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core618Subject} [S]` },
+        { ko: `조건이 ${core618ConditionKo}`, en: `${core618Condition} [CONDITION]` },
+        { ko: core618TimeKo, en: `${core618Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core618PredicateKo}`, en: `${core618Modal} to be scheduled to be referred for additional screening [CORE618:SCHEDULED:WOULD_HAVE_BEEN_REQUIRED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core618-applicants-referred-additional-screening-would-have-been-required-not-required-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE617-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-REQUIRED-NOT-REQUIRED-TO-BE-SCHEDULED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE617: required/not-required scheduling under past counterfactuals; declarative only.
+  // Preserve CORE1-616 exactly; validate condition/polarity pairing.
+  const core617ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혀야 했을 거예요|잡힐 필요가 없었을 거예요)$/u.exec(normalized);
+  if (core617ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalStatementMatch && !isQuestion && (
+    (core617ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core617ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalStatementMatch[4] === '잡혀야 했을 거예요') ||
+    (core617ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalStatementMatch[2] === '충족되었더라면' && core617ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalStatementMatch[4] === '잡힐 필요가 없었을 거예요')
+  )) {
+    const core617Plural = core617ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalStatementMatch[1] === '들은';
+    const core617ConditionKo = core617ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalStatementMatch[2];
+    const core617TimeKo = core617ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalStatementMatch[3];
+    const core617PredicateKo = core617ApplicantReferredAdditionalScreeningWouldHaveBeenRequiredNotRequiredScheduledPastConditionalStatementMatch[4];
+    const core617Required = core617PredicateKo === '잡혀야 했을 거예요';
+    const core617Subject = core617Plural ? 'applicants' : 'applicant';
+    const core617Time = core617TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core617Condition = core617Required ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core617Modal = core617Required ? 'would have been required' : 'would not have been required';
+    const core617English = `The ${core617Subject} ${core617Modal} to be scheduled to be referred for additional screening ${core617Time} ${core617Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core617English, originalText),
+      analysis: [
+        { ko: core617Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core617Subject} [S]` },
+        { ko: `조건이 ${core617ConditionKo}`, en: `${core617Condition} [CONDITION]` },
+        { ko: core617TimeKo, en: `${core617Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core617PredicateKo}`, en: `${core617Modal} to be scheduled to be referred for additional screening [CORE617:SCHEDULED:WOULD_HAVE_BEEN_REQUIRED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core617-applicants-referred-additional-screening-would-have-been-required-not-required-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE616-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-EXPECTED-NOT-EXPECTED-TO-BE-SCHEDULED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE616: positive/negative expectations under past counterfactuals, interrogative only.
+  // Preserves CORE1-615; strictly validates the condition/polarity pairing.
+  const core616ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡힐 것으로 예상되었을 거예요|잡힐 것으로 예상되지 않았을 거예요)$/u.exec(normalized);
+  if (core616ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalQuestionMatch && isQuestion && (
+    (core616ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core616ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalQuestionMatch[4] === '잡힐 것으로 예상되었을 거예요') ||
+    (core616ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalQuestionMatch[2] === '충족되었더라면' && core616ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalQuestionMatch[4] === '잡힐 것으로 예상되지 않았을 거예요')
+  )) {
+    const core616Plural = core616ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalQuestionMatch[1] === '들은';
+    const core616ConditionKo = core616ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalQuestionMatch[2];
+    const core616TimeKo = core616ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalQuestionMatch[3];
+    const core616PredicateKo = core616ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalQuestionMatch[4];
+    const core616Expected = core616PredicateKo === '잡힐 것으로 예상되었을 거예요';
+    const core616Subject = core616Plural ? 'applicants' : 'applicant';
+    const core616Time = core616TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core616Condition = core616Expected ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core616Modal = core616Expected ? 'have been expected' : 'not have been expected';
+    const core616English = `Would the ${core616Subject} ${core616Modal} to be scheduled to be referred for additional screening ${core616Time} ${core616Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core616English, originalText),
+      analysis: [
+        { ko: core616Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core616Subject} [S]` },
+        { ko: `조건이 ${core616ConditionKo}`, en: `${core616Condition} [CONDITION]` },
+        { ko: core616TimeKo, en: `${core616Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core616PredicateKo}`, en: `${core616Modal} to be scheduled to be referred for additional screening [CORE616:SCHEDULED:WOULD_HAVE_BEEN_EXPECTED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core616-applicants-referred-additional-screening-would-have-been-expected-not-expected-to-be-scheduled-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE615-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-EXPECTED-NOT-EXPECTED-TO-BE-SCHEDULED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE615: positive/negative expectations under past counterfactuals, declarative only.
+  // Preserves CORE1-614; strictly validates the condition/polarity pairing.
+  const core615ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡힐 것으로 예상되었을 거예요|잡힐 것으로 예상되지 않았을 거예요)$/u.exec(normalized);
+  if (core615ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalStatementMatch && !isQuestion && (
+    (core615ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core615ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalStatementMatch[4] === '잡힐 것으로 예상되었을 거예요') ||
+    (core615ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalStatementMatch[2] === '충족되었더라면' && core615ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalStatementMatch[4] === '잡힐 것으로 예상되지 않았을 거예요')
+  )) {
+    const core615Plural = core615ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalStatementMatch[1] === '들은';
+    const core615ConditionKo = core615ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalStatementMatch[2];
+    const core615TimeKo = core615ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalStatementMatch[3];
+    const core615PredicateKo = core615ApplicantReferredAdditionalScreeningWouldHaveBeenExpectedNotExpectedScheduledPastConditionalStatementMatch[4];
+    const core615Expected = core615PredicateKo === '잡힐 것으로 예상되었을 거예요';
+    const core615Subject = core615Plural ? 'applicants' : 'applicant';
+    const core615Time = core615TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core615Condition = core615Expected ? 'if the conditions had not been met' : 'if the conditions had been met';
+    const core615Modal = core615Expected ? 'would have been expected' : 'would not have been expected';
+    const core615English = `The ${core615Subject} ${core615Modal} to be scheduled to be referred for additional screening ${core615Time} ${core615Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core615English, originalText),
+      analysis: [
+        { ko: core615Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core615Subject} [S]` },
+        { ko: `조건이 ${core615ConditionKo}`, en: `${core615Condition} [CONDITION]` },
+        { ko: core615TimeKo, en: `${core615Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core615PredicateKo}`, en: `${core615Modal} to be scheduled to be referred for additional screening [CORE615:SCHEDULED:WOULD_HAVE_BEEN_EXPECTED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core615-applicants-referred-additional-screening-would-have-been-expected-not-expected-to-be-scheduled-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE614-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-CAN-NOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-IMPOSSIBILITY-QUESTIONS-SLOT-SAFE
+  // CORE614: past counterfactual impossibility questions only, can ... not have been likely / unlikely, yesterday / last week.
+  // Preserves CORE1-613; uses past counterfactual IF clauses; preserves all earlier slots.
+  const core614ApplicantReferredAdditionalScreeningCanNotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡혔을 가능성이 높았을 수는 없어요|잡혔을 가능성이 낮았을 수는 없어요)$/u.exec(normalized);
+  if (core614ApplicantReferredAdditionalScreeningCanNotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityQuestionMatch && isQuestion && (
+    (core614ApplicantReferredAdditionalScreeningCanNotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityQuestionMatch[2] === '충족되었더라면' && core614ApplicantReferredAdditionalScreeningCanNotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityQuestionMatch[4] === '잡혔을 가능성이 높았을 수는 없어요') ||
+    (core614ApplicantReferredAdditionalScreeningCanNotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityQuestionMatch[2] === '충족되지 않았더라면' && core614ApplicantReferredAdditionalScreeningCanNotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityQuestionMatch[4] === '잡혔을 가능성이 낮았을 수는 없어요')
+  )) {
+    const core614Plural = core614ApplicantReferredAdditionalScreeningCanNotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityQuestionMatch[1] === '들은';
+    const core614ConditionKo = core614ApplicantReferredAdditionalScreeningCanNotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityQuestionMatch[2];
+    const core614TimeKo = core614ApplicantReferredAdditionalScreeningCanNotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityQuestionMatch[3];
+    const core614PredicateKo = core614ApplicantReferredAdditionalScreeningCanNotHaveBeenLikelyUnlikelyScheduledPastConditionalImpossibilityQuestionMatch[4];
+    const core614Likely = core614PredicateKo === '잡혔을 가능성이 높았을 수는 없어요';
+    const core614Subject = core614Plural ? 'applicants' : 'applicant';
+    const core614Time = core614TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core614Condition = core614Likely ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core614Predicate = core614Likely ? 'likely' : 'unlikely';
+    const core614English = `Can the ${core614Subject} not have been ${core614Predicate} to be scheduled to be referred for additional screening ${core614Time} ${core614Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core614English, originalText),
+      analysis: [
+        { ko: core614Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core614Subject} [S]` },
+        { ko: `조건이 ${core614ConditionKo}`, en: `${core614Condition} [CONDITION]` },
+        { ko: core614TimeKo, en: `${core614Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core614PredicateKo}`, en: `can ... not have been ${core614Predicate} to be scheduled to be referred for additional screening [CORE614:SCHEDULED:CAN_NOT_HAVE_BEEN:LIKELY_UNLIKELY:PAST_CONDITIONAL_IMPOSSIBILITY_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core614-applicants-referred-additional-screening-can-not-have-been-likely-unlikely-to-be-scheduled-past-conditional-impossibility-question-ko-en-safe',
+    };
+  }
   // XDIC-CORE613-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-CANNOT-HAVE-BEEN-LIKELY-UNLIKELY-TO-BE-SCHEDULED-PAST-CONDITIONAL-IMPOSSIBILITY-STATEMENTS-SLOT-SAFE
   // CORE613: past counterfactual impossibility statements only, cannot have been likely / unlikely, yesterday / last week.
   // Preserves CORE1-612; uses past counterfactual IF clauses; preserves all earlier slots.
