@@ -42667,6 +42667,1371 @@ const twoProTryKoEnGeneralPassiveAspectV1053GPA = (
   // XDIC-CORE52-APPLICANT-SINGULAR-SUBJECT-SLOT-SAFE
   // XDIC-CORE53-APPLICANTS-PLURAL-SUBJECT-SLOT-SAFE
   // XDIC-CORE57-APPLICANTS-INVITED-SIMPLE-PRESENT-PAST-SAFE
+  // XDIC-CORE742-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-EXCLUDED-FROM-THE-SHORTLIST-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE742: exact excluded-from-the-shortlist past conditional questions; preserve all preceding slots.
+  const core742ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 배제되었을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 배제되지 않았을 거예요)$/u.exec(normalized);
+  if (core742ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalQuestionMatch && isQuestion && (
+    (core742ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core742ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 배제되었을 거예요') ||
+    (core742ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalQuestionMatch[2] === '충족되었더라면' && core742ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 배제되지 않았을 거예요')
+  )) {
+    const core742Plural = core742ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalQuestionMatch[1] === '들은';
+    const core742ConditionKo = core742ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalQuestionMatch[2];
+    const core742TimeKo = core742ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalQuestionMatch[3];
+    const core742PredicateKo = core742ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalQuestionMatch[4];
+    const core742Negative = core742PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 배제되지 않았을 거예요';
+    const core742Subject = core742Plural ? 'applicants' : 'applicant';
+    const core742Time = core742TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core742Condition = core742Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core742Verb = core742Negative ? 'not have been excluded from the shortlist' : 'have been excluded from the shortlist';
+    const core742English = `Would the ${core742Subject} ${core742Verb} for scheduling a referral to additional screening ${core742Time} ${core742Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core742English, originalText),
+      analysis: [
+        { ko: core742Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core742Subject} [S]` },
+        { ko: `조건이 ${core742ConditionKo}`, en: `${core742Condition} [CONDITION]` },
+        { ko: core742TimeKo, en: `${core742Time} [TIME]` },
+        { ko: core742PredicateKo, en: `would ${core742Verb} for scheduling a referral to additional screening [CORE742:WOULD_HAVE_BEEN_EXCLUDED_FROM_SHORTLIST:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core742-applicants-referred-additional-screening-would-have-been-excluded-from-the-shortlist-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE741-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-EXCLUDED-FROM-THE-SHORTLIST-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE741: exact excluded-from-the-shortlist past conditional statements; preserve all preceding slots.
+  const core741ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 배제되었을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 배제되지 않았을 거예요)$/u.exec(normalized);
+  if (core741ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalStatementMatch && !isQuestion && (
+    (core741ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core741ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 배제되었을 거예요') ||
+    (core741ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalStatementMatch[2] === '충족되었더라면' && core741ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 배제되지 않았을 거예요')
+  )) {
+    const core741Plural = core741ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalStatementMatch[1] === '들은';
+    const core741ConditionKo = core741ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalStatementMatch[2];
+    const core741TimeKo = core741ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalStatementMatch[3];
+    const core741PredicateKo = core741ApplicantWouldHaveBeenExcludedFromTheShortlistPastConditionalStatementMatch[4];
+    const core741Negative = core741PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 배제되지 않았을 거예요';
+    const core741Subject = core741Plural ? 'applicants' : 'applicant';
+    const core741Time = core741TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core741Condition = core741Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core741Verb = core741Negative ? 'would not have been excluded from the shortlist' : 'would have been excluded from the shortlist';
+    const core741English = `The ${core741Subject} ${core741Verb} for scheduling a referral to additional screening ${core741Time} ${core741Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core741English, originalText),
+      analysis: [
+        { ko: core741Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core741Subject} [S]` },
+        { ko: `조건이 ${core741ConditionKo}`, en: `${core741Condition} [CONDITION]` },
+        { ko: core741TimeKo, en: `${core741Time} [TIME]` },
+        { ko: core741PredicateKo, en: `${core741Verb} for scheduling a referral to additional screening [CORE741:WOULD_HAVE_BEEN_EXCLUDED_FROM_SHORTLIST:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core741-applicants-referred-additional-screening-would-have-been-excluded-from-the-shortlist-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE740-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-ELIMINATED-FROM-THE-SHORTLIST-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE740: exact eliminated-from-the-shortlist past conditional questions; preserve all preceding slots.
+  const core740ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 탈락했을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 탈락하지 않았을 거예요)$/u.exec(normalized);
+  if (core740ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalQuestionMatch && isQuestion && (
+    (core740ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core740ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 탈락했을 거예요') ||
+    (core740ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalQuestionMatch[2] === '충족되었더라면' && core740ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 탈락하지 않았을 거예요')
+  )) {
+    const core740Plural = core740ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalQuestionMatch[1] === '들은';
+    const core740ConditionKo = core740ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalQuestionMatch[2];
+    const core740TimeKo = core740ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalQuestionMatch[3];
+    const core740PredicateKo = core740ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalQuestionMatch[4];
+    const core740Negative = core740PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 탈락하지 않았을 거예요';
+    const core740Subject = core740Plural ? 'applicants' : 'applicant';
+    const core740Time = core740TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core740Condition = core740Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core740Verb = core740Negative ? 'not have been eliminated from the shortlist' : 'have been eliminated from the shortlist';
+    const core740English = `Would the ${core740Subject} ${core740Verb} for scheduling a referral to additional screening ${core740Time} ${core740Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core740English, originalText),
+      analysis: [
+        { ko: core740Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core740Subject} [S]` },
+        { ko: `조건이 ${core740ConditionKo}`, en: `${core740Condition} [CONDITION]` },
+        { ko: core740TimeKo, en: `${core740Time} [TIME]` },
+        { ko: core740PredicateKo, en: `would ${core740Verb} for scheduling a referral to additional screening [CORE740:WOULD_HAVE_BEEN_ELIMINATED_FROM_SHORTLIST:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core740-applicants-referred-additional-screening-would-have-been-eliminated-from-the-shortlist-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE739-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-ELIMINATED-FROM-THE-SHORTLIST-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE739: exact eliminated-from-the-shortlist past conditional statements; preserve all preceding slots.
+  const core739ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 탈락했을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 탈락하지 않았을 거예요)$/u.exec(normalized);
+  if (core739ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalStatementMatch && !isQuestion && (
+    (core739ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core739ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 탈락했을 거예요') ||
+    (core739ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalStatementMatch[2] === '충족되었더라면' && core739ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 탈락하지 않았을 거예요')
+  )) {
+    const core739Plural = core739ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalStatementMatch[1] === '들은';
+    const core739ConditionKo = core739ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalStatementMatch[2];
+    const core739TimeKo = core739ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalStatementMatch[3];
+    const core739PredicateKo = core739ApplicantWouldHaveBeenEliminatedFromTheShortlistPastConditionalStatementMatch[4];
+    const core739Negative = core739PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 탈락하지 않았을 거예요';
+    const core739Subject = core739Plural ? 'applicants' : 'applicant';
+    const core739Time = core739TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core739Condition = core739Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core739Verb = core739Negative ? 'would not have been eliminated from the shortlist' : 'would have been eliminated from the shortlist';
+    const core739English = `The ${core739Subject} ${core739Verb} for scheduling a referral to additional screening ${core739Time} ${core739Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core739English, originalText),
+      analysis: [
+        { ko: core739Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core739Subject} [S]` },
+        { ko: `조건이 ${core739ConditionKo}`, en: `${core739Condition} [CONDITION]` },
+        { ko: core739TimeKo, en: `${core739Time} [TIME]` },
+        { ko: core739PredicateKo, en: `${core739Verb} for scheduling a referral to additional screening [CORE739:WOULD_HAVE_BEEN_ELIMINATED_FROM_SHORTLIST:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core739-applicants-referred-additional-screening-would-have-been-eliminated-from-the-shortlist-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE738-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-DELETED-FROM-THE-SHORTLIST-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE738: exact deleted-from-the-shortlist past conditional questions; preserve all preceding slots.
+  const core738ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 삭제되었을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 삭제되지 않았을 거예요)$/u.exec(normalized);
+  if (core738ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalQuestionMatch && isQuestion && (
+    (core738ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core738ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 삭제되었을 거예요') ||
+    (core738ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalQuestionMatch[2] === '충족되었더라면' && core738ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 삭제되지 않았을 거예요')
+  )) {
+    const core738Plural = core738ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalQuestionMatch[1] === '들은';
+    const core738ConditionKo = core738ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalQuestionMatch[2];
+    const core738TimeKo = core738ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalQuestionMatch[3];
+    const core738PredicateKo = core738ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalQuestionMatch[4];
+    const core738Negative = core738PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 삭제되지 않았을 거예요';
+    const core738Subject = core738Plural ? 'applicants' : 'applicant';
+    const core738Time = core738TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core738Condition = core738Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core738Verb = core738Negative ? 'not have been deleted from the shortlist' : 'have been deleted from the shortlist';
+    const core738English = `Would the ${core738Subject} ${core738Verb} for scheduling a referral to additional screening ${core738Time} ${core738Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core738English, originalText),
+      analysis: [
+        { ko: core738Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core738Subject} [S]` },
+        { ko: `조건이 ${core738ConditionKo}`, en: `${core738Condition} [CONDITION]` },
+        { ko: core738TimeKo, en: `${core738Time} [TIME]` },
+        { ko: core738PredicateKo, en: `would ${core738Verb} for scheduling a referral to additional screening [CORE738:WOULD_HAVE_BEEN_DELETED_FROM_SHORTLIST:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core738-applicants-referred-additional-screening-would-have-been-deleted-from-the-shortlist-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE737-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-DELETED-FROM-THE-SHORTLIST-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE737: exact deleted-from-the-shortlist past conditional statements; preserve all preceding slots.
+  const core737ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 삭제되었을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 삭제되지 않았을 거예요)$/u.exec(normalized);
+  if (core737ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalStatementMatch && !isQuestion && (
+    (core737ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core737ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 삭제되었을 거예요') ||
+    (core737ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalStatementMatch[2] === '충족되었더라면' && core737ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 삭제되지 않았을 거예요')
+  )) {
+    const core737Plural = core737ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalStatementMatch[1] === '들은';
+    const core737ConditionKo = core737ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalStatementMatch[2];
+    const core737TimeKo = core737ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalStatementMatch[3];
+    const core737PredicateKo = core737ApplicantWouldHaveBeenDeletedFromTheShortlistPastConditionalStatementMatch[4];
+    const core737Negative = core737PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 삭제되지 않았을 거예요';
+    const core737Subject = core737Plural ? 'applicants' : 'applicant';
+    const core737Time = core737TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core737Condition = core737Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core737Verb = core737Negative ? 'would not have been deleted from the shortlist' : 'would have been deleted from the shortlist';
+    const core737English = `The ${core737Subject} ${core737Verb} for scheduling a referral to additional screening ${core737Time} ${core737Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core737English, originalText),
+      analysis: [
+        { ko: core737Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core737Subject} [S]` },
+        { ko: `조건이 ${core737ConditionKo}`, en: `${core737Condition} [CONDITION]` },
+        { ko: core737TimeKo, en: `${core737Time} [TIME]` },
+        { ko: core737PredicateKo, en: `${core737Verb} for scheduling a referral to additional screening [CORE737:WOULD_HAVE_BEEN_DELETED_FROM_SHORTLIST:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core737-applicants-referred-additional-screening-would-have-been-deleted-from-the-shortlist-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE736-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-ERASED-FROM-THE-SHORTLIST-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE736: exact erased-from-the-shortlist past conditional questions; preserve all preceding slots.
+  const core736ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 완전히 지워졌을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 완전히 지워지지 않았을 거예요)$/u.exec(normalized);
+  if (core736ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalQuestionMatch && isQuestion && (
+    (core736ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core736ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 완전히 지워졌을 거예요') ||
+    (core736ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalQuestionMatch[2] === '충족되었더라면' && core736ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 완전히 지워지지 않았을 거예요')
+  )) {
+    const core736Plural = core736ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalQuestionMatch[1] === '들은';
+    const core736ConditionKo = core736ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalQuestionMatch[2];
+    const core736TimeKo = core736ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalQuestionMatch[3];
+    const core736PredicateKo = core736ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalQuestionMatch[4];
+    const core736Negative = core736PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 완전히 지워지지 않았을 거예요';
+    const core736Subject = core736Plural ? 'applicants' : 'applicant';
+    const core736Time = core736TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core736Condition = core736Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core736Verb = core736Negative ? 'not have been erased from the shortlist' : 'have been erased from the shortlist';
+    const core736English = `Would the ${core736Subject} ${core736Verb} for scheduling a referral to additional screening ${core736Time} ${core736Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core736English, originalText),
+      analysis: [
+        { ko: core736Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core736Subject} [S]` },
+        { ko: `조건이 ${core736ConditionKo}`, en: `${core736Condition} [CONDITION]` },
+        { ko: core736TimeKo, en: `${core736Time} [TIME]` },
+        { ko: core736PredicateKo, en: `would ${core736Verb} for scheduling a referral to additional screening [CORE736:WOULD_HAVE_BEEN_ERASED_FROM_SHORTLIST:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core736-applicants-referred-additional-screening-would-have-been-erased-from-the-shortlist-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE735-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-ERASED-FROM-THE-SHORTLIST-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE735: exact erased-from-the-shortlist past conditional statements; preserve all preceding slots.
+  const core735ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 완전히 지워졌을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 완전히 지워지지 않았을 거예요)$/u.exec(normalized);
+  if (core735ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalStatementMatch && !isQuestion && (
+    (core735ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core735ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 완전히 지워졌을 거예요') ||
+    (core735ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalStatementMatch[2] === '충족되었더라면' && core735ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 완전히 지워지지 않았을 거예요')
+  )) {
+    const core735Plural = core735ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalStatementMatch[1] === '들은';
+    const core735ConditionKo = core735ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalStatementMatch[2];
+    const core735TimeKo = core735ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalStatementMatch[3];
+    const core735PredicateKo = core735ApplicantWouldHaveBeenErasedFromTheShortlistPastConditionalStatementMatch[4];
+    const core735Negative = core735PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 완전히 지워지지 않았을 거예요';
+    const core735Subject = core735Plural ? 'applicants' : 'applicant';
+    const core735Time = core735TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core735Condition = core735Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core735Verb = core735Negative ? 'would not have been erased from the shortlist' : 'would have been erased from the shortlist';
+    const core735English = `The ${core735Subject} ${core735Verb} for scheduling a referral to additional screening ${core735Time} ${core735Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core735English, originalText),
+      analysis: [
+        { ko: core735Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core735Subject} [S]` },
+        { ko: `조건이 ${core735ConditionKo}`, en: `${core735Condition} [CONDITION]` },
+        { ko: core735TimeKo, en: `${core735Time} [TIME]` },
+        { ko: core735PredicateKo, en: `${core735Verb} for scheduling a referral to additional screening [CORE735:WOULD_HAVE_BEEN_ERASED_FROM_SHORTLIST:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core735-applicants-referred-additional-screening-would-have-been-erased-from-the-shortlist-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE734-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-CROSSED-OFF-THE-SHORTLIST-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE734: exact crossed-off-the-shortlist past conditional questions; preserve all preceding slots.
+  const core734ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름에 취소선이 그어졌을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름에 취소선이 그어지지 않았을 거예요)$/u.exec(normalized);
+  if (core734ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalQuestionMatch && isQuestion && (
+    (core734ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core734ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름에 취소선이 그어졌을 거예요') ||
+    (core734ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalQuestionMatch[2] === '충족되었더라면' && core734ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름에 취소선이 그어지지 않았을 거예요')
+  )) {
+    const core734Plural = core734ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalQuestionMatch[1] === '들은';
+    const core734ConditionKo = core734ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalQuestionMatch[2];
+    const core734TimeKo = core734ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalQuestionMatch[3];
+    const core734PredicateKo = core734ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalQuestionMatch[4];
+    const core734Negative = core734PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름에 취소선이 그어지지 않았을 거예요';
+    const core734Subject = core734Plural ? 'applicants' : 'applicant';
+    const core734Time = core734TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core734Condition = core734Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core734Verb = core734Negative ? 'not have been crossed off the shortlist' : 'have been crossed off the shortlist';
+    const core734English = `Would the ${core734Subject} ${core734Verb} for scheduling a referral to additional screening ${core734Time} ${core734Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core734English, originalText),
+      analysis: [
+        { ko: core734Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core734Subject} [S]` },
+        { ko: `조건이 ${core734ConditionKo}`, en: `${core734Condition} [CONDITION]` },
+        { ko: core734TimeKo, en: `${core734Time} [TIME]` },
+        { ko: core734PredicateKo, en: `would ${core734Verb} for scheduling a referral to additional screening [CORE734:WOULD_HAVE_BEEN_CROSSED_OFF_SHORTLIST:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core734-applicants-referred-additional-screening-would-have-been-crossed-off-the-shortlist-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE733-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-CROSSED-OFF-THE-SHORTLIST-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE733: exact crossed-off-the-shortlist past conditional statements; preserve all preceding slots.
+  const core733ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름에 취소선이 그어졌을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름에 취소선이 그어지지 않았을 거예요)$/u.exec(normalized);
+  if (core733ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalStatementMatch && !isQuestion && (
+    (core733ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core733ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름에 취소선이 그어졌을 거예요') ||
+    (core733ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalStatementMatch[2] === '충족되었더라면' && core733ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름에 취소선이 그어지지 않았을 거예요')
+  )) {
+    const core733Plural = core733ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalStatementMatch[1] === '들은';
+    const core733ConditionKo = core733ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalStatementMatch[2];
+    const core733TimeKo = core733ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalStatementMatch[3];
+    const core733PredicateKo = core733ApplicantWouldHaveBeenCrossedOffTheShortlistPastConditionalStatementMatch[4];
+    const core733Negative = core733PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름에 취소선이 그어지지 않았을 거예요';
+    const core733Subject = core733Plural ? 'applicants' : 'applicant';
+    const core733Time = core733TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core733Condition = core733Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core733Verb = core733Negative ? 'would not have been crossed off the shortlist' : 'would have been crossed off the shortlist';
+    const core733English = `The ${core733Subject} ${core733Verb} for scheduling a referral to additional screening ${core733Time} ${core733Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core733English, originalText),
+      analysis: [
+        { ko: core733Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core733Subject} [S]` },
+        { ko: `조건이 ${core733ConditionKo}`, en: `${core733Condition} [CONDITION]` },
+        { ko: core733TimeKo, en: `${core733Time} [TIME]` },
+        { ko: core733PredicateKo, en: `${core733Verb} for scheduling a referral to additional screening [CORE733:WOULD_HAVE_BEEN_CROSSED_OFF_SHORTLIST:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core733-applicants-referred-additional-screening-would-have-been-crossed-off-the-shortlist-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE732-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-STRUCK-OFF-THE-SHORTLIST-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE732: exact struck-off-the-shortlist past conditional questions; preserve all preceding slots.
+  const core732ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 말소되었을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 말소되지 않았을 거예요)$/u.exec(normalized);
+  if (core732ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalQuestionMatch && isQuestion && (
+    (core732ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core732ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 말소되었을 거예요') ||
+    (core732ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalQuestionMatch[2] === '충족되었더라면' && core732ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 말소되지 않았을 거예요')
+  )) {
+    const core732Plural = core732ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalQuestionMatch[1] === '들은';
+    const core732ConditionKo = core732ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalQuestionMatch[2];
+    const core732TimeKo = core732ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalQuestionMatch[3];
+    const core732PredicateKo = core732ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalQuestionMatch[4];
+    const core732Negative = core732PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 말소되지 않았을 거예요';
+    const core732Subject = core732Plural ? 'applicants' : 'applicant';
+    const core732Time = core732TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core732Condition = core732Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core732Verb = core732Negative ? 'not have been struck off the shortlist' : 'have been struck off the shortlist';
+    const core732English = `Would the ${core732Subject} ${core732Verb} for scheduling a referral to additional screening ${core732Time} ${core732Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core732English, originalText),
+      analysis: [
+        { ko: core732Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core732Subject} [S]` },
+        { ko: `조건이 ${core732ConditionKo}`, en: `${core732Condition} [CONDITION]` },
+        { ko: core732TimeKo, en: `${core732Time} [TIME]` },
+        { ko: core732PredicateKo, en: `would ${core732Verb} for scheduling a referral to additional screening [CORE732:WOULD_HAVE_BEEN_STRUCK_OFF_SHORTLIST:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core732-applicants-referred-additional-screening-would-have-been-struck-off-the-shortlist-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE731-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-STRUCK-OFF-THE-SHORTLIST-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE731: exact struck-off-the-shortlist past conditional statements; preserve all preceding slots.
+  const core731ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 말소되었을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 말소되지 않았을 거예요)$/u.exec(normalized);
+  if (core731ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalStatementMatch && !isQuestion && (
+    (core731ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core731ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 말소되었을 거예요') ||
+    (core731ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalStatementMatch[2] === '충족되었더라면' && core731ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 말소되지 않았을 거예요')
+  )) {
+    const core731Plural = core731ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalStatementMatch[1] === '들은';
+    const core731ConditionKo = core731ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalStatementMatch[2];
+    const core731TimeKo = core731ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalStatementMatch[3];
+    const core731PredicateKo = core731ApplicantWouldHaveBeenStruckOffTheShortlistPastConditionalStatementMatch[4];
+    const core731Negative = core731PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 말소되지 않았을 거예요';
+    const core731Subject = core731Plural ? 'applicants' : 'applicant';
+    const core731Time = core731TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core731Condition = core731Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core731Verb = core731Negative ? 'would not have been struck off the shortlist' : 'would have been struck off the shortlist';
+    const core731English = `The ${core731Subject} ${core731Verb} for scheduling a referral to additional screening ${core731Time} ${core731Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core731English, originalText),
+      analysis: [
+        { ko: core731Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core731Subject} [S]` },
+        { ko: `조건이 ${core731ConditionKo}`, en: `${core731Condition} [CONDITION]` },
+        { ko: core731TimeKo, en: `${core731Time} [TIME]` },
+        { ko: core731PredicateKo, en: `${core731Verb} for scheduling a referral to additional screening [CORE731:WOULD_HAVE_BEEN_STRUCK_OFF_SHORTLIST:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core731-applicants-referred-additional-screening-would-have-been-struck-off-the-shortlist-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE730-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-TAKEN-OFF-THE-SHORTLIST-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE730: exact taken-off-the-shortlist past conditional questions; preserve all preceding slots.
+  const core730ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 지워졌을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 지워지지 않았을 거예요)$/u.exec(normalized);
+  if (core730ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalQuestionMatch && isQuestion && (
+    (core730ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core730ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 지워졌을 거예요') ||
+    (core730ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalQuestionMatch[2] === '충족되었더라면' && core730ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 지워지지 않았을 거예요')
+  )) {
+    const core730Plural = core730ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalQuestionMatch[1] === '들은';
+    const core730ConditionKo = core730ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalQuestionMatch[2];
+    const core730TimeKo = core730ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalQuestionMatch[3];
+    const core730PredicateKo = core730ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalQuestionMatch[4];
+    const core730Negative = core730PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 지워지지 않았을 거예요';
+    const core730Subject = core730Plural ? 'applicants' : 'applicant';
+    const core730Time = core730TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core730Condition = core730Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core730Verb = core730Negative ? 'not have been taken off the shortlist' : 'have been taken off the shortlist';
+    const core730English = `Would the ${core730Subject} ${core730Verb} for scheduling a referral to additional screening ${core730Time} ${core730Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core730English, originalText),
+      analysis: [
+        { ko: core730Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core730Subject} [S]` },
+        { ko: `조건이 ${core730ConditionKo}`, en: `${core730Condition} [CONDITION]` },
+        { ko: core730TimeKo, en: `${core730Time} [TIME]` },
+        { ko: core730PredicateKo, en: `would ${core730Verb} for scheduling a referral to additional screening [CORE730:WOULD_HAVE_BEEN_TAKEN_OFF_SHORTLIST:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core730-applicants-referred-additional-screening-would-have-been-taken-off-the-shortlist-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE729-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-TAKEN-OFF-THE-SHORTLIST-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE729: exact taken-off-the-shortlist past conditional statements; preserve all preceding slots.
+  const core729ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 지워졌을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 지워지지 않았을 거예요)$/u.exec(normalized);
+  if (core729ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalStatementMatch && !isQuestion && (
+    (core729ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core729ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 지워졌을 거예요') ||
+    (core729ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalStatementMatch[2] === '충족되었더라면' && core729ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 지워지지 않았을 거예요')
+  )) {
+    const core729Plural = core729ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalStatementMatch[1] === '들은';
+    const core729ConditionKo = core729ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalStatementMatch[2];
+    const core729TimeKo = core729ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalStatementMatch[3];
+    const core729PredicateKo = core729ApplicantWouldHaveBeenTakenOffTheShortlistPastConditionalStatementMatch[4];
+    const core729Negative = core729PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 이름이 지워지지 않았을 거예요';
+    const core729Subject = core729Plural ? 'applicants' : 'applicant';
+    const core729Time = core729TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core729Condition = core729Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core729Verb = core729Negative ? 'would not have been taken off the shortlist' : 'would have been taken off the shortlist';
+    const core729English = `The ${core729Subject} ${core729Verb} for scheduling a referral to additional screening ${core729Time} ${core729Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core729English, originalText),
+      analysis: [
+        { ko: core729Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core729Subject} [S]` },
+        { ko: `조건이 ${core729ConditionKo}`, en: `${core729Condition} [CONDITION]` },
+        { ko: core729TimeKo, en: `${core729Time} [TIME]` },
+        { ko: core729PredicateKo, en: `${core729Verb} for scheduling a referral to additional screening [CORE729:WOULD_HAVE_BEEN_TAKEN_OFF_SHORTLIST:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core729-applicants-referred-additional-screening-would-have-been-taken-off-the-shortlist-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE728-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-DROPPED-FROM-THE-SHORTLIST-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE728: exact dropped-from-the-shortlist past conditional questions; preserve all preceding slots.
+  const core728ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 빠졌을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 빠지지 않았을 거예요)$/u.exec(normalized);
+  if (core728ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalQuestionMatch && isQuestion && (
+    (core728ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core728ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 빠졌을 거예요') ||
+    (core728ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalQuestionMatch[2] === '충족되었더라면' && core728ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 빠지지 않았을 거예요')
+  )) {
+    const core728Plural = core728ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalQuestionMatch[1] === '들은';
+    const core728ConditionKo = core728ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalQuestionMatch[2];
+    const core728TimeKo = core728ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalQuestionMatch[3];
+    const core728PredicateKo = core728ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalQuestionMatch[4];
+    const core728Negative = core728PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 빠지지 않았을 거예요';
+    const core728Subject = core728Plural ? 'applicants' : 'applicant';
+    const core728Time = core728TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core728Condition = core728Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core728Verb = core728Negative ? 'not have been dropped from the shortlist' : 'have been dropped from the shortlist';
+    const core728English = `Would the ${core728Subject} ${core728Verb} for scheduling a referral to additional screening ${core728Time} ${core728Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core728English, originalText),
+      analysis: [
+        { ko: core728Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core728Subject} [S]` },
+        { ko: `조건이 ${core728ConditionKo}`, en: `${core728Condition} [CONDITION]` },
+        { ko: core728TimeKo, en: `${core728Time} [TIME]` },
+        { ko: core728PredicateKo, en: `would ${core728Verb} for scheduling a referral to additional screening [CORE728:WOULD_HAVE_BEEN_DROPPED_FROM_SHORTLIST:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core728-applicants-referred-additional-screening-would-have-been-dropped-from-the-shortlist-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE727-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-DROPPED-FROM-THE-SHORTLIST-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE727: exact dropped-from-the-shortlist past conditional statements; preserve all preceding slots.
+  const core727ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 빠졌을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 빠지지 않았을 거예요)$/u.exec(normalized);
+  if (core727ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalStatementMatch && !isQuestion && (
+    (core727ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core727ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 빠졌을 거예요') ||
+    (core727ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalStatementMatch[2] === '충족되었더라면' && core727ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 빠지지 않았을 거예요')
+  )) {
+    const core727Plural = core727ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalStatementMatch[1] === '들은';
+    const core727ConditionKo = core727ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalStatementMatch[2];
+    const core727TimeKo = core727ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalStatementMatch[3];
+    const core727PredicateKo = core727ApplicantWouldHaveBeenDroppedFromTheShortlistPastConditionalStatementMatch[4];
+    const core727Negative = core727PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 빠지지 않았을 거예요';
+    const core727Subject = core727Plural ? 'applicants' : 'applicant';
+    const core727Time = core727TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core727Condition = core727Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core727Verb = core727Negative ? 'would not have been dropped from the shortlist' : 'would have been dropped from the shortlist';
+    const core727English = `The ${core727Subject} ${core727Verb} for scheduling a referral to additional screening ${core727Time} ${core727Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core727English, originalText),
+      analysis: [
+        { ko: core727Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core727Subject} [S]` },
+        { ko: `조건이 ${core727ConditionKo}`, en: `${core727Condition} [CONDITION]` },
+        { ko: core727TimeKo, en: `${core727Time} [TIME]` },
+        { ko: core727PredicateKo, en: `${core727Verb} for scheduling a referral to additional screening [CORE727:WOULD_HAVE_BEEN_DROPPED_FROM_SHORTLIST:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core727-applicants-referred-additional-screening-would-have-been-dropped-from-the-shortlist-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE726-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-REMOVED-FROM-THE-SHORTLIST-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE726: exact removed-from-the-shortlist past conditional questions; preserve all preceding slots.
+  const core726ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 제외되었을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 제외되지 않았을 거예요)$/u.exec(normalized);
+  if (core726ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalQuestionMatch && isQuestion && (
+    (core726ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core726ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 제외되었을 거예요') ||
+    (core726ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalQuestionMatch[2] === '충족되었더라면' && core726ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalQuestionMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 제외되지 않았을 거예요')
+  )) {
+    const core726Plural = core726ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalQuestionMatch[1] === '들은';
+    const core726ConditionKo = core726ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalQuestionMatch[2];
+    const core726TimeKo = core726ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalQuestionMatch[3];
+    const core726PredicateKo = core726ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalQuestionMatch[4];
+    const core726Negative = core726PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 제외되지 않았을 거예요';
+    const core726Subject = core726Plural ? 'applicants' : 'applicant';
+    const core726Time = core726TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core726Condition = core726Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core726Verb = core726Negative ? 'not have been removed from the shortlist' : 'have been removed from the shortlist';
+    const core726English = `Would the ${core726Subject} ${core726Verb} for scheduling a referral to additional screening ${core726Time} ${core726Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core726English, originalText),
+      analysis: [
+        { ko: core726Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core726Subject} [S]` },
+        { ko: `조건이 ${core726ConditionKo}`, en: `${core726Condition} [CONDITION]` },
+        { ko: core726TimeKo, en: `${core726Time} [TIME]` },
+        { ko: core726PredicateKo, en: `would ${core726Verb} for scheduling a referral to additional screening [CORE726:WOULD_HAVE_BEEN_REMOVED_FROM_SHORTLIST:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core726-applicants-referred-additional-screening-would-have-been-removed-from-the-shortlist-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE725-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-REMOVED-FROM-THE-SHORTLIST-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE725: exact removed-from-the-shortlist past conditional statements; preserve all preceding slots.
+  const core725ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) (추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 제외되었을 거예요|추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 제외되지 않았을 거예요)$/u.exec(normalized);
+  if (core725ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalStatementMatch && !isQuestion && (
+    (core725ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core725ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 제외되었을 거예요') ||
+    (core725ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalStatementMatch[2] === '충족되었더라면' && core725ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalStatementMatch[4] === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 제외되지 않았을 거예요')
+  )) {
+    const core725Plural = core725ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalStatementMatch[1] === '들은';
+    const core725ConditionKo = core725ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalStatementMatch[2];
+    const core725TimeKo = core725ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalStatementMatch[3];
+    const core725PredicateKo = core725ApplicantWouldHaveBeenRemovedFromTheShortlistPastConditionalStatementMatch[4];
+    const core725Negative = core725PredicateKo === '추가 심사 회부 일정을 잡기 위한 예비 후보 명단에서 제외되지 않았을 거예요';
+    const core725Subject = core725Plural ? 'applicants' : 'applicant';
+    const core725Time = core725TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core725Condition = core725Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core725Verb = core725Negative ? 'would not have been removed from the shortlist' : 'would have been removed from the shortlist';
+    const core725English = `The ${core725Subject} ${core725Verb} for scheduling a referral to additional screening ${core725Time} ${core725Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core725English, originalText),
+      analysis: [
+        { ko: core725Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core725Subject} [S]` },
+        { ko: `조건이 ${core725ConditionKo}`, en: `${core725Condition} [CONDITION]` },
+        { ko: core725TimeKo, en: `${core725Time} [TIME]` },
+        { ko: core725PredicateKo, en: `${core725Verb} for scheduling a referral to additional screening [CORE725:WOULD_HAVE_BEEN_REMOVED_FROM_SHORTLIST:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('예비 후보 명단', 'shortlist', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+      ],
+      engine: 'core725-applicants-referred-additional-screening-would-have-been-removed-from-the-shortlist-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE724-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-FILTERED-OUT-DURING-SHORTLISTING-PROCESS-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE724: exact filtered-out-during-shortlisting past conditional questions; preserve all preceding slots.
+  const core724ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보를 선정하는 과정에서 선별 기준에 따라 걸러졌을 거예요|잡히도록 예비 후보를 선정하는 과정에서 선별 기준에 따라 걸러지지 않았을 거예요)$/u.exec(normalized);
+  if (core724ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalQuestionMatch && isQuestion && (
+    (core724ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core724ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalQuestionMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 선별 기준에 따라 걸러졌을 거예요') ||
+    (core724ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalQuestionMatch[2] === '충족되었더라면' && core724ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalQuestionMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 선별 기준에 따라 걸러지지 않았을 거예요')
+  )) {
+    const core724Plural = core724ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalQuestionMatch[1] === '들은';
+    const core724ConditionKo = core724ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalQuestionMatch[2];
+    const core724TimeKo = core724ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalQuestionMatch[3];
+    const core724PredicateKo = core724ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalQuestionMatch[4];
+    const core724Negative = core724PredicateKo === '잡히도록 예비 후보를 선정하는 과정에서 선별 기준에 따라 걸러지지 않았을 거예요';
+    const core724Subject = core724Plural ? 'applicants' : 'applicant';
+    const core724Time = core724TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core724Condition = core724Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core724Verb = core724Negative ? 'not have been filtered out during the shortlisting process' : 'have been filtered out during the shortlisting process';
+    const core724English = `Would the ${core724Subject} ${core724Verb} for scheduling a referral to additional screening ${core724Time} ${core724Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core724English, originalText),
+      analysis: [
+        { ko: core724Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core724Subject} [S]` },
+        { ko: `조건이 ${core724ConditionKo}`, en: `${core724Condition} [CONDITION]` },
+        { ko: core724TimeKo, en: `${core724Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core724PredicateKo}`, en: `would ${core724Verb} for scheduling a referral to additional screening [CORE724:SCHEDULED:WOULD_HAVE_BEEN_FILTERED_OUT_DURING_SHORTLISTING:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core724-applicants-referred-additional-screening-would-have-been-filtered-out-during-shortlisting-process-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE723-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-FILTERED-OUT-DURING-SHORTLISTING-PROCESS-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE723: exact filtered-out-during-shortlisting past conditional statements; preserve all preceding slots.
+  const core723ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보를 선정하는 과정에서 선별 기준에 따라 걸러졌을 거예요|잡히도록 예비 후보를 선정하는 과정에서 선별 기준에 따라 걸러지지 않았을 거예요)$/u.exec(normalized);
+  if (core723ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalStatementMatch && !isQuestion && (
+    (core723ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core723ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalStatementMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 선별 기준에 따라 걸러졌을 거예요') ||
+    (core723ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalStatementMatch[2] === '충족되었더라면' && core723ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalStatementMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 선별 기준에 따라 걸러지지 않았을 거예요')
+  )) {
+    const core723Plural = core723ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalStatementMatch[1] === '들은';
+    const core723ConditionKo = core723ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalStatementMatch[2];
+    const core723TimeKo = core723ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalStatementMatch[3];
+    const core723PredicateKo = core723ApplicantWouldHaveBeenFilteredOutDuringShortlistingProcessPastConditionalStatementMatch[4];
+    const core723Negative = core723PredicateKo === '잡히도록 예비 후보를 선정하는 과정에서 선별 기준에 따라 걸러지지 않았을 거예요';
+    const core723Subject = core723Plural ? 'applicants' : 'applicant';
+    const core723Time = core723TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core723Condition = core723Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core723Verb = core723Negative ? 'would not have been filtered out during the shortlisting process' : 'would have been filtered out during the shortlisting process';
+    const core723English = `The ${core723Subject} ${core723Verb} for scheduling a referral to additional screening ${core723Time} ${core723Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core723English, originalText),
+      analysis: [
+        { ko: core723Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core723Subject} [S]` },
+        { ko: `조건이 ${core723ConditionKo}`, en: `${core723Condition} [CONDITION]` },
+        { ko: core723TimeKo, en: `${core723Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core723PredicateKo}`, en: `${core723Verb} for scheduling a referral to additional screening [CORE723:SCHEDULED:WOULD_HAVE_BEEN_FILTERED_OUT_DURING_SHORTLISTING:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core723-applicants-referred-additional-screening-would-have-been-filtered-out-during-shortlisting-process-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE722-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-SCREENED-OUT-DURING-SHORTLISTING-PROCESS-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE722: exact screened-out-during-shortlisting past conditional questions; preserve all preceding slots.
+  const core722ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보를 선정하는 과정에서 걸러졌을 거예요|잡히도록 예비 후보를 선정하는 과정에서 걸러지지 않았을 거예요)$/u.exec(normalized);
+  if (core722ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalQuestionMatch && isQuestion && (
+    (core722ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core722ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalQuestionMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 걸러졌을 거예요') ||
+    (core722ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalQuestionMatch[2] === '충족되었더라면' && core722ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalQuestionMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 걸러지지 않았을 거예요')
+  )) {
+    const core722Plural = core722ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalQuestionMatch[1] === '들은';
+    const core722ConditionKo = core722ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalQuestionMatch[2];
+    const core722TimeKo = core722ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalQuestionMatch[3];
+    const core722PredicateKo = core722ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalQuestionMatch[4];
+    const core722Negative = core722PredicateKo === '잡히도록 예비 후보를 선정하는 과정에서 걸러지지 않았을 거예요';
+    const core722Subject = core722Plural ? 'applicants' : 'applicant';
+    const core722Time = core722TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core722Condition = core722Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core722Verb = core722Negative ? 'not have been screened out during the shortlisting process' : 'have been screened out during the shortlisting process';
+    const core722English = `Would the ${core722Subject} ${core722Verb} for scheduling a referral to additional screening ${core722Time} ${core722Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core722English, originalText),
+      analysis: [
+        { ko: core722Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core722Subject} [S]` },
+        { ko: `조건이 ${core722ConditionKo}`, en: `${core722Condition} [CONDITION]` },
+        { ko: core722TimeKo, en: `${core722Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core722PredicateKo}`, en: `would ${core722Verb} for scheduling a referral to additional screening [CORE722:SCHEDULED:WOULD_HAVE_BEEN_SCREENED_OUT_DURING_SHORTLISTING:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core722-applicants-referred-additional-screening-would-have-been-screened-out-during-shortlisting-process-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE721-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-SCREENED-OUT-DURING-SHORTLISTING-PROCESS-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE721: exact screened-out-during-shortlisting past conditional statements; preserve all preceding slots.
+  const core721ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보를 선정하는 과정에서 걸러졌을 거예요|잡히도록 예비 후보를 선정하는 과정에서 걸러지지 않았을 거예요)$/u.exec(normalized);
+  if (core721ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalStatementMatch && !isQuestion && (
+    (core721ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core721ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalStatementMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 걸러졌을 거예요') ||
+    (core721ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalStatementMatch[2] === '충족되었더라면' && core721ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalStatementMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 걸러지지 않았을 거예요')
+  )) {
+    const core721Plural = core721ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalStatementMatch[1] === '들은';
+    const core721ConditionKo = core721ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalStatementMatch[2];
+    const core721TimeKo = core721ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalStatementMatch[3];
+    const core721PredicateKo = core721ApplicantWouldHaveBeenScreenedOutDuringShortlistingProcessPastConditionalStatementMatch[4];
+    const core721Negative = core721PredicateKo === '잡히도록 예비 후보를 선정하는 과정에서 걸러지지 않았을 거예요';
+    const core721Subject = core721Plural ? 'applicants' : 'applicant';
+    const core721Time = core721TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core721Condition = core721Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core721Verb = core721Negative ? 'would not have been screened out during the shortlisting process' : 'would have been screened out during the shortlisting process';
+    const core721English = `The ${core721Subject} ${core721Verb} for scheduling a referral to additional screening ${core721Time} ${core721Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core721English, originalText),
+      analysis: [
+        { ko: core721Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core721Subject} [S]` },
+        { ko: `조건이 ${core721ConditionKo}`, en: `${core721Condition} [CONDITION]` },
+        { ko: core721TimeKo, en: `${core721Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core721PredicateKo}`, en: `${core721Verb} for scheduling a referral to additional screening [CORE721:SCHEDULED:WOULD_HAVE_BEEN_SCREENED_OUT_DURING_SHORTLISTING:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core721-applicants-referred-additional-screening-would-have-been-screened-out-during-shortlisting-process-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE720-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-RULED-OUT-DURING-SHORTLISTING-PROCESS-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE720: exact ruled-out-during-shortlisting past conditional questions; preserve all preceding slots.
+  const core720ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보를 선정하는 과정에서 배제되었을 거예요|잡히도록 예비 후보를 선정하는 과정에서 배제되지 않았을 거예요)$/u.exec(normalized);
+  if (core720ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalQuestionMatch && isQuestion && (
+    (core720ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core720ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalQuestionMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 배제되었을 거예요') ||
+    (core720ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalQuestionMatch[2] === '충족되었더라면' && core720ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalQuestionMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 배제되지 않았을 거예요')
+  )) {
+    const core720Plural = core720ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalQuestionMatch[1] === '들은';
+    const core720ConditionKo = core720ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalQuestionMatch[2];
+    const core720TimeKo = core720ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalQuestionMatch[3];
+    const core720PredicateKo = core720ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalQuestionMatch[4];
+    const core720Negative = core720PredicateKo === '잡히도록 예비 후보를 선정하는 과정에서 배제되지 않았을 거예요';
+    const core720Subject = core720Plural ? 'applicants' : 'applicant';
+    const core720Time = core720TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core720Condition = core720Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core720Verb = core720Negative ? 'not have been ruled out during the shortlisting process' : 'have been ruled out during the shortlisting process';
+    const core720English = `Would the ${core720Subject} ${core720Verb} for scheduling a referral to additional screening ${core720Time} ${core720Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core720English, originalText),
+      analysis: [
+        { ko: core720Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core720Subject} [S]` },
+        { ko: `조건이 ${core720ConditionKo}`, en: `${core720Condition} [CONDITION]` },
+        { ko: core720TimeKo, en: `${core720Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core720PredicateKo}`, en: `would ${core720Verb} for scheduling a referral to additional screening [CORE720:SCHEDULED:WOULD_HAVE_BEEN_RULED_OUT_DURING_SHORTLISTING:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core720-applicants-referred-additional-screening-would-have-been-ruled-out-during-shortlisting-process-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE719-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-RULED-OUT-DURING-SHORTLISTING-PROCESS-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE719: exact ruled-out-during-shortlisting past conditional statements; preserve all preceding slots.
+  const core719ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보를 선정하는 과정에서 배제되었을 거예요|잡히도록 예비 후보를 선정하는 과정에서 배제되지 않았을 거예요)$/u.exec(normalized);
+  if (core719ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalStatementMatch && !isQuestion && (
+    (core719ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core719ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalStatementMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 배제되었을 거예요') ||
+    (core719ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalStatementMatch[2] === '충족되었더라면' && core719ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalStatementMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 배제되지 않았을 거예요')
+  )) {
+    const core719Plural = core719ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalStatementMatch[1] === '들은';
+    const core719ConditionKo = core719ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalStatementMatch[2];
+    const core719TimeKo = core719ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalStatementMatch[3];
+    const core719PredicateKo = core719ApplicantWouldHaveBeenRuledOutDuringShortlistingProcessPastConditionalStatementMatch[4];
+    const core719Negative = core719PredicateKo === '잡히도록 예비 후보를 선정하는 과정에서 배제되지 않았을 거예요';
+    const core719Subject = core719Plural ? 'applicants' : 'applicant';
+    const core719Time = core719TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core719Condition = core719Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core719Verb = core719Negative ? 'would not have been ruled out during the shortlisting process' : 'would have been ruled out during the shortlisting process';
+    const core719English = `The ${core719Subject} ${core719Verb} for scheduling a referral to additional screening ${core719Time} ${core719Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core719English, originalText),
+      analysis: [
+        { ko: core719Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core719Subject} [S]` },
+        { ko: `조건이 ${core719ConditionKo}`, en: `${core719Condition} [CONDITION]` },
+        { ko: core719TimeKo, en: `${core719Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core719PredicateKo}`, en: `${core719Verb} for scheduling a referral to additional screening [CORE719:SCHEDULED:WOULD_HAVE_BEEN_RULED_OUT_DURING_SHORTLISTING:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core719-applicants-referred-additional-screening-would-have-been-ruled-out-during-shortlisting-process-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE718-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-DISQUALIFIED-DURING-SHORTLISTING-PROCESS-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE718: exact disqualified-during-shortlisting past conditional questions; preserve all preceding slots.
+  const core718ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보를 선정하는 과정에서 실격 처리되었을 거예요|잡히도록 예비 후보를 선정하는 과정에서 실격 처리되지 않았을 거예요)$/u.exec(normalized);
+  if (core718ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalQuestionMatch && isQuestion && (
+    (core718ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core718ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalQuestionMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 실격 처리되었을 거예요') ||
+    (core718ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalQuestionMatch[2] === '충족되었더라면' && core718ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalQuestionMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 실격 처리되지 않았을 거예요')
+  )) {
+    const core718Plural = core718ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalQuestionMatch[1] === '들은';
+    const core718ConditionKo = core718ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalQuestionMatch[2];
+    const core718TimeKo = core718ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalQuestionMatch[3];
+    const core718PredicateKo = core718ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalQuestionMatch[4];
+    const core718Negative = core718PredicateKo === '잡히도록 예비 후보를 선정하는 과정에서 실격 처리되지 않았을 거예요';
+    const core718Subject = core718Plural ? 'applicants' : 'applicant';
+    const core718Time = core718TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core718Condition = core718Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core718Verb = core718Negative ? 'not have been disqualified during the shortlisting process' : 'have been disqualified during the shortlisting process';
+    const core718English = `Would the ${core718Subject} ${core718Verb} for scheduling a referral to additional screening ${core718Time} ${core718Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core718English, originalText),
+      analysis: [
+        { ko: core718Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core718Subject} [S]` },
+        { ko: `조건이 ${core718ConditionKo}`, en: `${core718Condition} [CONDITION]` },
+        { ko: core718TimeKo, en: `${core718Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core718PredicateKo}`, en: `would ${core718Verb} for scheduling a referral to additional screening [CORE718:SCHEDULED:WOULD_HAVE_BEEN_DISQUALIFIED_DURING_SHORTLISTING:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core718-applicants-referred-additional-screening-would-have-been-disqualified-during-shortlisting-process-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE717-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-DISQUALIFIED-DURING-SHORTLISTING-PROCESS-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE717: exact disqualified-during-shortlisting past conditional statements; preserve all preceding slots.
+  const core717ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보를 선정하는 과정에서 실격 처리되었을 거예요|잡히도록 예비 후보를 선정하는 과정에서 실격 처리되지 않았을 거예요)$/u.exec(normalized);
+  if (core717ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalStatementMatch && !isQuestion && (
+    (core717ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core717ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalStatementMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 실격 처리되었을 거예요') ||
+    (core717ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalStatementMatch[2] === '충족되었더라면' && core717ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalStatementMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 실격 처리되지 않았을 거예요')
+  )) {
+    const core717Plural = core717ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalStatementMatch[1] === '들은';
+    const core717ConditionKo = core717ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalStatementMatch[2];
+    const core717TimeKo = core717ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalStatementMatch[3];
+    const core717PredicateKo = core717ApplicantWouldHaveBeenDisqualifiedDuringShortlistingProcessPastConditionalStatementMatch[4];
+    const core717Negative = core717PredicateKo === '잡히도록 예비 후보를 선정하는 과정에서 실격 처리되지 않았을 거예요';
+    const core717Subject = core717Plural ? 'applicants' : 'applicant';
+    const core717Time = core717TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core717Condition = core717Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core717Verb = core717Negative ? 'would not have been disqualified during the shortlisting process' : 'would have been disqualified during the shortlisting process';
+    const core717English = `The ${core717Subject} ${core717Verb} for scheduling a referral to additional screening ${core717Time} ${core717Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core717English, originalText),
+      analysis: [
+        { ko: core717Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core717Subject} [S]` },
+        { ko: `조건이 ${core717ConditionKo}`, en: `${core717Condition} [CONDITION]` },
+        { ko: core717TimeKo, en: `${core717Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core717PredicateKo}`, en: `${core717Verb} for scheduling a referral to additional screening [CORE717:SCHEDULED:WOULD_HAVE_BEEN_DISQUALIFIED_DURING_SHORTLISTING:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core717-applicants-referred-additional-screening-would-have-been-disqualified-during-shortlisting-process-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE716-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-REJECTED-DURING-SHORTLISTING-PROCESS-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE716: exact rejected-during-shortlisting past conditional questions; preserve all preceding slots.
+  const core716ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보를 선정하는 과정에서 탈락했을 거예요|잡히도록 예비 후보를 선정하는 과정에서 탈락하지 않았을 거예요)$/u.exec(normalized);
+  if (core716ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalQuestionMatch && isQuestion && (
+    (core716ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core716ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalQuestionMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 탈락했을 거예요') ||
+    (core716ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalQuestionMatch[2] === '충족되었더라면' && core716ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalQuestionMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 탈락하지 않았을 거예요')
+  )) {
+    const core716Plural = core716ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalQuestionMatch[1] === '들은';
+    const core716ConditionKo = core716ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalQuestionMatch[2];
+    const core716TimeKo = core716ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalQuestionMatch[3];
+    const core716PredicateKo = core716ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalQuestionMatch[4];
+    const core716Negative = core716PredicateKo === '잡히도록 예비 후보를 선정하는 과정에서 탈락하지 않았을 거예요';
+    const core716Subject = core716Plural ? 'applicants' : 'applicant';
+    const core716Time = core716TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core716Condition = core716Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core716Verb = core716Negative ? 'not have been rejected during the shortlisting process' : 'have been rejected during the shortlisting process';
+    const core716English = `Would the ${core716Subject} ${core716Verb} for scheduling a referral to additional screening ${core716Time} ${core716Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core716English, originalText),
+      analysis: [
+        { ko: core716Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core716Subject} [S]` },
+        { ko: `조건이 ${core716ConditionKo}`, en: `${core716Condition} [CONDITION]` },
+        { ko: core716TimeKo, en: `${core716Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core716PredicateKo}`, en: `would ${core716Verb} for scheduling a referral to additional screening [CORE716:SCHEDULED:WOULD_HAVE_BEEN_REJECTED_DURING_SHORTLISTING:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core716-applicants-referred-additional-screening-would-have-been-rejected-during-shortlisting-process-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE715-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-REJECTED-DURING-SHORTLISTING-PROCESS-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE715: exact rejected-during-shortlisting past conditional statements; preserve all preceding slots.
+  const core715ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보를 선정하는 과정에서 탈락했을 거예요|잡히도록 예비 후보를 선정하는 과정에서 탈락하지 않았을 거예요)$/u.exec(normalized);
+  if (core715ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalStatementMatch && !isQuestion && (
+    (core715ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core715ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalStatementMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 탈락했을 거예요') ||
+    (core715ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalStatementMatch[2] === '충족되었더라면' && core715ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalStatementMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 탈락하지 않았을 거예요')
+  )) {
+    const core715Plural = core715ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalStatementMatch[1] === '들은';
+    const core715ConditionKo = core715ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalStatementMatch[2];
+    const core715TimeKo = core715ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalStatementMatch[3];
+    const core715PredicateKo = core715ApplicantWouldHaveBeenRejectedDuringShortlistingProcessPastConditionalStatementMatch[4];
+    const core715Negative = core715PredicateKo === '잡히도록 예비 후보를 선정하는 과정에서 탈락하지 않았을 거예요';
+    const core715Subject = core715Plural ? 'applicants' : 'applicant';
+    const core715Time = core715TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core715Condition = core715Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core715Verb = core715Negative ? 'would not have been rejected during the shortlisting process' : 'would have been rejected during the shortlisting process';
+    const core715English = `The ${core715Subject} ${core715Verb} for scheduling a referral to additional screening ${core715Time} ${core715Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core715English, originalText),
+      analysis: [
+        { ko: core715Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core715Subject} [S]` },
+        { ko: `조건이 ${core715ConditionKo}`, en: `${core715Condition} [CONDITION]` },
+        { ko: core715TimeKo, en: `${core715Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core715PredicateKo}`, en: `${core715Verb} for scheduling a referral to additional screening [CORE715:SCHEDULED:WOULD_HAVE_BEEN_REJECTED_DURING_SHORTLISTING:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core715-applicants-referred-additional-screening-would-have-been-rejected-during-shortlisting-process-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE714-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-EXCLUDED-DURING-SHORTLISTING-PROCESS-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE714: exact excluded-during-shortlisting past conditional questions; preserve all preceding slots.
+  const core714ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보를 선정하는 과정에서 제외되었을 거예요|잡히도록 예비 후보를 선정하는 과정에서 제외되지 않았을 거예요)$/u.exec(normalized);
+  if (core714ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalQuestionMatch && isQuestion && (
+    (core714ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core714ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalQuestionMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 제외되었을 거예요') ||
+    (core714ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalQuestionMatch[2] === '충족되었더라면' && core714ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalQuestionMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 제외되지 않았을 거예요')
+  )) {
+    const core714Plural = core714ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalQuestionMatch[1] === '들은';
+    const core714ConditionKo = core714ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalQuestionMatch[2];
+    const core714TimeKo = core714ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalQuestionMatch[3];
+    const core714PredicateKo = core714ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalQuestionMatch[4];
+    const core714Negative = core714PredicateKo === '잡히도록 예비 후보를 선정하는 과정에서 제외되지 않았을 거예요';
+    const core714Subject = core714Plural ? 'applicants' : 'applicant';
+    const core714Time = core714TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core714Condition = core714Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core714Verb = core714Negative ? 'not have been excluded during the shortlisting process' : 'have been excluded during the shortlisting process';
+    const core714English = `Would the ${core714Subject} ${core714Verb} for scheduling a referral to additional screening ${core714Time} ${core714Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core714English, originalText),
+      analysis: [
+        { ko: core714Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core714Subject} [S]` },
+        { ko: `조건이 ${core714ConditionKo}`, en: `${core714Condition} [CONDITION]` },
+        { ko: core714TimeKo, en: `${core714Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core714PredicateKo}`, en: `would ${core714Verb} for scheduling a referral to additional screening [CORE714:SCHEDULED:WOULD_HAVE_BEEN_EXCLUDED_DURING_SHORTLISTING:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core714-applicants-referred-additional-screening-would-have-been-excluded-during-shortlisting-process-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE713-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-EXCLUDED-DURING-SHORTLISTING-PROCESS-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE713: exact excluded-during-shortlisting past conditional statements; preserve all preceding slots.
+  const core713ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보를 선정하는 과정에서 제외되었을 거예요|잡히도록 예비 후보를 선정하는 과정에서 제외되지 않았을 거예요)$/u.exec(normalized);
+  if (core713ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalStatementMatch && !isQuestion && (
+    (core713ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core713ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalStatementMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 제외되었을 거예요') ||
+    (core713ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalStatementMatch[2] === '충족되었더라면' && core713ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalStatementMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 제외되지 않았을 거예요')
+  )) {
+    const core713Plural = core713ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalStatementMatch[1] === '들은';
+    const core713ConditionKo = core713ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalStatementMatch[2];
+    const core713TimeKo = core713ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalStatementMatch[3];
+    const core713PredicateKo = core713ApplicantWouldHaveBeenExcludedDuringShortlistingProcessPastConditionalStatementMatch[4];
+    const core713Negative = core713PredicateKo === '잡히도록 예비 후보를 선정하는 과정에서 제외되지 않았을 거예요';
+    const core713Subject = core713Plural ? 'applicants' : 'applicant';
+    const core713Time = core713TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core713Condition = core713Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core713Verb = core713Negative ? 'would not have been excluded during the shortlisting process' : 'would have been excluded during the shortlisting process';
+    const core713English = `The ${core713Subject} ${core713Verb} for scheduling a referral to additional screening ${core713Time} ${core713Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core713English, originalText),
+      analysis: [
+        { ko: core713Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core713Subject} [S]` },
+        { ko: `조건이 ${core713ConditionKo}`, en: `${core713Condition} [CONDITION]` },
+        { ko: core713TimeKo, en: `${core713Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core713PredicateKo}`, en: `${core713Verb} for scheduling a referral to additional screening [CORE713:SCHEDULED:WOULD_HAVE_BEEN_EXCLUDED_DURING_SHORTLISTING:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core713-applicants-referred-additional-screening-would-have-been-excluded-during-shortlisting-process-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE712-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-IGNORED-DURING-SHORTLISTING-PROCESS-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE712: exact ignored-during-shortlisting past conditional questions; preserve all preceding slots.
+  const core712ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보를 선정하는 과정에서 무시되었을 거예요|잡히도록 예비 후보를 선정하는 과정에서 무시되지 않았을 거예요)$/u.exec(normalized);
+  if (core712ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalQuestionMatch && isQuestion && (
+    (core712ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core712ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalQuestionMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 무시되었을 거예요') ||
+    (core712ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalQuestionMatch[2] === '충족되었더라면' && core712ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalQuestionMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 무시되지 않았을 거예요')
+  )) {
+    const core712Plural = core712ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalQuestionMatch[1] === '들은';
+    const core712ConditionKo = core712ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalQuestionMatch[2];
+    const core712TimeKo = core712ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalQuestionMatch[3];
+    const core712PredicateKo = core712ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalQuestionMatch[4];
+    const core712Negative = core712PredicateKo === '잡히도록 예비 후보를 선정하는 과정에서 무시되지 않았을 거예요';
+    const core712Subject = core712Plural ? 'applicants' : 'applicant';
+    const core712Time = core712TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core712Condition = core712Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core712Verb = core712Negative ? 'not have been ignored during the shortlisting process' : 'have been ignored during the shortlisting process';
+    const core712English = `Would the ${core712Subject} ${core712Verb} for scheduling a referral to additional screening ${core712Time} ${core712Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core712English, originalText),
+      analysis: [
+        { ko: core712Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core712Subject} [S]` },
+        { ko: `조건이 ${core712ConditionKo}`, en: `${core712Condition} [CONDITION]` },
+        { ko: core712TimeKo, en: `${core712Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core712PredicateKo}`, en: `would ${core712Verb} for scheduling a referral to additional screening [CORE712:SCHEDULED:WOULD_HAVE_BEEN_IGNORED_DURING_SHORTLISTING:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core712-applicants-referred-additional-screening-would-have-been-ignored-during-shortlisting-process-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE711-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-IGNORED-DURING-SHORTLISTING-PROCESS-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE711: exact ignored-during-shortlisting past conditional statements; preserve all preceding slots.
+  const core711ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보를 선정하는 과정에서 무시되었을 거예요|잡히도록 예비 후보를 선정하는 과정에서 무시되지 않았을 거예요)$/u.exec(normalized);
+  if (core711ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalStatementMatch && !isQuestion && (
+    (core711ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core711ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalStatementMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 무시되었을 거예요') ||
+    (core711ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalStatementMatch[2] === '충족되었더라면' && core711ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalStatementMatch[4] === '잡히도록 예비 후보를 선정하는 과정에서 무시되지 않았을 거예요')
+  )) {
+    const core711Plural = core711ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalStatementMatch[1] === '들은';
+    const core711ConditionKo = core711ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalStatementMatch[2];
+    const core711TimeKo = core711ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalStatementMatch[3];
+    const core711PredicateKo = core711ApplicantWouldHaveBeenIgnoredDuringShortlistingProcessPastConditionalStatementMatch[4];
+    const core711Negative = core711PredicateKo === '잡히도록 예비 후보를 선정하는 과정에서 무시되지 않았을 거예요';
+    const core711Subject = core711Plural ? 'applicants' : 'applicant';
+    const core711Time = core711TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core711Condition = core711Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core711Verb = core711Negative ? 'would not have been ignored during the shortlisting process' : 'would have been ignored during the shortlisting process';
+    const core711English = `The ${core711Subject} ${core711Verb} for scheduling a referral to additional screening ${core711Time} ${core711Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core711English, originalText),
+      analysis: [
+        { ko: core711Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core711Subject} [S]` },
+        { ko: `조건이 ${core711ConditionKo}`, en: `${core711Condition} [CONDITION]` },
+        { ko: core711TimeKo, en: `${core711Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core711PredicateKo}`, en: `${core711Verb} for scheduling a referral to additional screening [CORE711:SCHEDULED:WOULD_HAVE_BEEN_IGNORED_DURING_SHORTLISTING:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core711-applicants-referred-additional-screening-would-have-been-ignored-during-shortlisting-process-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE710-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-DISREGARDED-FOR-BEING-SHORTLISTED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE710: exact disregarded-for-shortlisting conditional questions; preserve all earlier slots.
+  const core710ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정하기 위한 검토 과정에서 무시되었을 거예요|잡히도록 예비 후보로 선정하기 위한 검토 과정에서 무시되지 않았을 거예요)$/u.exec(normalized);
+  if (core710ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalQuestionMatch && isQuestion && (
+    (core710ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core710ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 무시되었을 거예요') ||
+    (core710ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalQuestionMatch[2] === '충족되었더라면' && core710ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 무시되지 않았을 거예요')
+  )) {
+    const core710Plural = core710ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalQuestionMatch[1] === '들은';
+    const core710ConditionKo = core710ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalQuestionMatch[2];
+    const core710TimeKo = core710ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalQuestionMatch[3];
+    const core710PredicateKo = core710ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalQuestionMatch[4];
+    const core710Negative = core710PredicateKo === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 무시되지 않았을 거예요';
+    const core710Subject = core710Plural ? 'applicants' : 'applicant';
+    const core710Time = core710TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core710Condition = core710Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core710Verb = core710Negative ? 'not have been disregarded for being shortlisted' : 'have been disregarded for being shortlisted';
+    const core710English = `Would the ${core710Subject} ${core710Verb} to be scheduled to be referred for additional screening ${core710Time} ${core710Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core710English, originalText),
+      analysis: [
+        { ko: core710Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core710Subject} [S]` },
+        { ko: `조건이 ${core710ConditionKo}`, en: `${core710Condition} [CONDITION]` },
+        { ko: core710TimeKo, en: `${core710Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core710PredicateKo}`, en: `would ${core710Verb} to be scheduled to be referred for additional screening [CORE710:SCHEDULED:WOULD_HAVE_BEEN_DISREGARDED_FOR_BEING_SHORTLISTED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core710-applicants-referred-additional-screening-would-have-been-disregarded-for-being-shortlisted-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE709-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-DISREGARDED-FOR-BEING-SHORTLISTED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE709: exact disregarded-for-shortlisting past-conditional statements; all prior slots preserved.
+  const core709ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정하기 위한 검토 과정에서 무시되었을 거예요|잡히도록 예비 후보로 선정하기 위한 검토 과정에서 무시되지 않았을 거예요)$/u.exec(normalized);
+  if (core709ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalStatementMatch && !isQuestion && (
+    (core709ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core709ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 무시되었을 거예요') ||
+    (core709ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalStatementMatch[2] === '충족되었더라면' && core709ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 무시되지 않았을 거예요')
+  )) {
+    const core709Plural = core709ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalStatementMatch[1] === '들은';
+    const core709ConditionKo = core709ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalStatementMatch[2];
+    const core709TimeKo = core709ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalStatementMatch[3];
+    const core709PredicateKo = core709ApplicantWouldHaveBeenDisregardedForBeingShortlistedPastConditionalStatementMatch[4];
+    const core709Negative = core709PredicateKo === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 무시되지 않았을 거예요';
+    const core709Subject = core709Plural ? 'applicants' : 'applicant';
+    const core709Time = core709TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core709Condition = core709Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core709Verb = core709Negative ? 'would not have been disregarded for being shortlisted' : 'would have been disregarded for being shortlisted';
+    const core709English = `The ${core709Subject} ${core709Verb} to be scheduled to be referred for additional screening ${core709Time} ${core709Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core709English, originalText),
+      analysis: [
+        { ko: core709Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core709Subject} [S]` },
+        { ko: `조건이 ${core709ConditionKo}`, en: `${core709Condition} [CONDITION]` },
+        { ko: core709TimeKo, en: `${core709Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core709PredicateKo}`, en: `${core709Verb} to be scheduled to be referred for additional screening [CORE709:SCHEDULED:WOULD_HAVE_BEEN_DISREGARDED_FOR_BEING_SHORTLISTED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core709-applicants-referred-additional-screening-would-have-been-disregarded-for-being-shortlisted-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE708-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-PASSED-OVER-FOR-BEING-SHORTLISTED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE708: exact passed-over-for-shortlisting conditional questions; preserve all earlier slots.
+  const core708ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정하기 위한 검토 과정에서 제쳐졌을 거예요|잡히도록 예비 후보로 선정하기 위한 검토 과정에서 제쳐지지 않았을 거예요)$/u.exec(normalized);
+  if (core708ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalQuestionMatch && isQuestion && (
+    (core708ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core708ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 제쳐졌을 거예요') ||
+    (core708ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalQuestionMatch[2] === '충족되었더라면' && core708ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 제쳐지지 않았을 거예요')
+  )) {
+    const core708Plural = core708ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalQuestionMatch[1] === '들은';
+    const core708ConditionKo = core708ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalQuestionMatch[2];
+    const core708TimeKo = core708ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalQuestionMatch[3];
+    const core708PredicateKo = core708ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalQuestionMatch[4];
+    const core708Negative = core708PredicateKo === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 제쳐지지 않았을 거예요';
+    const core708Subject = core708Plural ? 'applicants' : 'applicant';
+    const core708Time = core708TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core708Condition = core708Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core708Verb = core708Negative ? 'not have been passed over for being shortlisted' : 'have been passed over for being shortlisted';
+    const core708English = `Would the ${core708Subject} ${core708Verb} to be scheduled to be referred for additional screening ${core708Time} ${core708Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core708English, originalText),
+      analysis: [
+        { ko: core708Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core708Subject} [S]` },
+        { ko: `조건이 ${core708ConditionKo}`, en: `${core708Condition} [CONDITION]` },
+        { ko: core708TimeKo, en: `${core708Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core708PredicateKo}`, en: `would ${core708Verb} to be scheduled to be referred for additional screening [CORE708:SCHEDULED:WOULD_HAVE_BEEN_PASSED_OVER_FOR_BEING_SHORTLISTED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core708-applicants-referred-additional-screening-would-have-been-passed-over-for-being-shortlisted-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE707-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-PASSED-OVER-FOR-BEING-SHORTLISTED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE707: exact passed-over-for-shortlisting past-conditional statements; all prior slots preserved.
+  const core707ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정하기 위한 검토 과정에서 제쳐졌을 거예요|잡히도록 예비 후보로 선정하기 위한 검토 과정에서 제쳐지지 않았을 거예요)$/u.exec(normalized);
+  if (core707ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalStatementMatch && !isQuestion && (
+    (core707ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core707ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 제쳐졌을 거예요') ||
+    (core707ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalStatementMatch[2] === '충족되었더라면' && core707ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 제쳐지지 않았을 거예요')
+  )) {
+    const core707Plural = core707ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalStatementMatch[1] === '들은';
+    const core707ConditionKo = core707ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalStatementMatch[2];
+    const core707TimeKo = core707ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalStatementMatch[3];
+    const core707PredicateKo = core707ApplicantWouldHaveBeenPassedOverForBeingShortlistedPastConditionalStatementMatch[4];
+    const core707Negative = core707PredicateKo === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 제쳐지지 않았을 거예요';
+    const core707Subject = core707Plural ? 'applicants' : 'applicant';
+    const core707Time = core707TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core707Condition = core707Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core707Verb = core707Negative ? 'would not have been passed over for being shortlisted' : 'would have been passed over for being shortlisted';
+    const core707English = `The ${core707Subject} ${core707Verb} to be scheduled to be referred for additional screening ${core707Time} ${core707Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core707English, originalText),
+      analysis: [
+        { ko: core707Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core707Subject} [S]` },
+        { ko: `조건이 ${core707ConditionKo}`, en: `${core707Condition} [CONDITION]` },
+        { ko: core707TimeKo, en: `${core707Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core707PredicateKo}`, en: `${core707Verb} to be scheduled to be referred for additional screening [CORE707:SCHEDULED:WOULD_HAVE_BEEN_PASSED_OVER_FOR_BEING_SHORTLISTED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core707-applicants-referred-additional-screening-would-have-been-passed-over-for-being-shortlisted-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE706-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-OVERLOOKED-FOR-BEING-SHORTLISTED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE706: exact overlooked-for-shortlisting conditional questions; preserve all earlier slots.
+  const core706ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정하기 위한 검토 과정에서 간과되었을 거예요|잡히도록 예비 후보로 선정하기 위한 검토 과정에서 간과되지 않았을 거예요)$/u.exec(normalized);
+  if (core706ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalQuestionMatch && isQuestion && (
+    (core706ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core706ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 간과되었을 거예요') ||
+    (core706ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalQuestionMatch[2] === '충족되었더라면' && core706ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 간과되지 않았을 거예요')
+  )) {
+    const core706Plural = core706ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalQuestionMatch[1] === '들은';
+    const core706ConditionKo = core706ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalQuestionMatch[2];
+    const core706TimeKo = core706ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalQuestionMatch[3];
+    const core706PredicateKo = core706ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalQuestionMatch[4];
+    const core706Negative = core706PredicateKo === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 간과되지 않았을 거예요';
+    const core706Subject = core706Plural ? 'applicants' : 'applicant';
+    const core706Time = core706TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core706Condition = core706Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core706Verb = core706Negative ? 'not have been overlooked for being shortlisted' : 'have been overlooked for being shortlisted';
+    const core706English = `Would the ${core706Subject} ${core706Verb} to be scheduled to be referred for additional screening ${core706Time} ${core706Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core706English, originalText),
+      analysis: [
+        { ko: core706Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core706Subject} [S]` },
+        { ko: `조건이 ${core706ConditionKo}`, en: `${core706Condition} [CONDITION]` },
+        { ko: core706TimeKo, en: `${core706Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core706PredicateKo}`, en: `would ${core706Verb} to be scheduled to be referred for additional screening [CORE706:SCHEDULED:WOULD_HAVE_BEEN_OVERLOOKED_FOR_BEING_SHORTLISTED:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core706-applicants-referred-additional-screening-would-have-been-overlooked-for-being-shortlisted-past-conditional-question-ko-en-safe',
+    };
+  }
+  // XDIC-CORE705-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-OVERLOOKED-FOR-BEING-SHORTLISTED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
+  // CORE705: exact overlooked-for-shortlisting conditional statements; preserve all earlier slots.
+  const core705ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalStatementMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정하기 위한 검토 과정에서 간과되었을 거예요|잡히도록 예비 후보로 선정하기 위한 검토 과정에서 간과되지 않았을 거예요)$/u.exec(normalized);
+  if (core705ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalStatementMatch && !isQuestion && (
+    (core705ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalStatementMatch[2] === '충족되지 않았더라면' && core705ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 간과되었을 거예요') ||
+    (core705ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalStatementMatch[2] === '충족되었더라면' && core705ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalStatementMatch[4] === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 간과되지 않았을 거예요')
+  )) {
+    const core705Plural = core705ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalStatementMatch[1] === '들은';
+    const core705ConditionKo = core705ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalStatementMatch[2];
+    const core705TimeKo = core705ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalStatementMatch[3];
+    const core705PredicateKo = core705ApplicantWouldHaveBeenOverlookedForBeingShortlistedPastConditionalStatementMatch[4];
+    const core705Negative = core705PredicateKo === '잡히도록 예비 후보로 선정하기 위한 검토 과정에서 간과되지 않았을 거예요';
+    const core705Subject = core705Plural ? 'applicants' : 'applicant';
+    const core705Time = core705TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core705Condition = core705Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core705Verb = core705Negative ? 'would not have been overlooked for being shortlisted' : 'would have been overlooked for being shortlisted';
+    const core705English = `The ${core705Subject} ${core705Verb} to be scheduled to be referred for additional screening ${core705Time} ${core705Condition}.`;
+    return {
+      targetText: twoProFinalizeEnglish(core705English, originalText),
+      analysis: [
+        { ko: core705Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core705Subject} [S]` },
+        { ko: `조건이 ${core705ConditionKo}`, en: `${core705Condition} [CONDITION]` },
+        { ko: core705TimeKo, en: `${core705Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core705PredicateKo}`, en: `${core705Verb} to be scheduled to be referred for additional screening [CORE705:SCHEDULED:WOULD_HAVE_BEEN_OVERLOOKED_FOR_BEING_SHORTLISTED:PAST_CONDITIONAL_STATEMENT]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core705-applicants-referred-additional-screening-would-have-been-overlooked-for-being-shortlisted-past-conditional-statement-ko-en-safe',
+    };
+  }
+  // XDIC-CORE704-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-OMITTED-FROM-CONSIDERATION-FOR-BEING-SHORTLISTED-PAST-CONDITIONAL-QUESTIONS-SLOT-SAFE
+  // CORE704: exact omitted-from-consideration-for-shortlisting conditional questions; preserve all earlier slots.
+  const core704ApplicantWouldHaveBeenOmittedFromConsiderationForBeingShortlistedPastConditionalQuestionMatch =
+    /^그 지원자(는|들은) 조건이 (충족되지 않았더라면|충족되었더라면) (어제|지난주) 추가 심사에 회부될 일정이 (잡히도록 예비 후보로 선정하기 위한 검토 대상에서 누락되었을 거예요|잡히도록 예비 후보로 선정하기 위한 검토 대상에서 누락되지 않았을 거예요)$/u.exec(normalized);
+  if (core704ApplicantWouldHaveBeenOmittedFromConsiderationForBeingShortlistedPastConditionalQuestionMatch && isQuestion && (
+    (core704ApplicantWouldHaveBeenOmittedFromConsiderationForBeingShortlistedPastConditionalQuestionMatch[2] === '충족되지 않았더라면' && core704ApplicantWouldHaveBeenOmittedFromConsiderationForBeingShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정하기 위한 검토 대상에서 누락되었을 거예요') ||
+    (core704ApplicantWouldHaveBeenOmittedFromConsiderationForBeingShortlistedPastConditionalQuestionMatch[2] === '충족되었더라면' && core704ApplicantWouldHaveBeenOmittedFromConsiderationForBeingShortlistedPastConditionalQuestionMatch[4] === '잡히도록 예비 후보로 선정하기 위한 검토 대상에서 누락되지 않았을 거예요')
+  )) {
+    const core704Plural = core704ApplicantWouldHaveBeenOmittedFromConsiderationForBeingShortlistedPastConditionalQuestionMatch[1] === '들은';
+    const core704ConditionKo = core704ApplicantWouldHaveBeenOmittedFromConsiderationForBeingShortlistedPastConditionalQuestionMatch[2];
+    const core704TimeKo = core704ApplicantWouldHaveBeenOmittedFromConsiderationForBeingShortlistedPastConditionalQuestionMatch[3];
+    const core704PredicateKo = core704ApplicantWouldHaveBeenOmittedFromConsiderationForBeingShortlistedPastConditionalQuestionMatch[4];
+    const core704Negative = core704PredicateKo === '잡히도록 예비 후보로 선정하기 위한 검토 대상에서 누락되지 않았을 거예요';
+    const core704Subject = core704Plural ? 'applicants' : 'applicant';
+    const core704Time = core704TimeKo === '어제' ? 'yesterday' : 'last week';
+    const core704Condition = core704Negative ? 'if the conditions had been met' : 'if the conditions had not been met';
+    const core704Verb = core704Negative ? 'not have been omitted from consideration for being shortlisted' : 'have been omitted from consideration for being shortlisted';
+    const core704English = `Would the ${core704Subject} ${core704Verb} to be scheduled to be referred for additional screening ${core704Time} ${core704Condition}?`;
+    return {
+      targetText: twoProFinalizeEnglish(core704English, originalText),
+      analysis: [
+        { ko: core704Plural ? '그 지원자들은' : '그 지원자는', en: `the ${core704Subject} [S]` },
+        { ko: `조건이 ${core704ConditionKo}`, en: `${core704Condition} [CONDITION]` },
+        { ko: core704TimeKo, en: `${core704Time} [TIME]` },
+        { ko: `추가 심사에 회부될 일정이 ${core704PredicateKo}`, en: `would ${core704Verb} to be scheduled to be referred for additional screening [CORE704:SCHEDULED:WOULD_HAVE_BEEN_OMITTED_FROM_CONSIDERATION:PAST_CONDITIONAL_QUESTION]` },
+      ],
+      referenceWords: [
+        twoProEmbeddedReferenceWordV90('지원자', 'applicant', 'N'),
+        twoProEmbeddedReferenceWordV90('조건', 'condition', 'N'),
+        twoProEmbeddedReferenceWordV90('추가 심사', 'additional screening', 'N'),
+        twoProEmbeddedReferenceWordV90('회부되다', 'be referred', 'V'),
+      ],
+      engine: 'core704-applicants-referred-additional-screening-would-have-been-omitted-from-consideration-for-being-shortlisted-past-conditional-question-ko-en-safe',
+    };
+  }
   // XDIC-CORE703-APPLICANTS-REFERRED-ADDITIONAL-SCREENING-WOULD-HAVE-BEEN-OMITTED-FROM-CONSIDERATION-FOR-BEING-SHORTLISTED-PAST-CONDITIONAL-STATEMENTS-SLOT-SAFE
   // CORE703: exact omitted-from-consideration-for-shortlisting conditional statements; preserve all earlier slots.
   const core703ApplicantWouldHaveBeenOmittedFromConsiderationForBeingShortlistedPastConditionalStatementMatch =
