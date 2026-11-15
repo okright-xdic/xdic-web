@@ -320,6 +320,8 @@ export default function SearchInput({
   const [isListening, setIsListening] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  // XDIC_KO_IME_INPUT_SAFE_V1: keep unfinished Korean IME text intact.
+  const isComposingRef = useRef(false);
   const lastSearchAtRef = useRef<number>(0);
 
   const micLangRef = useRef<MicLang>(null);
@@ -370,6 +372,8 @@ export default function SearchInput({
   const { displayText: marqueePlaceholder, setIsHovered } = useMarquee(marqueeText, 150);
 
   useEffect(() => {
+    // A delayed URL update must not overwrite unfinished Korean syllables.
+    if (isComposingRef.current) return;
     setQuery(initialQuery || '');
   }, [initialQuery]);
 
@@ -558,13 +562,17 @@ export default function SearchInput({
 
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    goSearch(query);
+    if (isComposingRef.current) return;
+    // Read the live input: state may still lag behind compositionend.
+    goSearch(inputRef.current?.value ?? query);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
+      // Samsung/Android IME may send Enter to finish a syllable.
+      if (isComposingRef.current || e.nativeEvent.isComposing || e.keyCode === 229) return;
       e.preventDefault();
-      goSearch(query);
+      goSearch(e.currentTarget.value);
     }
   };
 
@@ -1076,9 +1084,23 @@ export default function SearchInput({
               ref={inputRef}
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => setQuery(e.currentTarget.value)}
+              onCompositionStart={() => { isComposingRef.current = true; }}
+              onCompositionEnd={(e) => {
+                isComposingRef.current = false;
+                setQuery(e.currentTarget.value);
+              }}
               onKeyDown={handleKeyDown}
-              onFocus={(e) => e.target.select()} 
+              onFocus={(e) => {
+                // Stop 150ms marquee rerenders while the keyboard is editing.
+                setIsHovered(true);
+                // Keep desktop select-all; do not select composing text on mobile.
+                if (typeof window !== 'undefined' && !checkIsNative() &&
+                    window.matchMedia?.('(pointer: fine)').matches) {
+                  e.currentTarget.select();
+                }
+              }}
+              onBlur={() => setIsHovered(false)}
               readOnly={isPending}
               className="absolute inset-0 w-full h-full px-3 md:px-6 text-[13px] md:text-base text-slate-700 bg-transparent outline-none z-10"
               autoComplete="off"

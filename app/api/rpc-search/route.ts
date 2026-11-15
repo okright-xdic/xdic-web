@@ -316,6 +316,29 @@ export async function GET(req: Request) {
   search_keyword: q,
 });
     if (data1 && data1.length > 0) finalResults = data1;
+    // XDIC_RPC_V8_TIMEOUT_DIRECT120_SAFE_V1
+    // XDIC_RPC_V8_TIMEOUT_DIRECTPARTIAL_SAFE_V2
+    // After v8 SQLSTATE 57014 only: return 1..120 direct matches as degraded fallback.
+    if (err1?.code === '57014' && finalResults.length === 0) {
+      const { data: safeDirectData, error: safeDirectError } = await supabase
+        .from('dictionary_lines')
+        .select('id,category_id,source_order,line_text')
+        .ilike('line_text', `%${q}%`)
+        .order('category_id', { ascending: true })
+        .order('source_order', { ascending: true })
+        .limit(120);
+
+      if (!safeDirectError && Array.isArray(safeDirectData) && safeDirectData.length > 0 && safeDirectData.length <= 120) {
+        finalResults = safeDirectData;
+        console.info('[XDIC RPC 57014 safe direct fallback]', { query: q, resultCount: safeDirectData.length, degradedFallback: true });
+      } else if (safeDirectError) {
+        console.warn('[XDIC RPC 57014 fallback unavailable]', {
+          query: q,
+          code: safeDirectError.code,
+          message: safeDirectError.message,
+        });
+      }
+    }
 
     // ==========================================
     // 🔍 2단계: 결과가 없고 "단일 단어"일 경우 -> 뒤에 공백(' ') 추가 검색 (영어 보정)
@@ -385,6 +408,99 @@ export async function GET(req: Request) {
 
       // Fuzzy RPC 호출 자체가 실패한 경우
       if (fuzzyError) {
+        // XDIC_TYPO_57014_SHADOW_SAFE_V1_BEGIN
+        // Fallback only after both base v8 and Fuzzy time out.
+        // Existing successful search paths are not changed.
+        if (fuzzyError.code === '57014' && err1?.code === '57014') {
+          try {
+            let typoResults: any[] = [];
+
+            if (/^[A-Za-z]{4,40}$/.test(q)) {
+              const { data: enTypoData, error: enTypoError } =
+                await supabase.rpc('xdic_typo_en_shadow_v1', {
+                  p_keyword: q,
+                });
+              if (!enTypoError && Array.isArray(enTypoData)) {
+                typoResults = enTypoData.filter(
+                  (row: any) => typeof row?.line_text === 'string'
+                ).slice(0, 20);
+              } else if (enTypoError) {
+                console.warn('[XDIC typo EN shadow unavailable]', {
+                  code: enTypoError.code,
+                  message: enTypoError.message,
+                });
+              }
+            } else if (/^[\uAC00-\uD7A3]{3}$/.test(q)) {
+              // Narrow scope: three Hangul syllables, first two unchanged.
+              const prefix = q.slice(0, 2);
+              const { data: koCandidates, error: koTypoError } =
+                await supabase
+                  .from('dictionary_lines')
+                  .select('id,category_id,source_order,line_text')
+                  .eq('category_id', 1)
+                  .ilike('line_text', `%${prefix}%`)
+                  .limit(1000);
+
+              // Reject truncated candidate sets to avoid misleading ranks.
+              if (
+                !koTypoError &&
+                Array.isArray(koCandidates) &&
+                koCandidates.length > 0 &&
+                koCandidates.length < 1000
+              ) {
+                const queryNfd = Array.from(q.normalize('NFD'));
+                const oneJamoDifference = (word: string): boolean => {
+                  const tokenNfd = Array.from(word.normalize('NFD'));
+                  let differences = 0;
+                  for (
+                    let i = 0;
+                    i < Math.max(queryNfd.length, tokenNfd.length);
+                    i++
+                  ) {
+                    if (queryNfd[i] !== tokenNfd[i]) differences++;
+                    if (differences > 1) return false;
+                  }
+                  return differences === 1;
+                };
+
+                typoResults = koCandidates.filter((row: any) => {
+                  const tokens = String(row?.line_text ?? '')
+                    .match(/[\uAC00-\uD7A3]+/g) ?? [];
+                  return tokens.some(
+                    (word: string) =>
+                      word.length === 3 &&
+                      word.startsWith(prefix) &&
+                      oneJamoDifference(word)
+                  );
+                }).sort((a: any, b: any) =>
+                  Number(a.source_order ?? 0) -
+                    Number(b.source_order ?? 0) ||
+                  String(a.id ?? '').localeCompare(String(b.id ?? ''))
+                ).slice(0, 20);
+              } else if (koTypoError) {
+                console.warn('[XDIC typo KO direct unavailable]', {
+                  code: koTypoError.code,
+                  message: koTypoError.message,
+                });
+              }
+            }
+
+            if (typoResults.length > 0) {
+              console.info('[XDIC 57014 typo shadow fallback]', {
+                query: q,
+                resultCount: typoResults.length,
+                degradedFallback: true,
+              });
+              return NextResponse.json({ results: typoResults });
+            }
+          } catch (shadowError: any) {
+            console.warn('[XDIC typo shadow exception]', {
+              query: q,
+              message: shadowError?.message ?? String(shadowError),
+            });
+          }
+        }
+        // XDIC_TYPO_57014_SHADOW_SAFE_V1_END
         console.error('[search_dictionary_fuzzy 오류]', {
           query: q,
           message: fuzzyError.message,

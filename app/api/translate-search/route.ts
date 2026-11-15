@@ -25,6 +25,7 @@ import {
 } from '../common-adverbs';
 import {
   twoProFindSlotSimilarityTier2TranslationV1,
+  twoProFindSlotSimilarityTier3ReferenceV1,
   twoProRunSlotSimilarityShadowV1,
 } from '../slot-similarity';
 
@@ -154574,6 +154575,44 @@ if (twoProBasicPassiveResultV1295) {
         return twoProRespondWithPhraseDiagnosticsV915({ ok: true, best: { source_text: originalText, target_text: twoProCapitalizeEnglishSentenceStartV93(finalTranslation), analysis: [] } });
     } 
         
+    // =================================================================
+    // ☆ X-DIC Tier3 Shadow Gate v1: opt-in, local-only, final fallback.
+    // No API response change. No Supabase query. Diagnostics only.
+    // =================================================================
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      process.env.TWO_PRO_ENABLE_SLOT_SIMILARITY_TIER3_SHADOW === '1'
+    ) {
+      try {
+        const tier3ShadowStartedAtV1 = Date.now();
+        const tier3ShadowCandidateV1 =
+          twoProFindSlotSimilarityTier3ReferenceV1({
+            direction: 'KO_EN',
+            inputText: originalText,
+          });
+
+        console.info('[X-DIC Tier3 Shadow v1]', {
+          direction: 'KO_EN',
+          candidateFound: Boolean(tier3ShadowCandidateV1),
+          sourcePattern: tier3ShadowCandidateV1?.sourcePattern ?? null,
+          patternScore: tier3ShadowCandidateV1?.patternScore ?? null,
+          patternMargin: tier3ShadowCandidateV1?.patternMargin ?? null,
+          semanticSafety: tier3ShadowCandidateV1?.semanticSafety ?? null,
+          budgetStatus: tier3ShadowCandidateV1?.budgetStatus ?? null,
+          reasonCodes: tier3ShadowCandidateV1?.reasonCodes ?? [],
+          elapsedMs: Date.now() - tier3ShadowStartedAtV1,
+          referenceOnly: true,
+          userVisibleEffect: false,
+        });
+      } catch (tier3ShadowErrorV1) {
+        console.warn('[X-DIC Tier3 Shadow v1] skipped:',
+          tier3ShadowErrorV1 instanceof Error
+            ? tier3ShadowErrorV1.message
+            : 'unexpected diagnostic error'
+        );
+      }
+    }
+
     return twoProRespondWithPhraseDiagnosticsV915({ ok: false, error: '분석할 수 없는 문장 구조입니다.' });
   } catch (error) {
     console.error('한영 RBMT 엔진 에러:', error);
