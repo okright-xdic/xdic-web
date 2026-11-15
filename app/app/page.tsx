@@ -2,10 +2,25 @@
 // ✅ 서버 로직 완벽! (영어 복합어 띄어쓰기 보정 + 3단어 이상 2글자 무시 버그 완벽 해결!)
 
 import SearchPage from '@/components/SearchPage';
+import { appendFileSync } from 'node:fs';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
+
+function xdicPerfWriteToFileV2(marker: string, payload: string): void {
+  console.info(marker, payload);
+  if (process.env.NODE_ENV === 'production') return;
+  try {
+    appendFileSync(
+      'C:/dictionary_upload/X-DIC-core-backups/X-DIC-core-scripts/XDIC_PERF_STAGE_V2.jsonl',
+      JSON.stringify({ timestamp: new Date().toISOString(), marker, ...JSON.parse(payload) }) + '\n',
+      { encoding: 'utf8' }
+    );
+  } catch (error) {
+    console.warn('[XDIC PERF FILE WRITE FAILED]', String(error));
+  }
+}
 
 const kKeepWords = new Set([
   '좋은', '많은', '작은', '큰', '새로운', '나쁜', '어려운',
@@ -313,9 +328,20 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
 
   const supabase = createServerComponentClient({ cookies });
 
+  // XDIC_PERF_STAGE_SHADOW_V1: read-only timing. Does not alter searches or results.
+  const xdicPerfStartedV1 = Date.now();
+  const xdicPerfTimesV1: Record<string, number> = {};
+  let xdicPerfExactBatchesV1 = 0;
+  const xdicPerfMarkV1 = (stage: string): void => {
+    if (process.env.NODE_ENV !== 'production') {
+      xdicPerfTimesV1[stage] = Date.now() - xdicPerfStartedV1;
+    }
+  };
+
   try {
     await supabase.auth.getSession();
   } catch(e) {}
+  xdicPerfMarkV1('auth');
 
   let results: any[] = [];
   let orangeKeys: string[] = cleanQuery ? [cleanQuery] : [];
@@ -378,6 +404,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
 
     const fetchExactPhrase = async (qStr: string, isExactPriority: boolean = false) => {
         if (!qStr) return;
+        xdicPerfExactBatchesV1 += 1;
         const queries = [
             supabase.from('dictionary_lines').select('*').eq('line_text', qStr).limit(10),
             supabase.from('dictionary_lines').select('*').ilike('line_text', `${qStr} %`).limit(20),
@@ -416,7 +443,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
     if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 25) {
       const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
       let splitPairs: any[] = [];
-      for (let i = 1; i < safeQuery.length; i++) {
+      for (let i = 2; i <= safeQuery.length - 2; i++) {
         splitPairs.push({ p1: safeQuery.slice(0, i), p2: safeQuery.slice(i) });
       }
       
@@ -457,6 +484,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
     }
 
     await Promise.all(promises);
+    xdicPerfMarkV1('primary');
 
     results = Array.from(resultsMap.values());
 
@@ -496,6 +524,7 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
         })());
       } else {
          const validOrKeywords = [...new Set(allSearchKeywords)].filter(k => {
+           if (wordCount === 1 && /^[가-힣]{3}$/.test(cleanQuery) && hasExactMatch && k !== cleanQuery && k === cleanKoreanKeyword(cleanQuery)) return false; // XDIC_APP_FALLBACK_STEM_GUARD_V1
            if (/[가-힣]/.test(k) && k.length <= 1) return false; 
            // 🌟 [수프로 변경점] 3단어 이상일 때 2글자 단어를 무시하던 버그 삭제!
            return k.length >= 2;
@@ -552,6 +581,8 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
       }
     }
 
+    xdicPerfMarkV1('fallback');
+
     if (hasExactMatch) {
       isPartialMatch = false;
     }
@@ -602,6 +633,22 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
       let isSplitModeActive = !!bestSplit;
       results = rotateResults(results, cleanQuery, allSearchKeywords, flexStr, isSplitModeActive);
     }
+  }
+
+  if (cleanQuery && process.env.NODE_ENV !== 'production') {
+    const m = xdicPerfTimesV1;
+    const totalMs = Date.now() - xdicPerfStartedV1;
+    xdicPerfWriteToFileV2('[XDIC PERF STAGE V1]', JSON.stringify({
+      surface: 'app',
+      queryLength: cleanQuery.length,
+      exactPhraseBatches: xdicPerfExactBatchesV1,
+      patternQueries: xdicPerfExactBatchesV1 * 8,
+      authMs: m.auth ?? null,
+      primaryMs: m.primary === undefined ? null : m.primary - (m.auth ?? 0),
+      fallbackMs: m.fallback === undefined ? null : m.fallback - (m.primary ?? m.auth ?? 0),
+      rankingMs: totalMs - (m.fallback ?? m.primary ?? m.auth ?? 0),
+      totalMs,
+    }));
   }
 
   const isApp = true; 

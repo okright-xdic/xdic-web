@@ -2,11 +2,26 @@
 // ✅ 서버 로직 완벽! (영어 복합어 띄어쓰기 보정 + 3단어 이상 2글자 무시 버그 완벽 해결!)
 
 import SearchPage from '@/components/SearchPage';
+import { appendFileSync } from 'node:fs';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+function xdicPerfWriteToFileV2(marker: string, payload: string): void {
+  console.info(marker, payload);
+  if (process.env.NODE_ENV === 'production') return;
+  try {
+    appendFileSync(
+      'C:/dictionary_upload/X-DIC-core-backups/X-DIC-core-scripts/XDIC_PERF_STAGE_V2.jsonl',
+      JSON.stringify({ timestamp: new Date().toISOString(), marker, ...JSON.parse(payload) }) + '\n',
+      { encoding: 'utf8' }
+    );
+  } catch (error) {
+    console.warn('[XDIC PERF FILE WRITE FAILED]', String(error));
+  }
+}
 
 export async function generateMetadata({
   searchParams,
@@ -1156,9 +1171,20 @@ const isSentenceSearch =
 
   const supabase = createServerComponentClient({ cookies });
 
+  // XDIC_PERF_STAGE_SHADOW_V1: read-only timing. Does not alter searches or results.
+  const xdicPerfStartedV1 = Date.now();
+  const xdicPerfTimesV1: Record<string, number> = {};
+  let xdicPerfExactBatchesV1 = 0;
+  const xdicPerfMarkV1 = (stage: string): void => {
+    if (process.env.NODE_ENV !== 'production') {
+      xdicPerfTimesV1[stage] = Date.now() - xdicPerfStartedV1;
+    }
+  };
+
   try {
     await supabase.auth.getSession();
   } catch(e) {}
+  xdicPerfMarkV1('auth');
 
   let results: any[] = [];
   let orangeKeys: string[] = cleanQuery ? [cleanQuery] : [];
@@ -1315,6 +1341,7 @@ const isSentenceSearch =
 
     const fetchExactPhrase = async (qStr: string, isExactPriority: boolean = false) => {
         if (!qStr) return;
+        xdicPerfExactBatchesV1 += 1;
         const queries = [
             supabase.from('dictionary_lines').select('*').eq('line_text', qStr).limit(10),
             supabase.from('dictionary_lines').select('*').ilike('line_text', `${qStr} %`).limit(20),
@@ -1386,7 +1413,7 @@ const isSentenceSearch =
       if (wordCount === 1 && cleanQuery.length >= 3 && cleanQuery.length <= 25) {
         const safeQuery = cleanQuery.replace(/[,.!?'"()\[\]]/g, '');
         let splitPairs: any[] = [];
-        for (let i = 1; i < safeQuery.length; i++) {
+        for (let i = 2; i <= safeQuery.length - 2; i++) {
           splitPairs.push({ p1: safeQuery.slice(0, i), p2: safeQuery.slice(i) });
         }
         
@@ -1428,6 +1455,7 @@ const isSentenceSearch =
     }
 
     await Promise.all(promises);
+    xdicPerfMarkV1('primary');
 
     results = Array.from(resultsMap.values());
 
@@ -1645,6 +1673,8 @@ relatedSearchKeywords.forEach((keyword) => {
       }
     }
 
+    xdicPerfMarkV1('fallback');
+
     if (hasExactMatch) {
       isPartialMatch = false;
     }
@@ -1723,6 +1753,8 @@ relatedSearchKeywords.forEach((keyword) => {
 // - 사용자 화면 영향 없음
 // - 기존 isSentenceSearch 판정 변경 없음
 // ============================================================================
+
+xdicPerfMarkV1('before_core');
 
 const isDbCorePhraseProbeCandidateV4 =
   /[가-힣]/.test(cleanQuery) &&
@@ -3388,6 +3420,8 @@ const relaxedBoundaryRegexV51 =
   );
 }
 
+xdicPerfMarkV1('after_core');
+
 if (isSentenceSearch) {
   // ------------------------------------------------------------
   // Shadow v1: 현재 후보군만 분석 (실제 화면 영향 없음)
@@ -3784,6 +3818,25 @@ if (isSentenceSearch) {
   results = currentSelected;
 }
     }
+  }
+
+  if (cleanQuery && process.env.NODE_ENV !== 'production') {
+    const m = xdicPerfTimesV1;
+    const totalMs = Date.now() - xdicPerfStartedV1;
+    xdicPerfWriteToFileV2('[XDIC PERF STAGE V1]', JSON.stringify({
+      surface: 'web',
+      queryLength: cleanQuery.length,
+      sentence: isSentenceSearch,
+      exactPhraseBatches: xdicPerfExactBatchesV1,
+      patternQueries: xdicPerfExactBatchesV1 * 8,
+      authMs: m.auth ?? null,
+      primaryMs: m.primary === undefined ? null : m.primary - (m.auth ?? 0),
+      fallbackMs: m.fallback === undefined ? null : m.fallback - (m.primary ?? m.auth ?? 0),
+      rankingMs: m.before_core === undefined ? null : m.before_core - (m.fallback ?? 0),
+      coreMs: m.after_core === undefined ? null : m.after_core - (m.before_core ?? 0),
+      sentenceTailMs: totalMs - (m.after_core ?? m.before_core ?? m.fallback ?? 0),
+      totalMs,
+    }));
   }
 
   const isApp = false; 
