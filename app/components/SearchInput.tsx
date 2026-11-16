@@ -1081,7 +1081,7 @@ export default function SearchInput({
             }`}
         >
           {/* 입력 중일 때는 기본 input 텍스트, 입력하지 않았을 때는 흐르는 텍스트 오버레이 */}
-          <div className="relative flex-grow h-full overflow-hidden">
+          <div className="relative flex-1 min-w-0 h-full overflow-hidden">
              <input
               ref={inputRef}
               type="text"
@@ -1104,7 +1104,7 @@ export default function SearchInput({
               }}
               onBlur={() => setIsHovered(false)}
 
-              className={`absolute inset-0 w-full h-full px-3 md:px-6 ${isApp ? 'text-[12px]' : 'text-[13px] md:text-base'} text-slate-700 bg-transparent outline-none z-10`}
+              className={`absolute inset-0 w-full h-full px-2 md:px-6 text-[12px] ${isApp ? '' : 'md:text-base'} text-slate-700 bg-transparent outline-none z-10`}
               autoComplete="off"
              />
              
@@ -1136,7 +1136,7 @@ export default function SearchInput({
              )}
           </div>
 
-          <div className="flex items-center gap-1 md:gap-2 pr-3 md:pr-2 bg-white z-20">
+          <div className="flex flex-none items-center gap-0.5 md:gap-2 pr-1 md:pr-2 bg-white z-20">
             {query && !isPending && (
               <button
                 type="button"
@@ -1158,7 +1158,7 @@ export default function SearchInput({
               type="button"
               onClick={() => handleMicToggle('ko-KR')}
               disabled={isPending}
-              className={`px-2 h-8 md:h-10 rounded-full flex items-center justify-center gap-1 transition-all border
+              className={`px-1 md:px-2 h-8 md:h-10 rounded-full flex items-center justify-center gap-1 transition-all border
                 ${
                   micLang === 'ko-KR'
                     ? isListening
@@ -1178,7 +1178,7 @@ export default function SearchInput({
               type="button"
               onClick={() => handleMicToggle('en-US')}
               disabled={isPending}
-              className={`px-2 h-8 md:h-10 rounded-full flex items-center justify-center gap-1 transition-all border
+              className={`px-1 md:px-2 h-8 md:h-10 rounded-full flex items-center justify-center gap-1 transition-all border
                 ${
                   micLang === 'en-US'
                     ? isListening
@@ -1197,7 +1197,7 @@ export default function SearchInput({
             <button
               type="submit"
               disabled={isPending}
-              className="h-8 md:h-10 px-3 md:px-5 rounded-full bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all flex items-center gap-1.5 ml-1 z-10 relative"
+              className="h-8 md:h-10 px-2 md:px-5 rounded-full bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all flex items-center gap-1.5 ml-0 md:ml-1 z-10 relative"
               title="검색"
             >
               <svg viewBox="0 0 24 24" className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="2">
