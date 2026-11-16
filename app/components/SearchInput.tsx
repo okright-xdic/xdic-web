@@ -374,6 +374,8 @@ export default function SearchInput({
   useEffect(() => {
     // A delayed URL update must not overwrite unfinished Korean syllables.
     if (isComposingRef.current) return;
+    // Never overwrite text while the user is editing, including between IME syllables.
+    if (typeof document !== 'undefined' && document.activeElement === inputRef.current) return;
     setQuery(initialQuery || '');
   }, [initialQuery]);
 
@@ -1101,8 +1103,8 @@ export default function SearchInput({
                 }
               }}
               onBlur={() => setIsHovered(false)}
-              readOnly={isPending}
-              className="absolute inset-0 w-full h-full px-3 md:px-6 text-[13px] md:text-base text-slate-700 bg-transparent outline-none z-10"
+
+              className={`absolute inset-0 w-full h-full px-3 md:px-6 ${isApp ? 'text-[12px]' : 'text-[13px]'} md:text-base text-slate-700 bg-transparent outline-none z-10`}
               autoComplete="off"
              />
              
