@@ -1068,9 +1068,9 @@ export default function SearchInput({
       <form onSubmit={handleSearch} className="w-full">
         <div
           onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          onMouseLeave={() => { if (typeof document === 'undefined' || document.activeElement !== inputRef.current) setIsHovered(false); }}
           onTouchStart={() => setIsHovered(true)}
-          onTouchEnd={() => setIsHovered(false)}
+          onTouchEnd={() => { if (typeof document === 'undefined' || document.activeElement !== inputRef.current) setIsHovered(false); }}
           className={`relative flex items-center w-full h-12 md:h-14 rounded-full border-2 bg-white overflow-hidden shadow-sm transition-colors
             ${
               micLang === 'ko-KR'
@@ -1104,7 +1104,7 @@ export default function SearchInput({
               }}
               onBlur={() => setIsHovered(false)}
 
-              className={`absolute inset-0 w-full h-full px-3 md:px-6 ${isApp ? 'text-[12px]' : 'text-[13px]'} md:text-base text-slate-700 bg-transparent outline-none z-10`}
+              className={`absolute inset-0 w-full h-full px-3 md:px-6 ${isApp ? 'text-[12px]' : 'text-[13px] md:text-base'} text-slate-700 bg-transparent outline-none z-10`}
               autoComplete="off"
              />
              
