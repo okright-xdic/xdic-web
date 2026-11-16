@@ -441,7 +441,38 @@ const selectSentenceRelatedResults = (
 const rotateResults = (items: any[], keyword: string, allSearchKeywords: string[], flexStr: string, isSplitMode: boolean = false) => {
   if (!items || items.length === 0) return [];
   const lowerKeywordNoSpace = keyword.trim().toLowerCase().replace(/\s+/g, '');
-  const itemsWithIndex = items.map((item, idx) => ({ ...item, _db_index: idx }));
+  // XDIC_SEARCH_ORDER102_BEGIN: stable tie order for English single-word queries only.
+  // Keep all existing CORE groups, relevancy tiers, and query paths unchanged.
+  const stableWordItems = /^[A-Za-z]{3,25}$/.test(keyword.trim())
+    ? [...items].sort((a, b) => {
+        const categoryA = Number(a.category_id ?? 12);
+        const categoryB = Number(b.category_id ?? 12);
+        if (categoryA !== categoryB) return categoryA - categoryB;
+
+        // Same ranking group/category: favor an exact leading English word.
+        // This preserves the expected "vintage ..." before "... vintage".
+        const word = keyword.trim().toLowerCase();
+        const textA = String(a.line_text ?? '').trimStart().toLowerCase();
+        const textB = String(b.line_text ?? '').trimStart().toLowerCase();
+        const startsA = textA.startsWith(word) &&
+          (textA.length === word.length || !/[a-z0-9_]/.test(textA.charAt(word.length)));
+        const startsB = textB.startsWith(word) &&
+          (textB.length === word.length || !/[a-z0-9_]/.test(textB.charAt(word.length)));
+        if (startsA !== startsB) return startsA ? -1 : 1;
+
+        const orderA = a.source_order == null
+          ? Number.MAX_SAFE_INTEGER : Number(a.source_order);
+        const orderB = b.source_order == null
+          ? Number.MAX_SAFE_INTEGER : Number(b.source_order);
+        if (orderA !== orderB) return orderA - orderB;
+
+        const idA = String(a.id ?? '');
+        const idB = String(b.id ?? '');
+        return idA < idB ? -1 : idA > idB ? 1 : 0;
+      })
+    : items;
+  const itemsWithIndex = stableWordItems.map((item, idx) => ({ ...item, _db_index: idx }));
+  // XDIC_SEARCH_ORDER102_END
 
   const corpusSuperTight: any[] = [];
   const corpusStandalone: any[] = [];
