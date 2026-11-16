@@ -320,6 +320,8 @@ export default function SearchInput({
   const [isListening, setIsListening] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  // XDIC V6 portrait diagnostics: read-only; enabled only by #xdic-ui-debug.
+  const xdicUiDebugRef = useRef<HTMLPreElement>(null);
   // XDIC_KO_IME_INPUT_SAFE_V1: keep unfinished Korean IME text intact.
   const isComposingRef = useRef(false);
   const lastSearchAtRef = useRef<number>(0);
@@ -370,6 +372,70 @@ export default function SearchInput({
     ? "♬ 음성 검색(Voice Search) : KOR(한글) ♥ ENG(영어)     "
     : "음성 검색은 우측의 KOR(한글) 또는 ENG(영어) 마이크 아이콘 클릭! ★ ♪ ♥ For voice search, click the KOR (Korean) or ENG (English) microphone icon on the right! ▶ ♬ ♣ ♩ ";
   const { displayText: marqueePlaceholder, setIsHovered } = useMarquee(marqueeText, 150);
+
+  // XDIC V6: no search, voice, IME or layout behavior changes; optional metrics only.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const input = inputRef.current;
+    const output = xdicUiDebugRef.current;
+    if (!input || !output) return;
+
+    let timer: number | undefined;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const size = (value?: number) => value === undefined ? '?' : value.toFixed(1);
+    const update = () => {
+      if (window.location.hash !== '#xdic-ui-debug') {
+        output.style.display = 'none';
+        return;
+      }
+      const wrap = input.parentElement;
+      const bar = wrap?.parentElement;
+      const buttons = bar?.children.item(1) as HTMLElement | null;
+      const computed = window.getComputedStyle(input);
+      const rect = input.getBoundingClientRect();
+      const available = input.clientWidth - parseFloat(computed.paddingLeft || '0') - parseFloat(computed.paddingRight || '0');
+      if (ctx) ctx.font = computed.font;
+      const textWidth = ctx ? ctx.measureText(input.value).width : undefined;
+      const viewport = window.visualViewport;
+      output.style.display = 'block';
+      output.textContent = [
+        'X-DIC MOBILE UI / V6 DIAGNOSTIC (no text logged)',
+        `viewport ${window.innerWidth}px | visual ${size(viewport?.width)}px | scale ${size(viewport?.scale)}`,
+        `bar ${size(bar?.getBoundingClientRect().width)}px | field ${size(rect.width)}px | buttons ${size(buttons?.getBoundingClientRect().width)}px`,
+        `font ${computed.fontSize} | adjust ${computed.getPropertyValue('-webkit-text-size-adjust') || computed.getPropertyValue('text-size-adjust') || '?'}`,
+        `text length ${input.value.length} | estimated text width ${size(textWidth)}px | field usable ${size(available)}px`,
+        `field scrollLeft ${input.scrollLeft}px | selection ${input.selectionStart ?? '?'} | active ${document.activeElement === input}`,
+        `isApp ${isApp} | dpr ${window.devicePixelRatio} | docWidth ${document.documentElement.clientWidth}px`
+      ].join('\n');
+    };
+    const onChange = () => { window.requestAnimationFrame(update); };
+    const onHashChange = () => {
+      if (window.location.hash === '#xdic-ui-debug' && timer === undefined) {
+        timer = window.setInterval(update, 350);
+      } else if (window.location.hash !== '#xdic-ui-debug' && timer !== undefined) {
+        window.clearInterval(timer);
+        timer = undefined;
+      }
+      update();
+    };
+
+    input.addEventListener('input', onChange);
+    input.addEventListener('focus', onChange);
+    input.addEventListener('blur', onChange);
+    window.addEventListener('resize', onChange);
+    window.addEventListener('hashchange', onHashChange);
+    onHashChange();
+    return () => {
+      if (timer !== undefined) window.clearInterval(timer);
+      input.removeEventListener('input', onChange);
+      input.removeEventListener('focus', onChange);
+      input.removeEventListener('blur', onChange);
+      window.removeEventListener('resize', onChange);
+      window.removeEventListener('hashchange', onHashChange);
+    };
+  }, [isApp]);
+
 
   useEffect(() => {
     // A delayed URL update must not overwrite unfinished Korean syllables.
@@ -1218,6 +1284,13 @@ export default function SearchInput({
             : ' '}
         </div>
       </form>
+      {/* V6 metrics are invisible unless #xdic-ui-debug is in the URL. */}
+      <pre
+        ref={xdicUiDebugRef}
+        aria-hidden="true"
+        style={{ display: 'none' }}
+        className="mt-2 whitespace-pre-wrap break-all rounded-md border border-slate-400 bg-slate-50 p-2 text-[11px] leading-4 text-slate-900"
+      />
     </div>
   );
 }
