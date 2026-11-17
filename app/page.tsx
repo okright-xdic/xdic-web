@@ -1472,7 +1472,31 @@ const isSentenceSearch =
         
         splitPairs.forEach(pair => {
            const spaceCorrected = `${pair.p1} ${pair.p2}`;
-           promises.push(fetchExactPhrase(spaceCorrected, true));
+           // XDIC_SPLIT162_BEGIN: Existence probe for English word split candidates only.
+           // Any probe error falls back to the original eight-query retrieval.
+           if (isStableEnglishSingleWord) {
+             promises.push((async () => {
+               let shouldRunOriginal = true;
+               try {
+                 const { data, error } = await supabase
+                   .from('dictionary_lines')
+                   .select('id')
+                   .ilike('line_text', `%${spaceCorrected}%`)
+                   .limit(1);
+                 if (!error && Array.isArray(data) && data.length === 0) {
+                   shouldRunOriginal = false;
+                 }
+               } catch (_error) {
+                 // Probe failed: run original eight queries as before.
+               }
+               if (shouldRunOriginal) {
+                 await fetchExactPhrase(spaceCorrected, true);
+               }
+             })());
+           } else {
+             promises.push(fetchExactPhrase(spaceCorrected, true));
+           }
+           // XDIC_SPLIT162_END
         });
 
         const validPairs = splitPairs.filter(p => p.p1.length >= 2 && p.p2.length >= 2);
