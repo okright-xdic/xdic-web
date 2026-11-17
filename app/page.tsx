@@ -1195,6 +1195,8 @@ export default async function Page({ searchParams }: { searchParams: { q?: strin
   const cleanQuery = query.trim();
   const noSpaceLen = cleanQuery.replace(/\s+/g, '').length;
   const noSpaceQuery = cleanQuery.replace(/\s+/g, '');
+  // XDIC_SEARCH_ORDER138: English single-word searches only. Other CORE routes unchanged.
+  const isStableEnglishSingleWord = /^[A-Za-z]{3,25}$/.test(cleanQuery);
 
 // 문장 검색인지 단어 검색인지 서버에서 판단
 const isSentenceSearch =
@@ -1229,7 +1231,14 @@ const isSentenceSearch =
 
   const promises: Promise<void>[] = [];
   const resultsMap = new Map();
-  const addRes = (item: any) => { if (!resultsMap.has(item.id)) resultsMap.set(item.id, item); };
+  const addRes = (item: any) => {
+    const existing = resultsMap.get(item.id);
+    if (!existing) { resultsMap.set(item.id, item); return; }
+    // Preserve exact-match priority regardless of concurrent request completion order.
+    if (isStableEnglishSingleWord && item.is_exact_priority) {
+      existing.is_exact_priority = true;
+    }
+  };
 
   let wordCount = 0;
   let baseExtracted: string[] = [];
@@ -1370,6 +1379,19 @@ const isSentenceSearch =
     const safeExactQuery = cleanQuery.replace(/[,.()\[\]:"']/g, '').trim();
     const safeNoSpaceQuery = noSpaceQuery.replace(/[,.()\[\]:"']/g, '').trim();
 
+    // Deterministic DB LIMIT for English single words only; preserves Korean/CORE queries.
+    function withStableEnglishWordOrder<T extends { order: (...args: any[]) => any }>(
+      queryBuilder: T, hasCategoryOrder: boolean = false
+    ): T {
+      if (!isStableEnglishSingleWord) return queryBuilder;
+      if (!hasCategoryOrder) {
+        queryBuilder.order('category_id', { ascending: true, nullsFirst: false });
+      }
+      queryBuilder.order('source_order', { ascending: true, nullsFirst: false });
+      queryBuilder.order('id', { ascending: true });
+      return queryBuilder;
+    }
+
     const fetchExactPhrase = async (qStr: string, isExactPriority: boolean = false) => {
         if (!qStr) return;
         xdicPerfExactBatchesV1 += 1;
@@ -1382,7 +1404,7 @@ const isSentenceSearch =
             supabase.from('dictionary_lines').select('*').ilike('line_text', `% ${qStr},%`).limit(10),
             supabase.from('dictionary_lines').select('*').ilike('line_text', `% ${qStr}?%`).limit(10),
             supabase.from('dictionary_lines').select('*').ilike('line_text', `% ${qStr}!%`).limit(10)
-        ];
+        ].map((queryBuilder) => withStableEnglishWordOrder(queryBuilder));
         
         const res = await Promise.all(queries.map(async (p) => {
             try {
@@ -1473,12 +1495,14 @@ const isSentenceSearch =
       if (bestSplit) {
         promises.push((async () => {
           try {
-            const { data } = await supabase.from('dictionary_lines')
-              .select('*')
-              .ilike('line_text', `%${bestSplit!.p1}%`)
-              .ilike('line_text', `%${bestSplit!.p2}%`)
-              .order('category_id', { ascending: true })
-              .limit(50);
+            const { data } = await withStableEnglishWordOrder(
+              supabase.from('dictionary_lines')
+                .select('*')
+                .ilike('line_text', `%${bestSplit!.p1}%`)
+                .ilike('line_text', `%${bestSplit!.p2}%`)
+                .order('category_id', { ascending: true }),
+              true
+            ).limit(50);
             if (data) data.forEach(item => addRes(item));
           } catch(e) {}
         })());
@@ -1513,14 +1537,20 @@ const isSentenceSearch =
 
         fallbackPromises.push((async () => {
           try {
-            const { data } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${bestSplit!.p1}%`).order('category_id', { ascending: true }).limit(30);
+            const { data } = await withStableEnglishWordOrder(
+              supabase.from('dictionary_lines').select('*').ilike('line_text', `%${bestSplit!.p1}%`).order('category_id', { ascending: true }),
+              true
+            ).limit(30);
             if (data) data.forEach(item => { if (!item.split_type) { item.split_type = 'front_partial'; item.split_keyword = bestSplit!.p1; addRes(item); } });
           } catch(e) {}
         })());
 
         fallbackPromises.push((async () => {
           try {
-            const { data } = await supabase.from('dictionary_lines').select('*').ilike('line_text', `%${bestSplit!.p2}%`).order('category_id', { ascending: true }).limit(30);
+            const { data } = await withStableEnglishWordOrder(
+              supabase.from('dictionary_lines').select('*').ilike('line_text', `%${bestSplit!.p2}%`).order('category_id', { ascending: true }),
+              true
+            ).limit(30);
             if (data) data.forEach(item => { if (!item.split_type) { item.split_type = 'back_partial'; item.split_keyword = bestSplit!.p2; addRes(item); } });
           } catch(e) {}
         })());
@@ -1636,18 +1666,20 @@ relatedSearchKeywords.forEach((keyword) => {
   // 관련 검색 결과에는 포함하지 않습니다.
   fallbackPromises.push((async () => {
     try {
-      const { data, error } = await supabase
-        .from('dictionary_lines')
-        .select('*')
-        .neq('category_id', 0)
-        .ilike(
-          'line_text',
-          `%${cleanK}%`
-        )
-        .order('category_id', {
-          ascending: true,
-        })
-        .limit(30);
+      const { data, error } = await withStableEnglishWordOrder(
+        supabase
+          .from('dictionary_lines')
+          .select('*')
+          .neq('category_id', 0)
+          .ilike(
+            'line_text',
+            `%${cleanK}%`
+          )
+          .order('category_id', {
+            ascending: true,
+          }),
+        true
+      ).limit(30);
 
       if (error) {
         console.error(
