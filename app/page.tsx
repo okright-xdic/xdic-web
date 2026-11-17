@@ -1208,6 +1208,8 @@ const isSentenceSearch =
   const xdicPerfStartedV1 = Date.now();
   const xdicPerfTimesV1: Record<string, number> = {};
   let xdicPerfExactBatchesV1 = 0;
+  // SQL223: local-only, request-scoped timing evidence. Search logic unchanged.
+  const xdicSql223: Array<{ stage: string; keyword: string; pattern: number; ms: number; rows: number | null; error: boolean }> = [];
   const xdicPerfMarkV1 = (stage: string): void => {
     if (process.env.NODE_ENV !== 'production') {
       xdicPerfTimesV1[stage] = Date.now() - xdicPerfStartedV1;
@@ -1406,10 +1408,29 @@ const isSentenceSearch =
             supabase.from('dictionary_lines').select('*').ilike('line_text', `% ${qStr}!%`).limit(10)
         ].map((queryBuilder) => withStableEnglishWordOrder(queryBuilder));
         
-        const res = await Promise.all(queries.map(async (p) => {
+        const xdic223Stage = xdicPerfTimesV1.primary === undefined ? 'primary' : 'fallback';
+        const res = await Promise.all(queries.map(async (p, patternIndex) => {
+            const xdic223Started = isSentenceSearch && process.env.NODE_ENV !== 'production' ? Date.now() : 0;
             try {
-                return await p;
+                const xdic223Result = await p;
+                if (xdic223Started) {
+                    xdicSql223.push({
+                        stage: xdic223Stage,
+                        keyword: qStr,
+                        pattern: patternIndex + 1,
+                        ms: Date.now() - xdic223Started,
+                        rows: Array.isArray(xdic223Result?.data) ? xdic223Result.data.length : null,
+                        error: !!xdic223Result?.error,
+                    });
+                }
+                return xdic223Result;
             } catch (err) {
+                if (xdic223Started) {
+                    xdicSql223.push({
+                        stage: xdic223Stage, keyword: qStr, pattern: patternIndex + 1,
+                        ms: Date.now() - xdic223Started, rows: null, error: true,
+                    });
+                }
                 return { data: [] };
             }
         }));
@@ -1689,6 +1710,7 @@ relatedSearchKeywords.forEach((keyword) => {
   // category_id 0은 번역 말뭉치 전용이므로
   // 관련 검색 결과에는 포함하지 않습니다.
   fallbackPromises.push((async () => {
+    const xdic223RelatedStarted = isSentenceSearch && process.env.NODE_ENV !== 'production' ? Date.now() : 0;
     try {
       const { data, error } = await withStableEnglishWordOrder(
         supabase
@@ -1704,6 +1726,15 @@ relatedSearchKeywords.forEach((keyword) => {
           }),
         true
       ).limit(30);
+
+      if (xdic223RelatedStarted) {
+        xdicSql223.push({
+          stage: 'related', keyword: cleanK, pattern: 0,
+          ms: Date.now() - xdic223RelatedStarted,
+          rows: Array.isArray(data) ? data.length : null,
+          error: !!error,
+        });
+      }
 
       if (error) {
         console.error(
@@ -1724,6 +1755,13 @@ relatedSearchKeywords.forEach((keyword) => {
         });
       }
     } catch (error) {
+      if (xdic223RelatedStarted) {
+        xdicSql223.push({
+          stage: 'related', keyword: cleanK, pattern: 0,
+          ms: Date.now() - xdic223RelatedStarted,
+          rows: null, error: true,
+        });
+      }
       console.error(
         '[관련 핵심어 검색 예외]',
         {
@@ -3916,6 +3954,9 @@ if (isSentenceSearch) {
       sentence: isSentenceSearch,
       exactPhraseBatches: xdicPerfExactBatchesV1,
       patternQueries: xdicPerfExactBatchesV1 * 8,
+      sql223Count: xdicSql223.length,
+      sql223Errors: xdicSql223.filter((entry) => entry.error).length,
+      sql223Top: [...xdicSql223].sort((a, b) => b.ms - a.ms).slice(0, 15),
       authMs: m.auth ?? null,
       primaryMs: m.primary === undefined ? null : m.primary - (m.auth ?? 0),
       fallbackMs: m.fallback === undefined ? null : m.fallback - (m.primary ?? m.auth ?? 0),
