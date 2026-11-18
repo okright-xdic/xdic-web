@@ -1210,6 +1210,11 @@ const isSentenceSearch =
   let xdicPerfExactBatchesV1 = 0;
   // SQL223: local-only, request-scoped timing evidence. Search logic unchanged.
   const xdicSql223: Array<{ stage: string; keyword: string; pattern: number; ms: number; rows: number | null; error: boolean }> = [];
+  // KO236: aggregate existing CORE probe timings in local diagnostics only.
+  const xdicCore236 = {
+    exactAnd: [] as Array<{ tokens: string[]; elapsedMs: number; resultCount: number; error: string | null }>,
+    relaxed: [] as Array<{ exact: string; relaxed: string; elapsedMs: number; resultCount: number; error: string | null }>,
+  };
   const xdicPerfMarkV1 = (stage: string): void => {
     if (process.env.NODE_ENV !== 'production') {
       xdicPerfTimesV1[stage] = Date.now() - xdicPerfStartedV1;
@@ -1233,9 +1238,97 @@ const isSentenceSearch =
 
   const promises: Promise<void>[] = [];
   const resultsMap = new Map();
+  // XDIC_KO255_STATUS_BEGIN: request-scoped failure metadata only.
+  // No additional reads, retries, SQL changes, or ranking mutations.
+  const xdic255RelatedFailures: Array<{ keyword: string; kind: 'TIMEOUT' | 'ERROR' }> = [];
+  const xdic255RecordRelatedFailure = (keyword: string, failure: unknown): void => {
+    const detail = String((failure as { message?: string })?.message || failure || '');
+    const code = String((failure as { code?: string })?.code || '');
+    xdic255RelatedFailures.push({
+      keyword,
+      kind: code === '57014' || /statement timeout/i.test(detail) ? 'TIMEOUT' : 'ERROR',
+    });
+  };
+  // Explicit test-only failure simulation; production and normal URLs are unaffected.
+  const xdic255SimulationToken = String(
+    (searchParams as { q?: string; app?: string; ko255sim?: string }).ko255sim || ''
+  );
+  const xdic255SimulateRelatedTimeout =
+    process.env.NODE_ENV === 'development' &&
+    cleanQuery === '예비 후보' &&
+    /^[a-f0-9]{32}$/i.test(xdic255SimulationToken);
+  // XDIC_KO255_STATUS_END
+  // XDIC_KO253_TRACE_BEGIN: read-only request-scoped local telemetry.
+  // Only requests with an explicit 32-hex probe token and two known phrases are traced.
+  const xdic253ProbeId = String(
+    (searchParams as { q?: string; app?: string; ko253?: string }).ko253 || ''
+  );
+  const xdic253Enabled =
+    process.env.NODE_ENV === 'development' &&
+    (cleanQuery === '예비 후보' || cleanQuery === '후보 명단') &&
+    /^[a-f0-9]{32}$/i.test(xdic253ProbeId);
+  // XDIC_KO263_BEGIN: local opt-in row attributes for isolated ranking replay.
+  const xdic263Token = String(
+    (searchParams as { ko263?: string }).ko263 || ''
+  );
+  const xdic263Enabled = xdic253Enabled && xdic263Token === xdic253ProbeId;
+  // XDIC_KO263_END
+  const xdic253Events: Array<Record<string, unknown>> = [];
+  const xdic253Capture = (
+    stage: string,
+    keyword: string,
+    maybeRows: unknown,
+    error: unknown = null
+  ): void => {
+    if (!xdic253Enabled) return;
+    const rows: any[] = Array.isArray(maybeRows) ? maybeRows : [];
+    const ids = rows
+      .filter((row) => row?.id !== null && row?.id !== undefined)
+      .map((row) => String(row.id));
+    const newIdsBeforeMerge = rows
+      .filter((row) => row?.id !== null && row?.id !== undefined && !resultsMap.has(row.id))
+      .map((row) => String(row.id));
+    const xdic263Event: Record<string, unknown> = {
+      stage,
+      keyword,
+      count: rows.length,
+      ids,
+      newIdsBeforeMerge,
+      category1Count: rows.filter((row) => Number(row?.category_id) === 1).length,
+      error: error ? String((error as { message?: string })?.message || error) : null,
+    };
+    // Only explicit local KO263 probes capture metadata; normal requests retain
+    // their original trace payload and never serialize dictionary rows.
+    if (xdic263Enabled && /^ko260-rotate-[a-z-]+-before$/.test(stage)) {
+      xdic263Event.ko263Rows = rows.map((row) => ({
+        id: row.id,
+        line_text: row.line_text,
+        category_id: row.category_id,
+        source_order: row.source_order,
+        is_exact_priority: row.is_exact_priority,
+        split_type: row.split_type,
+        split_keyword: row.split_keyword,
+        _twoProDbPriority: row._twoProDbPriority,
+        _twoProDbMatch: row._twoProDbMatch,
+        _twoProDbExactAndCount: row._twoProDbExactAndCount,
+        _twoProDbExactAndWeight: row._twoProDbExactAndWeight,
+      }));
+    }
+    xdic253Events.push(xdic263Event);
+  };
+  // XDIC_KO253_TRACE_END
+  // XDIC_KO260_INSERTIONS_BEGIN: opt-in order-only capture; no Map mutation.
+  const xdic260AddResInsertionOrder: string[] = [];
+  // XDIC_KO260_INSERTIONS_END
   const addRes = (item: any) => {
     const existing = resultsMap.get(item.id);
-    if (!existing) { resultsMap.set(item.id, item); return; }
+    if (!existing) {
+      resultsMap.set(item.id, item);
+      // XDIC_KO260_ADDRES_BEGIN: record insertion after original Map.set.
+      if (xdic253Enabled) xdic260AddResInsertionOrder.push(String(item.id));
+      // XDIC_KO260_ADDRES_END
+      return;
+    }
     // Preserve exact-match priority regardless of concurrent request completion order.
     if (isStableEnglishSingleWord && item.is_exact_priority) {
       existing.is_exact_priority = true;
@@ -1435,7 +1528,9 @@ const isSentenceSearch =
             }
         }));
         
-        res.forEach(r => {
+        // XDIC_KO253_PATTERN_BEGIN
+        res.forEach((r, xdic253PatternIndex) => {
+            xdic253Capture('exact8', `${qStr}#${xdic253PatternIndex + 1}`, r?.data, r?.error);
             if (r && r.data) {
                 r.data.forEach((item: any) => {
                     if (isExactPriority) item.is_exact_priority = true;
@@ -1443,6 +1538,7 @@ const isSentenceSearch =
                 });
             }
         });
+        // XDIC_KO253_PATTERN_END
     };
 
     // ============================================================
@@ -1532,7 +1628,10 @@ const isSentenceSearch =
         promises.push((async () => {
           try {
             const { data } = await supabase.rpc('search_dictionary_smart', { keyword: noSpaceQuery });
+            // XDIC_KO253_RPC_BEGIN
+            xdic253Capture('smart-rpc', noSpaceQuery, data);
             if (Array.isArray(data)) data.forEach(item => addRes({ ...item, is_rpc: true }));
+            // XDIC_KO253_RPC_END
           } catch(e) {}
         })());
       }
@@ -1558,6 +1657,9 @@ const isSentenceSearch =
     xdicPerfMarkV1('primary');
 
     results = Array.from(resultsMap.values());
+    // XDIC_KO253_PRIMARY_BEGIN
+    xdic253Capture('after-primary', cleanQuery, results);
+    // XDIC_KO253_PRIMARY_END
 
     let hasExactMatch = false;
 
@@ -1711,6 +1813,9 @@ relatedSearchKeywords.forEach((keyword) => {
   // 관련 검색 결과에는 포함하지 않습니다.
   fallbackPromises.push((async () => {
     const xdic223RelatedStarted = isSentenceSearch && process.env.NODE_ENV !== 'production' ? Date.now() : 0;
+    // XDIC_KO256_START_BEGIN: timing only for the pre-existing KO253 opt-in probes.
+    const xdic256RelatedStarted = xdic253Enabled ? Date.now() : 0;
+    // XDIC_KO256_START_END
     try {
       const { data, error } = await withStableEnglishWordOrder(
         supabase
@@ -1727,6 +1832,29 @@ relatedSearchKeywords.forEach((keyword) => {
         true
       ).limit(30);
 
+      // XDIC_KO255_RELATED_BEGIN
+      // Simulate an unsuccessful result ONLY on an explicit localhost development probe.
+      const xdic255InjectedError = xdic255SimulateRelatedTimeout && cleanK === '후보'
+        ? { code: '57014', message: 'canceling statement due to statement timeout' }
+        : null;
+      const xdic255EffectiveError = error || xdic255InjectedError;
+      // XDIC_KO255_RELATED_END
+      // XDIC_KO253_RELATED_BEGIN
+      xdic253Capture('related-ILIKE', cleanK, xdic255EffectiveError ? null : data, xdic255EffectiveError);
+      // XDIC_KO253_RELATED_END
+      // XDIC_KO256_RESULT_BEGIN: no change to SQL result, error, or addRes flow.
+      if (xdic253Enabled) {
+        xdic253Events.push({
+          stage: 'related-ILIKE-timing', keyword: cleanK,
+          elapsedMs: Date.now() - xdic256RelatedStarted,
+          rows: Array.isArray(data) ? data.length : null,
+          error: xdic255EffectiveError
+            ? String(xdic255EffectiveError.message || xdic255EffectiveError) : null,
+          simulated: !!xdic255InjectedError,
+          threw: false,
+        });
+      }
+      // XDIC_KO256_RESULT_END
       if (xdic223RelatedStarted) {
         xdicSql223.push({
           stage: 'related', keyword: cleanK, pattern: 0,
@@ -1736,16 +1864,18 @@ relatedSearchKeywords.forEach((keyword) => {
         });
       }
 
-      if (error) {
+      if (xdic255EffectiveError) {
+        // XDIC_KO255_ERROR_BEGIN: error != successful zero-row response.
+        xdic255RecordRelatedFailure(cleanK, xdic255EffectiveError);
         console.error(
           '[관련 핵심어 검색 오류]',
           {
             query: cleanQuery,
             keyword: cleanK,
-            message: error.message,
+            message: xdic255EffectiveError.message,
           }
         );
-
+        // XDIC_KO255_ERROR_END
         return;
       }
 
@@ -1755,6 +1885,21 @@ relatedSearchKeywords.forEach((keyword) => {
         });
       }
     } catch (error) {
+      // XDIC_KO256_CATCH_BEGIN: includes thrown database/network exceptions.
+      if (xdic253Enabled) {
+        xdic253Events.push({
+          stage: 'related-ILIKE-timing', keyword: cleanK,
+          elapsedMs: Date.now() - xdic256RelatedStarted,
+          rows: null,
+          error: String((error as { message?: string })?.message || error),
+          simulated: false,
+          threw: true,
+        });
+      }
+      // XDIC_KO256_CATCH_END
+      // XDIC_KO255_CATCH_BEGIN
+      xdic255RecordRelatedFailure(cleanK, error);
+      // XDIC_KO255_CATCH_END
       if (xdic223RelatedStarted) {
         xdicSql223.push({
           stage: 'related', keyword: cleanK, pattern: 0,
@@ -1779,6 +1924,9 @@ relatedSearchKeywords.forEach((keyword) => {
       if (fallbackPromises.length > 0) {
           await Promise.all(fallbackPromises);
           results = Array.from(resultsMap.values());
+          // XDIC_KO253_FALLBACK_BEGIN
+          xdic253Capture('after-fallback', cleanQuery, results);
+          // XDIC_KO253_FALLBACK_END
           
           let foundExactInFallback = false;
           const lowerNoSpace = noSpaceQuery.toLowerCase();
@@ -1854,6 +2002,17 @@ relatedSearchKeywords.forEach((keyword) => {
           ? twoProCoreSearchKeywordsV6
           : allSearchKeywords;
 
+      // XDIC_KO263_ARGS_BEGIN: observed args for exact isolated sorter replay.
+      if (xdic263Enabled) xdic253Events.push({
+        stage: 'ko263-rotate-args',
+        keyword: cleanQuery,
+        searchKeywords: [...rankingSearchKeywordsV6],
+        flexStr,
+        isSplitMode: isSplitModeActive,
+      });
+      // XDIC_KO263_ARGS_END
+      // XDIC_KO260_ROTATE_MAIN_BEGIN: opt-in snapshots only.
+      xdic253Capture('ko260-rotate-main-before', cleanQuery, results);
       results =
         rotateResults(
           results,
@@ -1862,6 +2021,8 @@ relatedSearchKeywords.forEach((keyword) => {
           flexStr,
           isSplitModeActive
         );
+      xdic253Capture('ko260-rotate-main-after', cleanQuery, results);
+      // XDIC_KO260_ROTATE_MAIN_END
 // 문장 검색은 관련 검색 결과를
 // 중요 카테고리와 다양성을 고려해 최대 20건으로 정리합니다.
 
@@ -2023,6 +2184,8 @@ if (isDbCorePhraseProbeCandidateV4) {
             resultsMap.values()
           );
 
+        // XDIC_KO260_ROTATE_CONTIGUOUS_BEGIN: opt-in snapshots only.
+        xdic253Capture('ko260-rotate-contiguous-before', cleanQuery, results);
         results =
           rotateResults(
             results,
@@ -2033,6 +2196,8 @@ if (isDbCorePhraseProbeCandidateV4) {
             flexStr,
             !!bestSplit
           );
+        xdic253Capture('ko260-rotate-contiguous-after', cleanQuery, results);
+        // XDIC_KO260_ROTATE_CONTIGUOUS_END
       }
 
       console.log(
@@ -2426,6 +2591,8 @@ if (isDbCorePhraseProbeCandidateV4) {
               resultsMap.values()
             );
 
+          // XDIC_KO260_ROTATE_SEMANTIC_FAMILY_BEGIN: opt-in snapshots only.
+          xdic253Capture('ko260-rotate-semantic-family-before', cleanQuery, results);
           results =
             rotateResults(
               results,
@@ -2436,6 +2603,8 @@ if (isDbCorePhraseProbeCandidateV4) {
               flexStr,
               !!bestSplit
             );
+          xdic253Capture('ko260-rotate-semantic-family-after', cleanQuery, results);
+          // XDIC_KO260_ROTATE_SEMANTIC_FAMILY_END
         }
 
         console.log(
@@ -2860,6 +3029,8 @@ if (isDbCorePhraseProbeCandidateV4) {
         resultsMap.values()
       );
 
+    // XDIC_KO260_ROTATE_EXACT_AND_BEGIN: opt-in snapshots only.
+    xdic253Capture('ko260-rotate-exact-and-before', cleanQuery, results);
     results =
       rotateResults(
         results,
@@ -2870,6 +3041,16 @@ if (isDbCorePhraseProbeCandidateV4) {
         flexStr,
         !!bestSplit
       );
+    xdic253Capture('ko260-rotate-exact-and-after', cleanQuery, results);
+    // XDIC_KO260_ROTATE_EXACT_AND_END
+  }
+
+  // KO236: copy existing per-group stats. No extra queries or result changes.
+  if (isSentenceSearch && process.env.NODE_ENV !== 'production') {
+    xdicCore236.exactAnd = phraseExactAndStatsV4.map(
+      ({ tokens, elapsedMs, resultCount, error }) =>
+        ({ tokens, elapsedMs, resultCount, error })
+    );
   }
 
   console.log(
@@ -3512,6 +3693,8 @@ const relaxedBoundaryRegexV51 =
         resultsMap.values()
       );
 
+    // XDIC_KO260_ROTATE_RELAXED_BEGIN: opt-in snapshots only.
+    xdic253Capture('ko260-rotate-relaxed-before', cleanQuery, results);
     results =
       rotateResults(
         results,
@@ -3522,6 +3705,16 @@ const relaxedBoundaryRegexV51 =
         flexStr,
         !!bestSplit
       );
+    xdic253Capture('ko260-rotate-relaxed-after', cleanQuery, results);
+    // XDIC_KO260_ROTATE_RELAXED_END
+  }
+
+  // KO236: copy existing relaxed-group stats. No query or ranking changes.
+  if (isSentenceSearch && process.env.NODE_ENV !== 'production') {
+    xdicCore236.relaxed = relaxedStatsV5.map(
+      ({ exact, relaxed, elapsedMs, resultCount, error }) =>
+        ({ exact, relaxed, elapsedMs, resultCount, error })
+    );
   }
 
   console.log(
@@ -3957,6 +4150,13 @@ if (isSentenceSearch) {
       sql223Count: xdicSql223.length,
       sql223Errors: xdicSql223.filter((entry) => entry.error).length,
       sql223Top: [...xdicSql223].sort((a, b) => b.ms - a.ms).slice(0, 15),
+      // KO236: elapsedMs includes post-query JS processing, not SQL-only time.
+      core236: {
+        exactAnd: xdicCore236.exactAnd,
+        relaxed: xdicCore236.relaxed,
+        exactAndSumMs: xdicCore236.exactAnd.reduce((sum, item) => sum + item.elapsedMs, 0),
+        relaxedSumMs: xdicCore236.relaxed.reduce((sum, item) => sum + item.elapsedMs, 0),
+      },
       authMs: m.auth ?? null,
       primaryMs: m.primary === undefined ? null : m.primary - (m.auth ?? 0),
       fallbackMs: m.fallback === undefined ? null : m.fallback - (m.primary ?? m.auth ?? 0),
@@ -3969,7 +4169,63 @@ if (isSentenceSearch) {
 
   const isApp = false; 
 
+  // XDIC_KO253_FINAL_BEGIN: write once, after all existing search stages.
+  if (xdic253Enabled) {
+    xdic253Capture('final-render-props', cleanQuery, results);
+    // XDIC_KO260_FINAL_BEGIN: actual addRes insertion chronology and final Map order.
+    xdic253Events.push({ stage: 'ko260-addRes-insertion-order',
+      count: xdic260AddResInsertionOrder.length,
+      ids: [...xdic260AddResInsertionOrder] });
+    xdic253Capture('ko260-final-map', cleanQuery, Array.from(resultsMap.values()));
+    // XDIC_KO260_FINAL_END
+    try {
+      const xdic253TraceFile =
+        'C:/dictionary_upload/X-DIC-core-backups/X-DIC-core-scripts/XDIC_KO253_TRACE.jsonl';
+      appendFileSync(
+        xdic253TraceFile,
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          marker: 'XDIC_KO253_TRACE',
+          probeId: xdic253ProbeId,
+          query: cleanQuery,
+          finalCount: results.length,
+          finalIds: results.map((row) => String(row?.id ?? '')),
+          events: xdic253Events,
+        }) + '\n',
+        { encoding: 'utf8' }
+      );
+    } catch (error) {
+      console.warn('[XDIC KO253 TRACE WRITE FAILED]', String(error));
+    }
+  }
+  // XDIC_KO253_FINAL_END
+
   return (
+    <>
+      {/* XDIC_KO255_UI_BEGIN: only shown when a related retrieval failed. */}
+      {xdic255RelatedFailures.length > 0 && (
+        <div
+          role="alert"
+          aria-live="polite"
+          data-xdic255-partial-results="true"
+          style={{
+            maxWidth: 960,
+            margin: '12px auto',
+            padding: '10px 14px',
+            border: '1px solid #b45309',
+            borderRadius: 8,
+            backgroundColor: '#fffbeb',
+            color: '#78350f',
+            fontSize: 14,
+            lineHeight: 1.5,
+          }}
+        >
+          {xdic255RelatedFailures.some((item) => item.kind === 'TIMEOUT')
+            ? '일부 관련 검색이 시간 초과로 완료되지 않았습니다. 표시된 결과에 누락이 있을 수 있습니다. 다시 검색해 주세요.'
+            : '일부 관련 검색이 완료되지 않았습니다. 표시된 결과에 누락이 있을 수 있습니다. 다시 검색해 주세요.'}
+        </div>
+      )}
+      {/* XDIC_KO255_UI_END */}
     <SearchPage 
       query={query} 
       results={results} 
@@ -3982,5 +4238,6 @@ if (isSentenceSearch) {
       matchedKeywords={matchedKeywords}
       isSentenceSearch={isSentenceSearch}
     />
+    </>
   );
 }
