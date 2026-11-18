@@ -1530,7 +1530,7 @@ const isSentenceSearch =
         
         // XDIC_KO253_PATTERN_BEGIN
         res.forEach((r, xdic253PatternIndex) => {
-            xdic253Capture('exact8', `${qStr}#${xdic253PatternIndex + 1}`, r?.data, r?.error);
+            xdic253Capture('exact8', `${qStr}#${xdic253PatternIndex + 1}`, r?.data, r && 'error' in r ? r.error : null);
             if (r && r.data) {
                 r.data.forEach((item: any) => {
                     if (isExactPriority) item.is_exact_priority = true;
