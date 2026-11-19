@@ -1215,6 +1215,48 @@ const isSentenceSearch =
     exactAnd: [] as Array<{ tokens: string[]; elapsedMs: number; resultCount: number; error: string | null }>,
     relaxed: [] as Array<{ exact: string; relaxed: string; elapsedMs: number; resultCount: number; error: string | null }>,
   };
+  // KO271: development-only readout of already-fetched group results.
+  // No extra SQL, no resultsMap mutation, no ranking or query changes.
+  const xdicKo271Shadow = {
+    exactAnd: [] as Array<{
+      tokens: string[];
+      sqlWaitMs: number;
+      fetchedRows: number;
+      safeRows: number;
+      existingCandidateRows: number;
+      newCandidateRows: number;
+      timedOut: boolean;
+    }>,
+    relaxed: [] as Array<{
+      exact: string;
+      relaxed: string;
+      sqlWaitMs: number;
+      fetchedRows: number;
+      safeRows: number;
+      promotionRows: number;
+      supportRows: number;
+      existingCandidateRows: number;
+      newCandidateRows: number;
+      promotionEligible: boolean;
+      timedOut: boolean;
+    }>,
+  };
+
+  // KO272: read-only prediction of Exact-AND's effects on already-cached rows.
+  // No query / result / priority mutation: only request-scoped dev telemetry.
+  const xdicKo272ExactAndImpact: Array<{
+    tokens: string[];
+    existingRows: number;
+    newRows: number;
+    existingPriorityChanges: number;
+    existingCountChanges: number;
+    existingWeightChanges: number;
+    existingMatchTagChanges: number;
+    existingAnyValueChanges: number;
+    wouldTriggerRerank: boolean;
+    timedOut: boolean;
+  }> = [];
+
   const xdicPerfMarkV1 = (stage: string): void => {
     if (process.env.NODE_ENV !== 'production') {
       xdicPerfTimesV1[stage] = Date.now() - xdicPerfStartedV1;
@@ -2786,6 +2828,12 @@ if (isDbCorePhraseProbeCandidateV4) {
       } =
         await exactAndQueryV4.limit(30);
 
+      // KO271: approximate Supabase wait including query-builder setup.
+      const xdicKo271ExactWaitMs =
+        process.env.NODE_ENV !== 'production'
+          ? Date.now() - startedAt
+          : 0;
+
       const rows =
         Array.isArray(data)
           ? data
@@ -2817,6 +2865,27 @@ if (isDbCorePhraseProbeCandidateV4) {
               )
           );
         });
+
+      // KO271: inspect existing response rows BEFORE original promotion.
+      if (process.env.NODE_ENV !== 'production') {
+        const withIdV271 = safeRowsV72.filter(
+          (row: any) => row?.id !== null && row?.id !== undefined
+        );
+        const knownV271 = withIdV271.filter(
+          (row: any) => resultsMap.has(row.id)
+        ).length;
+        xdicKo271Shadow.exactAnd.push({
+          tokens: [...tokens],
+          sqlWaitMs: xdicKo271ExactWaitMs,
+          fetchedRows: rows.length,
+          safeRows: safeRowsV72.length,
+          existingCandidateRows: knownV271,
+          newCandidateRows: withIdV271.length - knownV271,
+          timedOut:
+            String(error?.code || '') === '57014' ||
+            /statement timeout/i.test(String(error?.message || '')),
+        });
+      }
 
       const exactAndProfilesV74 =
         tokens
@@ -2912,6 +2981,59 @@ if (isDbCorePhraseProbeCandidateV4) {
         hasStrongerSemanticCoreOutsideV74
           ? 4
           : 2;
+
+      // KO272: preview ORIGINAL promotion effects BEFORE it runs, without mutation.
+      if (process.env.NODE_ENV !== 'production') {
+        let existingRowsV272 = 0;
+        let newRowsV272 = 0;
+        let priorityChangesV272 = 0;
+        let countChangesV272 = 0;
+        let weightChangesV272 = 0;
+        let matchChangesV272 = 0;
+        let anyChangesV272 = 0;
+        if (!error) {
+          for (const rowV272 of safeRowsV72) {
+            const idV272 = String(rowV272?.id || '');
+            if (!idV272) continue;
+            const previousV272 = resultsMap.get(rowV272.id);
+            if (!previousV272) {
+              newRowsV272 += 1;
+              continue;
+            }
+            existingRowsV272 += 1;
+            const priorityChangedV272 =
+              Number(previousV272._twoProDbPriority ?? 999) > exactAndPriorityV74;
+            const previousCountV272 =
+              Number(previousV272._twoProDbExactAndCount || 0);
+            const previousWeightV272 =
+              Number(previousV272._twoProDbExactAndWeight || 0);
+            const countChangedV272 =
+              Math.max(previousCountV272, tokens.length) !== previousCountV272;
+            const weightChangedV272 =
+              Math.max(previousWeightV272, exactAndWeightV7) !== previousWeightV272;
+            const matchChangedV272 = previousV272._twoProDbMatch !== 'core-exact-and';
+            if (priorityChangedV272) priorityChangesV272 += 1;
+            if (countChangedV272) countChangesV272 += 1;
+            if (weightChangedV272) weightChangesV272 += 1;
+            if (matchChangedV272) matchChangesV272 += 1;
+            if (priorityChangedV272 || countChangedV272 ||
+                weightChangedV272 || matchChangedV272) anyChangesV272 += 1;
+          }
+        }
+        xdicKo272ExactAndImpact.push({
+          tokens: [...tokens],
+          existingRows: existingRowsV272,
+          newRows: newRowsV272,
+          existingPriorityChanges: priorityChangesV272,
+          existingCountChanges: countChangesV272,
+          existingWeightChanges: weightChangesV272,
+          existingMatchTagChanges: matchChangesV272,
+          existingAnyValueChanges: anyChangesV272,
+          wouldTriggerRerank: !error && existingRowsV272 + newRowsV272 > 0,
+          timedOut: String(error?.code || '') === '57014' ||
+            /statement timeout/i.test(String(error?.message || '')),
+        });
+      }
 
       if (!error) {
         for (const row of safeRowsV72) {
@@ -3046,7 +3168,7 @@ if (isDbCorePhraseProbeCandidateV4) {
   }
 
   // KO236: copy existing per-group stats. No extra queries or result changes.
-  if (isSentenceSearch && process.env.NODE_ENV !== 'production') {
+  if (isDbCorePhraseProbeCandidateV4 && process.env.NODE_ENV !== 'production') {
     xdicCore236.exactAnd = phraseExactAndStatsV4.map(
       ({ tokens, elapsedMs, resultCount, error }) =>
         ({ tokens, elapsedMs, resultCount, error })
@@ -3320,6 +3442,12 @@ if (isDbCorePhraseProbeCandidateV4) {
           )
           .limit(30);
 
+// KO271: approximate Supabase wait including query-builder setup.
+const xdicKo271RelaxedWaitMs =
+  process.env.NODE_ENV !== 'production'
+    ? Date.now() - startedAt
+    : 0;
+
 const rows =
   Array.isArray(data)
     ? data
@@ -3537,6 +3665,31 @@ const relaxedBoundaryRegexV51 =
         allowTwoProLocalPromotionV52 &&
         (exactProfileV52?.retrievalWeight || 0) >= 4.0;
 
+      // KO271: inspect boundary-safe rows BEFORE original promotion.
+      if (process.env.NODE_ENV !== 'production') {
+        const withIdV271 = safeRowsV51.filter(
+          (row: any) => row?.id !== null && row?.id !== undefined
+        );
+        const knownV271 = withIdV271.filter(
+          (row: any) => resultsMap.has(row.id)
+        ).length;
+        xdicKo271Shadow.relaxed.push({
+          exact: group.exact,
+          relaxed: group.relaxed,
+          sqlWaitMs: xdicKo271RelaxedWaitMs,
+          fetchedRows: rows.length,
+          safeRows: safeRowsV51.length,
+          promotionRows: promotionRowsV741.length,
+          supportRows: supportingRowsV742.length,
+          existingCandidateRows: knownV271,
+          newCandidateRows: withIdV271.length - knownV271,
+          promotionEligible: shouldPromoteV52,
+          timedOut:
+            String(error?.code || '') === '57014' ||
+            /statement timeout/i.test(String(error?.message || '')),
+        });
+      }
+
       if (shouldPromoteV52) {
         for (const row of promotionRowsV741) {
           const rowId =
@@ -3710,7 +3863,7 @@ const relaxedBoundaryRegexV51 =
   }
 
   // KO236: copy existing relaxed-group stats. No query or ranking changes.
-  if (isSentenceSearch && process.env.NODE_ENV !== 'production') {
+  if (isDbCorePhraseProbeCandidateV4 && process.env.NODE_ENV !== 'production') {
     xdicCore236.relaxed = relaxedStatsV5.map(
       ({ exact, relaxed, elapsedMs, resultCount, error }) =>
         ({ exact, relaxed, elapsedMs, resultCount, error })
@@ -4157,6 +4310,10 @@ if (isSentenceSearch) {
         exactAndSumMs: xdicCore236.exactAnd.reduce((sum, item) => sum + item.elapsedMs, 0),
         relaxedSumMs: xdicCore236.relaxed.reduce((sum, item) => sum + item.elapsedMs, 0),
       },
+      // KO271: developer-only counts from existing Supabase responses.
+      // KO272: no extra query; derived before original per-row metadata writes.
+      ko272ExactAndImpact: xdicKo272ExactAndImpact,
+      ko271Shadow: xdicKo271Shadow,
       authMs: m.auth ?? null,
       primaryMs: m.primary === undefined ? null : m.primary - (m.auth ?? 0),
       fallbackMs: m.fallback === undefined ? null : m.fallback - (m.primary ?? m.auth ?? 0),
