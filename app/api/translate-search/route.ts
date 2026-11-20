@@ -51984,7 +51984,7 @@ const twoProTryKoEnGeneralPassiveAspectV1053GPA = (
   // XDIC-CORE481-APPLICANTS-REFERRED-FOR-ADDITIONAL-SCREENING-WILL-WILL_NOT-BE-SCHEDULED-SIMPLE_FUTURE-STATEMENTS-SLOT-SAFE
   // CORE481: eight WILL / WILL NOT BE SCHEDULED simple future passive statements.
   const core481ApplicantReferredAdditionalScreeningWillScheduledSimpleFutureStatementMatch =
-    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (내일|다음 주에) 추가 심사에 회부될 일정이 (잡힐 거예요|잡히지 않을 거예요)$/u.exec(normalized);
+    /^그 지원자(는|들은) 조건이 (충족되지 않았으므로|충족되었으므로) (내일|모레|다음 주에) 추가 심사에 회부될 일정이 (잡힐 거예요|잡히지 않을 거예요)$/u.exec(normalized);
   if (core481ApplicantReferredAdditionalScreeningWillScheduledSimpleFutureStatementMatch && !isQuestion && (
     (core481ApplicantReferredAdditionalScreeningWillScheduledSimpleFutureStatementMatch[2] === '충족되지 않았으므로' && core481ApplicantReferredAdditionalScreeningWillScheduledSimpleFutureStatementMatch[4] === '잡힐 거예요') ||
     (core481ApplicantReferredAdditionalScreeningWillScheduledSimpleFutureStatementMatch[2] === '충족되었으므로' && core481ApplicantReferredAdditionalScreeningWillScheduledSimpleFutureStatementMatch[4] === '잡히지 않을 거예요')
@@ -51995,7 +51995,7 @@ const twoProTryKoEnGeneralPassiveAspectV1053GPA = (
     const core481PredicateKo = core481ApplicantReferredAdditionalScreeningWillScheduledSimpleFutureStatementMatch[4];
     const core481Positive = core481PredicateKo === '잡힐 거예요';
     const core481Subject = core481Plural ? 'The applicants' : 'The applicant';
-    const core481Time = core481TimeKo === '내일' ? 'tomorrow' : 'next week';
+    const core481Time = core481TimeKo === '내일' ? 'tomorrow' : core481TimeKo === '모레' ? 'the day after tomorrow' : 'next week';
     const core481Reason = core481Positive ? 'because the conditions were not met' : 'because the conditions were met';
     const core481Predicate = core481Positive ? 'will be scheduled' : 'will not be scheduled';
     const core481English = `${core481Subject} ${core481Predicate} to be referred for additional screening ${core481Time} ${core481Reason}.`;
@@ -154613,6 +154613,28 @@ if (twoProBasicPassiveResultV1295) {
       }
     }
 
+    // XDIC-CORE743-KOEN-REPEAT-ONCE-MORE-FALLBACK-SAFE-BEGIN
+    // Only apply when all existing CORE, JSON and slot routes did not return a result.
+    // This preserves '다시' behavior and accepts '다시 한번' / '다시 한 번' for report resend.
+    const core743ReportRepeatMatch =
+      /^(내일까지\s+)?보고서를\s+(이메일로\s+)?다시\s+한\s?번\s+보내\s*주세요[.!]?\s*$/u.exec(String(originalText || '').trim());
+    if (core743ReportRepeatMatch) {
+      const core743ByEmail = Boolean(core743ReportRepeatMatch[2]);
+      const core743ByTomorrow = Boolean(core743ReportRepeatMatch[1]);
+      const core743English =
+        `Please resend the report${core743ByEmail ? ' by email' : ''} once more${core743ByTomorrow ? ' by tomorrow' : ''}.`;
+      return twoProRespondWithPhraseDiagnosticsV915({
+        ok: true,
+        best: {
+          source_text: originalText,
+          target_text: twoProFinalizeEnglish(core743English, originalText),
+          analysis: [],
+          referenceWords: [],
+          engine: 'core743-repeat-once-more-report-fallback-ko-en-safe',
+        },
+      });
+    }
+    // XDIC-CORE743-KOEN-REPEAT-ONCE-MORE-FALLBACK-SAFE-END
     return twoProRespondWithPhraseDiagnosticsV915({ ok: false, error: '분석할 수 없는 문장 구조입니다.' });
   } catch (error) {
     console.error('한영 RBMT 엔진 에러:', error);

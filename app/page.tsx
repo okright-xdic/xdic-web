@@ -1242,6 +1242,16 @@ const isSentenceSearch =
     }>,
   };
 
+  // XDIC_KO286J_RANK_SHADOW_CACHE_BEGIN
+  // Request-local copy of rows already retrieved by KO286G; no extra DB calls.
+  let xdicKo286jRankRows: {
+    tokens: string[];
+    rows: any[];
+    priority: number | null;
+    weight: number | null;
+  } | null = null;
+  // XDIC_KO286J_RANK_SHADOW_CACHE_END
+
   // KO272: read-only prediction of Exact-AND's effects on already-cached rows.
   // No query / result / priority mutation: only request-scoped dev telemetry.
   const xdicKo272ExactAndImpact: Array<{
@@ -1280,6 +1290,20 @@ const isSentenceSearch =
 
   const promises: Promise<void>[] = [];
   const resultsMap = new Map();
+  // XDIC_KO286B_SHADOW_STATE_BEGIN
+  // Local development telemetry only: no SQL, resultsMap, ranking or UI changes.
+  const xdic286bRelatedEvents: Array<{
+    keyword: string;
+    waitMs: number;
+    fetchedRows: number | null;
+    failed: boolean;
+    errorCode: string | null;
+    errorMessage: string | null;
+    timeout: boolean;
+    simulated: boolean;
+    threw: boolean;
+  }> = [];
+  // XDIC_KO286B_SHADOW_STATE_END
   // XDIC_KO255_STATUS_BEGIN: request-scoped failure metadata only.
   // No additional reads, retries, SQL changes, or ranking mutations.
   const xdic255RelatedFailures: Array<{ keyword: string; kind: 'TIMEOUT' | 'ERROR' }> = [];
@@ -1854,6 +1878,9 @@ relatedSearchKeywords.forEach((keyword) => {
   // category_id 0은 번역 말뭉치 전용이므로
   // 관련 검색 결과에는 포함하지 않습니다.
   fallbackPromises.push((async () => {
+    // XDIC_KO286B_SHADOW_TIMER_BEGIN: all related-ILIKE calls, including non-sentence queries.
+    const xdic286bStarted = process.env.NODE_ENV === 'development' ? Date.now() : 0;
+    // XDIC_KO286B_SHADOW_TIMER_END
     const xdic223RelatedStarted = isSentenceSearch && process.env.NODE_ENV !== 'production' ? Date.now() : 0;
     // XDIC_KO256_START_BEGIN: timing only for the pre-existing KO253 opt-in probes.
     const xdic256RelatedStarted = xdic253Enabled ? Date.now() : 0;
@@ -1906,6 +1933,24 @@ relatedSearchKeywords.forEach((keyword) => {
         });
       }
 
+      // XDIC_KO286B_SHADOW_RESULT_BEGIN
+      if (xdic286bStarted) {
+        const failure = xdic255EffectiveError;
+        const code = failure ? String(failure.code || '') : '';
+        const message = failure ? String(failure.message || '') : '';
+        xdic286bRelatedEvents.push({
+          keyword: cleanK,
+          waitMs: Date.now() - xdic286bStarted,
+          fetchedRows: failure ? null : (Array.isArray(data) ? data.length : null),
+          failed: Boolean(failure),
+          errorCode: failure ? code || null : null,
+          errorMessage: failure ? message.slice(0, 300) : null,
+          timeout: Boolean(failure && (code === '57014' || /statement timeout/i.test(message))),
+          simulated: Boolean(xdic255InjectedError && !error),
+          threw: false,
+        });
+      }
+      // XDIC_KO286B_SHADOW_RESULT_END
       if (xdic255EffectiveError) {
         // XDIC_KO255_ERROR_BEGIN: error != successful zero-row response.
         xdic255RecordRelatedFailure(cleanK, xdic255EffectiveError);
@@ -1939,6 +1984,23 @@ relatedSearchKeywords.forEach((keyword) => {
         });
       }
       // XDIC_KO256_CATCH_END
+      // XDIC_KO286B_SHADOW_CATCH_BEGIN
+      if (xdic286bStarted) {
+        const code = String((error as { code?: unknown })?.code || '');
+        const message = String((error as { message?: unknown })?.message || error || '');
+        xdic286bRelatedEvents.push({
+          keyword: cleanK,
+          waitMs: Date.now() - xdic286bStarted,
+          fetchedRows: null,
+          failed: true,
+          errorCode: code || null,
+          errorMessage: message.slice(0, 300),
+          timeout: code === '57014' || /statement timeout/i.test(message),
+          simulated: false,
+          threw: true,
+        });
+      }
+      // XDIC_KO286B_SHADOW_CATCH_END
       // XDIC_KO255_CATCH_BEGIN
       xdic255RecordRelatedFailure(cleanK, error);
       // XDIC_KO255_CATCH_END
@@ -2055,6 +2117,115 @@ relatedSearchKeywords.forEach((keyword) => {
       // XDIC_KO263_ARGS_END
       // XDIC_KO260_ROTATE_MAIN_BEGIN: opt-in snapshots only.
       xdic253Capture('ko260-rotate-main-before', cleanQuery, results);
+      // XDIC_KO286X_CANONICAL_SORT_SHADOW_BEGIN
+      // Explicit development-only single-query shadow. Never writes to real
+      // results/resultsMap, never calls Supabase, and never changes rotateResults().
+      const xdic286xEnabled =
+        process.env.NODE_ENV === 'development' &&
+        process.env.XDIC_KO286G_FTS_SHADOW === '1' &&
+        xdic253Enabled && xdic263Enabled &&
+        cleanQuery === '예비 후보' &&
+        (searchParams as any)?.ko286x === '1';
+      let xdic286xAudit: any = null;
+      if (xdic286xEnabled) {
+        const startedV286X = Date.now();
+        const originalIdsV286X = results.map((row: any) => String(row?.id ?? ''));
+        const originalKeysV286X = Array.from(resultsMap.keys()).map(String);
+        const originalMapFingerprintV286X = JSON.stringify(
+          Array.from(resultsMap.values()).map((row: any) => [
+            row?.id, row?.line_text, row?.category_id, row?.source_order,
+            row?.is_exact_priority, row?.split_type, row?.split_keyword,
+            row?._twoProDbPriority, row?._twoProDbMatch,
+            row?._twoProDbExactAndCount, row?._twoProDbExactAndWeight
+          ])
+        );
+        try {
+          if (originalIdsV286X.length !== 180 ||
+              originalIdsV286X.some((id) => !id || id === 'undefined')) {
+            throw new Error('Unexpected pre-rotate candidate IDs/count');
+          }
+          const byIdV286X = new Map<string, any>();
+          results.forEach((row: any) => byIdV286X.set(String(row.id), row));
+          if (byIdV286X.size !== originalIdsV286X.length) {
+            throw new Error('Duplicate pre-rotate IDs');
+          }
+          const seenV286X = new Set<string>();
+          const canonicalIdsV286X: string[] = [];
+          const addEventV286X = (stage: string, keyword?: string) => {
+            const matches = xdic253Events.filter((event: any) =>
+              event.stage === stage &&
+              (keyword === undefined || event.keyword === keyword)
+            ) as any[];
+            if (matches.length !== 1 || !Array.isArray(matches[0]?.ids)) {
+              throw new Error('Expected exactly one captured event: ' +
+                stage + '/' + String(keyword ?? ''));
+            }
+            for (const rawId of matches[0].ids) {
+              const id = String(rawId);
+              if (!byIdV286X.has(id)) {
+                throw new Error('Event contains ID absent from original: ' + id);
+              }
+              if (!seenV286X.has(id)) {
+                seenV286X.add(id);
+                canonicalIdsV286X.push(id);
+              }
+            }
+          };
+          addEventV286X('after-primary');
+          for (const token of ['예비', '후보']) {
+            for (let pattern = 1; pattern <= 8; pattern++) {
+              addEventV286X('exact8', token + '#' + pattern);
+            }
+          }
+          for (const token of ['예비', '후보']) {
+            addEventV286X('related-ILIKE', token);
+          }
+          const missingV286X = originalIdsV286X.filter((id) => !seenV286X.has(id));
+          if (missingV286X.length !== 0 ||
+              canonicalIdsV286X.length !== originalIdsV286X.length) {
+            throw new Error('Canonical coverage mismatch: missing=' +
+              missingV286X.length + ', count=' + canonicalIdsV286X.length);
+          }
+          const canonicalRowsV286X = canonicalIdsV286X.map((id) => ({
+            ...byIdV286X.get(id)
+          }));
+          const canonicalSortedV286X = rotateResults(
+            canonicalRowsV286X,
+            cleanQuery,
+            rankingSearchKeywordsV6,
+            flexStr,
+            isSplitModeActive
+          );
+          const sortedIdsV286X = canonicalSortedV286X.map(
+            (row: any) => String(row?.id ?? '')
+          );
+          if (sortedIdsV286X.length !== originalIdsV286X.length ||
+              new Set(sortedIdsV286X).size !== originalIdsV286X.length ||
+              sortedIdsV286X.some((id) => !byIdV286X.has(id))) {
+            throw new Error('Canonical rotateResults output coverage mismatch');
+          }
+          xdic286xAudit = {
+            error: null,
+            canonicalInputIds: canonicalIdsV286X,
+            canonicalSortedIds: sortedIdsV286X,
+            actualBeforeIds: originalIdsV286X,
+            beforeMapKeys: originalKeysV286X,
+            beforeMapFingerprint: originalMapFingerprintV286X,
+            elapsedMs: Date.now() - startedV286X,
+          };
+        } catch (xdic286xError: any) {
+          xdic286xAudit = {
+            error: String(xdic286xError?.message || xdic286xError),
+            canonicalInputIds: [],
+            canonicalSortedIds: [],
+            actualBeforeIds: originalIdsV286X,
+            beforeMapKeys: originalKeysV286X,
+            beforeMapFingerprint: originalMapFingerprintV286X,
+            elapsedMs: Date.now() - startedV286X,
+          };
+        }
+      }
+      // XDIC_KO286X_CANONICAL_SORT_SHADOW_INPUT_END
       results =
         rotateResults(
           results,
@@ -2064,6 +2235,63 @@ relatedSearchKeywords.forEach((keyword) => {
           isSplitModeActive
         );
       xdic253Capture('ko260-rotate-main-after', cleanQuery, results);
+      // XDIC_KO286X_CANONICAL_SORT_SHADOW_OUTPUT_BEGIN
+      if (xdic286xEnabled && xdic286xAudit) {
+        try {
+          const actualAfterIdsV286X = results.map((row: any) => String(row?.id ?? ''));
+          const currentMapKeysV286X = Array.from(resultsMap.keys()).map(String);
+          const currentMapFingerprintV286X = JSON.stringify(
+            Array.from(resultsMap.values()).map((row: any) => [
+              row?.id, row?.line_text, row?.category_id, row?.source_order,
+              row?.is_exact_priority, row?.split_type, row?.split_keyword,
+              row?._twoProDbPriority, row?._twoProDbMatch,
+              row?._twoProDbExactAndCount, row?._twoProDbExactAndWeight
+            ])
+          );
+          const canonicalSortedIdsV286X: string[] = xdic286xAudit.canonicalSortedIds;
+          const actualSetV286X = new Set(actualAfterIdsV286X);
+          const canonicalSetV286X = new Set(canonicalSortedIdsV286X);
+          const canonicalInputIdsV286X: string[] = xdic286xAudit.canonicalInputIds;
+          xdicPerfWriteToFileV2('[XDIC KO286X CANONICAL SORT SHADOW]', JSON.stringify({
+            probeId: xdic253ProbeId,
+            pilot: (searchParams as any)?.ko286m === '1',
+            actualBeforeCount: xdic286xAudit.actualBeforeIds.length,
+            canonicalInputCount: canonicalInputIdsV286X.length,
+            canonicalSortedCount: canonicalSortedIdsV286X.length,
+            actualAfterCount: actualAfterIdsV286X.length,
+            inputOrderSame: canonicalInputIdsV286X.join('|') ===
+              xdic286xAudit.actualBeforeIds.join('|'),
+            sortedOrderSame: canonicalSortedIdsV286X.join('|') ===
+              actualAfterIdsV286X.join('|'),
+            missingCanonical: xdic286xAudit.actualBeforeIds.filter(
+              (id: string) => !canonicalInputIdsV286X.includes(id)
+            ).length,
+            missingActual: canonicalSortedIdsV286X.filter(
+              (id: string) => !actualSetV286X.has(id)
+            ).length,
+            extraActual: actualAfterIdsV286X.filter(
+              (id: string) => !canonicalSetV286X.has(id)
+            ).length,
+            resultsMapUnchanged:
+              currentMapKeysV286X.join('|') === xdic286xAudit.beforeMapKeys.join('|') &&
+              currentMapFingerprintV286X === xdic286xAudit.beforeMapFingerprint,
+            originalRotationUntouched: true,
+            canonicalSortedIds: canonicalSortedIdsV286X,
+            actualAfterTop20: actualAfterIdsV286X.slice(0, 20),
+            canonicalTop20: canonicalSortedIdsV286X.slice(0, 20),
+            elapsedMs: xdic286xAudit.elapsedMs,
+            error: xdic286xAudit.error,
+          }));
+        } catch (xdic286xLogError: any) {
+          xdicPerfWriteToFileV2('[XDIC KO286X CANONICAL SORT SHADOW]', JSON.stringify({
+            probeId: xdic253ProbeId,
+            pilot: (searchParams as any)?.ko286m === '1',
+            error: String(xdic286xLogError?.message || xdic286xLogError),
+            resultsMutatedByShadow: false,
+          }));
+        }
+      }
+      // XDIC_KO286X_CANONICAL_SORT_SHADOW_END
       // XDIC_KO260_ROTATE_MAIN_END
 // 문장 검색은 관련 검색 결과를
 // 중요 카테고리와 다양성을 고려해 최대 20건으로 정리합니다.
@@ -2768,6 +2996,11 @@ if (isDbCorePhraseProbeCandidateV4) {
       ...phraseExactAndGroupsMapV4.values(),
     ].slice(0, 4);
 
+  // XDIC_KO286G_FTS_TIMEOUT_SHADOW_FLAG_BEGIN
+  // At most one optional FTS probe per request. No result/ranking changes.
+  let xdicKo286gShadowIssued = false;
+  // XDIC_KO286G_FTS_TIMEOUT_SHADOW_FLAG_END
+
   const phraseExactAndStatsV4: Array<{
     tokens: string[];
     elapsedMs: number;
@@ -2822,11 +3055,73 @@ if (isDbCorePhraseProbeCandidateV4) {
           );
       }
 
-      const {
-        data,
-        error,
-      } =
-        await exactAndQueryV4.limit(30);
+      // XDIC_KO286M_FTS_FIRST_PILOT_BEGIN
+      // Single-query, developer-only opt-in. Default route remains unchanged.
+      // No persistent DB, result-order or CORE route changes in normal mode.
+      const xdic286mEnabled =
+        process.env.NODE_ENV === 'development' &&
+        process.env.XDIC_KO286G_FTS_SHADOW === '1' &&
+        (searchParams as any)?.ko286m === '1' &&
+        cleanQuery.normalize('NFC').trim() === '예비 후보' &&
+        tokens.length === 2 &&
+        tokens[0] === '예비' &&
+        tokens[1] === '후보';
+      let data: any = null;
+      let error: any = null;
+      let xdic286mUsedFts = false;
+      if (xdic286mEnabled) {
+        const xdic286mStartedAt = Date.now();
+        try {
+          const xdic286mResponse = await supabase
+            .from('dictionary_lines')
+            .select('*')
+            .neq('category_id', 0)
+            .textSearch('line_text', "'예비':* & '후보':*", { config: 'simple' })
+            .limit(30);
+          const xdic286mFetched = Array.isArray(xdic286mResponse.data)
+            ? xdic286mResponse.data : [];
+          const xdic286mSafe = xdic286mFetched.filter((row: any) =>
+            tokens.every((token) =>
+              twoProHasExactTokenBoundaryV72(String(row?.line_text || ''), token)
+            )
+          );
+          // If the pilot query fails/has no safe candidate, retain the
+          // original Exact-AND query and its unchanged error handling.
+          if (!xdic286mResponse.error && xdic286mSafe.length > 0) {
+            data = xdic286mFetched;
+            error = null;
+            xdic286mUsedFts = true;
+          }
+          xdicPerfWriteToFileV2('[XDIC KO286M FTS FIRST PILOT]', JSON.stringify({
+            queryLength: cleanQuery.length,
+            tokens: [...tokens],
+            ftsWaitMs: Date.now() - xdic286mStartedAt,
+            fetchedRows: xdic286mFetched.length,
+            safeRows: xdic286mSafe.length,
+            usedFts: xdic286mUsedFts,
+            exactAndSkipped: xdic286mUsedFts,
+            fallbackToOriginal: !xdic286mUsedFts,
+            error: xdic286mResponse.error?.message || null,
+            mode: 'explicit-developer-only-single-query',
+          }));
+        } catch (xdic286mError: any) {
+          xdicPerfWriteToFileV2('[XDIC KO286M FTS FIRST PILOT]', JSON.stringify({
+            queryLength: cleanQuery.length,
+            tokens: [...tokens],
+            usedFts: false,
+            exactAndSkipped: false,
+            fallbackToOriginal: true,
+            error: String(xdic286mError?.message || xdic286mError),
+            mode: 'pilot-exception-fallback-original',
+          }));
+        }
+      }
+      if (!xdic286mUsedFts) {
+        const xdic286mOriginal = await exactAndQueryV4.limit(30);
+        data = xdic286mOriginal.data;
+        error = xdic286mOriginal.error;
+      }
+      // XDIC_KO286M_FTS_FIRST_PILOT_END
 
       // KO271: approximate Supabase wait including query-builder setup.
       const xdicKo271ExactWaitMs =
@@ -2838,6 +3133,89 @@ if (isDbCorePhraseProbeCandidateV4) {
         Array.isArray(data)
           ? data
           : [];
+
+      // XDIC_KO286G_FTS_TIMEOUT_SHADOW_BEGIN
+      // Development-only, explicit opt-in. Only AFTER an existing Exact-AND
+      // statement timeout and only for two Hangul CORE tokens. No promotion.
+      if (
+        process.env.NODE_ENV === 'development' &&
+        process.env.XDIC_KO286G_FTS_SHADOW === '1' &&
+        !xdicKo286gShadowIssued &&
+        tokens.length === 2 &&
+        tokens.every((token) => /^[가-힣]{2,}$/.test(token)) &&
+        (
+          String(error?.code || '') === '57014' ||
+          /statement timeout/i.test(String(error?.message || ''))
+        )
+      ) {
+        xdicKo286gShadowIssued = true;
+        const ftsShadowStartedAt = Date.now();
+        try {
+          const ftsShadowQuery = tokens
+            .map((token) => `'${token}':*`)
+            .join(' & ');
+          const { data: ftsData, error: ftsError } = await supabase
+            .from('dictionary_lines')
+            .select('id,category_id,source_order,line_text')
+            .neq('category_id', 0)
+            .textSearch('line_text', ftsShadowQuery, { config: 'simple' })
+            .limit(30);
+          const ftsFetched = Array.isArray(ftsData) ? ftsData : [];
+          const ftsSafe = ftsFetched.filter((row: any) =>
+            tokens.every((token) =>
+              twoProHasExactTokenBoundaryV72(String(row?.line_text || ''), token)
+            )
+          );
+          const ftsExisting = ftsSafe.filter((row: any) =>
+            row?.id !== null && row?.id !== undefined && resultsMap.has(row.id)
+          ).length;
+          // XDIC_KO286J_RANK_SHADOW_CAPTURE_BEGIN
+          // Explicit URL opt-in plus KO286G env opt-in; keep only safe row copies.
+          if (
+            !ftsError &&
+            process.env.NODE_ENV === 'development' &&
+            process.env.XDIC_KO286G_FTS_SHADOW === '1' &&
+            (searchParams as any)?.ko286j === '1' &&
+            ftsSafe.length > 0
+          ) {
+            xdicKo286jRankRows = {
+              tokens: [...tokens],
+              rows: ftsSafe
+                .filter((row: any) => row?.id !== null && row?.id !== undefined)
+                .map((row: any) => ({ ...row })),
+              priority: null,
+              weight: null,
+            };
+          }
+          // XDIC_KO286J_RANK_SHADOW_CAPTURE_END
+          xdicPerfWriteToFileV2('[XDIC KO286G FTS SHADOW]', JSON.stringify({
+            queryLength: cleanQuery.length,
+            tokens: [...tokens],
+            timedOutExactAnd: true,
+            ftsWaitMs: Date.now() - ftsShadowStartedAt,
+            fetchedRows: ftsFetched.length,
+            safeRows: ftsSafe.length,
+            existingCandidateRows: ftsExisting,
+            newCandidateRows: ftsSafe.length - ftsExisting,
+            error: ftsError?.message || null,
+            resultsMutated: false,
+          }));
+        } catch (ftsShadowError: any) {
+          xdicPerfWriteToFileV2('[XDIC KO286G FTS SHADOW]', JSON.stringify({
+            queryLength: cleanQuery.length,
+            tokens: [...tokens],
+            timedOutExactAnd: true,
+            ftsWaitMs: Date.now() - ftsShadowStartedAt,
+            fetchedRows: 0,
+            safeRows: 0,
+            existingCandidateRows: 0,
+            newCandidateRows: 0,
+            error: String(ftsShadowError?.message || ftsShadowError),
+            resultsMutated: false,
+          }));
+        }
+      }
+      // XDIC_KO286G_FTS_TIMEOUT_SHADOW_END
 
       // ------------------------------------------------------------
       // v7.2:
@@ -2981,6 +3359,18 @@ if (isDbCorePhraseProbeCandidateV4) {
         hasStrongerSemanticCoreOutsideV74
           ? 4
           : 2;
+
+      // XDIC_KO286J_RANK_SHADOW_META_BEGIN
+      // Copy EXACT v7.4 priority and weight AFTER original calculation.
+      if (
+        xdicKo286jRankRows &&
+        xdicKo286jRankRows.tokens.length === tokens.length &&
+        xdicKo286jRankRows.tokens.every((token, idx) => token === tokens[idx])
+      ) {
+        xdicKo286jRankRows.priority = exactAndPriorityV74;
+        xdicKo286jRankRows.weight = exactAndWeightV7;
+      }
+      // XDIC_KO286J_RANK_SHADOW_META_END
 
       // KO272: preview ORIGINAL promotion effects BEFORE it runs, without mutation.
       if (process.env.NODE_ENV !== 'production') {
@@ -4291,6 +4681,599 @@ if (isSentenceSearch) {
     }
   }
 
+  // XDIC_KO286Z_LIMITED_DISPLAY_PILOT_DECL_BEGIN
+  // The default and all shadow requests keep the original final result order.
+  let xdic286zPendingSort: any[] | null = null;
+  // XDIC_KO286Z_LIMITED_DISPLAY_PILOT_DECL_END
+  // XDIC_KO286Y_FULL183_SORT_SHADOW_BEGIN
+  // Developer-only fixed-input sort for the COMPLETE final 180/183 candidates.
+  // Uses only KO253's already collected event IDs and copies of existing rows.
+  // No SQL; never overwrites results, resultsMap, CORE, or the original sorter.
+  if (
+    process.env.NODE_ENV === 'development' &&
+    process.env.XDIC_KO286G_FTS_SHADOW === '1' &&
+    xdic253Enabled && xdic263Enabled &&
+    cleanQuery === '예비 후보' &&
+    (searchParams as any)?.ko286x === '1' &&
+    (searchParams as any)?.ko286y === '1'
+  ) {
+    const startedV286Y = Date.now();
+    const pilotV286Y = (searchParams as any)?.ko286m === '1';
+    const idOfV286Y = (row: any): string => String(row?.id ?? '');
+    const beforeIdsV286Y = results.map(idOfV286Y);
+    const beforeMapKeysV286Y = Array.from(resultsMap.keys()).map(String);
+    const fingerprintV286Y = (): string => JSON.stringify({
+      results: results.map((row: any) => [
+        row?.id, row?.line_text, row?.category_id, row?.source_order,
+        row?.is_exact_priority, row?.split_type, row?.split_keyword,
+        row?._twoProDbPriority, row?._twoProDbMatch,
+        row?._twoProDbExactAndCount, row?._twoProDbExactAndWeight,
+        row?._db_index
+      ]),
+      map: Array.from(resultsMap.values()).map((row: any) => [
+        row?.id, row?.line_text, row?.category_id, row?.source_order,
+        row?.is_exact_priority, row?.split_type, row?.split_keyword,
+        row?._twoProDbPriority, row?._twoProDbMatch,
+        row?._twoProDbExactAndCount, row?._twoProDbExactAndWeight,
+        row?._db_index
+      ])
+    });
+    const beforeFingerprintV286Y = fingerprintV286Y();
+    try {
+      const expectedCountV286Y = pilotV286Y ? 183 : 180;
+      if (results.length !== expectedCountV286Y ||
+          beforeIdsV286Y.some((id) => !id || id === 'undefined')) {
+        throw new Error('Unexpected final count/ID: ' + results.length);
+      }
+      const byIdV286Y = new Map<string, any>();
+      results.forEach((row: any) => byIdV286Y.set(idOfV286Y(row), row));
+      if (byIdV286Y.size !== results.length) {
+        throw new Error('Duplicate final candidate ID');
+      }
+      const seenV286Y = new Set<string>();
+      const baselineIdsV286Y: string[] = [];
+      const addEventV286Y = (stage: string, keyword?: string) => {
+        const matches = xdic253Events.filter((event: any) =>
+          event.stage === stage &&
+          (keyword === undefined || event.keyword === keyword)
+        ) as any[];
+        if (matches.length !== 1 || !Array.isArray(matches[0]?.ids)) {
+          throw new Error('Missing/duplicate event: ' + stage + '/' + String(keyword ?? ''));
+        }
+        for (const rawId of matches[0].ids) {
+          const id = String(rawId ?? '');
+          if (!byIdV286Y.has(id)) {
+            throw new Error('Baseline event ID absent from final set: ' + id);
+          }
+          if (!seenV286Y.has(id)) {
+            seenV286Y.add(id);
+            baselineIdsV286Y.push(id);
+          }
+        }
+      };
+      addEventV286Y('after-primary');
+      for (const token of ['예비', '후보']) {
+        for (let pattern = 1; pattern <= 8; pattern++) {
+          addEventV286Y('exact8', token + '#' + pattern);
+        }
+      }
+      for (const token of ['예비', '후보']) {
+        addEventV286Y('related-ILIKE', token);
+      }
+      if (baselineIdsV286Y.length !== 180) {
+        throw new Error('Baseline canonical coverage != 180: ' + baselineIdsV286Y.length);
+      }
+      const extrasV286Y = results.filter((row: any) => !seenV286Y.has(idOfV286Y(row)));
+      if (extrasV286Y.length !== (pilotV286Y ? 3 : 0)) {
+        throw new Error('Unexpected extra candidates: ' + extrasV286Y.length);
+      }
+      if (pilotV286Y) {
+        const expectedIdsV286Y = new Set([
+          '0cc570e8-3998-4d17-b2b3-5b897b28e02a',
+          'ab4fbb1c-8a0f-42db-8e21-83f87e3afd90',
+          'ace49ebd-8cda-48f0-bcdb-dc9dbce8d8f4'
+        ]);
+        if (extrasV286Y.some((row: any) =>
+          !expectedIdsV286Y.has(idOfV286Y(row)) ||
+          Number(row?.category_id) !== 12 ||
+          !['예비', '후보'].every((token) =>
+            twoProHasExactTokenBoundaryV72(String(row?.line_text || ''), token)
+          )
+        )) {
+          throw new Error('Unexpected/unsafe FTS extra IDs or boundary');
+        }
+      }
+      const stableExtrasV286Y = [...extrasV286Y].sort((a: any, b: any) => {
+        const ca = Number(a?.category_id ?? 12);
+        const cb = Number(b?.category_id ?? 12);
+        if (ca !== cb) return ca - cb;
+        const oa = Number(a?.source_order ?? Number.MAX_SAFE_INTEGER);
+        const ob = Number(b?.source_order ?? Number.MAX_SAFE_INTEGER);
+        if (oa !== ob) return oa - ob;
+        const ia = idOfV286Y(a);
+        const ib = idOfV286Y(b);
+        return ia < ib ? -1 : ia > ib ? 1 : 0;
+      });
+      const canonicalIdsV286Y = baselineIdsV286Y.concat(stableExtrasV286Y.map(idOfV286Y));
+      if (canonicalIdsV286Y.length !== results.length ||
+          new Set(canonicalIdsV286Y).size !== results.length) {
+        throw new Error('Full canonical candidate coverage mismatch');
+      }
+      const inputRowsV286Y = canonicalIdsV286Y.map((id) => ({ ...byIdV286Y.get(id) }));
+      const rankInputsV286Y = twoProCoreSearchKeywordsV6.length > 0
+        ? twoProCoreSearchKeywordsV6 : allSearchKeywords;
+      const sortedRowsV286Y = rotateResults(
+        inputRowsV286Y, cleanQuery, rankInputsV286Y, flexStr, !!bestSplit
+      );
+      const sortedIdsV286Y = sortedRowsV286Y.map(idOfV286Y);
+      if (sortedIdsV286Y.length !== results.length ||
+          new Set(sortedIdsV286Y).size !== results.length ||
+          sortedIdsV286Y.some((id) => !byIdV286Y.has(id))) {
+        throw new Error('Full canonical sorted coverage mismatch');
+      }
+      // XDIC_KO286Z_LIMITED_DISPLAY_PILOT_PREPARE_BEGIN
+      // Only allow a single exact phrase in a developer-only, fully gated FTS pilot.
+      // Reuse the complete KO286Y coverage and FTS safety checks above.
+      if (
+        pilotV286Y &&
+        (searchParams as any)?.ko286z === '1' &&
+        sortedIdsV286Y.length === 183 &&
+        stableExtrasV286Y.length === 3
+      ) {
+        xdic286zPendingSort = sortedIdsV286Y.map((id) => byIdV286Y.get(id));
+      }
+      // XDIC_KO286Z_LIMITED_DISPLAY_PILOT_PREPARE_END
+      const unchangedV286Y =
+        beforeIdsV286Y.join('|') === results.map(idOfV286Y).join('|') &&
+        beforeMapKeysV286Y.join('|') === Array.from(resultsMap.keys()).map(String).join('|') &&
+        beforeFingerprintV286Y === fingerprintV286Y();
+      xdicPerfWriteToFileV2('[XDIC KO286Y FULL183 SORT SHADOW]', JSON.stringify({
+        probeId: xdic253ProbeId,
+        pilot: pilotV286Y,
+        finalCount: results.length,
+        baselineCanonicalCount: baselineIdsV286Y.length,
+        extraCount: stableExtrasV286Y.length,
+        canonicalCount: canonicalIdsV286Y.length,
+        sortedCount: sortedIdsV286Y.length,
+        baselineCanonicalIds: baselineIdsV286Y,
+        extraIds: stableExtrasV286Y.map(idOfV286Y),
+        canonicalTop20: sortedIdsV286Y.slice(0, 20),
+        canonicalSortedIds: sortedIdsV286Y,
+        actualTop20: beforeIdsV286Y.slice(0, 20),
+        actualSameAsCanonical: beforeIdsV286Y.join('|') === sortedIdsV286Y.join('|'),
+        resultsMapUnchanged: unchangedV286Y,
+        extraSqlCalls: 0,
+        elapsedMs: Date.now() - startedV286Y,
+        error: null,
+      }));
+    } catch (errorV286Y: any) {
+      xdicPerfWriteToFileV2('[XDIC KO286Y FULL183 SORT SHADOW]', JSON.stringify({
+        probeId: xdic253ProbeId,
+        pilot: pilotV286Y,
+        finalCount: results.length,
+        resultsMapUnchanged:
+          beforeIdsV286Y.join('|') === results.map(idOfV286Y).join('|') &&
+          beforeMapKeysV286Y.join('|') === Array.from(resultsMap.keys()).map(String).join('|') &&
+          beforeFingerprintV286Y === fingerprintV286Y(),
+        extraSqlCalls: 0,
+        elapsedMs: Date.now() - startedV286Y,
+        error: String(errorV286Y?.message || errorV286Y),
+      }));
+    }
+  }
+  // XDIC_KO286Y_FULL183_SORT_SHADOW_END
+
+  // XDIC_KO286Z_LIMITED_DISPLAY_PILOT_APPLY_BEGIN
+  // Experimental opt-in ONLY: dev + existing KO286G env + ko253=ko263
+  // + ko286x=1 + ko286y=1 + ko286m=1 + ko286z=1 + exact '예비 후보'.
+  // No added database calls; no original sorter edits; only the result ARRAY
+  // reference is reordered. The original Map, rows, and normal UI are untouched.
+  if (
+    process.env.NODE_ENV === 'development' &&
+    process.env.XDIC_KO286G_FTS_SHADOW === '1' &&
+    xdic253Enabled && xdic263Enabled &&
+    cleanQuery === '예비 후보' &&
+    (searchParams as any)?.ko286m === '1' &&
+    (searchParams as any)?.ko286x === '1' &&
+    (searchParams as any)?.ko286y === '1' &&
+    (searchParams as any)?.ko286z === '1'
+  ) {
+    const startedV286Z = Date.now();
+    const idOfV286Z = (row: any) => String(row?.id ?? '');
+    const beforeIdsV286Z = results.map(idOfV286Z);
+    const beforeMapKeysV286Z = Array.from(resultsMap.keys()).map(String);
+    const beforeMapSnapshotV286Z = JSON.stringify(Array.from(resultsMap.values()).map((row: any) => [
+      row?.id, row?.line_text, row?.category_id, row?.source_order,
+      row?.is_exact_priority, row?.split_type, row?.split_keyword,
+      row?._twoProDbPriority, row?._twoProDbMatch,
+      row?._twoProDbExactAndCount, row?._twoProDbExactAndWeight, row?._db_index
+    ]));
+    let appliedV286Z = false;
+    let errorV286Z: string | null = null;
+    try {
+      if (results.length !== 183 || !xdic286zPendingSort ||
+          xdic286zPendingSort.length !== 183) {
+        throw new Error('KO286Y full-183 canonical candidate prerequisite not satisfied');
+      }
+      const canonicalIdsV286Z = xdic286zPendingSort.map(idOfV286Z);
+      if (
+        new Set(canonicalIdsV286Z).size !== 183 ||
+        canonicalIdsV286Z.some((id) => !id || id === 'undefined') ||
+        beforeIdsV286Z.length !== 183 ||
+        beforeIdsV286Z.some((id) => !canonicalIdsV286Z.includes(id))
+      ) {
+        throw new Error('Canonical 183 candidate coverage mismatch');
+      }
+      if (beforeMapKeysV286Z.join('|') !==
+          Array.from(resultsMap.keys()).map(String).join('|') ||
+          beforeMapSnapshotV286Z !== JSON.stringify(Array.from(resultsMap.values()).map((row: any) => [
+            row?.id, row?.line_text, row?.category_id, row?.source_order,
+            row?.is_exact_priority, row?.split_type, row?.split_keyword,
+            row?._twoProDbPriority, row?._twoProDbMatch,
+            row?._twoProDbExactAndCount, row?._twoProDbExactAndWeight, row?._db_index
+          ]))) {
+        throw new Error('Original resultsMap changed before opt-in apply');
+      }
+      // Apply only to the explicitly requested experiment's results array.
+      results = [...xdic286zPendingSort];
+      appliedV286Z = true;
+    } catch (failureV286Z: any) {
+      errorV286Z = String(failureV286Z?.message || failureV286Z);
+      // On a failed prerequisite leave the original results untouched.
+    }
+    const afterIdsV286Z = results.map(idOfV286Z);
+    const mapIntactV286Z =
+      beforeMapKeysV286Z.join('|') === Array.from(resultsMap.keys()).map(String).join('|') &&
+      beforeMapSnapshotV286Z === JSON.stringify(Array.from(resultsMap.values()).map((row: any) => [
+        row?.id, row?.line_text, row?.category_id, row?.source_order,
+        row?.is_exact_priority, row?.split_type, row?.split_keyword,
+        row?._twoProDbPriority, row?._twoProDbMatch,
+        row?._twoProDbExactAndCount, row?._twoProDbExactAndWeight, row?._db_index
+      ]));
+    xdicPerfWriteToFileV2('[XDIC KO286Z OPTIN DISPLAY PILOT]', JSON.stringify({
+      probeId: xdic253ProbeId,
+      applied: appliedV286Z,
+      pilot: true,
+      beforeCount: beforeIdsV286Z.length,
+      afterCount: afterIdsV286Z.length,
+      beforeTop20: beforeIdsV286Z.slice(0, 20),
+      afterTop20: afterIdsV286Z.slice(0, 20),
+      beforeIds: beforeIdsV286Z,
+      afterIds: afterIdsV286Z,
+      sameCandidateSet:
+        beforeIdsV286Z.length === afterIdsV286Z.length &&
+        beforeIdsV286Z.every((id) => afterIdsV286Z.includes(id)),
+      resultsMapUnchanged: mapIntactV286Z,
+      extraSqlCalls: 0,
+      elapsedMs: Date.now() - startedV286Z,
+      error: errorV286Z,
+    }));
+  }
+  // XDIC_KO286Z_LIMITED_DISPLAY_PILOT_APPLY_END
+
+
+  // XDIC_KO287C_RELEVANCE_TIER_SHADOW_BEGIN
+  // Dev-only explicit opt-in, never changes the existing results, resultsMap,
+  // original rotateResults, CORE priorities, SQL, or rendered search order.
+  // Requires the already opt-in KO286Z stable-183 display pilot to succeed.
+  if (
+    process.env.NODE_ENV === 'development' &&
+    process.env.XDIC_KO286G_FTS_SHADOW === '1' &&
+    xdic253Enabled && xdic263Enabled &&
+    cleanQuery === '예비 후보' &&
+    (searchParams as any)?.ko286m === '1' &&
+    (searchParams as any)?.ko286x === '1' &&
+    (searchParams as any)?.ko286y === '1' &&
+    (searchParams as any)?.ko286z === '1' &&
+    (searchParams as any)?.ko287c === '1'
+  ) {
+    const startedV287C = Date.now();
+    const idOfV287C = (row: any): string => String(row?.id ?? '');
+    const actualIdsV287C = results.map(idOfV287C);
+    const mapIdsV287C = Array.from(resultsMap.keys()).map(String);
+    const fingerprintV287C = () => JSON.stringify({
+      results: results.map((row: any) => [
+        row?.id, row?.line_text, row?.category_id, row?.source_order,
+        row?.is_exact_priority, row?.split_type, row?.split_keyword,
+        row?._twoProDbPriority, row?._twoProDbMatch,
+        row?._twoProDbExactAndCount, row?._twoProDbExactAndWeight,
+        row?._db_index, row?._matchCount, row?._maxMatchedLen,
+      ]),
+      map: Array.from(resultsMap.values()).map((row: any) => [
+        row?.id, row?.line_text, row?.category_id, row?.source_order,
+        row?.is_exact_priority, row?.split_type, row?.split_keyword,
+        row?._twoProDbPriority, row?._twoProDbMatch,
+        row?._twoProDbExactAndCount, row?._twoProDbExactAndWeight,
+        row?._db_index, row?._matchCount, row?._maxMatchedLen,
+      ]),
+    });
+    const beforeFingerprintV287C = fingerprintV287C();
+    const beforeMapIdsV287C = mapIdsV287C.join('|');
+    try {
+      if (results.length !== 183 || !xdic286zPendingSort ||
+          xdic286zPendingSort.length !== 183 ||
+          new Set(actualIdsV287C).size !== 183) {
+        throw new Error('KO286Z stable 183 prerequisite not met');
+      }
+      const canonicalIdsV287C = xdic286zPendingSort.map(idOfV287C);
+      if (canonicalIdsV287C.join('|') !== actualIdsV287C.join('|') ||
+          new Set(canonicalIdsV287C).size !== 183) {
+        throw new Error('Actual opt-in order differs from canonical Z sort');
+      }
+
+      // Four explicit candidate-relatedness tiers for this ONE Korean phrase.
+      // Preserve the previous canonical position within every tier.
+      const phraseV287C = /(?:^|[^가-힣A-Za-z0-9_])예비\s+후보(?:(?:에게|에서|께서|으로|부터|까지|은|는|이|가|을|를|에|로|와|과|의|도|만|랑))?(?=[^가-힣A-Za-z0-9_]|$)/u;
+      const assessV287C = (row: any, index: number) => {
+        const body = String(row?.line_text || '').normalize('NFC');
+        const hasReserve = twoProHasExactTokenBoundaryV72(body, '예비');
+        const hasCandidate = twoProHasExactTokenBoundaryV72(body, '후보');
+        const exactPhrase = phraseV287C.test(body);
+        const directDictionaryWord = Number(row?.category_id) === 1 &&
+          (hasReserve || hasCandidate);
+        const tier = exactPhrase ? 1 :
+          (hasReserve && hasCandidate) ? 2 :
+          directDictionaryWord ? 3 : 4;
+        const corePriority = row?._twoProDbPriority ?? null;
+        const manualReview =
+          String(row?.id) === 'ab4fbb1c-8a0f-42db-8e21-83f87e3afd90' &&
+          Number(row?.category_id) === 12 &&
+          Number(row?.source_order) === 15039 && body.includes('아이오와');
+        return {
+          id: idOfV287C(row), tier, baselineRank: index + 1,
+          categoryId: row?.category_id ?? null,
+          sourceOrder: row?.source_order ?? null,
+          exactPhrase, hasReserve, hasCandidate, directDictionaryWord,
+          corePriority, exactPriority: !!row?.is_exact_priority,
+          manualReview,
+        };
+      };
+      const evaluationsV287C = results.map(assessV287C);
+      const proposedV287C = [...evaluationsV287C].sort(
+        (a, b) => a.tier - b.tier || a.baselineRank - b.baselineRank
+      );
+      const proposedIdsV287C = proposedV287C.map((item) => item.id);
+      if (proposedIdsV287C.length !== 183 ||
+          new Set(proposedIdsV287C).size !== 183 ||
+          proposedIdsV287C.some((id) => !actualIdsV287C.includes(id))) {
+        throw new Error('Relevance tier shadow candidate coverage failed');
+      }
+      const afterRankV287C = new Map(
+        proposedIdsV287C.map((id, index) => [id, index + 1])
+      );
+      const actualTop20V287C = actualIdsV287C.slice(0, 20);
+      const proposedTop20V287C = proposedIdsV287C.slice(0, 20);
+      const actualTopSetV287C = new Set(actualTop20V287C);
+      const proposedTopSetV287C = new Set(proposedTop20V287C);
+      const coreRankMovesV287C = evaluationsV287C
+        .filter((item) => item.exactPriority ||
+          (item.corePriority !== null && Number(item.corePriority) <= 3))
+        .map((item) => ({
+          id: item.id, tier: item.tier, corePriority: item.corePriority,
+          exactPriority: item.exactPriority, before: item.baselineRank,
+          after: afterRankV287C.get(item.id) ?? null,
+        }))
+        .filter((item) => item.before !== item.after);
+      const manualReviewIdsV287C = evaluationsV287C
+        .filter((item) => item.manualReview).map((item) => item.id);
+      const unchangedV287C =
+        actualIdsV287C.join('|') === results.map(idOfV287C).join('|') &&
+        beforeMapIdsV287C === Array.from(resultsMap.keys()).map(String).join('|') &&
+        beforeFingerprintV287C === fingerprintV287C();
+      xdicPerfWriteToFileV2('[XDIC KO287C RELEVANCE TIER SHADOW]', JSON.stringify({
+        probeId: xdic253ProbeId,
+        mode: 'read-only-dev-183-relevance-simulation',
+        queryLength: cleanQuery.length,
+        actualCount: actualIdsV287C.length,
+        proposedCount: proposedIdsV287C.length,
+        tiers: [1, 2, 3, 4].map((tier) => ({
+          tier, count: evaluationsV287C.filter((item) => item.tier === tier).length,
+        })),
+        actualTop20: actualTop20V287C,
+        proposedTop20: proposedTop20V287C,
+        proposedIds: proposedIdsV287C,
+        enteredTop20: proposedTop20V287C.filter((id) => !actualTopSetV287C.has(id)),
+        exitedTop20: actualTop20V287C.filter((id) => !proposedTopSetV287C.has(id)),
+        proposedTop20Details: proposedV287C.slice(0, 20).map((item) => ({
+          id: item.id, tier: item.tier, categoryId: item.categoryId,
+          sourceOrder: item.sourceOrder, oldRank: item.baselineRank,
+        })),
+        ftsExtras: evaluationsV287C.filter((item) =>
+          ['0cc570e8-3998-4d17-b2b3-5b897b28e02a',
+           'ab4fbb1c-8a0f-42db-8e21-83f87e3afd90',
+           'ace49ebd-8cda-48f0-bcdb-dc9dbce8d8f4'].includes(item.id)
+        ).map((item) => ({
+          id: item.id, tier: item.tier, before: item.baselineRank,
+          after: afterRankV287C.get(item.id) ?? null, manualReview: item.manualReview,
+        })),
+        manualReviewIds: manualReviewIdsV287C,
+        corePriorityMoves: coreRankMovesV287C.slice(0, 30),
+        corePriorityMoveCount: coreRankMovesV287C.length,
+        unchangedResultsMap: unchangedV287C,
+        sameCandidateSet: true,
+        extraSqlCalls: 0,
+        elapsedMs: Date.now() - startedV287C,
+        error: null,
+      }));
+    } catch (errorV287C: any) {
+      xdicPerfWriteToFileV2('[XDIC KO287C RELEVANCE TIER SHADOW]', JSON.stringify({
+        probeId: xdic253ProbeId,
+        mode: 'read-only-dev-183-relevance-simulation-error',
+        actualCount: actualIdsV287C.length,
+        unchangedResultsMap:
+          actualIdsV287C.join('|') === results.map(idOfV287C).join('|') &&
+          beforeMapIdsV287C === Array.from(resultsMap.keys()).map(String).join('|') &&
+          beforeFingerprintV287C === fingerprintV287C(),
+        extraSqlCalls: 0,
+        elapsedMs: Date.now() - startedV287C,
+        error: String(errorV287C?.message || errorV287C),
+      }));
+    }
+  }
+  // XDIC_KO287C_RELEVANCE_TIER_SHADOW_END
+
+  // XDIC_KO286J_RANK_SHADOW_SIMULATE_BEGIN
+  // Never write to results/resultsMap. Uses the same existing rotateResults()
+  // on shallow-cloned rows and an isolated Map, without any SQL query.
+  if (
+    process.env.NODE_ENV === 'development' &&
+    process.env.XDIC_KO286G_FTS_SHADOW === '1' &&
+    (searchParams as any)?.ko286j === '1' &&
+    xdicKo286jRankRows &&
+    xdicKo286jRankRows.rows.length > 0 &&
+    xdicKo286jRankRows.priority !== null &&
+    xdicKo286jRankRows.weight !== null
+  ) {
+    try {
+      const rankStartedAtV286J = Date.now();
+      const stagedV286J = xdicKo286jRankRows;
+      const idOfV286J = (row: any): string =>
+        row?.id !== null && row?.id !== undefined
+          ? String(row.id)
+          : [Number(row?.category_id ?? 12), String(row?.line_text || '')].join('::');
+      const originalIdsV286J = results.map(idOfV286J);
+      const originalMapIdsV286J = Array.from(resultsMap.keys()).map(String);
+      const originalRowsFingerprintV286J = JSON.stringify(
+        results.map((row: any) => [
+          idOfV286J(row),
+          row?._twoProDbPriority ?? null,
+          row?._twoProDbExactAndCount ?? null,
+          row?._twoProDbExactAndWeight ?? null,
+          row?._twoProDbMatch ?? null,
+        ])
+      );
+      const rankInputsV286J =
+        twoProCoreSearchKeywordsV6.length > 0
+          ? twoProCoreSearchKeywordsV6
+          : allSearchKeywords;
+
+      // Control re-rank makes any mismatch versus the actual baseline visible.
+      const controlV286J = rotateResults(
+        results.map((row: any) => ({ ...row })),
+        cleanQuery,
+        rankInputsV286J,
+        flexStr,
+        !!bestSplit
+      );
+      const controlIdsV286J = controlV286J.map(idOfV286J);
+      const cloneMapV286J = new Map<string, any>();
+      for (const row of results) {
+        cloneMapV286J.set(idOfV286J(row), { ...row });
+      }
+      let addedRowsV286J = 0;
+      let existingRowsV286J = 0;
+      for (const row of stagedV286J.rows) {
+        const rowId = idOfV286J(row);
+        const existing = cloneMapV286J.get(rowId);
+        if (existing) {
+          existingRowsV286J += 1;
+          if (Number(existing._twoProDbPriority ?? 999) > Number(stagedV286J.priority)) {
+            existing._twoProDbPriority = Number(stagedV286J.priority);
+          }
+          existing._twoProDbExactAndCount = Math.max(
+            Number(existing._twoProDbExactAndCount || 0),
+            stagedV286J.tokens.length
+          );
+          existing._twoProDbExactAndWeight = Math.max(
+            Number(existing._twoProDbExactAndWeight || 0),
+            Number(stagedV286J.weight)
+          );
+          existing._twoProDbMatch = 'core-exact-and';
+        } else {
+          addedRowsV286J += 1;
+          cloneMapV286J.set(rowId, {
+            ...row,
+            _twoProDbPriority: Number(stagedV286J.priority),
+            _twoProDbExactAndCount: stagedV286J.tokens.length,
+            _twoProDbExactAndWeight: Number(stagedV286J.weight),
+            _twoProDbMatch:
+              Number(stagedV286J.priority) === 2
+                ? 'core-exact-and'
+                : 'core-grammar-and',
+          });
+        }
+      }
+
+      const hypotheticalV286J = rotateResults(
+        Array.from(cloneMapV286J.values()).map((row: any) => ({ ...row })),
+        cleanQuery,
+        rankInputsV286J,
+        flexStr,
+        !!bestSplit
+      );
+      const hypotheticalIdsV286J = hypotheticalV286J.map(idOfV286J);
+      const controlRankV286J = new Map(
+        controlIdsV286J.map((id, index) => [id, index + 1])
+      );
+      const actualRankV286J = new Map(
+        originalIdsV286J.map((id, index) => [id, index + 1])
+      );
+      const afterRankV286J = new Map(
+        hypotheticalIdsV286J.map((id, index) => [id, index + 1])
+      );
+      const controlTop20V286J = controlIdsV286J.slice(0, 20);
+      const actualTop20V286J = originalIdsV286J.slice(0, 20);
+      const afterTop20V286J = hypotheticalIdsV286J.slice(0, 20);
+      const beforeSetV286J = new Set(controlTop20V286J);
+      const afterSetV286J = new Set(afterTop20V286J);
+
+      // This is a simulated ranking of server-side candidates, NOT
+      // an assertion about the rendered pagination or every query branch.
+      xdicPerfWriteToFileV2('[XDIC KO286J RANK SHADOW]', JSON.stringify({
+        surface: 'web',
+        queryLength: cleanQuery.length,
+        tokens: [...stagedV286J.tokens],
+        simulatedPriority: Number(stagedV286J.priority),
+        simulatedWeight: Number(stagedV286J.weight),
+        elapsedMs: Date.now() - rankStartedAtV286J,
+        beforeCount: originalIdsV286J.length,
+        afterCount: hypotheticalIdsV286J.length,
+        safeRows: stagedV286J.rows.length,
+        existingRows: existingRowsV286J,
+        addedRows: addedRowsV286J,
+        baselineControlTop20MatchesActual:
+          JSON.stringify(controlTop20V286J) === JSON.stringify(actualTop20V286J),
+        candidates: stagedV286J.rows.map((row: any) => ({
+          id: idOfV286J(row),
+          categoryId: row.category_id,
+          sourceOrder: row.source_order,
+          actualBeforeRank: actualRankV286J.get(idOfV286J(row)) ?? null,
+          controlBeforeRank: controlRankV286J.get(idOfV286J(row)) ?? null,
+          hypotheticalAfterRank: afterRankV286J.get(idOfV286J(row)) ?? null,
+        })),
+        enteredTop20: afterTop20V286J.filter((id) => !beforeSetV286J.has(id)),
+        exitedTop20: controlTop20V286J.filter((id) => !afterSetV286J.has(id)),
+        movedControlTop20: controlTop20V286J
+          .map((id) => ({
+            id,
+            beforeRank: controlRankV286J.get(id) ?? null,
+            afterRank: afterRankV286J.get(id) ?? null,
+          }))
+          .filter((row) => row.beforeRank !== row.afterRank),
+        resultsMutated:
+          JSON.stringify(results.map(idOfV286J)) !== JSON.stringify(originalIdsV286J) ||
+          JSON.stringify(Array.from(resultsMap.keys()).map(String)) !== JSON.stringify(originalMapIdsV286J) ||
+          JSON.stringify(results.map((row: any) => [
+            idOfV286J(row),
+            row?._twoProDbPriority ?? null,
+            row?._twoProDbExactAndCount ?? null,
+            row?._twoProDbExactAndWeight ?? null,
+            row?._twoProDbMatch ?? null,
+          ])) !== originalRowsFingerprintV286J,
+        extraSqlCalls: 0,
+        mode: 'server-candidate-rank-simulation-only',
+      }));
+    } catch (rankShadowErrorV286J: any) {
+      xdicPerfWriteToFileV2('[XDIC KO286J RANK SHADOW]', JSON.stringify({
+        queryLength: cleanQuery.length,
+        error: String(rankShadowErrorV286J?.message || rankShadowErrorV286J),
+        extraSqlCalls: 0,
+        mode: 'simulation-error-no-result-change',
+      }));
+    }
+  }
+  // XDIC_KO286J_RANK_SHADOW_SIMULATE_END
+
   if (cleanQuery && process.env.NODE_ENV !== 'production') {
     const m = xdicPerfTimesV1;
     const totalMs = Date.now() - xdicPerfStartedV1;
@@ -4323,6 +5306,22 @@ if (isSentenceSearch) {
       totalMs,
     }));
   }
+
+  // XDIC_KO286B_SHADOW_LOG_BEGIN
+  // Existing database results and the KO255 warning remain unchanged.
+  // Save only keyword + metadata; avoid persisting the full user sentence.
+  if (process.env.NODE_ENV === 'development' && xdic286bRelatedEvents.length > 0) {
+    xdicPerfWriteToFileV2('[XDIC KO286B RELATED SHADOW]', JSON.stringify({
+      surface: 'web',
+      queryLength: cleanQuery.length,
+      sentenceDetector: isSentenceSearch,
+      relatedCount: xdic286bRelatedEvents.length,
+      failedCount: xdic286bRelatedEvents.filter((event) => event.failed).length,
+      warningShown: xdic255RelatedFailures.length > 0,
+      events: xdic286bRelatedEvents,
+    }));
+  }
+  // XDIC_KO286B_SHADOW_LOG_END
 
   const isApp = false; 
 
