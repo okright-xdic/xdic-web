@@ -69,12 +69,12 @@ export default async function TermPage({ params }: Props) {
   // 🌟 [핵심 수술 2] 35건을 긁어모으는 '4단계 스마트 폴백 검색 엔진'
 
   // 1단계: 검색창 입력 보정 검색 (예: "전세보증금 ")
-  const { data: r1 } = await supabase.rpc('search_dictionary_v8', { keyword: searchKeyword });
+  const { data: r1 } = await supabase.rpc('search_dictionary_v8', { search_keyword: searchKeyword });
   addResults(r1);
 
   // 2단계: 결과가 부족하면, 원본 단어 그대로 빡빡하게 검색 (예: "전세보증금")
   if (safeResults.length < 5) {
-    const { data: r2 } = await supabase.rpc('search_dictionary_v8', { keyword: trimmed });
+    const { data: r2 } = await supabase.rpc('search_dictionary_v8', { search_keyword: trimmed });
     addResults(r2);
   }
 
@@ -82,7 +82,7 @@ export default async function TermPage({ params }: Props) {
   if (safeResults.length < 5) {
     const noSpace = trimmed.replace(/\s+/g, '');
     if (noSpace !== trimmed) {
-      const { data: r3 } = await supabase.rpc('search_dictionary_v8', { keyword: noSpace });
+      const { data: r3 } = await supabase.rpc('search_dictionary_v8', { search_keyword: noSpace });
       addResults(r3);
     }
   }
@@ -90,7 +90,7 @@ export default async function TermPage({ params }: Props) {
   // 4단계: 💡[비밀 병기] 35건 폭발의 주역! 복합어 강제 분리 검색 (예: "전세 보증금")
   if (safeResults.length < 5 && isSingleWord && trimmed.length >= 4) {
     const splitKeyword = trimmed.slice(0, 2) + ' ' + trimmed.slice(2);
-    const { data: r4 } = await supabase.rpc('search_dictionary_v8', { keyword: splitKeyword });
+    const { data: r4 } = await supabase.rpc('search_dictionary_v8', { search_keyword: splitKeyword });
     addResults(r4);
   }
 

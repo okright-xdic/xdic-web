@@ -7,6 +7,7 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 import { SpeechRecognition } from '@capgo/capacitor-speech-recognition';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import SearchInput from '@/components/SearchInput';
+import XdicKo290EnAllMatches from '@/components/XdicKo290EnAllMatches';
 import { useXdicCoreExpressions, XdicCoreExpressionPanel } from '@/components/XdicCoreExpressionPanel';
 import Footer from '@/components/Footer';
 import PopularKeywords from '@/components/PopularKeywords'; 
@@ -6192,6 +6193,11 @@ const hasXdicInsight =
                     </div>
                   )}
                   
+                  {/* XDIC_KO290_EN_PANEL_V1_BEGIN */}
+                  {['후보', '후보자', 'candidate', '명단', '지원자'].includes(query.trim()) && (
+                    <XdicKo290EnAllMatches query={query} />
+                  )}
+                  {/* XDIC_KO290_EN_PANEL_V1_END */}
                   {isPartialMatch && (
                     <div
   className={

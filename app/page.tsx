@@ -1325,13 +1325,27 @@ const isSentenceSearch =
     /^[a-f0-9]{32}$/i.test(xdic255SimulationToken);
   // XDIC_KO255_STATUS_END
   // XDIC_KO253_TRACE_BEGIN: read-only request-scoped local telemetry.
-  // Only requests with an explicit 32-hex probe token and two known phrases are traced.
+  // Only development requests with an explicit 32-hex token and 13 allowlisted queries are traced.
   const xdic253ProbeId = String(
     (searchParams as { q?: string; app?: string; ko253?: string }).ko253 || ''
   );
   const xdic253Enabled =
     process.env.NODE_ENV === 'development' &&
-    (cleanQuery === '예비 후보' || cleanQuery === '후보 명단') &&
+    (
+      cleanQuery === '예비 후보' ||
+      cleanQuery === '후보 명단' ||
+      cleanQuery === '후보' ||
+      cleanQuery === '명단' ||
+      cleanQuery === '지원자' ||
+      cleanQuery === '추가 심사' ||
+      cleanQuery === 'candidate' ||
+      cleanQuery === 'roster' ||
+      cleanQuery === 'screening' ||
+      cleanQuery === 'candidate list' ||
+      cleanQuery === 'additional screening' ||
+      cleanQuery === '그 지원자는 오늘 심사를 받아야 해요' ||
+      cleanQuery === 'The applicant is required to be screened today.'
+    ) &&
     /^[a-f0-9]{32}$/i.test(xdic253ProbeId);
   // XDIC_KO263_BEGIN: local opt-in row attributes for isolated ranking replay.
   const xdic263Token = String(
@@ -2117,6 +2131,32 @@ relatedSearchKeywords.forEach((keyword) => {
       // XDIC_KO263_ARGS_END
       // XDIC_KO260_ROTATE_MAIN_BEGIN: opt-in snapshots only.
       xdic253Capture('ko260-rotate-main-before', cleanQuery, results);
+      // XDIC_KO290_AG_INPUT_BEGIN: general two-word probe; never used in production.
+      const xdic290agToken = String((searchParams as { ko290ag?: string }).ko290ag || '');
+      const xdic290agTokens = cleanQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      const xdic290agEnabled =
+        process.env.NODE_ENV === 'development' &&
+        xdic253Enabled &&
+        /^[a-f0-9]{32}$/i.test(xdic290agToken) &&
+        ['후보 명단', '예비 후보', '추가 심사', 'candidate list', 'additional screening'].includes(cleanQuery) &&
+        xdic290agTokens.length >= 2;
+      const xdic290agInput = xdic290agEnabled
+        ? results.map((row: any) => ({ ...row }))
+        : null;
+      // XDIC_KO290_AG_INPUT_END
+      // XDIC_KO290_AE_INPUT_BEGIN: opt-in, development-only read-only shadow input.
+      const xdic290aeProbeToken = String(
+        (searchParams as { ko290ae?: string }).ko290ae || ''
+      );
+      const xdic290aeEnabled =
+        process.env.NODE_ENV === 'development' &&
+        xdic253Enabled &&
+        cleanQuery === '후보 명단' &&
+        /^[a-f0-9]{32}$/i.test(xdic290aeProbeToken);
+      const xdic290aeInput = xdic290aeEnabled
+        ? results.map((row: any) => ({ ...row }))
+        : null;
+      // XDIC_KO290_AE_INPUT_END
       // XDIC_KO286X_CANONICAL_SORT_SHADOW_BEGIN
       // Explicit development-only single-query shadow. Never writes to real
       // results/resultsMap, never calls Supabase, and never changes rotateResults().
@@ -2235,6 +2275,178 @@ relatedSearchKeywords.forEach((keyword) => {
           isSplitModeActive
         );
       xdic253Capture('ko260-rotate-main-after', cleanQuery, results);
+      // XDIC_KO290_AG_OUTPUT_BEGIN: deterministic input order comparison; never renders.
+      if (xdic290agInput) {
+        try {
+          const xdic290agStarted = Date.now();
+          // This is an experimental tie-order candidate, NOT a new production sorter.
+          const xdic290agOrdinal = (row: any): number => {
+            const text = String(row?.line_text ?? '').toLowerCase();
+            const index = xdic290agTokens.findIndex((token: string) => text.includes(token));
+            return index < 0 ? xdic290agTokens.length : index;
+          };
+          const xdic290agCompare = (a: any, b: any): number => {
+            const ca = Number(a?.category_id ?? 12);
+            const cb = Number(b?.category_id ?? 12);
+            if (ca !== cb) return ca - cb;
+            const oa = xdic290agOrdinal(a);
+            const ob = xdic290agOrdinal(b);
+            if (oa !== ob) return oa - ob;
+            const sa = a?.source_order == null ? Number.MAX_SAFE_INTEGER : Number(a.source_order);
+            const sb = b?.source_order == null ? Number.MAX_SAFE_INTEGER : Number(b.source_order);
+            if (sa !== sb) return sa - sb;
+            const ia = String(a?.id ?? '');
+            const ib = String(b?.id ?? '');
+            return ia < ib ? -1 : ia > ib ? 1 : 0;
+          };
+          const xdic290agMakeInput = (rows: any[]) =>
+            rows.map((row: any) => ({ ...row })).sort(xdic290agCompare);
+          const xdic290agBefore = JSON.stringify(results.map((row: any) => [
+            row?.id, row?.line_text, row?.category_id, row?.source_order,
+            row?._db_index, row?._matchCount, row?._maxMatchedLen,
+          ]));
+          const xdic290agFirst = rotateResults(
+            xdic290agMakeInput(xdic290agInput), cleanQuery,
+            rankingSearchKeywordsV6, flexStr, isSplitModeActive
+          );
+          const xdic290agReversed = rotateResults(
+            xdic290agMakeInput([...xdic290agInput].reverse()), cleanQuery,
+            rankingSearchKeywordsV6, flexStr, isSplitModeActive
+          );
+          const xdic290agAfter = JSON.stringify(results.map((row: any) => [
+            row?.id, row?.line_text, row?.category_id, row?.source_order,
+            row?._db_index, row?._matchCount, row?._maxMatchedLen,
+          ]));
+          const xdic290agActualIds = results.map((row: any) => String(row?.id ?? ''));
+          const xdic290agFirstIds = xdic290agFirst.map((row: any) => String(row?.id ?? ''));
+          const xdic290agReverseIds = xdic290agReversed.map((row: any) => String(row?.id ?? ''));
+          const xdic290agSameSet = (a: string[], b: string[]) =>
+            a.length === b.length && new Set(a).size === a.length &&
+            new Set(b).size === b.length && a.every((id: string) => b.includes(id));
+          const xdic290agMembership =
+            xdic290agSameSet(xdic290agActualIds, xdic290agFirstIds) &&
+            xdic290agSameSet(xdic290agActualIds, xdic290agReverseIds);
+          const xdic290agPermutationEqual =
+            JSON.stringify(xdic290agFirstIds) === JSON.stringify(xdic290agReverseIds);
+          const xdic290agChanged25 = xdic290agActualIds.slice(0,25).reduce(
+            (sum: number, id: string, i: number) =>
+              sum + (id === xdic290agFirstIds[i] ? 0 : 1), 0
+          );
+          xdic253Events.push({
+            stage: 'ko290-ag-generic-shadow',
+            eligible: true, keywordCount: xdic290agTokens.length,
+            actualCount: xdic290agActualIds.length,
+            shadowCount: xdic290agFirstIds.length,
+            sameIdSet: xdic290agMembership,
+            permutationOrderIdentical: xdic290agPermutationEqual,
+            actualUnchanged: xdic290agBefore === xdic290agAfter,
+            changedTop25Positions: xdic290agChanged25,
+            actualTop25Ids: xdic290agActualIds.slice(0,25),
+            shadowTop25Ids: xdic290agFirstIds.slice(0,25),
+            shadowElapsedMs: Date.now() - xdic290agStarted,
+            scope: 'development-only; original rotateResults; candidate clones; no real result writes',
+          });
+        } catch (xdic290agError) {
+          xdic253Events.push({
+            stage: 'ko290-ag-generic-shadow', eligible: false,
+            error: String((xdic290agError as { message?: string })?.message || xdic290agError),
+          });
+        }
+      }
+      // XDIC_KO290_AG_OUTPUT_END
+      // XDIC_KO290_AE_OUTPUT_BEGIN: known 12-ID diagnostic, never changes actual results.
+      if (xdic290aeInput) {
+        try {
+          // Temporary probe IDs, NOT a production ranking rule.
+          const xdic290aeA = new Set([
+            '5d2c78db-cccc-444c-b703-85eea541c0e9',
+            '41b3c4de-f554-4c22-be42-e439c574b675',
+            '2695d431-7bb6-4074-ac9a-5257dbe5624e',
+            'a564f437-6613-4ee2-bbaa-ae2c71e33d3d',
+            'bdd19098-9eeb-4372-9bcc-7f9950e288f5',
+            '2b99f7f6-368e-4a35-9a8e-012885bf329f',
+          ]);
+          const xdic290aeB = new Set([
+            '19891015-4b3a-4251-9423-facba336102d',
+            'cf6baaaf-d4ea-44e3-9279-c60e3de6d41f',
+            '827ef969-8be1-4a70-a4c8-2aa0731cee2a',
+            'e7e221c9-4e23-4660-8935-df87250c06dd',
+            '04ac3d1f-0851-4a94-8a23-1d4939eaa5f7',
+            '9002e004-1db6-4bdd-bb28-916583bdf606',
+          ]);
+          const xdic290aeSlots: number[] = [];
+          const xdic290aeRowsA: any[] = [];
+          const xdic290aeRowsB: any[] = [];
+          xdic290aeInput.forEach((row: any, index: number) => {
+            const id = String(row?.id ?? '');
+            if (xdic290aeA.has(id)) {
+              xdic290aeSlots.push(index);
+              xdic290aeRowsA.push(row);
+            } else if (xdic290aeB.has(id)) {
+              xdic290aeSlots.push(index);
+              xdic290aeRowsB.push(row);
+            }
+          });
+          const xdic290aeEligible =
+            xdic290aeSlots.length === 12 &&
+            xdic290aeRowsA.length === 6 &&
+            xdic290aeRowsB.length === 6;
+          if (!xdic290aeEligible) {
+            xdic253Events.push({
+              stage: 'ko290-ae-main-shadow', eligible: false,
+              groupA: xdic290aeRowsA.length,
+              groupB: xdic290aeRowsB.length,
+              reason: 'known twelve candidate IDs not all present',
+            });
+          } else {
+            const xdic290aeCanonical = [...xdic290aeRowsB, ...xdic290aeRowsA];
+            const xdic290aeShadowInput = xdic290aeInput.map((row: any) => ({ ...row }));
+            xdic290aeSlots.forEach((slot, index) => {
+              xdic290aeShadowInput[slot] = { ...xdic290aeCanonical[index] };
+            });
+            const xdic290aeStarted = Date.now();
+            const xdic290aeShadowResult = rotateResults(
+              xdic290aeShadowInput,
+              cleanQuery,
+              rankingSearchKeywordsV6,
+              flexStr,
+              isSplitModeActive
+            );
+            const xdic290aeActualIds = results.map((row: any) => String(row?.id ?? ''));
+            const xdic290aeShadowIds = xdic290aeShadowResult.map((row: any) => String(row?.id ?? ''));
+            const xdic290aeActualSet = new Set(xdic290aeActualIds);
+            const xdic290aeShadowSet = new Set(xdic290aeShadowIds);
+            const xdic290aeSameIds =
+              xdic290aeActualIds.length === xdic290aeShadowIds.length &&
+              xdic290aeActualSet.size === xdic290aeActualIds.length &&
+              xdic290aeShadowSet.size === xdic290aeShadowIds.length &&
+              xdic290aeActualIds.every((id: string) => xdic290aeShadowSet.has(id));
+            let xdic290aeChangedTop25 = 0;
+            for (let index = 0; index < Math.min(25, xdic290aeActualIds.length); index++) {
+              if (xdic290aeActualIds[index] !== xdic290aeShadowIds[index]) {
+                xdic290aeChangedTop25++;
+              }
+            }
+            xdic253Events.push({
+              stage: 'ko290-ae-main-shadow', eligible: true,
+              scope: 'main rotateResults only; 12 known IDs; never rendered',
+              sameIdSet: xdic290aeSameIds,
+              actualCount: xdic290aeActualIds.length,
+              shadowCount: xdic290aeShadowIds.length,
+              changedTop25Positions: xdic290aeChangedTop25,
+              actualTop25Ids: xdic290aeActualIds.slice(0, 25),
+              shadowTop25Ids: xdic290aeShadowIds.slice(0, 25),
+              shadowElapsedMs: Date.now() - xdic290aeStarted,
+            });
+          }
+        } catch (xdic290aeError) {
+          xdic253Events.push({
+            stage: 'ko290-ae-main-shadow', eligible: false,
+            error: String((xdic290aeError as { message?: string })?.message || xdic290aeError),
+          });
+        }
+      }
+      // XDIC_KO290_AE_OUTPUT_END
       // XDIC_KO286X_CANONICAL_SORT_SHADOW_OUTPUT_BEGIN
       if (xdic286xEnabled && xdic286xAudit) {
         try {
@@ -5112,6 +5324,336 @@ if (isSentenceSearch) {
   }
   // XDIC_KO287C_RELEVANCE_TIER_SHADOW_END
 
+  // XDIC_KO287F_COMPACT_PHRASE_RELEVANCE_SHADOW_BEGIN
+  // Only compares an additional deterministic in-memory ranking; does not
+  // change results, resultsMap, CORE, rotateResults, SQL, or the displayed UI.
+  // This gate is intentionally restricted to the existing Korean pilot query.
+  if (
+    process.env.NODE_ENV === 'development' &&
+    process.env.XDIC_KO286G_FTS_SHADOW === '1' &&
+    xdic253Enabled && xdic263Enabled &&
+    cleanQuery === '예비 후보' &&
+    (searchParams as any)?.ko286m === '1' &&
+    (searchParams as any)?.ko286x === '1' &&
+    (searchParams as any)?.ko286y === '1' &&
+    (searchParams as any)?.ko286z === '1' &&
+    (searchParams as any)?.ko287c === '1' &&
+    (searchParams as any)?.ko287f === '1'
+  ) {
+    const startedV287F = Date.now();
+    const idOfV287F = (row: any): string => String(row?.id ?? '');
+    const beforeIdsV287F = results.map(idOfV287F);
+    const beforeMapKeysV287F = Array.from(resultsMap.keys()).map(String);
+    const fingerprintV287F = (): string => JSON.stringify({
+      results: results.map((row: any) => [
+        row?.id, row?.line_text, row?.category_id, row?.source_order,
+        row?.is_exact_priority, row?.split_type, row?.split_keyword,
+        row?._twoProDbPriority, row?._twoProDbMatch,
+        row?._twoProDbExactAndCount, row?._twoProDbExactAndWeight,
+        row?._db_index, row?._matchCount, row?._maxMatchedLen
+      ]),
+      map: Array.from(resultsMap.values()).map((row: any) => [
+        row?.id, row?.line_text, row?.category_id, row?.source_order,
+        row?.is_exact_priority, row?.split_type, row?.split_keyword,
+        row?._twoProDbPriority, row?._twoProDbMatch,
+        row?._twoProDbExactAndCount, row?._twoProDbExactAndWeight,
+        row?._db_index, row?._matchCount, row?._maxMatchedLen
+      ])
+    });
+    const beforeFingerprintV287F = fingerprintV287F();
+    const unchangedV287F = (): boolean =>
+      beforeFingerprintV287F === fingerprintV287F() &&
+      beforeIdsV287F.join('|') === results.map(idOfV287F).join('|') &&
+      beforeMapKeysV287F.join('|') ===
+        Array.from(resultsMap.keys()).map(String).join('|');
+    try {
+      if (results.length !== 183 || !xdic286zPendingSort ||
+          xdic286zPendingSort.length !== 183 ||
+          new Set(beforeIdsV287F).size !== 183 ||
+          beforeIdsV287F.some((id) => !id || id === 'undefined') ||
+          beforeIdsV287F.join('|') !==
+            xdic286zPendingSort.map(idOfV287F).join('|')) {
+        throw new Error('KO286Z stable 183 prerequisite not satisfied');
+      }
+      const partsV287F = cleanQuery.normalize('NFC').trim().split(/\s+/u);
+      if (partsV287F.length !== 2 || partsV287F.some((part) => !part)) {
+        throw new Error('Expected exactly two search terms');
+      }
+      const escapeV287F = (value: string): string =>
+        value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const tokenA287F = escapeV287F(partsV287F[0]);
+      const tokenB287F = escapeV287F(partsV287F[1]);
+      // A bounded exact/compact phrase: spaced, unspaced, or a small whitelist
+      // of attached Korean grammatical forms. This is NOT morphological analysis.
+      // Longer unrelated continuations such as '예비후보주의' are rejected.
+      const suffixV287F =
+        '(?:자(?:들)?(?:은|는|이|가|을|를|의|에|에게|로|도|만)?' +
+        '|였던|이었던|였다|이었으며|였으며|이었고|였고|였어요' +
+        '|였어|이었다|이다|입니다|인' +
+        '|은|는|이|가|을|를|의|에|로|도|만|에게|에서|으로|까지|부터)?';
+      const compactPatternV287F = new RegExp(
+        '(?<![\\p{L}\\p{N}_])' + tokenA287F +
+        '\\s*' + tokenB287F + suffixV287F +
+        '(?=$|[^\\p{L}\\p{N}_])', 'u'
+      );
+      const phraseExamplesV287F: Array<[string, boolean]> = [
+        ['예비 후보', true], ['예비후보', true],
+        ['예비후보였던', true], ['예비후보자', true],
+        ['예비 후보자를', true], ['예비  후보', true],
+        ['비예비후보', false], ['예비후보주의', false],
+        ['예비주문 후보', false], ['예비 선거 후보', false]
+      ];
+      for (const [value, shouldMatch] of phraseExamplesV287F) {
+        if (compactPatternV287F.test(value) !== shouldMatch) {
+          throw new Error('Compact pattern self-test failed: ' + value);
+        }
+      }
+      const evaluationsV287F = results.map((row: any, i: number) => {
+        const body = String(row?.line_text ?? '').normalize('NFC');
+        const phrase = compactPatternV287F.test(body);
+        const hasA = twoProHasExactTokenBoundaryV72(body, partsV287F[0]);
+        const hasB = twoProHasExactTokenBoundaryV72(body, partsV287F[1]);
+        const dictionary = Number(row?.category_id) === 1 && (hasA || hasB);
+        // Previous C-tier is computed for audit only, not changed.
+        const oldPhrase = /(?:^|[^가-힣A-Za-z0-9_])예비\s+후보(?:(?:에게|에서|께서|으로|부터|까지|은|는|이|가|을|를|에|로|와|과|의|도|만|랑))?(?=[^가-힣A-Za-z0-9_]|$)/u.test(body);
+        const tierC = oldPhrase ? 1 : hasA && hasB ? 2 : dictionary ? 3 : 4;
+        const tierF = phrase ? 1 : hasA && hasB ? 2 : dictionary ? 3 : 4;
+        return {
+          id: idOfV287F(row), baselineRank: i + 1, tierC, tierF, phrase,
+          categoryId: row?.category_id ?? null,
+          sourceOrder: row?.source_order ?? null,
+          corePriority: row?._twoProDbPriority ?? null,
+          exactPriority: !!row?.is_exact_priority,
+          sampleText: body.slice(0, 140)
+        };
+      });
+      const proposedV287F = [...evaluationsV287F].sort(
+        (a, b) => a.tierF - b.tierF || a.baselineRank - b.baselineRank
+      );
+      const proposedIdsV287F = proposedV287F.map((item) => item.id);
+      const actualSetV287F = new Set(beforeIdsV287F);
+      if (proposedIdsV287F.length !== 183 ||
+          new Set(proposedIdsV287F).size !== 183 ||
+          proposedIdsV287F.some((id) => !actualSetV287F.has(id))) {
+        throw new Error('KO287F lost or duplicated a candidate');
+      }
+      const rankByIdV287F = new Map<string, number>(
+        proposedIdsV287F.map((id, i) => [id, i + 1])
+      );
+      const top2V287F = evaluationsV287F.slice(0, 2);
+      const top2ProtectedV287F = top2V287F.every((item, i) =>
+        item.phrase && proposedIdsV287F[i] === item.id
+      );
+      const beforeTop20V287F = beforeIdsV287F.slice(0, 20);
+      const afterTop20V287F = proposedIdsV287F.slice(0, 20);
+      const beforeTopSetV287F = new Set(beforeTop20V287F);
+      const afterTopSetV287F = new Set(afterTop20V287F);
+      const tierUpgradesV287F = evaluationsV287F.filter((item) =>
+        item.tierF !== item.tierC
+      );
+      const priorityMovesV287F = evaluationsV287F.filter((item) =>
+        item.exactPriority ||
+        (item.corePriority !== null && Number(item.corePriority) <= 3)
+      ).map((item) => ({
+        id: item.id, corePriority: item.corePriority,
+        exactPriority: item.exactPriority, from: item.baselineRank,
+        to: rankByIdV287F.get(item.id) ?? null
+      })).filter((item) => item.from !== item.to);
+      const intactV287F = unchangedV287F();
+      if (!intactV287F) {
+        throw new Error('Results or Map changed during KO287F shadow');
+      }
+      xdicPerfWriteToFileV2('[XDIC KO287F COMPACT PHRASE SHADOW]', JSON.stringify({
+        probeId: xdic253ProbeId,
+        mode: 'dev-only-read-only-compound-phrase',
+        actualCount: beforeIdsV287F.length,
+        proposedCount: proposedIdsV287F.length,
+        tiers: [1, 2, 3, 4].map((tier) => ({
+          tier, count: evaluationsV287F.filter((item) => item.tierF === tier).length
+        })),
+        tierUpgrades: tierUpgradesV287F.map((item) => ({
+          id: item.id, fromTier: item.tierC, toTier: item.tierF,
+          fromRank: item.baselineRank,
+          toRank: rankByIdV287F.get(item.id) ?? null,
+          categoryId: item.categoryId, sourceOrder: item.sourceOrder,
+          text: item.sampleText
+        })),
+        top2Protected: top2ProtectedV287F,
+        originalTop2: beforeIdsV287F.slice(0, 2),
+        proposedTop2: proposedIdsV287F.slice(0, 2),
+        actualTop20: beforeTop20V287F,
+        proposedTop20: afterTop20V287F,
+        top20Same: beforeTop20V287F.join('|') === afterTop20V287F.join('|'),
+        enteredTop20: afterTop20V287F.filter((id) => !beforeTopSetV287F.has(id)),
+        exitedTop20: beforeTop20V287F.filter((id) => !afterTopSetV287F.has(id)),
+        proposedIds: proposedIdsV287F,
+        corePriorityMoves: priorityMovesV287F.slice(0, 30),
+        corePriorityMoveCount: priorityMovesV287F.length,
+        sameCandidateSet: true,
+        unchangedResultsMap: intactV287F,
+        extraSqlCalls: 0,
+        elapsedMs: Date.now() - startedV287F,
+        error: null
+      }));
+    } catch (errorV287F: any) {
+      xdicPerfWriteToFileV2('[XDIC KO287F COMPACT PHRASE SHADOW]', JSON.stringify({
+        probeId: xdic253ProbeId,
+        mode: 'dev-only-read-only-compound-phrase-error',
+        actualCount: beforeIdsV287F.length,
+        unchangedResultsMap: unchangedV287F(),
+        extraSqlCalls: 0,
+        elapsedMs: Date.now() - startedV287F,
+        error: String(errorV287F?.message || errorV287F)
+      }));
+    }
+  }
+  // XDIC_KO287F_COMPACT_PHRASE_RELEVANCE_SHADOW_END
+
+  // XDIC_KO287M_STRICT_TIER3_DISPLAY_OPTIN_BEGIN
+  // KO287-K logic: single-query developer-only output experiment, not global
+  // ranking. Freeze ranks 1..25 and 54..183; only stable ranks 26..53
+  // can change. No new SQL, no source-row mutation, no resultsMap mutation.
+  if (
+    process.env.NODE_ENV === 'development' &&
+    process.env.XDIC_KO286G_FTS_SHADOW === '1' &&
+    xdic253Enabled && xdic263Enabled &&
+    cleanQuery === '예비 후보' &&
+    (searchParams as any)?.ko286m === '1' &&
+    (searchParams as any)?.ko286x === '1' &&
+    (searchParams as any)?.ko286y === '1' &&
+    (searchParams as any)?.ko286z === '1' &&
+    (searchParams as any)?.ko287c === '1' &&
+    (searchParams as any)?.ko287f === '1' &&
+    (searchParams as any)?.ko287m === '1'
+  ) {
+    const startedV287M = Date.now();
+    const oldRowsV287M = [...results];
+    const idOfV287M = (row: any): string => String(row?.id ?? '');
+    const oldIdsV287M = oldRowsV287M.map(idOfV287M);
+    const mapFingerprintV287M = (): string => JSON.stringify(
+      Array.from(resultsMap.entries()).map(([id, row]: [any, any]) => [
+        String(id), row?.id, row?.line_text, row?.category_id,
+        row?.source_order, row?.is_exact_priority, row?.split_type,
+        row?.split_keyword, row?._twoProDbPriority, row?._twoProDbMatch,
+        row?._twoProDbExactAndCount, row?._twoProDbExactAndWeight,
+        row?._db_index, row?._matchCount, row?._maxMatchedLen
+      ])
+    );
+    const oldMapFingerprintV287M = mapFingerprintV287M();
+    const strictHeadwordV287M = (row: any): boolean => {
+      if (Number(row?.category_id) !== 1) return false;
+      const body = String(row?.line_text ?? '').normalize('NFC');
+      return /^\s*(?:candidate|candidacy)\s+[가-힣]/i.test(body) &&
+        /(?<![가-힣])후보(?:자격|자)?(?=$|[^가-힣])/u.test(body);
+    };
+    let appliedV287M = false;
+    let failureV287M: string | null = null;
+    let promotedV287M: Array<{id: string; from: number; to: number; text: string}> = [];
+    let newIdsV287M = oldIdsV287M;
+    try {
+      if (oldRowsV287M.length !== 183 ||
+          !xdic286zPendingSort || xdic286zPendingSort.length !== 183 ||
+          new Set(oldIdsV287M).size !== 183 ||
+          oldIdsV287M.some((id) => !id || id === 'undefined') ||
+          oldIdsV287M.join('|') !==
+            xdic286zPendingSort.map(idOfV287M).join('|')) {
+        throw new Error('KO286-Z canonical 183 prerequisite failed');
+      }
+      if (!strictHeadwordV287M(oldRowsV287M[24])) {
+        throw new Error('Rank 25 protected candidate headword missing');
+      }
+      const workingV287M = oldRowsV287M.slice(25, 53);
+      const promotionV287M = workingV287M.filter(strictHeadwordV287M);
+      const remainingV287M = workingV287M.filter(
+        (row: any) => !strictHeadwordV287M(row)
+      );
+      const outsideV287M = oldRowsV287M.filter((row: any, i: number) =>
+        strictHeadwordV287M(row) && i !== 24 && (i < 25 || i >= 53)
+      );
+      if (promotionV287M.length !== 5 || remainingV287M.length !== 23 ||
+          outsideV287M.length !== 0 ||
+          oldRowsV287M.filter(strictHeadwordV287M).length !== 6) {
+        throw new Error('KO287-L strong-headword coverage changed');
+      }
+      const newRowsV287M = [
+        ...oldRowsV287M.slice(0, 25),
+        ...promotionV287M, ...remainingV287M,
+        ...oldRowsV287M.slice(53)
+      ];
+      newIdsV287M = newRowsV287M.map(idOfV287M);
+      if (newRowsV287M.length !== 183 ||
+          new Set(newIdsV287M).size !== 183 ||
+          oldIdsV287M.some((id) => !newIdsV287M.includes(id)) ||
+          oldIdsV287M.slice(0, 25).join('|') !==
+            newIdsV287M.slice(0, 25).join('|') ||
+          oldIdsV287M.slice(53).join('|') !==
+            newIdsV287M.slice(53).join('|')) {
+        throw new Error('Fixed-rank or candidate-set validation failed');
+      }
+      const movedV287M = oldRowsV287M.filter((row: any, i: number) =>
+        newIdsV287M[i] !== oldIdsV287M[i] ||
+        newIdsV287M.indexOf(idOfV287M(row)) !== i
+      );
+      // Exact-priority and CORE-priority rows must never change ranks.
+      if (movedV287M.some((row: any) =>
+        !!row?.is_exact_priority ||
+        (row?._twoProDbPriority != null &&
+          Number(row._twoProDbPriority) <= 3)
+      )) {
+        throw new Error('CORE or exact-priority candidate would move');
+      }
+      if (mapFingerprintV287M() !== oldMapFingerprintV287M) {
+        throw new Error('resultsMap changed before opt-in apply');
+      }
+      promotedV287M = promotionV287M.map((row: any, i: number) => ({
+        id: idOfV287M(row),
+        from: oldIdsV287M.indexOf(idOfV287M(row)) + 1,
+        to: 26 + i,
+        text: String(row?.line_text || '').slice(0, 160)
+      }));
+      results = newRowsV287M;
+      appliedV287M = true;
+      if (mapFingerprintV287M() !== oldMapFingerprintV287M) {
+        results = oldRowsV287M;
+        appliedV287M = false;
+        throw new Error('resultsMap changed after opt-in apply');
+      }
+    } catch (errorV287M: any) {
+      results = oldRowsV287M;
+      appliedV287M = false;
+      failureV287M = String(errorV287M?.message || errorV287M);
+      newIdsV287M = oldIdsV287M;
+    }
+    const finalIdsV287M = results.map(idOfV287M);
+    xdicPerfWriteToFileV2('[XDIC KO287M STRICT TIER3 OPTIN DISPLAY]', JSON.stringify({
+      probeId: xdic253ProbeId,
+      mode: 'development-only-single-query-strict-tier3-display',
+      applied: appliedV287M,
+      actualCount: oldIdsV287M.length,
+      finalCount: finalIdsV287M.length,
+      strongHeadwords: oldRowsV287M.filter(strictHeadwordV287M).length,
+      promotedHeadwords: promotedV287M,
+      top25Preserved:
+        oldIdsV287M.slice(0, 25).join('|') ===
+        finalIdsV287M.slice(0, 25).join('|'),
+      tailPreserved:
+        oldIdsV287M.slice(53).join('|') ===
+        finalIdsV287M.slice(53).join('|'),
+      fullCandidateSetPreserved:
+        oldIdsV287M.length === finalIdsV287M.length &&
+        oldIdsV287M.every((id) => finalIdsV287M.includes(id)),
+      mapUnchanged: oldMapFingerprintV287M === mapFingerprintV287M(),
+      beforeIds: oldIdsV287M,
+      afterIds: finalIdsV287M,
+      beforeTop20: oldIdsV287M.slice(0, 20),
+      afterTop20: finalIdsV287M.slice(0, 20),
+      extraSqlCalls: 0,
+      elapsedMs: Date.now() - startedV287M,
+      error: failureV287M
+    }));
+  }
+  // XDIC_KO287M_STRICT_TIER3_DISPLAY_OPTIN_END
+
   // XDIC_KO286J_RANK_SHADOW_SIMULATE_BEGIN
   // Never write to results/resultsMap. Uses the same existing rotateResults()
   // on shallow-cloned rows and an isolated Map, without any SQL query.
@@ -5328,6 +5870,81 @@ if (isSentenceSearch) {
   // XDIC_KO253_FINAL_BEGIN: write once, after all existing search stages.
   if (xdic253Enabled) {
     xdic253Capture('final-render-props', cleanQuery, results);
+      // XDIC_KO290_AV_TIE_SHADOW_BEGIN: gated, final-stage diagnostic only; never renders.
+      const xdic290avToken = String((searchParams as { ko290av?: string }).ko290av || '');
+      if (
+        process.env.NODE_ENV === 'development' &&
+        xdic253Enabled &&
+        cleanQuery === '후보 명단' &&
+        xdic290avToken.length === 32 &&
+        xdic290avToken === xdic253ProbeId
+      ) {
+        try {
+          const xdic290avActual = results.map((row: any) => String(row?.id ?? ''));
+          const xdic290avBlock = results.slice(4, 16);
+          const xdic290avTag = (row: any): string => {
+            const text = String(row?.line_text ?? '').toLowerCase();
+            const hasB = text.includes('후보');
+            const hasA = text.includes('명단');
+            return hasB && !hasA ? 'B' : hasA && !hasB ? 'A' : '?';
+          };
+          const xdic290avTags = xdic290avBlock.map(xdic290avTag);
+          const xdic290avPattern = xdic290avTags.join('');
+          const xdic290avScoreEqual = xdic290avBlock.length === 12 &&
+            xdic290avBlock.every((row: any) => {
+              const text = String(row?.line_text ?? '').toLowerCase();
+              const keyword = text.includes('후보') ? '후보' : '명단';
+              return Number(row?.category_id) === 1 &&
+                Number(row?._matchCount) === 1 &&
+                Number(row?._maxMatchedLen) === 2 &&
+                row?._twoProDbPriority == null &&
+                !row?.is_exact_priority &&
+                !row?.split_type &&
+                !text.replace(/\s+/g, '').includes('후보명단') &&
+                new RegExp('(?:^|[^가-힣a-zA-Z0-9_])' + keyword, 'i').test(text);
+            });
+          const xdic290avEligible = xdic290avActual.length >= 25 &&
+            xdic290avScoreEqual &&
+            (xdic290avPattern === 'AAAAAABBBBBB' || xdic290avPattern === 'BBBBBBAAAAAA');
+          const xdic290avShadow = [...xdic290avActual];
+          if (xdic290avEligible) {
+            const bIds = xdic290avBlock.filter((row: any) => xdic290avTag(row) === 'B')
+              .map((row: any) => String(row.id));
+            const aIds = xdic290avBlock.filter((row: any) => xdic290avTag(row) === 'A')
+              .map((row: any) => String(row.id));
+            [...bIds, ...aIds].forEach((id: string, i: number) => {
+              xdic290avShadow[i + 4] = id;
+            });
+          }
+          const xdic290avSameSet = xdic290avActual.length === xdic290avShadow.length &&
+            new Set(xdic290avActual).size === xdic290avActual.length &&
+            new Set(xdic290avShadow).size === xdic290avShadow.length &&
+            xdic290avActual.every((id: string) => xdic290avShadow.includes(id));
+          const xdic290avProtected = xdic290avActual.every((id: string, i: number) =>
+            (i >= 4 && i <= 15) || id === xdic290avShadow[i]);
+          const xdic290avChanged = xdic290avActual.slice(0, 25)
+            .reduce((n: number, id: string, i: number) => n + (id === xdic290avShadow[i] ? 0 : 1), 0);
+          xdic253Events.push({
+            stage: 'ko290-av-guarded-tie-shadow',
+            eligible: xdic290avEligible,
+            originalPattern: xdic290avPattern,
+            sameTieScore: xdic290avScoreEqual,
+            sameIdSet: xdic290avSameSet,
+            protectedPositionsUnchanged: xdic290avProtected,
+            changedTop25Positions: xdic290avChanged,
+            actualCount: xdic290avActual.length,
+            actualTop25Ids: xdic290avActual.slice(0, 25),
+            shadowTop25Ids: xdic290avShadow.slice(0, 25),
+            mode: 'development-only; ID-array simulation; original results untouched',
+          });
+        } catch (xdic290avError) {
+          xdic253Events.push({
+            stage: 'ko290-av-guarded-tie-shadow', eligible: false,
+            error: String((xdic290avError as { message?: string })?.message || xdic290avError),
+          });
+        }
+      }
+      // XDIC_KO290_AV_TIE_SHADOW_END
     // XDIC_KO260_FINAL_BEGIN: actual addRes insertion chronology and final Map order.
     xdic253Events.push({ stage: 'ko260-addRes-insertion-order',
       count: xdic260AddResInsertionOrder.length,

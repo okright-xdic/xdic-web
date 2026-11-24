@@ -309,6 +309,30 @@ export async function GET(req: Request) {
       });
     }
 
+    // XDIC_KO290_EH_FASTPATH_V1_BEGIN
+    // Scope: the three validated keywords only; do not change other searches.
+    // Same direct ILIKE projection/filter/order/limit as the existing v8-57014 fallback.
+    if (q === '\uD6C4\uBCF4' || q === '\uD6C4\uBCF4\uC790' || q === 'candidate') {
+      try {
+        const { data: ko290EhDirectData, error: ko290EhDirectError } = await supabase
+          .from('dictionary_lines')
+          .select('id,category_id,source_order,line_text')
+          .ilike('line_text', `%${q}%`)
+          .order('category_id', { ascending: true })
+          .order('source_order', { ascending: true })
+          .limit(120);
+        if (!ko290EhDirectError && Array.isArray(ko290EhDirectData) && ko290EhDirectData.length > 0 && ko290EhDirectData.length <= 120) {
+          console.info('[XDIC KO290-EH direct fastpath]', { query: q, resultCount: ko290EhDirectData.length, degradedFallback: true });
+          return NextResponse.json({ results: ko290EhDirectData });
+        }
+        if (ko290EhDirectError) {
+          console.warn('[XDIC KO290-EH fastpath unavailable]', { query: q, code: ko290EhDirectError.code, message: ko290EhDirectError.message });
+        }
+      } catch (ko290EhException: any) {
+        console.warn('[XDIC KO290-EH fastpath exception]', { query: q, message: ko290EhException?.message ?? String(ko290EhException) });
+      }
+    }
+    // XDIC_KO290_EH_FASTPATH_V1_END
     // ==========================================
     // 🔍 1단계: 원본 검색어로 기본 검색
     // ==========================================
@@ -332,6 +356,23 @@ export async function GET(req: Request) {
         finalResults = safeDirectData;
         console.info('[XDIC RPC 57014 safe direct fallback]', { query: q, resultCount: safeDirectData.length, degradedFallback: true });
       } else if (safeDirectError) {
+        // XDIC_KO290_EE_SHADOW_V1_BEGIN
+        // Observation only: do not alter searches, results, or responses.
+        if (
+          q === '\uD6C4\uBCF4' &&
+          err1?.code === '57014' &&
+          safeDirectError.code === '57014' &&
+          finalResults.length === 0
+        ) {
+          console.info('[XDIC KO290-EE shadow secondary-v8]', {
+            query: q,
+            primaryCode: err1.code,
+            directCode: safeDirectError.code,
+            wouldRetryWithTrailingSpace: !q.includes(' '),
+            shadowOnly: true,
+          });
+        }
+        // XDIC_KO290_EE_SHADOW_V1_END
         console.warn('[XDIC RPC 57014 fallback unavailable]', {
           query: q,
           code: safeDirectError.code,
