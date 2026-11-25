@@ -1324,6 +1324,268 @@ const isSentenceSearch =
     cleanQuery === '예비 후보' &&
     /^[a-f0-9]{32}$/i.test(xdic255SimulationToken);
   // XDIC_KO255_STATUS_END
+  // XDIC_KO290_HK_SHADOW_STATE_BEGIN
+  // DEV + explicit 32-hex twin-token + fixed queries only. No production read/retry.
+  // Probe is diagnostic: it never calls addRes, changes warnings, or supplies results.
+  const xdic290hkToken = String((searchParams as { ko290hk?: string }).ko290hk || '');
+  const xdic290hkSentence = '그 지원자는 조건이 충족되었으므로 오늘 심사를 받아야 해요';
+  const xdic290hkEnabled =
+    process.env.NODE_ENV === 'development' &&
+    (cleanQuery === '예비 후보' || cleanQuery === xdic290hkSentence) &&
+    /^[a-f0-9]{32}$/i.test(xdic290hkToken) &&
+    xdic290hkToken === xdic255SimulationToken;
+  const xdic290hkProbeTimeout = async (
+    keyword: string, originalRows: unknown, simulated: boolean
+  ): Promise<void> => {
+    if (!xdic290hkEnabled) return;
+    const started = Date.now();
+    try {
+      // LIMIT 31 tests whether all matches fit within a 30-row fallback.
+      // NO ORDER to allow the PGroonga-friendly query shape; index use is NOT guaranteed.
+      // If 31 rows arrive, this is only a bounded sample, never an exact top-30 result.
+      const { data: shadowRows, error: shadowError } = await supabase
+        .from('dictionary_lines')
+        .select('id,category_id,source_order')
+        .neq('category_id', 0)
+        .ilike('line_text', `%${keyword}%`)
+        .limit(31);
+      const sample = Array.isArray(shadowRows) ? shadowRows : [];
+      const completeSet = !shadowError && sample.length < 31;
+      const baselineIds: string[] | null = Array.isArray(originalRows)
+        ? originalRows.map((row: any) => String(row?.id ?? ''))
+        : null;
+      const sampleIds = sample.map((row: any) => String(row?.id ?? ''));
+      const sameIdsWhenComplete = completeSet && baselineIds !== null
+        ? baselineIds.length === sampleIds.length &&
+          baselineIds.every((id) => sampleIds.includes(id))
+        : null;
+      xdicPerfWriteToFileV2('[XDIC KO290HK TIMEOUT SHADOW]', JSON.stringify({
+        surface: 'web', queryLength: cleanQuery.length, keyword, simulated,
+        status: shadowError ? 'SHADOW_ERROR' :
+          (completeSet ? 'COMPLETE_SET' : 'TRUNCATED_SAMPLE_31'),
+        elapsedMs: Date.now() - started,
+        sampleRows: sample.length, completeSet,
+        baselineRows: baselineIds === null ? null : baselineIds.length,
+        sameIdsWhenComplete,
+        baselineIds, sampleIds,
+        shadowErrorCode: shadowError ? String(shadowError.code || '') : null,
+        indexUseUnverified: true,
+        productionDisabled: true,
+        resultsMerged: false,
+      }));
+      // XDIC_KO290_HS_FULL_ROW_CALL_BEGIN
+      // Only when both explicit test tokens match; no addRes() or warning changes.
+      if (xdic290hsEnabled) {
+        await xdic290hsInspectFullRows(
+          keyword, sample, completeSet, originalRows, simulated
+        );
+      }
+      // XDIC_KO290_HS_FULL_ROW_CALL_END
+    } catch (shadowError) {
+      xdicPerfWriteToFileV2('[XDIC KO290HK TIMEOUT SHADOW]', JSON.stringify({
+        surface: 'web', queryLength: cleanQuery.length, keyword, simulated,
+        status: 'SHADOW_EXCEPTION', elapsedMs: Date.now() - started,
+        shadowErrorType: String((shadowError as { name?: string })?.name || 'Error'),
+        indexUseUnverified: true, productionDisabled: true, resultsMerged: false,
+      }));
+    }
+  };
+  // XDIC_KO290_HK_SHADOW_STATE_END
+  // XDIC_KO290_HS_FULL_ROW_DRY_RUN_BEGIN
+  // Diagnostic only. Exact test token + HK allowlist + development must all pass.
+  // Does not merge rows, suppress errors/warnings, or change normal search paths.
+  const xdic290hsToken = String((searchParams as { ko290hs?: string }).ko290hs || '');
+  const xdic290hsEnabled =
+    xdic290hkEnabled && /^[a-f0-9]{32}$/i.test(xdic290hsToken) &&
+    xdic290hsToken === xdic290hkToken;
+  // XDIC_KO290_HT_DEV_RECOVERY_GATE_BEGIN
+  // A separate opt-in token: only fixed HK test searches and localhost development.
+  // Nothing changes for normal requests, production, or requests without ko290ht.
+  const xdic290htToken = String((searchParams as { ko290ht?: string }).ko290ht || '');
+  const xdic290htEnabled =
+    xdic290hsEnabled && /^[a-f0-9]{32}$/i.test(xdic290htToken) &&
+    xdic290htToken === xdic290hkToken;
+  // XDIC_KO290_HT_DEV_RECOVERY_GATE_END
+  // XDIC_KO290_IX_READ_ONLY_GATE_BEGIN
+  // Explicit, isolated diagnostic: reuses HK/HS rows, never enables HT merging.
+  const xdic290ixToken = String((searchParams as { ko290ix?: string }).ko290ix || '');
+  const xdic290ixEnabled = xdic290hsEnabled && !xdic290htEnabled &&
+    cleanQuery === xdic290hkSentence &&
+    /^[a-f0-9]{32}$/i.test(xdic290ixToken) &&
+    xdic290ixToken === xdic290hsToken;
+  // XDIC_KO290_IX_READ_ONLY_GATE_END
+  // XDIC_KO290_JA_FAST_LANE_GATE_BEGIN
+  // Explicit development-only experiment, fixed CORE sentence. No normal/prod changes.
+  const xdic290jaToken = String((searchParams as { ko290ja?: string }).ko290ja || '');
+  const xdic290jaEnabled = process.env.NODE_ENV === 'development' &&
+    cleanQuery === xdic290hkSentence &&
+    /^[a-f0-9]{32}$/i.test(xdic290jaToken) &&
+    xdic290jaToken === xdic255SimulationToken &&
+    !xdic290hkEnabled && !xdic290hsEnabled && !xdic290htEnabled && !xdic290ixEnabled;
+  // XDIC_KO290_JA_FAST_LANE_GATE_END
+  // XDIC_KO290_JI_DEV_SERIAL_GATE_BEGIN
+  // Extra explicit token: only the existing fixed-sentence JA experiment may serialize.
+  const xdic290jiToken = String((searchParams as { ko290ji?: string }).ko290ji || '');
+  const xdic290jiEnabled = xdic290jaEnabled &&
+    /^[a-f0-9]{32}$/i.test(xdic290jiToken) &&
+    xdic290jiToken === xdic290jaToken;
+  // XDIC_KO290_JI_DEV_SERIAL_GATE_END
+  const xdic290hsInspectFullRows = async (
+    keyword: string,
+    hkRows: Array<{ id?: unknown }>,
+    hkCompleteSet: boolean,
+    originalRows: unknown,
+    simulated: boolean
+  ): Promise<void> => {
+    if (!xdic290hsEnabled) return;
+    const started = Date.now();
+    try {
+      // No ORDER: test-only bounded sample. Never use first 30 of 31 as recovery.
+      const { data: fullRows, error: fullError } = await supabase
+        .from('dictionary_lines')
+        .select('*')
+        .neq('category_id', 0)
+        .ilike('line_text', `%${keyword}%`)
+        .limit(31);
+      const rows: any[] = Array.isArray(fullRows) ? fullRows : [];
+      const completeSet = !fullError && rows.length < 31;
+      const ids = rows.map((r: any) => String(r?.id ?? ''));
+      const idsUnique = ids.every(Boolean) && new Set(ids).size === ids.length;
+      const expectedColumns = [
+        'id', 'category_id', 'source_order', 'line_text', 'line_hash', 'created_at'
+      ];
+      const allColumnsPresent = rows.every((r: any) =>
+        expectedColumns.every((key) => Object.prototype.hasOwnProperty.call(r, key))
+      );
+      const hkIds = hkRows.map((r) => String(r?.id ?? ''));
+      const sameIdsAsHk: boolean | null = completeSet && hkCompleteSet
+        ? ids.length === hkIds.length && ids.every((id) => hkIds.includes(id))
+        : null;
+      const baselineIds: string[] | null = Array.isArray(originalRows)
+        ? originalRows.map((r: any) => String(r?.id ?? '')) : null;
+      const sameIdsAsBaseline: boolean | null = completeSet && baselineIds !== null
+        ? baselineIds.length === ids.length && baselineIds.every((id) => ids.includes(id))
+        : null;
+      const eligibleForDryRun = completeSet && idsUnique && allColumnsPresent &&
+        sameIdsAsHk !== false;
+      const orderedCandidateIds = eligibleForDryRun
+        ? [...rows].sort((a: any, b: any) => {
+            const ac = Number(a.category_id), bc = Number(b.category_id);
+            if (ac !== bc) return ac - bc;
+            const ao = a.source_order == null ? Infinity : Number(a.source_order);
+            const bo = b.source_order == null ? Infinity : Number(b.source_order);
+            if (ao !== bo) return ao - bo;
+            const ai = String(a.id), bi = String(b.id);
+            return ai < bi ? -1 : ai > bi ? 1 : 0;
+          }).map((r: any) => String(r.id))
+        : null;
+      const status = fullError ? 'FULL_ROW_ERROR'
+        : !completeSet ? 'FULL_ROW_TRUNCATED_31'
+        : !eligibleForDryRun ? 'FULL_ROW_UNSAFE'
+        : 'FULL_ROW_COMPLETE';
+      xdicPerfWriteToFileV2('[XDIC KO290HS FULL ROW DRY RUN]', JSON.stringify({
+        surface: 'web', queryLength: cleanQuery.length, keyword, simulated,
+        status, elapsedMs: Date.now() - started,
+        fetchedRows: rows.length, completeSet, idsUnique, allColumnsPresent,
+        hkCompleteSet, sameIdsAsHk,
+        baselineRows: baselineIds === null ? null : baselineIds.length,
+        sameIdsAsBaseline,
+        candidateCount: orderedCandidateIds === null ? null : orderedCandidateIds.length,
+        orderedCandidateIds,
+        eligibleForDryRun,
+        errorCode: fullError ? String(fullError.code || '') : null,
+        indexUseUnverified: true, productionDisabled: true,
+        resultsMerged: false, originalFailurePreserved: true,
+      }));
+      // XDIC_KO290_IX_READ_ONLY_SHADOW_BEGIN
+      // Shadow-only decision on ALREADY FETCHED full rows; no extra SQL/merge/UI change.
+      if (xdic290ixEnabled && (keyword === '지원자는' || keyword === '심사를')) {
+        const ix290RowsValid = rows.every((row: any) =>
+          typeof row?.id === 'string' &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(row.id) &&
+          Number.isSafeInteger(Number(row.category_id)) && Number(row.category_id) !== 0 &&
+          typeof row?.line_text === 'string' && row.line_text.includes(keyword)
+        );
+        const ix290WouldRecover = !simulated && completeSet &&
+          rows.length > 0 && rows.length <= 30 && idsUnique && allColumnsPresent &&
+          hkCompleteSet && sameIdsAsHk === true && ix290RowsValid;
+        const ix290ExistingAtProbe = ix290WouldRecover
+          ? rows.filter((row: any) => resultsMap.has(row.id)).length : 0;
+        xdicPerfWriteToFileV2('[XDIC KO290IX READ ONLY SHADOW]', JSON.stringify({
+          surface: 'web', probeToken: xdic290ixToken, keyword, simulated,
+          verdict: ix290WouldRecover ? 'ELIGIBLE_COMPLETE_SET'
+            : simulated ? 'SKIP_SIMULATED'
+            : !completeSet ? (fullError ? 'SKIP_SQL_ERROR' : 'SKIP_TRUNCATED_31')
+            : 'SKIP_UNSAFE',
+          completeSet, hkCompleteSet, sameIdsAsHk, idsUnique, allColumnsPresent,
+          rowValidationOk: ix290RowsValid, fullRowCount: rows.length,
+          candidateCount: ix290WouldRecover ? rows.length : 0,
+          existingAtProbe: ix290ExistingAtProbe,
+          missingAtProbe: ix290WouldRecover ? rows.length - ix290ExistingAtProbe : 0,
+          sourceOrderNotEquivalentToCategoryOnly: true,
+          resultsMerged: false, extraSqlCalls: 0, warningSuppressed: false,
+          htEnabled: false, productionDisabled: true,
+        }));
+      }
+      // XDIC_KO290_IX_READ_ONLY_SHADOW_END
+      // XDIC_KO290_HT_DEV_RECOVERY_BEGIN
+      // Development-only proof of concept. Original KO255 failure and warning stay intact.
+      // No recovery for any truncated sample, failed/partial validation, or other query.
+      if (xdic290htEnabled) {
+        const allowedKeyword = cleanQuery === xdic290hkSentence &&
+          (keyword === '지원자는' || keyword === '심사를');
+        const allowedComplete = allowedKeyword && !simulated && eligibleForDryRun &&
+          sameIdsAsHk === true && rows.length > 0 && rows.length <= 30;
+        let mergedRows = 0;
+        let alreadyPresent = 0;
+        if (allowedComplete) {
+          // Full set only: deterministic order for this local experiment, no result truncation.
+          const orderedRows = [...rows].sort((a: any, b: any) => {
+            const ca = Number(a.category_id), cb = Number(b.category_id);
+            if (ca !== cb) return ca - cb;
+            const sa = a.source_order == null ? Infinity : Number(a.source_order);
+            const sb = b.source_order == null ? Infinity : Number(b.source_order);
+            if (sa !== sb) return sa - sb;
+            const ida = String(a.id), idb = String(b.id);
+            return ida < idb ? -1 : ida > idb ? 1 : 0;
+          });
+          for (const row of orderedRows) {
+            if (resultsMap.has(row.id)) {
+              alreadyPresent += 1;
+            } else {
+              addRes(row);
+              mergedRows += 1;
+            }
+          }
+        }
+        const recoveryStatus = allowedComplete ? 'DEV_MERGED_COMPLETE_SET'
+          : !allowedKeyword ? 'DEV_SKIPPED_NOT_ALLOWLIST'
+          : simulated ? 'DEV_SKIPPED_SIMULATED'
+          : !completeSet ? 'DEV_SKIPPED_TRUNCATED_OR_ERROR'
+          : 'DEV_SKIPPED_UNSAFE';
+        xdicPerfWriteToFileV2('[XDIC KO290HT DEV RECOVERY]', JSON.stringify({
+          surface: 'web', queryLength: cleanQuery.length, keyword, simulated,
+          status: recoveryStatus, completeSet, hkCompleteSet,
+          fullRowCount: rows.length, hkIdsEqual: sameIdsAsHk,
+          allowedKeyword, allowedComplete,
+          mergedRows, alreadyPresent,
+          originalFailurePreserved: true, productionDisabled: true,
+          explicitOptIn: true, warningSuppressed: false,
+        }));
+      }
+      // XDIC_KO290_HT_DEV_RECOVERY_END
+    } catch (err) {
+      xdicPerfWriteToFileV2('[XDIC KO290HS FULL ROW DRY RUN]', JSON.stringify({
+        surface: 'web', queryLength: cleanQuery.length, keyword, simulated,
+        status: 'FULL_ROW_EXCEPTION', elapsedMs: Date.now() - started,
+        errorType: String((err as { name?: string })?.name || 'Error'),
+        indexUseUnverified: true, productionDisabled: true,
+        resultsMerged: false, originalFailurePreserved: true,
+        eligibleForDryRun: false,
+      }));
+    }
+  };
+  // XDIC_KO290_HS_FULL_ROW_DRY_RUN_END
   // XDIC_KO253_TRACE_BEGIN: read-only request-scoped local telemetry.
   // Only development requests with an explicit 32-hex token and 13 allowlisted queries are traced.
   const xdic253ProbeId = String(
@@ -1867,6 +2129,10 @@ const isSentenceSearch =
             twoProCurrentRelatedSearchKeywordsShadowV1 =
               [...relatedSearchKeywords];
 
+// XDIC_KO290_JI_SERIAL_STATE_BEGIN
+// Per-request queue: keep existing SQL, candidates, order and Promise.all intact.
+let xdic290jiTail: Promise<void> = Promise.resolve();
+// XDIC_KO290_JI_SERIAL_STATE_END
 relatedSearchKeywords.forEach((keyword) => {
   const cleanK = keyword
     .replace(/[,.()\[\]:"']/g, '')
@@ -1892,6 +2158,21 @@ relatedSearchKeywords.forEach((keyword) => {
   // category_id 0은 번역 말뭉치 전용이므로
   // 관련 검색 결과에는 포함하지 않습니다.
   fallbackPromises.push((async () => {
+    // XDIC_KO290_JI_SERIAL_WAIT_BEGIN
+    const xdic290jiSlot: { release?: () => void } = {};
+    let xdic290jiQueueWaitMs = 0;
+    let xdic290jiExecutionStarted = 0;
+    if (xdic290jiEnabled) {
+      const xdic290jiQueuedAt = Date.now();
+      const xdic290jiPrior = xdic290jiTail;
+      xdic290jiTail = new Promise<void>((resolve) => {
+        xdic290jiSlot.release = resolve;
+      });
+      await xdic290jiPrior;
+      xdic290jiExecutionStarted = Date.now();
+      xdic290jiQueueWaitMs = xdic290jiExecutionStarted - xdic290jiQueuedAt;
+    }
+    // XDIC_KO290_JI_SERIAL_WAIT_END
     // XDIC_KO286B_SHADOW_TIMER_BEGIN: all related-ILIKE calls, including non-sentence queries.
     const xdic286bStarted = process.env.NODE_ENV === 'development' ? Date.now() : 0;
     // XDIC_KO286B_SHADOW_TIMER_END
@@ -1900,6 +2181,82 @@ relatedSearchKeywords.forEach((keyword) => {
     const xdic256RelatedStarted = xdic253Enabled ? Date.now() : 0;
     // XDIC_KO256_START_END
     try {
+      // XDIC_KO290_JI_SERIAL_START_BEGIN
+      if (xdic290jiEnabled) {
+        try {
+          xdicPerfWriteToFileV2('[XDIC KO290JI SERIAL SLOT]', JSON.stringify({
+            probeToken: xdic290jiToken, keyword: cleanK, phase: 'START',
+            queueWaitMs: xdic290jiQueueWaitMs,
+          }));
+        } catch (_xdic290jiTelemetryError) {}
+      }
+      // XDIC_KO290_JI_SERIAL_START_END
+      // XDIC_KO290_JA_DEV_FAST_LANE_BEGIN
+      // Opt-in only: complete 1..30 exact candidate set skips the SLOW original ordered SQL.
+      // On any incomplete/error/unsafe sample, the original query below runs unchanged.
+      if (xdic290jaEnabled && (cleanK === '지원자는' || cleanK === '심사를')) {
+        const jaStarted = Date.now();
+        try {
+          const { data: jaData, error: jaError } = await supabase
+            .from('dictionary_lines').select('*').neq('category_id', 0)
+            .ilike('line_text', `%${cleanK}%`).limit(31);
+          const jaRows: any[] = Array.isArray(jaData) ? jaData : [];
+          const jaIds = jaRows.map((row: any) => String(row?.id ?? ''));
+          const jaColumns = ['id', 'category_id', 'source_order', 'line_text', 'line_hash', 'created_at'];
+          const jaValid = !jaError && jaRows.length > 0 && jaRows.length < 31 &&
+            jaIds.every(Boolean) && new Set(jaIds).size === jaIds.length &&
+            jaRows.every((row: any) =>
+              jaColumns.every((key) => Object.prototype.hasOwnProperty.call(row, key)) &&
+              typeof row.id === 'string' &&
+              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(row.id) &&
+              Number.isSafeInteger(Number(row.category_id)) && Number(row.category_id) !== 0 &&
+              (row.source_order == null || Number.isSafeInteger(Number(row.source_order))) &&
+              typeof row.line_text === 'string' && row.line_text.includes(cleanK)
+            );
+          if (jaValid) {
+            const jaOrdered = [...jaRows].sort((a: any, b: any) => {
+              const cat = Number(a.category_id) - Number(b.category_id);
+              if (cat !== 0) return cat;
+              const ao = a.source_order == null ? Infinity : Number(a.source_order);
+              const bo = b.source_order == null ? Infinity : Number(b.source_order);
+              if (ao !== bo) return ao - bo;
+              const ai = String(a.id), bi = String(b.id);
+              return ai < bi ? -1 : ai > bi ? 1 : 0;
+            });
+            const jaAlready = jaOrdered.filter((row: any) => resultsMap.has(row.id)).length;
+            for (const row of jaOrdered) addRes(row);
+            xdicPerfWriteToFileV2('[XDIC KO290JA FAST LANE]', JSON.stringify({
+              probeToken: xdic290jaToken, keyword: cleanK,
+              status: 'COMPLETE_FAST_PATH', rows: jaOrdered.length,
+              candidateIds: jaOrdered.map((row: any) => String(row.id)),
+              alreadyInMap: jaAlready, elapsedMs: Date.now() - jaStarted,
+              originalOrderedSqlSkipped: true, additionalQueryCount: 1,
+              originalTimeoutNotTriggeredForThisKeyword: true,
+              categoryOrderPreserved: true, sameCategoryTieOrderNotGuaranteed: true,
+              productionDisabled: true,
+            }));
+            return;
+          }
+          xdicPerfWriteToFileV2('[XDIC KO290JA FAST LANE]', JSON.stringify({
+            probeToken: xdic290jaToken, keyword: cleanK,
+            status: jaError ? 'FALLBACK_QUERY_ERROR' : jaRows.length >= 31 ?
+              'FALLBACK_TRUNCATED_31' : 'FALLBACK_UNSAFE_OR_EMPTY',
+            errorCode: jaError ? String(jaError.code || '') : null,
+            errorMessage: jaError ? String(jaError.message || '').slice(0, 200) : null,
+            rows: jaRows.length, elapsedMs: Date.now() - jaStarted,
+            originalOrderedSqlSkipped: false, productionDisabled: true,
+          }));
+        } catch (jaFailure) {
+          xdicPerfWriteToFileV2('[XDIC KO290JA FAST LANE]', JSON.stringify({
+            probeToken: xdic290jaToken, keyword: cleanK,
+            status: 'FALLBACK_EXCEPTION', elapsedMs: Date.now() - jaStarted,
+            exceptionType: String((jaFailure as any)?.name || ''),
+            exceptionMessage: String((jaFailure as any)?.message || '').slice(0, 200),
+            originalOrderedSqlSkipped: false, productionDisabled: true,
+          }));
+        }
+      }
+      // XDIC_KO290_JA_DEV_FAST_LANE_END
       const { data, error } = await withStableEnglishWordOrder(
         supabase
           .from('dictionary_lines')
@@ -1920,7 +2277,17 @@ relatedSearchKeywords.forEach((keyword) => {
       const xdic255InjectedError = xdic255SimulateRelatedTimeout && cleanK === '후보'
         ? { code: '57014', message: 'canceling statement due to statement timeout' }
         : null;
-      const xdic255EffectiveError = error || xdic255InjectedError;
+      // XDIC_KO290_HK_SHADOW_INJECTION_BEGIN
+      // An explicit development-only sentence probe simulates one failed related lookup.
+      // The original KO255 simulation for "예비 후보" is unchanged.
+      const xdic290hkSyntheticError =
+        xdic290hkEnabled && cleanQuery === xdic290hkSentence &&
+        cleanK === String(relatedSearchKeywords[0] || '').replace(/[,.()\[\]:"']/g, '').trim() &&
+        !error
+          ? { code: '57014', message: 'KO290HK dev-only simulated statement timeout' }
+          : null;
+      const xdic255EffectiveError = error || xdic255InjectedError || xdic290hkSyntheticError;
+      // XDIC_KO290_HK_SHADOW_INJECTION_END
       // XDIC_KO255_RELATED_END
       // XDIC_KO253_RELATED_BEGIN
       xdic253Capture('related-ILIKE', cleanK, xdic255EffectiveError ? null : data, xdic255EffectiveError);
@@ -1968,6 +2335,16 @@ relatedSearchKeywords.forEach((keyword) => {
       if (xdic255EffectiveError) {
         // XDIC_KO255_ERROR_BEGIN: error != successful zero-row response.
         xdic255RecordRelatedFailure(cleanK, xdic255EffectiveError);
+        // XDIC_KO290_HK_SHADOW_ERROR_BEGIN
+        if (xdic290hkEnabled && (
+          String(xdic255EffectiveError.code || '') === '57014' ||
+          /statement timeout/i.test(String(xdic255EffectiveError.message || ''))
+        )) {
+          await xdic290hkProbeTimeout(
+            cleanK, data, Boolean(!error && (xdic255InjectedError || xdic290hkSyntheticError))
+          );
+        }
+        // XDIC_KO290_HK_SHADOW_ERROR_END
         console.error(
           '[관련 핵심어 검색 오류]',
           {
@@ -2017,6 +2394,14 @@ relatedSearchKeywords.forEach((keyword) => {
       // XDIC_KO286B_SHADOW_CATCH_END
       // XDIC_KO255_CATCH_BEGIN
       xdic255RecordRelatedFailure(cleanK, error);
+      // XDIC_KO290_HK_SHADOW_THROW_BEGIN
+      if (xdic290hkEnabled && (
+        String((error as { code?: unknown })?.code || '') === '57014' ||
+        /statement timeout/i.test(String((error as { message?: unknown })?.message || ''))
+      )) {
+        await xdic290hkProbeTimeout(cleanK, null, false);
+      }
+      // XDIC_KO290_HK_SHADOW_THROW_END
       // XDIC_KO255_CATCH_END
       if (xdic223RelatedStarted) {
         xdicSql223.push({
@@ -2034,6 +2419,22 @@ relatedSearchKeywords.forEach((keyword) => {
         }
       );
     }
+    // XDIC_KO290_JI_SERIAL_RELEASE_BEGIN
+    finally {
+      if (xdic290jiEnabled && xdic290jiSlot.release) {
+        try {
+          xdicPerfWriteToFileV2('[XDIC KO290JI SERIAL SLOT]', JSON.stringify({
+            probeToken: xdic290jiToken, keyword: cleanK, phase: 'END',
+            executionMs: Date.now() - xdic290jiExecutionStarted,
+          }));
+        } catch (_xdic290jiTelemetryError) {
+          // Instrumentation must never change search success/failure behavior.
+        } finally {
+          xdic290jiSlot.release();
+        }
+      }
+    }
+    // XDIC_KO290_JI_SERIAL_RELEASE_END
   })());
 });
          }
@@ -5972,6 +6373,39 @@ if (isSentenceSearch) {
     }
   }
   // XDIC_KO253_FINAL_END
+
+  // XDIC_KO290_IE_FINAL_RENDER_AUDIT_BEGIN
+  // Diagnostics only: fixed CORE sentence, dev-only, explicit HK/HS matching tokens.
+  // Records the final props at the render boundary; never changes results or SQL.
+  if (xdic290hsEnabled && cleanQuery === xdic290hkSentence) {
+    const xdic290ieFinalIds = results.map((row: any) => String(row?.id ?? ''));
+    xdicPerfWriteToFileV2('[XDIC KO290IE FINAL RENDER]', JSON.stringify({
+      surface: 'web',
+      queryLength: cleanQuery.length,
+      probeToken: xdic290hsToken,
+      htEnabled: xdic290htEnabled,
+      finalCount: xdic290ieFinalIds.length,
+      finalIds: xdic290ieFinalIds,
+      duplicateIds: xdic290ieFinalIds.length - new Set(xdic290ieFinalIds).size,
+      warningShown: xdic255RelatedFailures.length > 0,
+      productionDisabled: true,
+      rowsMutated: false,
+      extraSqlCalls: 0,
+    }));
+  }
+  // XDIC_KO290_IE_FINAL_RENDER_AUDIT_END
+  // XDIC_KO290_JA_FINAL_DIAGNOSTIC_BEGIN
+  // Logs the actual SearchPage prop IDs, without modifying the array or warning.
+  if (xdic290jaEnabled) {
+    const jaFinalIds = results.map((row: any) => String(row?.id ?? ''));
+    xdicPerfWriteToFileV2('[XDIC KO290JA FINAL RENDER]', JSON.stringify({
+      probeToken: xdic290jaToken, finalCount: jaFinalIds.length,
+      finalIds: jaFinalIds, duplicateIds: jaFinalIds.length - new Set(jaFinalIds).size,
+      warningShown: xdic255RelatedFailures.length > 0,
+      resultsMutatedByDiagnostic: false, productionDisabled: true,
+    }));
+  }
+  // XDIC_KO290_JA_FINAL_DIAGNOSTIC_END
 
   return (
     <>
