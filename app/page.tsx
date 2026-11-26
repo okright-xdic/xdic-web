@@ -5529,7 +5529,7 @@ if (isSentenceSearch) {
       resultsMap.set(row.id, row);
     }
     results = xdic290loBaselineIds.map((id) => xdic290loFetchedMap.get(id));
-    if (resultsMap.size !== 60 || results.length !== 60 ||
+    if (Array.from(resultsMap.keys()).length !== 60 || results.length !== 60 ||
         Array.from(resultsMap.keys()).map(String).join('|') !==
           xdic290loBaselineIds.join('|')) {
       throw new Error('KO290-LO baseline Map/order mismatch');
