@@ -1609,6 +1609,35 @@ const isSentenceSearch =
       cleanQuery === 'The applicant is required to be screened today.'
     ) &&
     /^[a-f0-9]{32}$/i.test(xdic253ProbeId);
+  // XDIC_KO290_LO_DEV_REPLAY_GATE_BEGIN
+  // Triple-token + development only. No normal/production/app behavior changes.
+  const xdic290loEnabled =
+    process.env.NODE_ENV === 'development' &&
+    isStableEnglishSingleWord && cleanQuery === 'screening' &&
+    !String((searchParams as { app?: string }).app || '') &&
+    xdic253Enabled &&
+    String((searchParams as { ko290lo?: string }).ko290lo || '') === xdic253ProbeId &&
+    String((searchParams as { ko290km?: string }).ko290km || '') === xdic253ProbeId;
+  let xdic290loBaselineIds: string[] = [];
+  // XDIC_KO290_LO_DEV_REPLAY_GATE_END
+  // XDIC_KO290_ME_DIRECT_DEV_GATE_BEGIN
+  // Development-only, distinct triple-token. Not used in normal, app or production requests.
+  const xdic290meEnabled = process.env.NODE_ENV === 'development' &&
+    isStableEnglishSingleWord && cleanQuery === 'screening' &&
+    !String((searchParams as { app?: string }).app || '') &&
+    xdic253Enabled && !xdic290loEnabled &&
+    String((searchParams as { ko290me?: string }).ko290me || '') === xdic253ProbeId &&
+    String((searchParams as { ko290md?: string }).ko290md || '') === xdic253ProbeId &&
+    !String((searchParams as { ko290km?: string }).ko290km || '');
+  let xdic290meBaselineIds: string[] = [];
+  let xdic290meDirectSqlMs = -1;
+  // XDIC_KO290_MK_SINGLE150_GATE_BEGIN
+  // Extra opt-in: only the already-gated dev-only ME path may select 150 rows.
+  const xdic290mkEnabled = xdic290meEnabled &&
+    String((searchParams as { ko290mk?: string }).ko290mk || '') === xdic253ProbeId;
+  let xdic290mkRows150: any[] = [];
+  // XDIC_KO290_MK_SINGLE150_GATE_END
+  // XDIC_KO290_ME_DIRECT_DEV_GATE_END
   // XDIC_KO263_BEGIN: local opt-in row attributes for isolated ranking replay.
   const xdic263Token = String(
     (searchParams as { ko263?: string }).ko263 || ''
@@ -1693,7 +1722,7 @@ const isSentenceSearch =
 
   const flexStr = noSpaceQuery.split('').map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*');
 
-  promises.push((async () => {
+  if (!(xdic290loEnabled || xdic290meEnabled)) promises.push((async () => {
     try {
       const { data: logs } = await supabase.from('search_logs').select('keyword').order('created_at', { ascending: false }).limit(500);
       if (logs && logs.length > 0) {
@@ -1707,7 +1736,7 @@ const isSentenceSearch =
   })());
 
   let bestSplit: {p1: string, p2: string} | undefined = undefined;
-  if (cleanQuery && noSpaceLen >= 2) {
+  if (cleanQuery && noSpaceLen >= 2 && !(xdic290loEnabled || xdic290meEnabled)) {
     wordCount = cleanQuery.split(/\s+/).length;
     baseExtracted = extractKeywords(cleanQuery);
     
@@ -1936,18 +1965,68 @@ const isSentenceSearch =
            if (isStableEnglishSingleWord) {
              promises.push((async () => {
                let shouldRunOriginal = true;
+                // XDIC_KO290_LI_BEGIN: development-only explicit opt-in timeout-load experiment.
+                // Only screening + matching ko253/ko290li tokens; other requests unchanged.
+                const xdic290liTrial = xdic253Enabled && cleanQuery === 'screening' &&
+                  String((searchParams as { ko290li?: string }).ko290li || '') === xdic253ProbeId;
+                let xdic290liSuppressedTimeout = false;
+                // XDIC_KO290_KG_PROBE_BEGIN: telemetry only, existing SQL untouched.
+                const xdic290kgProbeStarted = xdic253Enabled && cleanQuery === 'screening' ? Date.now() : 0;
                try {
                  const { data, error } = await supabase
                    .from('dictionary_lines')
                    .select('id')
                    .ilike('line_text', `%${spaceCorrected}%`)
                    .limit(1);
+                  // Only suppress the 8-query fallback when the existence probe timed out.
+                  if (xdic290liTrial && error &&
+                      (String(error.code || '') === '57014' ||
+                       /statement timeout/i.test(String(error.message || '')))) {
+                    shouldRunOriginal = false;
+                    xdic290liSuppressedTimeout = true;
+                  }
+                  if (xdic253Enabled && cleanQuery === 'screening') {
+                    xdic253Events.push({
+                      stage: 'ko290kg-split-probe', keyword: spaceCorrected,
+                      status: error ? 'DB_ERROR' :
+                        Array.isArray(data) ? (data.length > 0 ? 'HIT' : 'EMPTY') : 'INVALID_RESPONSE',
+                      errorMessage: error ? String(error.message || error).slice(0, 160) : '',
+                      runOriginal: shouldRunOriginal && !(!error && Array.isArray(data) && data.length === 0),
+                      elapsedMs: Date.now() - xdic290kgProbeStarted,
+                    });
+                  }
                  if (!error && Array.isArray(data) && data.length === 0) {
                    shouldRunOriginal = false;
                  }
                } catch (_error) {
+                  if (xdic290liTrial &&
+                      (String((_error as any)?.code || '') === '57014' ||
+                       /statement timeout/i.test(String((_error as any)?.message || _error)))) {
+                    shouldRunOriginal = false;
+                    xdic290liSuppressedTimeout = true;
+                  }
+                  if (xdic253Enabled && cleanQuery === 'screening') {
+                    xdic253Events.push({
+                      stage: 'ko290kg-split-probe', keyword: spaceCorrected,
+                      status: 'THROWN',
+                      errorMessage: String((_error as any)?.message || _error).slice(0, 160),
+                      runOriginal: shouldRunOriginal,
+                      elapsedMs: Date.now() - xdic290kgProbeStarted,
+                    });
+                  }
+                  // XDIC_KO290_KG_PROBE_END
                  // Probe failed: run original eight queries as before.
                }
+               if (xdic290liSuppressedTimeout) {
+                  xdic253Events.push({
+                    stage: 'ko290li-timeout-suppressed',
+                    keyword: spaceCorrected,
+                    skippedExact8Queries: 8,
+                    devOnly: true,
+                    productionDisabled: true,
+                  });
+                }
+                // XDIC_KO290_LI_END
                if (shouldRunOriginal) {
                  await fetchExactPhrase(spaceCorrected, true);
                }
@@ -1980,8 +2059,14 @@ const isSentenceSearch =
 
       if (bestSplit) {
         promises.push((async () => {
+          // XDIC_KO290_KG_BEST_BEGIN: opt-in telemetry; original SQL and addRes unchanged.
+          const xdic290kgBestStarted = Date.now();
+          let xdic290kgBestStatus = 'EXCEPTION';
+          // XDIC_KO290_KX_BEST_ERROR_DETAIL: opt-in log only; SQL and result path unchanged.
+          let xdic290kxBestErrorCode = '';
+          let xdic290kxBestErrorMessage = '';
           try {
-            const { data } = await withStableEnglishWordOrder(
+            const { data, error: xdic290kxBestDbError } = await withStableEnglishWordOrder(
               supabase.from('dictionary_lines')
                 .select('*')
                 .ilike('line_text', `%${bestSplit!.p1}%`)
@@ -1989,8 +2074,89 @@ const isSentenceSearch =
                 .order('category_id', { ascending: true }),
               true
             ).limit(50);
+            xdic290kgBestStatus = Array.isArray(data) ? `ROWS_${data.length}` : 'NULL_OR_ERROR';
+            if (xdic253Enabled && cleanQuery === 'screening') {
+              if (xdic290kxBestDbError) {
+                xdic290kgBestStatus = 'DB_ERROR';
+                xdic290kxBestErrorCode = String(xdic290kxBestDbError.code ?? '').slice(0, 80);
+                xdic290kxBestErrorMessage = String(xdic290kxBestDbError.message ?? '').slice(0, 200);
+              } else if (!Array.isArray(data)) {
+                xdic290kgBestStatus = 'NULL_WITHOUT_DB_ERROR';
+              }
+            }
+            // XDIC_KO290_LE_BESTSPLIT_SHADOW_BEGIN
+            // Token-gated, metadata-only observation of existing bestSplit rows.
+            // Does not change SQL, addRes(), resultsMap, fallback, or returned results.
+            if (xdic253Enabled && cleanQuery === 'screening' &&
+                String((searchParams as { ko290le?: string }).ko290le || '') === xdic253ProbeId) {
+              try {
+                const xdic290leRows = Array.isArray(data) ? data : [];
+                const xdic290leCategorySeen = new Map<number, number>();
+                let xdic290leVisible = 0;
+                let xdic290leCatZero = 0;
+                let xdic290leWholeWord = 0;
+                let xdic290leContains = 0;
+                const xdic290leIds: string[] = [];
+                for (const xdic290leRow of xdic290leRows) {
+                  const xdic290leCat = xdic290leRow?.category_id == null
+                    ? 12 : Number(xdic290leRow.category_id);
+                  const xdic290leText = String(xdic290leRow?.line_text ?? '').toLowerCase();
+                  xdic290leIds.push(String(xdic290leRow?.id ?? ''));
+                  if (xdic290leCat === 0) {
+                    xdic290leCatZero++;
+                  } else if (Number.isSafeInteger(xdic290leCat)) {
+                    const xdic290leCount = (xdic290leCategorySeen.get(xdic290leCat) || 0) + 1;
+                    xdic290leCategorySeen.set(xdic290leCat, xdic290leCount);
+                    if (xdic290leCount <= 5) xdic290leVisible++;
+                  }
+                  if (xdic290leText.includes('screening')) xdic290leContains++;
+                  if (/(?:^|[^a-z0-9_])screening(?=[^a-z0-9_]|$)/i.test(xdic290leText)) {
+                    xdic290leWholeWord++;
+                  }
+                }
+                xdic253Events.push({
+                  stage: 'ko290le-bestsplit-shadow',
+                  keyword: cleanQuery,
+                  returnedRows: xdic290leRows.length,
+                  returnedIds: xdic290leIds,
+                  distinctIds: new Set(xdic290leIds).size,
+                  category0Rows: xdic290leCatZero,
+                  visibleWithCategoryCap: xdic290leVisible,
+                  containsFullKeyword: xdic290leContains,
+                  wholeWordKeyword: xdic290leWholeWord,
+                  productionDisabled: true,
+                  sqlAdded: false,
+                  resultsMutated: false,
+                });
+              } catch (xdic290leError) {
+                // Telemetry must never block the original addRes() path.
+                xdic253Events.push({
+                  stage: 'ko290le-bestsplit-shadow',
+                  telemetryError: String((xdic290leError as Error)?.message || xdic290leError).slice(0, 160),
+                });
+              }
+            }
+            // XDIC_KO290_LE_BESTSPLIT_SHADOW_END
             if (data) data.forEach(item => addRes(item));
-          } catch(e) {}
+          } catch(e) {
+            if (xdic253Enabled && cleanQuery === 'screening') {
+              xdic290kxBestErrorMessage = String(e instanceof Error ? e.message : e).slice(0, 200);
+            }
+          }
+          finally {
+            if (xdic253Enabled && cleanQuery === 'screening') {
+              xdic253Events.push({
+                stage: 'ko290kg-best-split',
+                keyword: `${bestSplit!.p1}|${bestSplit!.p2}`,
+                status: xdic290kgBestStatus,
+                errorCode: xdic290kxBestErrorCode,
+                errorMessage: xdic290kxBestErrorMessage,
+                elapsedMs: Date.now() - xdic290kgBestStarted,
+                limit: 50,
+              });
+            }
+          }
+          // XDIC_KO290_KG_BEST_END
         })());
       }
     }
@@ -5294,6 +5460,172 @@ if (isSentenceSearch) {
     }
   }
 
+  // XDIC_KO290_LO_DEV_REPLAY_BASELINE_BEGIN
+  // Only in explicit dev replay: skip original expensive search and hydrate the
+  // exact 60 historical category-0 IDs from real DB (1 read-only SELECT).
+  // Then the UNMODIFIED KO290-KR branch below performs its normal 2 SELECTs.
+  if (xdic290loEnabled) {
+    if (results.length !== 0 || resultsMap.size !== 0) {
+      throw new Error('KO290-LO expected empty pre-replay results and Map');
+    }
+    const { readFileSync: xdic290loReadFileSync } = await import('node:fs');
+    const xdic290loHistory = xdic290loReadFileSync(
+      'C:/dictionary_upload/X-DIC-core-backups/X-DIC-core-scripts/XDIC_KO253_TRACE.jsonl',
+      'utf8'
+    ).split(/\r?\n/);
+    const xdic290loHistoryAt = '2026-11-26T10:31:30.993Z';
+    const xdic290loMatching = xdic290loHistory
+      .filter((line: string) => line.includes(xdic290loHistoryAt) &&
+        line.includes('XDIC_KO253_TRACE'))
+      .map((line: string) => JSON.parse(line))
+      .filter((record: any) => record?.marker === 'XDIC_KO253_TRACE' &&
+        record?.timestamp === xdic290loHistoryAt && record?.query === 'screening');
+    if (xdic290loMatching.length !== 1) {
+      throw new Error('KO290-LO historical baseline absent or ambiguous');
+    }
+    const xdic290loHistoryRecord = xdic290loMatching[0];
+    const xdic290loPrimary = (xdic290loHistoryRecord.events || [])
+      .find((e: any) => e.stage === 'after-primary');
+    const xdic290loFallback = (xdic290loHistoryRecord.events || [])
+      .find((e: any) => e.stage === 'after-fallback');
+    xdic290loBaselineIds = (xdic290loHistoryRecord.finalIds || [])
+      .map((id: unknown) => String(id));
+    if (xdic290loPrimary?.count !== 0 || xdic290loFallback?.count !== 60 ||
+        xdic290loHistoryRecord.finalCount !== 60 ||
+        xdic290loBaselineIds.length !== 60 ||
+        new Set(xdic290loBaselineIds).size !== 60 ||
+        xdic290loBaselineIds.some((id) => !/^[a-f0-9-]{36}$/i.test(id))) {
+      throw new Error('KO290-LO historical 0/60 ID integrity failed');
+    }
+    const xdic290loController = new AbortController();
+    const xdic290loTimer = setTimeout(() => xdic290loController.abort(), 12000);
+    let xdic290loFetched: any[] = [];
+    try {
+      const { data, error } = await supabase.from('dictionary_lines')
+        .select('*').in('id', xdic290loBaselineIds)
+        .abortSignal(xdic290loController.signal);
+      if (error || !Array.isArray(data)) {
+        throw new Error('KO290-LO 60 baseline full-row SELECT failed');
+      }
+      xdic290loFetched = data;
+    } finally {
+      clearTimeout(xdic290loTimer);
+    }
+    const xdic290loFetchedMap = new Map<string, any>();
+    for (const row of xdic290loFetched) {
+      const id = String(row?.id ?? '');
+      if (!id || xdic290loFetchedMap.has(id) || Number(row?.category_id) !== 0 ||
+          typeof row?.line_text !== 'string') {
+        throw new Error('KO290-LO invalid baseline full-row data');
+      }
+      xdic290loFetchedMap.set(id, row);
+    }
+    if (xdic290loFetchedMap.size !== 60) {
+      throw new Error('KO290-LO baseline 60 full rows missing');
+    }
+    for (const id of xdic290loBaselineIds) {
+      const row = xdic290loFetchedMap.get(id);
+      if (!row) throw new Error('KO290-LO baseline ID missing in DB');
+      resultsMap.set(row.id, row);
+    }
+    results = xdic290loBaselineIds.map((id) => xdic290loFetchedMap.get(id));
+    if (resultsMap.size !== 60 || results.length !== 60 ||
+        Array.from(resultsMap.keys()).map(String).join('|') !==
+          xdic290loBaselineIds.join('|')) {
+      throw new Error('KO290-LO baseline Map/order mismatch');
+    }
+    xdic253Events.push({
+      stage: 'ko290lo-dev-replay-0-primary-60-fallback',
+      count: 60, ids: [...xdic290loBaselineIds],
+      originalSqlSkipped: true, databaseWrites: false,
+    });
+  }
+  // XDIC_KO290_LO_DEV_REPLAY_BASELINE_END
+  // XDIC_KO290_ME_DIRECT_50_BEGIN
+  // Explicit dev-only direct 50. Original bestSplit logic is only bypassed in this request.
+  if (xdic290meEnabled) {
+    if (results.length !== 0 || resultsMap.size !== 0 || xdic290loEnabled) {
+      throw new Error('KO290-ME unexpected pre-direct search state');
+    }
+    const xdic290meStart = Date.now();
+    const xdic290meAbort = new AbortController();
+    const xdic290meTimer = setTimeout(() => xdic290meAbort.abort(), 10000);
+    let xdic290meData: any[] | null = null;
+    try {
+      const { data, error } = await supabase.from('dictionary_lines')
+        .select('*').ilike('line_text', '%screening%')
+        .order('category_id', { ascending: true, nullsFirst: false })
+        .order('source_order', { ascending: true, nullsFirst: false })
+        .order('id', { ascending: true })
+        .limit(xdic290mkEnabled ? 150 : 50).abortSignal(xdic290meAbort.signal);
+      if (error || !Array.isArray(data)) {
+        throw new Error('KO290-ME direct50 SELECT error');
+      }
+      if (xdic290mkEnabled) {
+        if (data.length !== 150 ||
+            new Set(data.map((r: any) => String(r?.id ?? ''))).size !== 150 ||
+            data.some((r: any) => !r?.id || typeof r.line_text !== 'string' ||
+              !r.line_text.toLowerCase().includes('screening'))) {
+          throw new Error('KO290-MK pool150 count/uniqueness/content mismatch');
+        }
+        xdic290mkRows150 = data;
+        xdic290meData = data.slice(0, 50);
+      } else {
+        xdic290meData = data;
+      }
+    } finally {
+      clearTimeout(xdic290meTimer);
+      xdic290meDirectSqlMs = Date.now() - xdic290meStart;
+    }
+    if (!xdic290meData || xdic290meData.length !== 50 ||
+        xdic290meData.filter((r: any) => Number(r?.category_id) === 0).length !== 30 ||
+        xdic290meData.filter((r: any) => Number(r?.category_id) === 1).length !== 20 ||
+        xdic290meData.some((r: any) =>
+          !r?.id || typeof r?.line_text !== 'string' ||
+          !r.line_text.toLowerCase().includes('screening'))) {
+      throw new Error('KO290-ME direct50 rows / category baseline differ');
+    }
+    xdic290meBaselineIds = xdic290meData.map((r: any) => String(r.id));
+    if (new Set(xdic290meBaselineIds).size !== 50) {
+      throw new Error('KO290-ME duplicate direct50 ids');
+    }
+    const { createHash: xdic290meHash } = await import('node:crypto');
+    const xdic290meSetSha = xdic290meHash('sha256')
+      .update([...xdic290meBaselineIds].sort().join('|'), 'utf8')
+      .digest('hex').toUpperCase();
+    if (xdic290meSetSha !==
+        '8752A93EB7FA5FD56AE1B2B09E0DAC14475A146CC92874B18803AA00A85A4EAB') {
+      throw new Error('KO290-ME direct50 baseline hash mismatch');
+    }
+    xdic290meData.forEach((row: any) => addRes(row));
+    results = Array.from(resultsMap.values());
+    if (results.length !== 50 ||
+        results.map((r: any) => String(r?.id ?? '')).join('|') !==
+          xdic290meBaselineIds.join('|')) {
+      throw new Error('KO290-ME baseline insertion order mismatch');
+    }
+    // The original English single-word ranking sees the same split-mode indicator.
+    wordCount = 1;
+    bestSplit = { p1: 'scre', p2: 'ening' };
+    baseExtracted = extractKeywords(cleanQuery);
+    allSearchKeywords = ['screening'];
+    xdic253Events.push({ stage: 'ko290me-dev-direct50', count: 50,
+      ids: [...xdic290meBaselineIds], directSqlMs: xdic290meDirectSqlMs,
+      productionDisabled: true, originalSearchBypassed: true });
+    // XDIC_KO290_MF_DEV_ROTATE_BEGIN
+    // The original search section is skipped for the ME-only query, so its
+    // original rotateResults call must be replayed explicitly before ME15.
+    xdic253Capture('ko290mf-rotate-before', cleanQuery, results);
+    results = rotateResults(
+      results, cleanQuery,
+      twoProCoreSearchKeywordsV6.length > 0
+        ? twoProCoreSearchKeywordsV6 : allSearchKeywords,
+      flexStr, !!bestSplit
+    );
+    xdic253Capture('ko290mf-rotate-after', cleanQuery, results);
+    // XDIC_KO290_MF_DEV_ROTATE_END
+  }
+  // XDIC_KO290_ME_DIRECT_50_END
   // XDIC_KO286Z_LIMITED_DISPLAY_PILOT_DECL_BEGIN
   // The default and all shadow requests keep the original final result order.
   let xdic286zPendingSort: any[] | null = null;
@@ -6394,6 +6726,959 @@ if (isSentenceSearch) {
     }));
   }
   // XDIC_KO290_IE_FINAL_RENDER_AUDIT_END
+  // XDIC_KO290_JT_SHADOW_BEGIN
+  // Development-only ID comparison. Never adds, removes, reorders, or rewrites search rows.
+  if (process.env.NODE_ENV === 'development' &&
+      isStableEnglishSingleWord && cleanQuery === 'candidate') {
+    const xdic290jtStart = Date.now();
+    const xdic290jtBeforeIds = results.map((row: any) => String(row?.id ?? ''));
+    const xdic290jtMapIds = Array.from(resultsMap.keys()).map(String);
+    const xdic290jtCatSeen = new Map<number, number>();
+    const xdic290jtVisibleIds: string[] = [];
+    for (const row of results) {
+      const category = row?.category_id == null ? 12 : Number(row.category_id);
+      if (category === 0 || !Number.isSafeInteger(category)) continue;
+      const count = (xdic290jtCatSeen.get(category) || 0) + 1;
+      xdic290jtCatSeen.set(category, count);
+      if (count <= 5) xdic290jtVisibleIds.push(String(row?.id ?? ''));
+    }
+    const xdic290jtRecord: Record<string, any> = {
+      marker: 'XDIC_KO290_JT_SHADOW',
+      timestampUtc: new Date().toISOString(),
+      keyword: 'candidate',
+      primaryRawCount: results.length,
+      existingVisibleCount: xdic290jtVisibleIds.length,
+      status: 'SKIP_NORMAL_VISIBLE_RESULTS',
+      hypotheticalVisibleCount: xdic290jtVisibleIds.length,
+      dbReadOnly: true,
+      actualResultsMutated: false,
+    };
+    try {
+      // Normal visible results: no extra SQL, preserve every original ID/position.
+      if (xdic290jtVisibleIds.length === 0) {
+        const { data: xdic290jtData, error: xdic290jtError, count: xdic290jtTotal } =
+          await supabase.from('dictionary_lines')
+            .select('id,category_id,source_order', { count: 'exact' })
+            .or('category_id.neq.0,category_id.is.null')
+            .ilike('line_text', '%candidate%')
+            .order('category_id', { ascending: true, nullsFirst: false })
+            .order('source_order', { ascending: true, nullsFirst: false })
+            .order('id', { ascending: true })
+            .limit(1000);
+        const xdic290jtRows: any[] = Array.isArray(xdic290jtData) ? xdic290jtData : [];
+        const xdic290jtCounts = new Map<number, number>();
+        const xdic290jtAllIds = new Set<string>();
+        const xdic290jtPairs: string[] = [];
+        let xdic290jtInvalid = Boolean(xdic290jtError);
+        for (const row of xdic290jtRows) {
+          const id = String(row?.id ?? '');
+          const category = row?.category_id == null ? 12 : Number(row.category_id);
+          if (!id || xdic290jtAllIds.has(id) ||
+              !Number.isSafeInteger(category) || category === 0) {
+            xdic290jtInvalid = true;
+            break;
+          }
+          xdic290jtAllIds.add(id);
+          const next = (xdic290jtCounts.get(category) || 0) + 1;
+          xdic290jtCounts.set(category, next);
+          if (next <= 5) xdic290jtPairs.push(`${category}:${id}`);
+        }
+        const { createHash: xdic290jtCreateHash } = await import('node:crypto');
+        const xdic290jtHash = xdic290jtCreateHash('sha256')
+          .update(xdic290jtPairs.join('|'), 'utf8').digest('hex').toUpperCase();
+        xdic290jtRecord.restCount = xdic290jtTotal;
+        xdic290jtRecord.restRows = xdic290jtRows.length;
+        xdic290jtRecord.restCategoryCount = xdic290jtCounts.size;
+        xdic290jtRecord.balancedTop5 = xdic290jtPairs.length;
+        xdic290jtRecord.balancedIdSha256 = xdic290jtHash;
+        xdic290jtRecord.errorCode = xdic290jtError ? String(xdic290jtError.code || '') : null;
+        xdic290jtRecord.hypotheticalVisibleCount = xdic290jtPairs.length;
+        xdic290jtRecord.status = !xdic290jtInvalid &&
+          xdic290jtTotal === 475 && xdic290jtRows.length === 475 &&
+          xdic290jtCounts.size === 10 && xdic290jtPairs.length === 42 &&
+          xdic290jtHash === '85E7C2FC70F844C1045A50FD4373B4C18D84E78E2B79E1297BF1DA2C87ADCF6C'
+          ? 'PASS_SHADOW_42' : 'STOP_SHADOW_MISMATCH';
+      }
+    } catch (xdic290jtError: any) {
+      xdic290jtRecord.status = 'STOP_SHADOW_EXCEPTION';
+      xdic290jtRecord.errorMessage = String(xdic290jtError?.message || xdic290jtError).slice(0, 200);
+    }
+    // Explicit immutability check; shadow arrays are never passed to SearchPage.
+    xdic290jtRecord.originalIdsUnchanged =
+      xdic290jtBeforeIds.join('|') === results.map((row: any) => String(row?.id ?? '')).join('|');
+    xdic290jtRecord.mapKeysUnchanged =
+      xdic290jtMapIds.join('|') === Array.from(resultsMap.keys()).map(String).join('|');
+    xdic290jtRecord.elapsedMs = Date.now() - xdic290jtStart;
+    if (!xdic290jtRecord.originalIdsUnchanged || !xdic290jtRecord.mapKeysUnchanged) {
+      xdic290jtRecord.status = 'STOP_ORIGINAL_ID_CHECK';
+    }
+    try {
+      appendFileSync(
+        'C:/dictionary_upload/X-DIC-core-backups/X-DIC-core-scripts/XDIC_KO290_JT_SHADOW.jsonl',
+        JSON.stringify(xdic290jtRecord) + '\n',
+        { encoding: 'utf8' }
+      );
+    } catch (xdic290jtLogError) {
+      console.warn('[XDIC KO290JT SHADOW LOG ERROR]', String(xdic290jtLogError));
+    }
+    console.info('[XDIC KO290JT SHADOW]', JSON.stringify(xdic290jtRecord));
+  }
+  // XDIC_KO290_JT_SHADOW_END
+  // XDIC_KO290_JU_DEV_CANDIDATE_BEGIN
+  // Web + development + candidate only. Preserve every pre-existing row and resultsMap key.
+  // Fail closed: never apply an unverified candidate set; do not modify production searches.
+  if (process.env.NODE_ENV === 'development' && !isApp &&
+      isStableEnglishSingleWord && cleanQuery === 'candidate') {
+    const xdic290juStarted = Date.now();
+    const xdic290juOriginal = results;
+    const xdic290juOriginalIds = results.map((row: any) => String(row?.id ?? ''));
+    const xdic290juMapIds = Array.from(resultsMap.keys()).map(String);
+    const xdic290juCategoryCount = new Map<number, number>();
+    let xdic290juVisible = 0;
+    for (const row of results) {
+      const category = row?.category_id == null ? 12 : Number(row.category_id);
+      if (!Number.isSafeInteger(category) || category === 0) continue;
+      const seen = (xdic290juCategoryCount.get(category) || 0) + 1;
+      xdic290juCategoryCount.set(category, seen);
+      if (seen <= 5) xdic290juVisible++;
+    }
+    const xdic290juRecord: Record<string, any> = {
+      marker: 'XDIC_KO290_JU_DEV_CANDIDATE',
+      timestampUtc: new Date().toISOString(),
+      keyword: 'candidate',
+      originalRaw: xdic290juOriginal.length,
+      originalVisible: xdic290juVisible,
+      added: 0,
+      status: 'SKIP_NORMAL_RESULTS',
+      dbReadOnly: true,
+      productionDisabled: true,
+    };
+    if (xdic290juVisible === 0 && results.length === 50 &&
+        results.every((row: any) => Number(row?.category_id) === 0)) {
+      try {
+        const { data: xdic290juMeta, error: xdic290juMetaError, count: xdic290juTotal } =
+          await supabase.from('dictionary_lines')
+            .select('id,category_id,source_order', { count: 'exact' })
+            .or('category_id.neq.0,category_id.is.null')
+            .ilike('line_text', '%candidate%')
+            .order('category_id', { ascending: true, nullsFirst: false })
+            .order('source_order', { ascending: true, nullsFirst: false })
+            .order('id', { ascending: true })
+            .limit(1000);
+        if (xdic290juMetaError || !Array.isArray(xdic290juMeta) ||
+            xdic290juTotal !== 475 || xdic290juMeta.length !== 475) {
+          throw new Error('candidate metadata query/count mismatch');
+        }
+        const xdic290juSeenIds = new Set<string>();
+        const xdic290juCatCounts = new Map<number, number>();
+        const xdic290juSelectedMeta: any[] = [];
+        const xdic290juPairs: string[] = [];
+        for (const row of xdic290juMeta) {
+          const id = String(row?.id ?? '');
+          const category = row?.category_id == null ? 12 : Number(row.category_id);
+          if (!id || xdic290juSeenIds.has(id) ||
+              !Number.isSafeInteger(category) || category === 0) {
+            throw new Error('invalid or duplicate candidate metadata');
+          }
+          xdic290juSeenIds.add(id);
+          const count = (xdic290juCatCounts.get(category) || 0) + 1;
+          xdic290juCatCounts.set(category, count);
+          if (count <= 5) {
+            xdic290juSelectedMeta.push(row);
+            xdic290juPairs.push(`${category}:${id}`);
+          }
+        }
+        const { createHash: xdic290juCreateHash } = await import('node:crypto');
+        const xdic290juIdHash = xdic290juCreateHash('sha256')
+          .update(xdic290juPairs.join('|'), 'utf8').digest('hex').toUpperCase();
+        xdic290juRecord.restTotal = xdic290juTotal;
+        xdic290juRecord.categoryCount = xdic290juCatCounts.size;
+        xdic290juRecord.candidateCount = xdic290juSelectedMeta.length;
+        xdic290juRecord.idSha256 = xdic290juIdHash;
+        if (xdic290juCatCounts.size !== 10 || xdic290juSelectedMeta.length !== 42 ||
+            xdic290juIdHash !== '85E7C2FC70F844C1045A50FD4373B4C18D84E78E2B79E1297BF1DA2C87ADCF6C') {
+          throw new Error('KO290-JT balanced candidate ID checksum mismatch');
+        }
+        const xdic290juSelectedIds = xdic290juSelectedMeta.map(
+          (row: any) => String(row.id));
+        const { data: xdic290juFull, error: xdic290juFullError } =
+          await supabase.from('dictionary_lines').select('*').in('id', xdic290juSelectedIds);
+        if (xdic290juFullError || !Array.isArray(xdic290juFull) || xdic290juFull.length !== 42) {
+          throw new Error('full candidate row retrieval mismatch');
+        }
+        const xdic290juFullMap = new Map<string, any>();
+        for (const row of xdic290juFull) {
+          const id = String(row?.id ?? '');
+          if (!id || xdic290juFullMap.has(id) ||
+              typeof row?.line_text !== 'string' ||
+              !row.line_text.toLowerCase().includes('candidate')) {
+            throw new Error('invalid/duplicate full candidate row');
+          }
+          xdic290juFullMap.set(id, row);
+        }
+        const xdic290juAddition: any[] = [];
+        for (const meta of xdic290juSelectedMeta) {
+          const id = String(meta.id);
+          const full = xdic290juFullMap.get(id);
+          const fullCat = full?.category_id == null ? 12 : Number(full.category_id);
+          const metaCat = meta?.category_id == null ? 12 : Number(meta.category_id);
+          if (!full || fullCat !== metaCat ||
+              String(full?.source_order ?? '') !== String(meta?.source_order ?? '') ||
+              xdic290juOriginalIds.includes(id)) {
+            throw new Error('full candidate row does not match shadow metadata');
+          }
+          xdic290juAddition.push(full);
+        }
+        if (xdic290juAddition.length !== 42 ||
+            xdic290juOriginalIds.join('|') !== results.map((row: any) => String(row?.id ?? '')).join('|') ||
+            xdic290juMapIds.join('|') !== Array.from(resultsMap.keys()).map(String).join('|')) {
+          throw new Error('existing results or map changed before append');
+        }
+        // Never delete or reorder original rows. UI already excludes category 0 and caps 5/category.
+        results = [...xdic290juOriginal, ...xdic290juAddition];
+        if (results.length !== 92 ||
+            xdic290juOriginalIds.join('|') !== results.slice(0, 50).map((row: any) => String(row?.id ?? '')).join('|') ||
+            xdic290juMapIds.join('|') !== Array.from(resultsMap.keys()).map(String).join('|')) {
+          throw new Error('original prefix or map changed after append');
+        }
+        xdic290juRecord.added = xdic290juAddition.length;
+        xdic290juRecord.status = 'PASS_APPEND_42';
+      } catch (xdic290juError: any) {
+        results = xdic290juOriginal;
+        xdic290juRecord.added = 0;
+        xdic290juRecord.status = 'STOP_UNVERIFIED_APPEND';
+        xdic290juRecord.error = String(xdic290juError?.message || xdic290juError).slice(0, 200);
+      }
+    } else if (xdic290juVisible === 0) {
+      xdic290juRecord.status = 'SKIP_UNEXPECTED_PRIMARY';
+    }
+    xdic290juRecord.finalRaw = results.length;
+    xdic290juRecord.originalPrefixPreserved =
+      xdic290juOriginalIds.join('|') === results.slice(0, xdic290juOriginalIds.length)
+        .map((row: any) => String(row?.id ?? '')).join('|');
+    xdic290juRecord.mapKeysUnchanged =
+      xdic290juMapIds.join('|') === Array.from(resultsMap.keys()).map(String).join('|');
+    if (!xdic290juRecord.originalPrefixPreserved || !xdic290juRecord.mapKeysUnchanged) {
+      results = xdic290juOriginal;
+      xdic290juRecord.status = 'STOP_ORIGINAL_INTEGRITY';
+      xdic290juRecord.added = 0;
+      xdic290juRecord.finalRaw = results.length;
+    }
+    xdic290juRecord.elapsedMs = Date.now() - xdic290juStarted;
+    try {
+      appendFileSync(
+        'C:/dictionary_upload/X-DIC-core-backups/X-DIC-core-scripts/XDIC_KO290_JU_DEV_CANDIDATE.jsonl',
+        JSON.stringify(xdic290juRecord) + '\n',
+        { encoding: 'utf8' }
+      );
+    } catch (xdic290juLogError) {
+      console.warn('[XDIC KO290JU LOG ERROR]', String(xdic290juLogError));
+    }
+    console.info('[XDIC KO290JU DEV CANDIDATE]', JSON.stringify(xdic290juRecord));
+  }
+  // XDIC_KO290_JU_DEV_CANDIDATE_END
+  // XDIC_KO290_JW_MULTIKEY_SHADOW_BEGIN
+  // Development-only single-word English comparison; no changes to results or resultsMap.
+  // Independent evidence for a possible future generic fallback. Never applied to UI rows.
+  if (process.env.NODE_ENV === 'development' && !isApp &&
+      isStableEnglishSingleWord &&
+      (cleanQuery === 'applicant' || cleanQuery === 'roster' || cleanQuery === 'screening')) {
+    const xdic290jwStarted = Date.now();
+    const xdic290jwBeforeRows = results;
+    const xdic290jwBeforeIds = results.map((row: any) => String(row?.id ?? ''));
+    const xdic290jwBeforeMapIds = Array.from(resultsMap.keys()).map(String);
+    const xdic290jwVisibleCounts = new Map<number, number>();
+    let xdic290jwVisible = 0;
+    for (const row of results) {
+      const category = row?.category_id == null ? 12 : Number(row.category_id);
+      if (category === 0 || !Number.isSafeInteger(category)) continue;
+      const next = (xdic290jwVisibleCounts.get(category) || 0) + 1;
+      xdic290jwVisibleCounts.set(category, next);
+      if (next <= 5) xdic290jwVisible++;
+    }
+    const xdic290jwRecord: Record<string, any> = {
+      marker: 'XDIC_KO290_JW_MULTIKEY_SHADOW',
+      timestampUtc: new Date().toISOString(),
+      keyword: cleanQuery,
+      originalRaw: results.length,
+      originalVisible: xdic290jwVisible,
+      status: 'SKIP_EXISTING_VISIBLE',
+      queryExecuted: false,
+      sampleLimit: 500,
+      dbReadOnly: true,
+      actualResultsMutated: false,
+      productionDisabled: true,
+    };
+    if (xdic290jwVisible === 0 && results.length === 50 &&
+        results.every((row: any) => Number(row?.category_id) === 0)) {
+      const xdic290jwQueryStart = Date.now();
+      try {
+        // Metadata-only SELECT, deliberately capped. This is *not* a complete DB total.
+        const { data: xdic290jwData, error: xdic290jwError } =
+          await supabase.from('dictionary_lines')
+            .select('id,category_id,source_order')
+            .or('category_id.neq.0,category_id.is.null')
+            .ilike('line_text', `%${cleanQuery}%`)
+            .order('category_id', { ascending: true, nullsFirst: false })
+            .order('source_order', { ascending: true, nullsFirst: false })
+            .order('id', { ascending: true })
+            .limit(500);
+        xdic290jwRecord.queryExecuted = true;
+        xdic290jwRecord.queryMs = Date.now() - xdic290jwQueryStart;
+        if (xdic290jwError || !Array.isArray(xdic290jwData)) {
+          throw new Error('SHADOW SELECT failed');
+        }
+        const xdic290jwIdSet = new Set<string>();
+        const xdic290jwCounts = new Map<number, number>();
+        const xdic290jwPairs: string[] = [];
+        for (const row of xdic290jwData) {
+          const id = String(row?.id ?? '');
+          const category = row?.category_id == null ? 12 : Number(row.category_id);
+          if (!id || xdic290jwIdSet.has(id) ||
+              category === 0 || !Number.isSafeInteger(category)) {
+            throw new Error('SHADOW sample contains invalid or duplicate ID/category');
+          }
+          xdic290jwIdSet.add(id);
+          const count = (xdic290jwCounts.get(category) || 0) + 1;
+          xdic290jwCounts.set(category, count);
+          if (count <= 5) xdic290jwPairs.push(`${category}:${id}`);
+        }
+        const { createHash: xdic290jwHash } = await import('node:crypto');
+        xdic290jwRecord.sampledRows = xdic290jwData.length;
+        xdic290jwRecord.sampleMayBeTruncated = xdic290jwData.length === 500;
+        xdic290jwRecord.sampledCategories = xdic290jwCounts.size;
+        xdic290jwRecord.hypotheticalVisible = xdic290jwPairs.length;
+        xdic290jwRecord.sampleIdSha256 = xdic290jwHash('sha256')
+          .update(xdic290jwPairs.join('|'), 'utf8').digest('hex').toUpperCase();
+        xdic290jwRecord.status = xdic290jwPairs.length > 0
+          ? 'SHADOW_ALTERNATIVES_FOUND' : 'SHADOW_NO_ALTERNATIVES';
+      } catch (xdic290jwError: any) {
+        xdic290jwRecord.queryMs = Date.now() - xdic290jwQueryStart;
+        xdic290jwRecord.status = 'SHADOW_QUERY_ERROR';
+        xdic290jwRecord.error = String(xdic290jwError?.message || xdic290jwError).slice(0, 200);
+      }
+    } else if (xdic290jwVisible === 0) {
+      xdic290jwRecord.status = 'SKIP_UNEXPECTED_PRIMARY';
+    }
+    xdic290jwRecord.finalRaw = results.length;
+    xdic290jwRecord.originalArrayReferenceUnchanged = results === xdic290jwBeforeRows;
+    xdic290jwRecord.originalIdsUnchanged =
+      xdic290jwBeforeIds.join('|') === results.map((row: any) => String(row?.id ?? '')).join('|');
+    xdic290jwRecord.mapKeysUnchanged =
+      xdic290jwBeforeMapIds.join('|') === Array.from(resultsMap.keys()).map(String).join('|');
+    xdic290jwRecord.elapsedMs = Date.now() - xdic290jwStarted;
+    try {
+      appendFileSync(
+        'C:/dictionary_upload/X-DIC-core-backups/X-DIC-core-scripts/XDIC_KO290_JW_MULTIKEY_SHADOW.jsonl',
+        JSON.stringify(xdic290jwRecord) + '\n',
+        { encoding: 'utf8' }
+      );
+    } catch (xdic290jwLogError) {
+      console.warn('[XDIC KO290JW SHADOW LOG ERROR]', String(xdic290jwLogError));
+    }
+    console.info('[XDIC KO290JW MULTIKEY SHADOW]', JSON.stringify(xdic290jwRecord));
+  }
+  // XDIC_KO290_JX_LOWYIELD_SHADOW_BEGIN
+  // DEV WEB ONLY. Metadata SELECT for 1..19 visible rows; no results/resultsMap/UI mutations.
+  if (process.env.NODE_ENV === 'development' && !isApp &&
+      isStableEnglishSingleWord &&
+      (cleanQuery === 'applicant' || cleanQuery === 'roster' || cleanQuery === 'screening')) {
+    const xdic290jxStarted = Date.now();
+    const xdic290jxOriginalRef = results;
+    const xdic290jxOriginalIds = results.map((row: any) => String(row?.id ?? ''));
+    const xdic290jxMapKeys = Array.from(resultsMap.keys()).map(String);
+    const xdic290jxOriginalIdSet = new Set(xdic290jxOriginalIds);
+    const xdic290jxExistingCategoryCounts = new Map<number, number>();
+    let xdic290jxVisible = 0;
+    for (const row of results) {
+      const category = row?.category_id == null ? 12 : Number(row.category_id);
+      if (category === 0 || !Number.isSafeInteger(category)) continue;
+      const previous = xdic290jxExistingCategoryCounts.get(category) || 0;
+      xdic290jxExistingCategoryCounts.set(category, previous + 1);
+      if (previous < 5) xdic290jxVisible++;
+    }
+    const xdic290jxRecord: Record<string, any> = {
+      marker: 'XDIC_KO290_JX_LOWYIELD_SHADOW',
+      timestampUtc: new Date().toISOString(),
+      keyword: cleanQuery,
+      originalRaw: results.length,
+      originalVisible: xdic290jxVisible,
+      missingTo20: Math.max(0, 20 - xdic290jxVisible),
+      status: 'SKIP_NOT_LOW_YIELD',
+      queryExecuted: false,
+      sampleLimit: 500,
+      dbReadOnly: true,
+      productionDisabled: true,
+      actualResultsMutated: false,
+    };
+    // XDIC_KO290_KP_ZERO_VISIBLE_SHADOW_OPT_IN
+    if ((xdic290jxVisible > 0 && xdic290jxVisible < 20) ||
+        (xdic290jxVisible === 0 && cleanQuery === 'screening' &&
+         /^[a-f0-9]{32}$/i.test(String((searchParams as { ko290kp?: string }).ko290kp || '')))) {
+      const xdic290jxQueryStarted = Date.now();
+      const xdic290jxController = new AbortController();
+      const xdic290jxTimeout = setTimeout(() => xdic290jxController.abort(), 12000);
+      try {
+        xdic290jxRecord.queryExecuted = true;
+        // Bounded metadata-only query: same category/source/id order as the working JU/JW shadows.
+        const { data: xdic290jxData, error: xdic290jxError } =
+          await supabase.from('dictionary_lines')
+            .select('id,category_id,source_order')
+            .or('category_id.neq.0,category_id.is.null')
+            .ilike('line_text', `%${cleanQuery}%`)
+            .order('category_id', { ascending: true, nullsFirst: false })
+            .order('source_order', { ascending: true, nullsFirst: false })
+            .order('id', { ascending: true })
+            .limit(500)
+            .abortSignal(xdic290jxController.signal);
+        if (xdic290jxError || !Array.isArray(xdic290jxData)) {
+          throw new Error('KO290-JX metadata SELECT failed');
+        }
+        const xdic290jxSeenSample = new Set<string>();
+        const xdic290jxCategoryCounts = new Map(xdic290jxExistingCategoryCounts);
+        const xdic290jxHypotheticalPairs: string[] = [];
+        let xdic290jxNewEligible = 0;
+        for (const row of xdic290jxData) {
+          const id = String(row?.id ?? '');
+          const category = row?.category_id == null ? 12 : Number(row.category_id);
+          if (!id || xdic290jxSeenSample.has(id) ||
+              category === 0 || !Number.isSafeInteger(category)) {
+            throw new Error('KO290-JX invalid or duplicate sampled row');
+          }
+          xdic290jxSeenSample.add(id);
+          // Never suggest an ID already present in the original results array.
+          if (xdic290jxOriginalIdSet.has(id)) continue;
+          if ((xdic290jxCategoryCounts.get(category) || 0) >= 5) continue;
+          xdic290jxCategoryCounts.set(category,
+            (xdic290jxCategoryCounts.get(category) || 0) + 1);
+          xdic290jxNewEligible++;
+          // Hypothetical first-page candidates only. No rows are fetched or appended.
+          if (xdic290jxHypotheticalPairs.length < 20 - xdic290jxVisible) {
+            xdic290jxHypotheticalPairs.push(`${category}:${id}`);
+          }
+        }
+        const { createHash: xdic290jxCreateHash } = await import('node:crypto');
+        xdic290jxRecord.sampledRows = xdic290jxData.length;
+        xdic290jxRecord.sampleMayBeTruncated = xdic290jxData.length === 500;
+        xdic290jxRecord.eligibleNew = xdic290jxNewEligible;
+        xdic290jxRecord.hypotheticalAddedTo20 = xdic290jxHypotheticalPairs.length;
+        xdic290jxRecord.hypotheticalFirstPage =
+          xdic290jxVisible + xdic290jxHypotheticalPairs.length;
+        xdic290jxRecord.hypotheticalIdSha256 = xdic290jxCreateHash('sha256')
+          .update(xdic290jxHypotheticalPairs.join('|'), 'utf8').digest('hex').toUpperCase();
+        xdic290jxRecord.status = xdic290jxNewEligible > 0
+          ? 'SHADOW_FILL_AVAILABLE' : 'SHADOW_NO_FILL_IN_SAMPLE';
+      } catch (xdic290jxError: any) {
+        xdic290jxRecord.status = 'SHADOW_QUERY_ERROR';
+        xdic290jxRecord.error = String(xdic290jxError?.message || xdic290jxError).slice(0, 200);
+      } finally {
+        clearTimeout(xdic290jxTimeout);
+        xdic290jxRecord.queryMs = Date.now() - xdic290jxQueryStarted;
+      }
+    } else if (xdic290jxVisible >= 20) {
+      xdic290jxRecord.status = 'SKIP_FIRST_PAGE_FULL';
+    } else {
+      xdic290jxRecord.status = 'SKIP_ZERO_VISIBLE_HANDLED_BY_JU_JW';
+    }
+    xdic290jxRecord.originalArrayReferenceUnchanged = results === xdic290jxOriginalRef;
+    xdic290jxRecord.originalIdsUnchanged =
+      xdic290jxOriginalIds.join('|') ===
+      results.map((row: any) => String(row?.id ?? '')).join('|');
+    xdic290jxRecord.mapKeysUnchanged =
+      xdic290jxMapKeys.join('|') === Array.from(resultsMap.keys()).map(String).join('|');
+    xdic290jxRecord.finalRaw = results.length;
+    xdic290jxRecord.elapsedMs = Date.now() - xdic290jxStarted;
+    try {
+      appendFileSync(
+        'C:/dictionary_upload/X-DIC-core-backups/X-DIC-core-scripts/XDIC_KO290_JX_LOWYIELD_SHADOW.jsonl',
+        JSON.stringify(xdic290jxRecord) + '\n',
+        { encoding: 'utf8' }
+      );
+    } catch (xdic290jxLogError) {
+      console.warn('[XDIC KO290JX SHADOW LOG ERROR]', String(xdic290jxLogError));
+    }
+    console.info('[XDIC KO290JX LOWYIELD SHADOW]', JSON.stringify(xdic290jxRecord));
+  }
+  // XDIC_KO290_JX_LOWYIELD_SHADOW_END
+  // XDIC_KO290_KM_DEV_SCREENING_APPEND_BEGIN
+  // Opt-in development web screening only. Keep every original row and Map entry intact.
+  const xdic290kmToken = String((searchParams as { ko290km?: string }).ko290km || '');
+  if (process.env.NODE_ENV === 'development' && !isApp &&
+      isStableEnglishSingleWord && cleanQuery === 'screening' &&
+      /^[a-f0-9]{32}$/i.test(xdic290kmToken)) {
+    const xdic290kmStarted = Date.now();
+    const xdic290kmOriginal = results;
+    const xdic290kmOriginalIds = results.map((row: any) => String(row?.id ?? ''));
+    const xdic290kmOriginalMapIds = Array.from(resultsMap.keys()).map(String);
+    const xdic290kmOriginalIdSet = new Set(xdic290kmOriginalIds);
+    const xdic290kmCategoryCounts = new Map<number, number>();
+    let xdic290kmVisible = 0;
+    for (const row of results) {
+      const category = row?.category_id == null ? 12 : Number(row.category_id);
+      if (!Number.isSafeInteger(category) || category === 0) continue;
+      const seen = (xdic290kmCategoryCounts.get(category) || 0) + 1;
+      xdic290kmCategoryCounts.set(category, seen);
+      if (seen <= 5) xdic290kmVisible++;
+    }
+    const xdic290kmRecord: Record<string, any> = {
+      marker: 'XDIC_KO290_KM_DEV_SCREENING_APPEND',
+      token: xdic290kmToken,
+      timestampUtc: new Date().toISOString(),
+      keyword: cleanQuery,
+      originalRaw: xdic290kmOriginal.length,
+      originalVisible: xdic290kmVisible,
+      added: 0,
+      status: 'SKIP_BASELINE_MISMATCH',
+      productionDisabled: true,
+      databaseWrites: false,
+    };
+    try {
+      if (xdic290kmOriginal.length === 50 && xdic290kmVisible === 5 &&
+          xdic290kmOriginalIdSet.size === 50) {
+        const { createHash: xdic290kmHash } = await import('node:crypto');
+        const xdic290kmOriginalSetHash = xdic290kmHash('sha256')
+          .update([...xdic290kmOriginalIdSet].sort().join('|'), 'utf8')
+          .digest('hex').toUpperCase();
+        xdic290kmRecord.originalSetSha256 = xdic290kmOriginalSetHash;
+        if (xdic290kmOriginalSetHash !==
+            '950B80F7C80BCB947505E61528322089C1791047696A7BA8F54B184B75E773C3') {
+          throw new Error('baseline ID set differs from verified KO290-KC screening run');
+        }
+        const xdic290kmQueryStart = Date.now();
+        const xdic290kmController = new AbortController();
+        const xdic290kmTimeout = setTimeout(() => xdic290kmController.abort(), 12000);
+        let xdic290kmMeta: any[] | null = null;
+        try {
+          const { data, error } = await supabase.from('dictionary_lines')
+            .select('id,category_id,source_order')
+            .or('category_id.neq.0,category_id.is.null')
+            .ilike('line_text', '%screening%')
+            .order('category_id', { ascending: true, nullsFirst: false })
+            .order('source_order', { ascending: true, nullsFirst: false })
+            .order('id', { ascending: true })
+            .limit(500)
+            .abortSignal(xdic290kmController.signal);
+          if (error || !Array.isArray(data)) throw new Error('metadata SELECT failed');
+          xdic290kmMeta = data;
+        } finally {
+          clearTimeout(xdic290kmTimeout);
+          xdic290kmRecord.metaQueryMs = Date.now() - xdic290kmQueryStart;
+        }
+        if (xdic290kmMeta.length !== 500) {
+          throw new Error('metadata sample no longer matches verified 500-row sample');
+        }
+        const xdic290kmSampleSeen = new Set<string>();
+        const xdic290kmCounts = new Map(xdic290kmCategoryCounts);
+        const xdic290kmSelectedMeta: any[] = [];
+        const xdic290kmPairs: string[] = [];
+        let xdic290kmEligible = 0;
+        for (const row of xdic290kmMeta) {
+          const id = String(row?.id ?? '');
+          const category = row?.category_id == null ? 12 : Number(row.category_id);
+          if (!id || xdic290kmSampleSeen.has(id) ||
+              !Number.isSafeInteger(category) || category === 0) {
+            throw new Error('invalid or duplicate metadata sample row');
+          }
+          xdic290kmSampleSeen.add(id);
+          if (xdic290kmOriginalIdSet.has(id)) continue;
+          if ((xdic290kmCounts.get(category) || 0) >= 5) continue;
+          xdic290kmCounts.set(category, (xdic290kmCounts.get(category) || 0) + 1);
+          xdic290kmEligible++;
+          if (xdic290kmSelectedMeta.length < 15) {
+            xdic290kmSelectedMeta.push(row);
+            xdic290kmPairs.push(`${category}:${id}`);
+          }
+        }
+        const xdic290kmSelectedHash = xdic290kmHash('sha256')
+          .update(xdic290kmPairs.join('|'), 'utf8').digest('hex').toUpperCase();
+        xdic290kmRecord.eligible = xdic290kmEligible;
+        xdic290kmRecord.selectedIdSha256 = xdic290kmSelectedHash;
+        xdic290kmRecord.sampledRows = xdic290kmMeta.length;
+        if (xdic290kmEligible !== 50 || xdic290kmSelectedMeta.length !== 15 ||
+            xdic290kmSelectedHash !==
+              '410A055DD4DC18A6DE07B79A19FF9ED517DCEF847EFB95B22166AA66AF88F616') {
+          throw new Error('candidate selection differs from verified KO290-KK hash');
+        }
+        const xdic290kmSelectedIds = xdic290kmSelectedMeta.map((r: any) => String(r.id));
+        const { data: xdic290kmFull, error: xdic290kmFullError } =
+          await supabase.from('dictionary_lines').select('*').in('id', xdic290kmSelectedIds);
+        if (xdic290kmFullError || !Array.isArray(xdic290kmFull) ||
+            xdic290kmFull.length !== 15) {
+          throw new Error('15 full row fetch failed');
+        }
+        const xdic290kmFullMap = new Map<string, any>();
+        for (const row of xdic290kmFull) {
+          const id = String(row?.id ?? '');
+          if (!id || xdic290kmFullMap.has(id) ||
+              typeof row?.line_text !== 'string' ||
+              !row.line_text.toLowerCase().includes('screening')) {
+            throw new Error('invalid/duplicate full row');
+          }
+          xdic290kmFullMap.set(id, row);
+        }
+        const xdic290kmAddition: any[] = [];
+        for (const meta of xdic290kmSelectedMeta) {
+          const id = String(meta.id);
+          const full = xdic290kmFullMap.get(id);
+          const fullCat = full?.category_id == null ? 12 : Number(full.category_id);
+          const metaCat = meta?.category_id == null ? 12 : Number(meta.category_id);
+          if (!full || fullCat !== metaCat ||
+              String(full?.source_order ?? '') !== String(meta?.source_order ?? '') ||
+              xdic290kmOriginalIdSet.has(id)) {
+            throw new Error('full row does not match verified metadata');
+          }
+          xdic290kmAddition.push(full);
+        }
+        if (xdic290kmOriginalIds.join('|') !==
+              results.map((r: any) => String(r?.id ?? '')).join('|') ||
+            xdic290kmOriginalMapIds.join('|') !==
+              Array.from(resultsMap.keys()).map(String).join('|')) {
+          throw new Error('original rows or Map changed before append');
+        }
+        const xdic290kmProposed = [...xdic290kmOriginal, ...xdic290kmAddition];
+        const xdic290kmCountsAfter = new Map<number, number>();
+        let xdic290kmVisibleAfter = 0;
+        for (const row of xdic290kmProposed) {
+          const cat = row?.category_id == null ? 12 : Number(row.category_id);
+          if (!Number.isSafeInteger(cat) || cat === 0) continue;
+          const count = (xdic290kmCountsAfter.get(cat) || 0) + 1;
+          xdic290kmCountsAfter.set(cat, count);
+          if (count <= 5) xdic290kmVisibleAfter++;
+        }
+        if (xdic290kmVisibleAfter !== 20 || xdic290kmProposed.length !== 65 ||
+            xdic290kmOriginalIds.join('|') !== xdic290kmProposed.slice(0, 50)
+              .map((r: any) => String(r?.id ?? '')).join('|')) {
+          throw new Error('proposed 20-visible append violates prefix/category-cap');
+        }
+        results = xdic290kmProposed;
+        xdic290kmRecord.added = 15;
+        xdic290kmRecord.status = 'PASS_APPEND_15';
+        xdic290kmRecord.finalVisible = xdic290kmVisibleAfter;
+      } else if (xdic290kmOriginal.length === 60 && xdic290kmVisible === 0 &&
+                 xdic290kmOriginalIdSet.size === 60 &&
+                 xdic290kmOriginal.every((row: any) =>
+                   row?.category_id != null && Number(row.category_id) === 0)) {
+        // KO290-KR zero-visible extension; fail closed on any unverified candidate or database error.
+        const { createHash: xdic290krHash } = await import('node:crypto');
+        const xdic290krQueryStart = Date.now();
+        const xdic290krController = new AbortController();
+        const xdic290krTimer = setTimeout(() => xdic290krController.abort(), 12000);
+        let xdic290krMeta: any[] | null = null;
+        try {
+          const { data, error } = await supabase.from('dictionary_lines')
+            .select('id,category_id,source_order')
+            .or('category_id.neq.0,category_id.is.null')
+            .ilike('line_text', '%screening%')
+            .order('category_id', { ascending: true, nullsFirst: false })
+            .order('source_order', { ascending: true, nullsFirst: false })
+            .order('id', { ascending: true })
+            .limit(500)
+            .abortSignal(xdic290krController.signal);
+          if (error || !Array.isArray(data)) throw new Error('KR metadata SELECT failed');
+          xdic290krMeta = data;
+        } finally {
+          clearTimeout(xdic290krTimer);
+          xdic290kmRecord.metaQueryMs = Date.now() - xdic290krQueryStart;
+        }
+        if (xdic290krMeta.length !== 500) {
+          throw new Error('KR 500-row sample does not match verified KP sample');
+        }
+        const xdic290krSeen = new Set<string>();
+        const xdic290krCounts = new Map(xdic290kmCategoryCounts);
+        const xdic290krChosen: any[] = [];
+        const xdic290krPairs: string[] = [];
+        let xdic290krEligible = 0;
+        for (const row of xdic290krMeta) {
+          const id = String(row?.id ?? '');
+          const category = row?.category_id == null ? 12 : Number(row.category_id);
+          if (!id || xdic290krSeen.has(id) ||
+              !Number.isSafeInteger(category) || category === 0) {
+            throw new Error('KR invalid or duplicate metadata row');
+          }
+          xdic290krSeen.add(id);
+          if (xdic290kmOriginalIdSet.has(id)) continue;
+          if ((xdic290krCounts.get(category) || 0) >= 5) continue;
+          xdic290krCounts.set(category, (xdic290krCounts.get(category) || 0) + 1);
+          xdic290krEligible++;
+          if (xdic290krChosen.length < 20) {
+            xdic290krChosen.push(row);
+            xdic290krPairs.push(`${category}:${id}`);
+          }
+        }
+        const xdic290krSha = xdic290krHash('sha256')
+          .update(xdic290krPairs.join('|'), 'utf8').digest('hex').toUpperCase();
+        xdic290kmRecord.sampledRows = xdic290krMeta.length;
+        xdic290kmRecord.eligible = xdic290krEligible;
+        xdic290kmRecord.selectedIdSha256 = xdic290krSha;
+        if (xdic290krEligible !== 55 || xdic290krChosen.length !== 20 ||
+            xdic290krSha !==
+              '17E9E9A8D2E406A7F80C17B4913001323041E0E8C01D6C20C71AE9F24113E261') {
+          throw new Error('KR candidates differ from twice-verified KP SHA256');
+        }
+        const xdic290krChosenIds = xdic290krChosen.map((row: any) => String(row.id));
+        const { data: xdic290krFull, error: xdic290krFullError } =
+          await supabase.from('dictionary_lines').select('*').in('id', xdic290krChosenIds);
+        if (xdic290krFullError || !Array.isArray(xdic290krFull) ||
+            xdic290krFull.length !== 20) {
+          throw new Error('KR full-row SELECT mismatch');
+        }
+        const xdic290krFullMap = new Map<string, any>();
+        for (const row of xdic290krFull) {
+          const id = String(row?.id ?? '');
+          if (!id || xdic290krFullMap.has(id) ||
+              typeof row?.line_text !== 'string' ||
+              !row.line_text.toLowerCase().includes('screening')) {
+            throw new Error('KR invalid/duplicate or unrelated full row');
+          }
+          xdic290krFullMap.set(id, row);
+        }
+        const xdic290krAddition: any[] = [];
+        for (const meta of xdic290krChosen) {
+          const id = String(meta.id);
+          const full = xdic290krFullMap.get(id);
+          const fullCategory = full?.category_id == null ? 12 : Number(full.category_id);
+          const metaCategory = meta?.category_id == null ? 12 : Number(meta.category_id);
+          if (!full || fullCategory !== metaCategory ||
+              String(full?.source_order ?? '') !== String(meta?.source_order ?? '') ||
+              xdic290kmOriginalIdSet.has(id)) {
+            throw new Error('KR full-row / metadata integrity mismatch');
+          }
+          xdic290krAddition.push(full);
+        }
+        if (xdic290kmOriginalIds.join('|') !==
+              results.map((row: any) => String(row?.id ?? '')).join('|') ||
+            xdic290kmOriginalMapIds.join('|') !==
+              Array.from(resultsMap.keys()).map(String).join('|')) {
+          throw new Error('KR original results or Map changed before append');
+        }
+        const xdic290krProposed = [...xdic290kmOriginal, ...xdic290krAddition];
+        const xdic290krCatCounts = new Map<number, number>();
+        let xdic290krVisible = 0;
+        for (const row of xdic290krProposed) {
+          const cat = row?.category_id == null ? 12 : Number(row.category_id);
+          if (!Number.isSafeInteger(cat) || cat === 0) continue;
+          const count = (xdic290krCatCounts.get(cat) || 0) + 1;
+          xdic290krCatCounts.set(cat, count);
+          if (count <= 5) xdic290krVisible++;
+        }
+        if (xdic290krProposed.length !== 80 || xdic290krVisible !== 20 ||
+            xdic290kmOriginalIds.join('|') !== xdic290krProposed.slice(0, 60)
+              .map((row: any) => String(row?.id ?? '')).join('|')) {
+          throw new Error('KR proposed 20-visible append failed prefix/category cap check');
+        }
+        results = xdic290krProposed;
+        xdic290kmRecord.added = 20;
+        xdic290kmRecord.finalVisible = xdic290krVisible;
+        xdic290kmRecord.status = 'PASS_APPEND_20_FROM_ZERO';
+      }
+    } catch (xdic290kmError: any) {
+      results = xdic290kmOriginal;
+      xdic290kmRecord.added = 0;
+      xdic290kmRecord.status = 'STOP_UNVERIFIED_APPEND';
+      xdic290kmRecord.error = String(xdic290kmError?.message || xdic290kmError).slice(0, 200);
+    }
+    xdic290kmRecord.finalRaw = results.length;
+    xdic290kmRecord.originalPrefixPreserved =
+      xdic290kmOriginalIds.join('|') === results.slice(0, xdic290kmOriginalIds.length)
+        .map((r: any) => String(r?.id ?? '')).join('|');
+    xdic290kmRecord.mapKeysUnchanged =
+      xdic290kmOriginalMapIds.join('|') === Array.from(resultsMap.keys()).map(String).join('|');
+    if (!xdic290kmRecord.originalPrefixPreserved || !xdic290kmRecord.mapKeysUnchanged) {
+      results = xdic290kmOriginal;
+      xdic290kmRecord.added = 0;
+      xdic290kmRecord.status = 'STOP_ORIGINAL_INTEGRITY';
+      xdic290kmRecord.finalRaw = results.length;
+    }
+    xdic290kmRecord.elapsedMs = Date.now() - xdic290kmStarted;
+    try {
+      appendFileSync(
+        'C:/dictionary_upload/X-DIC-core-backups/X-DIC-core-scripts/XDIC_KO290_KM_DEV_SCREENING_APPEND.jsonl',
+        JSON.stringify(xdic290kmRecord) + '\n',
+        { encoding: 'utf8' }
+      );
+    } catch (xdic290kmLogError) {
+      console.warn('[XDIC KO290KM LOG ERROR]', String(xdic290kmLogError));
+    }
+    console.info('[XDIC KO290KM DEV SCREENING]', JSON.stringify(xdic290kmRecord));
+  }
+  // XDIC_KO290_KM_DEV_SCREENING_APPEND_END
+  // XDIC_KO290_ME_DIRECT_15_BEGIN
+  // Dev-only comparison of direct 50 + verified KM15. No changes to original KR/KM.
+  let xdic290meVisible = 0;
+  let xdic290meFinalIdSha = '';
+  if (xdic290meEnabled) {
+    const xdic290meAfterRotate = results.map((r: any) => String(r?.id ?? ''));
+    if (xdic290meAfterRotate.length !== 50 ||
+        new Set(xdic290meAfterRotate).size !== 50 ||
+        Array.from(resultsMap.keys()).map(String).join('|') !==
+          xdic290meBaselineIds.join('|')) {
+      throw new Error('KO290-ME original 50 / Map changed unexpectedly');
+    }
+    const xdic290meFirst5Expected = [
+      '9abec1cd-73ea-40e4-b430-250f925d1137',
+      '0639eacc-ec4c-410f-a6e3-f028299a3732',
+      '1d3dbc38-f419-4293-9537-9f1746f21e90',
+      'c41af779-fa87-4452-9fd4-9810058b4fe3',
+      '1bd20d72-a06b-423d-b79d-be209be7ed7b',
+    ];
+    const xdic290meActual5 = results
+      .filter((r: any) => Number(r?.category_id) === 1)
+      .slice(0, 5).map((r: any) => String(r.id));
+    if (xdic290meActual5.join('|') !== xdic290meFirst5Expected.join('|')) {
+      throw new Error('KO290-ME rotated category-1 first5 differ from historic');
+    }
+    let xdic290mePool: any[] | null = null;
+    let xdic290meMetaMs = 0;
+    if (xdic290mkEnabled) {
+      // Reuse the same 150 fully fetched rows; never issue metadata SQL.
+      if (xdic290mkRows150.length !== 150) throw new Error('KO290-MK pool150 missing');
+      xdic290mePool = xdic290mkRows150.slice(50);
+      if (xdic290mePool.some((r: any) => r.category_id === 0)) {
+        throw new Error('KO290-MK unexpected category-0 remainder');
+      }
+    } else {
+      const xdic290meMetaStarted = Date.now();
+      const xdic290meAbort = new AbortController();
+      const xdic290meTimer = setTimeout(() => xdic290meAbort.abort(), 10000);
+      try {
+        const { data, error } = await supabase.from('dictionary_lines')
+          .select('id,category_id,source_order')
+          .or('category_id.neq.0,category_id.is.null')
+          .ilike('line_text', '%screening%')
+          .order('category_id', { ascending: true, nullsFirst: false })
+          .order('source_order', { ascending: true, nullsFirst: false })
+          .order('id', { ascending: true })
+          .limit(500).abortSignal(xdic290meAbort.signal);
+        if (error || !Array.isArray(data)) throw new Error('KO290-ME metadata SELECT failed');
+        xdic290mePool = data;
+      } finally {
+        clearTimeout(xdic290meTimer);
+      }
+      xdic290meMetaMs = Date.now() - xdic290meMetaStarted;
+    }
+    if (!xdic290mePool || xdic290mePool.length !== (xdic290mkEnabled ? 100 : 500)) {
+      throw new Error('KO290-ME/MK metadata sample count mismatch');
+    }
+    const xdic290meOriginalSet = new Set(xdic290meAfterRotate);
+    const xdic290meMetaSeen = new Set<string>();
+    const xdic290meCatCounts = new Map<number, number>();
+    for (const row of results) {
+      const category = row?.category_id == null ? 12 : Number(row.category_id);
+      xdic290meCatCounts.set(category, (xdic290meCatCounts.get(category) || 0) + 1);
+    }
+    const xdic290meSelected: any[] = [];
+    const xdic290mePairs: string[] = [];
+    let xdic290meEligible = 0;
+    for (const meta of xdic290mePool) {
+      const id = String(meta?.id ?? '');
+      const category = meta?.category_id == null ? 12 : Number(meta.category_id);
+      if (!id || xdic290meMetaSeen.has(id) ||
+          category === 0 || !Number.isSafeInteger(category)) {
+        throw new Error('KO290-ME malformed / repeated metadata');
+      }
+      xdic290meMetaSeen.add(id);
+      if (xdic290meOriginalSet.has(id)) continue;
+      if ((xdic290meCatCounts.get(category) || 0) >= 5) continue;
+      xdic290meCatCounts.set(category, (xdic290meCatCounts.get(category) || 0) + 1);
+      xdic290meEligible++;
+      if (xdic290meSelected.length < 15) {
+        xdic290meSelected.push(meta);
+        xdic290mePairs.push(`${category}:${id}`);
+      }
+    }
+    const { createHash: xdic290meHash } = await import('node:crypto');
+    const xdic290meSelectedSha = xdic290meHash('sha256')
+      .update(xdic290mePairs.join('|'), 'utf8').digest('hex').toUpperCase();
+    if (xdic290meEligible !== (xdic290mkEnabled ? 15 : 50) ||
+        xdic290meSelected.length !== 15 ||
+        xdic290meSelectedSha !==
+          '410A055DD4DC18A6DE07B79A19FF9ED517DCEF847EFB95B22166AA66AF88F616') {
+      throw new Error('KO290-ME selected 15 differ from verified KM15');
+    }
+    let xdic290meFull: any[] | null = null;
+    let xdic290meFullErr: any = null;
+    let xdic290meFullMs = 0;
+    if (xdic290mkEnabled) {
+      // All selected rows were already fetched as complete rows in pool150.
+      const chosenIds = new Set(xdic290meSelected.map((r: any) => String(r.id)));
+      xdic290meFull = xdic290mkRows150.filter((r: any) => chosenIds.has(String(r.id)));
+    } else {
+      const xdic290meFullStarted = Date.now();
+      const { data, error } = await supabase.from('dictionary_lines').select('*')
+        .in('id', xdic290meSelected.map((r: any) => String(r.id)));
+      xdic290meFull = data;
+      xdic290meFullErr = error;
+      xdic290meFullMs = Date.now() - xdic290meFullStarted;
+    }
+    if (xdic290meFullErr || !Array.isArray(xdic290meFull) ||
+        xdic290meFull.length !== 15) {
+      throw new Error('KO290-ME 15 full row SELECT failed');
+    }
+    const xdic290meFullMap = new Map<string, any>();
+    for (const row of xdic290meFull) {
+      const id = String(row?.id ?? '');
+      if (!id || xdic290meFullMap.has(id) ||
+          typeof row?.line_text !== 'string' ||
+          !row.line_text.toLowerCase().includes('screening')) {
+        throw new Error('KO290-ME invalid/duplicate/unrelated full row');
+      }
+      xdic290meFullMap.set(id, row);
+    }
+    const xdic290meAdded = xdic290meSelected.map((meta: any) => {
+      const row = xdic290meFullMap.get(String(meta.id));
+      if (!row || Number(row.category_id ?? 12) !== Number(meta.category_id ?? 12) ||
+          String(row.source_order ?? '') !== String(meta.source_order ?? '')) {
+        throw new Error('KO290-ME metadata/full-row integrity mismatch');
+      }
+      return row;
+    });
+    if (results.map((r: any) => String(r.id)).join('|') !==
+          xdic290meAfterRotate.join('|') ||
+        Array.from(resultsMap.keys()).map(String).join('|') !==
+          xdic290meBaselineIds.join('|')) {
+      throw new Error('KO290-ME original results/Map changed before append');
+    }
+    const xdic290meProposed = [...results, ...xdic290meAdded];
+    const xdic290meIds = xdic290meProposed.map((r: any) => String(r?.id ?? ''));
+    const xdic290meCounts = new Map<number, number>();
+    const xdic290meVisibleIds: string[] = [];
+    for (const row of xdic290meProposed) {
+      const category = row?.category_id == null ? 12 : Number(row.category_id);
+      if (!Number.isSafeInteger(category) || category === 0) continue;
+      const n = (xdic290meCounts.get(category) || 0) + 1;
+      xdic290meCounts.set(category, n);
+      if (n <= 5) xdic290meVisibleIds.push(String(row.id));
+    }
+    xdic290meVisible = xdic290meVisibleIds.length;
+    if (xdic290meIds.length !== 65 || new Set(xdic290meIds).size !== 65 ||
+        xdic290meVisible !== 20 ||
+        xdic290meIds.slice(0, 50).join('|') !== xdic290meAfterRotate.join('|')) {
+      throw new Error('KO290-ME final 50+15 / first page integrity failed');
+    }
+    results = xdic290meProposed;
+    xdic290meFinalIdSha = xdic290meHash('sha256')
+      .update(xdic290meIds.join('|'), 'utf8').digest('hex').toUpperCase();
+    appendFileSync(
+      'C:/dictionary_upload/X-DIC-core-backups/X-DIC-core-scripts/XDIC_KO290_ME_DIRECT_DEV.jsonl',
+      JSON.stringify({ marker: 'XDIC_KO290_ME_DIRECT_DEV',
+        token: xdic253ProbeId, timestampUtc: new Date().toISOString(),
+        baselineRaw: 50, baselineVisible: 5, metaRows: xdic290mePool.length,
+        eligible: xdic290meEligible, selectedSha256: xdic290meSelectedSha,
+        added: 15, finalRaw: 65, finalVisible: xdic290meVisible,
+        duplicateIds: 0, originalPrefixPreserved: true, originalMapKeysPreserved: true,
+        first5Ids: xdic290meActual5, finalIds: xdic290meIds,
+        visibleIds: xdic290meVisibleIds, finalIdsSha256: xdic290meFinalIdSha,
+        directSqlMs: xdic290meDirectSqlMs, metadataSqlMs: xdic290meMetaMs,
+        fullSqlMs: xdic290meFullMs, serverElapsedMs: Date.now() - xdicPerfStartedV1,
+        singleSql150: xdic290mkEnabled, fetchedRows: xdic290mkEnabled ? 150 : 50,
+        directQueryCount: xdic290mkEnabled ? 1 : 3,
+        devOnly: true, productionDisabled: true, databaseWrites: false,
+        bestSplitMainQuerySkipped: true, kmKrSourceUnmodified: true,
+      }) + '\n', { encoding: 'utf8' }
+    );
+  }
+  // XDIC_KO290_ME_DIRECT_15_END
+  // XDIC_KO290_JW_MULTIKEY_SHADOW_END
   // XDIC_KO290_JA_FINAL_DIAGNOSTIC_BEGIN
   // Logs the actual SearchPage prop IDs, without modifying the array or warning.
   if (xdic290jaEnabled) {
@@ -6407,8 +7692,64 @@ if (isSentenceSearch) {
   }
   // XDIC_KO290_JA_FINAL_DIAGNOSTIC_END
 
+  // XDIC_KO290_LO_DEV_RENDER_PROPS_BEGIN
+  // This check runs AFTER the actual KR block and BEFORE the real SearchPage.
+  let xdic290loVisibleCount = 0;
+  let xdic290loFinalSha = '';
+  if (xdic290loEnabled) {
+    const xdic290loIds = results.map((row: any) => String(row?.id ?? ''));
+    const xdic290loMapIds = Array.from(resultsMap.keys()).map(String);
+    const xdic290loCounts = new Map<number, number>();
+    for (const row of results) {
+      const category = row?.category_id == null ? 12 : Number(row.category_id);
+      if (!Number.isSafeInteger(category) || category === 0) continue;
+      const count = (xdic290loCounts.get(category) || 0) + 1;
+      xdic290loCounts.set(category, count);
+      if (count <= 5) xdic290loVisibleCount++;
+    }
+    const xdic290loValid = xdic290loIds.length === 80 &&
+      new Set(xdic290loIds).size === 80 && xdic290loVisibleCount === 20 &&
+      xdic290loIds.slice(0, 60).join('|') === xdic290loBaselineIds.join('|') &&
+      xdic290loMapIds.join('|') === xdic290loBaselineIds.join('|') &&
+      results.slice(0, 60).every((row: any) => Number(row?.category_id) === 0) &&
+      results.slice(60).every((row: any) =>
+        Number(row?.category_id) !== 0 &&
+        String(row?.line_text || '').toLowerCase().includes('screening'));
+    if (!xdic290loValid) {
+      throw new Error('KO290-LO KR final SearchPage props failed validation');
+    }
+    const { createHash: xdic290loCreateHash } = await import('node:crypto');
+    xdic290loFinalSha = xdic290loCreateHash('sha256')
+      .update(xdic290loIds.join('|'), 'utf8').digest('hex').toUpperCase();
+    appendFileSync(
+      'C:/dictionary_upload/X-DIC-core-backups/X-DIC-core-scripts/XDIC_KO290_LO_DEV_RENDER.jsonl',
+      JSON.stringify({
+        marker: 'XDIC_KO290_LO_DEV_RENDER', token: xdic253ProbeId,
+        timestampUtc: new Date().toISOString(),
+        raw: results.length, visible: xdic290loVisibleCount,
+        duplicateIds: xdic290loIds.length - new Set(xdic290loIds).size,
+        baselinePrefixPreserved: true, mapKeysPreserved: true,
+        baselineIds: [...xdic290loBaselineIds], finalIds: xdic290loIds,
+        finalIdsSha256: xdic290loFinalSha,
+        actualSearchPageProps: true, simulatedSearchBaseline: true,
+        krBranchUnmodified: true, productionDisabled: true,
+      }) + '\n', { encoding: 'utf8' }
+    );
+  }
+  // XDIC_KO290_LO_DEV_RENDER_PROPS_END
+
   return (
     <>
+      {xdic290loEnabled && (
+        <span hidden data-xdic290lo-raw={results.length}
+          data-xdic290lo-visible={xdic290loVisibleCount}
+          data-xdic290lo-id-sha={xdic290loFinalSha} />
+      )}
+      {xdic290meEnabled && (
+        <span hidden data-xdic290me-raw={results.length}
+          data-xdic290me-visible={xdic290meVisible}
+          data-xdic290me-id-sha={xdic290meFinalIdSha} />
+      )}
       {/* XDIC_KO255_UI_BEGIN: only shown when a related retrieval failed. */}
       {xdic255RelatedFailures.length > 0 && (
         <div
