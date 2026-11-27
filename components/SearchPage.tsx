@@ -76,6 +76,7 @@ interface SearchPageProps {
   recentSearches?: { word: string; count: number }[];
   isPartialMatch?: boolean;
   matchedKeywords?: string[];
+  xdic290mn24PolicyB?: boolean;
 }
 
 const CATEGORY_NAMES: Record<number, string> = {
@@ -1545,6 +1546,7 @@ export default function SearchPage({
   recentSearches = [],
   isPartialMatch = false,
   matchedKeywords = [],
+  xdic290mn24PolicyB = false,
 }: SearchPageProps) {
 const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
@@ -4821,6 +4823,12 @@ if (
 // ==========================================
 const displayResults = React.useMemo(() => {
   const categoryCount: Record<number, number> = {};
+  // XDIC_KO290_MN24_DEV_ONLY_DISPLAY_BEGIN
+  const xdic290mn24PolicyBEnabled =
+    process.env.NODE_ENV === 'development' &&
+    xdic290mn24PolicyB &&
+    String(query || '').trim() === 'roster' &&
+    !isApp;
 
   return results.filter((item) => {
     const catId =
@@ -4835,13 +4843,21 @@ const displayResults = React.useMemo(() => {
       return false;
     }
 
+    // Only explicitly activated dev SSR can hide unrelated original rows.
+    // Never mutate the original SSR results array or its order.
+    if (xdic290mn24PolicyBEnabled &&
+        !/(^|[^A-Za-z0-9_])roster([^A-Za-z0-9_]|$)/i.test(String(item.line_text || ''))) {
+      return false;
+    }
+
     categoryCount[catId] =
       (categoryCount[catId] || 0) + 1;
 
     // 각 표시 카테고리에서 최대 5개
     return categoryCount[catId] <= 5;
   });
-}, [results]);
+}, [results, xdic290mn24PolicyB, query, isApp]);
+// XDIC_KO290_MN24_DEV_ONLY_DISPLAY_END
 
 // ================================================================
 // ☆ TwoPro v1.23-safe: X-DIC Insight
@@ -6099,7 +6115,14 @@ const hasXdicInsight =
                   </div>
 
                   <ul className={displayIsApp ? "space-y-1" : "space-y-1.5"}>
-                    {currentItems.map((item, idx) => (
+                    {/* XDIC_KO290_MN24_CLIENT_MARKER_BEGIN */}
+                  {xdic290mn24PolicyB && (
+                    <span hidden
+                      data-xdic290mn24-client-visible={displayResults.length}
+                      data-xdic290mn24-client-ids={displayResults.map((item) => String(item.id)).join('|')} />
+                  )}
+                  {/* XDIC_KO290_MN24_CLIENT_MARKER_END */}
+                  {currentItems.map((item, idx) => (
                       <React.Fragment key={String(item.id || idx)}>
                         <li
   className={

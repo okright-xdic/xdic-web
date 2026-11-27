@@ -7692,6 +7692,174 @@ if (isSentenceSearch) {
   }
   // XDIC_KO290_JA_FINAL_DIAGNOSTIC_END
 
+  // XDIC_KO290_MN23_ROSTER_DEV_SSR_BEGIN
+  // Explicit localhost development SSR probe; no general-keyword or production path.
+  // Preserve the original 60 IDs/Map. The 20 full rows are read by primary keys only.
+  const xdic290mn23Token = String((searchParams as { ko290mn23?: string }).ko290mn23 || '');
+  const xdic290mn23Enabled = process.env.NODE_ENV === 'development' &&
+    cleanQuery === 'roster' && isStableEnglishSingleWord &&
+    !String((searchParams as { app?: string }).app || '') &&
+    xdic253Enabled && /^[a-f0-9]{32}$/i.test(xdic290mn23Token) &&
+    xdic290mn23Token === xdic253ProbeId;
+  let xdic290mn23Status = 'DISABLED';
+  let xdic290mn23Raw = 0;
+  let xdic290mn23Visible = 0;
+  let xdic290mn23IdSha = '';
+  if (xdic290mn23Enabled) {
+    const xdic290mn23StartedAt = Date.now();
+    const xdic290mn23Original = results;
+    const xdic290mn23OriginalIds = results.map((row: any) => String(row?.id ?? ''));
+    const xdic290mn23OriginalMapIds = Array.from(resultsMap.keys()).map(String);
+    try {
+      const { createHash: xdic290mn23CreateHash } = await import('node:crypto');
+      const xdic290mn23Hash = (ids: string[]): string =>
+        xdic290mn23CreateHash('sha256').update(ids.join('|'), 'utf8').digest('hex').toUpperCase();
+      // XDIC_KO290_MN24_BASELINE_GUARDS_BEGIN: validated history only, dev-token gated.
+      const xdic290mn24Is60 = xdic290mn23OriginalIds.length === 60 &&
+        xdic290mn23Hash(xdic290mn23OriginalIds) === 'B913D411A97E39A7EAEFC80B73CEE49BD2C6EF6B8E222F211B610532C95F531E' &&
+        xdic290mn23Original.every((row: any) => Number(row?.category_id) === 0);
+      const xdic290mn24Is50 = xdic290mn23OriginalIds.length === 50 &&
+        xdic290mn23Hash(xdic290mn23OriginalIds) === '0E450FB97327AA1FE06E24EAC386C31D6A4AA9CF6942DC258175C4F0A82B7F8F' &&
+        xdic290mn23Original.every((row: any, index: number) =>
+          Number(row?.category_id) === (index < 45 ? 0 : 1) &&
+          typeof row?.line_text === 'string' &&
+          row.line_text.toLowerCase().includes('ros') &&
+          row.line_text.toLowerCase().includes('ter') &&
+          !row.line_text.toLowerCase().includes('roster') &&
+          !/(^|[^A-Za-z0-9_])roster([^A-Za-z0-9_]|$)/i.test(row.line_text));
+      if ((!xdic290mn24Is60 && !xdic290mn24Is50) ||
+          new Set(xdic290mn23OriginalIds).size !== xdic290mn23OriginalIds.length) {
+        throw new Error('MN24 original SSR 50/60/category/hash precheck failed');
+      }
+      // XDIC_KO290_MN24_BASELINE_GUARDS_END
+      const xdic290mn23Expected: Array<{ id: string; category: number; sourceOrder: number }> = [
+    { id: '85f356c2-4c63-4c8e-a084-0063ac6cb731', category: 1, sourceOrder: 5815 },
+    { id: 'd61a68ee-16f6-4123-830c-f5a7d12b3990', category: 1, sourceOrder: 5816 },
+    { id: '73498865-4f7d-43ef-ad09-e000192eef97', category: 1, sourceOrder: 9897 },
+    { id: 'c4a8d2ad-8689-423f-932b-58fd0a9f6b4e', category: 1, sourceOrder: 14936 },
+    { id: 'dad6533e-fc1b-4ba9-ba79-edc4c5959ee3', category: 1, sourceOrder: 26000 },
+    { id: 'b8e8e705-9427-4807-bf0e-9480f9c8bd17', category: 2, sourceOrder: 14410 },
+    { id: '18318c7d-0a46-41b7-bd29-c97d6d5988d8', category: 2, sourceOrder: 104804 },
+    { id: 'f039f788-a2f8-4cd0-a742-6fe8d3b6ecc6', category: 2, sourceOrder: 110393 },
+    { id: '900eb9f0-074a-459f-8d53-753a6e893736', category: 5, sourceOrder: 5255 },
+    { id: '85539730-f5ff-430b-9aa4-dbbbcbaf536b', category: 5, sourceOrder: 5256 },
+    { id: '5bd7a5c1-e134-4f24-a2cf-ed646a78676f', category: 5, sourceOrder: 75663 },
+    { id: '5eef2864-817e-48ce-9d13-d0569d55a3b5', category: 5, sourceOrder: 75664 },
+    { id: 'e2f18048-eec5-499b-973e-99e87a9bb737', category: 8, sourceOrder: 132559 },
+    { id: '308fc626-d52f-4758-b722-7370b7db33c2', category: 8, sourceOrder: 132560 },
+    { id: '31055543-ecd3-40ce-b073-128519d3245a', category: 10, sourceOrder: 53900 },
+    { id: '149b5788-7a9a-48bf-bd1f-7dbe25e429c6', category: 10, sourceOrder: 63367 },
+    { id: '5d58b8ad-8229-480a-a773-0375a2a1f411', category: 10, sourceOrder: 79070 },
+    { id: '156c1b51-f0db-4aba-936d-0239fef9080b', category: 10, sourceOrder: 92540 },
+    { id: '8f8466bb-93d9-42ca-82f7-f3a6b30331ff', category: 10, sourceOrder: 99000 },
+    { id: '0469cb89-d479-4251-840a-1c0579ffced7', category: 11, sourceOrder: 102162 }
+      ];
+      const xdic290mn23CandidateIds = xdic290mn23Expected.map((row) => row.id);
+      if (xdic290mn23Expected.length !== 20 ||
+          new Set(xdic290mn23CandidateIds).size !== 20 ||
+          xdic290mn23Hash(xdic290mn23CandidateIds) !== '1C43FD6D266C4A655C30712A9E5352D287F06E68C8C1097981193E9031BA01E4') {
+        throw new Error('MN23 selected 20 ID/order/hash precheck failed');
+      }
+      const xdic290mn23Abort = new AbortController();
+      const xdic290mn23Timer = setTimeout(() => xdic290mn23Abort.abort(), 10000);
+      let xdic290mn23Fetched: any[] = [];
+      try {
+        const { data, error } = await supabase.from('dictionary_lines')
+          .select('*').in('id', xdic290mn23CandidateIds)
+          .abortSignal(xdic290mn23Abort.signal);
+        if (error || !Array.isArray(data) || data.length !== 20) {
+          throw new Error('MN23 primary-key full-row fetch failed');
+        }
+        xdic290mn23Fetched = data;
+      } finally {
+        clearTimeout(xdic290mn23Timer);
+      }
+      const xdic290mn23Found = new Map<string, any>();
+      for (const row of xdic290mn23Fetched) {
+        const id = String(row?.id ?? '');
+        if (!id || xdic290mn23Found.has(id) ||
+            typeof row?.line_text !== 'string') {
+          throw new Error('MN23 invalid/duplicate fetched candidate');
+        }
+        xdic290mn23Found.set(id, row);
+      }
+      const xdic290mn23Added = xdic290mn23Expected.map((entry) => {
+        const row = xdic290mn23Found.get(entry.id);
+        if (!row || Number(row.category_id) !== entry.category ||
+            Number(row.source_order) !== entry.sourceOrder ||
+            !/(^|[^A-Za-z0-9_])roster([^A-Za-z0-9_]|$)/i.test(row.line_text) ||
+            xdic290mn23OriginalIds.includes(entry.id)) {
+          throw new Error('MN23 candidate data/category/whole-word mismatch');
+        }
+        return row;
+      });
+      const xdic290mn23Proposed = [...xdic290mn23Original, ...xdic290mn23Added];
+      const xdic290mn23ProposedIds = xdic290mn23Proposed.map((row: any) => String(row?.id ?? ''));
+      const xdic290mn23SeenCat = new Map<number, number>();
+      const xdic290mn23VisibleIds: string[] = [];
+      for (const row of xdic290mn23Proposed) {
+        const category = row?.category_id == null ? 12 : Number(row.category_id);
+        if (!Number.isSafeInteger(category) || category === 0) continue;
+        const next = (xdic290mn23SeenCat.get(category) || 0) + 1;
+        xdic290mn23SeenCat.set(category, next);
+        if (next <= 5) xdic290mn23VisibleIds.push(String(row.id));
+      }
+      // XDIC_KO290_MN24_COMBINED_GUARDS_BEGIN
+      const xdic290mn24ExpectedRaw = xdic290mn24Is60 ? 80 : 70;
+      const xdic290mn24ExpectedSha = xdic290mn24Is60
+        ? '63F2E0F235ACBA4EF80B91261A35516F0EDB021124AE70FAFA8E1A04F9F9EE91'
+        : 'DB223366EAFEBCD8640E2C1E8BDD7E2B8045565FCC85123567BDBD970988D019';
+      const xdic290mn24ExpectedLegacyVisibleIds = xdic290mn24Is60
+        ? xdic290mn23CandidateIds
+        : [...xdic290mn23OriginalIds.slice(45), ...xdic290mn23CandidateIds.slice(5)];
+      if (xdic290mn23ProposedIds.length !== xdic290mn24ExpectedRaw ||
+          new Set(xdic290mn23ProposedIds).size !== xdic290mn24ExpectedRaw ||
+          xdic290mn23Hash(xdic290mn23ProposedIds) !== xdic290mn24ExpectedSha ||
+          xdic290mn23ProposedIds.slice(0, xdic290mn23OriginalIds.length).join('|') !==
+            xdic290mn23OriginalIds.join('|') ||
+          xdic290mn23VisibleIds.length !== 20 ||
+          xdic290mn23VisibleIds.join('|') !== xdic290mn24ExpectedLegacyVisibleIds.join('|') ||
+          Array.from(resultsMap.keys()).map(String).join('|') !== xdic290mn23OriginalMapIds.join('|') ||
+          results !== xdic290mn23Original) {
+        throw new Error('MN24 proposed SSR 70/80/20/order/Map integrity failed');
+      }
+      // XDIC_KO290_MN24_COMBINED_GUARDS_END
+      // Only this explicitly token-gated development SSR request receives 80 rows.
+      results = xdic290mn23Proposed;
+      xdic290mn23Status = 'PASS_APPEND_20';
+      xdic290mn23Raw = xdic290mn23Proposed.length;
+      xdic290mn23Visible = 20;
+      xdic290mn23IdSha = xdic290mn23Hash(xdic290mn23ProposedIds);
+    } catch (xdic290mn23Error: any) {
+      results = xdic290mn23Original;
+      xdic290mn23Status = 'STOP_UNVERIFIED_APPEND';
+      xdic290mn23Raw = xdic290mn23Original.length;
+      xdic290mn23Visible = 0;
+      xdic290mn23IdSha = '';
+      console.warn('[XDIC MN23 SSR SHADOW ERROR]', String(xdic290mn23Error?.message || xdic290mn23Error));
+    }
+    const xdic290mn23MapOk =
+      Array.from(resultsMap.keys()).map(String).join('|') === xdic290mn23OriginalMapIds.join('|');
+    if (!xdic290mn23MapOk) {
+      results = xdic290mn23Original;
+      xdic290mn23Status = 'STOP_MAP_INTEGRITY';
+      xdic290mn23Raw = xdic290mn23Original.length;
+      xdic290mn23Visible = 0;
+      xdic290mn23IdSha = '';
+    }
+    console.info('[XDIC MN23 ROSTER SSR]', JSON.stringify({
+      marker: 'XDIC_KO290_MN23_ROSTER_DEV_SSR', token: xdic290mn23Token,
+      status: xdic290mn23Status, raw: xdic290mn23Raw,
+      visible: xdic290mn23Visible, idSha256: xdic290mn23IdSha,
+      originalPrefixPreserved: results.slice(0, xdic290mn23OriginalIds.length).map((row: any) => String(row?.id ?? '')).join('|') ===
+        xdic290mn23OriginalIds.join('|'),
+      originalMapKeysPreserved: xdic290mn23MapOk,
+      elapsedMs: Date.now() - xdic290mn23StartedAt,
+      only20PrimaryKeyLookup: true, productionDisabled: true, databaseWrites: false,
+    }));
+  }
+  // XDIC_KO290_MN23_ROSTER_DEV_SSR_END
+
   // XDIC_KO290_LO_DEV_RENDER_PROPS_BEGIN
   // This check runs AFTER the actual KR block and BEFORE the real SearchPage.
   let xdic290loVisibleCount = 0;
@@ -7740,6 +7908,13 @@ if (isSentenceSearch) {
 
   return (
     <>
+      {xdic290mn23Enabled && (
+        <span hidden data-xdic290mn23-status={xdic290mn23Status}
+          data-xdic290mn23-raw={xdic290mn23Raw}
+          data-xdic290mn23-visible={xdic290mn23Visible}
+          data-xdic290mn23-id-sha={xdic290mn23IdSha}
+          data-xdic290mn24-policy-b={xdic290mn23Status === 'PASS_APPEND_20' && xdic290mn23Raw === 70 ? 'on' : 'off'} />
+      )}
       {xdic290loEnabled && (
         <span hidden data-xdic290lo-raw={results.length}
           data-xdic290lo-visible={xdic290loVisibleCount}
@@ -7777,6 +7952,10 @@ if (isSentenceSearch) {
     <SearchPage 
       query={query} 
       results={results} 
+      xdic290mn24PolicyB={xdic290mn23Enabled &&
+        xdic290mn23Status === 'PASS_APPEND_20' &&
+        xdic290mn23Raw === 70 &&
+        xdic290mn23IdSha === 'DB223366EAFEBCD8640E2C1E8BDD7E2B8045565FCC85123567BDBD970988D019'}
       orangeKeys={orangeKeys} 
       blueKeys={blueKeys} 
       isApp={isApp} 
