@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { createClient } from '@/utils/supabase/client';
+import { createClientComponentClient as createClient } from '@supabase/auth-helpers-nextjs';
 
 interface BoardItem {
   id: number;

@@ -1,6 +1,8 @@
 // app/conversation/ConversationClient.tsx
 'use client';
 
+import { useXdicAdminAccess, XdicAdminLoginForm } from '../../lib/xdic-admin-access';
+
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -35,7 +37,8 @@ export default function ConversationClient({ initialData = [] }: { initialData: 
   const [loading, setLoading] = useState(false);
   const [isApp, setIsApp] = useState(false);
 
-  const [isAdmin, setIsAdmin] = useState(false);
+  const admin = useXdicAdminAccess();
+  const isAdmin = admin.isAdmin;
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState({ category: '', en_text: '', ko_text: '', description: '' });
   const [copiedId, setCopiedId] = useState<number | null>(null);
@@ -124,25 +127,24 @@ const [continuousMode, setContinuousMode] =
     }
   }, [isDailyDetail, itemParam, data]);
 
-  const handleAdminLogin = () => {
+  const handleAdminLogin = async () => {
     if (isAdmin) {
-      setIsAdmin(false);
       setEditingId(null);
-      alert('관리자 모드가 해제되었습니다.');
+      const ok = await admin.logout();
+      if (!ok) alert('로컬 관리자 모드는 종료되었으나 서버 로그아웃 확인에 실패했습니다.');
       return;
     }
-    const pwd = prompt('관리자 비밀번호를 입력하세요:');
-    if (pwd === 'okright91088!!') {
-      setIsAdmin(true);
-      alert('관리자 모드로 접속되었습니다. 게시물을 자유롭게 수정/삭제/게시할 수 있습니다.');
-    } else if (pwd !== null) {
-      alert('비밀번호가 일치하지 않습니다.');
-    }
+    admin.openLogin();
   };
 
   const handleDelete = async (id: number) => {
+    const adminClient = await admin.requireAdmin();
+    if (!adminClient) {
+      alert('관리자 인증이 필요합니다. 다시 로그인해주세요.');
+      return;
+    }
     if (!confirm('정말 이 회화 게시물을 삭제하시겠습니까?')) return;
-    const { error } = await supabase.from('conversation_lines').delete().eq('id', id);
+    const { error } = await adminClient.from('conversation_lines').delete().eq('id', id);
     if (error) {
       alert('삭제에 실패했습니다: ' + error.message);
     } else {
@@ -152,11 +154,16 @@ const [continuousMode, setContinuousMode] =
   };
 
   const handleSetTodaysPick = async (id: number) => {
+    const adminClient = await admin.requireAdmin();
+    if (!adminClient) {
+      alert('관리자 인증이 필요합니다. 다시 로그인해주세요.');
+      return;
+    }
     if (!confirm('이 문장을 메인 화면의 "오늘의 영어회화"로 게시하시겠습니까?')) return;
 
     try {
       // 🌟 이전 코드를 지우고, 과거 내역을 덮어쓰지 않고 시간(picked_at)만 기록합니다!
-      const { error } = await supabase
+      const { error } = await adminClient
         .from('conversation_lines')
         .update({ 
           is_todays_pick: true,
@@ -174,11 +181,16 @@ const [continuousMode, setContinuousMode] =
   };
 
   const handleEditSave = async (id: number) => {
+    const adminClient = await admin.requireAdmin();
+    if (!adminClient) {
+      alert('관리자 인증이 필요합니다. 다시 로그인해주세요.');
+      return;
+    }
     if (!editForm.en_text.trim() || !editForm.ko_text.trim() || !editForm.description.trim()) {
       alert('영어 문장, 한국어 뜻, 해설을 모두 입력해주세요.');
       return;
     }
-    const { error } = await supabase.from('conversation_lines').update({
+    const { error } = await adminClient.from('conversation_lines').update({
       category: editForm.category,
       en_text: editForm.en_text,
       ko_text: editForm.ko_text,
@@ -1194,9 +1206,12 @@ const [continuousMode, setContinuousMode] =
           </div>
 
           <div className="flex justify-center pb-12">
-            <button onClick={handleAdminLogin} className="text-[12px] text-slate-400 hover:text-slate-600 underline font-medium">
+            <div className="flex w-full flex-col items-center gap-3">
+              <button onClick={handleAdminLogin} className="text-[12px] text-slate-400 hover:text-slate-600 underline font-medium">
               {isAdmin ? '관리자 로그아웃' : '관리자 로그인'}
             </button>
+              {admin.open && !isAdmin && <XdicAdminLoginForm access={admin} />}
+            </div>
           </div>
         </div>
       </main>

@@ -1,18 +1,18 @@
 // app/admin-write/page.tsx
 'use client';
 
+import { useXdicAdminAccess, XdicAdminLoginForm } from '../../lib/xdic-admin-access';
+
 import React, { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function AdminWritePage() {
-  const supabase = createClientComponentClient();
   const router = useRouter();
 
   // 🌟 보안을 위한 상태값 추가
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
+  const admin = useXdicAdminAccess();
+  const isAuthenticated = admin.isAdmin;
 
   const [category, setCategory] = useState('✈️ 여행 영어 (Travel English)');
   const [enText, setEnText] = useState('');
@@ -21,24 +21,21 @@ export default function AdminWritePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 🌟 관리자 인증 처리 함수
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === 'okright91088!!') {
-      setIsAuthenticated(true);
-    } else {
-      alert('비밀번호가 일치하지 않습니다. 관리자만 접근 가능합니다.');
-      setPassword('');
-    }
-  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const adminClient = await admin.requireAdmin();
+    if (!adminClient) {
+      alert('관리자 인증이 필요합니다. 다시 로그인해주세요.');
+      return;
+    }
     if (!enText || !koText || !description) {
       return alert('모든 항목을 입력해주세요.');
     }
 
     setIsSubmitting(true);
-    const { error } = await supabase
+    const { error } = await adminClient
       .from('conversation_lines')
       .insert([{ category, en_text: enText, ko_text: koText, description }]);
 
@@ -64,32 +61,15 @@ export default function AdminWritePage() {
           <div className="text-center mb-8">
             <div className="text-4xl mb-4">🔒</div>
             <h1 className="text-2xl font-extrabold text-slate-800">관리자 인증</h1>
-            <p className="text-slate-500 text-sm mt-2">해설 등록을 위해 비밀번호를 입력해주세요.</p>
+            <p className="text-slate-500 text-sm mt-2">해설 등록을 위해 관리자 이메일과 비밀번호를 입력해주세요.</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="비밀번호 입력"
-                className="w-full border border-slate-300 rounded-lg p-4 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-medium tracking-widest text-center"
-                autoFocus
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-slate-800 text-white font-bold rounded-lg py-4 hover:bg-slate-900 transition-colors"
-            >
-              입장하기
-            </button>
-            <div className="text-center mt-4">
+          <XdicAdminLoginForm access={admin} cancellable={false} />
+          <div className="text-center mt-4">
               <Link href="/conversation" className="text-sm font-medium text-slate-400 hover:text-slate-600 hover:underline">
                 돌아가기
               </Link>
             </div>
-          </form>
         </div>
       </div>
     );
@@ -106,6 +86,11 @@ export default function AdminWritePage() {
           </Link>
         </div>
 
+        <div className="mb-4 text-right">
+          <button type="button" onClick={async () => {
+            if (!(await admin.logout())) alert('로컬 관리자 모드는 종료되었으나 서버 로그아웃 확인에 실패했습니다.');
+          }} className="text-sm text-slate-500 underline">관리자 로그아웃</button>
+        </div>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-2">카테고리 선택</label>

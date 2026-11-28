@@ -1,6 +1,8 @@
 // app/notice/page.tsx
 'use client';
 
+import { sanitizeContent } from '../../lib/xdic-html-policy';
+
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -210,9 +212,7 @@ export default function NoticePage() {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  const renderContentWithLineBreaks = (text: string) => {
-    return text.replace(/\n/g, '<br />');
-  };
+  const renderContentWithLineBreaks = (text: string) => sanitizeContent(text);
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     const items = e.clipboardData.items;

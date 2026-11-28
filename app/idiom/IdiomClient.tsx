@@ -1,10 +1,14 @@
 // app/idiom/IdiomClient.tsx
 'use client';
 
+import { useXdicAdminAccess, XdicAdminLoginForm } from '../../lib/xdic-admin-access';
+
+import { sanitizeContent } from '../../lib/xdic-html-policy';
+
 import React, { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { createClient } from '@/utils/supabase/client';
+import { createClientComponentClient as createClient } from '@supabase/auth-helpers-nextjs';
 import SearchInput from '@/components/SearchInput';
 import Footer from '@/components/Footer';
 
@@ -26,7 +30,8 @@ export default function IdiomClient({ initialData = [] }: { initialData: Idiom[]
 
   const isUrlHandled = useRef(false);
 
-  const [isAdmin, setIsAdmin] = useState(false);
+  const admin = useXdicAdminAccess();
+  const isAdmin = admin.isAdmin;
   const [isWriting, setIsWriting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [title, setTitle] = useState('');
@@ -66,30 +71,30 @@ export default function IdiomClient({ initialData = [] }: { initialData: Idiom[]
     }
   }, [idioms]);
 
-  const handleAdminLogin = () => {
+  const handleAdminLogin = async () => {
     if (isAdmin) {
-      setIsAdmin(false); setIsWriting(false); setEditingId(null);
-      alert('관리자 모드가 해제되었습니다.');
+      setIsWriting(false); setEditingId(null);
+      const ok = await admin.logout();
+      if (!ok) alert('로컬 관리자 모드는 종료되었으나 서버 로그아웃 확인에 실패했습니다.');
       return;
     }
-    const pwd = prompt('관리자 비밀번호를 입력하세요:');
-    if (pwd === 'okright91088!!') {
-      setIsAdmin(true);
-      alert('관리자 모드로 접속되었습니다.');
-    } else if (pwd !== null) {
-      alert('비밀번호가 일치하지 않습니다.');
-    }
+    admin.openLogin();
   };
 
   // 🌟 에러 탐지기 장착 완료!
   const handleSave = async () => {
+    const adminClient = await admin.requireAdmin();
+    if (!adminClient) {
+      alert('관리자 인증이 필요합니다. 다시 로그인해주세요.');
+      return;
+    }
     if (!title.trim() || !content.trim()) return alert('제목과 내용을 모두 입력해주세요.');
     if (editingId) {
-      const { error } = await supabase.from('idioms').update({ title, content }).eq('id', editingId);
+      const { error } = await adminClient.from('idioms').update({ title, content }).eq('id', editingId);
       if (error) return alert(`수정 실패 (DB 에러): ${error.message}`);
       alert('수정되었습니다!');
     } else {
-      const { error } = await supabase.from('idioms').insert([{ title, content }]);
+      const { error } = await adminClient.from('idioms').insert([{ title, content }]);
       if (error) return alert(`등록 실패 (DB 에러): ${error.message}`);
       alert('등록되었습니다!');
     }
@@ -99,8 +104,13 @@ export default function IdiomClient({ initialData = [] }: { initialData: Idiom[]
 
   // 🌟 에러 탐지기 장착 완료!
   const handleDelete = async (id: number) => {
+    const adminClient = await admin.requireAdmin();
+    if (!adminClient) {
+      alert('관리자 인증이 필요합니다. 다시 로그인해주세요.');
+      return;
+    }
     if (!confirm('정말 삭제하시겠습니까?')) return;
-    const { error } = await supabase.from('idioms').delete().eq('id', id);
+    const { error } = await adminClient.from('idioms').delete().eq('id', id);
     if (error) return alert(`삭제 실패 (DB 에러): ${error.message}`);
     alert('삭제되었습니다.');
     fetchIdioms();
@@ -118,13 +128,38 @@ export default function IdiomClient({ initialData = [] }: { initialData: Idiom[]
     setExpandedId(isOpening ? targetIdiom.id : null);
 
     if (isOpening) {
-      const newViews = (targetIdiom.views || 0) + 1;
-      setIdioms(idioms.map(n => n.id === targetIdiom.id ? { ...n, views: newViews } : n));
-      await supabase.from('idioms').update({ views: newViews }).eq('id', targetIdiom.id);
+      try {
+        const { data, error } = await supabase.rpc(
+          'xdic_increment_idiom_views',
+          { p_id: targetIdiom.id }
+        );
+
+        if (
+          error ||
+          typeof data !== 'number' ||
+          !Number.isInteger(data) ||
+          data < 0
+        ) {
+          console.warn('[X-DIC] View RPC failed:', error?.code ?? 'INVALID_RESPONSE');
+          return;
+        }
+
+        const updatedViews = data;
+
+        setIdioms(previous =>
+          previous.map(n =>
+            n.id === targetIdiom.id
+              ? { ...n, views: Math.max(n.views || 0, updatedViews) }
+              : n
+          )
+        );
+      } catch {
+        console.warn('[X-DIC] View RPC request failed');
+      }
     }
   };
 
-  const renderContentWithLineBreaks = (text: string) => text.replace(/\n/g, '<br />');
+  const renderContentWithLineBreaks = (text: string) => sanitizeContent(text);
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     const items = e.clipboardData.items;
@@ -315,7 +350,10 @@ export default function IdiomClient({ initialData = [] }: { initialData: Idiom[]
           )}
 
           <div className="flex flex-col items-center justify-center pt-12 space-y-5">
-            <button onClick={handleAdminLogin} className="text-[11px] text-slate-400 hover:text-slate-600 transition-colors underline underline-offset-4">{isAdmin ? '관리자 로그아웃' : '관리자 로그인'}</button>
+            <div className="flex w-full flex-col items-center gap-3">
+              <button onClick={handleAdminLogin} className="text-[11px] text-slate-400 hover:text-slate-600 transition-colors underline underline-offset-4">{isAdmin ? '관리자 로그아웃' : '관리자 로그인'}</button>
+              {admin.open && !isAdmin && <XdicAdminLoginForm access={admin} />}
+            </div>
           </div>
         </div>
       </main>

@@ -1,7 +1,7 @@
 {
-  "name": "엑스딕(X-DIC) - 한영/영한 복합어 전문 사전",
+  "name": "엑스딕(X-DIC) - 무료 실용 영어 번역사전",
   "short_name": "엑스딕",
-  "description": "복합어와 전문용어, 띄어쓰기 걱정 없이 한 번에! 3단계 정밀 검색과 음성 인식을 지원하는 차세대 전문 사전.",
+  "description": "번역·용어·표현·문맥 정보를 함께 찾아주는 실용 번역사전",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

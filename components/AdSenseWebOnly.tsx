@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Script from 'next/script';
 import { Capacitor } from '@capacitor/core';
 
 const ADSENSE_SRC =
@@ -31,15 +30,24 @@ export default function AdSenseWebOnly() {
     );
   }, []);
 
-  if (!shouldLoadAdSense) return null;
+  useEffect(() => {
+    if (!shouldLoadAdSense) return;
 
-  return (
-    <Script
-      id="xdic-adsense-web-only"
-      async
-      strategy="afterInteractive"
-      src={ADSENSE_SRC}
-      crossOrigin="anonymous"
-    />
-  );
+    const scriptId = "xdic-adsense-web-only";
+
+    const alreadyLoaded = Array.from(document.scripts).some(
+      script => script.id === scriptId || script.src === ADSENSE_SRC
+    );
+
+    if (alreadyLoaded) return;
+
+    const script = document.createElement("script");
+    script.id = scriptId;
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    script.src = ADSENSE_SRC;
+    document.head.appendChild(script);
+  }, [shouldLoadAdSense]);
+
+  return null;
 }

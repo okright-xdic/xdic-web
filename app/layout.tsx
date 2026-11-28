@@ -29,6 +29,7 @@ export default function RootLayout({
     <html lang="ko">
       <head>
         {/* 모바일 앱처럼 보이기 위한 설정 */}
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
